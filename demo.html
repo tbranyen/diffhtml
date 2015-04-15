@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  
+    <title>Demo</title>
+  </head>
+  <body>
+    <div class="clock"></div>
+    <script src="dist/diffhtml.js"></script>
+    <script>
+      var clock = document.querySelector('.clock');
+
+      setInterval(function() {
+        clock.diffHTML = '<span>' + new Date().toLocaleString() + '</span>';
+      }, 1000);
+    </script>
+  </body>
+</html>

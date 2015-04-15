@@ -1,0 +1,18 @@
+{
+  "name": "diffhtml",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/diffhtml",
+  "author": "Tim Branyen (@tbranyen)",
+  "license": "MIT",
+  "scripts": {
+    "build": "browserify --standalone diffhtml index.js -o dist/diffhtml.js"
+  },
+  "dependencies": {
+    "html2hyperscript": "^1.0.1",
+    "virtual-dom": "^2.0.1"
+  },
+  "devDependencies": {
+    "browserify": "^9.0.8"
+  }
+}
