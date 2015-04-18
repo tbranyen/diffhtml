@@ -45,7 +45,7 @@ Object.defineProperty(Element.prototype, 'diffHTML', {
 
     if (!this._tree) {
       var oldH = html2hscript(oldHTML);
-      var oldRender = new Function('h', 'return ' + oldH);
+      var oldRender = new Function('h', 'return ' + (oldH || 'null'));
 
       this._tree = oldRender(virtualDom.h);
       this._element = virtualDom.create(this._tree);
