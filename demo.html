@@ -8,12 +8,21 @@
   </head>
   <body>
     <div class="clock"></div>
+    <div class="component"></div>
+
     <script src="dist/diffhtml.js"></script>
     <script>
       var clock = document.querySelector('.clock');
+      var component = document.querySelector('.component');
+      var webComponentElement = document.createElement('web-component');
 
       setInterval(function() {
+        // Typical usage.
         clock.diffHTML = '<span>' + new Date().toLocaleString() + '</span>';
+
+        // Update an element and then render that element directly.
+        webComponentElement.innerText = new Date().toLocaleString();
+        component.diffHTML = webComponentElement.outerHTML;
       }, 1000);
     </script>
   </body>

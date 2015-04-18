@@ -6,12 +6,16 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "scripts": {
-    "build": "browserify --standalone diffhtml index.js -o dist/diffhtml.js"
+    "browserify": "browserify --standalone diffhtml index.js -o dist/diffhtml.js",
+    "uglifyjs": "uglifyjs dist/diffhtml.js -o dist/diffhtml.min.js",
+    "build": "npm run browserify && npm run uglifyjs"
   },
   "dependencies": {
     "virtual-dom": "^2.0.1"
   },
   "devDependencies": {
-    "browserify": "^9.0.8"
+    "browserify": "^9.0.8",
+    "jshint": "^2.7.0",
+    "uglify-js": "^2.4.20"
   }
 }
