@@ -39,6 +39,7 @@ function html2hscript(markup) {
 }
 
 Object.defineProperty(Element.prototype, 'diffHTML', {
+  configurable: true,
   set: function(newHTML) {
     var oldHTML = this.innerHTML;
     var newH = html2hscript(newHTML.outerHTML || newHTML);
