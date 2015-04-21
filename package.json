@@ -6,8 +6,8 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "scripts": {
-    "browserify": "browserify --standalone diffhtml index.js -o dist/diffhtml.js",
-    "jshint": "jshint index.js lib/recurse-nodes.js",
+    "browserify": "browserify --standalone diffhtml lib/index.js -o dist/diffhtml.js",
+    "jshint": "jshint lib/*.js",
     "test": "npm run jshint && npm run browserify && mocha-phantomjs test/index.html"
   },
   "dependencies": {
