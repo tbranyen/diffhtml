@@ -41,5 +41,29 @@ describe('Element.prototype.diffhtml', function() {
     });
   });
 
+  describe('Text', function() {
+    it('can be updated by directly setting', function() {
+      this.fixture.diffHTML = 'test';
+      assert.equal(this.fixture.textContent, 'test');
+
+      this.fixture.diffHTML = 'this';
+      assert.equal(this.fixture.textContent, 'this');
+    });
+
+    it('can replace over markup', function() {
+      this.fixture.innerHTML = '<div>test div</div>';
+      this.fixture.diffHTML = 'this';
+      assert.equal(this.fixture.innerHTML, '<span>this</span>');
+    });
+
+    it('will not replace a previous span', function() {
+      this.fixture.diffHTML = '<span class="test"></span>';
+      var span = this.fixture.querySelector('.test');
+      this.fixture.diffHTML = 'whatever';
+
+      assert.equal(this.fixture.innerHTML, '<span class="">whatever</span>');
+      assert.equal(this.fixture.firstChild, span, 'are the same element');
+    });
+  });
 
 });

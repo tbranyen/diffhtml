@@ -7,6 +7,7 @@
   "license": "MIT",
   "scripts": {
     "browserify": "browserify --standalone diffhtml lib/index.js -o dist/diffhtml.js",
+    "watchify": "watchify --standalone diffhtml lib/index.js -o dist/diffhtml.js",
     "jshint": "jshint lib/*.js",
     "test": "npm run jshint && npm run browserify && mocha-phantomjs test/index.html"
   },
@@ -19,6 +20,7 @@
     "jshint": "^2.7.0",
     "mocha": "^2.2.4",
     "mocha-phantomjs": "^3.5.3",
-    "phantomjs": "^1.9.16"
+    "phantomjs": "^1.9.16",
+    "watchify": "^3.1.2"
   }
 }

@@ -35,26 +35,37 @@ function parseElement(elem) {
 }
 
 function html2hscript(markup) {
-  return parseHTML(markup).map(parseElement).join(',');
+  var elements = parseHTML(markup).map(parseElement);
+
+  if (!elements.length) {
+    return null;
+  }
+
+  if (elements.length === 1) {
+    if (elements[0].slice(0, 1) !== 'h') {
+      return 'h("SPAN", [' + elements[0] + '])';
+    }
+
+    return elements[0];
+  }
+
+  return 'h("DIV", [' + elements.join(', ') + '])';
 }
 
 Object.defineProperty(Element.prototype, 'diffHTML', {
   configurable: true,
+
   set: function(newHTML) {
     if (typeof newHTML !== 'string') {
       throw new Error('Invalid type passed to diffHTML, expected String');
     }
 
-    var oldHTML = this.innerHTML;
     var newH = html2hscript(newHTML);
-
-    if (newH.slice(0, 1) !== 'h') {
-      newH = html2hscript('<span>' + newHTML + '</span>');
-    }
-
+    console.log(newH);
     var newRender = new Function('h', 'return ' + newH);
 
     if (!this._tree) {
+      var oldHTML = this.innerHTML;
       var oldH = html2hscript(oldHTML);
       var oldRender = new Function('h', 'return ' + (oldH || 'null'));
 
@@ -71,6 +82,7 @@ Object.defineProperty(Element.prototype, 'diffHTML', {
     }
 
     var newTree = newRender(virtualDom.h);
+    console.log(this._tree, newTree);
     var patches = virtualDom.diff(this._tree, newTree);
 
     this._tree = newTree;
