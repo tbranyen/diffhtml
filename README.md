@@ -1,7 +1,7 @@
 Element.prototype.diffHTML
 --------------------------
 
-[![Build status][travis-image]][travis-url]
+[![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 
 Allows you to easily swap out markup and have an intelligent virtual diff patch
 in the changes.  Contrast to `innerHTML` that blows everything away when set.
