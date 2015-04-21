@@ -7,3 +7,5 @@ in the changes.  Contrast to `innerHTML` that blows everything away when set.
 ``` javascript
 document.querySelector('main').diffHTML = '<new markup to diff/>';
 ```
+
+[More information and a demo are available on http://www.diffhtml.org/](http://www.diffhtml.org/)
