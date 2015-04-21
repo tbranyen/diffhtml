@@ -61,7 +61,6 @@ Object.defineProperty(Element.prototype, 'diffHTML', {
     }
 
     var newH = html2hscript(newHTML);
-    console.log(newH);
     var newRender = new Function('h', 'return ' + newH);
 
     if (!this._tree) {
@@ -82,7 +81,6 @@ Object.defineProperty(Element.prototype, 'diffHTML', {
     }
 
     var newTree = newRender(virtualDom.h);
-    console.log(this._tree, newTree);
     var patches = virtualDom.diff(this._tree, newTree);
 
     this._tree = newTree;
