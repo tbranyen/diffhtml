@@ -8,8 +8,6 @@
   "scripts": {
     "browserify": "browserify --standalone diffhtml index.js -o dist/diffhtml.js",
     "jshint": "jshint index.js lib/recurse-nodes.js",
-    "uglifyjs": "uglifyjs dist/diffhtml.js -o dist/diffhtml.min.js",
-    "build": "npm run browserify && npm run uglifyjs",
     "test": "npm run jshint && npm run browserify && mocha-phantomjs test/index.html"
   },
   "dependencies": {
@@ -21,7 +19,6 @@
     "jshint": "^2.7.0",
     "mocha": "^2.2.4",
     "mocha-phantomjs": "^3.5.3",
-    "phantomjs": "^1.9.16",
-    "uglify-js": "^2.4.20"
+    "phantomjs": "^1.9.16"
   }
 }
