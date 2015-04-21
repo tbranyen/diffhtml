@@ -8,14 +8,19 @@
   "scripts": {
     "browserify": "browserify --standalone diffhtml index.js -o dist/diffhtml.js",
     "uglifyjs": "uglifyjs dist/diffhtml.js -o dist/diffhtml.min.js",
-    "build": "npm run browserify && npm run uglifyjs"
+    "build": "npm run browserify && npm run uglifyjs",
+    "test": "npm run browserify && mocha-phantomjs test/index.html"
   },
   "dependencies": {
+    "mocha-browser": "^0.2.0",
     "virtual-dom": "^2.0.1"
   },
   "devDependencies": {
     "browserify": "^9.0.8",
     "jshint": "^2.7.0",
+    "mocha": "^2.2.4",
+    "mocha-phantomjs": "^3.5.3",
+    "phantomjs": "^1.9.16",
     "uglify-js": "^2.4.20"
   }
 }

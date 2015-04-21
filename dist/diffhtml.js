@@ -41,8 +41,17 @@ function html2hscript(markup) {
 Object.defineProperty(Element.prototype, 'diffHTML', {
   configurable: true,
   set: function(newHTML) {
+    if (typeof newHTML !== 'string') {
+      throw new Error('Invalid type passed to diffHTML, expected String');
+    }
+
     var oldHTML = this.innerHTML;
-    var newH = html2hscript(newHTML.outerHTML || newHTML);
+    var newH = html2hscript(newHTML);
+
+    if (newH.slice(0, 1) !== 'h') {
+      newH = html2hscript('<span>' + newHTML + '</span>');
+    }
+
     var newRender = new Function('h', 'return ' + newH);
 
     if (!this._tree) {
