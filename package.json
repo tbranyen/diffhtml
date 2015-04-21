@@ -7,9 +7,10 @@
   "license": "MIT",
   "scripts": {
     "browserify": "browserify --standalone diffhtml index.js -o dist/diffhtml.js",
+    "jshint": "jshint index.js lib/recurse-nodes.js",
     "uglifyjs": "uglifyjs dist/diffhtml.js -o dist/diffhtml.min.js",
     "build": "npm run browserify && npm run uglifyjs",
-    "test": "npm run browserify && mocha-phantomjs test/index.html"
+    "test": "npm run jshint && npm run browserify && mocha-phantomjs test/index.html"
   },
   "dependencies": {
     "mocha-browser": "^0.2.0",

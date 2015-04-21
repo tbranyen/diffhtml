@@ -1,5 +1,5 @@
 var virtualDom = require('virtual-dom');
-var recurseNodes = require('./lib/recurse');
+var recurseNodes = require('./lib/recurse-nodes');
 
 var namespace = 'http://www.w3.org/1999/xhtml';
 var hidden = document.implementation.createHTMLDocument(namespace, 'html');
