@@ -66,4 +66,26 @@ describe('Element.prototype.diffhtml', function() {
     });
   });
 
+  describe('Top level elements', function() {
+    it('supports a single top level element', function() {
+      this.fixture.diffHTML = '<div class="test"></div>';
+      this.fixture.diffHTML = '<div class="whatever">steak tips</div>';
+
+      assert.equal(this.fixture.innerHTML, '<div class="whatever">steak tips</div>');
+    });
+
+    it('supports multiple top level elements auto nested in a DIV', function() {
+      this.fixture.diffHTML = '<p>thing</p><div class="test"></div>';
+      this.fixture.diffHTML = '<div class="whatever">steak tips</div><span>just checkin</span>';
+
+      assert.equal(this.fixture.innerHTML, '<div><div class="whatever">steak tips</div><span>just checkin</span></div>');
+    });
+
+    it('will wipe out elements if no top level element exists', function() {
+      this.fixture.diffHTML = '<p>thing</p><div class="test"></div>';
+      this.fixture.diffHTML = '';
+
+      assert.equal(this.fixture.innerHTML, '');
+    });
+  });
 });
