@@ -12,7 +12,6 @@
     "test": "npm run jshint && npm run browserify && mocha-phantomjs test/index.html"
   },
   "dependencies": {
-    "mocha-browser": "^0.2.0",
     "virtual-dom": "^2.0.1"
   },
   "devDependencies": {
@@ -20,6 +19,7 @@
     "jshint": "^2.7.0",
     "mocha": "^2.2.4",
     "mocha-phantomjs": "^3.5.3",
+    "mocha-browser": "^0.2.0",
     "phantomjs": "^1.9.16",
     "watchify": "^3.1.2"
   }
