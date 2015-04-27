@@ -192,8 +192,8 @@ module.exports = function(nodes) {
 
 },{}],3:[function(require,module,exports){
 /*! @source https://gist.github.com/1129031 */
-/*global document, DOMParser*/
 
+var DOMParser = window.DOMParser || function() {};
 var DOMParser_proto = DOMParser.prototype;
 var real_parseFromString = DOMParser_proto.parseFromString;
 
@@ -202,6 +202,7 @@ try {
   // WebKit returns null on unsupported types
   if ((new DOMParser).parseFromString("", "text/html")) {
     // text/html parsing is natively supported
+    module.exports = DOMParser;
     return;
   }
 } catch (unhandledException) {}
