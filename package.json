@@ -7,20 +7,25 @@
   "license": "MIT",
   "scripts": {
     "browserify": "browserify --standalone diffhtml lib/index.js -o dist/diffhtml.js",
-    "watchify": "watchify --standalone diffhtml lib/index.js -o dist/diffhtml.js",
+    "watchify": "watchify --debug --standalone diffhtml lib/index.js -o dist/diffhtml.js",
     "jshint": "jshint lib/*.js",
-    "test": "npm run jshint && npm run browserify && mocha-phantomjs test/index.html"
+    "mocha": "mocha-phantomjs test/index.html",
+    "istanbul": "istanbul instrument dist/diffhtml.js -o dist/diffhtml.coverage.js",
+    "cov": "npm run browserify -- -t browserify-istanbul && npm run mocha -- -k mocha-phantomjs-istanbul",
+    "report": "istanbul report --root coverage --dir test/coverage html lcov",
+    "test": "npm run jshint && npm run cov && npm run report"
   },
   "dependencies": {
     "virtual-dom": "^2.0.1"
   },
   "devDependencies": {
     "browserify": "^9.0.8",
+    "browserify-istanbul": "^0.2.1",
+    "istanbul": "^0.3.13",
     "jshint": "^2.7.0",
     "mocha": "^2.2.4",
-    "mocha-phantomjs": "^3.5.3",
-    "mocha-browser": "^0.2.0",
-    "phantomjs": "^1.9.16",
+    "mocha-phantomjs": "^3.5.2",
+    "mocha-phantomjs-istanbul": "0.0.2",
     "watchify": "^3.1.2"
   }
 }
