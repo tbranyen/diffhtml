@@ -28,6 +28,15 @@ function parseElement(elem) {
     var old = elem.attribs.class;
     elem.attribs.className = old;
     delete elem.attribs.class;
+
+    elem.attribs.dataset = {};
+
+    Object.keys(elem.attribs).forEach(function(key) {
+      if (key.indexOf('data-') === 0) {
+        elem.attribs.dataset[key.slice(5)] = elem.attribs[key];
+        delete elem.attribs[key];
+      }
+    });
   }
 
   args.push(hasAttribs ? JSON.stringify(elem.attribs) : null);
@@ -126,10 +135,8 @@ Object.defineProperty(Element.prototype, 'diffElement', {
 
   set: function(newElement) {
     if (!newElement.childNodes.length) { return; }
-    this._element = newElement;
-    var patches = getPatches.call(this._element, newElement.innerHTML);
-    virtualDom.patch(this._element, patches);
-    this.appendChild(newElement);
+    var patches = getPatches.call(this, newElement.innerHTML, true);
+    virtualDom.patch(newElement, patches);
   }
 });
 
@@ -197,12 +204,13 @@ var DOMParser = window.DOMParser || function() {};
 var DOMParser_proto = DOMParser.prototype;
 var real_parseFromString = DOMParser_proto.parseFromString;
 
+module.exports = DOMParser;
+
 // Firefox/Opera/IE throw errors on unsupported types
 try {
   // WebKit returns null on unsupported types
   if ((new DOMParser).parseFromString("", "text/html")) {
     // text/html parsing is natively supported
-    module.exports = DOMParser;
     return;
   }
 } catch (unhandledException) {}
@@ -226,8 +234,6 @@ DOMParser_proto.parseFromString = function(markup, type) {
 
   return doc;
 };
-
-module.exports = DOMParser;
 
 },{}],4:[function(require,module,exports){
 
