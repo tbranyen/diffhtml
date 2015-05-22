@@ -96,4 +96,13 @@ describe('Element.prototype.diffhtml', function() {
       assert.equal(this.fixture.innerHTML, '<p></p>');
     });
   });
+
+  describe('Attributes', function() {
+    it('supports inline styles', function() {
+      this.fixture.diffHTML = '<p style="font-size: 10px"></p>';
+      this.fixture.diffHTML = '<p style="font-size: 11px"></p>';
+
+      assert.equal(this.fixture.innerHTML, '<p style="font-size: 11px; "></p>');
+    });
+  });
 });
