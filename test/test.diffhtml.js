@@ -88,4 +88,12 @@ describe('Element.prototype.diffhtml', function() {
       assert.equal(this.fixture.innerHTML, '');
     });
   });
+
+  describe('Comments', function() {
+    it('ignores comments', function() {
+      this.fixture.diffHTML = '<p><!-- test --></p>';
+
+      assert.equal(this.fixture.innerHTML, '<p></p>');
+    });
+  });
 });
