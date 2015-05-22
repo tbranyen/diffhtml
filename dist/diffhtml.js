@@ -173,6 +173,7 @@ function recurse(node, i, all) {
     entry.attribs[attrs[i].name] = attrs[i].value;
   }
 
+  entry.attribs.style = node.style;
   entry.children = module.exports(childNodes);
 
   return entry;
