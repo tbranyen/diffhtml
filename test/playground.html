@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Playground</title>
+</head>
+<body>
+  <div></div>
+
+  <script src="../dist/diffhtml.js"></script>
+
+  <script>
+    // Test attribute changes.
+    var div = document.querySelector('div');
+
+    //setInterval(function() {
+      div.outerDiffHTML = '<div class="' + Date.now() + '"></div>';
+    //}, 1000);
+
+    div.outerDiffHTML = '<div class="' + Date.now() + '"></div>';
+  </script>
+</body>
+</html>

@@ -104,5 +104,21 @@ describe('Element.prototype.diffhtml', function() {
 
       assert.equal(this.fixture.innerHTML, '<p style="font-size: 11px; "></p>');
     });
+
+    describe('Data', function() {
+      it('has basic support', function() {
+        this.fixture.diffHTML = '<p data-test="test"></p>';
+        this.fixture.diffHTML = '<p data-test="test2"></p>';
+
+        assert.equal(this.fixture.innerHTML, '<p data-test="test2"></p>');
+      });
+
+      it('can handle dash separated properties', function() {
+        this.fixture.diffHTML = '<p data-test-two="test"></p>';
+        this.fixture.diffHTML = '<p data-test-two="test2"></p>';
+
+        assert.equal(this.fixture.innerHTML, '<p data-test-two="test2"></p>');
+      });
+    });
   });
 });
