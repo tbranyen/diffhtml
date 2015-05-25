@@ -13,7 +13,7 @@ select.onchange = function() {
     .then(function(template) {
       var window = iframe.contentWindow.window;
       var document = iframe.contentDocument;
-      var count = 50;
+      var count = 5;
       var lastCalled = Date.now();
 
       window.template = template;
