@@ -16,9 +16,6 @@
     "report": "istanbul report --root coverage --dir test/coverage html lcov",
     "test": "npm run jshint && npm run cov && npm run report"
   },
-  "dependencies": {
-    "virtual-dom": "^2.0.1"
-  },
   "devDependencies": {
     "browserify": "^9.0.8",
     "browserify-istanbul": "^0.2.1",
