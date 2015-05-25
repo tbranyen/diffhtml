@@ -13,13 +13,13 @@ select.onchange = function() {
     .then(function(template) {
       var window = iframe.contentWindow.window;
       var document = iframe.contentDocument;
-      var count = 5;
+      var count = 50;
       var lastCalled = Date.now();
 
       window.template = template;
 
       document.open()
-      document.write(template.render());
+      document.write(template.render({ rows: [{ name: 'test' }] }));
       document.close();
 
       var updateFPS = _.throttle(function(fps, start, currentCall) {
