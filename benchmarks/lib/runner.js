@@ -2,6 +2,26 @@ var select = document.querySelector('.change-fixture');
 var iframe = document.querySelector('.fixture');
 var timeTaken = document.querySelector('.time');
 
+var fetch = window.fetch || function fetch(url) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      var DONE = this.DONE || 4;
+
+      if (this.readyState === DONE) {
+        resolve({
+          text: function() {
+            return xhr.responseText;
+          }
+        });
+      }
+    };
+
+    xhr.open('GET', url, true);
+    xhr.send(null);
+  });
+};
+
 select.onchange = function() {
   var getTemplate = fetch(this.value);
 
@@ -13,13 +33,13 @@ select.onchange = function() {
     .then(function(template) {
       var window = iframe.contentWindow.window;
       var document = iframe.contentDocument;
-      var count = 50;
+      var count = 5;
       var lastCalled = Date.now();
 
       window.template = template;
 
       document.open()
-      document.write(template.render({ rows: [{ name: 'test' }] }));
+      document.write(template.render({}));
       document.close();
 
       var updateFPS = _.throttle(function(fps, start, currentCall) {
@@ -43,7 +63,6 @@ select.onchange = function() {
           var fps = (1 / ((currentCall - lastCalled) / 1000));
           updateFPS(fps, start, currentCall);
           lastCalled = currentCall;
-          //setTimeout(startRendering, 5000);
           requestAnimationFrame(startRendering);
         };
 
