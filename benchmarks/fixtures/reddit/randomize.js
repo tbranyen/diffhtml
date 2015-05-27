@@ -14,7 +14,7 @@ var titles = [
   "How do we know when a rock is a tool?: a discussion of archaeological methods",
   "The Justice Department is acknowledging that the FBI, DEA and other federal law enforcement agencies are likely to make increasing use of unmanned aerial drones in the United States",
   "A 3D plot of the planes that flew around my house last night [OC]",
-  "Inside a sinkhole in the mountainous Xuanen county in central China’s Hubei province. Photograph: Song Wen/Barcroft Media. From the Guardian. [1920 x 1277]",
+  "Inside a sinkhole in the mountainous Xuanen county in central China's Hubei province. Photograph: Song Wen/Barcroft Media. From the Guardian. [1920 x 1277]",
   "Black Mass - Official Trailer #2 (starring Johnny Depp)",
   "Roman children shoes - Palmyra (Syria) [657x698]",
   "First attempt at Saturn",
