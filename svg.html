@@ -1,0 +1,58 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Svg</title>
+
+  <style>
+    html, body { width: 100%; height: 100%; position: relative; padding: 0; margin: 0; }
+    svg { position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; 
+     transform: translatez(0);
+    }
+    rect {
+      transition: all linear .2s; 
+    }
+  </style>
+</head>
+<body>
+  <svg>
+    <rect x="213" y="18" height="959" width="805" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0,0)"></rect>
+  </svg>
+
+  <script type="template">
+    <svg width="100%" height="100%">
+      <rect x="{{ x }}" y="{{ y }}" height="{{ height }}" width="{{ width }}" style="fill:rgb({{ r }}, {{ g }}, {{ b }})"></rect>
+    </svg>
+  </script>
+
+  <script src="dist/diffhtml.js"></script>
+  <script src="benchmarks/node_modules/combyne/dist/combyne.js"></script>
+
+  <script>
+    var template = combyne(document.querySelector('[type=template]').innerHTML);
+    var svg = document.querySelector('svg');
+
+    function render() {
+      var r = Math.floor(Math.random() * 255);
+      var g = Math.floor(Math.random() * 255);
+      var b = Math.floor(Math.random() * 255);
+      var height = Math.floor(Math.random() * window.innerHeight);
+      var width = Math.floor(Math.random() * window.innerWidth);
+
+      svg.outerDiffHTML = template.render({
+        r: r, g: g, b: b,
+        x: Math.floor(Math.random() * Math.abs(window.innerWidth - width)),
+        y: Math.floor(Math.random() * Math.abs(window.innerHeight - height)),
+        width: width,
+        height: height 
+      });
+
+      window.setTimeout(function() {
+        requestAnimationFrame(render);
+      }, 200);
+    }
+    render();
+  </script>
+</body>
+</html>

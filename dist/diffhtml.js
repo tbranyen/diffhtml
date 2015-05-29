@@ -502,7 +502,7 @@ function syncNode(virtualNode, liveNode) {
 
     // Start with the most common, additive.
     if (newLength > oldLength) {
-      var toAdd = slice.call(attributes, oldLength - 1);
+      var toAdd = slice.call(attributes, oldLength);
 
       for (var i = 0; i < toAdd.length; i++) {
         var change = {
@@ -513,7 +513,10 @@ function syncNode(virtualNode, liveNode) {
         };
 
         // Push the change object into into the virtual tree.
-        virtualNode.attributes.push(toAdd[i]);
+        virtualNode.attributes.push({
+          name: toAdd[i].name,
+          value: toAdd[i].value
+        });
 
         // Add the change to the series of patches.
         patches.push(change);
@@ -541,7 +544,7 @@ function syncNode(virtualNode, liveNode) {
     }
 
     // Check for modifications.
-    var toModify = slice.call(attributes);
+    var toModify = attributes;
 
     for (var i = 0; i < toModify.length; i++) {
       var oldAttrValue = virtualNode.attributes[i] && virtualNode.attributes[i].value;
