@@ -120,15 +120,17 @@ module.exports = makeNode;
 
 },{"../util/pools":9}],3:[function(require,module,exports){
 var pools = require('../util/pools');
+var poolCount = 9600;
+
+// Initialize with a reasonable amount of objects.
+pools.initialize(poolCount);
+
 var htmls = require('../util/htmls');
 var parser = require('../util/parser');
 var buffers = require('../util/buffers');
 var syncNode = require('./sync_node');
 var makeNode = require('./make_node');
 var makeElement = require('./make_element');
-
-// Initialize with a reasonable amount of objects.
-pools.initialize(1000);
 
 var hasWorker = typeof Worker === 'function';
 var oldTree = null;
@@ -154,13 +156,13 @@ if (hasWorker) {
       // Add in pool manipulation methods.
       pools.create,
       pools.initialize,
+      'initializePools(' + poolCount + ');',
 
       // Add in Node manipulation.
       syncNode.filter,
       syncNode.sync,
 
       // Add in the ability to parseHTML.
-      htmls.processNode,
       htmls.parseHTML,
 
       // Give the webworker utilities.
@@ -379,6 +381,10 @@ function patch(element, newHTML, isInner) {
     if (!element.__has_rendered__) {
       element.__has_rendered__ = true;
     }
+
+    //pools.object.freeAll();
+    //pools.array.freeAll();
+    //pools.uuid.freeAll();
   }
 }
 
@@ -624,26 +630,6 @@ exports.bufferToString = function bufferToString(buffer) {
 var pools = require('./pools');
 var parser = require('./parser').makeParser();
 
-function processNode(node) {
-  node.element = pools.uuid.get();
-  node.attributes = pools.array.get();
-
-  var attrsObject = node.attrsAsObject;
-
-  for (var key in attrsObject) {
-    node.attributes.push({ name: key, value: attrsObject[key] });
-  }
-
-  delete node._attrs;
-  delete node._rawAttrs;
-  delete node.rawAttrs;
-  delete node.rawText;
-
-  if (node.childNodes) {
-    node.childNodes.forEach(processNode);
-  }
-}
-
 /**
  * parseHTML
  *
@@ -651,17 +637,15 @@ function processNode(node) {
  * @return
  */
 function parseHTML(newHTML) {
-  var documentElement = parser.parse(newHTML).childNodes[0];
-  documentElement.removeWhitespace();
-  processNode(documentElement);
-  return documentElement;
+  return parser.parse(newHTML).childNodes[0];
 }
 
-exports.processNode = processNode;
-exports.parseHTML = parseHTML;
+window.parseHTML = exports.parseHTML = parseHTML;
 
 },{"./parser":8,"./pools":9}],8:[function(require,module,exports){
 (function (global){
+var pools = require('./pools');
+
 module.exports.makeParser = function makeParser() {
   var g = {};
   (function(f){g.htmlParser = f()})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -1587,7 +1571,7 @@ module.exports.makeParser = function makeParser() {
         if (Object.isObject(res[i]))
           res[i] = $valueCopy(res[i]);
     } else if (Object.isObjectStrict(obj)) {
-      res = {};
+      res = pools.object.get();
       for (var key in obj)
         res[key] = $valueCopy(obj[key]);
     } else if (Function.isFunction(obj)) {
@@ -1614,7 +1598,7 @@ module.exports.makeParser = function makeParser() {
           if (Object.isObject(res[i]))
             res[i] = $clone(res[i], _deep);
     } else if (Object.isObjectStrict(obj)) {
-      res = {};
+      res = pools.object.get();
       for (var key in obj)
         res[key] = obj[key];
       if (deep)
@@ -1980,7 +1964,7 @@ module.exports.makeParser = function makeParser() {
      * @return {Array}     flattened array.
      */
     flatten: function(deep) {
-      var res = [];
+      var res = pools.array.get();
       if (!deep)
         return res.concat.apply(res, this);
       for (var i = 0; i < this.length; i++)
@@ -1995,8 +1979,8 @@ module.exports.makeParser = function makeParser() {
      * @return {Array}
      */
     unique: function() {
-      var res = [];
-      var dict = {};
+      var res = pools.array.get();
+      var dict = pools.object.get();
       for (var i = 0; i < this.length; ++i) {
         var key = this[i].toString();
         if (dict.hasOwnProperty(key))
@@ -2107,7 +2091,7 @@ module.exports.makeParser = function makeParser() {
     project: function(object, projection, deep, keep) {
       if (!Object.isObject(projection))
         return object;
-      var res = {};
+      var res = pools.object.get();
       Object.keys(projection).forEach(function(key) {
         var proj = projection[key];
         if (proj) {
@@ -2125,7 +2109,7 @@ module.exports.makeParser = function makeParser() {
       return res;
     },
     Transformer: function(mapping) {
-      var expr = [];
+      var expr = pools.array.get();
       expr.push('exec=function (object) {');
       expr.push('var res = {};');
       (function loop(lhv, mapping) {
@@ -2404,12 +2388,12 @@ module.exports.makeParser = function makeParser() {
     return Object.keys(obj).sort().reduce(function(inverse, name){
       inverse[obj[name]] = "&" + name + ";";
       return inverse;
-    }, {});
+    }, pools.object.get());
   }
 
   function getInverseReplacer(inverse){
-    var single = [],
-        multiple = [];
+    var single = pools.array.get(),
+        multiple = pools.array.get();
 
     Object.keys(inverse).forEach(function(k){
       if(k.length === 1){
@@ -2497,8 +2481,9 @@ module.exports.makeParser = function makeParser() {
    * @param {string} value [description]
    */
   function TextNode(value) {
-    this.nodeValue = value;
+    this.nodeValue = entities.decodeHTML5(value);
     this.nodeName = '#text';
+    this.element = pools.uuid.get();
   }
   $inherit(TextNode, Node, {
     /**
@@ -2549,9 +2534,22 @@ module.exports.makeParser = function makeParser() {
    */
   function HTMLElement(name, keyAttrs, rawAttrs) {
     this.nodeName = name;
-    this.rawAttrs = rawAttrs || '';
+    this.attributes = pools.array.get();
+
+    if (rawAttrs) {
+      var re = /\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
+
+      for (var match; match = re.exec(rawAttrs); ) {
+        var attr = pools.object.get();
+        attr.name = match[1];
+        attr.value = match[3] || match[4] || match[5];
+        this.attributes.push(attr);
+      }
+    }
+
     // this.parentNode = null;
-    this.childNodes = [];
+    this.childNodes = pools.array.get();
+    this.element = pools.uuid.get();
   }
   $inherit(HTMLElement, Node, {
 
@@ -2581,102 +2579,6 @@ module.exports.makeParser = function makeParser() {
     },
 
     /**
-     * Get structured Text (with '\n' etc.)
-     * @return {string} structured text
-     */
-    get structuredText() {
-      var currentBlock = [];
-      var blocks = [currentBlock];
-      function dfs(node) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          if (kBlockElements[node.nodeName]) {
-            if (currentBlock.length > 0)
-              blocks.push(currentBlock = []);
-            node.childNodes.forEach(dfs);
-            if (currentBlock.length > 0)
-              blocks.push(currentBlock = []);
-          } else {
-            node.childNodes.forEach(dfs);
-          }
-        } else if (node.nodeType === Node.TEXT_NODE) {
-          if (node.isWhitespace) {
-            // Whitespace node, postponed output
-            currentBlock.prependWhitespace = true;
-          } else {
-            var text = node.text;
-            if (currentBlock.prependWhitespace) {
-              text = ' ' + text;
-              currentBlock.prependWhitespace = false;
-            }
-            currentBlock.push(text);
-          }
-        }
-      }
-      dfs(this);
-      return blocks
-          .map(function(block) {
-            // Normalize each line's whitespace
-            return block.join('').trim().replace(/\s{2,}/g, ' ');
-          })
-          .join('\n').trimRight();
-    },
-
-    /**
-     * Trim element from right (in block) after seeing pattern in a TextNode.
-     * @param  {RegExp} pattern pattern to find
-     * @return {HTMLElement}    reference to current node
-     */
-    trimRight: function(pattern) {
-      function dfs(node) {
-        for (var i = 0; i < node.childNodes.length; i++) {
-          var childNode = node.childNodes[i];
-          if (childNode.nodeType === Node.ELEMENT_NODE) {
-            dfs(childNode);
-          } else {
-            var index = childNode.rawText.search(pattern);
-            if (index > -1) {
-              childNode.rawText = childNode.rawText.substr(0, index);
-              // trim all following nodes.
-              node.childNodes.length = i+1;
-            }
-          }
-        }
-      }
-      dfs(this);
-      return this;
-    },
-
-    /**
-     * Get DOM structure
-     * @return {string} strucutre
-     */
-    get structure() {
-      var res = [];
-      var indention = 0;
-      function write(str) {
-        res.push('  '.repeat(indention) + str);
-      }
-      function dfs(node) {
-        var idStr = node.id ? ('#' + node.id) : '';
-        var classStr = node.classNames.length ? ('.' + node.classNames.join('.')) : '';
-        write(node.nodeName + idStr + classStr);
-        indention++;
-        for (var i = 0; i < node.childNodes.length; i++) {
-          var childNode = node.childNodes[i];
-          if (childNode.nodeType === Node.ELEMENT_NODE) {
-            dfs(childNode);
-          } else if (childNode.nodeType === Node.TEXT_NODE) {
-            if (!childNode.isWhitespace)
-              write('#text');
-          }
-        }
-        indention--;
-      }
-      dfs(this);
-      return res.join('\n');
-    },
-
-    /**
      * Remove whitespaces in this sub tree.
      * @return {HTMLElement} pointer to this
      */
@@ -2698,99 +2600,6 @@ module.exports.makeParser = function makeParser() {
     },
 
     /**
-     * Query CSS selector to find matching nodes.
-     * @param  {string}         selector Simplified CSS selector
-     * @param  {Matcher}        selector A Matcher instance
-     * @return {HTMLElement[]}  matching elements
-     */
-    querySelectorAll: function(selector) {
-      var matcher;
-      if (selector instanceof Matcher) {
-        matcher = selector;
-        matcher.reset();
-      } else {
-        matcher = new Matcher(selector);
-      }
-      var res = [];
-      var stack = [];
-      for (var i = 0; i < this.childNodes.length; i++) {
-        stack.push([this.childNodes[i], 0, false]);
-        while (stack.length) {
-          var state = stack.back;
-          var el = state[0];
-          if (state[1] === 0) {
-            // Seen for first time.
-            if (el.nodeType !== Node.ELEMENT_NODE) {
-              stack.pop();
-              continue;
-            }
-            if (state[2] = matcher.advance(el)) {
-              if (matcher.matched) {
-                res.push(el);
-                // no need to go further.
-                matcher.rewind();
-                stack.pop();
-                continue;
-              }
-            }
-          }
-          if (state[1] < el.childNodes.length) {
-            stack.push([el.childNodes[state[1]++], 0, false]);
-          } else {
-            if (state[2])
-              matcher.rewind();
-            stack.pop();
-          }
-        }
-      }
-      return res;
-    },
-
-    /**
-     * Query CSS Selector to find matching node.
-     * @param  {string}         selector Simplified CSS selector
-     * @param  {Matcher}        selector A Matcher instance
-     * @return {HTMLElement}    matching node
-     */
-    querySelector: function(selector) {
-      var matcher;
-      if (selector instanceof Matcher) {
-        matcher = selector;
-        matcher.reset();
-      } else {
-        matcher = new Matcher(selector);
-      }
-      var stack = [];
-      for (var i = 0; i < this.childNodes.length; i++) {
-        stack.push([this.childNodes[i], 0, false]);
-        while (stack.length) {
-          var state = stack.back;
-          var el = state[0];
-          if (state[1] === 0) {
-            // Seen for first time.
-            if (el.nodeType !== Node.ELEMENT_NODE) {
-              stack.pop();
-              continue;
-            }
-            if (state[2] = matcher.advance(el)) {
-              if (matcher.matched) {
-                return el;
-              }
-            }
-          }
-          if (state[1] < el.childNodes.length) {
-            stack.push([el.childNodes[state[1]++], 0, false]);
-          } else {
-            if (state[2])
-              matcher.rewind();
-            stack.pop();
-          }
-        }
-      }
-      return null;
-    },
-
-    /**
      * Append a child node to childNodes
      * @param  {Node} node node to append
      * @return {Node}      node appended
@@ -2799,56 +2608,7 @@ module.exports.makeParser = function makeParser() {
       // node.parentNode = this;
       this.childNodes.push(node);
       return node;
-    },
-
-    /**
-     * Get first child node
-     * @return {Node} first child node
-     */
-    get firstChild() {
-      return this.childNodes.front;
-    },
-
-    /**
-     * Get last child node
-     * @return {Node} last child node
-     */
-    get lastChild() {
-      return this.childNodes.back;
-    },
-
-    /**
-     * Get attributes
-     * @return {Object} parsed and unescaped attributes
-     */
-    get attrsAsObject() {
-      if (this._attrs)
-        return this._attrs;
-      this._attrs = {};
-      var attrs = this.rawAttributes;
-      for (var key in attrs) {
-        this._attrs[key] = entities.decodeHTML5(attrs[key]);
-      }
-      return this._attrs;
-    },
-
-    /**
-     * Get escaped (as-it) attributes
-     * @return {Object} parsed attributes
-     */
-    get rawAttributes() {
-      if (this._rawAttrs)
-        return this._rawAttrs;
-      var attrs = {};
-      if (this.rawAttrs) {
-        var re = /\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
-        for (var match; match = re.exec(this.rawAttrs); )
-          attrs[match[1]] = match[3] || match[4] || match[5];
-      }
-      this._rawAttrs = attrs;
-      return attrs;
     }
-
   });
   $define(HTMLElement, {
     __wrap: function(el) {
@@ -2999,7 +2759,9 @@ module.exports.makeParser = function makeParser() {
           if (lastTextPos + match[0].length < kMarkupPattern.lastIndex) {
             // if has content
             text = data.substring(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
-            currentParent.appendChild(new TextNode(text));
+            if (text.trim()) {
+              currentParent.appendChild(new TextNode(text));
+            }
           }
         }
         lastTextPos = kMarkupPattern.lastIndex;
@@ -3083,7 +2845,7 @@ module.exports.makeParser = function makeParser() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../maps/decode.json":undefined,"../maps/entities.json":undefined,"../maps/legacy.json":undefined,"../maps/xml.json":undefined,"./decode_codepoint.js":undefined,"./lib/decode.js":undefined,"./lib/encode.js":undefined,"./package":undefined,"./support/isBuffer":undefined,"_process":13,"apollojs":undefined,"entities":undefined,"inherits":undefined,"util":15}],9:[function(require,module,exports){
+},{"../maps/decode.json":undefined,"../maps/entities.json":undefined,"../maps/legacy.json":undefined,"../maps/xml.json":undefined,"./decode_codepoint.js":undefined,"./lib/decode.js":undefined,"./lib/encode.js":undefined,"./package":undefined,"./pools":9,"./support/isBuffer":undefined,"_process":13,"apollojs":undefined,"entities":undefined,"inherits":undefined,"util":15}],9:[function(require,module,exports){
 var pools = exports;
 var uuid = require('./uuid');
 
@@ -3103,9 +2865,12 @@ function createPool(size, name, fill) {
 
     get: function() {
       var obj = null;
+      var freeLength = free.length;
+      var minusOne = freeLength - 1;
 
-      if (free.length) {
-        obj = free.pop();
+      if (freeLength) {
+        obj = free[minusOne];
+        free.length = minusOne;
       }
       else {
         obj = fill();
@@ -3142,7 +2907,7 @@ function createPool(size, name, fill) {
         idx = idx || -1;
 
         // Already freed.
-        if (idx === -1) { return; }
+        if (idx === -1) { continue; }
 
         // Clean.
         if (obj.length) {
@@ -3233,13 +2998,11 @@ module.exports = uuid;
 
 },{}],11:[function(require,module,exports){
 function startup(worker) {
-  // Initialize the pool with a reasonable amount of objects.
-  initializePools(1000);
-
   var oldTree = null;
   var patches = [];
 
   worker.onmessage = function(e) {
+    //console.time('render');
     var data = e.data;
     var offset = data.offset;
     var transferBuffer = data.buffer;
@@ -3254,9 +3017,7 @@ function startup(worker) {
     }
 
     // Calculate a new tree.
-    //console.time('parse');
     var newTree = parseHTML(newHTML);
-    //console.timeEnd('parse');
 
     // Synchronize the old virtual tree with the new virtual tree.  This will
     // produce a series of patches that will be excuted to update the DOM.
@@ -3272,6 +3033,7 @@ function startup(worker) {
 
     // Free the new tree, as this node will never change.
     //console.time('clean');
+    //console.log(pools.uuid._allocated.length);
 
     // Cleanup sync node allocations.
     pools.uuid.freeAll();
@@ -3280,10 +3042,13 @@ function startup(worker) {
 
     //console.timeEnd('clean');
     //console.info('Objects free: %s', pools.array._free.length);
-    //console.info('Objects allocated: %o', pools.array._allocated);
+    //console.info('Arrays allocated: %o', pools.array._allocated);
+    //console.info('Objects allocated: %o', pools.object._allocated);
+    //console.info('UUIDs allocated: %o', pools.uuid._allocated);
 
     // Wipe out the patches in memory.
     patches.length = 0;
+    //console.timeEnd('render');
   };
 }
 

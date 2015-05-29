@@ -33,7 +33,7 @@ select.onchange = function() {
     .then(function(template) {
       var window = iframe.contentWindow.window;
       var document = iframe.contentDocument;
-      var count = 20;
+      var count = 100;
       var lastCalled = Date.now();
 
       window.template = template;
@@ -63,9 +63,9 @@ select.onchange = function() {
           var fps = (1 / ((currentCall - lastCalled) / 1000));
           updateFPS(fps, start, currentCall);
           lastCalled = currentCall;
-          //setTimeout(startRendering, 0);
+          setTimeout(startRendering, 0);
           //setTimeout(startRendering, 5000);
-          requestAnimationFrame(startRendering);
+          //requestAnimationFrame(startRendering);
         };
 
         window.render(count);
