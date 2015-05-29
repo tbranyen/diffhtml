@@ -120,7 +120,7 @@ module.exports = makeNode;
 
 },{"../util/pools":9}],3:[function(require,module,exports){
 var pools = require('../util/pools');
-var poolCount = 9600;
+var poolCount = 10000;
 
 // Initialize with a reasonable amount of objects.
 pools.initialize(poolCount);
@@ -206,6 +206,7 @@ function getElement(ref) {
 function processPatches(e) {
   var patches = e.data;
   var isInner = e.isInner;
+  //console.time('patch');
 
   // Loop through all the patches and apply them.
   for (var i = 0; i < patches.length; i++) {
@@ -283,6 +284,8 @@ function processPatches(e) {
       patch.element.nodeValue = patch.value;
     }
   }
+
+  //console.timeEnd('patch');
 }
 
 /**
@@ -1571,7 +1574,7 @@ module.exports.makeParser = function makeParser() {
         if (Object.isObject(res[i]))
           res[i] = $valueCopy(res[i]);
     } else if (Object.isObjectStrict(obj)) {
-      res = pools.object.get();
+      res = {};
       for (var key in obj)
         res[key] = $valueCopy(obj[key]);
     } else if (Function.isFunction(obj)) {
@@ -1598,7 +1601,7 @@ module.exports.makeParser = function makeParser() {
           if (Object.isObject(res[i]))
             res[i] = $clone(res[i], _deep);
     } else if (Object.isObjectStrict(obj)) {
-      res = pools.object.get();
+      res = {};
       for (var key in obj)
         res[key] = obj[key];
       if (deep)
@@ -1964,7 +1967,7 @@ module.exports.makeParser = function makeParser() {
      * @return {Array}     flattened array.
      */
     flatten: function(deep) {
-      var res = pools.array.get();
+      var res = [];
       if (!deep)
         return res.concat.apply(res, this);
       for (var i = 0; i < this.length; i++)
@@ -1979,8 +1982,8 @@ module.exports.makeParser = function makeParser() {
      * @return {Array}
      */
     unique: function() {
-      var res = pools.array.get();
-      var dict = pools.object.get();
+      var res = [];
+      var dict = {};
       for (var i = 0; i < this.length; ++i) {
         var key = this[i].toString();
         if (dict.hasOwnProperty(key))
@@ -2091,7 +2094,7 @@ module.exports.makeParser = function makeParser() {
     project: function(object, projection, deep, keep) {
       if (!Object.isObject(projection))
         return object;
-      var res = pools.object.get();
+      var res = {};
       Object.keys(projection).forEach(function(key) {
         var proj = projection[key];
         if (proj) {
@@ -2109,7 +2112,7 @@ module.exports.makeParser = function makeParser() {
       return res;
     },
     Transformer: function(mapping) {
-      var expr = pools.array.get();
+      var expr = [];
       expr.push('exec=function (object) {');
       expr.push('var res = {};');
       (function loop(lhv, mapping) {
@@ -2388,12 +2391,12 @@ module.exports.makeParser = function makeParser() {
     return Object.keys(obj).sort().reduce(function(inverse, name){
       inverse[obj[name]] = "&" + name + ";";
       return inverse;
-    }, pools.object.get());
+    }, {});
   }
 
   function getInverseReplacer(inverse){
-    var single = pools.array.get(),
-        multiple = pools.array.get();
+    var single = [],
+        multiple = [];
 
     Object.keys(inverse).forEach(function(k){
       if(k.length === 1){
@@ -2534,13 +2537,13 @@ module.exports.makeParser = function makeParser() {
    */
   function HTMLElement(name, keyAttrs, rawAttrs) {
     this.nodeName = name;
-    this.attributes = pools.array.get();
+    this.attributes = [];
 
     if (rawAttrs) {
       var re = /\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
 
       for (var match; match = re.exec(rawAttrs); ) {
-        var attr = pools.object.get();
+        var attr = {};
         attr.name = match[1];
         attr.value = match[3] || match[4] || match[5];
         this.attributes.push(attr);
@@ -2548,7 +2551,7 @@ module.exports.makeParser = function makeParser() {
     }
 
     // this.parentNode = null;
-    this.childNodes = pools.array.get();
+    this.childNodes = [];
     this.element = pools.uuid.get();
   }
   $inherit(HTMLElement, Node, {
@@ -2597,17 +2600,6 @@ module.exports.makeParser = function makeParser() {
       }
       this.childNodes.length = o;
       return this;
-    },
-
-    /**
-     * Append a child node to childNodes
-     * @param  {Node} node node to append
-     * @return {Node}      node appended
-     */
-    appendChild: function(node) {
-      // node.parentNode = this;
-      this.childNodes.push(node);
-      return node;
     }
   });
   $define(HTMLElement, {
@@ -2760,7 +2752,11 @@ module.exports.makeParser = function makeParser() {
             // if has content
             text = data.substring(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
             if (text.trim()) {
-              currentParent.appendChild(new TextNode(text));
+              currentParent.childNodes.push({
+                nodeName: '#text',
+                element: pools.uuid.get(),
+                nodeValue: entities.decodeHTML5(text)
+              });
             }
           }
         }
@@ -2776,15 +2772,14 @@ module.exports.makeParser = function makeParser() {
           var attrs = {};
           for (var attMatch; attMatch = kAttributePattern.exec(match[3]); )
             attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];
-          // console.log(attrs);
           if (!match[4] && kElementsClosedByOpening[currentParent.nodeName]) {
             if (kElementsClosedByOpening[currentParent.nodeName][match[2]]) {
               stack.pop();
               currentParent = stack.back;
             }
           }
-          currentParent = currentParent.appendChild(
-              new HTMLElement(match[2], attrs, match[3]));
+          currentParent = currentParent.childNodes[currentParent.childNodes.push(
+              new HTMLElement(match[2], attrs, match[3])) - 1];
           stack.push(currentParent);
           if (kBlockTextElements[match[2]]) {
             // a little test to find next </script> or </style> ...
@@ -2798,7 +2793,11 @@ module.exports.makeParser = function makeParser() {
                 text = data.substring(kMarkupPattern.lastIndex, index);
               }
               if (text.length > 0)
-                currentParent.appendChild(new TextNode(text));
+                currentParent.childNodes.push({
+                  nodeValue: entities.decodeHTML5(text),
+                  nodeName: '#text',
+                  element: pools.uuid.get()
+                });
             }
             if (index == -1) {
               lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
@@ -3017,7 +3016,9 @@ function startup(worker) {
     }
 
     // Calculate a new tree.
+    //console.time('parse');
     var newTree = parseHTML(newHTML);
+    //console.timeEnd('parse');
 
     // Synchronize the old virtual tree with the new virtual tree.  This will
     // produce a series of patches that will be excuted to update the DOM.

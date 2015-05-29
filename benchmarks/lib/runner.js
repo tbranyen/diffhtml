@@ -33,7 +33,7 @@ select.onchange = function() {
     .then(function(template) {
       var window = iframe.contentWindow.window;
       var document = iframe.contentDocument;
-      var count = 100;
+      var count = 200;
       var lastCalled = Date.now();
 
       window.template = template;
