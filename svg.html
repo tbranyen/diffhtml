@@ -11,18 +11,24 @@
      transform: translatez(0);
     }
     rect {
-      transition: all linear .2s; 
+      /*transition: all linear .2s;*/
     }
   </style>
 </head>
 <body>
-  <svg>
-    <rect x="213" y="18" height="959" width="805" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0,0)"></rect>
-  </svg>
+  <svg></svg>
 
   <script type="template">
     <svg width="100%" height="100%">
-      <rect x="{{ x }}" y="{{ y }}" height="{{ height }}" width="{{ width }}" style="fill:rgb({{ r }}, {{ g }}, {{ b }})"></rect>
+      {%each rects as rect%}
+        <rect
+          x="{{ rect.x }}"
+          y="{{ rect.y }}"
+          height="{{ rect.height }}"
+          width="{{ rect.width }}"
+          style="fill:rgb({{ rect.r }}, {{ rect.g }}, {{ rect.b }})"
+        />
+      {%endeach%}
     </svg>
   </script>
 
@@ -32,25 +38,34 @@
   <script>
     var template = combyne(document.querySelector('[type=template]').innerHTML);
     var svg = document.querySelector('svg');
+    var count = 100;
 
     function render() {
-      var r = Math.floor(Math.random() * 255);
-      var g = Math.floor(Math.random() * 255);
-      var b = Math.floor(Math.random() * 255);
-      var height = Math.floor(Math.random() * window.innerHeight);
-      var width = Math.floor(Math.random() * window.innerWidth);
+      var rects = new Array(count);
 
-      svg.outerDiffHTML = template.render({
-        r: r, g: g, b: b,
-        x: Math.floor(Math.random() * Math.abs(window.innerWidth - width)),
-        y: Math.floor(Math.random() * Math.abs(window.innerHeight - height)),
-        width: width,
-        height: height 
-      });
+      for (var i = 0; i < count; i++) {
+        var r = Math.floor(Math.random() * 255);
+        var g = Math.floor(Math.random() * 255);
+        var b = Math.floor(Math.random() * 255);
+        var height = Math.floor(Math.random() * window.innerHeight);
+        var width = Math.floor(Math.random() * window.innerWidth);
 
-      window.setTimeout(function() {
+        rects[i] = {
+          r: r,
+          g: g,
+          b: b,
+          x: Math.floor(Math.random() * Math.abs(window.innerWidth - width)),
+          y: Math.floor(Math.random() * Math.abs(window.innerHeight - height)),
+          width: width,
+          height: height 
+        };
+      }
+
+      svg.outerDiffHTML = template.render({ rects: rects });
+
+      //window.setTimeout(function() {
         requestAnimationFrame(render);
-      }, 200);
+      //}, 200);
     }
     render();
   </script>
