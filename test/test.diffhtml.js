@@ -1,4 +1,4 @@
-describe('diffhtml', function() {
+describe.skip('diffhtml', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
   });

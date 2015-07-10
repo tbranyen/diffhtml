@@ -144,11 +144,7 @@ var buffers = require('../util/buffers');
 var syncNode = require('./sync_node');
 var makeNode = require('./make_node');
 var makeElement = require('./make_element');
-
 var hasWorker = typeof Worker === 'function';
-var oldTree = null;
-var isRendering = false;
-var synced = false;
 
 // Set up a WebWorker if available.
 if (hasWorker) {
@@ -245,6 +241,11 @@ function processPatches(element, e) {
       continue;
     }
 
+    // Replace the entire Node.
+    else if (patch.__do__ === 0) {
+      patch.old.parentNode.replaceChild(patch.new, patch.old);
+    }
+
     // Node manip.
     else if (patch.__do__ === 1) {
       var transitionEvent = new CustomEvent('transitionElement');
@@ -335,41 +336,47 @@ function processPatches(element, e) {
  * @param element
  * @param newHTML
  */
-function patch(element, newHTML, isInner) {
-  if (isRendering) { return; }
+function patch(element, newHTML, options) {
+  // Ensure that the document disable worker is always picked up.
+  if (typeof options.disableWorker !== 'boolean') {
+    options.disableWorker = document.DISABLE_WORKER;
+  }
+
+  var wantsWorker = hasWorker && !options.disableWorker;
+
+  if (element.__is_rendering__) { return; }
 
   if (typeof newHTML !== 'string') {
     throw new Error('Invalid type passed to diffHTML, expected String');
   }
 
-  // Attach all properties here to transport.
-  var transferObject = {};
-
   // Only calculate the parent's initial state one time.
-  if (!oldTree) {
-    oldTree = makeNode(element);
-    transferObject.oldTree = oldTree;
+  if (!element.__old_tree__) {
+    element.__old_tree__ = makeNode(element);
   }
-  // Same markup being applied, early exit.
-  else if (element.__source__ === newHTML) {
+  // InnerHTML is the same.
+  else if (options.inner && element.innerHTML === newHTML) {
+    return;
+  }
+  // OuterHTML is the same.
+  else if (!options.inner && element.outerHTML === newHTML) {
     return;
   }
 
-  // Always update the internal `__source__`.
-  element.__source__ = newHTML;
-
-  // Optionally disable workers.
-  hasWorker = !Boolean(document.DISABLE_WORKER);
-
   // Will want to ensure that the first render went through, the worker can
   // take a bit to startup and we want to show changes as soon as possible.
-  if (hasWorker && element.__has_rendered__) {
+  if (wantsWorker && hasWorker && element.__has_rendered__) {
+    // Attach all properties here to transport.
+    var transferObject = {
+      oldTree: element.__old_tree__
+    };
+
     // First time syncing needs the current tree.
-    if (!synced) {
-      transferObject.oldTree = oldTree;
+    if (!element.__synced__) {
+      transferObject.oldTree = element.__old_tree__;
     }
 
-    synced = true;
+    element.__synced__ = true;
 
     var start = Date.now();
 
@@ -396,10 +403,10 @@ function patch(element, newHTML, isInner) {
     // Add properties to send to worker.
     transferObject.offset = newBuffer.byteLength;
     transferObject.buffer = transferBuffer.buffer;
-    transferObject.isInner = isInner;
+    transferObject.isInner = options.inner;
 
     // Set a render lock as to not flood the worker.
-    isRendering = true;
+    element.__is_rendering__ = true;
 
     // Transfer this buffer to the worker, which will take over and process the
     // markup.
@@ -408,34 +415,49 @@ function patch(element, newHTML, isInner) {
     // Wait for the worker to finish processing and then apply the patchset.
     worker.onmessage = function(e) {
       processPatches(element, e);
-      isRendering = false;
+      element.__is_rendering__ = false;
     };
   }
-  else if (!hasWorker || !element.__has_rendered__) {
+  else if (!wantsWorker || !hasWorker || !element.__has_rendered__) {
+    var oldTree = element.__old_tree__;
     var newTree = htmls.parseHTML(newHTML);
     var patches = [];
 
-    // Synchronize the tree.
-    syncNode.sync.call(patches, oldTree, newTree);
+    var oldNodeName = oldTree.nodeName || '';
+    var newNodeName = newTree && newTree.nodeName;
+
+    // If the element node types match, try and compare them.
+    if (oldNodeName === newNodeName) {
+      // Synchronize the tree.
+      syncNode.sync.call(patches, element.__old_tree__, newTree);
+    }
+    // Otherwise replace the top level elements.
+    else if (newHTML) {
+      patches.push({
+        __do__: 0,
+        old: oldTree,
+        new: newTree
+      });
+
+      element.__old_tree__ = newTree;
+    }
 
     // Attach inner state.
-    patches.isInner = isInner;
+    patches.isInner = options.inner;
 
     // Process the patches immediately.
     processPatches(element, { data: patches });
-
-    // Clean out this array.
-    patches.length = 0;
 
     // Mark this element as initially rendered.
     if (!element.__has_rendered__) {
       element.__has_rendered__ = true;
     }
 
-    // FIXME Why are these here?
-    //pools.object.freeAll();
-    //pools.array.freeAll();
-    //pools.uuid.freeAll();
+    // Element has stopped rendering.
+    element.__is_rendering__ = false;
+
+    // Clean out the patches array.
+    patches.length = 0;
   }
 }
 
@@ -560,6 +582,13 @@ function syncNode(virtualNode, liveNode) {
   // Filter down the childNodes to only what we care about.
   var childNodes = liveNode.childNodes;
   var newChildNodesLength = childNodes ? childNodes.length : 0;
+
+  // If the element we're replacing is totally different from the previous
+  // replace the entire element, don't bother investigating children.
+  if (virtualNode.nodeName !== liveNode.nodeName) {
+
+    return;
+  }
 
   // Replace text node values if they are different.
   if (liveNode.nodeName === '#text' && virtualNode.nodeName === '#text') {
@@ -725,11 +754,15 @@ exports.sync = syncNode;
 },{"../util/pools":10}],6:[function(require,module,exports){
 var patchNode = require('./diff/patch_node');
 
+function diffhtml(element, markup, options) {
+  patchNode(element, markup || '', options || {});
+}
+
 Object.defineProperty(Element.prototype, 'diffInnerHTML', {
   configurable: true,
 
   set: function(newHTML) {
-    patchNode(this, newHTML, true);
+    diffhtml(this, newHTML, { inner: true });
   }
 });
 
@@ -737,9 +770,11 @@ Object.defineProperty(Element.prototype, 'diffOuterHTML', {
   configurable: true,
 
   set: function(newHTML) {
-    patchNode(this, newHTML);
+    diffhtml(this, newHTML, { inner: false });
   }
 });
+
+module.exports = diffhtml;
 
 },{"./diff/patch_node":3}],7:[function(require,module,exports){
 /**
@@ -3147,7 +3182,6 @@ function startup(worker) {
   var patches = [];
 
   worker.onmessage = function(e) {
-    //console.time('render');
     var data = e.data;
     var offset = data.offset;
     var transferBuffer = data.buffer;
@@ -3162,15 +3196,11 @@ function startup(worker) {
     }
 
     // Calculate a new tree.
-    //console.time('parse');
     var newTree = parseHTML(newHTML);
-    //console.timeEnd('parse');
 
     // Synchronize the old virtual tree with the new virtual tree.  This will
     // produce a series of patches that will be excuted to update the DOM.
-    //console.time('sync');
     syncNode.call(patches, oldTree, newTree);
-    //console.timeEnd('sync');
 
     // Attach inner state.
     patches.isInner = isInner;
@@ -3178,24 +3208,13 @@ function startup(worker) {
     // Send the patches back to the userland.
     worker.postMessage(patches);
 
-    // Free the new tree, as this node will never change.
-    //console.time('clean');
-    //console.log(pools.uuid._allocated.length);
-
     // Cleanup sync node allocations.
-    pools.uuid.freeAll();
+    //pools.uuid.freeAll(); // TODO Wipe out the node cache when free'ing.
     pools.object.freeAll();
     pools.array.freeAll();
 
-    //console.timeEnd('clean');
-    //console.info('Objects free: %s', pools.array._free.length);
-    //console.info('Arrays allocated: %o', pools.array._allocated);
-    //console.info('Objects allocated: %o', pools.object._allocated);
-    //console.info('UUIDs allocated: %o', pools.uuid._allocated);
-
     // Wipe out the patches in memory.
     patches.length = 0;
-    //console.timeEnd('render');
   };
 }
 
