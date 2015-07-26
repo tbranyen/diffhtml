@@ -42,7 +42,7 @@
   <button class="add">Add element</button>
 
   <div class="stage">
-    <div class="circle"></div>
+    <div class="circle new"></div>
   </div>
 
   <script src="../../node_modules/jquery/dist/jquery.js"></script>
@@ -62,21 +62,24 @@
       on = !on;
     };
 
-    stage.addEventListener('transitionElement', function(event) {
-      if (event.action === 'added') {
+    stage.transitionStates({
+      replaced: function(oldEl, newEl) {
+        if (this.timeout) { return; }
 
-      }
-      else if (event.action === 'replaced') {
-        $(event.old).addClass('old');
-        $(event.new).addClass('new');
+        oldEl.classList.remove('new');
 
-        event.promise = new Promise(function(resolve, reject) {
-          event.old.addEventListener('transitionend', function() {
-            resolve();
-          }, true);
+        var timeout = this.timeout = setTimeout(function() {
+          oldEl.classList.add('old');
+          newEl.classList.add('new');
+
+          clearTimeout(timeout);
+        }, 0);
+
+        return new Promise(function(resolve, reject) {
+          oldEl.addEventListener('transitionend', resolve, true);
         });
       }
-    }, true);
+    });
   </script>
 </body>
 </html>

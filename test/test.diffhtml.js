@@ -4,11 +4,6 @@ describe.skip('diffhtml', function() {
   });
 
   describe('Basics', function() {
-    it('exists on Element prototype', function() {
-      assert('diffInnerHTML' in Element.prototype);
-      assert('diffOuterHTML' in Element.prototype);
-    });
-
     it('errors when a non-string type is passed', function() {
       var test = this;
 
@@ -89,39 +84,6 @@ describe.skip('diffhtml', function() {
       this.fixture.diffInnerHTML = '';
 
       assert.equal(this.fixture.innerHTML, '');
-    });
-  });
-
-  describe('Comments', function() {
-    it('ignores comments', function() {
-      this.fixture.diffInnerHTML = '<p><!-- test --></p>';
-
-      assert.equal(this.fixture.innerHTML, '<p></p>');
-    });
-  });
-
-  describe('Attributes', function() {
-    it('supports inline styles', function() {
-      this.fixture.diffInnerHTML = '<p style="font-size: 10px"></p>';
-      this.fixture.diffInnerHTML = '<p style="font-size: 11px"></p>';
-
-      assert.equal(this.fixture.innerHTML, '<p style="font-size: 11px; "></p>');
-    });
-
-    describe('Data', function() {
-      it('has basic support', function() {
-        this.fixture.diffInnerHTML = '<p data-test="test"></p>';
-        this.fixture.diffInnerHTML = '<p data-test="test2"></p>';
-
-        assert.equal(this.fixture.innerHTML, '<p data-test="test2"></p>');
-      });
-
-      it('can handle dash separated properties', function() {
-        this.fixture.diffInnerHTML = '<p data-test-two="test"></p>';
-        this.fixture.diffInnerHTML = '<p data-test-two="test2"></p>';
-
-        assert.equal(this.fixture.innerHTML, '<p data-test-two="test2"></p>');
-      });
     });
   });
 });
