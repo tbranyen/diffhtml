@@ -3,9 +3,6 @@
     nodes.  This will have an impact on performance, but will support more HTML
     documents than if disabled.
 
-- `document.DISABLE_WORKER = true`
-  - Disables the worker from processing
-
 - Transition elements callback, signature (old, new)
   - Always inserts new element into dom.  In the case of replace, it is
     inserted immediatel adjacent to the old node.

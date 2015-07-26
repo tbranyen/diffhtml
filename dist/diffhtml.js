@@ -752,8 +752,17 @@ function syncNode(virtualNode, liveNode) {
 exports.sync = syncNode;
 
 },{"../util/pools":10}],6:[function(require,module,exports){
+'use strict';
+
 var patchNode = require('./diff/patch_node');
 
+/**
+ * diffhtml
+ *
+ * @param {Object} element - DOM element to operate on.
+ * @param {string} markup - New markup to diff.
+ * @param {Object} options - Options to override defaults.
+ */
 function diffhtml(element, markup, options) {
   patchNode(element, markup || '', options || {});
 }
@@ -3177,6 +3186,14 @@ function uuid() {
 module.exports = uuid;
 
 },{}],12:[function(require,module,exports){
+'use strict';
+
+/**
+ * startup
+ *
+ * @param worker
+ * @return
+ */
 function startup(worker) {
   var oldTree = null;
   var patches = [];
