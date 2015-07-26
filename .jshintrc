@@ -1,4 +1,6 @@
 {
   "evil": true,
-  "shadow": true
+  "shadow": true,
+  "node": true,
+  "browser": true
 }

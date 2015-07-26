@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Replace</title>
+
+  <style>
+    .circle, .square {
+      display: block;
+      margin: 15px;
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      top: 34px;
+      left: 9px;
+      opacity: 0;
+      transition: opacity linear 2s;
+    }
+
+    .new {
+      opacity: 1;
+    }
+
+    .old {
+      opacity: 0;
+    }
+
+    .circle {
+      border-radius: 20px;
+      background: red;
+    }
+
+    .square {
+      background: blue;
+    }
+  </style>
+</head>
+<body>
+  <button class="replace">Swap</button>
+  <button class="add">Add element</button>
+
+  <div class="stage">
+    <div class="circle"></div>
+  </div>
+
+  <script src="../../node_modules/jquery/dist/jquery.js"></script>
+  <script src="../../dist/diffhtml.js"></script>
+
+  <script>
+    var stage = document.querySelector('.stage');
+    var replace = document.querySelector('.replace');
+    var add = document.querySelector('.add');
+
+    var on = false;
+
+    replace.onclick = function() {
+      var element = null;
+      element = on ? '<div class="circle"></div>' : '<p class="square"></p>';
+      stage.diffOuterHTML = `<div class="stage">${element}</div>`;
+      on = !on;
+    };
+
+    stage.addEventListener('transitionElement', function(event) {
+      if (event.action === 'added') {
+
+      }
+      else if (event.action === 'replaced') {
+        $(event.old).addClass('old');
+        $(event.new).addClass('new');
+
+        event.promise = new Promise(function(resolve, reject) {
+          event.old.addEventListener('transitionend', function() {
+            resolve();
+          }, true);
+        });
+      }
+    }, true);
+  </script>
+</body>
+</html>
