@@ -7,16 +7,17 @@
   "license": "MIT",
   "scripts": {
     "start": "http-server",
-    "browserify": "browserify --standalone diffhtml lib/index.js -o dist/diffhtml.js",
-    "watchify": "watchify --debug --standalone diffhtml lib/index.js -o dist/diffhtml.js",
+    "browserify": "browserify -s diffhtml lib/index.js -o dist/diffhtml.js",
+    "watchify": "watchify -d -s diffhtml lib/index.js -o dist/diffhtml.js -v",
     "jshint": "jshint lib/*.js",
     "mocha": "mocha-phantomjs test/index.html",
     "istanbul": "istanbul instrument dist/diffhtml.js -o dist/diffhtml.coverage.js",
-    "cov": "npm run browserify -- -t browserify-istanbul && npm run mocha -- -k mocha-phantomjs-istanbul",
-    "report": "istanbul report --root coverage --dir test/coverage html lcov",
-    "test": "npm run jshint && npm run cov && npm run report"
+    "cov": "npm run browserify -- -t babelify -t browserify-istanbul && npm run mocha -- -k mocha-phantomjs-istanbul",
+    "report": "istanbul report --root coverage --dir test/coverage lcov",
+    "test": "npm run jshint && npm run cov #&& npm run report"
   },
   "devDependencies": {
+    "babelify": "^6.1.3",
     "browserify": "^9.0.8",
     "browserify-istanbul": "^0.2.1",
     "http-server": "^0.8.0",
@@ -26,5 +27,10 @@
     "mocha-phantomjs": "^3.5.2",
     "mocha-phantomjs-istanbul": "0.0.2",
     "watchify": "^3.1.2"
+  },
+  "browserify": {
+    "transform": [
+      "babelify"
+    ]
   }
 }

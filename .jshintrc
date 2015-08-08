@@ -1,4 +1,5 @@
 {
+  "esnext": true,
   "evil": true,
   "shadow": true,
   "node": true,
