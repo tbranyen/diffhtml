@@ -427,14 +427,24 @@ function patch(element, newHTML, options) {
       oldTree: element.__old_tree__
     };
 
-    // First time syncing needs the current tree.
-    if (!element.__synced__) {
-      transferObject.oldTree = element.__old_tree__;
+    if (typeof newHTML !== 'string') {
+      transferObject.newTree = (0, _make_node2['default'])(newHTML);
+
+      // Set a render lock as to not flood the worker.
+      element.__is_rendering__ = true;
+
+      // Transfer this buffer to the worker, which will take over and process the
+      // markup.
+      worker.postMessage(transferObject);
+
+      // Wait for the worker to finish processing and then apply the patchset.
+      worker.onmessage = function (e) {
+        processPatches(element, e);
+        element.__is_rendering__ = false;
+      };
+
+      return;
     }
-
-    element.__synced__ = true;
-
-    var start = Date.now();
 
     // Used to specify the outerHTML offset if passing the parent's markup.
     var offset = 0;
@@ -842,6 +852,14 @@ function enableProllyfill() {
       outerHTML(this, newHTML);
     }
   });
+
+  Object.defineProperty(Element.prototype, 'diffElement', {
+    configurable: true,
+
+    value: function value(newElement) {
+      element(this, newElement);
+    }
+  });
 }
 
 },{"./diff/patch_node":3}],7:[function(require,module,exports){
@@ -915,7 +933,7 @@ module.exports = exports['default'];
 
 },{"./parser":9,"./pools":10}],9:[function(require,module,exports){
 (function (global){
-"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports.makeParser = makeParser;var _pools=require('./pools');function makeParser(){var g={};(function(f){g.htmlParser = f();})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof dynamicRequire == "function" && dynamicRequire;if(!u && a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '" + o + "'");throw (f.code = "MODULE_NOT_FOUND",f);}var l=n[o] = {exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e);},l,l.exports,e,t,n,r);}return n[o].exports;}var i=typeof dynamicRequire == "function" && dynamicRequire;for(var o=0;o < r.length;o++) s(r[o]);return s;})({1:[function(dynamicRequire,module,exports){if(typeof Object.create === 'function'){ // implementation from standard node.js 'util' module
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports.makeParser = makeParser;var _pools2=require('./pools');var pools=_pools2.pools;function makeParser(){var g={};(function(f){g.htmlParser = f();})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof dynamicRequire == "function" && dynamicRequire;if(!u && a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '" + o + "'");throw (f.code = "MODULE_NOT_FOUND",f);}var l=n[o] = {exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e);},l,l.exports,e,t,n,r);}return n[o].exports;}var i=typeof dynamicRequire == "function" && dynamicRequire;for(var o=0;o < r.length;o++) s(r[o]);return s;})({1:[function(dynamicRequire,module,exports){if(typeof Object.create === 'function'){ // implementation from standard node.js 'util' module
 module.exports = function inherits(ctor,superCtor){ctor.super_ = superCtor;ctor.prototype = Object.create(superCtor.prototype,{constructor:{value:ctor,enumerable:false,writable:true,configurable:true}});};}else { // old school shim for old browsers
 module.exports = function inherits(ctor,superCtor){ctor.super_ = superCtor;var TempCtor=function TempCtor(){};TempCtor.prototype = superCtor.prototype;ctor.prototype = new TempCtor();ctor.prototype.constructor = ctor;};}},{}],2:[function(dynamicRequire,module,exports){ // shim for using process in browser
 var process=module.exports = {};var queue=[];var draining=false;function drainQueue(){if(draining){return;}draining = true;var currentQueue;var len=queue.length;while(len) {currentQueue = queue;queue = [];var i=-1;while(++i < len) {currentQueue[i]();}len = queue.length;}draining = false;}process.nextTick = function(fun){queue.push(fun);if(!draining){setTimeout(drainQueue,0);}};process.title = 'browser';process.browser = true;process.env = {};process.argv = [];process.version = ''; // empty string to avoid regexp issues
@@ -1235,7 +1253,7 @@ var high=c.charCodeAt(0);var low=c.charCodeAt(1);var codePoint=(high - 0xD800) *
    */function Node(){}$declare(Node,{});$defenum(Node,{ELEMENT_NODE:1,TEXT_NODE:3}); /**
    * TextNode to contain a text element in DOM tree.
    * @param {string} value [description]
-   */function TextNode(value){this.nodeValue = entities.decodeHTML5(value);this.nodeName = '#text';this.element = _pools.pools.uuid.get();}$inherit(TextNode,Node,Object.defineProperties({ /**
+   */function TextNode(value){this.nodeValue = entities.decodeHTML5(value);this.nodeName = '#text';this.element = pools.uuid.get();}$inherit(TextNode,Node,Object.defineProperties({ /**
      * Node Type declaration.
      * @type {Number}
      */nodeType:Node.TEXT_NODE},{text:{ /**
@@ -1257,7 +1275,7 @@ td:true,section:true,br:true}; /**
    * @param {Object} keyAttrs id and class attribute
    * @param {Object} rawAttrs attributes in string
    */function HTMLElement(name,keyAttrs,rawAttrs){this.nodeName = name;this.attributes = [];if(rawAttrs){var re=/\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;for(var match;match = re.exec(rawAttrs);) {var attr={};attr.name = match[1];attr.value = match[3] || match[4] || match[5];this.attributes.push(attr);}} // this.parentNode = null;
-this.childNodes = [];this.element = _pools.pools.uuid.get();}$inherit(HTMLElement,Node,Object.defineProperties({ /**
+this.childNodes = [];this.element = pools.uuid.get();}$inherit(HTMLElement,Node,Object.defineProperties({ /**
      * Node Type declaration.
      * @type {Number}
      */nodeType:Node.ELEMENT_NODE, /**
@@ -1296,11 +1314,11 @@ this.childNodes = [];this.element = _pools.pools.uuid.get();}$inherit(HTMLElemen
      * @param  {string} data      html
      * @return {HTMLElement}      root element
      */parse:function parse(data,options){var root=new HTMLElement(null,{});var currentParent=root;var stack=[root];var lastTextPos=-1;options = options || {};for(var match,text;match = kMarkupPattern.exec(data);) {if(lastTextPos > -1){if(lastTextPos + match[0].length < kMarkupPattern.lastIndex){ // if has content
-text = data.substring(lastTextPos,kMarkupPattern.lastIndex - match[0].length);if(text.trim()){currentParent.childNodes.push({nodeName:'#text',element:_pools.pools.uuid.get(),nodeValue:entities.decodeHTML5(text)});}}}lastTextPos = kMarkupPattern.lastIndex;if(match[0][1] == '!'){ // this is a comment
+text = data.substring(lastTextPos,kMarkupPattern.lastIndex - match[0].length);if(text.trim()){currentParent.childNodes.push({nodeName:'#text',element:pools.uuid.get(),nodeValue:entities.decodeHTML5(text)});}}}lastTextPos = kMarkupPattern.lastIndex;if(match[0][1] == '!'){ // this is a comment
 continue;}if(options.lowerCaseTagName)match[2] = match[2].toLowerCase();if(!match[1]){ // not </ tags
 var attrs={};for(var attMatch;attMatch = kAttributePattern.exec(match[3]);) attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];if(!match[4] && kElementsClosedByOpening[currentParent.nodeName]){if(kElementsClosedByOpening[currentParent.nodeName][match[2]]){stack.pop();currentParent = stack.back;}}currentParent = currentParent.childNodes[currentParent.childNodes.push(new HTMLElement(match[2],attrs,match[3])) - 1];stack.push(currentParent);if(kBlockTextElements[match[2]]){ // a little test to find next </script> or </style> ...
 var closeMarkup='</' + match[2] + '>';var index=data.indexOf(closeMarkup,kMarkupPattern.lastIndex);if(options[match[2]]){if(index == -1){ // there is no matching ending for the text element.
-text = data.substr(kMarkupPattern.lastIndex);}else {text = data.substring(kMarkupPattern.lastIndex,index);}if(text.length > 0)currentParent.childNodes.push({nodeValue:entities.decodeHTML5(text),nodeName:'#text',element:_pools.pools.uuid.get()});}if(index == -1){lastTextPos = kMarkupPattern.lastIndex = data.length + 1;}else {lastTextPos = kMarkupPattern.lastIndex = index + closeMarkup.length;match[1] = true;}}}if(match[1] || match[4] || kSelfClosingElements[match[2]]){ // </ or /> or <br> etc.
+text = data.substr(kMarkupPattern.lastIndex);}else {text = data.substring(kMarkupPattern.lastIndex,index);}if(text.length > 0)currentParent.childNodes.push({nodeValue:entities.decodeHTML5(text),nodeName:'#text',element:pools.uuid.get()});}if(index == -1){lastTextPos = kMarkupPattern.lastIndex = data.length + 1;}else {lastTextPos = kMarkupPattern.lastIndex = index + closeMarkup.length;match[1] = true;}}}if(match[1] || match[4] || kSelfClosingElements[match[2]]){ // </ or /> or <br> etc.
 while(true) {if(currentParent.nodeName == match[2]){stack.pop();currentParent = stack.back;break;}else { // Trying to close current tag, and move on
 if(kElementsClosedByClosing[currentParent.nodeName]){if(kElementsClosedByClosing[currentParent.nodeName][match[2]]){stack.pop();currentParent = stack.back;continue;}} // Use aggressive strategy to handle unmatching markups.
 break;}}}}return root;}};},{"apollojs":6,"entities":7}]},{},[])("fast-html-parser");});return g.htmlParser;};
@@ -1496,16 +1514,22 @@ function startup(worker) {
     var transferBuffer = data.buffer;
     var isInner = data.isInner;
 
-    var newBuffer = transferBuffer.slice(0, offset);
-    var newHTML = bufferToString(newBuffer);
-
-    if (offset && !oldTree) {
+    if (!oldTree) {
       // Keep a virtual tree in memory to diff against.
-      oldTree = e.data.oldTree;
+      oldTree = data.oldTree;
     }
 
-    // Calculate a new tree.
-    var newTree = parseHTML(newHTML);
+    var newTree = null;
+
+    if (data.newTree) {
+      newTree = data.newTree;
+    } else {
+      var newBuffer = transferBuffer.slice(0, offset);
+      var newHTML = bufferToString(newBuffer);
+
+      // Calculate a new tree.
+      newTree = parseHTML(newHTML);
+    }
 
     // Synchronize the old virtual tree with the new virtual tree.  This will
     // produce a series of patches that will be excuted to update the DOM.
