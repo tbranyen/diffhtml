@@ -1257,12 +1257,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.createPool = createPool;
 exports.initializePools = initializePools;
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _uuid = require('./uuid');
-
-var _uuid2 = _interopRequireDefault(_uuid);
+var uuid = require('./uuid');
 
 var pools = {};
 
@@ -1389,7 +1384,7 @@ function initializePools(COUNT) {
   });
 
   pools.uuid = createPool(COUNT, 'uuid', function () {
-    return (0, _uuid2['default'])();
+    return uuid();
   });
 }
 
