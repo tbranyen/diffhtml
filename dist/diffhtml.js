@@ -207,7 +207,7 @@ if (hasWorker) {
   'var slice = Array.prototype.slice;', 'var filter = Array.prototype.filter;',
 
   // Add a namespace to attach pool methods to.
-  'var pools = {};', 'var nodes = 0;',
+  'var pools = {};', 'var nodes = 0;', 'var counter = 0;',
 
   // Adds in a global `uuid` function.
   _utilUuid.uuid,
@@ -811,7 +811,15 @@ function element(element, newElement) {
  */
 
 function enableProllyfill() {
-  Object.defineProperty(Element.prototype, 'transitionStates', {
+  Object.defineProperty(Element.prototype, 'addTransitionState', {
+    configurable: true,
+
+    value: function value(states) {
+      this._states = states;
+    }
+  });
+
+  Object.defineProperty(Element.prototype, 'removeTransitionState', {
     configurable: true,
 
     value: function value(states) {
@@ -823,7 +831,7 @@ function enableProllyfill() {
     configurable: true,
 
     set: function set(newHTML) {
-      (0, _diffPatch_node2['default'])(this, newHTML, { inner: true });
+      innerHTML(this, newHTML);
     }
   });
 
@@ -831,7 +839,7 @@ function enableProllyfill() {
     configurable: true,
 
     set: function set(newHTML) {
-      (0, _diffPatch_node2['default'])(this, newHTML, { inner: false });
+      outerHTML(this, newHTML);
     }
   });
 }
@@ -1443,25 +1451,22 @@ function initializePools(COUNT) {
 }
 
 },{"./uuid":11}],11:[function(require,module,exports){
-/**
- * Generates a uuid.
- *
- * @see http://stackoverflow.com/a/2117523/282175
- * @return {string} uuid
- */
-'use strict';
+"use strict";
 
-Object.defineProperty(exports, '__esModule', {
+Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.uuid = uuid;
+var counter = 0;
+
+/**
+ * Generates a unique id.
+ *
+ * @return {string} uuid
+ */
 
 function uuid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0,
-        v = c == 'x' ? r : r & 0x3 | 0x8;
-    return v.toString(16);
-  });
+  return String(++counter);
 }
 
 },{}],12:[function(require,module,exports){
