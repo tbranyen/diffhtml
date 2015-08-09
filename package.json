@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "start": "http-server",
-    "browserify": "browserify -s diffhtml lib/index.js -o dist/diffhtml.js",
-    "watchify": "watchify -d -s diffhtml lib/index.js -o dist/diffhtml.js -v",
+    "browserify": "browserify -s diff lib/index.js -o dist/diffhtml.js",
+    "watchify": "watchify -d -s diff lib/index.js -o dist/diffhtml.js -v",
     "jshint": "jshint lib/*.js",
     "mocha": "mocha-phantomjs test/index.html",
     "istanbul": "istanbul instrument dist/diffhtml.js -o dist/diffhtml.coverage.js",

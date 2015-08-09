@@ -1,15 +1,20 @@
 describe('Basics', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
-    this.fixture.innerHTML = '<div></div>';
+    this.fixture.innerHTMLHTML = '<div></div>';
   });
 
   describe('Expose API', function() {
     it('exposes diffhtml global', function() {
-      assert.equal(typeof diffhtml, 'function');
+      assert.equal(typeof diff, 'object');
     });
 
     it('exists on Element prototype', function() {
+      assert(!('diffInnerHTML' in Element.prototype));
+      assert(!('diffOuterHTML' in Element.prototype));
+
+      diff.enableProllyfill();
+
       assert('diffInnerHTML' in Element.prototype);
       assert('diffOuterHTML' in Element.prototype);
     });
@@ -18,7 +23,11 @@ describe('Basics', function() {
   describe('Call API', function() {
     it('will error if element is missing', function() {
       assert.throws(function() {
-        diffhtml();
+        diff.innerHTML();
+      });
+
+      assert.throws(function() {
+        diff.outerHTML();
       });
     });
 
@@ -26,7 +35,11 @@ describe('Basics', function() {
       var test = this;
 
       assert.doesNotThrow(function() {
-        diffhtml(test.fixture, '');
+        diff.outerHTML(test.fixture, '');
+      });
+
+      assert.doesNotThrow(function() {
+        diff.innerHTML(test.fixture, '');
       });
     });
 
@@ -34,7 +47,11 @@ describe('Basics', function() {
       var test = this;
 
       assert.doesNotThrow(function() {
-        diffhtml(test.fixture, '<div></div>');
+        diff.outerHTML(test.fixture, '<div></div>');
+      });
+
+      assert.doesNotThrow(function() {
+        diff.innerHTML(test.fixture, '<div></div>');
       });
     });
   });

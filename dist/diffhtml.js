@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diffhtml = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -746,6 +746,10 @@ function syncNode(virtualNode, liveNode) {
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports.outerHTML = outerHTML;
+exports.innerHTML = innerHTML;
+exports.element = element;
+exports.enableProllyfill = enableProllyfill;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -754,45 +758,76 @@ var _diffPatch_node = require('./diff/patch_node');
 var _diffPatch_node2 = _interopRequireDefault(_diffPatch_node);
 
 /**
- * diffhtml
+ * outer
  *
- * @param {Object} element - DOM element to operate on.
- * @param {string} markup - New markup to diff.
- * @param {Object} options - Options to override defaults.
+ * @param element
+ * @param markup=''
+ * @param options={}
+ * @return
  */
-function diffhtml(element) {
+
+function outerHTML(element) {
   var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-  (0, _diffPatch_node2['default'])(element, markup, options);
+  (0, _diffPatch_node2['default'])(element, markup, { inner: false });
 }
 
-Object.defineProperty(Element.prototype, 'transitionStates', {
-  configurable: true,
+/**
+ * inner
+ *
+ * @param element
+ * @param markup=''
+ * @param options={}
+ * @return
+ */
 
-  value: function value(states) {
-    this._states = states;
-  }
-});
+function innerHTML(element) {
+  var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
+  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-Object.defineProperty(Element.prototype, 'diffInnerHTML', {
-  configurable: true,
+  (0, _diffPatch_node2['default'])(element, markup, { inner: true });
+}
 
-  set: function set(newHTML) {
-    diffhtml(this, newHTML, { inner: true, transitionStates: this._states });
-  }
-});
+/**
+ * element
+ *
+ * @return
+ */
 
-Object.defineProperty(Element.prototype, 'diffOuterHTML', {
-  configurable: true,
+function element() {}
 
-  set: function set(newHTML) {
-    diffhtml(this, newHTML, { inner: false, transitionStates: this._states });
-  }
-});
+/**
+ * enableProllyfill
+ *
+ * @return
+ */
 
-exports['default'] = diffhtml;
-module.exports = exports['default'];
+function enableProllyfill() {
+  Object.defineProperty(Element.prototype, 'transitionStates', {
+    configurable: true,
+
+    value: function value(states) {
+      this._states = states;
+    }
+  });
+
+  Object.defineProperty(Element.prototype, 'diffInnerHTML', {
+    configurable: true,
+
+    set: function set(newHTML) {
+      (0, _diffPatch_node2['default'])(this, newHTML, { inner: true });
+    }
+  });
+
+  Object.defineProperty(Element.prototype, 'diffOuterHTML', {
+    configurable: true,
+
+    set: function set(newHTML) {
+      (0, _diffPatch_node2['default'])(this, newHTML, { inner: false });
+    }
+  });
+}
 
 },{"./diff/patch_node":3}],7:[function(require,module,exports){
 /**
