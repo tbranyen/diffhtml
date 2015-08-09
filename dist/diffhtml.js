@@ -402,9 +402,9 @@ function patch(element, newHTML, options) {
     return;
   }
 
-  if (typeof newHTML !== 'string') {
-    throw new Error('Invalid type passed to diffHTML, expected String');
-  }
+  //if (typeof newHTML !== 'string') {
+  //  throw new Error('Invalid type passed to diffHTML, expected String');
+  //}
 
   // Only calculate the parent's initial state one time.
   if (!element.__old_tree__) {
@@ -475,7 +475,7 @@ function patch(element, newHTML, options) {
     };
   } else if (!wantsWorker || !hasWorker || !element.__has_rendered__) {
     var oldTree = element.__old_tree__;
-    var newTree = (0, _utilHtmls2['default'])(newHTML);
+    var newTree = typeof newHTML === 'string' ? (0, _utilHtmls2['default'])(newHTML) : (0, _make_node2['default'])(newHTML);
     var patches = [];
 
     var oldNodeName = oldTree.nodeName || '';
@@ -770,7 +770,8 @@ function outerHTML(element) {
   var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-  (0, _diffPatch_node2['default'])(element, markup, { inner: false });
+  options.inner = false;
+  (0, _diffPatch_node2['default'])(element, markup, options);
 }
 
 /**
@@ -786,7 +787,8 @@ function innerHTML(element) {
   var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-  (0, _diffPatch_node2['default'])(element, markup, { inner: true });
+  options.inner = true;
+  (0, _diffPatch_node2['default'])(element, markup, options);
 }
 
 /**
@@ -795,7 +797,12 @@ function innerHTML(element) {
  * @return
  */
 
-function element() {}
+function element(element, newElement) {
+  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+  options.inner = false;
+  (0, _diffPatch_node2['default'])(element, newElement, options);
+}
 
 /**
  * enableProllyfill
