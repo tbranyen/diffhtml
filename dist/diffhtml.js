@@ -160,6 +160,8 @@ module.exports = exports['default'];
 },{"../util/pools":10}],3:[function(require,module,exports){
 'use strict';
 
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 var _utilPools = require('../util/pools');
@@ -172,11 +174,9 @@ var _utilParser = require('../util/parser');
 
 var _utilBuffers = require('../util/buffers');
 
-var _utilBuffers2 = _interopRequireDefault(_utilBuffers);
+var buffers = _interopRequireWildcard(_utilBuffers);
 
 var _utilUuid = require('../util/uuid');
-
-var _utilUuid2 = _interopRequireDefault(_utilUuid);
 
 var _sync_node = require('./sync_node');
 
@@ -210,7 +210,7 @@ if (hasWorker) {
   'var pools = {};', 'var nodes = 0;',
 
   // Adds in a global `uuid` function.
-  _utilUuid2['default'],
+  _utilUuid.uuid,
 
   // Add in pool manipulation methods.
   _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + poolCount + ');',
@@ -222,7 +222,7 @@ if (hasWorker) {
   _utilHtmls2['default'],
 
   // Give the webworker utilities.
-  _utilBuffers2['default'].stringToBuffer, _utilBuffers2['default'].bufferToString, _utilParser.makeParser, 'var parser = makeParser();',
+  buffers.stringToBuffer, buffers.bufferToString, _utilParser.makeParser, 'var parser = makeParser();',
 
   // Add in the worker source.
   _worker2['default'],
@@ -440,7 +440,7 @@ function patch(element, newHTML, options) {
     var offset = 0;
 
     // Craft a new buffer with the new contents.
-    var newBuffer = _utilBuffers2['default'].stringToBuffer(newHTML);
+    var newBuffer = buffers.stringToBuffer(newHTML);
 
     // Set the offset to be this byte length.
     offset = newBuffer.byteLength;
@@ -803,7 +803,13 @@ module.exports = exports['default'];
  */
 'use strict';
 
-exports.stringToBuffer = function stringToBuffer(string) {
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+exports.stringToBuffer = stringToBuffer;
+exports.bufferToString = bufferToString;
+
+function stringToBuffer(string) {
   var buffer = new Uint16Array(string.length);
 
   for (var i = 0; i < string.length; i++) {
@@ -811,7 +817,7 @@ exports.stringToBuffer = function stringToBuffer(string) {
   }
 
   return buffer;
-};
+}
 
 /**
  * bufferToString
@@ -819,7 +825,8 @@ exports.stringToBuffer = function stringToBuffer(string) {
  * @param buffer
  * @return
  */
-exports.bufferToString = function bufferToString(buffer) {
+
+function bufferToString(buffer) {
   var tmpBuffer = new Uint16Array(buffer, 0, buffer.length);
   var string = '';
 
@@ -828,7 +835,7 @@ exports.bufferToString = function bufferToString(buffer) {
   }
 
   return string;
-};
+}
 
 },{}],8:[function(require,module,exports){
 'use strict';
@@ -1257,7 +1264,12 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.createPool = createPool;
 exports.initializePools = initializePools;
-var uuid = require('./uuid');
+
+var _uuid = require('./uuid');
+
+// Babel rewrites variables, which means this temporary hack must be in place
+// to avoid clobbering the global name.
+var uuid = _uuid.uuid;
 
 var pools = {};
 
@@ -1400,6 +1412,8 @@ function initializePools(COUNT) {
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports.uuid = uuid;
+
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0,
@@ -1407,9 +1421,6 @@ function uuid() {
     return v.toString(16);
   });
 }
-
-exports['default'] = uuid;
-module.exports = exports['default'];
 
 },{}],12:[function(require,module,exports){
 'use strict';
