@@ -216,7 +216,7 @@ function render(count) {
     })
   };
 
-  document.documentElement.diffOuterHTML = template.render(data);
+  diff.outerHTML(document.documentElement, template.render(data));
   window.done();
 }
 

@@ -1,4 +1,4 @@
-describe('Diff Outer HTML', function() {
+describe('diff.outerHTML', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
     this.fixture.innerHTML = '<div></div>';

@@ -207,7 +207,7 @@ if (hasWorker) {
   'var slice = Array.prototype.slice;', 'var filter = Array.prototype.filter;',
 
   // Add a namespace to attach pool methods to.
-  'var pools = {};', 'var nodes = 0;', 'var counter = 0;',
+  'var pools = {};', 'var nodes = 0;',
 
   // Adds in a global `uuid` function.
   _utilUuid.uuid,
@@ -262,6 +262,7 @@ function getElement(ref) {
 function processPatches(element, e) {
   var patches = e.data;
   var isInner = e.isInner;
+  var states = element._transitionStates;
 
   // Loop through all the patches and apply them.
   for (var i = 0; i < patches.length; i++) {
@@ -282,105 +283,113 @@ function processPatches(element, e) {
       var newId = patch['new'].element;
     }
 
-    // Quickly empty entire childNodes.
-    if (patch.__do__ === -1) {
-      patch.element.innerHTML = '';
-      continue;
+    // Replace the entire Node.
+    if (patch.__do__ === 0) {
+      patch.old.parentNode.replaceChild(patch['new'], patch.old);
     }
 
-    // Replace the entire Node.
-    else if (patch.__do__ === 0) {
-        patch.old.parentNode.replaceChild(patch['new'], patch.old);
-      }
+    // Node manip.
+    else if (patch.__do__ === 1) {
+        // Add.
+        if (patch.element && patch.fragment && !patch.old) {
+          var fragment = document.createDocumentFragment();
 
-      // Node manip.
-      else if (patch.__do__ === 1) {
-          // Add.
-          if (patch.element && patch.fragment && !patch.old) {
-            var fragment = document.createDocumentFragment();
+          patch.fragment.forEach(function (elementDescriptor) {
+            var element = getElement(elementDescriptor);
 
-            patch.fragment.forEach(function (elementDescriptor) {
-              var element = getElement(elementDescriptor);
+            fragment.appendChild(element);
 
-              fragment.appendChild(element);
-
-              // Added state for transitions API.
-              if (element._states && element._states.added) {
-                element._states.added(element);
-              }
-            });
-
-            patch.element.appendChild(fragment);
-          }
-
-          // Remove
-          else if (patch.old && !patch['new']) {
-              var removeNode = function removeNode() {
-                patch.old.parentNode.removeChild(patch.old);
-                _make_node2['default'].nodes[oldId] = null;
-                delete _make_node2['default'].nodes[oldId];
-              };
-
-              if (!patch.old.parentNode) {
-                throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
-              }
-
-              if (element._states && element._states.removed) {
-                var retVal = element._states.removed(patch.old);
-
-                if (retVal.then) {
-                  retVal.then(removeNode);
-                } else {
-                  removeNode();
-                }
-              } else {
-                removeNode();
-              }
+            // Added state for transitions API.
+            if (states && states.added) {
+              states.added.forEach(function (callback) {
+                callback(element);
+              });
             }
+          });
 
-            // Replace
-            else if (patch.old && patch['new']) {
-                var removeNode = function removeNode() {
-                  patch.old.parentNode.replaceChild(patch['new'], patch.old);
-                  _make_node2['default'].nodes[oldId] = null;
-                  delete _make_node2['default'].nodes[oldId];
-                };
-
-                if (!patch.old.parentNode) {
-                  throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
-                }
-
-                // Append the element first, before doing the replacement.
-                patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
-
-                if (element._states && element._states.replaced) {
-                  var retVal = element._states.replaced(patch.old, patch['new']);
-
-                  if (retVal && retVal.then) {
-                    retVal.then(removeNode);
-                  } else {
-                    removeNode();
-                  }
-                } else {
-                  removeNode();
-                }
-              }
+          patch.element.appendChild(fragment);
         }
 
-        // Attribute manipulation.
-        else if (!isInner && patch.__do__ === 2) {
-            // Remove.
-            if (!patch.value) {
-              patch.element.removeAttribute(patch.name);
-            } else {
-              patch.element.setAttribute(patch.name, patch.value);
+        // Remove
+        else if (patch.old && !patch['new']) {
+            if (!patch.old.parentNode) {
+              throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
             }
+
+            var removeNode = (function () {
+              this.parentNode.removeChild(this);
+              _make_node2['default'].nodes[oldId] = null;
+              delete _make_node2['default'].nodes[oldId];
+            }).bind(patch.old);
+
+            var removed;
+
+            if (states && states.removed) {
+              removed = states.removed.map(function (callback) {
+                return callback(patch.old);
+              });
+            }
+
+            Promise.all(removed).then(removeNode);
           }
 
-          // Text node manipulation.
-          else if (!isInner && patch.__do__ === 3) {
-              patch.element.nodeValue = patch.value;
+          // Replace
+          else if (patch.old && patch['new']) {
+              if (!patch.old.parentNode) {
+                throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
+              }
+
+              // Append the element first, before doing the replacement.
+              patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
+
+              var removeNode = (function () {
+                this[0].parentNode.replaceChild(this[1], this[0]);
+                _make_node2['default'].nodes[oldId] = null;
+                delete _make_node2['default'].nodes[oldId];
+              }).bind([patch.old, patch['new']]);
+
+              var added, removed, replaced;
+
+              // Added state for transitions API.
+              if (states && states.added) {
+                added = states.added.map(function (callback) {
+                  return callback(patch['new']);
+                });
+              }
+
+              // Removed state for transitions API.
+              if (states && states.removed) {
+                removed = states.removed.map(function (callback) {
+                  return callback(patch.old);
+                });
+              }
+
+              // Removed state for transitions API.
+              if (states && states.replaced) {
+                replaced = states.removed.map(function (callback) {
+                  return callback(patch.old, patch['new']);
+                });
+              }
+
+              // Replaced state for transitions API.
+              Promise.all([].concat(added, removed, replaced)).then(removeNode);
             }
+      }
+
+      // Attribute manipulation.
+      else if (!isInner && patch.__do__ === 2) {
+          // Remove.
+          if (!patch.value) {
+            patch.element.removeAttribute(patch.name);
+          } else {
+            patch.element.setAttribute(patch.name, patch.value);
+          }
+        }
+
+        // Text node manipulation.
+        else if (!isInner && patch.__do__ === 3) {
+            patch.element.nodeValue = patch.value;
+          }
   }
 }
 
@@ -484,9 +493,9 @@ function patch(element, newHTML, options) {
       element.__is_rendering__ = false;
     };
   } else if (!wantsWorker || !hasWorker || !element.__has_rendered__) {
+    var patches = [];
     var oldTree = element.__old_tree__;
     var newTree = typeof newHTML === 'string' ? (0, _utilHtmls2['default'])(newHTML) : (0, _make_node2['default'])(newHTML);
-    var patches = [];
 
     var oldNodeName = oldTree.nodeName || '';
     var newNodeName = newTree && newTree.nodeName;
@@ -552,6 +561,8 @@ exports.syncNode = syncNode;
 
 var _utilPools = require('../util/pools');
 
+var pools = _utilPools.pools;
+
 var slice = Array.prototype.slice;
 var filter = Array.prototype.filter;
 
@@ -607,64 +618,56 @@ function syncNode(virtualNode, liveNode) {
     return;
   }
 
-  if (newChildNodesLength) {
-    // Most common additive elements.
-    if (newChildNodesLength > oldChildNodesLength) {
-      // Store elements in a DocumentFragment to increase performance and be
-      // generally simplier to work with.
-      var fragment = _utilPools.pools.array.get();
+  // Most common additive elements.
+  if (newChildNodesLength > oldChildNodesLength) {
+    // Store elements in a DocumentFragment to increase performance and be
+    // generally simplier to work with.
+    var fragment = pools.array.get();
 
-      for (var i = oldChildNodesLength; i < newChildNodesLength; i++) {
-        // Internally add to the tree.
-        virtualNode.childNodes.push(childNodes[i]);
+    for (var i = oldChildNodesLength; i < newChildNodesLength; i++) {
+      // Internally add to the tree.
+      virtualNode.childNodes.push(childNodes[i]);
 
-        // Add to the document fragment.
-        fragment.push(childNodes[i]);
-      }
+      // Add to the document fragment.
+      fragment.push(childNodes[i]);
+    }
 
-      // Assign the fragment to the patches to be injected.
+    // Assign the fragment to the patches to be injected.
+    patches.push({
+      __do__: 1,
+      element: virtualNode.element,
+      fragment: fragment
+    });
+  }
+
+  // Replace elements if they are different.
+  for (var i = 0; i < newChildNodesLength; i++) {
+    if (virtualNode.childNodes[i].nodeName !== childNodes[i].nodeName) {
+      // Add to the patches.
       patches.push({
         __do__: 1,
-        element: virtualNode.element,
-        fragment: fragment
+        old: virtualNode.childNodes[i],
+        'new': childNodes[i]
       });
-    }
 
-    // Remove these elements.
-    if (oldChildNodesLength > newChildNodesLength) {
-      // Elements to remove.
-      var toRemove = slice.call(virtualNode.childNodes, -1 * (oldChildNodesLength - newChildNodesLength));
-
-      for (var i = 0; i < toRemove.length; i++) {
-        // Remove the element, this happens before the splice so that we still
-        // have access to the element.
-        patches.push({ __do__: 1, old: toRemove[i].element });
-      }
-
-      virtualNode.childNodes.splice(newChildNodesLength, oldChildNodesLength - newChildNodesLength);
-    }
-
-    // Replace elements if they are different.
-    for (var i = 0; i < newChildNodesLength; i++) {
-      if (virtualNode.childNodes[i].nodeName !== childNodes[i].nodeName) {
-        // Add to the patches.
-        patches.push({
-          __do__: 1,
-          old: virtualNode.childNodes[i],
-          'new': childNodes[i]
-        });
-
-        // Replace the internal tree's point of view of this element.
-        virtualNode.childNodes[i] = childNodes[i];
-      }
+      // Replace the internal tree's point of view of this element.
+      virtualNode.childNodes[i] = childNodes[i];
     }
   }
-  // Remove all children if the new live node has none.
-  else if (oldChildNodesLength && !newChildNodesLength) {
-      patches.push({ __do__: -1, element: virtualNode.element });
 
-      virtualNode.childNodes.splice(0, oldChildNodesLength);
+  // Remove these elements.
+  if (oldChildNodesLength > newChildNodesLength) {
+    // Elements to remove.
+    var toRemove = slice.call(virtualNode.childNodes, newChildNodesLength, oldChildNodesLength);
+
+    for (var i = 0; i < toRemove.length; i++) {
+      // Remove the element, this happens before the splice so that we still
+      // have access to the element.
+      patches.push({ __do__: 1, old: toRemove[i].element });
     }
+
+    virtualNode.childNodes.splice(newChildNodesLength, oldChildNodesLength - newChildNodesLength);
+  }
 
   // Synchronize attributes
   var attributes = liveNode.attributes;
@@ -804,6 +807,9 @@ function innerHTML(element) {
 /**
  * element
  *
+ * @param element
+ * @param newElement
+ * @param options={}
  * @return
  */
 
@@ -824,16 +830,28 @@ function enableProllyfill() {
   Object.defineProperty(Element.prototype, 'addTransitionState', {
     configurable: true,
 
-    value: function value(states) {
-      this._states = states;
+    value: function value(name, callback) {
+      var states = this._transitionStates = this._transitionStates || {};
+
+      states[name] = states[name] || [];
+
+      states[name].push(callback);
     }
   });
 
   Object.defineProperty(Element.prototype, 'removeTransitionState', {
     configurable: true,
 
-    value: function value(states) {
-      this._states = states;
+    value: function value(name, callback) {
+      var states = this._transitionStates = this._transitionStates || {};
+
+      states[name] = states[name] || [];
+
+      if (!callback) {
+        state[name] = [];
+      } else {
+        states[name].splice(states.indexOf(callback), 1);
+      }
     }
   });
 
@@ -1469,22 +1487,25 @@ function initializePools(COUNT) {
 }
 
 },{"./uuid":11}],11:[function(require,module,exports){
-"use strict";
+/**
+ * Generates a uuid.
+ *
+ * @see http://stackoverflow.com/a/2117523/282175
+ * @return {string} uuid
+ */
+'use strict';
 
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports.uuid = uuid;
-var counter = 0;
-
-/**
- * Generates a unique id.
- *
- * @return {string} uuid
- */
 
 function uuid() {
-  return String(++counter);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0,
+        v = c == 'x' ? r : r & 0x3 | 0x8;
+    return v.toString(16);
+  });
 }
 
 },{}],12:[function(require,module,exports){
