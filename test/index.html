@@ -9,6 +9,7 @@
   <script src="assert.js"></script>
   <script src="../node_modules/mocha/mocha.js"></script>
   <script src="../lib/support/weakmap.js"></script>
+  <script src="../node_modules/promise-polyfill/Promise.js"></script>
   <script>mocha.setup('bdd')</script>
   <script src="../dist/diffhtml.js"></script>
 
@@ -18,7 +19,7 @@
   <script src="integration/transitions.js"></script>
 
   <script>
-    // Don't try and use the web worker for now.
+    // Don't try and use a web worker for now.
     document.DISABLE_WORKER = true;
 
     if (window.mochaPhantomJS) { mochaPhantomJS.run(); }

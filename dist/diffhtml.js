@@ -333,7 +333,13 @@ function processPatches(element, e) {
               });
             }
 
-            Promise.all(removed).then(removeNode);
+            var promises = [].concat(removed).filter(Boolean);
+
+            if (promises.length) {
+              Promise.all(promises).then(removeNode, removeNode);
+            } else {
+              removeNode();
+            }
           }
 
           // Replace
@@ -375,7 +381,13 @@ function processPatches(element, e) {
               }
 
               // Replaced state for transitions API.
-              Promise.all([].concat(added, removed, replaced)).then(removeNode);
+              var promises = [].concat(added, removed, replaced).filter(Boolean);
+
+              if (promises.length) {
+                Promise.all(promises).then(removeNode, removeNode);
+              } else {
+                removeNode();
+              }
             }
       }
 

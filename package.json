@@ -26,6 +26,7 @@
     "mocha": "^2.2.4",
     "mocha-phantomjs": "^3.5.2",
     "mocha-phantomjs-istanbul": "0.0.2",
+    "promise-polyfill": "^2.1.0",
     "watchify": "^3.1.2"
   },
   "browserify": {
