@@ -160,6 +160,10 @@ module.exports = exports['default'];
 },{"../util/pools":10}],3:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -261,7 +265,6 @@ function getElement(ref) {
  */
 function processPatches(element, e) {
   var patches = e.data;
-  var isInner = e.isInner;
   var states = element._transitionStates;
 
   // Loop through all the patches and apply them.
@@ -377,7 +380,7 @@ function processPatches(element, e) {
       }
 
       // Attribute manipulation.
-      else if (!isInner && patch.__do__ === 2) {
+      else if (patch.__do__ === 2) {
           // Remove.
           if (!patch.value) {
             patch.element.removeAttribute(patch.name);
@@ -387,7 +390,7 @@ function processPatches(element, e) {
         }
 
         // Text node manipulation.
-        else if (!isInner && patch.__do__ === 3) {
+        else if (patch.__do__ === 3) {
             patch.element.nodeValue = patch.value;
           }
   }
@@ -495,7 +498,19 @@ function patch(element, newHTML, options) {
   } else if (!wantsWorker || !hasWorker || !element.__has_rendered__) {
     var patches = [];
     var oldTree = element.__old_tree__;
-    var newTree = typeof newHTML === 'string' ? (0, _utilHtmls2['default'])(newHTML) : (0, _make_node2['default'])(newHTML);
+    var newTree = typeof newHTML === 'string' ? (0, _utilHtmls2['default'])(newHTML, options.inner) : (0, _make_node2['default'])(newHTML);
+
+    if (options.inner) {
+      var childNodes = newTree;
+
+      newTree = {
+        attributes: oldTree.attributes,
+        childNodes: childNodes,
+        element: oldTree.element,
+        nodeName: oldTree.nodeName,
+        nodeValue: oldTree.nodeValue
+      };
+    }
 
     var oldNodeName = oldTree.nodeName || '';
     var newNodeName = newTree && newTree.nodeName;
@@ -516,9 +531,6 @@ function patch(element, newHTML, options) {
         element.__old_tree__ = newTree;
       }
 
-    // Attach inner state.
-    patches.isInner = options.inner;
-
     // Process the patches immediately.
     processPatches(element, { data: patches });
 
@@ -535,7 +547,8 @@ function patch(element, newHTML, options) {
   }
 }
 
-module.exports = patch;
+exports['default'] = patch;
+module.exports = exports['default'];
 
 },{"../util/buffers":7,"../util/htmls":8,"../util/parser":9,"../util/pools":10,"../util/uuid":11,"../worker":12,"./make_element":1,"./make_node":2,"./sync_node":5}],4:[function(require,module,exports){
 // List of SVG elements.
@@ -942,8 +955,10 @@ var parser = (0, _parser.makeParser)();
  * @param newHTML
  * @return
  */
-function parseHTML(newHTML) {
-  return parser.parse(newHTML).childNodes[0];
+function parseHTML(newHTML, isInner) {
+  var nodes = parser.parse(newHTML).childNodes;
+
+  return isInner ? nodes : nodes[0];
 }
 
 exports['default'] = parseHTML;
@@ -1549,15 +1564,24 @@ function startup(worker) {
       var newHTML = bufferToString(newBuffer);
 
       // Calculate a new tree.
-      newTree = parseHTML(newHTML);
+      newTree = parseHTML(newHTML, isInner);
+
+      if (isInner) {
+        var childNodes = newTree;
+
+        newTree = {
+          attributes: oldTree.attributes,
+          childNodes: childNodes,
+          element: oldTree.element,
+          nodeName: oldTree.nodeName,
+          nodeValue: oldTree.nodeValue
+        };
+      }
     }
 
     // Synchronize the old virtual tree with the new virtual tree.  This will
     // produce a series of patches that will be excuted to update the DOM.
     syncNode.call(patches, oldTree, newTree);
-
-    // Attach inner state.
-    patches.isInner = isInner;
 
     // Send the patches back to the userland.
     worker.postMessage(patches);
