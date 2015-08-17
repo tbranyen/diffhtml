@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -9,11 +9,11 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _make_node = require('./make_node');
+var _make_node = _dereq_('./make_node');
 
 var _make_node2 = _interopRequireDefault(_make_node);
 
-var _svg = require('./svg');
+var _svg = _dereq_('./svg');
 
 var svg = _interopRequireWildcard(_svg);
 
@@ -64,14 +64,14 @@ function makeElement(descriptor) {
 exports['default'] = makeElement;
 module.exports = exports['default'];
 
-},{"./make_node":2,"./svg":4}],2:[function(require,module,exports){
+},{"./make_node":2,"./svg":4}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _utilPools = require('../util/pools');
+var _utilPools = _dereq_('../util/pools');
 
 var push = Array.prototype.push;
 var nodes = makeNode.nodes = {};
@@ -157,7 +157,7 @@ function makeNode(node) {
 exports['default'] = makeNode;
 module.exports = exports['default'];
 
-},{"../util/pools":10}],3:[function(require,module,exports){
+},{"../util/pools":10}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -168,31 +168,31 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _utilPools = require('../util/pools');
+var _utilPools = _dereq_('../util/pools');
 
-var _utilHtmls = require('../util/htmls');
+var _utilHtmls = _dereq_('../util/htmls');
 
 var _utilHtmls2 = _interopRequireDefault(_utilHtmls);
 
-var _utilParser = require('../util/parser');
+var _utilParser = _dereq_('../util/parser');
 
-var _utilBuffers = require('../util/buffers');
+var _utilBuffers = _dereq_('../util/buffers');
 
 var buffers = _interopRequireWildcard(_utilBuffers);
 
-var _utilUuid = require('../util/uuid');
+var _utilUuid = _dereq_('../util/uuid');
 
-var _sync_node = require('./sync_node');
+var _sync_node = _dereq_('./sync_node');
 
-var _make_node = require('./make_node');
+var _make_node = _dereq_('./make_node');
 
 var _make_node2 = _interopRequireDefault(_make_node);
 
-var _make_element = require('./make_element');
+var _make_element = _dereq_('./make_element');
 
 var _make_element2 = _interopRequireDefault(_make_element);
 
-var _worker = require('../worker');
+var _worker = _dereq_('../worker');
 
 var _worker2 = _interopRequireDefault(_worker);
 
@@ -566,7 +566,7 @@ function patch(element, newHTML, options) {
 exports['default'] = patch;
 module.exports = exports['default'];
 
-},{"../util/buffers":7,"../util/htmls":8,"../util/parser":9,"../util/pools":10,"../util/uuid":11,"../worker":12,"./make_element":1,"./make_node":2,"./sync_node":5}],4:[function(require,module,exports){
+},{"../util/buffers":7,"../util/htmls":8,"../util/parser":9,"../util/pools":10,"../util/uuid":11,"../worker":12,"./make_element":1,"./make_node":2,"./sync_node":5}],4:[function(_dereq_,module,exports){
 // List of SVG elements.
 'use strict';
 
@@ -580,7 +580,7 @@ exports.elements = elements;
 var namespace = 'http://www.w3.org/2000/svg';
 exports.namespace = namespace;
 
-},{}],5:[function(require,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -588,7 +588,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.syncNode = syncNode;
 
-var _utilPools = require('../util/pools');
+var _utilPools = _dereq_('../util/pools');
 
 var pools = _utilPools.pools;
 
@@ -781,7 +781,7 @@ function syncNode(virtualNode, liveNode) {
   }
 }
 
-},{"../util/pools":10}],6:[function(require,module,exports){
+},{"../util/pools":10}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -794,7 +794,7 @@ exports.enableProllyfill = enableProllyfill;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _diffPatch_node = require('./diff/patch_node');
+var _diffPatch_node = _dereq_('./diff/patch_node');
 
 var _diffPatch_node2 = _interopRequireDefault(_diffPatch_node);
 
@@ -908,7 +908,7 @@ function enableProllyfill() {
   });
 }
 
-},{"./diff/patch_node":3}],7:[function(require,module,exports){
+},{"./diff/patch_node":3}],7:[function(_dereq_,module,exports){
 /**
  * stringToBuffer
  *
@@ -951,16 +951,16 @@ function bufferToString(buffer) {
   return string;
 }
 
-},{}],8:[function(require,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _pools = require('./pools');
+var _pools = _dereq_('./pools');
 
-var _parser = require('./parser');
+var _parser = _dereq_('./parser');
 
 var parser = (0, _parser.makeParser)();
 
@@ -979,9 +979,9 @@ function parseHTML(newHTML, isInner) {
 exports['default'] = parseHTML;
 module.exports = exports['default'];
 
-},{"./parser":9,"./pools":10}],9:[function(require,module,exports){
+},{"./parser":9,"./pools":10}],9:[function(_dereq_,module,exports){
 (function (global){
-"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports.makeParser = makeParser;var _pools2=require('./pools');var pools=_pools2.pools;function makeParser(){var g={};(function(f){g.htmlParser = f();})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof dynamicRequire == "function" && dynamicRequire;if(!u && a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '" + o + "'");throw (f.code = "MODULE_NOT_FOUND",f);}var l=n[o] = {exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e);},l,l.exports,e,t,n,r);}return n[o].exports;}var i=typeof dynamicRequire == "function" && dynamicRequire;for(var o=0;o < r.length;o++) s(r[o]);return s;})({1:[function(dynamicRequire,module,exports){if(typeof Object.create === 'function'){ // implementation from standard node.js 'util' module
+"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports.makeParser = makeParser;var _pools2=_dereq_('./pools');var pools=_pools2.pools;function makeParser(){var g={};(function(f){g.htmlParser = f();})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof dynamicRequire == "function" && dynamicRequire;if(!u && a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '" + o + "'");throw (f.code = "MODULE_NOT_FOUND",f);}var l=n[o] = {exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e);},l,l.exports,e,t,n,r);}return n[o].exports;}var i=typeof dynamicRequire == "function" && dynamicRequire;for(var o=0;o < r.length;o++) s(r[o]);return s;})({1:[function(dynamicRequire,module,exports){if(typeof Object.create === 'function'){ // implementation from standard node.js 'util' module
 module.exports = function inherits(ctor,superCtor){ctor.super_ = superCtor;ctor.prototype = Object.create(superCtor.prototype,{constructor:{value:ctor,enumerable:false,writable:true,configurable:true}});};}else { // old school shim for old browsers
 module.exports = function inherits(ctor,superCtor){ctor.super_ = superCtor;var TempCtor=function TempCtor(){};TempCtor.prototype = superCtor.prototype;ctor.prototype = new TempCtor();ctor.prototype.constructor = ctor;};}},{}],2:[function(dynamicRequire,module,exports){ // shim for using process in browser
 var process=module.exports = {};var queue=[];var draining=false;function drainQueue(){if(draining){return;}draining = true;var currentQueue;var len=queue.length;while(len) {currentQueue = queue;queue = [];var i=-1;while(++i < len) {currentQueue[i]();}len = queue.length;}draining = false;}process.nextTick = function(fun){queue.push(fun);if(!draining){setTimeout(drainQueue,0);}};process.title = 'browser';process.browser = true;process.env = {};process.argv = [];process.version = ''; // empty string to avoid regexp issues
@@ -1372,7 +1372,7 @@ if(kElementsClosedByClosing[currentParent.nodeName]){if(kElementsClosedByClosing
 break;}}}}return root;}};},{"apollojs":6,"entities":7}]},{},[])("fast-html-parser");});return g.htmlParser;};
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./pools":10}],10:[function(require,module,exports){
+},{"./pools":10}],10:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1381,7 +1381,7 @@ Object.defineProperty(exports, '__esModule', {
 exports.createPool = createPool;
 exports.initializePools = initializePools;
 
-var _uuid = require('./uuid');
+var _uuid = _dereq_('./uuid');
 
 // Babel rewrites variables, which means this temporary hack must be in place
 // to avoid clobbering the global name.
@@ -1516,7 +1516,7 @@ function initializePools(COUNT) {
   });
 }
 
-},{"./uuid":11}],11:[function(require,module,exports){
+},{"./uuid":11}],11:[function(_dereq_,module,exports){
 /**
  * Generates a uuid.
  *
@@ -1538,7 +1538,7 @@ function uuid() {
   });
 }
 
-},{}],12:[function(require,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
