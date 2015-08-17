@@ -403,7 +403,11 @@ function processPatches(element, e) {
 
         // Text node manipulation.
         else if (patch.__do__ === 3) {
-            patch.element.nodeValue = patch.value;
+            patch.element.textContent = patch.value;
+
+            if (patch.element.parentNode === null) {
+              document.title = patch.value;
+            }
           }
   }
 }
@@ -623,7 +627,6 @@ function syncNode(virtualNode, liveNode) {
   // If the element we're replacing is totally different from the previous
   // replace the entire element, don't bother investigating children.
   if (virtualNode.nodeName !== liveNode.nodeName) {
-
     return;
   }
 

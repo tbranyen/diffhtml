@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "start": "http-server",
-    "browserify": "browserify -s diff lib/index.js -o dist/diffhtml.js",
-    "watchify": "watchify -d -s diff lib/index.js -o dist/diffhtml.js -v",
+    "browserify": "browserify -t babelify -s diff lib/index.js -o dist/diffhtml.js",
+    "watchify": "watchify -t babelify -d -s diff lib/index.js -o dist/diffhtml.js -v",
     "jshint": "jshint lib/*.js",
     "mocha": "mocha-phantomjs test/index.html",
     "istanbul": "istanbul instrument dist/diffhtml.js -o dist/diffhtml.coverage.js",
@@ -28,10 +28,5 @@
     "mocha-phantomjs-istanbul": "0.0.2",
     "promise-polyfill": "^2.1.0",
     "watchify": "^3.1.2"
-  },
-  "browserify": {
-    "transform": [
-      "babelify"
-    ]
   }
 }
