@@ -4,6 +4,28 @@ describe('diff.outerHTML', function() {
     this.fixture.innerHTML = '<div></div>';
   });
 
+  it('can replace the documentElement', function() {
+    var iframe = document.createElement('iframe');
+    var parts = location.href.split('/');
+
+    parts.pop();
+    parts.push('playground.html');
+
+    iframe.setAttribute('src', parts.join('/'));
+    document.body.appendChild(iframe);
+
+    var originalSource = document.documentElement.outerHTML;
+    var documentElement = iframe.contentDocument.documentElement;
+
+    diff.outerHTML(documentElement, '<html><head></head></html>');
+    assert.equal(documentElement.childNodes.length, 1);
+
+    diff.outerHTML(documentElement, originalSource);
+    assert.equal(documentElement.childNodes.length, 2);
+
+    iframe.parentNode.removeChild(iframe);
+  });
+
   it('cannot replace an element without a parent', function() {
     assert.throws(function() {
       diff.outerHTML(this.fixture, '<p></p>');
@@ -49,6 +71,12 @@ describe('diff.outerHTML', function() {
 
       assert.equal(this.fixture.innerHTML, '<span>whatever</span>');
       assert.equal(this.fixture.firstChild, span, 'are the same element');
+    });
+
+    it('supports html5 entities', function() {
+      diff.outerHTML(this.fixture, '<div>&gla;</div>');
+
+      assert.equal(this.fixture.innerHTML, '⪥');
     });
   });
 

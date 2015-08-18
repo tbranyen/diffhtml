@@ -3,13 +3,14 @@
   <meta charset="utf-8">
   <title>diffhtml tests</title>
   <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+  <style>iframe { display: none; }</style>
 </head>
 <body>
   <div id="mocha"></div>
   <script src="assert.js"></script>
   <script src="../node_modules/mocha/mocha.js"></script>
-  <script src="../lib/support/weakmap.js"></script>
   <script src="../node_modules/promise-polyfill/Promise.js"></script>
+  <script src="../node_modules/weakmap/weakmap.js"></script>
   <script>mocha.setup('bdd')</script>
   <script src="../dist/diffhtml.js"></script>
 

@@ -4,14 +4,11 @@
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports.makeElement = makeElement;
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _make_node = _dereq_('./make_node');
-
-var _make_node2 = _interopRequireDefault(_make_node);
+var _node = _dereq_('./node');
 
 var _svg = _dereq_('./svg');
 
@@ -23,6 +20,7 @@ var svg = _interopRequireWildcard(_svg);
  * @param descriptor
  * @return
  */
+
 function makeElement(descriptor) {
   var element = null;
   var isSvg = false;
@@ -56,542 +54,171 @@ function makeElement(descriptor) {
   }
 
   // Add to the nodes cache using the designated id.
-  _make_node2['default'].nodes[descriptor.element] = element;
+  _node.makeNode.nodes[descriptor.element] = element;
 
   return element;
 }
 
-exports['default'] = makeElement;
-module.exports = exports['default'];
-
-},{"./make_node":2,"./svg":4}],2:[function(_dereq_,module,exports){
+},{"./node":3,"./svg":4}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports.outerHTML = outerHTML;
+exports.innerHTML = innerHTML;
+exports.element = element;
+exports.enableProllyfill = enableProllyfill;
 
-var _utilPools = _dereq_('../util/pools');
-
-var push = Array.prototype.push;
-var nodes = makeNode.nodes = {};
-
-/**
- * Converts a live node into a virtual node.
- *
- * @param node
- * @return
- */
-function makeNode(node) {
-  // If this node has already been converted, do not attempt to convert again.
-  if (node && node.__node__) {
-    return node.__node__;
-  }
-
-  var nodeType = node.nodeType;
-  var nodeValue = node.nodeValue;
-
-  if (!nodeType || nodeType === 2 || nodeType === 4 || nodeType === 8) {
-    return false;
-  }
-
-  if (nodeType === 3 && !nodeValue.trim()) {
-    return false;
-  }
-
-  // Virtual representation of a node, containing only the data we wish to
-  // diff and patch.
-  var entry = {};
-
-  // Cache the element in the ids.
-  var id = _utilPools.pools.uuid.get();
-
-  // Add to internal lookup.
-  nodes[id] = node;
-
-  // Save a reference to this object.
-  node.__node__ = entry;
-
-  entry.element = id;
-  entry.nodeName = node.nodeName.toLowerCase();
-  entry.nodeValue = nodeValue;
-  entry.childNodes = [];
-  entry.attributes = [];
-
-  // Collect attributes.
-  var attributes = node.attributes;
-
-  // If the element has no attributes, skip over.
-  if (attributes) {
-    var attributesLength = attributes.length;
-
-    if (attributesLength) {
-      for (var i = 0; i < attributesLength; i++) {
-        push.call(entry.attributes, {
-          name: attributes[i].name,
-          value: attributes[i].value
-        });
-      }
-    }
-  }
-
-  // Collect childNodes.
-  var childNodes = node.childNodes;
-  var childNodesLength = node.childNodes.length;
-  var newNode = null;
-
-  // If the element has child nodes, convert them all to virtual nodes.
-  if (node.nodeType !== 3 && childNodes) {
-    for (var i = 0; i < childNodesLength; i++) {
-      newNode = makeNode(childNodes[i]);
-
-      if (newNode) {
-        entry.childNodes.push(newNode);
-      }
-    }
-  }
-
-  return entry;
-}
-
-exports['default'] = makeNode;
-module.exports = exports['default'];
-
-},{"../util/pools":10}],3:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _utilPools = _dereq_('../util/pools');
-
-var _utilHtmls = _dereq_('../util/htmls');
-
-var _utilHtmls2 = _interopRequireDefault(_utilHtmls);
-
-var _utilParser = _dereq_('../util/parser');
-
-var _utilBuffers = _dereq_('../util/buffers');
-
-var buffers = _interopRequireWildcard(_utilBuffers);
-
-var _utilUuid = _dereq_('../util/uuid');
-
-var _sync_node = _dereq_('./sync_node');
-
-var _make_node = _dereq_('./make_node');
-
-var _make_node2 = _interopRequireDefault(_make_node);
-
-var _make_element = _dereq_('./make_element');
-
-var _make_element2 = _interopRequireDefault(_make_element);
-
-var _worker = _dereq_('../worker');
-
-var _worker2 = _interopRequireDefault(_worker);
-
-var poolCount = 10000;
-
-// Initialize with a reasonable amount of objects.
-(0, _utilPools.initializePools)(poolCount);
-
-var hasWorker = typeof Worker === 'function';
-
-// Set up a WebWorker if available.
-if (hasWorker) {
-  // Construct the worker reusing code already organized into modules.
-  var workerBlob = new Blob([[
-  // Reusable Array methods.
-  'var slice = Array.prototype.slice;', 'var filter = Array.prototype.filter;',
-
-  // Add a namespace to attach pool methods to.
-  'var pools = {};', 'var nodes = 0;',
-
-  // Adds in a global `uuid` function.
-  _utilUuid.uuid,
-
-  // Add in pool manipulation methods.
-  _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + poolCount + ');',
-
-  // Add in Node manipulation.
-  _sync_node.syncNode,
-
-  // Add in the ability to parseHTML.
-  _utilHtmls2['default'],
-
-  // Give the webworker utilities.
-  buffers.stringToBuffer, buffers.bufferToString, _utilParser.makeParser, 'var parser = makeParser();',
-
-  // Add in the worker source.
-  _worker2['default'],
-
-  // Metaprogramming up this worker call.
-  'startup(self);'].join('\n')], { type: 'application/javascript' });
-
-  // Construct the worker and start it up.
-  var worker = new Worker(URL.createObjectURL(workerBlob));
-}
+var _node = _dereq_('./node');
 
 /**
- * getElement
- *
- * @param ref
- * @return
- */
-function getElement(ref) {
-  var element = ref.element || ref;
-
-  // Already created.
-  if (element in _make_node2['default'].nodes) {
-    return _make_node2['default'].nodes[element];
-  }
-  // Need to create.
-  else {
-      return (0, _make_element2['default'])(ref);
-    }
-}
-
-/**
- * Processes an Array of patches.
- *
- * @param e
- * @return
- */
-function processPatches(element, e) {
-  var patches = e.data;
-  var states = element._transitionStates;
-
-  // Loop through all the patches and apply them.
-  for (var i = 0; i < patches.length; i++) {
-    var patch = patches[i];
-
-    if (patch.element) {
-      patch.element = getElement(patch.element);
-      var elementId = patch.element;
-    }
-
-    if (patch.old) {
-      patch.old = getElement(patch.old);
-      var oldId = patch.old.element;
-    }
-
-    if (patch['new']) {
-      patch['new'] = getElement(patch['new']);
-      var newId = patch['new'].element;
-    }
-
-    // Replace the entire Node.
-    if (patch.__do__ === 0) {
-      patch.old.parentNode.replaceChild(patch['new'], patch.old);
-    }
-
-    // Node manip.
-    else if (patch.__do__ === 1) {
-        // Add.
-        if (patch.element && patch.fragment && !patch.old) {
-          var fragment = document.createDocumentFragment();
-
-          patch.fragment.forEach(function (elementDescriptor) {
-            var element = getElement(elementDescriptor);
-
-            fragment.appendChild(element);
-
-            // Added state for transitions API.
-            if (states && states.added) {
-              states.added.forEach(function (callback) {
-                callback(element);
-              });
-            }
-          });
-
-          patch.element.appendChild(fragment);
-        }
-
-        // Remove
-        else if (patch.old && !patch['new']) {
-            if (!patch.old.parentNode) {
-              throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
-            }
-
-            var removeNode = (function () {
-              this.parentNode.removeChild(this);
-              _make_node2['default'].nodes[oldId] = null;
-              delete _make_node2['default'].nodes[oldId];
-            }).bind(patch.old);
-
-            var removed;
-
-            if (states && states.removed) {
-              removed = states.removed.map(function (callback) {
-                return callback(patch.old);
-              });
-            }
-
-            var promises = [].concat(removed).filter(Boolean);
-
-            if (promises.length) {
-              Promise.all(promises).then(removeNode, removeNode);
-            } else {
-              removeNode();
-            }
-          }
-
-          // Replace
-          else if (patch.old && patch['new']) {
-              if (!patch.old.parentNode) {
-                throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
-              }
-
-              // Append the element first, before doing the replacement.
-              patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
-
-              var removeNode = (function () {
-                this[0].parentNode.replaceChild(this[1], this[0]);
-                _make_node2['default'].nodes[oldId] = null;
-                delete _make_node2['default'].nodes[oldId];
-              }).bind([patch.old, patch['new']]);
-
-              var added, removed, replaced;
-
-              // Added state for transitions API.
-              if (states && states.added) {
-                added = states.added.map(function (callback) {
-                  return callback(patch['new']);
-                });
-              }
-
-              // Removed state for transitions API.
-              if (states && states.removed) {
-                removed = states.removed.map(function (callback) {
-                  return callback(patch.old);
-                });
-              }
-
-              // Removed state for transitions API.
-              if (states && states.replaced) {
-                replaced = states.removed.map(function (callback) {
-                  return callback(patch.old, patch['new']);
-                });
-              }
-
-              // Replaced state for transitions API.
-              var promises = [].concat(added, removed, replaced).filter(Boolean);
-
-              if (promises.length) {
-                Promise.all(promises).then(removeNode, removeNode);
-              } else {
-                removeNode();
-              }
-            }
-      }
-
-      // Attribute manipulation.
-      else if (patch.__do__ === 2) {
-          // Remove.
-          if (!patch.value) {
-            patch.element.removeAttribute(patch.name);
-          } else {
-            patch.element.setAttribute(patch.name, patch.value);
-          }
-        }
-
-        // Text node manipulation.
-        else if (patch.__do__ === 3) {
-            patch.element.textContent = patch.value;
-
-            if (patch.element.parentNode === null) {
-              document.title = patch.value;
-            }
-          }
-  }
-}
-
-/**
- * Patches an element's DOM to match that of the passed markup.
+ * outer
  *
  * @param element
- * @param newHTML
+ * @param markup=''
+ * @param options={}
+ * @return
  */
-function patch(element, newHTML, options) {
-  // Ensure that the document disable worker is always picked up.
-  if (typeof options.disableWorker !== 'boolean') {
-    options.disableWorker = document.DISABLE_WORKER;
-  }
 
-  var wantsWorker = hasWorker && !options.disableWorker;
+function outerHTML(element) {
+  var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
+  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-  if (element.__is_rendering__) {
-    return;
-  }
-
-  //if (typeof newHTML !== 'string') {
-  //  throw new Error('Invalid type passed to diffHTML, expected String');
-  //}
-
-  // Only calculate the parent's initial state one time.
-  if (!element.__old_tree__) {
-    element.__old_tree__ = (0, _make_node2['default'])(element);
-  }
-  // InnerHTML is the same.
-  else if (options.inner && element.innerHTML === newHTML) {
-      return;
-    }
-    // OuterHTML is the same.
-    else if (!options.inner && element.outerHTML === newHTML) {
-        return;
-      }
-
-  // Will want to ensure that the first render went through, the worker can
-  // take a bit to startup and we want to show changes as soon as possible.
-  if (wantsWorker && hasWorker && element.__has_rendered__) {
-    // Attach all properties here to transport.
-    var transferObject = {
-      oldTree: element.__old_tree__
-    };
-
-    if (typeof newHTML !== 'string') {
-      transferObject.newTree = (0, _make_node2['default'])(newHTML);
-
-      // Set a render lock as to not flood the worker.
-      element.__is_rendering__ = true;
-
-      // Transfer this buffer to the worker, which will take over and process the
-      // markup.
-      worker.postMessage(transferObject);
-
-      // Wait for the worker to finish processing and then apply the patchset.
-      worker.onmessage = function (e) {
-        processPatches(element, e);
-        element.__is_rendering__ = false;
-      };
-
-      return;
-    }
-
-    // Used to specify the outerHTML offset if passing the parent's markup.
-    var offset = 0;
-
-    // Craft a new buffer with the new contents.
-    var newBuffer = buffers.stringToBuffer(newHTML);
-
-    // Set the offset to be this byte length.
-    offset = newBuffer.byteLength;
-
-    // Calculate the bytelength for the transfer buffer, contains one extra for
-    // the offset.
-    var transferByteLength = newBuffer.byteLength;
-
-    // This buffer starts with the offset and contains the data to be carried
-    // to the worker.
-    var transferBuffer = new Uint16Array(transferByteLength);
-
-    // Set the newHTML payload.
-    transferBuffer.set(newBuffer, 0);
-
-    // Add properties to send to worker.
-    transferObject.offset = newBuffer.byteLength;
-    transferObject.buffer = transferBuffer.buffer;
-    transferObject.isInner = options.inner;
-
-    // Set a render lock as to not flood the worker.
-    element.__is_rendering__ = true;
-
-    // Transfer this buffer to the worker, which will take over and process the
-    // markup.
-    worker.postMessage(transferObject, [transferBuffer.buffer]);
-
-    // Wait for the worker to finish processing and then apply the patchset.
-    worker.onmessage = function (e) {
-      processPatches(element, e);
-      element.__is_rendering__ = false;
-    };
-  } else if (!wantsWorker || !hasWorker || !element.__has_rendered__) {
-    var patches = [];
-    var oldTree = element.__old_tree__;
-    var newTree = typeof newHTML === 'string' ? (0, _utilHtmls2['default'])(newHTML, options.inner) : (0, _make_node2['default'])(newHTML);
-
-    if (options.inner) {
-      var childNodes = newTree;
-
-      newTree = {
-        attributes: oldTree.attributes,
-        childNodes: childNodes,
-        element: oldTree.element,
-        nodeName: oldTree.nodeName,
-        nodeValue: oldTree.nodeValue
-      };
-    }
-
-    var oldNodeName = oldTree.nodeName || '';
-    var newNodeName = newTree && newTree.nodeName;
-
-    // If the element node types match, try and compare them.
-    if (oldNodeName === newNodeName) {
-      // Synchronize the tree.
-      _sync_node.syncNode.call(patches, element.__old_tree__, newTree);
-    }
-    // Otherwise replace the top level elements.
-    else if (newHTML) {
-        patches.push({
-          __do__: 0,
-          old: oldTree,
-          'new': newTree
-        });
-
-        element.__old_tree__ = newTree;
-      }
-
-    // Process the patches immediately.
-    processPatches(element, { data: patches });
-
-    // Mark this element as initially rendered.
-    if (!element.__has_rendered__) {
-      element.__has_rendered__ = true;
-    }
-
-    // Element has stopped rendering.
-    element.__is_rendering__ = false;
-
-    // Clean out the patches array.
-    patches.length = 0;
-  }
+  options.inner = false;
+  (0, _node.patchNode)(element, markup, options);
 }
 
-exports['default'] = patch;
-module.exports = exports['default'];
+/**
+ * inner
+ *
+ * @param element
+ * @param markup=''
+ * @param options={}
+ * @return
+ */
 
-},{"../util/buffers":7,"../util/htmls":8,"../util/parser":9,"../util/pools":10,"../util/uuid":11,"../worker":12,"./make_element":1,"./make_node":2,"./sync_node":5}],4:[function(_dereq_,module,exports){
-// List of SVG elements.
-'use strict';
+function innerHTML(element) {
+  var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
+  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-var elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'script', 'set', 'stop', 'style', 'svg', 'switch', 'symbol', 'text', 'textPath', 'title', 'tref', 'tspan', 'use', 'view', 'vkern'];
+  options.inner = true;
+  (0, _node.patchNode)(element, markup, options);
+}
 
-exports.elements = elements;
-// Namespace.
-var namespace = 'http://www.w3.org/2000/svg';
-exports.namespace = namespace;
+/**
+ * element
+ *
+ * @param element
+ * @param newElement
+ * @param options={}
+ * @return
+ */
 
-},{}],5:[function(_dereq_,module,exports){
+function element(element, newElement) {
+  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+  options.inner = false;
+  (0, _node.patchNode)(element, newElement, options);
+}
+
+/**
+ * enableProllyfill
+ *
+ * @return
+ */
+
+function enableProllyfill() {
+  Object.defineProperty(Element.prototype, 'addTransitionState', {
+    configurable: true,
+
+    value: function value(name, callback) {
+      var states = this._transitionStates = this._transitionStates || {};
+
+      states[name] = states[name] || [];
+
+      states[name].push(callback);
+    }
+  });
+
+  Object.defineProperty(Element.prototype, 'removeTransitionState', {
+    configurable: true,
+
+    value: function value(name, callback) {
+      var states = this._transitionStates = this._transitionStates || {};
+
+      states[name] = states[name] || [];
+
+      if (!callback) {
+        state[name] = [];
+      } else {
+        states[name].splice(states.indexOf(callback), 1);
+      }
+    }
+  });
+
+  Object.defineProperty(Element.prototype, 'diffInnerHTML', {
+    configurable: true,
+
+    set: function set(newHTML) {
+      innerHTML(this, newHTML);
+    }
+  });
+
+  Object.defineProperty(Element.prototype, 'diffOuterHTML', {
+    configurable: true,
+
+    set: function set(newHTML) {
+      outerHTML(this, newHTML);
+    }
+  });
+
+  Object.defineProperty(Element.prototype, 'diffElement', {
+    configurable: true,
+
+    value: function value(newElement) {
+      element(this, newElement);
+    }
+  });
+}
+
+},{"./node":3}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports.syncNode = syncNode;
+exports.makeNode = makeNode;
+exports.patchNode = patchNode;
 
-var _utilPools = _dereq_('../util/pools');
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var pools = _utilPools.pools;
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
+var _utilBuffers = _dereq_('./util/buffers');
+
+var buffers = _interopRequireWildcard(_utilBuffers);
+
+var _utilPools = _dereq_('./util/pools');
+
+var _utilParser = _dereq_('./util/parser');
+
+var _utilUuid = _dereq_('./util/uuid');
+
+var _element = _dereq_('./element');
+
+var _worker = _dereq_('./worker');
+
+var _worker2 = _interopRequireDefault(_worker);
+
+var poolCount = 10000;
+var nodes = makeNode.nodes = {};
+
+// Initialize with a reasonable amount of objects.
+(0, _utilPools.initializePools)(poolCount);
+
+var push = Array.prototype.push;
 var slice = Array.prototype.slice;
 var filter = Array.prototype.filter;
 
@@ -650,7 +277,7 @@ function syncNode(virtualNode, liveNode) {
   if (newChildNodesLength > oldChildNodesLength) {
     // Store elements in a DocumentFragment to increase performance and be
     // generally simplier to work with.
-    var fragment = pools.array.get();
+    var fragment = _utilPools.pools.array.get();
 
     for (var i = oldChildNodesLength; i < newChildNodesLength; i++) {
       // Internally add to the tree.
@@ -781,134 +408,464 @@ function syncNode(virtualNode, liveNode) {
   }
 }
 
-},{"../util/pools":10}],6:[function(_dereq_,module,exports){
+/**
+ * Converts a live node into a virtual node.
+ *
+ * @param node
+ * @return
+ */
+
+function makeNode(node) {
+  // If this node has already been converted, do not attempt to convert again.
+  if (node && node.__node__) {
+    return node.__node__;
+  }
+
+  var nodeType = node.nodeType;
+  var nodeValue = node.nodeValue;
+
+  if (!nodeType || nodeType === 2 || nodeType === 4 || nodeType === 8) {
+    return false;
+  }
+
+  if (nodeType === 3 && !nodeValue.trim()) {
+    return false;
+  }
+
+  // Virtual representation of a node, containing only the data we wish to
+  // diff and patch.
+  var entry = {};
+
+  // Cache the element in the ids.
+  var id = _utilPools.pools.uuid.get();
+
+  // Add to internal lookup.
+  nodes[id] = node;
+
+  // Save a reference to this object.
+  node.__node__ = entry;
+
+  entry.element = id;
+  entry.nodeName = node.nodeName.toLowerCase();
+  entry.nodeValue = nodeValue;
+  entry.childNodes = [];
+  entry.attributes = [];
+
+  // Collect attributes.
+  var attributes = node.attributes;
+
+  // If the element has no attributes, skip over.
+  if (attributes) {
+    var attributesLength = attributes.length;
+
+    if (attributesLength) {
+      for (var i = 0; i < attributesLength; i++) {
+        push.call(entry.attributes, {
+          name: attributes[i].name,
+          value: attributes[i].value
+        });
+      }
+    }
+  }
+
+  // Collect childNodes.
+  var childNodes = node.childNodes;
+  var childNodesLength = node.childNodes.length;
+  var newNode = null;
+
+  // If the element has child nodes, convert them all to virtual nodes.
+  if (node.nodeType !== 3 && childNodes) {
+    for (var i = 0; i < childNodesLength; i++) {
+      newNode = makeNode(childNodes[i]);
+
+      if (newNode) {
+        entry.childNodes.push(newNode);
+      }
+    }
+  }
+
+  return entry;
+}
+
+var hasWorker = typeof Worker === 'function';
+
+// Set up a WebWorker if available.
+if (hasWorker) {
+  // Construct the worker reusing code already organized into modules.
+  var workerBlob = new Blob([[
+  // Reusable Array methods.
+  'var slice = Array.prototype.slice;', 'var filter = Array.prototype.filter;',
+
+  // Add a namespace to attach pool methods to.
+  'var pools = {};', 'var nodes = 0;',
+
+  // Adds in a global `uuid` function.
+  _utilUuid.uuid,
+
+  // Add in pool manipulation methods.
+  _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + poolCount + ');',
+
+  // Add in Node manipulation.
+  syncNode,
+
+  // Add in the ability to parseHTML.
+  _utilParser.parseHTML,
+
+  // Give the webworker utilities.
+  buffers.stringToBuffer, buffers.bufferToString, _utilParser.makeParser, 'var parser = makeParser();',
+
+  // Add in the worker source.
+  _worker2['default'],
+
+  // Metaprogramming up this worker call.
+  'startup(self);'].join('\n')], { type: 'application/javascript' });
+
+  // Construct the worker and start it up.
+  var worker = new Worker(URL.createObjectURL(workerBlob));
+}
+
+/**
+ * getElement
+ *
+ * @param ref
+ * @return
+ */
+function getElement(ref) {
+  var element = ref.element || ref;
+
+  // Already created.
+  if (element in makeNode.nodes) {
+    return makeNode.nodes[element];
+  }
+  // Need to create.
+  else {
+      return (0, _element.makeElement)(ref);
+    }
+}
+
+/**
+ * Processes an Array of patches.
+ *
+ * @param e
+ * @return
+ */
+function processPatches(element, e) {
+  var patches = e.data;
+  var states = element._transitionStates;
+
+  // Loop through all the patches and apply them.
+  for (var i = 0; i < patches.length; i++) {
+    var patch = patches[i];
+
+    if (patch.element) {
+      patch.element = getElement(patch.element);
+      var elementId = patch.element;
+    }
+
+    if (patch.old) {
+      patch.old = getElement(patch.old);
+      var oldId = patch.old.element;
+    }
+
+    if (patch['new']) {
+      patch['new'] = getElement(patch['new']);
+      var newId = patch['new'].element;
+    }
+
+    // Replace the entire Node.
+    if (patch.__do__ === 0) {
+      patch.old.parentNode.replaceChild(patch['new'], patch.old);
+    }
+
+    // Node manip.
+    else if (patch.__do__ === 1) {
+        // Add.
+        if (patch.element && patch.fragment && !patch.old) {
+          var fragment = document.createDocumentFragment();
+          var callCallback = function callCallback(callback) {
+            callback(this);
+          };
+
+          patch.fragment.forEach(function (elementDescriptor) {
+            var element = getElement(elementDescriptor);
+
+            fragment.appendChild(element);
+
+            // Added state for transitions API.
+            if (states && states.added) {
+              states.added.forEach(callCallback, element);
+            }
+          });
+
+          patch.element.appendChild(fragment);
+        }
+
+        // Remove
+        else if (patch.old && !patch['new']) {
+            if (!patch.old.parentNode) {
+              throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
+            }
+
+            var removeNode = (function () {
+              this.parentNode.removeChild(this);
+              makeNode.nodes[oldId] = null;
+              delete makeNode.nodes[oldId];
+            }).bind(patch.old);
+
+            var removed;
+
+            if (states && states.removed) {
+              removed = states.removed.map(function (callback) {
+                return callback(patch.old);
+              });
+            }
+
+            var promises = [].concat(removed).filter(Boolean);
+
+            if (promises.length) {
+              Promise.all(promises).then(removeNode, removeNode);
+            } else {
+              removeNode();
+            }
+          }
+
+          // Replace
+          else if (patch.old && patch['new']) {
+              if (!patch.old.parentNode) {
+                throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
+              }
+
+              // Append the element first, before doing the replacement.
+              patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
+
+              var removeNode = (function () {
+                this[0].parentNode.replaceChild(this[1], this[0]);
+                makeNode.nodes[oldId] = null;
+                delete makeNode.nodes[oldId];
+              }).bind([patch.old, patch['new']]);
+
+              var added, removed, replaced;
+
+              // Added state for transitions API.
+              if (states && states.added) {
+                added = states.added.map(function (callback) {
+                  return callback(patch['new']);
+                });
+              }
+
+              // Removed state for transitions API.
+              if (states && states.removed) {
+                removed = states.removed.map(function (callback) {
+                  return callback(patch.old);
+                });
+              }
+
+              // Removed state for transitions API.
+              if (states && states.replaced) {
+                replaced = states.removed.map(function (callback) {
+                  return callback(patch.old, patch['new']);
+                });
+              }
+
+              // Replaced state for transitions API.
+              var promises = [].concat(added, removed, replaced).filter(Boolean);
+
+              if (promises.length) {
+                Promise.all(promises).then(removeNode, removeNode);
+              } else {
+                removeNode();
+              }
+            }
+      }
+
+      // Attribute manipulation.
+      else if (patch.__do__ === 2) {
+          // Remove.
+          if (!patch.value) {
+            patch.element.removeAttribute(patch.name);
+          } else {
+            patch.element.setAttribute(patch.name, patch.value);
+          }
+        }
+
+        // Text node manipulation.
+        else if (patch.__do__ === 3) {
+            patch.element.textContent = patch.value;
+
+            if (patch.element.parentNode === null) {
+              document.title = patch.value;
+            }
+          }
+  }
+}
+
+/**
+ * Patches an element's DOM to match that of the passed markup.
+ *
+ * @param element
+ * @param newHTML
+ */
+
+function patchNode(element, newHTML, options) {
+  // Ensure that the document disable worker is always picked up.
+  if (typeof options.disableWorker !== 'boolean') {
+    options.disableWorker = document.DISABLE_WORKER;
+  }
+
+  var wantsWorker = hasWorker && !options.disableWorker;
+
+  if (element.__is_rendering__) {
+    return;
+  }
+
+  //if (typeof newHTML !== 'string') {
+  //  throw new Error('Invalid type passed to diffHTML, expected String');
+  //}
+
+  // Only calculate the parent's initial state one time.
+  if (!element.__old_tree__) {
+    element.__old_tree__ = makeNode(element);
+  }
+  // InnerHTML is the same.
+  else if (options.inner && element.innerHTML === newHTML) {
+      return;
+    }
+    // OuterHTML is the same.
+    else if (!options.inner && element.outerHTML === newHTML) {
+        return;
+      }
+
+  // Will want to ensure that the first render went through, the worker can
+  // take a bit to startup and we want to show changes as soon as possible.
+  if (wantsWorker && hasWorker && element.__has_rendered__) {
+    // Attach all properties here to transport.
+    var transferObject = {
+      oldTree: element.__old_tree__
+    };
+
+    if (typeof newHTML !== 'string') {
+      transferObject.newTree = makeNode(newHTML);
+
+      // Set a render lock as to not flood the worker.
+      element.__is_rendering__ = true;
+
+      // Transfer this buffer to the worker, which will take over and process the
+      // markup.
+      worker.postMessage(transferObject);
+
+      // Wait for the worker to finish processing and then apply the patchset.
+      worker.onmessage = function (e) {
+        processPatches(element, e);
+        element.__is_rendering__ = false;
+      };
+
+      return;
+    }
+
+    // Used to specify the outerHTML offset if passing the parent's markup.
+    var offset = 0;
+
+    // Craft a new buffer with the new contents.
+    var newBuffer = buffers.stringToBuffer(newHTML);
+
+    // Set the offset to be this byte length.
+    offset = newBuffer.byteLength;
+
+    // Calculate the bytelength for the transfer buffer, contains one extra for
+    // the offset.
+    var transferByteLength = newBuffer.byteLength;
+
+    // This buffer starts with the offset and contains the data to be carried
+    // to the worker.
+    var transferBuffer = new Uint16Array(transferByteLength);
+
+    // Set the newHTML payload.
+    transferBuffer.set(newBuffer, 0);
+
+    // Add properties to send to worker.
+    transferObject.offset = newBuffer.byteLength;
+    transferObject.buffer = transferBuffer.buffer;
+    transferObject.isInner = options.inner;
+
+    // Set a render lock as to not flood the worker.
+    element.__is_rendering__ = true;
+
+    // Transfer this buffer to the worker, which will take over and process the
+    // markup.
+    worker.postMessage(transferObject, [transferBuffer.buffer]);
+
+    // Wait for the worker to finish processing and then apply the patchset.
+    worker.onmessage = function (e) {
+      processPatches(element, e);
+      element.__is_rendering__ = false;
+    };
+  } else if (!wantsWorker || !hasWorker || !element.__has_rendered__) {
+    var patches = [];
+    var oldTree = element.__old_tree__;
+    var newTree = typeof newHTML === 'string' ? (0, _utilParser.parseHTML)(newHTML, options.inner) : makeNode(newHTML);
+
+    if (options.inner) {
+      var childNodes = newTree;
+
+      newTree = {
+        attributes: oldTree.attributes,
+        childNodes: childNodes,
+        element: oldTree.element,
+        nodeName: oldTree.nodeName,
+        nodeValue: oldTree.nodeValue
+      };
+    }
+
+    var oldNodeName = oldTree.nodeName || '';
+    var newNodeName = newTree && newTree.nodeName;
+
+    // If the element node types match, try and compare them.
+    if (oldNodeName === newNodeName) {
+      // Synchronize the tree.
+      syncNode.call(patches, element.__old_tree__, newTree);
+    }
+    // Otherwise replace the top level elements.
+    else if (newHTML) {
+        patches.push({
+          __do__: 0,
+          old: oldTree,
+          'new': newTree
+        });
+
+        element.__old_tree__ = newTree;
+      }
+
+    // Process the patches immediately.
+    processPatches(element, { data: patches });
+
+    // Mark this element as initially rendered.
+    if (!element.__has_rendered__) {
+      element.__has_rendered__ = true;
+    }
+
+    // Element has stopped rendering.
+    element.__is_rendering__ = false;
+
+    // Clean out the patches array.
+    patches.length = 0;
+  }
+}
+
+},{"./element":1,"./util/buffers":5,"./util/parser":6,"./util/pools":7,"./util/uuid":8,"./worker":9}],4:[function(_dereq_,module,exports){
+// List of SVG elements.
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
-exports.outerHTML = outerHTML;
-exports.innerHTML = innerHTML;
-exports.element = element;
-exports.enableProllyfill = enableProllyfill;
+var elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'script', 'set', 'stop', 'style', 'svg', 'switch', 'symbol', 'text', 'textPath', 'title', 'tref', 'tspan', 'use', 'view', 'vkern'];
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+exports.elements = elements;
+// Namespace.
+var namespace = 'http://www.w3.org/2000/svg';
+exports.namespace = namespace;
 
-var _diffPatch_node = _dereq_('./diff/patch_node');
-
-var _diffPatch_node2 = _interopRequireDefault(_diffPatch_node);
-
-/**
- * outer
- *
- * @param element
- * @param markup=''
- * @param options={}
- * @return
- */
-
-function outerHTML(element) {
-  var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
-  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-  options.inner = false;
-  (0, _diffPatch_node2['default'])(element, markup, options);
-}
-
-/**
- * inner
- *
- * @param element
- * @param markup=''
- * @param options={}
- * @return
- */
-
-function innerHTML(element) {
-  var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
-  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-  options.inner = true;
-  (0, _diffPatch_node2['default'])(element, markup, options);
-}
-
-/**
- * element
- *
- * @param element
- * @param newElement
- * @param options={}
- * @return
- */
-
-function element(element, newElement) {
-  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-  options.inner = false;
-  (0, _diffPatch_node2['default'])(element, newElement, options);
-}
-
-/**
- * enableProllyfill
- *
- * @return
- */
-
-function enableProllyfill() {
-  Object.defineProperty(Element.prototype, 'addTransitionState', {
-    configurable: true,
-
-    value: function value(name, callback) {
-      var states = this._transitionStates = this._transitionStates || {};
-
-      states[name] = states[name] || [];
-
-      states[name].push(callback);
-    }
-  });
-
-  Object.defineProperty(Element.prototype, 'removeTransitionState', {
-    configurable: true,
-
-    value: function value(name, callback) {
-      var states = this._transitionStates = this._transitionStates || {};
-
-      states[name] = states[name] || [];
-
-      if (!callback) {
-        state[name] = [];
-      } else {
-        states[name].splice(states.indexOf(callback), 1);
-      }
-    }
-  });
-
-  Object.defineProperty(Element.prototype, 'diffInnerHTML', {
-    configurable: true,
-
-    set: function set(newHTML) {
-      innerHTML(this, newHTML);
-    }
-  });
-
-  Object.defineProperty(Element.prototype, 'diffOuterHTML', {
-    configurable: true,
-
-    set: function set(newHTML) {
-      outerHTML(this, newHTML);
-    }
-  });
-
-  Object.defineProperty(Element.prototype, 'diffElement', {
-    configurable: true,
-
-    value: function value(newElement) {
-      element(this, newElement);
-    }
-  });
-}
-
-},{"./diff/patch_node":3}],7:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 /**
  * stringToBuffer
  *
@@ -951,18 +908,19 @@ function bufferToString(buffer) {
   return string;
 }
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports.parseHTML = parseHTML;
+exports.makeParser = makeParser;
 
-var _pools = _dereq_('./pools');
+var _pools2 = _dereq_('./pools');
 
-var _parser = _dereq_('./parser');
-
-var parser = (0, _parser.makeParser)();
+var pools = _pools2.pools;
+var parser = makeParser();
 
 /**
  * parseHTML
@@ -970,351 +928,143 @@ var parser = (0, _parser.makeParser)();
  * @param newHTML
  * @return
  */
+
 function parseHTML(newHTML, isInner) {
   var nodes = parser.parse(newHTML).childNodes;
 
   return isInner ? nodes : nodes[0];
 }
 
-exports['default'] = parseHTML;
-module.exports = exports['default'];
+function makeParser() {
+  var ENTITIES = [['Aacute', [193]], ['aacute', [225]], ['Abreve', [258]], ['abreve', [259]], ['ac', [8766]], ['acd', [8767]], ['acE', [8766, 819]], ['Acirc', [194]], ['acirc', [226]], ['acute', [180]], ['Acy', [1040]], ['acy', [1072]], ['AElig', [198]], ['aelig', [230]], ['af', [8289]], ['Afr', [120068]], ['afr', [120094]], ['Agrave', [192]], ['agrave', [224]], ['alefsym', [8501]], ['aleph', [8501]], ['Alpha', [913]], ['alpha', [945]], ['Amacr', [256]], ['amacr', [257]], ['amalg', [10815]], ['amp', [38]], ['AMP', [38]], ['andand', [10837]], ['And', [10835]], ['and', [8743]], ['andd', [10844]], ['andslope', [10840]], ['andv', [10842]], ['ang', [8736]], ['ange', [10660]], ['angle', [8736]], ['angmsdaa', [10664]], ['angmsdab', [10665]], ['angmsdac', [10666]], ['angmsdad', [10667]], ['angmsdae', [10668]], ['angmsdaf', [10669]], ['angmsdag', [10670]], ['angmsdah', [10671]], ['angmsd', [8737]], ['angrt', [8735]], ['angrtvb', [8894]], ['angrtvbd', [10653]], ['angsph', [8738]], ['angst', [197]], ['angzarr', [9084]], ['Aogon', [260]], ['aogon', [261]], ['Aopf', [120120]], ['aopf', [120146]], ['apacir', [10863]], ['ap', [8776]], ['apE', [10864]], ['ape', [8778]], ['apid', [8779]], ['apos', [39]], ['ApplyFunction', [8289]], ['approx', [8776]], ['approxeq', [8778]], ['Aring', [197]], ['aring', [229]], ['Ascr', [119964]], ['ascr', [119990]], ['Assign', [8788]], ['ast', [42]], ['asymp', [8776]], ['asympeq', [8781]], ['Atilde', [195]], ['atilde', [227]], ['Auml', [196]], ['auml', [228]], ['awconint', [8755]], ['awint', [10769]], ['backcong', [8780]], ['backepsilon', [1014]], ['backprime', [8245]], ['backsim', [8765]], ['backsimeq', [8909]], ['Backslash', [8726]], ['Barv', [10983]], ['barvee', [8893]], ['barwed', [8965]], ['Barwed', [8966]], ['barwedge', [8965]], ['bbrk', [9141]], ['bbrktbrk', [9142]], ['bcong', [8780]], ['Bcy', [1041]], ['bcy', [1073]], ['bdquo', [8222]], ['becaus', [8757]], ['because', [8757]], ['Because', [8757]], ['bemptyv', [10672]], ['bepsi', [1014]], ['bernou', [8492]], ['Bernoullis', [8492]], ['Beta', [914]], ['beta', [946]], ['beth', [8502]], ['between', [8812]], ['Bfr', [120069]], ['bfr', [120095]], ['bigcap', [8898]], ['bigcirc', [9711]], ['bigcup', [8899]], ['bigodot', [10752]], ['bigoplus', [10753]], ['bigotimes', [10754]], ['bigsqcup', [10758]], ['bigstar', [9733]], ['bigtriangledown', [9661]], ['bigtriangleup', [9651]], ['biguplus', [10756]], ['bigvee', [8897]], ['bigwedge', [8896]], ['bkarow', [10509]], ['blacklozenge', [10731]], ['blacksquare', [9642]], ['blacktriangle', [9652]], ['blacktriangledown', [9662]], ['blacktriangleleft', [9666]], ['blacktriangleright', [9656]], ['blank', [9251]], ['blk12', [9618]], ['blk14', [9617]], ['blk34', [9619]], ['block', [9608]], ['bne', [61, 8421]], ['bnequiv', [8801, 8421]], ['bNot', [10989]], ['bnot', [8976]], ['Bopf', [120121]], ['bopf', [120147]], ['bot', [8869]], ['bottom', [8869]], ['bowtie', [8904]], ['boxbox', [10697]], ['boxdl', [9488]], ['boxdL', [9557]], ['boxDl', [9558]], ['boxDL', [9559]], ['boxdr', [9484]], ['boxdR', [9554]], ['boxDr', [9555]], ['boxDR', [9556]], ['boxh', [9472]], ['boxH', [9552]], ['boxhd', [9516]], ['boxHd', [9572]], ['boxhD', [9573]], ['boxHD', [9574]], ['boxhu', [9524]], ['boxHu', [9575]], ['boxhU', [9576]], ['boxHU', [9577]], ['boxminus', [8863]], ['boxplus', [8862]], ['boxtimes', [8864]], ['boxul', [9496]], ['boxuL', [9563]], ['boxUl', [9564]], ['boxUL', [9565]], ['boxur', [9492]], ['boxuR', [9560]], ['boxUr', [9561]], ['boxUR', [9562]], ['boxv', [9474]], ['boxV', [9553]], ['boxvh', [9532]], ['boxvH', [9578]], ['boxVh', [9579]], ['boxVH', [9580]], ['boxvl', [9508]], ['boxvL', [9569]], ['boxVl', [9570]], ['boxVL', [9571]], ['boxvr', [9500]], ['boxvR', [9566]], ['boxVr', [9567]], ['boxVR', [9568]], ['bprime', [8245]], ['breve', [728]], ['Breve', [728]], ['brvbar', [166]], ['bscr', [119991]], ['Bscr', [8492]], ['bsemi', [8271]], ['bsim', [8765]], ['bsime', [8909]], ['bsolb', [10693]], ['bsol', [92]], ['bsolhsub', [10184]], ['bull', [8226]], ['bullet', [8226]], ['bump', [8782]], ['bumpE', [10926]], ['bumpe', [8783]], ['Bumpeq', [8782]], ['bumpeq', [8783]], ['Cacute', [262]], ['cacute', [263]], ['capand', [10820]], ['capbrcup', [10825]], ['capcap', [10827]], ['cap', [8745]], ['Cap', [8914]], ['capcup', [10823]], ['capdot', [10816]], ['CapitalDifferentialD', [8517]], ['caps', [8745, 65024]], ['caret', [8257]], ['caron', [711]], ['Cayleys', [8493]], ['ccaps', [10829]], ['Ccaron', [268]], ['ccaron', [269]], ['Ccedil', [199]], ['ccedil', [231]], ['Ccirc', [264]], ['ccirc', [265]], ['Cconint', [8752]], ['ccups', [10828]], ['ccupssm', [10832]], ['Cdot', [266]], ['cdot', [267]], ['cedil', [184]], ['Cedilla', [184]], ['cemptyv', [10674]], ['cent', [162]], ['centerdot', [183]], ['CenterDot', [183]], ['cfr', [120096]], ['Cfr', [8493]], ['CHcy', [1063]], ['chcy', [1095]], ['check', [10003]], ['checkmark', [10003]], ['Chi', [935]], ['chi', [967]], ['circ', [710]], ['circeq', [8791]], ['circlearrowleft', [8634]], ['circlearrowright', [8635]], ['circledast', [8859]], ['circledcirc', [8858]], ['circleddash', [8861]], ['CircleDot', [8857]], ['circledR', [174]], ['circledS', [9416]], ['CircleMinus', [8854]], ['CirclePlus', [8853]], ['CircleTimes', [8855]], ['cir', [9675]], ['cirE', [10691]], ['cire', [8791]], ['cirfnint', [10768]], ['cirmid', [10991]], ['cirscir', [10690]], ['ClockwiseContourIntegral', [8754]], ['CloseCurlyDoubleQuote', [8221]], ['CloseCurlyQuote', [8217]], ['clubs', [9827]], ['clubsuit', [9827]], ['colon', [58]], ['Colon', [8759]], ['Colone', [10868]], ['colone', [8788]], ['coloneq', [8788]], ['comma', [44]], ['commat', [64]], ['comp', [8705]], ['compfn', [8728]], ['complement', [8705]], ['complexes', [8450]], ['cong', [8773]], ['congdot', [10861]], ['Congruent', [8801]], ['conint', [8750]], ['Conint', [8751]], ['ContourIntegral', [8750]], ['copf', [120148]], ['Copf', [8450]], ['coprod', [8720]], ['Coproduct', [8720]], ['copy', [169]], ['COPY', [169]], ['copysr', [8471]], ['CounterClockwiseContourIntegral', [8755]], ['crarr', [8629]], ['cross', [10007]], ['Cross', [10799]], ['Cscr', [119966]], ['cscr', [119992]], ['csub', [10959]], ['csube', [10961]], ['csup', [10960]], ['csupe', [10962]], ['ctdot', [8943]], ['cudarrl', [10552]], ['cudarrr', [10549]], ['cuepr', [8926]], ['cuesc', [8927]], ['cularr', [8630]], ['cularrp', [10557]], ['cupbrcap', [10824]], ['cupcap', [10822]], ['CupCap', [8781]], ['cup', [8746]], ['Cup', [8915]], ['cupcup', [10826]], ['cupdot', [8845]], ['cupor', [10821]], ['cups', [8746, 65024]], ['curarr', [8631]], ['curarrm', [10556]], ['curlyeqprec', [8926]], ['curlyeqsucc', [8927]], ['curlyvee', [8910]], ['curlywedge', [8911]], ['curren', [164]], ['curvearrowleft', [8630]], ['curvearrowright', [8631]], ['cuvee', [8910]], ['cuwed', [8911]], ['cwconint', [8754]], ['cwint', [8753]], ['cylcty', [9005]], ['dagger', [8224]], ['Dagger', [8225]], ['daleth', [8504]], ['darr', [8595]], ['Darr', [8609]], ['dArr', [8659]], ['dash', [8208]], ['Dashv', [10980]], ['dashv', [8867]], ['dbkarow', [10511]], ['dblac', [733]], ['Dcaron', [270]], ['dcaron', [271]], ['Dcy', [1044]], ['dcy', [1076]], ['ddagger', [8225]], ['ddarr', [8650]], ['DD', [8517]], ['dd', [8518]], ['DDotrahd', [10513]], ['ddotseq', [10871]], ['deg', [176]], ['Del', [8711]], ['Delta', [916]], ['delta', [948]], ['demptyv', [10673]], ['dfisht', [10623]], ['Dfr', [120071]], ['dfr', [120097]], ['dHar', [10597]], ['dharl', [8643]], ['dharr', [8642]], ['DiacriticalAcute', [180]], ['DiacriticalDot', [729]], ['DiacriticalDoubleAcute', [733]], ['DiacriticalGrave', [96]], ['DiacriticalTilde', [732]], ['diam', [8900]], ['diamond', [8900]], ['Diamond', [8900]], ['diamondsuit', [9830]], ['diams', [9830]], ['die', [168]], ['DifferentialD', [8518]], ['digamma', [989]], ['disin', [8946]], ['div', [247]], ['divide', [247]], ['divideontimes', [8903]], ['divonx', [8903]], ['DJcy', [1026]], ['djcy', [1106]], ['dlcorn', [8990]], ['dlcrop', [8973]], ['dollar', [36]], ['Dopf', [120123]], ['dopf', [120149]], ['Dot', [168]], ['dot', [729]], ['DotDot', [8412]], ['doteq', [8784]], ['doteqdot', [8785]], ['DotEqual', [8784]], ['dotminus', [8760]], ['dotplus', [8724]], ['dotsquare', [8865]], ['doublebarwedge', [8966]], ['DoubleContourIntegral', [8751]], ['DoubleDot', [168]], ['DoubleDownArrow', [8659]], ['DoubleLeftArrow', [8656]], ['DoubleLeftRightArrow', [8660]], ['DoubleLeftTee', [10980]], ['DoubleLongLeftArrow', [10232]], ['DoubleLongLeftRightArrow', [10234]], ['DoubleLongRightArrow', [10233]], ['DoubleRightArrow', [8658]], ['DoubleRightTee', [8872]], ['DoubleUpArrow', [8657]], ['DoubleUpDownArrow', [8661]], ['DoubleVerticalBar', [8741]], ['DownArrowBar', [10515]], ['downarrow', [8595]], ['DownArrow', [8595]], ['Downarrow', [8659]], ['DownArrowUpArrow', [8693]], ['DownBreve', [785]], ['downdownarrows', [8650]], ['downharpoonleft', [8643]], ['downharpoonright', [8642]], ['DownLeftRightVector', [10576]], ['DownLeftTeeVector', [10590]], ['DownLeftVectorBar', [10582]], ['DownLeftVector', [8637]], ['DownRightTeeVector', [10591]], ['DownRightVectorBar', [10583]], ['DownRightVector', [8641]], ['DownTeeArrow', [8615]], ['DownTee', [8868]], ['drbkarow', [10512]], ['drcorn', [8991]], ['drcrop', [8972]], ['Dscr', [119967]], ['dscr', [119993]], ['DScy', [1029]], ['dscy', [1109]], ['dsol', [10742]], ['Dstrok', [272]], ['dstrok', [273]], ['dtdot', [8945]], ['dtri', [9663]], ['dtrif', [9662]], ['duarr', [8693]], ['duhar', [10607]], ['dwangle', [10662]], ['DZcy', [1039]], ['dzcy', [1119]], ['dzigrarr', [10239]], ['Eacute', [201]], ['eacute', [233]], ['easter', [10862]], ['Ecaron', [282]], ['ecaron', [283]], ['Ecirc', [202]], ['ecirc', [234]], ['ecir', [8790]], ['ecolon', [8789]], ['Ecy', [1069]], ['ecy', [1101]], ['eDDot', [10871]], ['Edot', [278]], ['edot', [279]], ['eDot', [8785]], ['ee', [8519]], ['efDot', [8786]], ['Efr', [120072]], ['efr', [120098]], ['eg', [10906]], ['Egrave', [200]], ['egrave', [232]], ['egs', [10902]], ['egsdot', [10904]], ['el', [10905]], ['Element', [8712]], ['elinters', [9191]], ['ell', [8467]], ['els', [10901]], ['elsdot', [10903]], ['Emacr', [274]], ['emacr', [275]], ['empty', [8709]], ['emptyset', [8709]], ['EmptySmallSquare', [9723]], ['emptyv', [8709]], ['EmptyVerySmallSquare', [9643]], ['emsp13', [8196]], ['emsp14', [8197]], ['emsp', [8195]], ['ENG', [330]], ['eng', [331]], ['ensp', [8194]], ['Eogon', [280]], ['eogon', [281]], ['Eopf', [120124]], ['eopf', [120150]], ['epar', [8917]], ['eparsl', [10723]], ['eplus', [10865]], ['epsi', [949]], ['Epsilon', [917]], ['epsilon', [949]], ['epsiv', [1013]], ['eqcirc', [8790]], ['eqcolon', [8789]], ['eqsim', [8770]], ['eqslantgtr', [10902]], ['eqslantless', [10901]], ['Equal', [10869]], ['equals', [61]], ['EqualTilde', [8770]], ['equest', [8799]], ['Equilibrium', [8652]], ['equiv', [8801]], ['equivDD', [10872]], ['eqvparsl', [10725]], ['erarr', [10609]], ['erDot', [8787]], ['escr', [8495]], ['Escr', [8496]], ['esdot', [8784]], ['Esim', [10867]], ['esim', [8770]], ['Eta', [919]], ['eta', [951]], ['ETH', [208]], ['eth', [240]], ['Euml', [203]], ['euml', [235]], ['euro', [8364]], ['excl', [33]], ['exist', [8707]], ['Exists', [8707]], ['expectation', [8496]], ['exponentiale', [8519]], ['ExponentialE', [8519]], ['fallingdotseq', [8786]], ['Fcy', [1060]], ['fcy', [1092]], ['female', [9792]], ['ffilig', [64259]], ['fflig', [64256]], ['ffllig', [64260]], ['Ffr', [120073]], ['ffr', [120099]], ['filig', [64257]], ['FilledSmallSquare', [9724]], ['FilledVerySmallSquare', [9642]], ['fjlig', [102, 106]], ['flat', [9837]], ['fllig', [64258]], ['fltns', [9649]], ['fnof', [402]], ['Fopf', [120125]], ['fopf', [120151]], ['forall', [8704]], ['ForAll', [8704]], ['fork', [8916]], ['forkv', [10969]], ['Fouriertrf', [8497]], ['fpartint', [10765]], ['frac12', [189]], ['frac13', [8531]], ['frac14', [188]], ['frac15', [8533]], ['frac16', [8537]], ['frac18', [8539]], ['frac23', [8532]], ['frac25', [8534]], ['frac34', [190]], ['frac35', [8535]], ['frac38', [8540]], ['frac45', [8536]], ['frac56', [8538]], ['frac58', [8541]], ['frac78', [8542]], ['frasl', [8260]], ['frown', [8994]], ['fscr', [119995]], ['Fscr', [8497]], ['gacute', [501]], ['Gamma', [915]], ['gamma', [947]], ['Gammad', [988]], ['gammad', [989]], ['gap', [10886]], ['Gbreve', [286]], ['gbreve', [287]], ['Gcedil', [290]], ['Gcirc', [284]], ['gcirc', [285]], ['Gcy', [1043]], ['gcy', [1075]], ['Gdot', [288]], ['gdot', [289]], ['ge', [8805]], ['gE', [8807]], ['gEl', [10892]], ['gel', [8923]], ['geq', [8805]], ['geqq', [8807]], ['geqslant', [10878]], ['gescc', [10921]], ['ges', [10878]], ['gesdot', [10880]], ['gesdoto', [10882]], ['gesdotol', [10884]], ['gesl', [8923, 65024]], ['gesles', [10900]], ['Gfr', [120074]], ['gfr', [120100]], ['gg', [8811]], ['Gg', [8921]], ['ggg', [8921]], ['gimel', [8503]], ['GJcy', [1027]], ['gjcy', [1107]], ['gla', [10917]], ['gl', [8823]], ['glE', [10898]], ['glj', [10916]], ['gnap', [10890]], ['gnapprox', [10890]], ['gne', [10888]], ['gnE', [8809]], ['gneq', [10888]], ['gneqq', [8809]], ['gnsim', [8935]], ['Gopf', [120126]], ['gopf', [120152]], ['grave', [96]], ['GreaterEqual', [8805]], ['GreaterEqualLess', [8923]], ['GreaterFullEqual', [8807]], ['GreaterGreater', [10914]], ['GreaterLess', [8823]], ['GreaterSlantEqual', [10878]], ['GreaterTilde', [8819]], ['Gscr', [119970]], ['gscr', [8458]], ['gsim', [8819]], ['gsime', [10894]], ['gsiml', [10896]], ['gtcc', [10919]], ['gtcir', [10874]], ['gt', [62]], ['GT', [62]], ['Gt', [8811]], ['gtdot', [8919]], ['gtlPar', [10645]], ['gtquest', [10876]], ['gtrapprox', [10886]], ['gtrarr', [10616]], ['gtrdot', [8919]], ['gtreqless', [8923]], ['gtreqqless', [10892]], ['gtrless', [8823]], ['gtrsim', [8819]], ['gvertneqq', [8809, 65024]], ['gvnE', [8809, 65024]], ['Hacek', [711]], ['hairsp', [8202]], ['half', [189]], ['hamilt', [8459]], ['HARDcy', [1066]], ['hardcy', [1098]], ['harrcir', [10568]], ['harr', [8596]], ['hArr', [8660]], ['harrw', [8621]], ['Hat', [94]], ['hbar', [8463]], ['Hcirc', [292]], ['hcirc', [293]], ['hearts', [9829]], ['heartsuit', [9829]], ['hellip', [8230]], ['hercon', [8889]], ['hfr', [120101]], ['Hfr', [8460]], ['HilbertSpace', [8459]], ['hksearow', [10533]], ['hkswarow', [10534]], ['hoarr', [8703]], ['homtht', [8763]], ['hookleftarrow', [8617]], ['hookrightarrow', [8618]], ['hopf', [120153]], ['Hopf', [8461]], ['horbar', [8213]], ['HorizontalLine', [9472]], ['hscr', [119997]], ['Hscr', [8459]], ['hslash', [8463]], ['Hstrok', [294]], ['hstrok', [295]], ['HumpDownHump', [8782]], ['HumpEqual', [8783]], ['hybull', [8259]], ['hyphen', [8208]], ['Iacute', [205]], ['iacute', [237]], ['ic', [8291]], ['Icirc', [206]], ['icirc', [238]], ['Icy', [1048]], ['icy', [1080]], ['Idot', [304]], ['IEcy', [1045]], ['iecy', [1077]], ['iexcl', [161]], ['iff', [8660]], ['ifr', [120102]], ['Ifr', [8465]], ['Igrave', [204]], ['igrave', [236]], ['ii', [8520]], ['iiiint', [10764]], ['iiint', [8749]], ['iinfin', [10716]], ['iiota', [8489]], ['IJlig', [306]], ['ijlig', [307]], ['Imacr', [298]], ['imacr', [299]], ['image', [8465]], ['ImaginaryI', [8520]], ['imagline', [8464]], ['imagpart', [8465]], ['imath', [305]], ['Im', [8465]], ['imof', [8887]], ['imped', [437]], ['Implies', [8658]], ['incare', [8453]], ['in', [8712]], ['infin', [8734]], ['infintie', [10717]], ['inodot', [305]], ['intcal', [8890]], ['int', [8747]], ['Int', [8748]], ['integers', [8484]], ['Integral', [8747]], ['intercal', [8890]], ['Intersection', [8898]], ['intlarhk', [10775]], ['intprod', [10812]], ['InvisibleComma', [8291]], ['InvisibleTimes', [8290]], ['IOcy', [1025]], ['iocy', [1105]], ['Iogon', [302]], ['iogon', [303]], ['Iopf', [120128]], ['iopf', [120154]], ['Iota', [921]], ['iota', [953]], ['iprod', [10812]], ['iquest', [191]], ['iscr', [119998]], ['Iscr', [8464]], ['isin', [8712]], ['isindot', [8949]], ['isinE', [8953]], ['isins', [8948]], ['isinsv', [8947]], ['isinv', [8712]], ['it', [8290]], ['Itilde', [296]], ['itilde', [297]], ['Iukcy', [1030]], ['iukcy', [1110]], ['Iuml', [207]], ['iuml', [239]], ['Jcirc', [308]], ['jcirc', [309]], ['Jcy', [1049]], ['jcy', [1081]], ['Jfr', [120077]], ['jfr', [120103]], ['jmath', [567]], ['Jopf', [120129]], ['jopf', [120155]], ['Jscr', [119973]], ['jscr', [119999]], ['Jsercy', [1032]], ['jsercy', [1112]], ['Jukcy', [1028]], ['jukcy', [1108]], ['Kappa', [922]], ['kappa', [954]], ['kappav', [1008]], ['Kcedil', [310]], ['kcedil', [311]], ['Kcy', [1050]], ['kcy', [1082]], ['Kfr', [120078]], ['kfr', [120104]], ['kgreen', [312]], ['KHcy', [1061]], ['khcy', [1093]], ['KJcy', [1036]], ['kjcy', [1116]], ['Kopf', [120130]], ['kopf', [120156]], ['Kscr', [119974]], ['kscr', [120000]], ['lAarr', [8666]], ['Lacute', [313]], ['lacute', [314]], ['laemptyv', [10676]], ['lagran', [8466]], ['Lambda', [923]], ['lambda', [955]], ['lang', [10216]], ['Lang', [10218]], ['langd', [10641]], ['langle', [10216]], ['lap', [10885]], ['Laplacetrf', [8466]], ['laquo', [171]], ['larrb', [8676]], ['larrbfs', [10527]], ['larr', [8592]], ['Larr', [8606]], ['lArr', [8656]], ['larrfs', [10525]], ['larrhk', [8617]], ['larrlp', [8619]], ['larrpl', [10553]], ['larrsim', [10611]], ['larrtl', [8610]], ['latail', [10521]], ['lAtail', [10523]], ['lat', [10923]], ['late', [10925]], ['lates', [10925, 65024]], ['lbarr', [10508]], ['lBarr', [10510]], ['lbbrk', [10098]], ['lbrace', [123]], ['lbrack', [91]], ['lbrke', [10635]], ['lbrksld', [10639]], ['lbrkslu', [10637]], ['Lcaron', [317]], ['lcaron', [318]], ['Lcedil', [315]], ['lcedil', [316]], ['lceil', [8968]], ['lcub', [123]], ['Lcy', [1051]], ['lcy', [1083]], ['ldca', [10550]], ['ldquo', [8220]], ['ldquor', [8222]], ['ldrdhar', [10599]], ['ldrushar', [10571]], ['ldsh', [8626]], ['le', [8804]], ['lE', [8806]], ['LeftAngleBracket', [10216]], ['LeftArrowBar', [8676]], ['leftarrow', [8592]], ['LeftArrow', [8592]], ['Leftarrow', [8656]], ['LeftArrowRightArrow', [8646]], ['leftarrowtail', [8610]], ['LeftCeiling', [8968]], ['LeftDoubleBracket', [10214]], ['LeftDownTeeVector', [10593]], ['LeftDownVectorBar', [10585]], ['LeftDownVector', [8643]], ['LeftFloor', [8970]], ['leftharpoondown', [8637]], ['leftharpoonup', [8636]], ['leftleftarrows', [8647]], ['leftrightarrow', [8596]], ['LeftRightArrow', [8596]], ['Leftrightarrow', [8660]], ['leftrightarrows', [8646]], ['leftrightharpoons', [8651]], ['leftrightsquigarrow', [8621]], ['LeftRightVector', [10574]], ['LeftTeeArrow', [8612]], ['LeftTee', [8867]], ['LeftTeeVector', [10586]], ['leftthreetimes', [8907]], ['LeftTriangleBar', [10703]], ['LeftTriangle', [8882]], ['LeftTriangleEqual', [8884]], ['LeftUpDownVector', [10577]], ['LeftUpTeeVector', [10592]], ['LeftUpVectorBar', [10584]], ['LeftUpVector', [8639]], ['LeftVectorBar', [10578]], ['LeftVector', [8636]], ['lEg', [10891]], ['leg', [8922]], ['leq', [8804]], ['leqq', [8806]], ['leqslant', [10877]], ['lescc', [10920]], ['les', [10877]], ['lesdot', [10879]], ['lesdoto', [10881]], ['lesdotor', [10883]], ['lesg', [8922, 65024]], ['lesges', [10899]], ['lessapprox', [10885]], ['lessdot', [8918]], ['lesseqgtr', [8922]], ['lesseqqgtr', [10891]], ['LessEqualGreater', [8922]], ['LessFullEqual', [8806]], ['LessGreater', [8822]], ['lessgtr', [8822]], ['LessLess', [10913]], ['lesssim', [8818]], ['LessSlantEqual', [10877]], ['LessTilde', [8818]], ['lfisht', [10620]], ['lfloor', [8970]], ['Lfr', [120079]], ['lfr', [120105]], ['lg', [8822]], ['lgE', [10897]], ['lHar', [10594]], ['lhard', [8637]], ['lharu', [8636]], ['lharul', [10602]], ['lhblk', [9604]], ['LJcy', [1033]], ['ljcy', [1113]], ['llarr', [8647]], ['ll', [8810]], ['Ll', [8920]], ['llcorner', [8990]], ['Lleftarrow', [8666]], ['llhard', [10603]], ['lltri', [9722]], ['Lmidot', [319]], ['lmidot', [320]], ['lmoustache', [9136]], ['lmoust', [9136]], ['lnap', [10889]], ['lnapprox', [10889]], ['lne', [10887]], ['lnE', [8808]], ['lneq', [10887]], ['lneqq', [8808]], ['lnsim', [8934]], ['loang', [10220]], ['loarr', [8701]], ['lobrk', [10214]], ['longleftarrow', [10229]], ['LongLeftArrow', [10229]], ['Longleftarrow', [10232]], ['longleftrightarrow', [10231]], ['LongLeftRightArrow', [10231]], ['Longleftrightarrow', [10234]], ['longmapsto', [10236]], ['longrightarrow', [10230]], ['LongRightArrow', [10230]], ['Longrightarrow', [10233]], ['looparrowleft', [8619]], ['looparrowright', [8620]], ['lopar', [10629]], ['Lopf', [120131]], ['lopf', [120157]], ['loplus', [10797]], ['lotimes', [10804]], ['lowast', [8727]], ['lowbar', [95]], ['LowerLeftArrow', [8601]], ['LowerRightArrow', [8600]], ['loz', [9674]], ['lozenge', [9674]], ['lozf', [10731]], ['lpar', [40]], ['lparlt', [10643]], ['lrarr', [8646]], ['lrcorner', [8991]], ['lrhar', [8651]], ['lrhard', [10605]], ['lrm', [8206]], ['lrtri', [8895]], ['lsaquo', [8249]], ['lscr', [120001]], ['Lscr', [8466]], ['lsh', [8624]], ['Lsh', [8624]], ['lsim', [8818]], ['lsime', [10893]], ['lsimg', [10895]], ['lsqb', [91]], ['lsquo', [8216]], ['lsquor', [8218]], ['Lstrok', [321]], ['lstrok', [322]], ['ltcc', [10918]], ['ltcir', [10873]], ['lt', [60]], ['LT', [60]], ['Lt', [8810]], ['ltdot', [8918]], ['lthree', [8907]], ['ltimes', [8905]], ['ltlarr', [10614]], ['ltquest', [10875]], ['ltri', [9667]], ['ltrie', [8884]], ['ltrif', [9666]], ['ltrPar', [10646]], ['lurdshar', [10570]], ['luruhar', [10598]], ['lvertneqq', [8808, 65024]], ['lvnE', [8808, 65024]], ['macr', [175]], ['male', [9794]], ['malt', [10016]], ['maltese', [10016]], ['Map', [10501]], ['map', [8614]], ['mapsto', [8614]], ['mapstodown', [8615]], ['mapstoleft', [8612]], ['mapstoup', [8613]], ['marker', [9646]], ['mcomma', [10793]], ['Mcy', [1052]], ['mcy', [1084]], ['mdash', [8212]], ['mDDot', [8762]], ['measuredangle', [8737]], ['MediumSpace', [8287]], ['Mellintrf', [8499]], ['Mfr', [120080]], ['mfr', [120106]], ['mho', [8487]], ['micro', [181]], ['midast', [42]], ['midcir', [10992]], ['mid', [8739]], ['middot', [183]], ['minusb', [8863]], ['minus', [8722]], ['minusd', [8760]], ['minusdu', [10794]], ['MinusPlus', [8723]], ['mlcp', [10971]], ['mldr', [8230]], ['mnplus', [8723]], ['models', [8871]], ['Mopf', [120132]], ['mopf', [120158]], ['mp', [8723]], ['mscr', [120002]], ['Mscr', [8499]], ['mstpos', [8766]], ['Mu', [924]], ['mu', [956]], ['multimap', [8888]], ['mumap', [8888]], ['nabla', [8711]], ['Nacute', [323]], ['nacute', [324]], ['nang', [8736, 8402]], ['nap', [8777]], ['napE', [10864, 824]], ['napid', [8779, 824]], ['napos', [329]], ['napprox', [8777]], ['natural', [9838]], ['naturals', [8469]], ['natur', [9838]], ['nbsp', [160]], ['nbump', [8782, 824]], ['nbumpe', [8783, 824]], ['ncap', [10819]], ['Ncaron', [327]], ['ncaron', [328]], ['Ncedil', [325]], ['ncedil', [326]], ['ncong', [8775]], ['ncongdot', [10861, 824]], ['ncup', [10818]], ['Ncy', [1053]], ['ncy', [1085]], ['ndash', [8211]], ['nearhk', [10532]], ['nearr', [8599]], ['neArr', [8663]], ['nearrow', [8599]], ['ne', [8800]], ['nedot', [8784, 824]], ['NegativeMediumSpace', [8203]], ['NegativeThickSpace', [8203]], ['NegativeThinSpace', [8203]], ['NegativeVeryThinSpace', [8203]], ['nequiv', [8802]], ['nesear', [10536]], ['nesim', [8770, 824]], ['NestedGreaterGreater', [8811]], ['NestedLessLess', [8810]], ['nexist', [8708]], ['nexists', [8708]], ['Nfr', [120081]], ['nfr', [120107]], ['ngE', [8807, 824]], ['nge', [8817]], ['ngeq', [8817]], ['ngeqq', [8807, 824]], ['ngeqslant', [10878, 824]], ['nges', [10878, 824]], ['nGg', [8921, 824]], ['ngsim', [8821]], ['nGt', [8811, 8402]], ['ngt', [8815]], ['ngtr', [8815]], ['nGtv', [8811, 824]], ['nharr', [8622]], ['nhArr', [8654]], ['nhpar', [10994]], ['ni', [8715]], ['nis', [8956]], ['nisd', [8954]], ['niv', [8715]], ['NJcy', [1034]], ['njcy', [1114]], ['nlarr', [8602]], ['nlArr', [8653]], ['nldr', [8229]], ['nlE', [8806, 824]], ['nle', [8816]], ['nleftarrow', [8602]], ['nLeftarrow', [8653]], ['nleftrightarrow', [8622]], ['nLeftrightarrow', [8654]], ['nleq', [8816]], ['nleqq', [8806, 824]], ['nleqslant', [10877, 824]], ['nles', [10877, 824]], ['nless', [8814]], ['nLl', [8920, 824]], ['nlsim', [8820]], ['nLt', [8810, 8402]], ['nlt', [8814]], ['nltri', [8938]], ['nltrie', [8940]], ['nLtv', [8810, 824]], ['nmid', [8740]], ['NoBreak', [8288]], ['NonBreakingSpace', [160]], ['nopf', [120159]], ['Nopf', [8469]], ['Not', [10988]], ['not', [172]], ['NotCongruent', [8802]], ['NotCupCap', [8813]], ['NotDoubleVerticalBar', [8742]], ['NotElement', [8713]], ['NotEqual', [8800]], ['NotEqualTilde', [8770, 824]], ['NotExists', [8708]], ['NotGreater', [8815]], ['NotGreaterEqual', [8817]], ['NotGreaterFullEqual', [8807, 824]], ['NotGreaterGreater', [8811, 824]], ['NotGreaterLess', [8825]], ['NotGreaterSlantEqual', [10878, 824]], ['NotGreaterTilde', [8821]], ['NotHumpDownHump', [8782, 824]], ['NotHumpEqual', [8783, 824]], ['notin', [8713]], ['notindot', [8949, 824]], ['notinE', [8953, 824]], ['notinva', [8713]], ['notinvb', [8951]], ['notinvc', [8950]], ['NotLeftTriangleBar', [10703, 824]], ['NotLeftTriangle', [8938]], ['NotLeftTriangleEqual', [8940]], ['NotLess', [8814]], ['NotLessEqual', [8816]], ['NotLessGreater', [8824]], ['NotLessLess', [8810, 824]], ['NotLessSlantEqual', [10877, 824]], ['NotLessTilde', [8820]], ['NotNestedGreaterGreater', [10914, 824]], ['NotNestedLessLess', [10913, 824]], ['notni', [8716]], ['notniva', [8716]], ['notnivb', [8958]], ['notnivc', [8957]], ['NotPrecedes', [8832]], ['NotPrecedesEqual', [10927, 824]], ['NotPrecedesSlantEqual', [8928]], ['NotReverseElement', [8716]], ['NotRightTriangleBar', [10704, 824]], ['NotRightTriangle', [8939]], ['NotRightTriangleEqual', [8941]], ['NotSquareSubset', [8847, 824]], ['NotSquareSubsetEqual', [8930]], ['NotSquareSuperset', [8848, 824]], ['NotSquareSupersetEqual', [8931]], ['NotSubset', [8834, 8402]], ['NotSubsetEqual', [8840]], ['NotSucceeds', [8833]], ['NotSucceedsEqual', [10928, 824]], ['NotSucceedsSlantEqual', [8929]], ['NotSucceedsTilde', [8831, 824]], ['NotSuperset', [8835, 8402]], ['NotSupersetEqual', [8841]], ['NotTilde', [8769]], ['NotTildeEqual', [8772]], ['NotTildeFullEqual', [8775]], ['NotTildeTilde', [8777]], ['NotVerticalBar', [8740]], ['nparallel', [8742]], ['npar', [8742]], ['nparsl', [11005, 8421]], ['npart', [8706, 824]], ['npolint', [10772]], ['npr', [8832]], ['nprcue', [8928]], ['nprec', [8832]], ['npreceq', [10927, 824]], ['npre', [10927, 824]], ['nrarrc', [10547, 824]], ['nrarr', [8603]], ['nrArr', [8655]], ['nrarrw', [8605, 824]], ['nrightarrow', [8603]], ['nRightarrow', [8655]], ['nrtri', [8939]], ['nrtrie', [8941]], ['nsc', [8833]], ['nsccue', [8929]], ['nsce', [10928, 824]], ['Nscr', [119977]], ['nscr', [120003]], ['nshortmid', [8740]], ['nshortparallel', [8742]], ['nsim', [8769]], ['nsime', [8772]], ['nsimeq', [8772]], ['nsmid', [8740]], ['nspar', [8742]], ['nsqsube', [8930]], ['nsqsupe', [8931]], ['nsub', [8836]], ['nsubE', [10949, 824]], ['nsube', [8840]], ['nsubset', [8834, 8402]], ['nsubseteq', [8840]], ['nsubseteqq', [10949, 824]], ['nsucc', [8833]], ['nsucceq', [10928, 824]], ['nsup', [8837]], ['nsupE', [10950, 824]], ['nsupe', [8841]], ['nsupset', [8835, 8402]], ['nsupseteq', [8841]], ['nsupseteqq', [10950, 824]], ['ntgl', [8825]], ['Ntilde', [209]], ['ntilde', [241]], ['ntlg', [8824]], ['ntriangleleft', [8938]], ['ntrianglelefteq', [8940]], ['ntriangleright', [8939]], ['ntrianglerighteq', [8941]], ['Nu', [925]], ['nu', [957]], ['num', [35]], ['numero', [8470]], ['numsp', [8199]], ['nvap', [8781, 8402]], ['nvdash', [8876]], ['nvDash', [8877]], ['nVdash', [8878]], ['nVDash', [8879]], ['nvge', [8805, 8402]], ['nvgt', [62, 8402]], ['nvHarr', [10500]], ['nvinfin', [10718]], ['nvlArr', [10498]], ['nvle', [8804, 8402]], ['nvlt', [60, 8402]], ['nvltrie', [8884, 8402]], ['nvrArr', [10499]], ['nvrtrie', [8885, 8402]], ['nvsim', [8764, 8402]], ['nwarhk', [10531]], ['nwarr', [8598]], ['nwArr', [8662]], ['nwarrow', [8598]], ['nwnear', [10535]], ['Oacute', [211]], ['oacute', [243]], ['oast', [8859]], ['Ocirc', [212]], ['ocirc', [244]], ['ocir', [8858]], ['Ocy', [1054]], ['ocy', [1086]], ['odash', [8861]], ['Odblac', [336]], ['odblac', [337]], ['odiv', [10808]], ['odot', [8857]], ['odsold', [10684]], ['OElig', [338]], ['oelig', [339]], ['ofcir', [10687]], ['Ofr', [120082]], ['ofr', [120108]], ['ogon', [731]], ['Ograve', [210]], ['ograve', [242]], ['ogt', [10689]], ['ohbar', [10677]], ['ohm', [937]], ['oint', [8750]], ['olarr', [8634]], ['olcir', [10686]], ['olcross', [10683]], ['oline', [8254]], ['olt', [10688]], ['Omacr', [332]], ['omacr', [333]], ['Omega', [937]], ['omega', [969]], ['Omicron', [927]], ['omicron', [959]], ['omid', [10678]], ['ominus', [8854]], ['Oopf', [120134]], ['oopf', [120160]], ['opar', [10679]], ['OpenCurlyDoubleQuote', [8220]], ['OpenCurlyQuote', [8216]], ['operp', [10681]], ['oplus', [8853]], ['orarr', [8635]], ['Or', [10836]], ['or', [8744]], ['ord', [10845]], ['order', [8500]], ['orderof', [8500]], ['ordf', [170]], ['ordm', [186]], ['origof', [8886]], ['oror', [10838]], ['orslope', [10839]], ['orv', [10843]], ['oS', [9416]], ['Oscr', [119978]], ['oscr', [8500]], ['Oslash', [216]], ['oslash', [248]], ['osol', [8856]], ['Otilde', [213]], ['otilde', [245]], ['otimesas', [10806]], ['Otimes', [10807]], ['otimes', [8855]], ['Ouml', [214]], ['ouml', [246]], ['ovbar', [9021]], ['OverBar', [8254]], ['OverBrace', [9182]], ['OverBracket', [9140]], ['OverParenthesis', [9180]], ['para', [182]], ['parallel', [8741]], ['par', [8741]], ['parsim', [10995]], ['parsl', [11005]], ['part', [8706]], ['PartialD', [8706]], ['Pcy', [1055]], ['pcy', [1087]], ['percnt', [37]], ['period', [46]], ['permil', [8240]], ['perp', [8869]], ['pertenk', [8241]], ['Pfr', [120083]], ['pfr', [120109]], ['Phi', [934]], ['phi', [966]], ['phiv', [981]], ['phmmat', [8499]], ['phone', [9742]], ['Pi', [928]], ['pi', [960]], ['pitchfork', [8916]], ['piv', [982]], ['planck', [8463]], ['planckh', [8462]], ['plankv', [8463]], ['plusacir', [10787]], ['plusb', [8862]], ['pluscir', [10786]], ['plus', [43]], ['plusdo', [8724]], ['plusdu', [10789]], ['pluse', [10866]], ['PlusMinus', [177]], ['plusmn', [177]], ['plussim', [10790]], ['plustwo', [10791]], ['pm', [177]], ['Poincareplane', [8460]], ['pointint', [10773]], ['popf', [120161]], ['Popf', [8473]], ['pound', [163]], ['prap', [10935]], ['Pr', [10939]], ['pr', [8826]], ['prcue', [8828]], ['precapprox', [10935]], ['prec', [8826]], ['preccurlyeq', [8828]], ['Precedes', [8826]], ['PrecedesEqual', [10927]], ['PrecedesSlantEqual', [8828]], ['PrecedesTilde', [8830]], ['preceq', [10927]], ['precnapprox', [10937]], ['precneqq', [10933]], ['precnsim', [8936]], ['pre', [10927]], ['prE', [10931]], ['precsim', [8830]], ['prime', [8242]], ['Prime', [8243]], ['primes', [8473]], ['prnap', [10937]], ['prnE', [10933]], ['prnsim', [8936]], ['prod', [8719]], ['Product', [8719]], ['profalar', [9006]], ['profline', [8978]], ['profsurf', [8979]], ['prop', [8733]], ['Proportional', [8733]], ['Proportion', [8759]], ['propto', [8733]], ['prsim', [8830]], ['prurel', [8880]], ['Pscr', [119979]], ['pscr', [120005]], ['Psi', [936]], ['psi', [968]], ['puncsp', [8200]], ['Qfr', [120084]], ['qfr', [120110]], ['qint', [10764]], ['qopf', [120162]], ['Qopf', [8474]], ['qprime', [8279]], ['Qscr', [119980]], ['qscr', [120006]], ['quaternions', [8461]], ['quatint', [10774]], ['quest', [63]], ['questeq', [8799]], ['quot', [34]], ['QUOT', [34]], ['rAarr', [8667]], ['race', [8765, 817]], ['Racute', [340]], ['racute', [341]], ['radic', [8730]], ['raemptyv', [10675]], ['rang', [10217]], ['Rang', [10219]], ['rangd', [10642]], ['range', [10661]], ['rangle', [10217]], ['raquo', [187]], ['rarrap', [10613]], ['rarrb', [8677]], ['rarrbfs', [10528]], ['rarrc', [10547]], ['rarr', [8594]], ['Rarr', [8608]], ['rArr', [8658]], ['rarrfs', [10526]], ['rarrhk', [8618]], ['rarrlp', [8620]], ['rarrpl', [10565]], ['rarrsim', [10612]], ['Rarrtl', [10518]], ['rarrtl', [8611]], ['rarrw', [8605]], ['ratail', [10522]], ['rAtail', [10524]], ['ratio', [8758]], ['rationals', [8474]], ['rbarr', [10509]], ['rBarr', [10511]], ['RBarr', [10512]], ['rbbrk', [10099]], ['rbrace', [125]], ['rbrack', [93]], ['rbrke', [10636]], ['rbrksld', [10638]], ['rbrkslu', [10640]], ['Rcaron', [344]], ['rcaron', [345]], ['Rcedil', [342]], ['rcedil', [343]], ['rceil', [8969]], ['rcub', [125]], ['Rcy', [1056]], ['rcy', [1088]], ['rdca', [10551]], ['rdldhar', [10601]], ['rdquo', [8221]], ['rdquor', [8221]], ['rdsh', [8627]], ['real', [8476]], ['realine', [8475]], ['realpart', [8476]], ['reals', [8477]], ['Re', [8476]], ['rect', [9645]], ['reg', [174]], ['REG', [174]], ['ReverseElement', [8715]], ['ReverseEquilibrium', [8651]], ['ReverseUpEquilibrium', [10607]], ['rfisht', [10621]], ['rfloor', [8971]], ['rfr', [120111]], ['Rfr', [8476]], ['rHar', [10596]], ['rhard', [8641]], ['rharu', [8640]], ['rharul', [10604]], ['Rho', [929]], ['rho', [961]], ['rhov', [1009]], ['RightAngleBracket', [10217]], ['RightArrowBar', [8677]], ['rightarrow', [8594]], ['RightArrow', [8594]], ['Rightarrow', [8658]], ['RightArrowLeftArrow', [8644]], ['rightarrowtail', [8611]], ['RightCeiling', [8969]], ['RightDoubleBracket', [10215]], ['RightDownTeeVector', [10589]], ['RightDownVectorBar', [10581]], ['RightDownVector', [8642]], ['RightFloor', [8971]], ['rightharpoondown', [8641]], ['rightharpoonup', [8640]], ['rightleftarrows', [8644]], ['rightleftharpoons', [8652]], ['rightrightarrows', [8649]], ['rightsquigarrow', [8605]], ['RightTeeArrow', [8614]], ['RightTee', [8866]], ['RightTeeVector', [10587]], ['rightthreetimes', [8908]], ['RightTriangleBar', [10704]], ['RightTriangle', [8883]], ['RightTriangleEqual', [8885]], ['RightUpDownVector', [10575]], ['RightUpTeeVector', [10588]], ['RightUpVectorBar', [10580]], ['RightUpVector', [8638]], ['RightVectorBar', [10579]], ['RightVector', [8640]], ['ring', [730]], ['risingdotseq', [8787]], ['rlarr', [8644]], ['rlhar', [8652]], ['rlm', [8207]], ['rmoustache', [9137]], ['rmoust', [9137]], ['rnmid', [10990]], ['roang', [10221]], ['roarr', [8702]], ['robrk', [10215]], ['ropar', [10630]], ['ropf', [120163]], ['Ropf', [8477]], ['roplus', [10798]], ['rotimes', [10805]], ['RoundImplies', [10608]], ['rpar', [41]], ['rpargt', [10644]], ['rppolint', [10770]], ['rrarr', [8649]], ['Rrightarrow', [8667]], ['rsaquo', [8250]], ['rscr', [120007]], ['Rscr', [8475]], ['rsh', [8625]], ['Rsh', [8625]], ['rsqb', [93]], ['rsquo', [8217]], ['rsquor', [8217]], ['rthree', [8908]], ['rtimes', [8906]], ['rtri', [9657]], ['rtrie', [8885]], ['rtrif', [9656]], ['rtriltri', [10702]], ['RuleDelayed', [10740]], ['ruluhar', [10600]], ['rx', [8478]], ['Sacute', [346]], ['sacute', [347]], ['sbquo', [8218]], ['scap', [10936]], ['Scaron', [352]], ['scaron', [353]], ['Sc', [10940]], ['sc', [8827]], ['sccue', [8829]], ['sce', [10928]], ['scE', [10932]], ['Scedil', [350]], ['scedil', [351]], ['Scirc', [348]], ['scirc', [349]], ['scnap', [10938]], ['scnE', [10934]], ['scnsim', [8937]], ['scpolint', [10771]], ['scsim', [8831]], ['Scy', [1057]], ['scy', [1089]], ['sdotb', [8865]], ['sdot', [8901]], ['sdote', [10854]], ['searhk', [10533]], ['searr', [8600]], ['seArr', [8664]], ['searrow', [8600]], ['sect', [167]], ['semi', [59]], ['seswar', [10537]], ['setminus', [8726]], ['setmn', [8726]], ['sext', [10038]], ['Sfr', [120086]], ['sfr', [120112]], ['sfrown', [8994]], ['sharp', [9839]], ['SHCHcy', [1065]], ['shchcy', [1097]], ['SHcy', [1064]], ['shcy', [1096]], ['ShortDownArrow', [8595]], ['ShortLeftArrow', [8592]], ['shortmid', [8739]], ['shortparallel', [8741]], ['ShortRightArrow', [8594]], ['ShortUpArrow', [8593]], ['shy', [173]], ['Sigma', [931]], ['sigma', [963]], ['sigmaf', [962]], ['sigmav', [962]], ['sim', [8764]], ['simdot', [10858]], ['sime', [8771]], ['simeq', [8771]], ['simg', [10910]], ['simgE', [10912]], ['siml', [10909]], ['simlE', [10911]], ['simne', [8774]], ['simplus', [10788]], ['simrarr', [10610]], ['slarr', [8592]], ['SmallCircle', [8728]], ['smallsetminus', [8726]], ['smashp', [10803]], ['smeparsl', [10724]], ['smid', [8739]], ['smile', [8995]], ['smt', [10922]], ['smte', [10924]], ['smtes', [10924, 65024]], ['SOFTcy', [1068]], ['softcy', [1100]], ['solbar', [9023]], ['solb', [10692]], ['sol', [47]], ['Sopf', [120138]], ['sopf', [120164]], ['spades', [9824]], ['spadesuit', [9824]], ['spar', [8741]], ['sqcap', [8851]], ['sqcaps', [8851, 65024]], ['sqcup', [8852]], ['sqcups', [8852, 65024]], ['Sqrt', [8730]], ['sqsub', [8847]], ['sqsube', [8849]], ['sqsubset', [8847]], ['sqsubseteq', [8849]], ['sqsup', [8848]], ['sqsupe', [8850]], ['sqsupset', [8848]], ['sqsupseteq', [8850]], ['square', [9633]], ['Square', [9633]], ['SquareIntersection', [8851]], ['SquareSubset', [8847]], ['SquareSubsetEqual', [8849]], ['SquareSuperset', [8848]], ['SquareSupersetEqual', [8850]], ['SquareUnion', [8852]], ['squarf', [9642]], ['squ', [9633]], ['squf', [9642]], ['srarr', [8594]], ['Sscr', [119982]], ['sscr', [120008]], ['ssetmn', [8726]], ['ssmile', [8995]], ['sstarf', [8902]], ['Star', [8902]], ['star', [9734]], ['starf', [9733]], ['straightepsilon', [1013]], ['straightphi', [981]], ['strns', [175]], ['sub', [8834]], ['Sub', [8912]], ['subdot', [10941]], ['subE', [10949]], ['sube', [8838]], ['subedot', [10947]], ['submult', [10945]], ['subnE', [10955]], ['subne', [8842]], ['subplus', [10943]], ['subrarr', [10617]], ['subset', [8834]], ['Subset', [8912]], ['subseteq', [8838]], ['subseteqq', [10949]], ['SubsetEqual', [8838]], ['subsetneq', [8842]], ['subsetneqq', [10955]], ['subsim', [10951]], ['subsub', [10965]], ['subsup', [10963]], ['succapprox', [10936]], ['succ', [8827]], ['succcurlyeq', [8829]], ['Succeeds', [8827]], ['SucceedsEqual', [10928]], ['SucceedsSlantEqual', [8829]], ['SucceedsTilde', [8831]], ['succeq', [10928]], ['succnapprox', [10938]], ['succneqq', [10934]], ['succnsim', [8937]], ['succsim', [8831]], ['SuchThat', [8715]], ['sum', [8721]], ['Sum', [8721]], ['sung', [9834]], ['sup1', [185]], ['sup2', [178]], ['sup3', [179]], ['sup', [8835]], ['Sup', [8913]], ['supdot', [10942]], ['supdsub', [10968]], ['supE', [10950]], ['supe', [8839]], ['supedot', [10948]], ['Superset', [8835]], ['SupersetEqual', [8839]], ['suphsol', [10185]], ['suphsub', [10967]], ['suplarr', [10619]], ['supmult', [10946]], ['supnE', [10956]], ['supne', [8843]], ['supplus', [10944]], ['supset', [8835]], ['Supset', [8913]], ['supseteq', [8839]], ['supseteqq', [10950]], ['supsetneq', [8843]], ['supsetneqq', [10956]], ['supsim', [10952]], ['supsub', [10964]], ['supsup', [10966]], ['swarhk', [10534]], ['swarr', [8601]], ['swArr', [8665]], ['swarrow', [8601]], ['swnwar', [10538]], ['szlig', [223]], ['Tab', [9]], ['target', [8982]], ['Tau', [932]], ['tau', [964]], ['tbrk', [9140]], ['Tcaron', [356]], ['tcaron', [357]], ['Tcedil', [354]], ['tcedil', [355]], ['Tcy', [1058]], ['tcy', [1090]], ['tdot', [8411]], ['telrec', [8981]], ['Tfr', [120087]], ['tfr', [120113]], ['there4', [8756]], ['therefore', [8756]], ['Therefore', [8756]], ['Theta', [920]], ['theta', [952]], ['thetasym', [977]], ['thetav', [977]], ['thickapprox', [8776]], ['thicksim', [8764]], ['ThickSpace', [8287, 8202]], ['ThinSpace', [8201]], ['thinsp', [8201]], ['thkap', [8776]], ['thksim', [8764]], ['THORN', [222]], ['thorn', [254]], ['tilde', [732]], ['Tilde', [8764]], ['TildeEqual', [8771]], ['TildeFullEqual', [8773]], ['TildeTilde', [8776]], ['timesbar', [10801]], ['timesb', [8864]], ['times', [215]], ['timesd', [10800]], ['tint', [8749]], ['toea', [10536]], ['topbot', [9014]], ['topcir', [10993]], ['top', [8868]], ['Topf', [120139]], ['topf', [120165]], ['topfork', [10970]], ['tosa', [10537]], ['tprime', [8244]], ['trade', [8482]], ['TRADE', [8482]], ['triangle', [9653]], ['triangledown', [9663]], ['triangleleft', [9667]], ['trianglelefteq', [8884]], ['triangleq', [8796]], ['triangleright', [9657]], ['trianglerighteq', [8885]], ['tridot', [9708]], ['trie', [8796]], ['triminus', [10810]], ['TripleDot', [8411]], ['triplus', [10809]], ['trisb', [10701]], ['tritime', [10811]], ['trpezium', [9186]], ['Tscr', [119983]], ['tscr', [120009]], ['TScy', [1062]], ['tscy', [1094]], ['TSHcy', [1035]], ['tshcy', [1115]], ['Tstrok', [358]], ['tstrok', [359]], ['twixt', [8812]], ['twoheadleftarrow', [8606]], ['twoheadrightarrow', [8608]], ['Uacute', [218]], ['uacute', [250]], ['uarr', [8593]], ['Uarr', [8607]], ['uArr', [8657]], ['Uarrocir', [10569]], ['Ubrcy', [1038]], ['ubrcy', [1118]], ['Ubreve', [364]], ['ubreve', [365]], ['Ucirc', [219]], ['ucirc', [251]], ['Ucy', [1059]], ['ucy', [1091]], ['udarr', [8645]], ['Udblac', [368]], ['udblac', [369]], ['udhar', [10606]], ['ufisht', [10622]], ['Ufr', [120088]], ['ufr', [120114]], ['Ugrave', [217]], ['ugrave', [249]], ['uHar', [10595]], ['uharl', [8639]], ['uharr', [8638]], ['uhblk', [9600]], ['ulcorn', [8988]], ['ulcorner', [8988]], ['ulcrop', [8975]], ['ultri', [9720]], ['Umacr', [362]], ['umacr', [363]], ['uml', [168]], ['UnderBar', [95]], ['UnderBrace', [9183]], ['UnderBracket', [9141]], ['UnderParenthesis', [9181]], ['Union', [8899]], ['UnionPlus', [8846]], ['Uogon', [370]], ['uogon', [371]], ['Uopf', [120140]], ['uopf', [120166]], ['UpArrowBar', [10514]], ['uparrow', [8593]], ['UpArrow', [8593]], ['Uparrow', [8657]], ['UpArrowDownArrow', [8645]], ['updownarrow', [8597]], ['UpDownArrow', [8597]], ['Updownarrow', [8661]], ['UpEquilibrium', [10606]], ['upharpoonleft', [8639]], ['upharpoonright', [8638]], ['uplus', [8846]], ['UpperLeftArrow', [8598]], ['UpperRightArrow', [8599]], ['upsi', [965]], ['Upsi', [978]], ['upsih', [978]], ['Upsilon', [933]], ['upsilon', [965]], ['UpTeeArrow', [8613]], ['UpTee', [8869]], ['upuparrows', [8648]], ['urcorn', [8989]], ['urcorner', [8989]], ['urcrop', [8974]], ['Uring', [366]], ['uring', [367]], ['urtri', [9721]], ['Uscr', [119984]], ['uscr', [120010]], ['utdot', [8944]], ['Utilde', [360]], ['utilde', [361]], ['utri', [9653]], ['utrif', [9652]], ['uuarr', [8648]], ['Uuml', [220]], ['uuml', [252]], ['uwangle', [10663]], ['vangrt', [10652]], ['varepsilon', [1013]], ['varkappa', [1008]], ['varnothing', [8709]], ['varphi', [981]], ['varpi', [982]], ['varpropto', [8733]], ['varr', [8597]], ['vArr', [8661]], ['varrho', [1009]], ['varsigma', [962]], ['varsubsetneq', [8842, 65024]], ['varsubsetneqq', [10955, 65024]], ['varsupsetneq', [8843, 65024]], ['varsupsetneqq', [10956, 65024]], ['vartheta', [977]], ['vartriangleleft', [8882]], ['vartriangleright', [8883]], ['vBar', [10984]], ['Vbar', [10987]], ['vBarv', [10985]], ['Vcy', [1042]], ['vcy', [1074]], ['vdash', [8866]], ['vDash', [8872]], ['Vdash', [8873]], ['VDash', [8875]], ['Vdashl', [10982]], ['veebar', [8891]], ['vee', [8744]], ['Vee', [8897]], ['veeeq', [8794]], ['vellip', [8942]], ['verbar', [124]], ['Verbar', [8214]], ['vert', [124]], ['Vert', [8214]], ['VerticalBar', [8739]], ['VerticalLine', [124]], ['VerticalSeparator', [10072]], ['VerticalTilde', [8768]], ['VeryThinSpace', [8202]], ['Vfr', [120089]], ['vfr', [120115]], ['vltri', [8882]], ['vnsub', [8834, 8402]], ['vnsup', [8835, 8402]], ['Vopf', [120141]], ['vopf', [120167]], ['vprop', [8733]], ['vrtri', [8883]], ['Vscr', [119985]], ['vscr', [120011]], ['vsubnE', [10955, 65024]], ['vsubne', [8842, 65024]], ['vsupnE', [10956, 65024]], ['vsupne', [8843, 65024]], ['Vvdash', [8874]], ['vzigzag', [10650]], ['Wcirc', [372]], ['wcirc', [373]], ['wedbar', [10847]], ['wedge', [8743]], ['Wedge', [8896]], ['wedgeq', [8793]], ['weierp', [8472]], ['Wfr', [120090]], ['wfr', [120116]], ['Wopf', [120142]], ['wopf', [120168]], ['wp', [8472]], ['wr', [8768]], ['wreath', [8768]], ['Wscr', [119986]], ['wscr', [120012]], ['xcap', [8898]], ['xcirc', [9711]], ['xcup', [8899]], ['xdtri', [9661]], ['Xfr', [120091]], ['xfr', [120117]], ['xharr', [10231]], ['xhArr', [10234]], ['Xi', [926]], ['xi', [958]], ['xlarr', [10229]], ['xlArr', [10232]], ['xmap', [10236]], ['xnis', [8955]], ['xodot', [10752]], ['Xopf', [120143]], ['xopf', [120169]], ['xoplus', [10753]], ['xotime', [10754]], ['xrarr', [10230]], ['xrArr', [10233]], ['Xscr', [119987]], ['xscr', [120013]], ['xsqcup', [10758]], ['xuplus', [10756]], ['xutri', [9651]], ['xvee', [8897]], ['xwedge', [8896]], ['Yacute', [221]], ['yacute', [253]], ['YAcy', [1071]], ['yacy', [1103]], ['Ycirc', [374]], ['ycirc', [375]], ['Ycy', [1067]], ['ycy', [1099]], ['yen', [165]], ['Yfr', [120092]], ['yfr', [120118]], ['YIcy', [1031]], ['yicy', [1111]], ['Yopf', [120144]], ['yopf', [120170]], ['Yscr', [119988]], ['yscr', [120014]], ['YUcy', [1070]], ['yucy', [1102]], ['yuml', [255]], ['Yuml', [376]], ['Zacute', [377]], ['zacute', [378]], ['Zcaron', [381]], ['zcaron', [382]], ['Zcy', [1047]], ['zcy', [1079]], ['Zdot', [379]], ['zdot', [380]], ['zeetrf', [8488]], ['ZeroWidthSpace', [8203]], ['Zeta', [918]], ['zeta', [950]], ['zfr', [120119]], ['Zfr', [8488]], ['ZHcy', [1046]], ['zhcy', [1078]], ['zigrarr', [8669]], ['zopf', [120171]], ['Zopf', [8484]], ['Zscr', [119989]], ['zscr', [120015]], ['zwj', [8205]], ['zwnj', [8204]]];
 
-},{"./parser":9,"./pools":10}],9:[function(_dereq_,module,exports){
-(function (global){
-"use strict";Object.defineProperty(exports,"__esModule",{value:true});exports.makeParser = makeParser;var _pools2=_dereq_('./pools');var pools=_pools2.pools;function makeParser(){var g={};(function(f){g.htmlParser = f();})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof dynamicRequire == "function" && dynamicRequire;if(!u && a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '" + o + "'");throw (f.code = "MODULE_NOT_FOUND",f);}var l=n[o] = {exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e);},l,l.exports,e,t,n,r);}return n[o].exports;}var i=typeof dynamicRequire == "function" && dynamicRequire;for(var o=0;o < r.length;o++) s(r[o]);return s;})({1:[function(dynamicRequire,module,exports){if(typeof Object.create === 'function'){ // implementation from standard node.js 'util' module
-module.exports = function inherits(ctor,superCtor){ctor.super_ = superCtor;ctor.prototype = Object.create(superCtor.prototype,{constructor:{value:ctor,enumerable:false,writable:true,configurable:true}});};}else { // old school shim for old browsers
-module.exports = function inherits(ctor,superCtor){ctor.super_ = superCtor;var TempCtor=function TempCtor(){};TempCtor.prototype = superCtor.prototype;ctor.prototype = new TempCtor();ctor.prototype.constructor = ctor;};}},{}],2:[function(dynamicRequire,module,exports){ // shim for using process in browser
-var process=module.exports = {};var queue=[];var draining=false;function drainQueue(){if(draining){return;}draining = true;var currentQueue;var len=queue.length;while(len) {currentQueue = queue;queue = [];var i=-1;while(++i < len) {currentQueue[i]();}len = queue.length;}draining = false;}process.nextTick = function(fun){queue.push(fun);if(!draining){setTimeout(drainQueue,0);}};process.title = 'browser';process.browser = true;process.env = {};process.argv = [];process.version = ''; // empty string to avoid regexp issues
-process.versions = {};function noop(){}process.on = noop;process.addListener = noop;process.once = noop;process.off = noop;process.removeListener = noop;process.removeAllListeners = noop;process.emit = noop;process.binding = function(name){throw new Error('process.binding is not supported');}; // TODO(shtylman)
-process.cwd = function(){return '/';};process.chdir = function(dir){throw new Error('process.chdir is not supported');};process.umask = function(){return 0;};},{}],3:[function(dynamicRequire,module,exports){module.exports = function isBuffer(arg){return arg && typeof arg === 'object' && typeof arg.copy === 'function' && typeof arg.fill === 'function' && typeof arg.readUInt8 === 'function';};},{}],4:[function(dynamicRequire,module,exports){(function(process,global){ // Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-var formatRegExp=/%[sdj%]/g;exports.format = function(f){if(!isString(f)){var objects=[];for(var i=0;i < arguments.length;i++) {objects.push(inspect(arguments[i]));}return objects.join(' ');}var i=1;var args=arguments;var len=args.length;var str=String(f).replace(formatRegExp,function(x){if(x === '%%')return '%';if(i >= len)return x;switch(x){case '%s':return String(args[i++]);case '%d':return Number(args[i++]);case '%j':try{return JSON.stringify(args[i++]);}catch(_) {return '[Circular]';}default:return x;}});for(var x=args[i];i < len;x = args[++i]) {if(isNull(x) || !isObject(x)){str += ' ' + x;}else {str += ' ' + inspect(x);}}return str;}; // Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn,msg){ // Allow for deprecating things in the process of starting up.
-if(isUndefined(global.process)){return function(){return exports.deprecate(fn,msg).apply(this,arguments);};}if(process.noDeprecation === true){return fn;}var warned=false;function deprecated(){if(!warned){if(process.throwDeprecation){throw new Error(msg);}else if(process.traceDeprecation){console.trace(msg);}else {console.error(msg);}warned = true;}return fn.apply(this,arguments);}return deprecated;};var debugs={};var debugEnviron;exports.debuglog = function(set){if(isUndefined(debugEnviron))debugEnviron = process.env.NODE_DEBUG || '';set = set.toUpperCase();if(!debugs[set]){if(new RegExp('\\b' + set + '\\b','i').test(debugEnviron)){var pid=process.pid;debugs[set] = function(){var msg=exports.format.apply(exports,arguments);console.error('%s %d: %s',set,pid,msg);};}else {debugs[set] = function(){};}}return debugs[set];}; /**
-   * Echos the value of a value. Trys to print the value out
-   * in the best way possible given the different types.
-   *
-   * @param {Object} obj The object to print out.
-   * @param {Object} opts Optional options object that alters the output.
-   */ /* legacy: obj, showHidden, depth, colors*/function inspect(obj,opts){ // default options
-var ctx={seen:[],stylize:stylizeNoColor}; // legacy...
-if(arguments.length >= 3)ctx.depth = arguments[2];if(arguments.length >= 4)ctx.colors = arguments[3];if(isBoolean(opts)){ // legacy...
-ctx.showHidden = opts;}else if(opts){ // got an "options" object
-exports._extend(ctx,opts);} // set default options
-if(isUndefined(ctx.showHidden))ctx.showHidden = false;if(isUndefined(ctx.depth))ctx.depth = 2;if(isUndefined(ctx.colors))ctx.colors = false;if(isUndefined(ctx.customInspect))ctx.customInspect = true;if(ctx.colors)ctx.stylize = stylizeWithColor;return formatValue(ctx,obj,ctx.depth);}exports.inspect = inspect; // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {'bold':[1,22],'italic':[3,23],'underline':[4,24],'inverse':[7,27],'white':[37,39],'grey':[90,39],'black':[30,39],'blue':[34,39],'cyan':[36,39],'green':[32,39],'magenta':[35,39],'red':[31,39],'yellow':[33,39]}; // Don't use 'blue' not visible on cmd.exe
-inspect.styles = {'special':'cyan','number':'yellow','boolean':'yellow','undefined':'grey','null':'bold','string':'green','date':'magenta', // "name": intentionally not styling
-'regexp':'red'};function stylizeWithColor(str,styleType){var style=inspect.styles[styleType];if(style){return "\u001b[" + inspect.colors[style][0] + 'm' + str + "\u001b[" + inspect.colors[style][1] + 'm';}else {return str;}}function stylizeNoColor(str,styleType){return str;}function arrayToHash(array){var hash={};array.forEach(function(val,idx){hash[val] = true;});return hash;}function formatValue(ctx,value,recurseTimes){ // Provide a hook for user-specified inspect functions.
-// Check that value is an object with an inspect function on it
-if(ctx.customInspect && value && isFunction(value.inspect) &&  // Filter out the util module, it's inspect function is special
-value.inspect !== exports.inspect &&  // Also filter out any prototype objects using the circular check.
-!(value.constructor && value.constructor.prototype === value)){var ret=value.inspect(recurseTimes,ctx);if(!isString(ret)){ret = formatValue(ctx,ret,recurseTimes);}return ret;} // Primitive types cannot have properties
-var primitive=formatPrimitive(ctx,value);if(primitive){return primitive;} // Look up the keys of the object.
-var keys=Object.keys(value);var visibleKeys=arrayToHash(keys);if(ctx.showHidden){keys = Object.getOwnPropertyNames(value);} // IE doesn't make error fields non-enumerable
-// http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-if(isError(value) && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)){return formatError(value);} // Some type of object without properties can be shortcutted.
-if(keys.length === 0){if(isFunction(value)){var name=value.name?': ' + value.name:'';return ctx.stylize('[Function' + name + ']','special');}if(isRegExp(value)){return ctx.stylize(RegExp.prototype.toString.call(value),'regexp');}if(isDate(value)){return ctx.stylize(Date.prototype.toString.call(value),'date');}if(isError(value)){return formatError(value);}}var base='',array=false,braces=['{','}']; // Make Array say that they are Array
-if(isArray(value)){array = true;braces = ['[',']'];} // Make functions say that they are functions
-if(isFunction(value)){var n=value.name?': ' + value.name:'';base = ' [Function' + n + ']';} // Make RegExps say that they are RegExps
-if(isRegExp(value)){base = ' ' + RegExp.prototype.toString.call(value);} // Make dates with properties first say the date
-if(isDate(value)){base = ' ' + Date.prototype.toUTCString.call(value);} // Make error with message first say the error
-if(isError(value)){base = ' ' + formatError(value);}if(keys.length === 0 && (!array || value.length == 0)){return braces[0] + base + braces[1];}if(recurseTimes < 0){if(isRegExp(value)){return ctx.stylize(RegExp.prototype.toString.call(value),'regexp');}else {return ctx.stylize('[Object]','special');}}ctx.seen.push(value);var output;if(array){output = formatArray(ctx,value,recurseTimes,visibleKeys,keys);}else {output = keys.map(function(key){return formatProperty(ctx,value,recurseTimes,visibleKeys,key,array);});}ctx.seen.pop();return reduceToSingleString(output,base,braces);}function formatPrimitive(ctx,value){if(isUndefined(value))return ctx.stylize('undefined','undefined');if(isString(value)){var simple='\'' + JSON.stringify(value).replace(/^"|"$/g,'').replace(/'/g,"\\'").replace(/\\"/g,'"') + '\'';return ctx.stylize(simple,'string');}if(isNumber(value))return ctx.stylize('' + value,'number');if(isBoolean(value))return ctx.stylize('' + value,'boolean'); // For some reason typeof null is "object", so special case here.
-if(isNull(value))return ctx.stylize('null','null');}function formatError(value){return '[' + Error.prototype.toString.call(value) + ']';}function formatArray(ctx,value,recurseTimes,visibleKeys,keys){var output=[];for(var i=0,l=value.length;i < l;++i) {if(hasOwnProperty(value,String(i))){output.push(formatProperty(ctx,value,recurseTimes,visibleKeys,String(i),true));}else {output.push('');}}keys.forEach(function(key){if(!key.match(/^\d+$/)){output.push(formatProperty(ctx,value,recurseTimes,visibleKeys,key,true));}});return output;}function formatProperty(ctx,value,recurseTimes,visibleKeys,key,array){var name,str,desc;desc = Object.getOwnPropertyDescriptor(value,key) || {value:value[key]};if(desc.get){if(desc.set){str = ctx.stylize('[Getter/Setter]','special');}else {str = ctx.stylize('[Getter]','special');}}else {if(desc.set){str = ctx.stylize('[Setter]','special');}}if(!hasOwnProperty(visibleKeys,key)){name = '[' + key + ']';}if(!str){if(ctx.seen.indexOf(desc.value) < 0){if(isNull(recurseTimes)){str = formatValue(ctx,desc.value,null);}else {str = formatValue(ctx,desc.value,recurseTimes - 1);}if(str.indexOf('\n') > -1){if(array){str = str.split('\n').map(function(line){return '  ' + line;}).join('\n').substr(2);}else {str = '\n' + str.split('\n').map(function(line){return '   ' + line;}).join('\n');}}}else {str = ctx.stylize('[Circular]','special');}}if(isUndefined(name)){if(array && key.match(/^\d+$/)){return str;}name = JSON.stringify('' + key);if(name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)){name = name.substr(1,name.length - 2);name = ctx.stylize(name,'name');}else {name = name.replace(/'/g,"\\'").replace(/\\"/g,'"').replace(/(^"|"$)/g,"'");name = ctx.stylize(name,'string');}}return name + ': ' + str;}function reduceToSingleString(output,base,braces){var numLinesEst=0;var length=output.reduce(function(prev,cur){numLinesEst++;if(cur.indexOf('\n') >= 0)numLinesEst++;return prev + cur.replace(/\u001b\[\d\d?m/g,'').length + 1;},0);if(length > 60){return braces[0] + (base === ''?'':base + '\n ') + ' ' + output.join(',\n  ') + ' ' + braces[1];}return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];} // NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar){return Array.isArray(ar);}exports.isArray = isArray;function isBoolean(arg){return typeof arg === 'boolean';}exports.isBoolean = isBoolean;function isNull(arg){return arg === null;}exports.isNull = isNull;function isNullOrUndefined(arg){return arg == null;}exports.isNullOrUndefined = isNullOrUndefined;function isNumber(arg){return typeof arg === 'number';}exports.isNumber = isNumber;function isString(arg){return typeof arg === 'string';}exports.isString = isString;function isSymbol(arg){return typeof arg === 'symbol';}exports.isSymbol = isSymbol;function isUndefined(arg){return arg === void 0;}exports.isUndefined = isUndefined;function isRegExp(re){return isObject(re) && objectToString(re) === '[object RegExp]';}exports.isRegExp = isRegExp;function isObject(arg){return typeof arg === 'object' && arg !== null;}exports.isObject = isObject;function isDate(d){return isObject(d) && objectToString(d) === '[object Date]';}exports.isDate = isDate;function isError(e){return isObject(e) && (objectToString(e) === '[object Error]' || e instanceof Error);}exports.isError = isError;function isFunction(arg){return typeof arg === 'function';}exports.isFunction = isFunction;function isPrimitive(arg){return arg === null || typeof arg === 'boolean' || typeof arg === 'number' || typeof arg === 'string' || typeof arg === 'symbol' ||  // ES6 symbol
-typeof arg === 'undefined';}exports.isPrimitive = isPrimitive;exports.isBuffer = dynamicRequire('./support/isBuffer');function objectToString(o){return Object.prototype.toString.call(o);}function pad(n){return n < 10?'0' + n.toString(10):n.toString(10);}var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; // 26 Feb 16:19:34
-function timestamp(){var d=new Date();var time=[pad(d.getHours()),pad(d.getMinutes()),pad(d.getSeconds())].join(':');return [d.getDate(),months[d.getMonth()],time].join(' ');} // log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function(){console.log('%s - %s',timestamp(),exports.format.apply(exports,arguments));}; /**
-   * Inherit the prototype methods from one constructor into another.
-   *
-   * The Function.prototype.inherits from lang.js rewritten as a standalone
-   * function (not on Function.prototype). NOTE: If this file is to be loaded
-   * during bootstrapping this function needs to be rewritten using some native
-   * functions as prototype setup using normal JavaScript does not work as
-   * expected during bootstrapping (see mirror.js in r114903).
-   *
-   * @param {function} ctor Constructor function which needs to inherit the
-   *     prototype.
-   * @param {function} superCtor Constructor function to inherit prototype from.
-   */exports.inherits = dynamicRequire('inherits');exports._extend = function(origin,add){ // Don't do anything if add isn't an object
-if(!add || !isObject(add))return origin;var keys=Object.keys(add);var i=keys.length;while(i--) {origin[keys[i]] = add[keys[i]];}return origin;};function hasOwnProperty(obj,prop){return Object.prototype.hasOwnProperty.call(obj,prop);}}).call(this,dynamicRequire('_process'),typeof global !== "undefined"?global:typeof self !== "undefined"?self:typeof window !== "undefined"?window:{});},{"./support/isBuffer":3,"_process":2,"inherits":1}],5:[function(dynamicRequire,module,exports){module.exports = {"name":"apollojs","author":{"name":"Xiaoyi Shi","email":"ashi009@gmail.com"},"description":"A framework to extend global objects with advance features.","version":"1.3.0","contributors":[{"name":"Yan Dong","email":"idy0013@gmail.com"},{"name":"Steve Yang","email":"me@iyyang.com"}],"repository":{"type":"git","url":"https://github.com/apollojs/apollojs.git"},"scripts":{"prepublish":"make clean server","test":"mocha","posttest":"mocha -R travis-cov","coverage":"mocha -R html-cov > coverage.html","start":"node server.js"},"main":"./server.js","license":"MIT","engines":{"node":">=0.8"},"devDependencies":{"mocha":"*","should":"*","blanket":"*","travis-cov":"*"},"config":{"blanket":{"pattern":"server.js"},"travis-cov":{"threshold":70}},"bugs":{"url":"https://github.com/apollojs/apollojs/issues"},"homepage":"https://github.com/apollojs/apollojs","_id":"apollojs@1.3.0","_shasum":"5f7b00304d9740e2a7be5b52c7c0807d51f9255e","_from":"apollojs@>=1.3.0 <2.0.0","_npmVersion":"1.4.10","_npmUser":{"name":"ashi009","email":"ashi009@gmail.com"},"maintainers":[{"name":"ashi009","email":"ashi009@gmail.com"}],"dist":{"shasum":"5f7b00304d9740e2a7be5b52c7c0807d51f9255e","tarball":"http://registry.npmjs.org/apollojs/-/apollojs-1.3.0.tgz"},"directories":{},"_resolved":"https://registry.npmjs.org/apollojs/-/apollojs-1.3.0.tgz"};},{}],6:[function(dynamicRequire,module,exports){(function(global){if(!global.$apollo){var $format;(function(){ /**
-   * Extend an object with another object
-   * @param  {Object} obj      object to be extended
-   * @param  {Object} ext      extension object
-   * @param  {bool} override   Overwrite existing properties in obj
-   * @param  {bool} deep       Doing an deep extend (perform extend on every object property)
-   * @return {Object}          reference to obj
-   */var $extend=function $extend(obj,ext,override,deep){var key;if(override){if(deep)_overrideDeepExtend(obj,ext);else for(key in ext) obj[key] = ext[key];}else {if(deep)_deepExtend(obj,ext);else for(key in ext) if(!(key in obj))obj[key] = ext[key];}return obj;};var _overrideDeepExtend=function _overrideDeepExtend(obj,ext){for(var key in ext) if(Object.isObjectStrict(obj[key]) && Object.isObjectStrict(ext[key]))_overrideDeepExtend(obj[key],ext[key]);else obj[key] = ext[key];};var _deepExtend=function _deepExtend(obj,ext){for(var key in ext) if(Object.isObjectStrict(obj[key]) && Object.isObjectStrict(ext[key]))_deepExtend(obj[key],ext[key]);else if(!(key in obj))obj[key] = ext[key];} /**
-   * Define properties of an Object, Which usually used to extend prototype
-   *   of an object, as it will set properties as non-enumerable, and will
-   *   turn setValue(value) and getValue() functions to setter and getters.
-   * Note: You should only use $define or Object.defineProperty on prototype,
-   *   or on a class' itself (to define static methods), instead of on instances
-   *   which could lead to severe performance issue.
-   * @param  {Object} object    target object
-   * @param  {Object} prototype extension object
-   * @param  {bool} preserve    preserve existing property
-   * @return {Object}           reference to object
-   */;var $define=function $define(object,prototype,preserve){Object.getOwnPropertyNames(prototype).forEach(function(key){if(preserve && key in object)return;var desc=Object.getOwnPropertyDescriptor(prototype,key);if('value' in desc)desc.writable = true;delete desc.enumerable;delete desc.configurable;Object.defineProperty(object,key,desc);});return object;} /**
-   * Declare a Class.
-   * @param  {Function} fn      constructor of the Class
-   * @param  {Object} prototype prototype of Class
-   * @return {Function}         reference to constructor
-   */;var $declare=function $declare(fn,prototype){fn.prototype.constructor = fn;$define(fn.prototype,prototype);return fn;} /**
-   * Inherit another Class to current Class
-   * @param  {Function} fn      constructor of the Class
-   * @param  {Function} parent  parent Class
-   * @param  {Object} prototype prototype of Class
-   * @return {Function}         reference to constructor
-   */;var $inherit=function $inherit(fn,parent,prototype){fn.prototype = {constructor:fn,__proto__:parent.prototype};if(prototype)$define(fn.prototype,prototype);return fn;} /**
-   * Adding enumerations to a Class (both static and prototype).
-   * @param  {Function} fn     constructor of the Class
-   * @param  {Object}   values object holding all enumerates want to define
-   * @return {Function}        reference to constructor
-   */;var $defenum=function $defenum(fn,values){$define(fn,values);$define(fn.prototype,values);return fn;} /**
-   * Format a string with given pattern.
-   * @param  {string} str pattern
-   * @return {string}     formatted string
-   */; /**
-   * Making an Error instance with given format and parameters.
-   * Note: this is a helper function works like util.format(),
-   *   apart from it returns an Error object instead of string.
-   * @return {Error} generated Error instance
-   */var $error=function $error(){return new Error($format.apply(null,arguments));} /**
-   * Generate a deep copy of an Object with its primitive typed
-   * fields (exclude functions).
-   * @param  {mixed} obj  source object
-   * @return {mixed}      cloned object
-   */;var $valueCopy=function $valueCopy(obj){var res;if(Array.isArray(obj)){res = obj.slice(0);for(var i=0;i < res.length;i++) if(Object.isObject(res[i]))res[i] = $valueCopy(res[i]);}else if(Object.isObjectStrict(obj)){res = {};for(var key in obj) res[key] = $valueCopy(obj[key]);}else if(Function.isFunction(obj)){return undefined;}else {return obj;}return res;} /**
-   * Generates a copy of an Object.
-   * @param  {Mixed} org  source object
-   * @param  {bool} deep  perform a deep clone
-   * @return {Mixed}      cloned object
-   */;var $clone=function $clone(obj,deep){var res;var _deep=deep === true || deep - 1;if(Array.isArray(obj)){res = obj.slice(0);if(deep)for(var i=0;i < res.length;i++) if(Object.isObject(res[i]))res[i] = $clone(res[i],_deep);}else if(Object.isObjectStrict(obj)){res = {};for(var key in obj) res[key] = obj[key];if(deep)for(var key in obj) if(Object.isObject(res[key]))res[key] = $clone(res[key],_deep);}else {return obj;}return res;} /**
-   * Return default value of an undefined variable.
-   * @param  {Mixed} val  value
-   * @param  {Mixed} def  default value
-   * @return {Mixed}
-   */;var $default=function $default(val,def){return val === undefined?def:val;} /**
-   * Wrap an object with given Class.
-   * Note: it will call Class.__wrap method to do custom wrapping.
-   * @param  {Object} obj     object to be wrapped
-   * @param  {Function} Type  wrapping Class
-   * @return {Object}         wrapped object
-   */;var $wrap=function $wrap(obj,Type){obj.__proto__ = Type.prototype;if(Type.__wrap)Type.__wrap(obj);return obj;} /**
-   * Removing prototype chain from a given object.
-   * @param  {Object} object   object to be stripped
-   * @return {Object}          object stripped
-   */;var $strip=function $strip(object){object.__proto__ = Object.prototype;return object;} /**
-   * Use Object.prototype.toString to determine an element's type
-   * This method provide more stricter strategy on type detection,
-   * can be worked with typeof.
-   * @param  {Mixed}  obj  Variable
-   * @return {String}      type of the variable, like typeof,
-   *                       but with better precision.
-   */;var $typeof=function $typeof(obj){var type=Object.prototype.toString.call(obj);return type.substring(8,type.length - 1).toLowerCase();};$format = dynamicRequire('util').format;$define(global,{$extend:$extend,$define:$define,$declare:$declare,$inherit:$inherit,$defenum:$defenum,$format:$format,$error:$error,$valueCopy:$valueCopy,$clone:$clone,$default:$default,$wrap:$wrap,$apollo:dynamicRequire('./package').version,$strip:$strip,$typeof:$typeof});$define(String.prototype,Object.defineProperties({ /**
-     * Repeat current string for given times.
-     * @param  {int} times  Times to repeat
-     * @return {string}     result
-     */repeat:function repeat(times){var res='';for(var i=0;i < times;i++) res += this;return res;}, /**
-     * Padding this to given length with specified char from left.
-     * @param  {char} ch    padding char
-     * @param  {int} length desired length
-     * @return {string}     result
-     */paddingLeft:function paddingLeft(ch,length){if(this.length < length)return ch.repeat(length - this.length) + this;return this;}, /**
-     * Padding this to given length with specified char from right.
-     * @param  {char} ch    padding char
-     * @param  {int} length desired length
-     * @return {string}     result
-     */paddingRight:function paddingRight(ch,length){if(this.length < length)return this + ch.repeat(length - this.length);return this;}, /**
-     * Tests if this string starts with the given one.
-     * @param  {string} str string to test with
-     * @param  {number} pos optional, position to start compare, defaults
-     *                      to 0
-     * @return {bool}       result
-     */startsWith:function startsWith(str,pos){if(str === null || str === undefined || str.length === 0)return true;return this.substr(pos || 0,str.length) === str;}, /**
-     * Tests if this string ends with the given one.
-     * @param  {string} str string to test with
-     * @param  {number} len optional, pretend this string is of given length,
-     *                      defaults to actual length
-     * @return {bool}       result
-     */endsWith:function endsWith(str,len){if(str === null || str === undefined || str.length === 0)return true;return this.substr((len || this.length) - str.length,str.length) === str;}, /**
-     * Return a string in it's title form.
-     * @return {string} string in title case
-     * Note: if a word containing upper case, nothing
-     *   will be done.
-     */toTitleCase:function toTitleCase(){return this.replace(/\b([a-z])(['a-z]*)\b/g,function(all,letter,rest){return letter.toUpperCase() + rest;});}, /**
-     * Trim whitespaces at the begining of the string
-     * @return {string} trimmed string
-     */trimLeft:function trimLeft(){return this.replace(/^\s+/,'');}, /**
-     * Trim whitespaces at the ending of the string
-     * @return {string} trimmed string
-     */trimRight:function trimRight(){return this.replace(/\s+$/,'');}},{back:{ /**
-     * get last character in this string
-     * @return {String} last character
-     */get:function get(){return this[this.length - 1];},configurable:true,enumerable:true},front:{ /**
-     * get first character in this string
-     * @return {String} first character
-     */get:function get(){return this[0];},configurable:true,enumerable:true}}),true);$define(Number.prototype,{ /**
-     * Clamp current value to the given range [lb, ub]
-     * @param  {number} lb lower bound
-     * @param  {number} ub upper bound
-     * @return {number}    result
-     */clamp:function clamp(lb,ub){var rtn=Number(this);if(lb !== undefined && rtn < lb)rtn = lb;if(ub !== undefined && rtn > ub)rtn = ub;return rtn;}, /**
-     * Shortcut to Math.floor(this)
-     * @return {number} Math.floor(this)
-     */floor:function floor(){return Math.floor(this);}, /**
-     * Shortcut to Math.ceil(this)
-     * @return {number} Math.ceil(this)
-     */ceil:function ceil(){return Math.ceil(this);}, /**
-     * Shortcut to Math.round(this) with additional parameters
-     * @param  {number} decimals number of decimal digits to round up to
-     * @return {number}          rounded number
-     */round:function round(decimals){if(decimals){var unit=Math.pow(10,decimals);return Math.round(this * unit) / unit;}return Math.round(this);}, /**
-     * Get the thousands separated number
-     * @param  {number} decimals  number of decimal digits to remain
-     * @param  {string} separator separator
-     * @return {string}           separated number
-     */toGroup:function toGroup(decimals,separator){decimals = decimals || 0;if(this > -1000 && this < 1000)return this.toFixed(decimals);separator = separator || ',';var sign=this < 0?'-':'';var tmp=Math.abs(this).toFixed(decimals);var intPart,decimalPart;if(decimals > 0){intPart = tmp.substr(0,tmp.length - decimals - 1);decimalPart = tmp.substr(tmp.length - decimals - 1);}else {intPart = tmp;decimalPart = '';}var res='';for(var pos=0,len=intPart.length % 3 || 3;pos < intPart.length;pos += len,len = 3) {if(res !== '')res += separator;res += intPart.substr(pos,len);}return sign + res + decimalPart;}});$define(Array.prototype,Object.defineProperties({ /**
-     * get minimum value in this array
-     * @return {Mixed} minimal value
-     */min:function min(){var res=this[0];for(var i=1;i < this.length;i++) if(this[i] < res)res = this[i];return res;}, /**
-     * get maximum value in this array
-     * @return {Mixed} maximum value
-     */max:function max(){var res=this[0];for(var i=1;i < this.length;i++) if(this[i] > res)res = this[i];return res;}, /**
-     * Push a value iif it's not in this array, and return value's index.
-     * @param  {Mixed} val  new value
-     * @return {int}        index of the value
-     * Note: This only works with primitive typed elements, which can be found
-     *       with Array#indexOf().
-     */add:function add(val){var index=this.indexOf(val);if(index === -1)return this.push(val) - 1;return index;}, /**
-     * Find a value in the array and remove it.
-     * @param  {Mixed} val  value to remove
-     * @return {Array}      this
-     * Note: This only works with primitive typed elements, which can be found
-     *       with Array#indexOf().
-     */remove:function remove(val){var index=this.indexOf(val);if(index > -1){ // Shift copy elements instead of Array#splice() for better performance.
-// http://jsperf.com/fast-array-splice/18
-while(++index < this.length) this[index - 1] = this[index];this.pop();}return this;}, /**
-     * Rotate this array (n->0, n+1->1, ...)
-     * @param  {int} n   the offset
-     * @return {Array}   this
-     */rotate:function rotate(n){if(n < 0)n = n % this.length + this.length;n %= this.length;var middle=n;var next=n;var first=0;while(first < this.length) {var t=this[first];this[first] = this[next];this[next] = t;first++;next++;if(next == this.length)next = middle;else if(first == middle)middle = next;}return this;}, /**
-     * Flattern a array with sub arrays.
-     * @param  {bool} deep if continue to flatten sub arrays
-     * @return {Array}     flattened array.
-     */flatten:function flatten(deep){var res=[];if(!deep)return res.concat.apply(res,this);for(var i=0;i < this.length;i++) if(Array.isArray(this[i]))res.push.apply(res,this[i].flatten(true));else res.push(this[i]);return res;}, /**
-     * Return unique elements in the array
-     * @return {Array}
-     */unique:function unique(){var res=[];var dict={};for(var i=0;i < this.length;++i) {var key=this[i].toString();if(dict.hasOwnProperty(key))continue;dict[key] = true;res.push(this[i]);}return res;}, /**
-     * shuffle elements in the array in-place
-     * @return {Array}
-     */shuffle:function shuffle(){for(var n=this.length;n > 0;n--) {var idx=Math.floor(n * Math.random());if(idx != n - 1){var tmp=this[idx];this[idx] = this[n - 1];this[n - 1] = tmp;}}return this;}},{back:{ /**
-     * get last element in this array
-     * Note: It's not a reference when returning a non-object!
-     * @return {Mixed} last element
-     */get:function get(){return this[this.length - 1];},configurable:true,enumerable:true},front:{ /**
-     * get first element in this array
-     * Note: It's not a reference when returning a non-object!
-     * @return {Mixed} first element
-     */get:function get(){return this[0];},configurable:true,enumerable:true}})); /**
-   * Forward declaring prototype functions to Array's static
-   * methods.
-   */if(Array.map === undefined)['forEach','every','some','filter','map','reduce','reduceRight','slice'].forEach(function(method){var fn=Array.prototype[method];Object.defineProperty(Array,method,{value:function value(a,b,c){return fn.call(a,b,c);}});});if(String.trim === undefined)['trim','trimLeft','trimRight'].forEach(function(method){var fn=String.prototype[method];Object.defineProperty(String,method,{value:function value(a){return fn.call(a);}});});$define(Object,{ /**
-     * Determine if an object is empty
-     * @param  {Object} obj  object to test
-     * @return {bool}        object is empty
-     */isEmpty:function isEmpty(obj){if(!obj)return true;for(var key in obj) return false;return true;}, /**
-     * Get values of an object, like Object.keys().
-     * @param  {Object} obj  object to extract
-     * @return {Array}       values in the object
-     */values:function values(obj){return Object.keys(obj).map(function(k){return obj[k];});}, /**
-     * Vague but fast isObject test
-     * Note: new String(), function, array, etc will return true
-     * @param  {Mixed} obj  object to test
-     * @return {bool}       true if obj is an object and not null
-     */isObject:function isObject(obj){ /**
-       * Known fastest way to test, the order of the test
-       * following: http://jsperf.com/typeof-vs-bool.
-       */return obj && typeof obj === 'object';}, /**
-     * Strict isObject test, only pure Object will return true
-     * Note: only {} will return true
-     * @param  {Mixed} obj  object to test
-     * @return {bool}       true if obj is strictly an object
-     */isObjectStrict:function isObjectStrict(obj){return Object.prototype.toString.call(obj) === '[object Object]';}, /**
-     * project $object with projectiong, same behaviour with mongodb projection
-     * @param  {Object} object      target object
-     * @param  {Object} projection  An object mapping fields to values
-     * @param  {Boolean} deep       if true, go deep for sub objects
-     * @param  {Boolean} keep       if true, keep undefined field of this
-     * @return {Object}             projected object
-     */project:function project(object,projection,deep,keep){if(!Object.isObject(projection))return object;var res={};Object.keys(projection).forEach(function(key){var proj=projection[key];if(proj){var obj=object[key];if(deep && Object.isObjectStrict(obj) && Object.isObjectStrict(proj)){res[key] = Object.project(obj,projection[key],deep,keep);}else {if(keep)res[key] = obj;else if(obj !== undefined)res[key] = obj;}}});return res;},Transformer:function Transformer(mapping){var expr=[];expr.push('exec=function (object) {');expr.push('var res = {};');(function loop(lhv,mapping){Object.keys(mapping).forEach(function(key){var source=mapping[key];if(/\W/.test(key))key = '["' + key + '"]';else key = '.' + key;var target=lhv + key;if($typeof(source) == 'object'){expr.push(target + ' = {};');return loop(target,source);}if(true === source)source = 'object' + key;else if($typeof(source) == 'string')source = 'object' + source;else if($typeof(source) == 'function')source = '(' + source.toString() + ')(object)';expr.push(target + ' = ' + source + ';');});})('res',mapping);expr.push('return res;');expr.push('}');this.exec = eval(expr.join(''));}});$define(Function,{ /**
-     * Test if an object is a function
-     * @param  {Mixed} obj  object to test
-     * @return {bool}       true if so
-     */isFunction:function isFunction(obj){return typeof obj === 'function';}});$define(Date,{ /**
-     * Cast a value to Date
-     * @param  {Mixed} obj  object to cast
-     * @return {Date}       casted value
-     */cast:function cast(obj){if(obj instanceof Date)return obj;if(typeof obj === 'string')obj = Date.parse(obj);if(typeof obj === 'number'){if(isNaN(obj))return null;obj = new Date(obj);if(isNaN(obj.valueOf()))return null;return obj;}return null;}, /**
-     * Determine if an object is a Date
-     * @param  {Object}     object to test
-     * @return {bool}       true iif it's a date.
-     */isDate:function isDate(obj){obj = Date.cast(obj);if(obj)return obj >= 0 && obj < 2147483647000;return false;}});$define(Boolean,{ /**
-     * Cast a value to bool
-     * @param  {Object} obj  object to cast
-     * @return {bool}        casted value
-     */cast:function cast(obj){if(obj === true || obj === false)return obj;if(typeof obj === 'string')return (/^(true|yes|ok|y|on)$/i.test(obj));return Boolean(obj);}});$define(RegExp,{ /**
-     * Escape a string to work within a regular expression
-     * @param  {string} str string to escape
-     * @return {strign}     escaped string
-     */escape:function escape(str){return str.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&');}});$define(JSON,{ /**
-     * Try to parse a json string
-     * @param  {string} str json string
-     * @return {mixed}      parsed result
-     */tryParse:function tryParse(str){try{return JSON.parse(str);}catch(e) {return;}}});})();}}).call(this,typeof global !== "undefined"?global:typeof self !== "undefined"?self:typeof window !== "undefined"?window:{});},{"./package":5,"util":4}],7:[function(dynamicRequire,module,exports){var encode=dynamicRequire("./lib/encode.js"),decode=dynamicRequire("./lib/decode.js");exports.decode = function(data,level){return (!level || level <= 0?decode.XML:decode.HTML)(data);};exports.decodeStrict = function(data,level){return (!level || level <= 0?decode.XML:decode.HTMLStrict)(data);};exports.encode = function(data,level){return (!level || level <= 0?encode.XML:encode.HTML)(data);};exports.encodeXML = encode.XML;exports.encodeHTML4 = exports.encodeHTML5 = exports.encodeHTML = encode.HTML;exports.decodeXML = exports.decodeXMLStrict = decode.XML;exports.decodeHTML4 = exports.decodeHTML5 = exports.decodeHTML = decode.HTML;exports.decodeHTML4Strict = exports.decodeHTML5Strict = exports.decodeHTMLStrict = decode.HTMLStrict;exports.escape = encode.escape;},{"./lib/decode.js":8,"./lib/encode.js":10}],8:[function(dynamicRequire,module,exports){var entityMap=dynamicRequire("../maps/entities.json"),legacyMap=dynamicRequire("../maps/legacy.json"),xmlMap=dynamicRequire("../maps/xml.json"),decodeCodePoint=dynamicRequire("./decode_codepoint.js");var decodeXMLStrict=getStrictDecoder(xmlMap),decodeHTMLStrict=getStrictDecoder(entityMap);function getStrictDecoder(map){var keys=Object.keys(map).join("|"),replace=getReplacer(map);keys += "|#[xX][\\da-fA-F]+|#\\d+";var re=new RegExp("&(?:" + keys + ");","g");return function(str){return String(str).replace(re,replace);};}var decodeHTML=(function(){var legacy=Object.keys(legacyMap).sort(sorter);var keys=Object.keys(entityMap).sort(sorter);for(var i=0,j=0;i < keys.length;i++) {if(legacy[j] === keys[i]){keys[i] += ";?";j++;}else {keys[i] += ";";}}var re=new RegExp("&(?:" + keys.join("|") + "|#[xX][\\da-fA-F]+;?|#\\d+;?)","g"),replace=getReplacer(entityMap);function replacer(str){if(str.substr(-1) !== ";")str += ";";return replace(str);} //TODO consider creating a merged map
-return function(str){return String(str).replace(re,replacer);};})();function sorter(a,b){return a < b?1:-1;}function getReplacer(map){return function replace(str){if(str.charAt(1) === "#"){if(str.charAt(2) === "X" || str.charAt(2) === "x"){return decodeCodePoint(parseInt(str.substr(3),16));}return decodeCodePoint(parseInt(str.substr(2),10));}return map[str.slice(1,-1)];};}module.exports = {XML:decodeXMLStrict,HTML:decodeHTML,HTMLStrict:decodeHTMLStrict};},{"../maps/entities.json":12,"../maps/legacy.json":13,"../maps/xml.json":14,"./decode_codepoint.js":9}],9:[function(dynamicRequire,module,exports){var decodeMap=dynamicRequire("../maps/decode.json");module.exports = decodeCodePoint; // modified version of https://github.com/mathiasbynens/he/blob/master/src/he.js#L94-L119
-function decodeCodePoint(codePoint){if(codePoint >= 0xD800 && codePoint <= 0xDFFF || codePoint > 0x10FFFF){return "�";}if(codePoint in decodeMap){codePoint = decodeMap[codePoint];}var output="";if(codePoint > 0xFFFF){codePoint -= 0x10000;output += String.fromCharCode(codePoint >>> 10 & 0x3FF | 0xD800);codePoint = 0xDC00 | codePoint & 0x3FF;}output += String.fromCharCode(codePoint);return output;}},{"../maps/decode.json":11}],10:[function(dynamicRequire,module,exports){var inverseXML=getInverseObj(dynamicRequire("../maps/xml.json")),xmlReplacer=getInverseReplacer(inverseXML);exports.XML = getInverse(inverseXML,xmlReplacer);var inverseHTML=getInverseObj(dynamicRequire("../maps/entities.json")),htmlReplacer=getInverseReplacer(inverseHTML);exports.HTML = getInverse(inverseHTML,htmlReplacer);function getInverseObj(obj){return Object.keys(obj).sort().reduce(function(inverse,name){inverse[obj[name]] = "&" + name + ";";return inverse;},{});}function getInverseReplacer(inverse){var single=[],multiple=[];Object.keys(inverse).forEach(function(k){if(k.length === 1){single.push("\\" + k);}else {multiple.push(k);}}); //TODO add ranges
-multiple.unshift("[" + single.join("") + "]");return new RegExp(multiple.join("|"),"g");}var re_nonASCII=/[^\0-\x7F]/g,re_astralSymbols=/[\uD800-\uDBFF][\uDC00-\uDFFF]/g;function singleCharReplacer(c){return "&#x" + c.charCodeAt(0).toString(16).toUpperCase() + ";";}function astralReplacer(c){ // http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
-var high=c.charCodeAt(0);var low=c.charCodeAt(1);var codePoint=(high - 0xD800) * 0x400 + low - 0xDC00 + 0x10000;return "&#x" + codePoint.toString(16).toUpperCase() + ";";}function getInverse(inverse,re){function func(name){return inverse[name];}return function(data){return data.replace(re,func).replace(re_astralSymbols,astralReplacer).replace(re_nonASCII,singleCharReplacer);};}var re_xmlChars=getInverseReplacer(inverseXML);function escapeXML(data){return data.replace(re_xmlChars,singleCharReplacer).replace(re_astralSymbols,astralReplacer).replace(re_nonASCII,singleCharReplacer);}exports.escape = escapeXML;},{"../maps/entities.json":12,"../maps/xml.json":14}],11:[function(dynamicRequire,module,exports){module.exports = {"0":65533,"128":8364,"130":8218,"131":402,"132":8222,"133":8230,"134":8224,"135":8225,"136":710,"137":8240,"138":352,"139":8249,"140":338,"142":381,"145":8216,"146":8217,"147":8220,"148":8221,"149":8226,"150":8211,"151":8212,"152":732,"153":8482,"154":353,"155":8250,"156":339,"158":382,"159":376};},{}],12:[function(dynamicRequire,module,exports){module.exports = {"Aacute":"Á","aacute":"á","Abreve":"Ă","abreve":"ă","ac":"∾","acd":"∿","acE":"∾̳","Acirc":"Â","acirc":"â","acute":"´","Acy":"А","acy":"а","AElig":"Æ","aelig":"æ","af":"⁡","Afr":"𝔄","afr":"𝔞","Agrave":"À","agrave":"à","alefsym":"ℵ","aleph":"ℵ","Alpha":"Α","alpha":"α","Amacr":"Ā","amacr":"ā","amalg":"⨿","amp":"&","AMP":"&","andand":"⩕","And":"⩓","and":"∧","andd":"⩜","andslope":"⩘","andv":"⩚","ang":"∠","ange":"⦤","angle":"∠","angmsdaa":"⦨","angmsdab":"⦩","angmsdac":"⦪","angmsdad":"⦫","angmsdae":"⦬","angmsdaf":"⦭","angmsdag":"⦮","angmsdah":"⦯","angmsd":"∡","angrt":"∟","angrtvb":"⊾","angrtvbd":"⦝","angsph":"∢","angst":"Å","angzarr":"⍼","Aogon":"Ą","aogon":"ą","Aopf":"𝔸","aopf":"𝕒","apacir":"⩯","ap":"≈","apE":"⩰","ape":"≊","apid":"≋","apos":"'","ApplyFunction":"⁡","approx":"≈","approxeq":"≊","Aring":"Å","aring":"å","Ascr":"𝒜","ascr":"𝒶","Assign":"≔","ast":"*","asymp":"≈","asympeq":"≍","Atilde":"Ã","atilde":"ã","Auml":"Ä","auml":"ä","awconint":"∳","awint":"⨑","backcong":"≌","backepsilon":"϶","backprime":"‵","backsim":"∽","backsimeq":"⋍","Backslash":"∖","Barv":"⫧","barvee":"⊽","barwed":"⌅","Barwed":"⌆","barwedge":"⌅","bbrk":"⎵","bbrktbrk":"⎶","bcong":"≌","Bcy":"Б","bcy":"б","bdquo":"„","becaus":"∵","because":"∵","Because":"∵","bemptyv":"⦰","bepsi":"϶","bernou":"ℬ","Bernoullis":"ℬ","Beta":"Β","beta":"β","beth":"ℶ","between":"≬","Bfr":"𝔅","bfr":"𝔟","bigcap":"⋂","bigcirc":"◯","bigcup":"⋃","bigodot":"⨀","bigoplus":"⨁","bigotimes":"⨂","bigsqcup":"⨆","bigstar":"★","bigtriangledown":"▽","bigtriangleup":"△","biguplus":"⨄","bigvee":"⋁","bigwedge":"⋀","bkarow":"⤍","blacklozenge":"⧫","blacksquare":"▪","blacktriangle":"▴","blacktriangledown":"▾","blacktriangleleft":"◂","blacktriangleright":"▸","blank":"␣","blk12":"▒","blk14":"░","blk34":"▓","block":"█","bne":"=⃥","bnequiv":"≡⃥","bNot":"⫭","bnot":"⌐","Bopf":"𝔹","bopf":"𝕓","bot":"⊥","bottom":"⊥","bowtie":"⋈","boxbox":"⧉","boxdl":"┐","boxdL":"╕","boxDl":"╖","boxDL":"╗","boxdr":"┌","boxdR":"╒","boxDr":"╓","boxDR":"╔","boxh":"─","boxH":"═","boxhd":"┬","boxHd":"╤","boxhD":"╥","boxHD":"╦","boxhu":"┴","boxHu":"╧","boxhU":"╨","boxHU":"╩","boxminus":"⊟","boxplus":"⊞","boxtimes":"⊠","boxul":"┘","boxuL":"╛","boxUl":"╜","boxUL":"╝","boxur":"└","boxuR":"╘","boxUr":"╙","boxUR":"╚","boxv":"│","boxV":"║","boxvh":"┼","boxvH":"╪","boxVh":"╫","boxVH":"╬","boxvl":"┤","boxvL":"╡","boxVl":"╢","boxVL":"╣","boxvr":"├","boxvR":"╞","boxVr":"╟","boxVR":"╠","bprime":"‵","breve":"˘","Breve":"˘","brvbar":"¦","bscr":"𝒷","Bscr":"ℬ","bsemi":"⁏","bsim":"∽","bsime":"⋍","bsolb":"⧅","bsol":"\\","bsolhsub":"⟈","bull":"•","bullet":"•","bump":"≎","bumpE":"⪮","bumpe":"≏","Bumpeq":"≎","bumpeq":"≏","Cacute":"Ć","cacute":"ć","capand":"⩄","capbrcup":"⩉","capcap":"⩋","cap":"∩","Cap":"⋒","capcup":"⩇","capdot":"⩀","CapitalDifferentialD":"ⅅ","caps":"∩︀","caret":"⁁","caron":"ˇ","Cayleys":"ℭ","ccaps":"⩍","Ccaron":"Č","ccaron":"č","Ccedil":"Ç","ccedil":"ç","Ccirc":"Ĉ","ccirc":"ĉ","Cconint":"∰","ccups":"⩌","ccupssm":"⩐","Cdot":"Ċ","cdot":"ċ","cedil":"¸","Cedilla":"¸","cemptyv":"⦲","cent":"¢","centerdot":"·","CenterDot":"·","cfr":"𝔠","Cfr":"ℭ","CHcy":"Ч","chcy":"ч","check":"✓","checkmark":"✓","Chi":"Χ","chi":"χ","circ":"ˆ","circeq":"≗","circlearrowleft":"↺","circlearrowright":"↻","circledast":"⊛","circledcirc":"⊚","circleddash":"⊝","CircleDot":"⊙","circledR":"®","circledS":"Ⓢ","CircleMinus":"⊖","CirclePlus":"⊕","CircleTimes":"⊗","cir":"○","cirE":"⧃","cire":"≗","cirfnint":"⨐","cirmid":"⫯","cirscir":"⧂","ClockwiseContourIntegral":"∲","CloseCurlyDoubleQuote":"”","CloseCurlyQuote":"’","clubs":"♣","clubsuit":"♣","colon":":","Colon":"∷","Colone":"⩴","colone":"≔","coloneq":"≔","comma":",","commat":"@","comp":"∁","compfn":"∘","complement":"∁","complexes":"ℂ","cong":"≅","congdot":"⩭","Congruent":"≡","conint":"∮","Conint":"∯","ContourIntegral":"∮","copf":"𝕔","Copf":"ℂ","coprod":"∐","Coproduct":"∐","copy":"©","COPY":"©","copysr":"℗","CounterClockwiseContourIntegral":"∳","crarr":"↵","cross":"✗","Cross":"⨯","Cscr":"𝒞","cscr":"𝒸","csub":"⫏","csube":"⫑","csup":"⫐","csupe":"⫒","ctdot":"⋯","cudarrl":"⤸","cudarrr":"⤵","cuepr":"⋞","cuesc":"⋟","cularr":"↶","cularrp":"⤽","cupbrcap":"⩈","cupcap":"⩆","CupCap":"≍","cup":"∪","Cup":"⋓","cupcup":"⩊","cupdot":"⊍","cupor":"⩅","cups":"∪︀","curarr":"↷","curarrm":"⤼","curlyeqprec":"⋞","curlyeqsucc":"⋟","curlyvee":"⋎","curlywedge":"⋏","curren":"¤","curvearrowleft":"↶","curvearrowright":"↷","cuvee":"⋎","cuwed":"⋏","cwconint":"∲","cwint":"∱","cylcty":"⌭","dagger":"†","Dagger":"‡","daleth":"ℸ","darr":"↓","Darr":"↡","dArr":"⇓","dash":"‐","Dashv":"⫤","dashv":"⊣","dbkarow":"⤏","dblac":"˝","Dcaron":"Ď","dcaron":"ď","Dcy":"Д","dcy":"д","ddagger":"‡","ddarr":"⇊","DD":"ⅅ","dd":"ⅆ","DDotrahd":"⤑","ddotseq":"⩷","deg":"°","Del":"∇","Delta":"Δ","delta":"δ","demptyv":"⦱","dfisht":"⥿","Dfr":"𝔇","dfr":"𝔡","dHar":"⥥","dharl":"⇃","dharr":"⇂","DiacriticalAcute":"´","DiacriticalDot":"˙","DiacriticalDoubleAcute":"˝","DiacriticalGrave":"`","DiacriticalTilde":"˜","diam":"⋄","diamond":"⋄","Diamond":"⋄","diamondsuit":"♦","diams":"♦","die":"¨","DifferentialD":"ⅆ","digamma":"ϝ","disin":"⋲","div":"÷","divide":"÷","divideontimes":"⋇","divonx":"⋇","DJcy":"Ђ","djcy":"ђ","dlcorn":"⌞","dlcrop":"⌍","dollar":"$","Dopf":"𝔻","dopf":"𝕕","Dot":"¨","dot":"˙","DotDot":"⃜","doteq":"≐","doteqdot":"≑","DotEqual":"≐","dotminus":"∸","dotplus":"∔","dotsquare":"⊡","doublebarwedge":"⌆","DoubleContourIntegral":"∯","DoubleDot":"¨","DoubleDownArrow":"⇓","DoubleLeftArrow":"⇐","DoubleLeftRightArrow":"⇔","DoubleLeftTee":"⫤","DoubleLongLeftArrow":"⟸","DoubleLongLeftRightArrow":"⟺","DoubleLongRightArrow":"⟹","DoubleRightArrow":"⇒","DoubleRightTee":"⊨","DoubleUpArrow":"⇑","DoubleUpDownArrow":"⇕","DoubleVerticalBar":"∥","DownArrowBar":"⤓","downarrow":"↓","DownArrow":"↓","Downarrow":"⇓","DownArrowUpArrow":"⇵","DownBreve":"̑","downdownarrows":"⇊","downharpoonleft":"⇃","downharpoonright":"⇂","DownLeftRightVector":"⥐","DownLeftTeeVector":"⥞","DownLeftVectorBar":"⥖","DownLeftVector":"↽","DownRightTeeVector":"⥟","DownRightVectorBar":"⥗","DownRightVector":"⇁","DownTeeArrow":"↧","DownTee":"⊤","drbkarow":"⤐","drcorn":"⌟","drcrop":"⌌","Dscr":"𝒟","dscr":"𝒹","DScy":"Ѕ","dscy":"ѕ","dsol":"⧶","Dstrok":"Đ","dstrok":"đ","dtdot":"⋱","dtri":"▿","dtrif":"▾","duarr":"⇵","duhar":"⥯","dwangle":"⦦","DZcy":"Џ","dzcy":"џ","dzigrarr":"⟿","Eacute":"É","eacute":"é","easter":"⩮","Ecaron":"Ě","ecaron":"ě","Ecirc":"Ê","ecirc":"ê","ecir":"≖","ecolon":"≕","Ecy":"Э","ecy":"э","eDDot":"⩷","Edot":"Ė","edot":"ė","eDot":"≑","ee":"ⅇ","efDot":"≒","Efr":"𝔈","efr":"𝔢","eg":"⪚","Egrave":"È","egrave":"è","egs":"⪖","egsdot":"⪘","el":"⪙","Element":"∈","elinters":"⏧","ell":"ℓ","els":"⪕","elsdot":"⪗","Emacr":"Ē","emacr":"ē","empty":"∅","emptyset":"∅","EmptySmallSquare":"◻","emptyv":"∅","EmptyVerySmallSquare":"▫","emsp13":" ","emsp14":" ","emsp":" ","ENG":"Ŋ","eng":"ŋ","ensp":" ","Eogon":"Ę","eogon":"ę","Eopf":"𝔼","eopf":"𝕖","epar":"⋕","eparsl":"⧣","eplus":"⩱","epsi":"ε","Epsilon":"Ε","epsilon":"ε","epsiv":"ϵ","eqcirc":"≖","eqcolon":"≕","eqsim":"≂","eqslantgtr":"⪖","eqslantless":"⪕","Equal":"⩵","equals":"=","EqualTilde":"≂","equest":"≟","Equilibrium":"⇌","equiv":"≡","equivDD":"⩸","eqvparsl":"⧥","erarr":"⥱","erDot":"≓","escr":"ℯ","Escr":"ℰ","esdot":"≐","Esim":"⩳","esim":"≂","Eta":"Η","eta":"η","ETH":"Ð","eth":"ð","Euml":"Ë","euml":"ë","euro":"€","excl":"!","exist":"∃","Exists":"∃","expectation":"ℰ","exponentiale":"ⅇ","ExponentialE":"ⅇ","fallingdotseq":"≒","Fcy":"Ф","fcy":"ф","female":"♀","ffilig":"ﬃ","fflig":"ﬀ","ffllig":"ﬄ","Ffr":"𝔉","ffr":"𝔣","filig":"ﬁ","FilledSmallSquare":"◼","FilledVerySmallSquare":"▪","fjlig":"fj","flat":"♭","fllig":"ﬂ","fltns":"▱","fnof":"ƒ","Fopf":"𝔽","fopf":"𝕗","forall":"∀","ForAll":"∀","fork":"⋔","forkv":"⫙","Fouriertrf":"ℱ","fpartint":"⨍","frac12":"½","frac13":"⅓","frac14":"¼","frac15":"⅕","frac16":"⅙","frac18":"⅛","frac23":"⅔","frac25":"⅖","frac34":"¾","frac35":"⅗","frac38":"⅜","frac45":"⅘","frac56":"⅚","frac58":"⅝","frac78":"⅞","frasl":"⁄","frown":"⌢","fscr":"𝒻","Fscr":"ℱ","gacute":"ǵ","Gamma":"Γ","gamma":"γ","Gammad":"Ϝ","gammad":"ϝ","gap":"⪆","Gbreve":"Ğ","gbreve":"ğ","Gcedil":"Ģ","Gcirc":"Ĝ","gcirc":"ĝ","Gcy":"Г","gcy":"г","Gdot":"Ġ","gdot":"ġ","ge":"≥","gE":"≧","gEl":"⪌","gel":"⋛","geq":"≥","geqq":"≧","geqslant":"⩾","gescc":"⪩","ges":"⩾","gesdot":"⪀","gesdoto":"⪂","gesdotol":"⪄","gesl":"⋛︀","gesles":"⪔","Gfr":"𝔊","gfr":"𝔤","gg":"≫","Gg":"⋙","ggg":"⋙","gimel":"ℷ","GJcy":"Ѓ","gjcy":"ѓ","gla":"⪥","gl":"≷","glE":"⪒","glj":"⪤","gnap":"⪊","gnapprox":"⪊","gne":"⪈","gnE":"≩","gneq":"⪈","gneqq":"≩","gnsim":"⋧","Gopf":"𝔾","gopf":"𝕘","grave":"`","GreaterEqual":"≥","GreaterEqualLess":"⋛","GreaterFullEqual":"≧","GreaterGreater":"⪢","GreaterLess":"≷","GreaterSlantEqual":"⩾","GreaterTilde":"≳","Gscr":"𝒢","gscr":"ℊ","gsim":"≳","gsime":"⪎","gsiml":"⪐","gtcc":"⪧","gtcir":"⩺","gt":">","GT":">","Gt":"≫","gtdot":"⋗","gtlPar":"⦕","gtquest":"⩼","gtrapprox":"⪆","gtrarr":"⥸","gtrdot":"⋗","gtreqless":"⋛","gtreqqless":"⪌","gtrless":"≷","gtrsim":"≳","gvertneqq":"≩︀","gvnE":"≩︀","Hacek":"ˇ","hairsp":" ","half":"½","hamilt":"ℋ","HARDcy":"Ъ","hardcy":"ъ","harrcir":"⥈","harr":"↔","hArr":"⇔","harrw":"↭","Hat":"^","hbar":"ℏ","Hcirc":"Ĥ","hcirc":"ĥ","hearts":"♥","heartsuit":"♥","hellip":"…","hercon":"⊹","hfr":"𝔥","Hfr":"ℌ","HilbertSpace":"ℋ","hksearow":"⤥","hkswarow":"⤦","hoarr":"⇿","homtht":"∻","hookleftarrow":"↩","hookrightarrow":"↪","hopf":"𝕙","Hopf":"ℍ","horbar":"―","HorizontalLine":"─","hscr":"𝒽","Hscr":"ℋ","hslash":"ℏ","Hstrok":"Ħ","hstrok":"ħ","HumpDownHump":"≎","HumpEqual":"≏","hybull":"⁃","hyphen":"‐","Iacute":"Í","iacute":"í","ic":"⁣","Icirc":"Î","icirc":"î","Icy":"И","icy":"и","Idot":"İ","IEcy":"Е","iecy":"е","iexcl":"¡","iff":"⇔","ifr":"𝔦","Ifr":"ℑ","Igrave":"Ì","igrave":"ì","ii":"ⅈ","iiiint":"⨌","iiint":"∭","iinfin":"⧜","iiota":"℩","IJlig":"Ĳ","ijlig":"ĳ","Imacr":"Ī","imacr":"ī","image":"ℑ","ImaginaryI":"ⅈ","imagline":"ℐ","imagpart":"ℑ","imath":"ı","Im":"ℑ","imof":"⊷","imped":"Ƶ","Implies":"⇒","incare":"℅","in":"∈","infin":"∞","infintie":"⧝","inodot":"ı","intcal":"⊺","int":"∫","Int":"∬","integers":"ℤ","Integral":"∫","intercal":"⊺","Intersection":"⋂","intlarhk":"⨗","intprod":"⨼","InvisibleComma":"⁣","InvisibleTimes":"⁢","IOcy":"Ё","iocy":"ё","Iogon":"Į","iogon":"į","Iopf":"𝕀","iopf":"𝕚","Iota":"Ι","iota":"ι","iprod":"⨼","iquest":"¿","iscr":"𝒾","Iscr":"ℐ","isin":"∈","isindot":"⋵","isinE":"⋹","isins":"⋴","isinsv":"⋳","isinv":"∈","it":"⁢","Itilde":"Ĩ","itilde":"ĩ","Iukcy":"І","iukcy":"і","Iuml":"Ï","iuml":"ï","Jcirc":"Ĵ","jcirc":"ĵ","Jcy":"Й","jcy":"й","Jfr":"𝔍","jfr":"𝔧","jmath":"ȷ","Jopf":"𝕁","jopf":"𝕛","Jscr":"𝒥","jscr":"𝒿","Jsercy":"Ј","jsercy":"ј","Jukcy":"Є","jukcy":"є","Kappa":"Κ","kappa":"κ","kappav":"ϰ","Kcedil":"Ķ","kcedil":"ķ","Kcy":"К","kcy":"к","Kfr":"𝔎","kfr":"𝔨","kgreen":"ĸ","KHcy":"Х","khcy":"х","KJcy":"Ќ","kjcy":"ќ","Kopf":"𝕂","kopf":"𝕜","Kscr":"𝒦","kscr":"𝓀","lAarr":"⇚","Lacute":"Ĺ","lacute":"ĺ","laemptyv":"⦴","lagran":"ℒ","Lambda":"Λ","lambda":"λ","lang":"⟨","Lang":"⟪","langd":"⦑","langle":"⟨","lap":"⪅","Laplacetrf":"ℒ","laquo":"«","larrb":"⇤","larrbfs":"⤟","larr":"←","Larr":"↞","lArr":"⇐","larrfs":"⤝","larrhk":"↩","larrlp":"↫","larrpl":"⤹","larrsim":"⥳","larrtl":"↢","latail":"⤙","lAtail":"⤛","lat":"⪫","late":"⪭","lates":"⪭︀","lbarr":"⤌","lBarr":"⤎","lbbrk":"❲","lbrace":"{","lbrack":"[","lbrke":"⦋","lbrksld":"⦏","lbrkslu":"⦍","Lcaron":"Ľ","lcaron":"ľ","Lcedil":"Ļ","lcedil":"ļ","lceil":"⌈","lcub":"{","Lcy":"Л","lcy":"л","ldca":"⤶","ldquo":"“","ldquor":"„","ldrdhar":"⥧","ldrushar":"⥋","ldsh":"↲","le":"≤","lE":"≦","LeftAngleBracket":"⟨","LeftArrowBar":"⇤","leftarrow":"←","LeftArrow":"←","Leftarrow":"⇐","LeftArrowRightArrow":"⇆","leftarrowtail":"↢","LeftCeiling":"⌈","LeftDoubleBracket":"⟦","LeftDownTeeVector":"⥡","LeftDownVectorBar":"⥙","LeftDownVector":"⇃","LeftFloor":"⌊","leftharpoondown":"↽","leftharpoonup":"↼","leftleftarrows":"⇇","leftrightarrow":"↔","LeftRightArrow":"↔","Leftrightarrow":"⇔","leftrightarrows":"⇆","leftrightharpoons":"⇋","leftrightsquigarrow":"↭","LeftRightVector":"⥎","LeftTeeArrow":"↤","LeftTee":"⊣","LeftTeeVector":"⥚","leftthreetimes":"⋋","LeftTriangleBar":"⧏","LeftTriangle":"⊲","LeftTriangleEqual":"⊴","LeftUpDownVector":"⥑","LeftUpTeeVector":"⥠","LeftUpVectorBar":"⥘","LeftUpVector":"↿","LeftVectorBar":"⥒","LeftVector":"↼","lEg":"⪋","leg":"⋚","leq":"≤","leqq":"≦","leqslant":"⩽","lescc":"⪨","les":"⩽","lesdot":"⩿","lesdoto":"⪁","lesdotor":"⪃","lesg":"⋚︀","lesges":"⪓","lessapprox":"⪅","lessdot":"⋖","lesseqgtr":"⋚","lesseqqgtr":"⪋","LessEqualGreater":"⋚","LessFullEqual":"≦","LessGreater":"≶","lessgtr":"≶","LessLess":"⪡","lesssim":"≲","LessSlantEqual":"⩽","LessTilde":"≲","lfisht":"⥼","lfloor":"⌊","Lfr":"𝔏","lfr":"𝔩","lg":"≶","lgE":"⪑","lHar":"⥢","lhard":"↽","lharu":"↼","lharul":"⥪","lhblk":"▄","LJcy":"Љ","ljcy":"љ","llarr":"⇇","ll":"≪","Ll":"⋘","llcorner":"⌞","Lleftarrow":"⇚","llhard":"⥫","lltri":"◺","Lmidot":"Ŀ","lmidot":"ŀ","lmoustache":"⎰","lmoust":"⎰","lnap":"⪉","lnapprox":"⪉","lne":"⪇","lnE":"≨","lneq":"⪇","lneqq":"≨","lnsim":"⋦","loang":"⟬","loarr":"⇽","lobrk":"⟦","longleftarrow":"⟵","LongLeftArrow":"⟵","Longleftarrow":"⟸","longleftrightarrow":"⟷","LongLeftRightArrow":"⟷","Longleftrightarrow":"⟺","longmapsto":"⟼","longrightarrow":"⟶","LongRightArrow":"⟶","Longrightarrow":"⟹","looparrowleft":"↫","looparrowright":"↬","lopar":"⦅","Lopf":"𝕃","lopf":"𝕝","loplus":"⨭","lotimes":"⨴","lowast":"∗","lowbar":"_","LowerLeftArrow":"↙","LowerRightArrow":"↘","loz":"◊","lozenge":"◊","lozf":"⧫","lpar":"(","lparlt":"⦓","lrarr":"⇆","lrcorner":"⌟","lrhar":"⇋","lrhard":"⥭","lrm":"‎","lrtri":"⊿","lsaquo":"‹","lscr":"𝓁","Lscr":"ℒ","lsh":"↰","Lsh":"↰","lsim":"≲","lsime":"⪍","lsimg":"⪏","lsqb":"[","lsquo":"‘","lsquor":"‚","Lstrok":"Ł","lstrok":"ł","ltcc":"⪦","ltcir":"⩹","lt":"<","LT":"<","Lt":"≪","ltdot":"⋖","lthree":"⋋","ltimes":"⋉","ltlarr":"⥶","ltquest":"⩻","ltri":"◃","ltrie":"⊴","ltrif":"◂","ltrPar":"⦖","lurdshar":"⥊","luruhar":"⥦","lvertneqq":"≨︀","lvnE":"≨︀","macr":"¯","male":"♂","malt":"✠","maltese":"✠","Map":"⤅","map":"↦","mapsto":"↦","mapstodown":"↧","mapstoleft":"↤","mapstoup":"↥","marker":"▮","mcomma":"⨩","Mcy":"М","mcy":"м","mdash":"—","mDDot":"∺","measuredangle":"∡","MediumSpace":" ","Mellintrf":"ℳ","Mfr":"𝔐","mfr":"𝔪","mho":"℧","micro":"µ","midast":"*","midcir":"⫰","mid":"∣","middot":"·","minusb":"⊟","minus":"−","minusd":"∸","minusdu":"⨪","MinusPlus":"∓","mlcp":"⫛","mldr":"…","mnplus":"∓","models":"⊧","Mopf":"𝕄","mopf":"𝕞","mp":"∓","mscr":"𝓂","Mscr":"ℳ","mstpos":"∾","Mu":"Μ","mu":"μ","multimap":"⊸","mumap":"⊸","nabla":"∇","Nacute":"Ń","nacute":"ń","nang":"∠⃒","nap":"≉","napE":"⩰̸","napid":"≋̸","napos":"ŉ","napprox":"≉","natural":"♮","naturals":"ℕ","natur":"♮","nbsp":" ","nbump":"≎̸","nbumpe":"≏̸","ncap":"⩃","Ncaron":"Ň","ncaron":"ň","Ncedil":"Ņ","ncedil":"ņ","ncong":"≇","ncongdot":"⩭̸","ncup":"⩂","Ncy":"Н","ncy":"н","ndash":"–","nearhk":"⤤","nearr":"↗","neArr":"⇗","nearrow":"↗","ne":"≠","nedot":"≐̸","NegativeMediumSpace":"​","NegativeThickSpace":"​","NegativeThinSpace":"​","NegativeVeryThinSpace":"​","nequiv":"≢","nesear":"⤨","nesim":"≂̸","NestedGreaterGreater":"≫","NestedLessLess":"≪","NewLine":"\n","nexist":"∄","nexists":"∄","Nfr":"𝔑","nfr":"𝔫","ngE":"≧̸","nge":"≱","ngeq":"≱","ngeqq":"≧̸","ngeqslant":"⩾̸","nges":"⩾̸","nGg":"⋙̸","ngsim":"≵","nGt":"≫⃒","ngt":"≯","ngtr":"≯","nGtv":"≫̸","nharr":"↮","nhArr":"⇎","nhpar":"⫲","ni":"∋","nis":"⋼","nisd":"⋺","niv":"∋","NJcy":"Њ","njcy":"њ","nlarr":"↚","nlArr":"⇍","nldr":"‥","nlE":"≦̸","nle":"≰","nleftarrow":"↚","nLeftarrow":"⇍","nleftrightarrow":"↮","nLeftrightarrow":"⇎","nleq":"≰","nleqq":"≦̸","nleqslant":"⩽̸","nles":"⩽̸","nless":"≮","nLl":"⋘̸","nlsim":"≴","nLt":"≪⃒","nlt":"≮","nltri":"⋪","nltrie":"⋬","nLtv":"≪̸","nmid":"∤","NoBreak":"⁠","NonBreakingSpace":" ","nopf":"𝕟","Nopf":"ℕ","Not":"⫬","not":"¬","NotCongruent":"≢","NotCupCap":"≭","NotDoubleVerticalBar":"∦","NotElement":"∉","NotEqual":"≠","NotEqualTilde":"≂̸","NotExists":"∄","NotGreater":"≯","NotGreaterEqual":"≱","NotGreaterFullEqual":"≧̸","NotGreaterGreater":"≫̸","NotGreaterLess":"≹","NotGreaterSlantEqual":"⩾̸","NotGreaterTilde":"≵","NotHumpDownHump":"≎̸","NotHumpEqual":"≏̸","notin":"∉","notindot":"⋵̸","notinE":"⋹̸","notinva":"∉","notinvb":"⋷","notinvc":"⋶","NotLeftTriangleBar":"⧏̸","NotLeftTriangle":"⋪","NotLeftTriangleEqual":"⋬","NotLess":"≮","NotLessEqual":"≰","NotLessGreater":"≸","NotLessLess":"≪̸","NotLessSlantEqual":"⩽̸","NotLessTilde":"≴","NotNestedGreaterGreater":"⪢̸","NotNestedLessLess":"⪡̸","notni":"∌","notniva":"∌","notnivb":"⋾","notnivc":"⋽","NotPrecedes":"⊀","NotPrecedesEqual":"⪯̸","NotPrecedesSlantEqual":"⋠","NotReverseElement":"∌","NotRightTriangleBar":"⧐̸","NotRightTriangle":"⋫","NotRightTriangleEqual":"⋭","NotSquareSubset":"⊏̸","NotSquareSubsetEqual":"⋢","NotSquareSuperset":"⊐̸","NotSquareSupersetEqual":"⋣","NotSubset":"⊂⃒","NotSubsetEqual":"⊈","NotSucceeds":"⊁","NotSucceedsEqual":"⪰̸","NotSucceedsSlantEqual":"⋡","NotSucceedsTilde":"≿̸","NotSuperset":"⊃⃒","NotSupersetEqual":"⊉","NotTilde":"≁","NotTildeEqual":"≄","NotTildeFullEqual":"≇","NotTildeTilde":"≉","NotVerticalBar":"∤","nparallel":"∦","npar":"∦","nparsl":"⫽⃥","npart":"∂̸","npolint":"⨔","npr":"⊀","nprcue":"⋠","nprec":"⊀","npreceq":"⪯̸","npre":"⪯̸","nrarrc":"⤳̸","nrarr":"↛","nrArr":"⇏","nrarrw":"↝̸","nrightarrow":"↛","nRightarrow":"⇏","nrtri":"⋫","nrtrie":"⋭","nsc":"⊁","nsccue":"⋡","nsce":"⪰̸","Nscr":"𝒩","nscr":"𝓃","nshortmid":"∤","nshortparallel":"∦","nsim":"≁","nsime":"≄","nsimeq":"≄","nsmid":"∤","nspar":"∦","nsqsube":"⋢","nsqsupe":"⋣","nsub":"⊄","nsubE":"⫅̸","nsube":"⊈","nsubset":"⊂⃒","nsubseteq":"⊈","nsubseteqq":"⫅̸","nsucc":"⊁","nsucceq":"⪰̸","nsup":"⊅","nsupE":"⫆̸","nsupe":"⊉","nsupset":"⊃⃒","nsupseteq":"⊉","nsupseteqq":"⫆̸","ntgl":"≹","Ntilde":"Ñ","ntilde":"ñ","ntlg":"≸","ntriangleleft":"⋪","ntrianglelefteq":"⋬","ntriangleright":"⋫","ntrianglerighteq":"⋭","Nu":"Ν","nu":"ν","num":"#","numero":"№","numsp":" ","nvap":"≍⃒","nvdash":"⊬","nvDash":"⊭","nVdash":"⊮","nVDash":"⊯","nvge":"≥⃒","nvgt":">⃒","nvHarr":"⤄","nvinfin":"⧞","nvlArr":"⤂","nvle":"≤⃒","nvlt":"<⃒","nvltrie":"⊴⃒","nvrArr":"⤃","nvrtrie":"⊵⃒","nvsim":"∼⃒","nwarhk":"⤣","nwarr":"↖","nwArr":"⇖","nwarrow":"↖","nwnear":"⤧","Oacute":"Ó","oacute":"ó","oast":"⊛","Ocirc":"Ô","ocirc":"ô","ocir":"⊚","Ocy":"О","ocy":"о","odash":"⊝","Odblac":"Ő","odblac":"ő","odiv":"⨸","odot":"⊙","odsold":"⦼","OElig":"Œ","oelig":"œ","ofcir":"⦿","Ofr":"𝔒","ofr":"𝔬","ogon":"˛","Ograve":"Ò","ograve":"ò","ogt":"⧁","ohbar":"⦵","ohm":"Ω","oint":"∮","olarr":"↺","olcir":"⦾","olcross":"⦻","oline":"‾","olt":"⧀","Omacr":"Ō","omacr":"ō","Omega":"Ω","omega":"ω","Omicron":"Ο","omicron":"ο","omid":"⦶","ominus":"⊖","Oopf":"𝕆","oopf":"𝕠","opar":"⦷","OpenCurlyDoubleQuote":"“","OpenCurlyQuote":"‘","operp":"⦹","oplus":"⊕","orarr":"↻","Or":"⩔","or":"∨","ord":"⩝","order":"ℴ","orderof":"ℴ","ordf":"ª","ordm":"º","origof":"⊶","oror":"⩖","orslope":"⩗","orv":"⩛","oS":"Ⓢ","Oscr":"𝒪","oscr":"ℴ","Oslash":"Ø","oslash":"ø","osol":"⊘","Otilde":"Õ","otilde":"õ","otimesas":"⨶","Otimes":"⨷","otimes":"⊗","Ouml":"Ö","ouml":"ö","ovbar":"⌽","OverBar":"‾","OverBrace":"⏞","OverBracket":"⎴","OverParenthesis":"⏜","para":"¶","parallel":"∥","par":"∥","parsim":"⫳","parsl":"⫽","part":"∂","PartialD":"∂","Pcy":"П","pcy":"п","percnt":"%","period":".","permil":"‰","perp":"⊥","pertenk":"‱","Pfr":"𝔓","pfr":"𝔭","Phi":"Φ","phi":"φ","phiv":"ϕ","phmmat":"ℳ","phone":"☎","Pi":"Π","pi":"π","pitchfork":"⋔","piv":"ϖ","planck":"ℏ","planckh":"ℎ","plankv":"ℏ","plusacir":"⨣","plusb":"⊞","pluscir":"⨢","plus":"+","plusdo":"∔","plusdu":"⨥","pluse":"⩲","PlusMinus":"±","plusmn":"±","plussim":"⨦","plustwo":"⨧","pm":"±","Poincareplane":"ℌ","pointint":"⨕","popf":"𝕡","Popf":"ℙ","pound":"£","prap":"⪷","Pr":"⪻","pr":"≺","prcue":"≼","precapprox":"⪷","prec":"≺","preccurlyeq":"≼","Precedes":"≺","PrecedesEqual":"⪯","PrecedesSlantEqual":"≼","PrecedesTilde":"≾","preceq":"⪯","precnapprox":"⪹","precneqq":"⪵","precnsim":"⋨","pre":"⪯","prE":"⪳","precsim":"≾","prime":"′","Prime":"″","primes":"ℙ","prnap":"⪹","prnE":"⪵","prnsim":"⋨","prod":"∏","Product":"∏","profalar":"⌮","profline":"⌒","profsurf":"⌓","prop":"∝","Proportional":"∝","Proportion":"∷","propto":"∝","prsim":"≾","prurel":"⊰","Pscr":"𝒫","pscr":"𝓅","Psi":"Ψ","psi":"ψ","puncsp":" ","Qfr":"𝔔","qfr":"𝔮","qint":"⨌","qopf":"𝕢","Qopf":"ℚ","qprime":"⁗","Qscr":"𝒬","qscr":"𝓆","quaternions":"ℍ","quatint":"⨖","quest":"?","questeq":"≟","quot":"\"","QUOT":"\"","rAarr":"⇛","race":"∽̱","Racute":"Ŕ","racute":"ŕ","radic":"√","raemptyv":"⦳","rang":"⟩","Rang":"⟫","rangd":"⦒","range":"⦥","rangle":"⟩","raquo":"»","rarrap":"⥵","rarrb":"⇥","rarrbfs":"⤠","rarrc":"⤳","rarr":"→","Rarr":"↠","rArr":"⇒","rarrfs":"⤞","rarrhk":"↪","rarrlp":"↬","rarrpl":"⥅","rarrsim":"⥴","Rarrtl":"⤖","rarrtl":"↣","rarrw":"↝","ratail":"⤚","rAtail":"⤜","ratio":"∶","rationals":"ℚ","rbarr":"⤍","rBarr":"⤏","RBarr":"⤐","rbbrk":"❳","rbrace":"}","rbrack":"]","rbrke":"⦌","rbrksld":"⦎","rbrkslu":"⦐","Rcaron":"Ř","rcaron":"ř","Rcedil":"Ŗ","rcedil":"ŗ","rceil":"⌉","rcub":"}","Rcy":"Р","rcy":"р","rdca":"⤷","rdldhar":"⥩","rdquo":"”","rdquor":"”","rdsh":"↳","real":"ℜ","realine":"ℛ","realpart":"ℜ","reals":"ℝ","Re":"ℜ","rect":"▭","reg":"®","REG":"®","ReverseElement":"∋","ReverseEquilibrium":"⇋","ReverseUpEquilibrium":"⥯","rfisht":"⥽","rfloor":"⌋","rfr":"𝔯","Rfr":"ℜ","rHar":"⥤","rhard":"⇁","rharu":"⇀","rharul":"⥬","Rho":"Ρ","rho":"ρ","rhov":"ϱ","RightAngleBracket":"⟩","RightArrowBar":"⇥","rightarrow":"→","RightArrow":"→","Rightarrow":"⇒","RightArrowLeftArrow":"⇄","rightarrowtail":"↣","RightCeiling":"⌉","RightDoubleBracket":"⟧","RightDownTeeVector":"⥝","RightDownVectorBar":"⥕","RightDownVector":"⇂","RightFloor":"⌋","rightharpoondown":"⇁","rightharpoonup":"⇀","rightleftarrows":"⇄","rightleftharpoons":"⇌","rightrightarrows":"⇉","rightsquigarrow":"↝","RightTeeArrow":"↦","RightTee":"⊢","RightTeeVector":"⥛","rightthreetimes":"⋌","RightTriangleBar":"⧐","RightTriangle":"⊳","RightTriangleEqual":"⊵","RightUpDownVector":"⥏","RightUpTeeVector":"⥜","RightUpVectorBar":"⥔","RightUpVector":"↾","RightVectorBar":"⥓","RightVector":"⇀","ring":"˚","risingdotseq":"≓","rlarr":"⇄","rlhar":"⇌","rlm":"‏","rmoustache":"⎱","rmoust":"⎱","rnmid":"⫮","roang":"⟭","roarr":"⇾","robrk":"⟧","ropar":"⦆","ropf":"𝕣","Ropf":"ℝ","roplus":"⨮","rotimes":"⨵","RoundImplies":"⥰","rpar":")","rpargt":"⦔","rppolint":"⨒","rrarr":"⇉","Rrightarrow":"⇛","rsaquo":"›","rscr":"𝓇","Rscr":"ℛ","rsh":"↱","Rsh":"↱","rsqb":"]","rsquo":"’","rsquor":"’","rthree":"⋌","rtimes":"⋊","rtri":"▹","rtrie":"⊵","rtrif":"▸","rtriltri":"⧎","RuleDelayed":"⧴","ruluhar":"⥨","rx":"℞","Sacute":"Ś","sacute":"ś","sbquo":"‚","scap":"⪸","Scaron":"Š","scaron":"š","Sc":"⪼","sc":"≻","sccue":"≽","sce":"⪰","scE":"⪴","Scedil":"Ş","scedil":"ş","Scirc":"Ŝ","scirc":"ŝ","scnap":"⪺","scnE":"⪶","scnsim":"⋩","scpolint":"⨓","scsim":"≿","Scy":"С","scy":"с","sdotb":"⊡","sdot":"⋅","sdote":"⩦","searhk":"⤥","searr":"↘","seArr":"⇘","searrow":"↘","sect":"§","semi":";","seswar":"⤩","setminus":"∖","setmn":"∖","sext":"✶","Sfr":"𝔖","sfr":"𝔰","sfrown":"⌢","sharp":"♯","SHCHcy":"Щ","shchcy":"щ","SHcy":"Ш","shcy":"ш","ShortDownArrow":"↓","ShortLeftArrow":"←","shortmid":"∣","shortparallel":"∥","ShortRightArrow":"→","ShortUpArrow":"↑","shy":"­","Sigma":"Σ","sigma":"σ","sigmaf":"ς","sigmav":"ς","sim":"∼","simdot":"⩪","sime":"≃","simeq":"≃","simg":"⪞","simgE":"⪠","siml":"⪝","simlE":"⪟","simne":"≆","simplus":"⨤","simrarr":"⥲","slarr":"←","SmallCircle":"∘","smallsetminus":"∖","smashp":"⨳","smeparsl":"⧤","smid":"∣","smile":"⌣","smt":"⪪","smte":"⪬","smtes":"⪬︀","SOFTcy":"Ь","softcy":"ь","solbar":"⌿","solb":"⧄","sol":"/","Sopf":"𝕊","sopf":"𝕤","spades":"♠","spadesuit":"♠","spar":"∥","sqcap":"⊓","sqcaps":"⊓︀","sqcup":"⊔","sqcups":"⊔︀","Sqrt":"√","sqsub":"⊏","sqsube":"⊑","sqsubset":"⊏","sqsubseteq":"⊑","sqsup":"⊐","sqsupe":"⊒","sqsupset":"⊐","sqsupseteq":"⊒","square":"□","Square":"□","SquareIntersection":"⊓","SquareSubset":"⊏","SquareSubsetEqual":"⊑","SquareSuperset":"⊐","SquareSupersetEqual":"⊒","SquareUnion":"⊔","squarf":"▪","squ":"□","squf":"▪","srarr":"→","Sscr":"𝒮","sscr":"𝓈","ssetmn":"∖","ssmile":"⌣","sstarf":"⋆","Star":"⋆","star":"☆","starf":"★","straightepsilon":"ϵ","straightphi":"ϕ","strns":"¯","sub":"⊂","Sub":"⋐","subdot":"⪽","subE":"⫅","sube":"⊆","subedot":"⫃","submult":"⫁","subnE":"⫋","subne":"⊊","subplus":"⪿","subrarr":"⥹","subset":"⊂","Subset":"⋐","subseteq":"⊆","subseteqq":"⫅","SubsetEqual":"⊆","subsetneq":"⊊","subsetneqq":"⫋","subsim":"⫇","subsub":"⫕","subsup":"⫓","succapprox":"⪸","succ":"≻","succcurlyeq":"≽","Succeeds":"≻","SucceedsEqual":"⪰","SucceedsSlantEqual":"≽","SucceedsTilde":"≿","succeq":"⪰","succnapprox":"⪺","succneqq":"⪶","succnsim":"⋩","succsim":"≿","SuchThat":"∋","sum":"∑","Sum":"∑","sung":"♪","sup1":"¹","sup2":"²","sup3":"³","sup":"⊃","Sup":"⋑","supdot":"⪾","supdsub":"⫘","supE":"⫆","supe":"⊇","supedot":"⫄","Superset":"⊃","SupersetEqual":"⊇","suphsol":"⟉","suphsub":"⫗","suplarr":"⥻","supmult":"⫂","supnE":"⫌","supne":"⊋","supplus":"⫀","supset":"⊃","Supset":"⋑","supseteq":"⊇","supseteqq":"⫆","supsetneq":"⊋","supsetneqq":"⫌","supsim":"⫈","supsub":"⫔","supsup":"⫖","swarhk":"⤦","swarr":"↙","swArr":"⇙","swarrow":"↙","swnwar":"⤪","szlig":"ß","Tab":"\t","target":"⌖","Tau":"Τ","tau":"τ","tbrk":"⎴","Tcaron":"Ť","tcaron":"ť","Tcedil":"Ţ","tcedil":"ţ","Tcy":"Т","tcy":"т","tdot":"⃛","telrec":"⌕","Tfr":"𝔗","tfr":"𝔱","there4":"∴","therefore":"∴","Therefore":"∴","Theta":"Θ","theta":"θ","thetasym":"ϑ","thetav":"ϑ","thickapprox":"≈","thicksim":"∼","ThickSpace":"  ","ThinSpace":" ","thinsp":" ","thkap":"≈","thksim":"∼","THORN":"Þ","thorn":"þ","tilde":"˜","Tilde":"∼","TildeEqual":"≃","TildeFullEqual":"≅","TildeTilde":"≈","timesbar":"⨱","timesb":"⊠","times":"×","timesd":"⨰","tint":"∭","toea":"⤨","topbot":"⌶","topcir":"⫱","top":"⊤","Topf":"𝕋","topf":"𝕥","topfork":"⫚","tosa":"⤩","tprime":"‴","trade":"™","TRADE":"™","triangle":"▵","triangledown":"▿","triangleleft":"◃","trianglelefteq":"⊴","triangleq":"≜","triangleright":"▹","trianglerighteq":"⊵","tridot":"◬","trie":"≜","triminus":"⨺","TripleDot":"⃛","triplus":"⨹","trisb":"⧍","tritime":"⨻","trpezium":"⏢","Tscr":"𝒯","tscr":"𝓉","TScy":"Ц","tscy":"ц","TSHcy":"Ћ","tshcy":"ћ","Tstrok":"Ŧ","tstrok":"ŧ","twixt":"≬","twoheadleftarrow":"↞","twoheadrightarrow":"↠","Uacute":"Ú","uacute":"ú","uarr":"↑","Uarr":"↟","uArr":"⇑","Uarrocir":"⥉","Ubrcy":"Ў","ubrcy":"ў","Ubreve":"Ŭ","ubreve":"ŭ","Ucirc":"Û","ucirc":"û","Ucy":"У","ucy":"у","udarr":"⇅","Udblac":"Ű","udblac":"ű","udhar":"⥮","ufisht":"⥾","Ufr":"𝔘","ufr":"𝔲","Ugrave":"Ù","ugrave":"ù","uHar":"⥣","uharl":"↿","uharr":"↾","uhblk":"▀","ulcorn":"⌜","ulcorner":"⌜","ulcrop":"⌏","ultri":"◸","Umacr":"Ū","umacr":"ū","uml":"¨","UnderBar":"_","UnderBrace":"⏟","UnderBracket":"⎵","UnderParenthesis":"⏝","Union":"⋃","UnionPlus":"⊎","Uogon":"Ų","uogon":"ų","Uopf":"𝕌","uopf":"𝕦","UpArrowBar":"⤒","uparrow":"↑","UpArrow":"↑","Uparrow":"⇑","UpArrowDownArrow":"⇅","updownarrow":"↕","UpDownArrow":"↕","Updownarrow":"⇕","UpEquilibrium":"⥮","upharpoonleft":"↿","upharpoonright":"↾","uplus":"⊎","UpperLeftArrow":"↖","UpperRightArrow":"↗","upsi":"υ","Upsi":"ϒ","upsih":"ϒ","Upsilon":"Υ","upsilon":"υ","UpTeeArrow":"↥","UpTee":"⊥","upuparrows":"⇈","urcorn":"⌝","urcorner":"⌝","urcrop":"⌎","Uring":"Ů","uring":"ů","urtri":"◹","Uscr":"𝒰","uscr":"𝓊","utdot":"⋰","Utilde":"Ũ","utilde":"ũ","utri":"▵","utrif":"▴","uuarr":"⇈","Uuml":"Ü","uuml":"ü","uwangle":"⦧","vangrt":"⦜","varepsilon":"ϵ","varkappa":"ϰ","varnothing":"∅","varphi":"ϕ","varpi":"ϖ","varpropto":"∝","varr":"↕","vArr":"⇕","varrho":"ϱ","varsigma":"ς","varsubsetneq":"⊊︀","varsubsetneqq":"⫋︀","varsupsetneq":"⊋︀","varsupsetneqq":"⫌︀","vartheta":"ϑ","vartriangleleft":"⊲","vartriangleright":"⊳","vBar":"⫨","Vbar":"⫫","vBarv":"⫩","Vcy":"В","vcy":"в","vdash":"⊢","vDash":"⊨","Vdash":"⊩","VDash":"⊫","Vdashl":"⫦","veebar":"⊻","vee":"∨","Vee":"⋁","veeeq":"≚","vellip":"⋮","verbar":"|","Verbar":"‖","vert":"|","Vert":"‖","VerticalBar":"∣","VerticalLine":"|","VerticalSeparator":"❘","VerticalTilde":"≀","VeryThinSpace":" ","Vfr":"𝔙","vfr":"𝔳","vltri":"⊲","vnsub":"⊂⃒","vnsup":"⊃⃒","Vopf":"𝕍","vopf":"𝕧","vprop":"∝","vrtri":"⊳","Vscr":"𝒱","vscr":"𝓋","vsubnE":"⫋︀","vsubne":"⊊︀","vsupnE":"⫌︀","vsupne":"⊋︀","Vvdash":"⊪","vzigzag":"⦚","Wcirc":"Ŵ","wcirc":"ŵ","wedbar":"⩟","wedge":"∧","Wedge":"⋀","wedgeq":"≙","weierp":"℘","Wfr":"𝔚","wfr":"𝔴","Wopf":"𝕎","wopf":"𝕨","wp":"℘","wr":"≀","wreath":"≀","Wscr":"𝒲","wscr":"𝓌","xcap":"⋂","xcirc":"◯","xcup":"⋃","xdtri":"▽","Xfr":"𝔛","xfr":"𝔵","xharr":"⟷","xhArr":"⟺","Xi":"Ξ","xi":"ξ","xlarr":"⟵","xlArr":"⟸","xmap":"⟼","xnis":"⋻","xodot":"⨀","Xopf":"𝕏","xopf":"𝕩","xoplus":"⨁","xotime":"⨂","xrarr":"⟶","xrArr":"⟹","Xscr":"𝒳","xscr":"𝓍","xsqcup":"⨆","xuplus":"⨄","xutri":"△","xvee":"⋁","xwedge":"⋀","Yacute":"Ý","yacute":"ý","YAcy":"Я","yacy":"я","Ycirc":"Ŷ","ycirc":"ŷ","Ycy":"Ы","ycy":"ы","yen":"¥","Yfr":"𝔜","yfr":"𝔶","YIcy":"Ї","yicy":"ї","Yopf":"𝕐","yopf":"𝕪","Yscr":"𝒴","yscr":"𝓎","YUcy":"Ю","yucy":"ю","yuml":"ÿ","Yuml":"Ÿ","Zacute":"Ź","zacute":"ź","Zcaron":"Ž","zcaron":"ž","Zcy":"З","zcy":"з","Zdot":"Ż","zdot":"ż","zeetrf":"ℨ","ZeroWidthSpace":"​","Zeta":"Ζ","zeta":"ζ","zfr":"𝔷","Zfr":"ℨ","ZHcy":"Ж","zhcy":"ж","zigrarr":"⇝","zopf":"𝕫","Zopf":"ℤ","Zscr":"𝒵","zscr":"𝓏","zwj":"‍","zwnj":"‌"};},{}],13:[function(dynamicRequire,module,exports){module.exports = {"Aacute":"Á","aacute":"á","Acirc":"Â","acirc":"â","acute":"´","AElig":"Æ","aelig":"æ","Agrave":"À","agrave":"à","amp":"&","AMP":"&","Aring":"Å","aring":"å","Atilde":"Ã","atilde":"ã","Auml":"Ä","auml":"ä","brvbar":"¦","Ccedil":"Ç","ccedil":"ç","cedil":"¸","cent":"¢","copy":"©","COPY":"©","curren":"¤","deg":"°","divide":"÷","Eacute":"É","eacute":"é","Ecirc":"Ê","ecirc":"ê","Egrave":"È","egrave":"è","ETH":"Ð","eth":"ð","Euml":"Ë","euml":"ë","frac12":"½","frac14":"¼","frac34":"¾","gt":">","GT":">","Iacute":"Í","iacute":"í","Icirc":"Î","icirc":"î","iexcl":"¡","Igrave":"Ì","igrave":"ì","iquest":"¿","Iuml":"Ï","iuml":"ï","laquo":"«","lt":"<","LT":"<","macr":"¯","micro":"µ","middot":"·","nbsp":" ","not":"¬","Ntilde":"Ñ","ntilde":"ñ","Oacute":"Ó","oacute":"ó","Ocirc":"Ô","ocirc":"ô","Ograve":"Ò","ograve":"ò","ordf":"ª","ordm":"º","Oslash":"Ø","oslash":"ø","Otilde":"Õ","otilde":"õ","Ouml":"Ö","ouml":"ö","para":"¶","plusmn":"±","pound":"£","quot":"\"","QUOT":"\"","raquo":"»","reg":"®","REG":"®","sect":"§","shy":"­","sup1":"¹","sup2":"²","sup3":"³","szlig":"ß","THORN":"Þ","thorn":"þ","times":"×","Uacute":"Ú","uacute":"ú","Ucirc":"Û","ucirc":"û","Ugrave":"Ù","ugrave":"ù","uml":"¨","Uuml":"Ü","uuml":"ü","Yacute":"Ý","yacute":"ý","yen":"¥","yuml":"ÿ"};},{}],14:[function(dynamicRequire,module,exports){module.exports = {"amp":"&","apos":"'","gt":">","lt":"<","quot":"\""};},{}],"fast-html-parser":[function(dynamicRequire,module,exports){dynamicRequire('apollojs');var entities=dynamicRequire('entities'); /**
+  var alphaIndex = {};
+  var charIndex = {};
+
+  createIndexes(alphaIndex, charIndex);
+
+  /**
+   * @param {Object} alphaIndex Passed by reference.
+   * @param {Object} charIndex Passed by reference.
+   */
+  function createIndexes(alphaIndex, charIndex) {
+    var i = ENTITIES.length;
+    var _results = [];
+    while (i--) {
+      var e = ENTITIES[i];
+      var alpha = e[0];
+      var chars = e[1];
+      var chr = chars[0];
+      var addChar = chr < 32 || chr > 126 || chr === 62 || chr === 60 || chr === 38 || chr === 34 || chr === 39;
+      var charInfo;
+      if (addChar) {
+        charInfo = charIndex[chr] = charIndex[chr] || {};
+      }
+      if (chars[1]) {
+        var chr2 = chars[1];
+        alphaIndex[alpha] = String.fromCharCode(chr) + String.fromCharCode(chr2);
+        _results.push(addChar && (charInfo[chr2] = alpha));
+      } else {
+        alphaIndex[alpha] = String.fromCharCode(chr);
+        _results.push(addChar && (charInfo[''] = alpha));
+      }
+    }
+  }
+
+  function decode(str) {
+    if (str.length === 0) {
+      return '';
+    }
+    return str.replace(/&(#?[\w\d]+);?/g, function (s, entity) {
+      var chr;
+      if (entity.charAt(0) === "#") {
+        var code = entity.charAt(1) === 'x' ? parseInt(entity.substr(2).toLowerCase(), 16) : parseInt(entity.substr(1));
+
+        if (!(isNaN(code) || code < -32768 || code > 65535)) {
+          chr = String.fromCharCode(code);
+        }
+      } else {
+        chr = alphaIndex[entity];
+      }
+      return chr || s;
+    });
+  }
+
+  /**
    * Node Class as base class for TextNode and HTMLElement.
-   */function Node(){}$declare(Node,{});$defenum(Node,{ELEMENT_NODE:1,TEXT_NODE:3}); /**
+   */
+  function Node() {}
+  Node.prototype = {
+    constructor: Node,
+    ELEMENT_NODE: 1,
+    TEXT_NODE: 3
+  };
+
+  Node.ELEMENT_NODE = 1;
+  Node.TEXT_NODE = 3;
+
+  /**
    * TextNode to contain a text element in DOM tree.
    * @param {string} value [description]
-   */function TextNode(value){this.nodeValue = entities.decodeHTML5(value);this.nodeName = '#text';this.element = pools.uuid.get();}$inherit(TextNode,Node,Object.defineProperties({ /**
+   */
+  function TextNode(value) {
+    this.nodeValue = decode(value);
+    this.nodeName = '#text';
+    this.element = pools.uuid.get();
+  }
+
+  TextNode.prototype = Object.defineProperties({
+    constructor: TextNode,
+    __proto__: Node.prototype,
+
+    /**
      * Node Type declaration.
      * @type {Number}
-     */nodeType:Node.TEXT_NODE},{text:{ /**
-     * Get unescaped text value of current node and its children.
-     * @return {string} text content
-     */get:function get(){return entities.decodeHTML5(this.rawText);},configurable:true,enumerable:true},isWhitespace:{ /**
-     * Detect if the node contains only white space.
-     * @return {bool}
-     */get:function get(){return (/^(\s|&nbsp;)*$/.test(this.nodeValue));},configurable:true,enumerable:true}}));var kBlockElements={div:true,p:true, // ul: true,
-// ol: true,
-li:true, // table: true,
-// tr: true,
-td:true,section:true,br:true}; /**
+     */
+    nodeType: Node.TEXT_NODE
+
+  }, {
+    text: { /**
+             * Get unescaped text value of current node and its children.
+             * @return {string} text content
+             */
+
+      get: function get() {
+        return this.nodeValue;
+      },
+      configurable: true,
+      enumerable: true
+    },
+    isWhitespace: {
+
+      /**
+       * Detect if the node contains only white space.
+       * @return {bool}
+       */
+
+      get: function get() {
+        return (/^(\s|&nbsp;)*$/.test(this.nodeValue)
+        );
+      },
+      configurable: true,
+      enumerable: true
+    }
+  });
+
+  var kBlockElements = {
+    div: true,
+    p: true,
+    // ul: true,
+    // ol: true,
+    li: true,
+    // table: true,
+    // tr: true,
+    td: true,
+    section: true,
+    br: true
+  };
+
+  /**
    * HTMLElement, which contains a set of children.
    * Note: this is a minimalist implementation, no complete tree
    *   structure provided (no parentNode, nextSibling,
@@ -1322,57 +1072,250 @@ td:true,section:true,br:true}; /**
    * @param {string} name     nodeName
    * @param {Object} keyAttrs id and class attribute
    * @param {Object} rawAttrs attributes in string
-   */function HTMLElement(name,keyAttrs,rawAttrs){this.nodeName = name;this.attributes = [];if(rawAttrs){var re=/\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;for(var match;match = re.exec(rawAttrs);) {var attr={};attr.name = match[1];attr.value = match[3] || match[4] || match[5];this.attributes.push(attr);}} // this.parentNode = null;
-this.childNodes = [];this.element = pools.uuid.get();}$inherit(HTMLElement,Node,Object.defineProperties({ /**
+   */
+  function HTMLElement(name, keyAttrs, rawAttrs) {
+    this.nodeName = name;
+    this.attributes = [];
+
+    if (rawAttrs) {
+      var re = /\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
+
+      for (var match; match = re.exec(rawAttrs);) {
+        var attr = {};
+        attr.name = match[1];
+        attr.value = match[3] || match[4] || match[5];
+        this.attributes.push(attr);
+      }
+    }
+
+    // this.parentNode = null;
+    this.childNodes = [];
+    this.element = pools.uuid.get();
+  }
+  HTMLElement.prototype = {
+    constructor: HTMLElement,
+    __proto__: Node.prototype,
+
+    /**
      * Node Type declaration.
      * @type {Number}
-     */nodeType:Node.ELEMENT_NODE, /**
-     * Remove whitespaces in this sub tree.
-     * @return {HTMLElement} pointer to this
-     */removeWhitespace:function removeWhitespace(){var i=0,o=0;for(;i < this.childNodes.length;i++) {var node=this.childNodes[i];if(node.nodeType === Node.TEXT_NODE){if(node.isWhitespace)continue;node.nodeValue = node.nodeValue.trim();}else if(node.nodeType === Node.ELEMENT_NODE){node.removeWhitespace();}this.childNodes[o++] = node;}this.childNodes.length = o;return this;}},{text:{ /**
-     * Get unescaped text value of current node and its children.
-     * @return {string} text content
-     */get:function get(){return entities.decodeHTML5(this.rawText);},configurable:true,enumerable:true},rawText:{ /**
-     * Get escpaed (as-it) text value of current node and its children.
-     * @return {string} text content
-     */get:function get(){var res='';for(var i=0;i < this.childNodes.length;i++) res += this.childNodes[i].rawText;return res;},configurable:true,enumerable:true}}));$define(HTMLElement,{__wrap:function __wrap(el){el.childNodes.forEach(function(node){if(node.rawText){$wrap(node,TextNode);}else {$wrap(node,HTMLElement);}});}}); /**
+     */
+    nodeType: Node.ELEMENT_NODE
+  };
+
+  /**
    * Cache to store generated match functions
    * @type {Object}
-   */var pMatchFunctionCache={}; /**
+   */
+  var pMatchFunctionCache = {};
+
+  /**
    * Matcher class to make CSS match
    * @param {string} selector Selector
-   */function Matcher(selector){this.matchers = selector.split(' ').map(function(matcher){if(pMatchFunctionCache[matcher])return pMatchFunctionCache[matcher];var parts=matcher.split('.');var nodeName=parts[0];var classes=parts.slice(1).sort();var source='';if(nodeName && nodeName != '*'){if(nodeName[0] == '#')source += 'if (el.id != ' + JSON.stringify(nodeName.substr(1)) + ') return false;';else source += 'if (el.nodeName != ' + JSON.stringify(nodeName) + ') return false;';}if(classes.length > 0)source += 'for (var cls = ' + JSON.stringify(classes) + ', i = 0; i < cls.length; i++) if (el.classNames.indexOf(cls[i]) === -1) return false;';source += 'return true;';return pMatchFunctionCache[matcher] = new Function('el',source);});this.nextMatch = 0;}$declare(Matcher,Object.defineProperties({ /**
+   */
+  function Matcher(selector) {
+    this.matchers = selector.split(' ').map(function (matcher) {
+      if (pMatchFunctionCache[matcher]) return pMatchFunctionCache[matcher];
+      var parts = matcher.split('.');
+      var nodeName = parts[0];
+      var classes = parts.slice(1).sort();
+      var source = '';
+      if (nodeName && nodeName != '*') {
+        if (nodeName[0] == '#') source += 'if (el.id != ' + JSON.stringify(nodeName.substr(1)) + ') return false;';else source += 'if (el.nodeName != ' + JSON.stringify(nodeName) + ') return false;';
+      }
+      if (classes.length > 0) source += 'for (var cls = ' + JSON.stringify(classes) + ', i = 0; i < cls.length; i++) if (el.classNames.indexOf(cls[i]) === -1) return false;';
+      source += 'return true;';
+      return pMatchFunctionCache[matcher] = new Function('el', source);
+    });
+    this.nextMatch = 0;
+  }
+  Matcher.prototype = Object.defineProperties({
+    /**
      * Trying to advance match pointer
      * @param  {HTMLElement} el element to make the match
      * @return {bool}           true when pointer advanced.
-     */advance:function advance(el){if(this.nextMatch < this.matchers.length && this.matchers[this.nextMatch](el)){this.nextMatch++;return true;}return false;}, /**
+     */
+    advance: function advance(el) {
+      if (this.nextMatch < this.matchers.length && this.matchers[this.nextMatch](el)) {
+        this.nextMatch++;
+        return true;
+      }
+      return false;
+    },
+    /**
      * Rewind the match pointer
-     */rewind:function rewind(){this.nextMatch--;}, /**
+     */
+    rewind: function rewind() {
+      this.nextMatch--;
+    },
+
+    /**
      * Rest match pointer.
      * @return {[type]} [description]
-     */reset:function reset(){this.nextMatch = 0;}},{matched:{ /**
-     * Trying to determine if match made.
-     * @return {bool} true when the match is made
-     */get:function get(){return this.nextMatch == this.matchers.length;},configurable:true,enumerable:true}}));$define(Matcher,{ /**
-     * flush cache to free memory
-     */flushCache:function flushCache(){pMatchFunctionCache = {};}});var kMarkupPattern=/<!--[^]*?(?=-->)-->|<(\/?)([a-z][a-z0-9]*)\s*([^>]*?)(\/?)>/ig;var kAttributePattern=/\b(id|class)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;var kSelfClosingElements={meta:true,img:true,link:true,input:true,area:true,br:true,hr:true};var kElementsClosedByOpening={li:{li:true},p:{p:true,div:true},td:{td:true,th:true},th:{td:true,th:true}};var kElementsClosedByClosing={li:{ul:true,ol:true},a:{div:true},b:{div:true},i:{div:true},p:{div:true},td:{tr:true,table:true},th:{tr:true,table:true}};var kBlockTextElements={script:true,noscript:true,style:true,pre:true}; /**
+     */
+    reset: function reset() {
+      this.nextMatch = 0;
+    }
+  }, {
+    matched: { /**
+                * Trying to determine if match made.
+                * @return {bool} true when the match is made
+                */
+
+      get: function get() {
+        return this.nextMatch == this.matchers.length;
+      },
+      configurable: true,
+      enumerable: true
+    }
+  });
+  /**
+   * flush cache to free memory
+   */
+  Matcher.flushCache = function () {
+    pMatchFunctionCache = {};
+  };
+
+  var kMarkupPattern = /<!--[^]*?(?=-->)-->|<(\/?)([a-z][a-z0-9]*)\s*([^>]*?)(\/?)>/ig;
+  var kAttributePattern = /\b(id|class)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
+  var kSelfClosingElements = {
+    meta: true,
+    img: true,
+    link: true,
+    input: true,
+    area: true,
+    br: true,
+    hr: true
+  };
+  var kElementsClosedByOpening = {
+    li: { li: true },
+    p: { p: true, div: true },
+    td: { td: true, th: true },
+    th: { td: true, th: true }
+  };
+  var kElementsClosedByClosing = {
+    li: { ul: true, ol: true },
+    a: { div: true },
+    b: { div: true },
+    i: { div: true },
+    p: { div: true },
+    td: { tr: true, table: true },
+    th: { tr: true, table: true }
+  };
+  var kBlockTextElements = {
+    script: true,
+    noscript: true,
+    style: true,
+    pre: true
+  };
+
+  /**
    * Parses HTML and returns a root element
-   */module.exports = {Matcher:Matcher,Node:Node,HTMLElement:HTMLElement,TextNode:TextNode, /**
+   */
+  var htmlParser = {
+
+    Matcher: Matcher,
+    Node: Node,
+    HTMLElement: HTMLElement,
+    TextNode: TextNode,
+
+    /**
      * Parse a chuck of HTML source.
      * @param  {string} data      html
      * @return {HTMLElement}      root element
-     */parse:function parse(data,options){var root=new HTMLElement(null,{});var currentParent=root;var stack=[root];var lastTextPos=-1;options = options || {};for(var match,text;match = kMarkupPattern.exec(data);) {if(lastTextPos > -1){if(lastTextPos + match[0].length < kMarkupPattern.lastIndex){ // if has content
-text = data.substring(lastTextPos,kMarkupPattern.lastIndex - match[0].length);if(text.trim()){currentParent.childNodes.push({nodeName:'#text',element:pools.uuid.get(),nodeValue:entities.decodeHTML5(text)});}}}lastTextPos = kMarkupPattern.lastIndex;if(match[0][1] == '!'){ // this is a comment
-continue;}if(options.lowerCaseTagName)match[2] = match[2].toLowerCase();if(!match[1]){ // not </ tags
-var attrs={};for(var attMatch;attMatch = kAttributePattern.exec(match[3]);) attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];if(!match[4] && kElementsClosedByOpening[currentParent.nodeName]){if(kElementsClosedByOpening[currentParent.nodeName][match[2]]){stack.pop();currentParent = stack.back;}}currentParent = currentParent.childNodes[currentParent.childNodes.push(new HTMLElement(match[2],attrs,match[3])) - 1];stack.push(currentParent);if(kBlockTextElements[match[2]]){ // a little test to find next </script> or </style> ...
-var closeMarkup='</' + match[2] + '>';var index=data.indexOf(closeMarkup,kMarkupPattern.lastIndex);if(options[match[2]]){if(index == -1){ // there is no matching ending for the text element.
-text = data.substr(kMarkupPattern.lastIndex);}else {text = data.substring(kMarkupPattern.lastIndex,index);}if(text.length > 0)currentParent.childNodes.push({nodeValue:entities.decodeHTML5(text),nodeName:'#text',element:pools.uuid.get()});}if(index == -1){lastTextPos = kMarkupPattern.lastIndex = data.length + 1;}else {lastTextPos = kMarkupPattern.lastIndex = index + closeMarkup.length;match[1] = true;}}}if(match[1] || match[4] || kSelfClosingElements[match[2]]){ // </ or /> or <br> etc.
-while(true) {if(currentParent.nodeName == match[2]){stack.pop();currentParent = stack.back;break;}else { // Trying to close current tag, and move on
-if(kElementsClosedByClosing[currentParent.nodeName]){if(kElementsClosedByClosing[currentParent.nodeName][match[2]]){stack.pop();currentParent = stack.back;continue;}} // Use aggressive strategy to handle unmatching markups.
-break;}}}}return root;}};},{"apollojs":6,"entities":7}]},{},[])("fast-html-parser");});return g.htmlParser;};
+     */
+    parse: function parse(data, options) {
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./pools":10}],10:[function(_dereq_,module,exports){
+      var root = new HTMLElement(null, {});
+      var currentParent = root;
+      var stack = [root];
+      var lastTextPos = -1;
+
+      options = options || {};
+
+      for (var match, text; match = kMarkupPattern.exec(data);) {
+        if (lastTextPos > -1) {
+          if (lastTextPos + match[0].length < kMarkupPattern.lastIndex) {
+            // if has content
+            text = data.substring(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
+            if (text.trim()) {
+              currentParent.childNodes.push(new TextNode(text));
+            }
+          }
+        }
+        lastTextPos = kMarkupPattern.lastIndex;
+        if (match[0][1] == '!') {
+          // this is a comment
+          continue;
+        }
+        if (options.lowerCaseTagName) match[2] = match[2].toLowerCase();
+        if (!match[1]) {
+          // not </ tags
+          var attrs = {};
+          for (var attMatch; attMatch = kAttributePattern.exec(match[3]);) attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];
+          if (!match[4] && kElementsClosedByOpening[currentParent.nodeName]) {
+            if (kElementsClosedByOpening[currentParent.nodeName][match[2]]) {
+              stack.pop();
+              currentParent = stack[stack.length - 1];
+            }
+          }
+          currentParent = currentParent.childNodes[currentParent.childNodes.push(new HTMLElement(match[2], attrs, match[3])) - 1];
+          stack.push(currentParent);
+          if (kBlockTextElements[match[2]]) {
+            // a little test to find next </script> or </style> ...
+            var closeMarkup = '</' + match[2] + '>';
+            var index = data.indexOf(closeMarkup, kMarkupPattern.lastIndex);
+            if (options[match[2]]) {
+              if (index == -1) {
+                // there is no matching ending for the text element.
+                text = data.substr(kMarkupPattern.lastIndex);
+              } else {
+                text = data.substring(kMarkupPattern.lastIndex, index);
+              }
+              if (text.length > 0) currentParent.childNodes.push(new TextNode(text));
+            }
+            if (index == -1) {
+              lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
+            } else {
+              lastTextPos = kMarkupPattern.lastIndex = index + closeMarkup.length;
+              match[1] = true;
+            }
+          }
+        }
+        if (match[1] || match[4] || kSelfClosingElements[match[2]]) {
+          // </ or /> or <br> etc.
+          while (true && currentParent) {
+            if (currentParent.nodeName == match[2]) {
+              stack.pop();
+              currentParent = stack[stack.length - 1];
+              break;
+            } else {
+              // Trying to close current tag, and move on
+              if (kElementsClosedByClosing[currentParent.nodeName]) {
+                if (kElementsClosedByClosing[currentParent.nodeName][match[2]]) {
+                  stack.pop();
+                  currentParent = stack[stack.length - 1];
+                  continue;
+                }
+              }
+              // Use aggressive strategy to handle unmatching markups.
+              break;
+            }
+          }
+        }
+      }
+
+      return root;
+    }
+
+  };
+
+  return htmlParser;
+}
+
+;
+
+},{"./pools":7}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1516,7 +1459,7 @@ function initializePools(COUNT) {
   });
 }
 
-},{"./uuid":11}],11:[function(_dereq_,module,exports){
+},{"./uuid":8}],8:[function(_dereq_,module,exports){
 /**
  * Generates a uuid.
  *
@@ -1538,7 +1481,7 @@ function uuid() {
   });
 }
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1614,5 +1557,5 @@ function startup(worker) {
 exports['default'] = startup;
 module.exports = exports['default'];
 
-},{}]},{},[6])(6)
+},{}]},{},[2])(2)
 });
