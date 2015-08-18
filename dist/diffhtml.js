@@ -212,6 +212,7 @@ var _worker = _dereq_('./worker');
 
 var _worker2 = _interopRequireDefault(_worker);
 
+var pools = _utilPools.pools;
 var poolCount = 10000;
 var nodes = makeNode.nodes = {};
 
@@ -277,7 +278,7 @@ function syncNode(virtualNode, liveNode) {
   if (newChildNodesLength > oldChildNodesLength) {
     // Store elements in a DocumentFragment to increase performance and be
     // generally simplier to work with.
-    var fragment = _utilPools.pools.array.get();
+    var fragment = pools.array.get();
 
     for (var i = oldChildNodesLength; i < newChildNodesLength; i++) {
       // Internally add to the tree.
@@ -437,7 +438,7 @@ function makeNode(node) {
   var entry = {};
 
   // Cache the element in the ids.
-  var id = _utilPools.pools.uuid.get();
+  var id = pools.uuid.get();
 
   // Add to internal lookup.
   nodes[id] = node;

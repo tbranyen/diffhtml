@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>Svg</title>
+  <title>SVG</title>
 
   <style>
     html, body { width: 100%; height: 100%; position: relative; padding: 0; margin: 0; }
@@ -32,8 +32,8 @@
     </svg>
   </script>
 
-  <script src="dist/diffhtml.js"></script>
-  <script src="benchmarks/node_modules/combyne/dist/combyne.js"></script>
+  <script src="../dist/diffhtml.js"></script>
+  <script src="../benchmarks/node_modules/combyne/dist/combyne.js"></script>
 
   <script>
     var template = combyne(document.querySelector('[type=template]').innerHTML);
@@ -61,7 +61,7 @@
         };
       }
 
-      svg.outerDiffHTML = template.render({ rects: rects });
+      diff.outerHTML(svg, template.render({ rects: rects }));
 
       //window.setTimeout(function() {
         requestAnimationFrame(render);
