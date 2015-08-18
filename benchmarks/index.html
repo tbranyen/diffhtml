@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Runner</title>
+
+  <style>
+    html, body { border: 0; margin: 0; height: 100%; position: relative; }
+
+    header {
+      padding: 20px;
+      line-height: 60px;
+    }
+
+    * { box-sizing: border-box; }
+
+    iframe {
+      border: 0;
+      width: 100%;
+      height: calc(100% - 100px);
+      border-top: 1px solid gray;
+      top: 100px;
+      left: 0;
+      position: absolute;
+    }
+
+    h2 { display: inline; color: #ccc; font-family: Helvetica; }
+    h2:not(:first-child) {
+      margin-left: 20px;
+    }
+
+    select {
+      position: relative;
+      top: -5px;
+      margin-left: 20px;
+    }
+
+    .good {
+      color: green;
+    }
+    .okay {
+      color: yellow;
+    }
+    .bad {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>diffhtml benchmark</h2>
+
+    <select class="change-fixture" autocomplete="off">
+      <option disabled selected>Select Fixture</option>
+      <option value="./fixtures/reddit/index.html">Reddit</option>
+      <option value="./fixtures/dbmonster/index.html">DB Monster</option>
+    </select>
+
+    <h2 class="time"></h2>
+  </header>
+
+  <iframe class="fixture"></iframe>
+
+  <script src="node_modules/underscore/underscore.js"></script>
+  <script src="node_modules/combyne/dist/combyne.js"></script>
+  <script src="lib/runner.js"></script>
+</body>
+</html>

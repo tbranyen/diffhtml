@@ -1,18 +1,27 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Element.prototype.diffHTML Tests</title>
+  <title>diffhtml tests</title>
   <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+  <style>iframe { display: none; }</style>
 </head>
 <body>
   <div id="mocha"></div>
   <script src="assert.js"></script>
   <script src="../node_modules/mocha/mocha.js"></script>
+  <script src="../node_modules/promise-polyfill/Promise.js"></script>
+  <script src="../node_modules/weakmap/weakmap.js"></script>
   <script>mocha.setup('bdd')</script>
   <script src="../dist/diffhtml.js"></script>
-  <script src="test.diffhtml.js"></script>
+
+  <script src="integration/basics.js"></script>
+  <script src="integration/inner.js"></script>
+  <script src="integration/outer.js"></script>
+  <script src="integration/transitions.js"></script>
+
   <script>
-    mocha.checkLeaks();
+    // Don't try and use a web worker for now.
+    document.DISABLE_WORKER = true;
 
     if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
     else { mocha.run(); }

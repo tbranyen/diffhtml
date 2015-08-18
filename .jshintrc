@@ -1,4 +1,8 @@
 {
+  "loopfunc": true,
+  "esnext": true,
   "evil": true,
-  "shadow": true
+  "shadow": true,
+  "node": true,
+  "browser": true
 }
