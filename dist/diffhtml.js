@@ -665,6 +665,10 @@ function processPatches(element, e) {
   var patches = e.data;
   var states = _transitions.transitionStates;
 
+  var callCallback = function callCallback(callback) {
+    callback(this);
+  };
+
   // Loop through all the patches and apply them.
   for (var i = 0; i < patches.length; i++) {
     var patch = patches[i];
@@ -694,9 +698,6 @@ function processPatches(element, e) {
         // Add.
         if (patch.element && patch.fragment && !patch.old) {
           var fragment = document.createDocumentFragment();
-          var callCallback = function callCallback(callback) {
-            callback(this);
-          };
 
           patch.fragment.forEach(function (elementDescriptor) {
             var element = getElement(elementDescriptor);
@@ -727,32 +728,18 @@ function processPatches(element, e) {
               throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
             }
 
-            var removeNode = (function () {
-              // Ensure the title is emptied.
-              if (this.tagName === 'title') {
-                this.ownerDocument.title = '';
-              }
-
-              this.parentNode.removeChild(this);
-              makeNode.nodes[oldId] = null;
-              delete makeNode.nodes[oldId];
-            }).bind(patch.old);
-
-            var removed;
-
             if (states && states.removed) {
-              removed = states.removed.map(function (callback) {
-                return callback(patch.old);
-              });
+              states.removed.forEach(callCallback, patch.old);
             }
 
-            var promises = [].concat(removed).filter(Boolean);
-
-            if (promises.length) {
-              Promise.all(promises).then(removeNode, removeNode);
-            } else {
-              removeNode();
+            // Ensure the title is emptied.
+            if (patch.old.tagName === 'title') {
+              patch.old.ownerDocument.title = '';
             }
+
+            patch.old.parentNode.removeChild(patch.old);
+            makeNode.nodes[oldId] = null;
+            delete makeNode.nodes[oldId];
           }
 
           // Replace
@@ -764,48 +751,35 @@ function processPatches(element, e) {
               // Append the element first, before doing the replacement.
               patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
 
-              var removeNode = (function () {
-                // Ensure the title is set correctly.
-                if (this[1].tagName === 'title') {
-                  this[0].ownerDocument.title = this[1].childNodes[0].nodeValue;
-                }
-
-                this[0].parentNode.replaceChild(this[1], this[0]);
-                makeNode.nodes[oldId] = null;
-                delete makeNode.nodes[oldId];
-              }).bind([patch.old, patch['new']]);
-
-              var added, removed, replaced;
-
               // Added state for transitions API.
               if (states && states.added) {
-                added = states.added.map(function (callback) {
-                  return callback(patch['new']);
+                states.added.forEach(function (callback) {
+                  callback(patch['new']);
                 });
               }
 
               // Removed state for transitions API.
               if (states && states.removed) {
-                removed = states.removed.map(function (callback) {
-                  return callback(patch.old);
+                states.removed.forEach(function (callback) {
+                  callback(patch.old);
                 });
               }
 
               // Replaced state for transitions API.
               if (states && states.replaced) {
-                replaced = states.replaced.map(function (callback) {
-                  return callback(patch.old, patch['new']);
+                states.replaced.forEach(function (callback) {
+                  callback(patch.old, patch['new']);
                 });
               }
 
-              // Join all transitions together.
-              var promises = [].concat(added, removed, replaced).filter(Boolean);
-
-              if (promises.length) {
-                Promise.all(promises).then(removeNode, removeNode);
-              } else {
-                removeNode();
+              // Ensure the title is set correctly.
+              if (patch['new'].tagName === 'title') {
+                patch.old.ownerDocument.title = patch['new'].childNodes[0].nodeValue;
               }
+
+              patch.old.parentNode.replaceChild(patch['new'], patch.old);
+              makeNode.nodes[oldId] = null;
+              delete makeNode.nodes[oldId];
             }
       }
 
@@ -839,16 +813,15 @@ function processPatches(element, e) {
 
 function patchNode(element, newHTML, options) {
   // Ensure that the document disable worker is always picked up.
-  if (typeof options.disableWorker !== 'boolean') {
-    options.disableWorker = document.DISABLE_WORKER;
+  if (typeof options.enableWorker !== 'boolean') {
+    options.enableWorker = document.ENABLE_WORKER;
   }
-
-  var wantsWorker = hasWorker && !options.disableWorker;
 
   if (element.__is_rendering__) {
     return;
   }
 
+  //TODO New error here
   //if (typeof newHTML !== 'string') {
   //  throw new Error('Invalid type passed to diffHTML, expected String');
   //}
@@ -868,7 +841,7 @@ function patchNode(element, newHTML, options) {
 
   // Will want to ensure that the first render went through, the worker can
   // take a bit to startup and we want to show changes as soon as possible.
-  if (wantsWorker && hasWorker && element.__has_rendered__) {
+  if (options.enableWorker && hasWorker && element.__has_rendered__) {
     // Attach all properties here to transport.
     var transferObject = {
       oldTree: element.__old_tree__
@@ -930,7 +903,7 @@ function patchNode(element, newHTML, options) {
       processPatches(element, e);
       element.__is_rendering__ = false;
     };
-  } else if (!wantsWorker || !hasWorker || !element.__has_rendered__) {
+  } else if (!options.enableWorker || !hasWorker || !element.__has_rendered__) {
     var patches = [];
     var oldTree = element.__old_tree__;
     var newTree = typeof newHTML === 'string' ? (0, _utilParser.parseHTML)(newHTML, options.inner) : makeNode(newHTML);

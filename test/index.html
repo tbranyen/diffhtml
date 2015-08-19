@@ -20,9 +20,6 @@
   <script src="integration/transitions.js"></script>
 
   <script>
-    // Don't try and use a web worker for now.
-    document.DISABLE_WORKER = true;
-
     if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
     else { mocha.run(); }
   </script>
