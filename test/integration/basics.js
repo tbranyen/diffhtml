@@ -55,4 +55,19 @@ describe('Basics', function() {
       });
     });
   });
+
+  describe('Special features', function() {
+    it('can modify the document\'s title', function() {
+      var iframe = document.createElement('iframe');
+      document.body.appendChild(iframe);
+
+      var iframeDoc = iframe.contentDocument;
+      var documentElement = iframeDoc.documentElement;
+
+      diff.outerHTML(documentElement, '<html><head><title>Test</title></head></html>');
+      assert.equal(iframeDoc.title, 'Test');
+
+      iframe.parentNode.removeChild(iframe);
+    });
+  });
 });

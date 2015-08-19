@@ -6,12 +6,6 @@ describe('diff.outerHTML', function() {
 
   it('can replace the documentElement', function() {
     var iframe = document.createElement('iframe');
-    var parts = location.href.split('/');
-
-    parts.pop();
-    parts.push('playground.html');
-
-    iframe.setAttribute('src', parts.join('/'));
     document.body.appendChild(iframe);
 
     var originalSource = document.documentElement.outerHTML;
