@@ -59,7 +59,42 @@ function makeElement(descriptor) {
   return element;
 }
 
-},{"./node":3,"./svg":4}],2:[function(_dereq_,module,exports){
+},{"./node":4,"./svg":5}],2:[function(_dereq_,module,exports){
+/**
+ * The tran
+ *
+ * @class
+ * @return
+ */
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var TransitionStateError = (function (_Error) {
+  _inherits(TransitionStateError, _Error);
+
+  function TransitionStateError(message) {
+    _classCallCheck(this, TransitionStateError);
+
+    _get(Object.getPrototypeOf(TransitionStateError.prototype), "constructor", this).call(this);
+
+    this.message = message;
+  }
+
+  return TransitionStateError;
+})(Error);
+
+exports.TransitionStateError = TransitionStateError;
+
+},{}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68,17 +103,31 @@ Object.defineProperty(exports, '__esModule', {
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.element = element;
+exports.addTransitionState = addTransitionState;
+exports.removeTransitionState = removeTransitionState;
 exports.enableProllyfill = enableProllyfill;
 
 var _node = _dereq_('./node');
 
+var _transitions = _dereq_('./transitions');
+
+var _errors = _dereq_('./errors');
+
+Object.defineProperty(exports, 'TransitionStateError', {
+  enumerable: true,
+  get: function get() {
+    return _errors.TransitionStateError;
+  }
+});
+
 /**
- * outer
+ * Used to diff the outerHTML contents of the passed element with the markup
+ * contents.  Very useful for applying a global diff on the
+ * `document.documentElement`.
  *
  * @param element
  * @param markup=''
  * @param options={}
- * @return
  */
 
 function outerHTML(element) {
@@ -90,7 +139,9 @@ function outerHTML(element) {
 }
 
 /**
- * inner
+ * Used to diff the innerHTML contents of the passed element with the markup
+ * contents.  This is useful with libraries like Backbone that render Views
+ * into element container.
  *
  * @param element
  * @param markup=''
@@ -107,7 +158,9 @@ function innerHTML(element) {
 }
 
 /**
- * element
+ * Used to diff two elements.  The `inner` Boolean property can be specified in
+ * the options to set innerHTML\outerHTML behavior.  By default it is
+ * outerHTML.
  *
  * @param element
  * @param newElement
@@ -118,8 +171,76 @@ function innerHTML(element) {
 function element(element, newElement) {
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-  options.inner = false;
   (0, _node.patchNode)(element, newElement, options);
+}
+
+/**
+ * Adds a global transition listener.  With many elements this could be an
+ * expensive operation, so try to limit the amount of listeners added if you're
+ * concerned about performance.
+ *
+ * Since the callback triggers with various elements, most of which you
+ * probably don't care about, you'll want to filter.  A good way of filtering
+ * is to use the DOM `matches` method.  It's fairly well supported
+ * (http://caniuse.com/#feat=matchesselector) and may suit many projects.  If
+ * you need backwards compatibility, consider using jQuery's `is`.
+ *
+ * You can do fun, highly specific, filters:
+ *
+ * addTransitionState('added', function(element) {
+ *   // Fade in the main container after it's added.
+ *   if (element.matches('body main.container')) {
+ *     $(element).stop(true, true).fadeIn();
+ *   }
+ * });
+ *
+ * The transition state's are:
+ *
+ * - added - For when elements come into the DOM.  The callback triggers
+ *   immediately after the element enters the DOM.
+ *
+ * @param state - String name that matches what's available in the
+ * documentation above.
+ * @param callback - Function to receive the matching elements.
+ */
+
+function addTransitionState(state, callback) {
+  if (!state) {
+    throw new _errors.TransitionStateError('Missing transition state name');
+  }
+
+  if (!callback) {
+    throw new _errors.TransitionStateError('Missing transition state callback');
+  }
+
+  _transitions.transitionStates[state] = _transitions.transitionStates[state] || [];
+  _transitions.transitionStates[state].push(callback);
+}
+
+/**
+ * Removes a global transition listener.
+ *
+ * When invoked with no arguments, this method will remove all transition
+ * callbacks.  When invoked with the name argument it will remove all
+ * transition state callbacks matching the name, and so on for the callback.
+ *
+ * @param state - String name that matches what's available in the
+ * documentation above.
+ * @param callback - Function to receive the matching elements.
+ */
+
+function removeTransitionState(state, callback) {
+  _transitions.transitionStates[state] = _transitions.transitionStates[state] || [];
+
+  if (!callback && state) {
+    _transitions.transitionStates[state] = [];
+  } else if (state && callback) {
+    _transitions.transitionStates[state].splice(_transitions.transitionStates[state].indexOf(callback), 1);
+  } else {
+    for (var _state in _transitions.transitionStates) {
+      delete _transitions.transitionStates[_state];
+    }
+  }
 }
 
 /**
@@ -132,28 +253,16 @@ function enableProllyfill() {
   Object.defineProperty(Element.prototype, 'addTransitionState', {
     configurable: true,
 
-    value: function value(name, callback) {
-      var states = this._transitionStates = this._transitionStates || {};
-
-      states[name] = states[name] || [];
-
-      states[name].push(callback);
+    value: function value(state, callback) {
+      addTransitionState(state, callback);
     }
   });
 
   Object.defineProperty(Element.prototype, 'removeTransitionState', {
     configurable: true,
 
-    value: function value(name, callback) {
-      var states = this._transitionStates = this._transitionStates || {};
-
-      states[name] = states[name] || [];
-
-      if (!callback) {
-        state[name] = [];
-      } else {
-        states[name].splice(states.indexOf(callback), 1);
-      }
+    value: function value(state, callback) {
+      removeTransitionState(state, callback);
     }
   });
 
@@ -182,7 +291,7 @@ function enableProllyfill() {
   });
 }
 
-},{"./node":3}],3:[function(_dereq_,module,exports){
+},{"./errors":2,"./node":4,"./transitions":6}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -207,6 +316,8 @@ var _utilParser = _dereq_('./util/parser');
 var _utilUuid = _dereq_('./util/uuid');
 
 var _element = _dereq_('./element');
+
+var _transitions = _dereq_('./transitions');
 
 var _worker = _dereq_('./worker');
 
@@ -552,7 +663,11 @@ function getElement(ref) {
  */
 function processPatches(element, e) {
   var patches = e.data;
-  var states = element._transitionStates;
+  var states = _transitions.transitionStates;
+
+  var callCallback = function callCallback(callback) {
+    callback(this);
+  };
 
   // Loop through all the patches and apply them.
   for (var i = 0; i < patches.length; i++) {
@@ -583,9 +698,6 @@ function processPatches(element, e) {
         // Add.
         if (patch.element && patch.fragment && !patch.old) {
           var fragment = document.createDocumentFragment();
-          var callCallback = function callCallback(callback) {
-            callback(this);
-          };
 
           patch.fragment.forEach(function (elementDescriptor) {
             var element = getElement(elementDescriptor);
@@ -599,6 +711,15 @@ function processPatches(element, e) {
           });
 
           patch.element.appendChild(fragment);
+
+          patch.fragment.forEach(function (elementDescriptor) {
+            var element = getElement(elementDescriptor);
+
+            // Ensure the title is set correctly.
+            if (element.tagName === 'title') {
+              element.ownerDocument.title = element.childNodes[0].nodeValue;
+            }
+          });
         }
 
         // Remove
@@ -607,27 +728,18 @@ function processPatches(element, e) {
               throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
             }
 
-            var removeNode = (function () {
-              this.parentNode.removeChild(this);
-              makeNode.nodes[oldId] = null;
-              delete makeNode.nodes[oldId];
-            }).bind(patch.old);
-
-            var removed;
-
             if (states && states.removed) {
-              removed = states.removed.map(function (callback) {
-                return callback(patch.old);
-              });
+              states.removed.forEach(callCallback, patch.old);
             }
 
-            var promises = [].concat(removed).filter(Boolean);
-
-            if (promises.length) {
-              Promise.all(promises).then(removeNode, removeNode);
-            } else {
-              removeNode();
+            // Ensure the title is emptied.
+            if (patch.old.tagName === 'title') {
+              patch.old.ownerDocument.title = '';
             }
+
+            patch.old.parentNode.removeChild(patch.old);
+            makeNode.nodes[oldId] = null;
+            delete makeNode.nodes[oldId];
           }
 
           // Replace
@@ -639,43 +751,35 @@ function processPatches(element, e) {
               // Append the element first, before doing the replacement.
               patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
 
-              var removeNode = (function () {
-                this[0].parentNode.replaceChild(this[1], this[0]);
-                makeNode.nodes[oldId] = null;
-                delete makeNode.nodes[oldId];
-              }).bind([patch.old, patch['new']]);
-
-              var added, removed, replaced;
-
               // Added state for transitions API.
               if (states && states.added) {
-                added = states.added.map(function (callback) {
-                  return callback(patch['new']);
+                states.added.forEach(function (callback) {
+                  callback(patch['new']);
                 });
               }
 
               // Removed state for transitions API.
               if (states && states.removed) {
-                removed = states.removed.map(function (callback) {
-                  return callback(patch.old);
-                });
-              }
-
-              // Removed state for transitions API.
-              if (states && states.replaced) {
-                replaced = states.removed.map(function (callback) {
-                  return callback(patch.old, patch['new']);
+                states.removed.forEach(function (callback) {
+                  callback(patch.old);
                 });
               }
 
               // Replaced state for transitions API.
-              var promises = [].concat(added, removed, replaced).filter(Boolean);
-
-              if (promises.length) {
-                Promise.all(promises).then(removeNode, removeNode);
-              } else {
-                removeNode();
+              if (states && states.replaced) {
+                states.replaced.forEach(function (callback) {
+                  callback(patch.old, patch['new']);
+                });
               }
+
+              // Ensure the title is set correctly.
+              if (patch['new'].tagName === 'title') {
+                patch.old.ownerDocument.title = patch['new'].childNodes[0].nodeValue;
+              }
+
+              patch.old.parentNode.replaceChild(patch['new'], patch.old);
+              makeNode.nodes[oldId] = null;
+              delete makeNode.nodes[oldId];
             }
       }
 
@@ -709,16 +813,15 @@ function processPatches(element, e) {
 
 function patchNode(element, newHTML, options) {
   // Ensure that the document disable worker is always picked up.
-  if (typeof options.disableWorker !== 'boolean') {
-    options.disableWorker = document.DISABLE_WORKER;
+  if (typeof options.enableWorker !== 'boolean') {
+    options.enableWorker = document.ENABLE_WORKER;
   }
-
-  var wantsWorker = hasWorker && !options.disableWorker;
 
   if (element.__is_rendering__) {
     return;
   }
 
+  //TODO New error here
   //if (typeof newHTML !== 'string') {
   //  throw new Error('Invalid type passed to diffHTML, expected String');
   //}
@@ -738,7 +841,7 @@ function patchNode(element, newHTML, options) {
 
   // Will want to ensure that the first render went through, the worker can
   // take a bit to startup and we want to show changes as soon as possible.
-  if (wantsWorker && hasWorker && element.__has_rendered__) {
+  if (options.enableWorker && hasWorker && element.__has_rendered__) {
     // Attach all properties here to transport.
     var transferObject = {
       oldTree: element.__old_tree__
@@ -800,7 +903,7 @@ function patchNode(element, newHTML, options) {
       processPatches(element, e);
       element.__is_rendering__ = false;
     };
-  } else if (!wantsWorker || !hasWorker || !element.__has_rendered__) {
+  } else if (!options.enableWorker || !hasWorker || !element.__has_rendered__) {
     var patches = [];
     var oldTree = element.__old_tree__;
     var newTree = typeof newHTML === 'string' ? (0, _utilParser.parseHTML)(newHTML, options.inner) : makeNode(newHTML);
@@ -852,7 +955,7 @@ function patchNode(element, newHTML, options) {
   }
 }
 
-},{"./element":1,"./util/buffers":5,"./util/parser":6,"./util/pools":7,"./util/uuid":8,"./worker":9}],4:[function(_dereq_,module,exports){
+},{"./element":1,"./transitions":6,"./util/buffers":7,"./util/parser":8,"./util/pools":9,"./util/uuid":10,"./worker":11}],5:[function(_dereq_,module,exports){
 // List of SVG elements.
 'use strict';
 
@@ -866,7 +969,16 @@ exports.elements = elements;
 var namespace = 'http://www.w3.org/2000/svg';
 exports.namespace = namespace;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var transitionStates = {};
+exports.transitionStates = transitionStates;
+
+},{}],7:[function(_dereq_,module,exports){
 /**
  * stringToBuffer
  *
@@ -909,7 +1021,7 @@ function bufferToString(buffer) {
   return string;
 }
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1316,7 +1428,7 @@ function makeParser() {
 
 ;
 
-},{"./pools":7}],7:[function(_dereq_,module,exports){
+},{"./pools":9}],9:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1460,7 +1572,7 @@ function initializePools(COUNT) {
   });
 }
 
-},{"./uuid":8}],8:[function(_dereq_,module,exports){
+},{"./uuid":10}],10:[function(_dereq_,module,exports){
 /**
  * Generates a uuid.
  *
@@ -1482,7 +1594,7 @@ function uuid() {
   });
 }
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1558,5 +1670,5 @@ function startup(worker) {
 exports['default'] = startup;
 module.exports = exports['default'];
 
-},{}]},{},[2])(2)
+},{}]},{},[3])(3)
 });
