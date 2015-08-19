@@ -670,22 +670,26 @@ function processPatches(element, e) {
   };
 
   // Loop through all the patches and apply them.
-  for (var i = 0; i < patches.length; i++) {
+
+  var _loop = function () {
     var patch = patches[i];
+    var elementId = undefined,
+        oldId = undefined,
+        newId = undefined;
 
     if (patch.element) {
       patch.element = getElement(patch.element);
-      var elementId = patch.element;
+      elementId = patch.element;
     }
 
     if (patch.old) {
       patch.old = getElement(patch.old);
-      var oldId = patch.old.element;
+      oldId = patch.old.element;
     }
 
     if (patch['new']) {
       patch['new'] = getElement(patch['new']);
-      var newId = patch['new'].element;
+      newId = patch['new'].element;
     }
 
     // Replace the entire Node.
@@ -697,7 +701,7 @@ function processPatches(element, e) {
     else if (patch.__do__ === 1) {
         // Add.
         if (patch.element && patch.fragment && !patch.old) {
-          var fragment = document.createDocumentFragment();
+          fragment = document.createDocumentFragment();
 
           patch.fragment.forEach(function (elementDescriptor) {
             var element = getElement(elementDescriptor);
@@ -801,6 +805,12 @@ function processPatches(element, e) {
               document.title = patch.value;
             }
           }
+  };
+
+  for (var i = 0; i < patches.length; i++) {
+    var fragment;
+
+    _loop();
   }
 }
 

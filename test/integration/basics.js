@@ -69,5 +69,31 @@ describe('Basics', function() {
 
       iframe.parentNode.removeChild(iframe);
     });
+
+    it('utilize a WebWorker', function(done) {
+      diff.innerHTML(this.fixture, '<div class="test">this</div>', {
+        enableWorker: true
+      });
+
+      // Takes
+      diff.innerHTML(this.fixture, '<div class="test2">this2</div>', {
+        enableWorker: true
+      });
+
+      var fixture = this.fixture;
+
+      setTimeout(function() {
+        try {
+          assert.equal(fixture.firstChild.getAttribute('class'), 'test2');
+          assert.equal(fixture.firstChild.textContent, 'this2');
+        }
+        catch (ex) {
+          done(ex);
+        }
+        finally {
+          done();
+        }
+      }, 150);
+    });
   });
 });
