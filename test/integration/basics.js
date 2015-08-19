@@ -93,7 +93,7 @@ describe('Basics', function() {
         finally {
           done();
         }
-      }, 150);
+      }, 250);
     });
   });
 });

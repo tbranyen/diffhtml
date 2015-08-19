@@ -194,11 +194,6 @@ function element(element, newElement) {
  *   }
  * });
  *
- * The transition state's are:
- *
- * - added - For when elements come into the DOM.  The callback triggers
- *   immediately after the element enters the DOM.
- *
  * @param state - String name that matches what's available in the
  * documentation above.
  * @param callback - Function to receive the matching elements.
@@ -213,7 +208,6 @@ function addTransitionState(state, callback) {
     throw new _errors.TransitionStateError('Missing transition state callback');
   }
 
-  _transitions.transitionStates[state] = _transitions.transitionStates[state] || [];
   _transitions.transitionStates[state].push(callback);
 }
 
@@ -230,15 +224,14 @@ function addTransitionState(state, callback) {
  */
 
 function removeTransitionState(state, callback) {
-  _transitions.transitionStates[state] = _transitions.transitionStates[state] || [];
-
   if (!callback && state) {
-    _transitions.transitionStates[state] = [];
+    _transitions.transitionStates[state].length = 0;
   } else if (state && callback) {
-    _transitions.transitionStates[state].splice(_transitions.transitionStates[state].indexOf(callback), 1);
+    var index = _transitions.transitionStates[state].indexOf(callback);
+    _transitions.transitionStates[state].splice(index, 1);
   } else {
     for (var _state in _transitions.transitionStates) {
-      delete _transitions.transitionStates[_state];
+      _transitions.transitionStates[_state].length = 0;
     }
   }
 }
@@ -982,12 +975,28 @@ var namespace = 'http://www.w3.org/2000/svg';
 exports.namespace = namespace;
 
 },{}],6:[function(_dereq_,module,exports){
+/**
+ * Transition states:
+ *
+ * - added - For when elements come into the DOM.  The callback triggers
+ *   immediately after the element enters the DOM.  It is called with the
+ *   element as the only argument.
+ *
+ * - removed - For when elements are removed from the DOM.  The callback
+ *   triggers just before the element leaves the DOM.  It is called with the
+ *   element as the only argument.
+ *
+ * - replaced - For when elements are replaced in the DOM.  The callback
+ *   triggers after the new element enters the DOM, and before the old element
+ *   leaves.  It is called with old and new elements as arguments, in that
+ *   order.
+ */
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var transitionStates = {};
+var transitionStates = { added: [], removed: [], replaced: [] };
 exports.transitionStates = transitionStates;
 
 },{}],7:[function(_dereq_,module,exports){

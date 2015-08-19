@@ -7,6 +7,9 @@ Allows you to easily swap out markup and have an intelligent virtual diff patch
 in the changes.  Contrast to `innerHTML`/`outerHTML` which destroys and creates
 all elements when set.
 
+Provides a transitions API to hook into state changes.  This is useful for
+animations or reacting to changes.
+
 #### Install
 
 ``` sh
@@ -67,7 +70,7 @@ diff.innerHTML(document.body, '<h1>Hello world!</h1>');
 Unlike the previous two methods, this will take in two elements and diff them
 together.
 
-The `inner` options proprety can be set here to change between inner/outerHTML.
+The `inner` options property can be set here to change between inner/outerHTML.
 
 
 ``` javascript
@@ -91,7 +94,45 @@ diff.element(document.body, h1, { inner: true });
 
 ##### Add a transition state callback
 
+Adds a global transition listener.  With many elements this could be an
+expensive operation, so try to limit the amount of listeners added if you're
+concerned about performance.
+
+Since the callback triggers with various elements, most of which you probably
+don't care about, you'll want to filter.  A good way of filtering is to use the
+DOM `matches` method.  It's fairly well supported
+(http://caniuse.com/#feat=matchesselector) and may suit many projects.  If you
+need backwards compatibility, consider using jQuery's `is`.
+
+You can do fun, highly specific, filters:
+
+``` javascript
+addTransitionState('added', function(element) {
+ // Fade in the main container after it's added.
+ if (element.matches('body main.container')) {
+   $(element).stop(true, true).fadeIn();
+ }
+});
+```
+
 ##### Remove a transition state callback
+
+Removes a global transition listener.
+
+When invoked with no arguments, this method will remove all transition
+callbacks.  When invoked with the name argument it will remove all transition
+state callbacks matching the name, and so on for the callback.
+
+``` javascript
+// Removes all.
+diff.removeTransitionState();
+
+// Removes by name.
+diff.removeTransitionState('added');
+
+// Removes by name and callback reference.
+diff.removeTransitionState('added', callbackReference);
+```
 
 #### Prollyfill
 
