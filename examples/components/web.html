@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Web Component Test</title>
+</head>
+<body>
+  <main id="main"></main>
+
+  <script src="../../dist/diffhtml.js"></script>
+
+  <script>
+    (function() {
+      'use strict';
+
+      class CustomComponent extends HTMLElement {
+        createdCallback() {
+          console.log('Created CustomComponent');
+        }
+
+        attachedCallback() {
+          console.log('Attached CustomComponent');
+        }
+
+        detachedCallback() {
+          console.log('Detached CustomComponent');
+        }
+
+        attributeChangedCallback() {
+          console.log(arguments);
+        }
+      }
+
+      document.registerElement('custom-element', CustomComponent);
+
+      diff.innerHTML(main, `
+        <custom-element><button>Feeling lucky?</button></custom-element>
+      `);
+
+      // Change the attribute after a second.
+      setTimeout(function() {
+        diff.innerHTML(main, `
+          <custom-element data-test="cool"><button>Feeling lucky?</button></custom-element>
+        `);
+      }, 1000)
+
+      // Remove everything after five seconds.
+      setTimeout(function() {
+        diff.innerHTML(main, ``);
+      }, 5000)
+    })();
+  </script>
+</body>
+</html>

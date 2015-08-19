@@ -96,4 +96,12 @@ describe('Basics', function() {
       }, 250);
     });
   });
+
+  describe('Custom elements', function() {
+    it('supports the use of custom elements', function() {
+      diff.innerHTML(this.fixture, '<custom-element></custom-element>');
+
+      assert.ok(this.fixture.querySelector('custom-element'));
+    });
+  });
 });
