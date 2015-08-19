@@ -669,6 +669,26 @@ function processPatches(element, e) {
     callback(this);
   };
 
+  var addedCallback = function addedCallback(elementDescriptor) {
+    var element = getElement(elementDescriptor);
+
+    this.fragment.appendChild(element);
+
+    // Added state for transitions API.
+    if (states && states.added) {
+      states.added.forEach(callCallback, element);
+    }
+  };
+
+  var titleCallback = function titleCallback(elementDescriptor) {
+    var element = getElement(elementDescriptor);
+
+    // Ensure the title is set correctly.
+    if (element.tagName === 'title') {
+      element.ownerDocument.title = element.childNodes[0].nodeValue;
+    }
+  };
+
   // Loop through all the patches and apply them.
 
   var _loop = function () {
@@ -703,27 +723,9 @@ function processPatches(element, e) {
         if (patch.element && patch.fragment && !patch.old) {
           fragment = document.createDocumentFragment();
 
-          patch.fragment.forEach(function (elementDescriptor) {
-            var element = getElement(elementDescriptor);
-
-            fragment.appendChild(element);
-
-            // Added state for transitions API.
-            if (states && states.added) {
-              states.added.forEach(callCallback, element);
-            }
-          });
-
+          patch.fragment.forEach(addedCallback, { fragment: fragment });
           patch.element.appendChild(fragment);
-
-          patch.fragment.forEach(function (elementDescriptor) {
-            var element = getElement(elementDescriptor);
-
-            // Ensure the title is set correctly.
-            if (element.tagName === 'title') {
-              element.ownerDocument.title = element.childNodes[0].nodeValue;
-            }
-          });
+          patch.fragment.forEach(titleCallback);
         }
 
         // Remove

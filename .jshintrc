@@ -1,5 +1,4 @@
 {
-  "loopfunc": true,
   "esnext": true,
   "evil": true,
   "shadow": true,
