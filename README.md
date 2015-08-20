@@ -134,7 +134,7 @@ diff.removeTransitionState('added');
 diff.removeTransitionState('added', callbackReference);
 ```
 
-#### Prollyfill
+#### [Prollyfill](https://twitter.com/slexaxton/status/257543702124306432)
 
 I'd love to see this project become a browser standard in the future.  To
 enable how I'd envision it working, simply call `enableProllyfill();` on the
