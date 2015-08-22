@@ -668,8 +668,6 @@ function processPatches(element, e) {
   var patches = e.data;
   var states = _transitions.transitionStates;
 
-  console.log(JSON.stringify(patches, null, 2));
-
   var callCallback = function callCallback(callback) {
     callback(this);
   };
@@ -828,7 +826,6 @@ function processPatches(element, e) {
             originalValue = patch.element.textContent;
 
             patch.element.textContent = patch.value;
-            console.log(patch.value);
 
             if (patch.element.parentNode === null) {
               document.title = patch.value;
