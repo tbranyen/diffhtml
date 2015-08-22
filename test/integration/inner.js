@@ -19,6 +19,12 @@ describe('diff.innerHTML', function() {
   });
 
   describe('Text', function() {
+    it('can be override existing content', function() {
+      diff.innerHTML(this.fixture, 'test');
+
+      assert.equal(this.fixture.firstChild.textContent, 'test');
+    });
+
     it('can be updated by directly setting', function() {
       diff.innerHTML(this.fixture, '<div>test</div>');
 

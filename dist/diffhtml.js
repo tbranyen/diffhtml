@@ -670,30 +670,30 @@ function processPatches(element, e) {
   };
 
   var attachedCallback = function attachedCallback(elementDescriptor) {
-    var element = getElement(elementDescriptor);
+    var el = getElement(elementDescriptor);
 
-    this.fragment.appendChild(element);
+    this.fragment.appendChild(el);
 
     // Trigger all the text changed values.
-    if (states && element.nodeName === '#text' && states.textChanged) {
+    if (states && el.nodeName === '#text' && states.textChanged) {
       for (var x = 0; x < states.textChanged.length; x++) {
         var callback = states.textChanged[x];
-        callback(fragment.parentNode, null, fragment.textContent);
+        callback(fragment.parentNode || element, null, fragment.textContent);
       }
     }
 
     // Added state for transitions API.
     if (states && states.attached) {
-      states.attached.forEach(callCallback, element);
+      states.attached.forEach(callCallback, el);
     }
   };
 
   var titleCallback = function titleCallback(elementDescriptor) {
-    var element = getElement(elementDescriptor);
+    var el = getElement(elementDescriptor);
 
     // Ensure the title is set correctly.
-    if (element.tagName === 'title') {
-      element.ownerDocument.title = element.childNodes[0].nodeValue;
+    if (el.tagName === 'title') {
+      el.ownerDocument.title = el.childNodes[0].nodeValue;
     }
   };
 
@@ -1124,7 +1124,8 @@ var parser = makeParser();
  */
 
 function parseHTML(newHTML, isInner) {
-  var nodes = parser.parse(newHTML).childNodes;
+  var documentElement = parser.parse(newHTML);
+  var nodes = documentElement.childNodes;
 
   return isInner ? nodes : nodes[0];
 }
@@ -1427,6 +1428,11 @@ function makeParser() {
 
       options = options || {};
 
+      if (data.indexOf('<') === -1 && data) {
+        currentParent.childNodes.push(new TextNode(data));
+        return root;
+      }
+
       for (var match, text; match = kMarkupPattern.exec(data);) {
         if (lastTextPos > -1) {
           if (lastTextPos + match[0].length < kMarkupPattern.lastIndex) {
@@ -1443,6 +1449,7 @@ function makeParser() {
           continue;
         }
         if (options.lowerCaseTagName) match[2] = match[2].toLowerCase();
+
         if (!match[1]) {
           // not </ tags
           var attrs = {};
