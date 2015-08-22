@@ -216,7 +216,10 @@ function render(count) {
     })
   };
 
-  diff.outerHTML(document.documentElement, template.render(data));
+  diff.outerHTML(document.documentElement, template.render(data), {
+    enableWorker: true
+  });
+
   window.done();
 }
 

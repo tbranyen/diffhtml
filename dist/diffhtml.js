@@ -61,10 +61,7 @@ function makeElement(descriptor) {
 
 },{"./node":4,"./svg":5}],2:[function(_dereq_,module,exports){
 /**
- * The tran
- *
- * @class
- * @return
+ * Identifies an error with transitions.
  */
 "use strict";
 
@@ -187,7 +184,7 @@ function element(element, newElement) {
  *
  * You can do fun, highly specific, filters:
  *
- * addTransitionState('added', function(element) {
+ * addTransitionState('attached', function(element) {
  *   // Fade in the main container after it's added.
  *   if (element.matches('body main.container')) {
  *     $(element).stop(true, true).fadeIn();
@@ -253,7 +250,7 @@ function removeTransitionState(state, callback) {
  */
 
 function enableProllyfill() {
-  Object.defineProperty(Element.prototype, 'addTransitionState', {
+  Object.defineProperty(document, 'addTransitionState', {
     configurable: true,
 
     value: function value(state, callback) {
@@ -261,7 +258,7 @@ function enableProllyfill() {
     }
   });
 
-  Object.defineProperty(Element.prototype, 'removeTransitionState', {
+  Object.defineProperty(document, 'removeTransitionState', {
     configurable: true,
 
     value: function value(state, callback) {
@@ -1064,10 +1061,10 @@ exports.transitionStates = transitionStates;
 
 },{}],7:[function(_dereq_,module,exports){
 /**
- * stringToBuffer
+ * Converts a string to a buffer.
  *
  * @param string
- * @return
+ * @return {Uint16Array}
  */
 'use strict';
 
@@ -1088,10 +1085,10 @@ function stringToBuffer(string) {
 }
 
 /**
- * bufferToString
+ * Converts a Uint16Array to a String.
  *
- * @param buffer
- * @return
+ * @param buffer - A Uint16Array buffer to convert.
+ * @return {String}
  */
 
 function bufferToString(buffer) {
@@ -1521,11 +1518,9 @@ Object.defineProperty(exports, '__esModule', {
 exports.createPool = createPool;
 exports.initializePools = initializePools;
 
-var _uuid = _dereq_('./uuid');
+var _uuid2 = _dereq_('./uuid');
 
-// Babel rewrites variables, which means this temporary hack must be in place
-// to avoid clobbering the global name.
-var uuid = _uuid.uuid;
+var uuid = _uuid2.uuid;
 
 var pools = {};
 
