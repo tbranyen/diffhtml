@@ -668,6 +668,8 @@ function processPatches(element, e) {
   var patches = e.data;
   var states = _transitions.transitionStates;
 
+  console.log(JSON.stringify(patches, null, 2));
+
   var callCallback = function callCallback(callback) {
     callback(this);
   };
@@ -676,6 +678,14 @@ function processPatches(element, e) {
     var element = getElement(elementDescriptor);
 
     this.fragment.appendChild(element);
+
+    // Trigger all the text changed values.
+    if (states && element.nodeName === '#text' && states.textChanged) {
+      for (var x = 0; x < states.textChanged.length; x++) {
+        var callback = states.textChanged[x];
+        callback(fragment.parentNode, null, fragment.textContent);
+      }
+    }
 
     // Added state for transitions API.
     if (states && states.attached) {
