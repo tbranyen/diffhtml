@@ -208,6 +208,11 @@ function addTransitionState(state, callback) {
     throw new _errors.TransitionStateError('Missing transition state callback');
   }
 
+  // Not a valid state name.
+  if (Object.keys(_transitions.transitionStates).indexOf(state) === -1) {
+    throw new _errors.TransitionStateError('Invalid state name: ' + state);
+  }
+
   _transitions.transitionStates[state].push(callback);
 }
 
@@ -227,6 +232,11 @@ function removeTransitionState(state, callback) {
   if (!callback && state) {
     _transitions.transitionStates[state].length = 0;
   } else if (state && callback) {
+    // Not a valid state name.
+    if (Object.keys(_transitions.transitionStates).indexOf(state) === -1) {
+      throw new _errors.TransitionStateError('Invalid state name ' + state);
+    }
+
     var index = _transitions.transitionStates[state].indexOf(callback);
     _transitions.transitionStates[state].splice(index, 1);
   } else {
@@ -662,14 +672,14 @@ function processPatches(element, e) {
     callback(this);
   };
 
-  var addedCallback = function addedCallback(elementDescriptor) {
+  var attachedCallback = function attachedCallback(elementDescriptor) {
     var element = getElement(elementDescriptor);
 
     this.fragment.appendChild(element);
 
     // Added state for transitions API.
-    if (states && states.added) {
-      states.added.forEach(callCallback, element);
+    if (states && states.attached) {
+      states.attached.forEach(callCallback, element);
     }
   };
 
@@ -716,7 +726,7 @@ function processPatches(element, e) {
         if (patch.element && patch.fragment && !patch.old) {
           fragment = document.createDocumentFragment();
 
-          patch.fragment.forEach(addedCallback, { fragment: fragment });
+          patch.fragment.forEach(attachedCallback, { fragment: fragment });
           patch.element.appendChild(fragment);
           patch.fragment.forEach(titleCallback);
         }
@@ -727,8 +737,8 @@ function processPatches(element, e) {
               throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
             }
 
-            if (states && states.removed) {
-              states.removed.forEach(callCallback, patch.old);
+            if (states && states.detached) {
+              states.detached.forEach(callCallback, patch.old);
             }
 
             // Ensure the title is emptied.
@@ -751,15 +761,15 @@ function processPatches(element, e) {
               patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
 
               // Added state for transitions API.
-              if (states && states.added) {
-                states.added.forEach(function (callback) {
+              if (states && states.attached) {
+                states.attached.forEach(function (callback) {
                   callback(patch['new']);
                 });
               }
 
               // Removed state for transitions API.
-              if (states && states.removed) {
-                states.removed.forEach(function (callback) {
+              if (states && states.detached) {
+                states.detached.forEach(function (callback) {
                   callback(patch.old);
                 });
               }
@@ -784,26 +794,55 @@ function processPatches(element, e) {
 
       // Attribute manipulation.
       else if (patch.__do__ === 2) {
+          originalValue = patch.element.getAttribute(patch.name);
+
           // Remove.
           if (!patch.value) {
             patch.element.removeAttribute(patch.name);
           } else {
             patch.element.setAttribute(patch.name, patch.value);
           }
+
+          // Trigger all the attribute changed values.
+          if (states && states.attributeChanged) {
+            for (x = 0; x < states.attributeChanged.length; x++) {
+              callback = states.attributeChanged[x];
+
+              callback(patch.element, patch.name, originalValue, patch.value);
+            }
+          }
         }
 
         // Text node manipulation.
         else if (patch.__do__ === 3) {
+            originalValue = patch.element.textContent;
+
             patch.element.textContent = patch.value;
+            console.log(patch.value);
 
             if (patch.element.parentNode === null) {
               document.title = patch.value;
+            } else {
+              // Trigger all the text changed values.
+              if (states && states.textChanged) {
+                for (x = 0; x < states.textChanged.length; x++) {
+                  callback = states.textChanged[x];
+
+                  callback(patch.element.parentNode, originalValue, patch.value);
+                }
+              }
             }
           }
   };
 
   for (var i = 0; i < patches.length; i++) {
     var fragment;
+    var originalValue;
+    var x;
+    var callback;
+    var originalValue;
+    var x;
+    var callback;
 
     _loop();
   }
@@ -976,27 +1015,44 @@ exports.namespace = namespace;
 
 },{}],6:[function(_dereq_,module,exports){
 /**
- * Transition states:
+ * Transition states
+ * =================
  *
- * - added - For when elements come into the DOM.  The callback triggers
- *   immediately after the element enters the DOM.  It is called with the
- *   element as the only argument.
+ * - attached - For when elements come into the DOM. The callback triggers
+ * ------------ immediately after the element enters the DOM. It is called with
+ *              the element as the only argument.
  *
- * - removed - For when elements are removed from the DOM.  The callback
- *   triggers just before the element leaves the DOM.  It is called with the
- *   element as the only argument.
+ * - detached - For when elements are removed from the DOM. The callback
+ * ------------ triggers just before the element leaves the DOM. It is called
+ *              with the element as the only argument.
  *
- * - replaced - For when elements are replaced in the DOM.  The callback
- *   triggers after the new element enters the DOM, and before the old element
- *   leaves.  It is called with old and new elements as arguments, in that
- *   order.
+ * - replaced - For when elements are replaced in the DOM. The callback
+ * ------------ triggers after the new element enters the DOM, and before the
+ *              old element leaves. It is called with old and new elements as
+ *              arguments, in that order.
+ *
+ * - attributeChanged - Triggered when an element's attribute has changed. The
+ * -------------------- callback triggers after the attribute has changed in
+ *                      the DOM. It is called with the element, the attribute
+ *                      name, old value, and current value.
+ *
+ * - textChanged - Triggered when an element's `textContent` chnages. The
+ * --------------- callback triggers after the textContent has changed in the
+ *                 DOM. It is called with the element, the old value, and
+ *                 current value.
  */
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var transitionStates = { added: [], removed: [], replaced: [] };
+var transitionStates = {
+  attached: [],
+  detached: [],
+  replaced: [],
+  attributeChanged: [],
+  textChanged: []
+};
 exports.transitionStates = transitionStates;
 
 },{}],7:[function(_dereq_,module,exports){

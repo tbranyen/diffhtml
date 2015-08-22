@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Attribute</title>
+</head>
+<body>
+  <textarea></textarea>
+
+  <button>Eval</button>
+
+  <script src="../../dist/diffhtml.js"></script>
+  <script>
+    var textarea = document.querySelector('textarea');
+
+    diff.addTransitionState('textChanged', function(el, old, current) {
+      if (el.matches('script')) {
+        eval(el.textContent);
+      }
+    });
+
+    document.querySelector('button').onclick = function() {
+      var newBody = document.body.cloneNode(true);
+      newBody.querySelectorAll('script')[1].innerHTML = textarea.value;
+      diff.element(document.body, newBody);
+    };
+  </script>
+</body>
+</html>

@@ -107,8 +107,8 @@ need backwards compatibility, consider using jQuery's `is`.
 You can do fun, highly specific, filters:
 
 ``` javascript
-addTransitionState('added', function(element) {
- // Fade in the main container after it's added.
+addTransitionState('attached', function(element) {
+ // Fade in the main container after it's attached into the DOM.
  if (element.matches('body main.container')) {
    $(element).stop(true, true).fadeIn();
  }
@@ -128,10 +128,10 @@ state callbacks matching the name, and so on for the callback.
 diff.removeTransitionState();
 
 // Removes by name.
-diff.removeTransitionState('added');
+diff.removeTransitionState('attached');
 
 // Removes by name and callback reference.
-diff.removeTransitionState('added', callbackReference);
+diff.removeTransitionState('attached', callbackReference);
 ```
 
 #### [Prollyfill](https://twitter.com/slexaxton/status/257543702124306432)
