@@ -1,6 +1,8 @@
 diffhtml
 --------
 
+[![Join the chat at https://gitter.im/tbranyen/diffhtml](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tbranyen/diffhtml?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 
 Allows you to easily swap out markup and have an intelligent virtual diff patch
