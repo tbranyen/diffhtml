@@ -633,7 +633,14 @@ if (hasWorker) {
   'startup(self);'].join('\n')], { type: 'application/javascript' });
 
   // Construct the worker and start it up.
-  var worker = new Worker(URL.createObjectURL(workerBlob));
+  try {
+    var worker = new Worker(URL.createObjectURL(workerBlob));
+  } catch (e) {
+    if (console.error) {
+      console.error("Failed to create diffhtml worker", e);
+    }
+    hasWorker = false;
+  }
 }
 
 /**
