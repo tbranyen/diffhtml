@@ -1,0 +1,10 @@
+{
+  "name": "diffhtml",
+  "version": "0.0.5",
+  "homepage": "https://github.com/tbranyen/diffhtml",
+  "authors": [
+    "Tim Branyen (@tbranyen)"
+  ],
+  "main": "dist/diffhtml.js",
+  "license": "MIT"
+}
