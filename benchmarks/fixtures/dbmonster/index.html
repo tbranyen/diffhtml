@@ -20,69 +20,41 @@
   <div>
     <table class="table table-striped latest-data">
       <tbody>
-        {%each rows as row%}
+        {%if databases%}
+        {%each databases as database name%}
         <tr class="ember-view" id="ember352">
-          <td class="dbname">{{ row.name }}</td>
+          <td class="dbname">{{ name }}</td>
 
           <td class="query-count">
-            {%if row.queryCount > 9%}
+            {%if database.queries.length > 9%}
             <span class= "label label-warning">
             {%else%}
             <span class= "label label-success">
             {%endif%}
-              {{ row.queryCount }}
+              {{ database.queries.length }}
             </span></td>
 
+          {%each database.queries|force 4 as query%}
           <td class="Query elapsed warn_long">
-            {{ row.col1 }}
+            {% if query %}
+            {{ query.elapsed }}
+            {% endif %}
 
             <div class="popover left">
               <div class="popover-content">
-                SELECT blah FROM something
+                {% if query %}
+                {{ query.query }}
+                {% endif %}
               </div>
 
               <div class="arrow"></div>
             </div>
           </td>
+          {%endeach%}
 
-          <td class="Query elapsed warn_long">
-            {{ row.col2 }}
-
-            <div class="popover left">
-              <div class="popover-content">
-                SELECT blah FROM something
-              </div>
-
-              <div class="arrow"></div>
-            </div>
-          </td>
-
-          <td class="Query elapsed warn_long">
-            {{ row.col3 }}
-
-            <div class="popover left">
-              <div class="popover-content">
-                &lt;IDLE&gt; in transaction
-              </div>
-
-              <div class="arrow"></div>
-            </div>
-          </td>
-
-          <td class="Query elapsed warn_long">
-            {{ row.col4 }}
-
-            <div class="popover left">
-              <div class="popover-content">
-                SELECT blah FROM something
-              </div>
-
-              <div class="arrow"></div>
-            </div>
-          </td>
-
+          {%--
           <td class="Query elapsed warn">
-            {{ row.col5 }}
+            {{ database.queries.4.elapsed }}
 
             <div class="popover left">
               <div class="popover-content">
@@ -92,8 +64,10 @@
               <div class="arrow"></div>
             </div>
           </td>
+          --%}
         </tr>
         {%endeach%}
+        {%endif%}
       </tbody>
     </table>
   </div>

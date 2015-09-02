@@ -5,6 +5,8 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports.makeElement = makeElement;
+exports.copyAttribute = copyAttribute;
+exports.copyElement = copyElement;
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
@@ -15,10 +17,11 @@ var _svg = _dereq_('./svg');
 var svg = _interopRequireWildcard(_svg);
 
 /**
- * makeElement
+ * Takes in a virtual descriptor and creates an HTML element. Set's the element
+ * into the cache.
  *
  * @param descriptor
- * @return
+ * @return {Element}
  */
 
 function makeElement(descriptor) {
@@ -38,6 +41,7 @@ function makeElement(descriptor) {
     if (descriptor.attributes && descriptor.attributes.length) {
       for (var i = 0; i < descriptor.attributes.length; i++) {
         var attribute = descriptor.attributes[i];
+
         if (isSvg) {
           element.setAttributeNS(null, attribute.name, attribute.value);
         } else {
@@ -53,10 +57,34 @@ function makeElement(descriptor) {
     }
   }
 
-  // Add to the nodes cache using the designated id.
+  element.__descriptor__ = descriptor;
+
+  // Add to the nodes cache using the designated uuid as the lookup key.
   _node.makeNode.nodes[descriptor.element] = element;
 
   return element;
+}
+
+function copyAttribute(attribute) {
+  return { name: attribute.name, value: attribute.value };
+}
+
+function copyElement(descriptor) {
+  var newObject = {
+    element: descriptor.element,
+    nodeName: descriptor.nodeName,
+    nodeValue: descriptor.nodeValue
+  };
+
+  if (descriptor.childNodes) {
+    newObject.childNodes = descriptor.childNodes.map(copyElement);
+  }
+
+  if (descriptor.attributes) {
+    newObject.attributes = descriptor.attributes.map(copyAttribute);
+  }
+
+  return newObject;
 }
 
 },{"./node":4,"./svg":5}],2:[function(_dereq_,module,exports){
@@ -107,6 +135,9 @@ exports.enableProllyfill = enableProllyfill;
 var _node = _dereq_('./node');
 
 var _transitions = _dereq_('./transitions');
+
+// We export the TransitionStateError constructor so that instanceof checks can
+// be made by those publicly consuming this library.
 
 var _errors = _dereq_('./errors');
 
@@ -244,12 +275,21 @@ function removeTransitionState(state, callback) {
 }
 
 /**
- * enableProllyfill
- *
- * @return
+ * By calling this function your browser environment is enhanced globally. This
+ * project would love to hit the standards track and allow all developers to
+ * benefit from the performance gains of DOM diffing.
  */
 
 function enableProllyfill() {
+  // Exposes the `TransitionStateError` constructor globally so that developers
+  // can instanceof check exception errors.
+  Object.defineProperty(window, 'TransitionStateError', {
+    configurable: true,
+
+    value: _errors.TransitionStateError
+  });
+
+  // Allows a developer to add transition state callbacks.
   Object.defineProperty(document, 'addTransitionState', {
     configurable: true,
 
@@ -258,6 +298,7 @@ function enableProllyfill() {
     }
   });
 
+  // Allows a developer to remove transition state callbacks.
   Object.defineProperty(document, 'removeTransitionState', {
     configurable: true,
 
@@ -266,6 +307,7 @@ function enableProllyfill() {
     }
   });
 
+  // Allows a developer to set the `innerHTML` of an element.
   Object.defineProperty(Element.prototype, 'diffInnerHTML', {
     configurable: true,
 
@@ -274,6 +316,7 @@ function enableProllyfill() {
     }
   });
 
+  // Allows a developer to set the `outerHTML` of an element.
   Object.defineProperty(Element.prototype, 'diffOuterHTML', {
     configurable: true,
 
@@ -282,6 +325,7 @@ function enableProllyfill() {
     }
   });
 
+  // Allows a developer to diff the current element with a new element.
   Object.defineProperty(Element.prototype, 'diffElement', {
     configurable: true,
 
@@ -324,165 +368,161 @@ var _worker = _dereq_('./worker');
 var _worker2 = _interopRequireDefault(_worker);
 
 var pools = _utilPools.pools;
-var poolCount = 10000;
-var nodes = makeNode.nodes = {};
 
-// Initialize with a reasonable amount of objects.
-(0, _utilPools.initializePools)(poolCount);
+// Cache created nodes inside this object.
+makeNode.nodes = {};
 
-var push = Array.prototype.push;
 var slice = Array.prototype.slice;
-var filter = Array.prototype.filter;
+var forEach = Array.prototype.forEach;
 
 /**
- * syncNode
+ * Synchronizes changes from the newTree into the oldTree.
  *
- * @param virtualNode
- * @param liveNode
- * @return
+ * @param oldTree
+ * @param newTree
  */
 
-function syncNode(virtualNode, liveNode) {
+function syncNode(oldTree, newTree) {
   var patches = this;
 
-  // For now always sync the children.  In the future we'll be smarter about
-  // when this is necessary.
-  var oldChildNodes = virtualNode.childNodes;
+  var oldChildNodes = oldTree.childNodes;
   var oldChildNodesLength = oldChildNodes ? oldChildNodes.length : 0;
+  var oldElement = oldTree.element;
 
-  if (!liveNode) {
-    patches.push({ __do__: -1, element: virtualNode.element });
+  if (!newTree) {
+    patches[patches.length] = { __do__: -1, element: oldElement };
+    oldChildNodes.splice(0, oldChildNodesLength);
 
-    virtualNode.childNodes.splice(0, oldChildNodesLength);
     return;
   }
 
-  var nodeValue = liveNode.nodeValue;
-
-  // Filter down the childNodes to only what we care about.
-  var childNodes = liveNode.childNodes;
-  var newChildNodesLength = childNodes ? childNodes.length : 0;
+  var nodeValue = newTree.nodeValue;
+  var childNodes = newTree.childNodes;
+  var childNodesLength = childNodes ? childNodes.length : 0;
+  var newElement = newTree.element;
 
   // If the element we're replacing is totally different from the previous
   // replace the entire element, don't bother investigating children.
-  if (virtualNode.nodeName !== liveNode.nodeName) {
+  if (oldTree.nodeName !== newTree.nodeName) {
     return;
   }
 
   // Replace text node values if they are different.
-  if (liveNode.nodeName === '#text' && virtualNode.nodeName === '#text') {
+  if (newTree.nodeName === '#text' && oldTree.nodeName === '#text') {
     // Text changed.
-    if (virtualNode.nodeValue !== liveNode.nodeValue) {
-      virtualNode.nodeValue = liveNode.nodeValue;
+    if (oldTree.nodeValue !== newTree.nodeValue) {
+      oldTree.nodeValue = newTree.nodeValue;
 
-      patches.push({
+      patches[patches.length] = {
         __do__: 3,
-        element: virtualNode.element,
+        element: oldElement,
         value: nodeValue
-      });
+      };
     }
 
     return;
   }
 
   // Most common additive elements.
-  if (newChildNodesLength > oldChildNodesLength) {
+  if (childNodesLength > oldChildNodesLength) {
     // Store elements in a DocumentFragment to increase performance and be
     // generally simplier to work with.
-    var fragment = pools.array.get();
+    var _fragment = [];
 
-    for (var i = oldChildNodesLength; i < newChildNodesLength; i++) {
+    for (var _i = oldChildNodesLength; _i < childNodesLength; _i++) {
+      childNodes[_i] = (0, _element.copyElement)(childNodes[_i]);
+
       // Internally add to the tree.
-      virtualNode.childNodes.push(childNodes[i]);
+      oldChildNodes[oldChildNodes.length] = childNodes[_i];
 
       // Add to the document fragment.
-      fragment.push(childNodes[i]);
+      _fragment[_fragment.length] = childNodes[_i];
     }
 
     // Assign the fragment to the patches to be injected.
-    patches.push({
+    patches[patches.length] = {
       __do__: 1,
-      element: virtualNode.element,
-      fragment: fragment
-    });
+      element: oldElement,
+      fragment: _fragment
+    };
   }
 
   // Replace elements if they are different.
-  for (var i = 0; i < newChildNodesLength; i++) {
-    if (virtualNode.childNodes[i].nodeName !== childNodes[i].nodeName) {
+  for (var i = 0; i < childNodesLength; i++) {
+    if (oldTree.childNodes[i].nodeName !== childNodes[i].nodeName) {
       // Add to the patches.
-      patches.push({
+      patches[patches.length] = {
         __do__: 1,
-        old: virtualNode.childNodes[i],
+        old: oldTree.childNodes[i],
         'new': childNodes[i]
-      });
+      };
 
       // Replace the internal tree's point of view of this element.
-      virtualNode.childNodes[i] = childNodes[i];
+      oldTree.childNodes[i] = (0, _element.copyElement)(childNodes[i]);
     }
   }
 
   // Remove these elements.
-  if (oldChildNodesLength > newChildNodesLength) {
+  if (oldChildNodesLength > childNodesLength) {
     // Elements to remove.
-    var toRemove = slice.call(virtualNode.childNodes, newChildNodesLength, oldChildNodesLength);
+    var toRemove = slice.call(oldChildNodes, childNodesLength, oldChildNodesLength);
 
-    for (var i = 0; i < toRemove.length; i++) {
+    for (var _i2 = 0; _i2 < toRemove.length; _i2++) {
       // Remove the element, this happens before the splice so that we still
       // have access to the element.
-      patches.push({ __do__: 1, old: toRemove[i].element });
+      patches[patches.length] = { __do__: 1, old: toRemove[_i2].element };
     }
 
-    virtualNode.childNodes.splice(newChildNodesLength, oldChildNodesLength - newChildNodesLength);
+    oldChildNodes.splice(childNodesLength, oldChildNodesLength - childNodesLength);
   }
 
   // Synchronize attributes
-  var attributes = liveNode.attributes;
+  var attributes = newTree.attributes;
 
   if (attributes) {
-    var oldLength = virtualNode.attributes.length;
+    var oldLength = oldTree.attributes.length;
     var newLength = attributes.length;
 
     // Start with the most common, additive.
     if (newLength > oldLength) {
       var toAdd = slice.call(attributes, oldLength);
 
-      for (var i = 0; i < toAdd.length; i++) {
+      for (var _i3 = 0; _i3 < toAdd.length; _i3++) {
         var change = {
           __do__: 2,
-          element: virtualNode.element,
-          name: toAdd[i].name,
-          value: toAdd[i].value
+          element: oldElement,
+          name: toAdd[_i3].name,
+          value: toAdd[_i3].value
         };
 
         // Push the change object into into the virtual tree.
-        virtualNode.attributes.push({
-          name: toAdd[i].name,
-          value: toAdd[i].value
-        });
+        oldTree.attributes[oldTree.attributes.length] = {
+          name: toAdd[_i3].name,
+          value: toAdd[_i3].value
+        };
 
         // Add the change to the series of patches.
-        patches.push(change);
+        patches[patches.length] = change;
       }
     }
 
     // Check for removals.
     if (oldLength > newLength) {
-      var toRemove = slice.call(virtualNode.attributes, newLength);
+      var toRemove = slice.call(oldTree.attributes, newLength);
 
-      for (var i = 0; i < toRemove.length; i++) {
+      for (var _i4 = 0; _i4 < toRemove.length; _i4++) {
         var change = {
           __do__: 2,
-          element: virtualNode.element,
-          name: toRemove[i].name,
+          element: oldElement,
+          name: toRemove[_i4].name,
           value: undefined
         };
 
         // Remove the attribute from the virtual node.
-        virtualNode.attributes.splice(i, 1);
+        oldTree.attributes.splice(_i4, 1);
 
         // Add the change to the series of patches.
-        patches.push(change);
+        patches[patches.length] = change;
       }
     }
 
@@ -490,32 +530,32 @@ function syncNode(virtualNode, liveNode) {
     var toModify = attributes;
 
     for (var i = 0; i < toModify.length; i++) {
-      var oldAttrValue = virtualNode.attributes[i] && virtualNode.attributes[i].value;
+      var oldAttrValue = oldTree.attributes[i] && oldTree.attributes[i].value;
       var newAttrValue = attributes[i] && attributes[i].value;
 
       // Only push in a change if the attribute or value changes.
       if (oldAttrValue !== newAttrValue) {
         var change = {
           __do__: 2,
-          element: virtualNode.element,
+          element: oldElement,
           name: toModify[i].name,
           value: toModify[i].value
         };
 
         // Replace the attribute in the virtual node.
-        virtualNode.attributes[i].name = toModify[i].name;
-        virtualNode.attributes[i].value = toModify[i].value;
+        oldTree.attributes[i].name = toModify[i].name;
+        oldTree.attributes[i].value = toModify[i].value;
 
         // Add the change to the series of patches.
-        patches.push(change);
+        patches[patches.length] = change;
       }
     }
   }
 
   // Sync each current node.
-  for (var i = 0; i < virtualNode.childNodes.length; i++) {
-    if (virtualNode.childNodes[i] !== childNodes[i]) {
-      syncNode.call(patches, virtualNode.childNodes[i], childNodes[i]);
+  for (var _i5 = 0; _i5 < oldChildNodes.length; _i5++) {
+    if (oldChildNodes[_i5] !== childNodes[_i5]) {
+      syncNode.call(patches, oldTree.childNodes[_i5], childNodes[_i5]);
     }
   }
 }
@@ -552,7 +592,7 @@ function makeNode(node) {
   var id = pools.uuid.get();
 
   // Add to internal lookup.
-  nodes[id] = node;
+  makeNode.nodes[id] = node;
 
   // Save a reference to this object.
   node.__node__ = entry;
@@ -572,10 +612,10 @@ function makeNode(node) {
 
     if (attributesLength) {
       for (var i = 0; i < attributesLength; i++) {
-        push.call(entry.attributes, {
+        entry.attributes[entry.attributes] = {
           name: attributes[i].name,
           value: attributes[i].value
-        });
+        };
       }
     }
   }
@@ -591,7 +631,7 @@ function makeNode(node) {
       newNode = makeNode(childNodes[i]);
 
       if (newNode) {
-        entry.childNodes.push(newNode);
+        entry.childNodes[entry.childNodes.length] = newNode;
       }
     }
   }
@@ -606,7 +646,7 @@ if (hasWorker) {
   // Construct the worker reusing code already organized into modules.
   var workerBlob = new Blob([[
   // Reusable Array methods.
-  'var slice = Array.prototype.slice;', 'var filter = Array.prototype.filter;',
+  'var slice = Array.prototype.slice;',
 
   // Add a namespace to attach pool methods to.
   'var pools = {};', 'var nodes = 0;',
@@ -615,7 +655,7 @@ if (hasWorker) {
   _utilUuid.uuid,
 
   // Add in pool manipulation methods.
-  _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + poolCount + ');',
+  _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + _utilPools.count + ');',
 
   // Add in Node manipulation.
   syncNode,
@@ -633,7 +673,14 @@ if (hasWorker) {
   'startup(self);'].join('\n')], { type: 'application/javascript' });
 
   // Construct the worker and start it up.
-  var worker = new Worker(URL.createObjectURL(workerBlob));
+  try {
+    var worker = new Worker(URL.createObjectURL(workerBlob));
+  } catch (e) {
+    if (console && console.info) {
+      console.info("Failed to create diffhtml worker", e);
+    }
+    hasWorker = false;
+  }
 }
 
 /**
@@ -643,16 +690,10 @@ if (hasWorker) {
  * @return
  */
 function getElement(ref) {
-  var element = ref.element || ref;
+  var uuid = ref.element || ref;
+  var element = makeNode.nodes[uuid] || (0, _element.makeElement)(ref);
 
-  // Already created.
-  if (element in makeNode.nodes) {
-    return makeNode.nodes[element];
-  }
-  // Need to create.
-  else {
-      return (0, _element.makeElement)(ref);
-    }
+  return { element: element, uuid: uuid };
 }
 
 /**
@@ -670,7 +711,7 @@ function processPatches(element, e) {
   };
 
   var attachedCallback = function attachedCallback(elementDescriptor) {
-    var el = getElement(elementDescriptor);
+    var el = getElement(elementDescriptor).element;
 
     this.fragment.appendChild(el);
 
@@ -689,7 +730,7 @@ function processPatches(element, e) {
   };
 
   var titleCallback = function titleCallback(elementDescriptor) {
-    var el = getElement(elementDescriptor);
+    var el = getElement(elementDescriptor).element;
 
     // Ensure the title is set correctly.
     if (el.tagName === 'title') {
@@ -703,21 +744,25 @@ function processPatches(element, e) {
     var patch = patches[i];
     var elementId = undefined,
         oldId = undefined,
-        newId = undefined;
+        newId = undefined,
+        result = undefined;
 
     if (patch.element) {
-      patch.element = getElement(patch.element);
-      elementId = patch.element;
+      result = getElement(patch.element);
+      patch.element = result.element;
+      elementId = result.uuid;
     }
 
     if (patch.old) {
-      patch.old = getElement(patch.old);
-      oldId = patch.old.element;
+      result = getElement(patch.old);
+      patch.old = result.element;
+      oldId = result.uuid;
     }
 
     if (patch['new']) {
-      patch['new'] = getElement(patch['new']);
-      newId = patch['new'].element;
+      result = getElement(patch['new']);
+      patch['new'] = result.element;
+      newId = result.uuid;
     }
 
     // Replace the entire Node.
@@ -752,8 +797,10 @@ function processPatches(element, e) {
             }
 
             patch.old.parentNode.removeChild(patch.old);
-            makeNode.nodes[oldId] = null;
-            delete makeNode.nodes[oldId];
+
+            pools.uuid.free(oldId);
+
+            makeNode.nodes[oldId] = undefined;
           }
 
           // Replace
@@ -792,8 +839,10 @@ function processPatches(element, e) {
               }
 
               patch.old.parentNode.replaceChild(patch['new'], patch.old);
-              makeNode.nodes[oldId] = null;
-              delete makeNode.nodes[oldId];
+
+              pools.uuid.free(oldId);
+
+              makeNode.nodes[oldId] = undefined;
             }
       }
 
@@ -869,14 +918,15 @@ function patchNode(element, newHTML, options) {
     return;
   }
 
-  //TODO New error here
-  //if (typeof newHTML !== 'string') {
-  //  throw new Error('Invalid type passed to diffHTML, expected String');
-  //}
-
   // Only calculate the parent's initial state one time.
-  if (!element.__old_tree__) {
-    element.__old_tree__ = makeNode(element);
+  var oldTree = null;
+
+  if (options.inner && element._innerHTML !== element.innerHTML) {
+    oldTree = makeNode(element);
+  } else if (!options.inner && element._outerHTML !== element.outerHTML) {
+    oldTree = makeNode(element);
+  } else if (element._textContent !== element.textContent) {
+    oldTree = makeNode(element);
   }
   // InnerHTML is the same.
   else if (options.inner && element.innerHTML === newHTML) {
@@ -891,9 +941,11 @@ function patchNode(element, newHTML, options) {
   // take a bit to startup and we want to show changes as soon as possible.
   if (options.enableWorker && hasWorker && element.__has_rendered__) {
     // Attach all properties here to transport.
-    var transferObject = {
-      oldTree: element.__old_tree__
-    };
+    var transferObject = {};
+
+    if (oldTree) {
+      transferObject.oldTree = oldTree;
+    }
 
     if (typeof newHTML !== 'string') {
       transferObject.newTree = makeNode(newHTML);
@@ -908,6 +960,11 @@ function patchNode(element, newHTML, options) {
       // Wait for the worker to finish processing and then apply the patchset.
       worker.onmessage = function (e) {
         processPatches(element, e);
+
+        element._innerHTML = element.innerHTML;
+        element._outerHTML = element.outerHTML;
+        element._textContent = element.textContent;
+
         element.__is_rendering__ = false;
       };
 
@@ -921,7 +978,7 @@ function patchNode(element, newHTML, options) {
     var newBuffer = buffers.stringToBuffer(newHTML);
 
     // Set the offset to be this byte length.
-    offset = newBuffer.byteLength;
+    offset = newHTML.length;
 
     // Calculate the bytelength for the transfer buffer, contains one extra for
     // the offset.
@@ -935,7 +992,7 @@ function patchNode(element, newHTML, options) {
     transferBuffer.set(newBuffer, 0);
 
     // Add properties to send to worker.
-    transferObject.offset = newBuffer.byteLength;
+    transferObject.offset = offset;
     transferObject.buffer = transferBuffer.buffer;
     transferObject.isInner = options.inner;
 
@@ -949,46 +1006,51 @@ function patchNode(element, newHTML, options) {
     // Wait for the worker to finish processing and then apply the patchset.
     worker.onmessage = function (e) {
       processPatches(element, e);
+
+      element._innerHTML = element.innerHTML;
+      element._outerHTML = element.outerHTML;
+      element._textContent = element.textContent;
+
       element.__is_rendering__ = false;
     };
   } else if (!options.enableWorker || !hasWorker || !element.__has_rendered__) {
-    var patches = [];
-    var oldTree = element.__old_tree__;
+    var data = [];
     var newTree = typeof newHTML === 'string' ? (0, _utilParser.parseHTML)(newHTML, options.inner) : makeNode(newHTML);
 
     if (options.inner) {
       var childNodes = newTree;
 
       newTree = {
-        attributes: oldTree.attributes,
         childNodes: childNodes,
+
+        attributes: oldTree.attributes,
         element: oldTree.element,
         nodeName: oldTree.nodeName,
         nodeValue: oldTree.nodeValue
       };
     }
 
-    var oldNodeName = oldTree.nodeName || '';
+    var oldTreeName = oldTree.nodeName || '';
     var newNodeName = newTree && newTree.nodeName;
 
     // If the element node types match, try and compare them.
-    if (oldNodeName === newNodeName) {
+    if (oldTreeName === newNodeName) {
       // Synchronize the tree.
-      syncNode.call(patches, element.__old_tree__, newTree);
+      syncNode.call(data, oldTree, newTree);
     }
     // Otherwise replace the top level elements.
     else if (newHTML) {
-        patches.push({
+        data[data.length] = {
           __do__: 0,
           old: oldTree,
           'new': newTree
-        });
+        };
 
-        element.__old_tree__ = newTree;
+        oldTree = newTree;
       }
 
-    // Process the patches immediately.
-    processPatches(element, { data: patches });
+    // Process the data immediately.
+    processPatches(element, { data: data });
 
     // Mark this element as initially rendered.
     if (!element.__has_rendered__) {
@@ -998,8 +1060,15 @@ function patchNode(element, newHTML, options) {
     // Element has stopped rendering.
     element.__is_rendering__ = false;
 
+    // Free all memory after each iteration.
+    pools.object.freeAll();
+    pools.array.freeAll();
+
+    // TODO Figure this mess out.
+    console.log(pools.uuid._allocated.length);
+
     // Clean out the patches array.
-    patches.length = 0;
+    data.length = 0;
   }
 }
 
@@ -1060,12 +1129,7 @@ var transitionStates = {
 exports.transitionStates = transitionStates;
 
 },{}],7:[function(_dereq_,module,exports){
-/**
- * Converts a string to a buffer.
- *
- * @param string
- * @return {Uint16Array}
- */
+// Create a default buffer at length 1024.
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1073,9 +1137,19 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.stringToBuffer = stringToBuffer;
 exports.bufferToString = bufferToString;
+var buffer = new Uint16Array(0);
+
+/**
+ * Converts a string to a buffer.
+ *
+ * @param string
+ * @return {Uint16Array}
+ */
 
 function stringToBuffer(string) {
-  var buffer = new Uint16Array(string.length);
+  if (string.length > buffer.length) {
+    buffer = new Uint16Array(string.length);
+  }
 
   for (var i = 0; i < string.length; i++) {
     buffer[i] = string.codePointAt(i);
@@ -1091,8 +1165,8 @@ function stringToBuffer(string) {
  * @return {String}
  */
 
-function bufferToString(buffer) {
-  var tmpBuffer = new Uint16Array(buffer, 0, buffer.length);
+function bufferToString(buffer, offset) {
+  var tmpBuffer = new Uint16Array(buffer, 0, offset);
   var string = '';
 
   for (var i = 0; i < tmpBuffer.length; i++) {
@@ -1145,6 +1219,7 @@ function makeParser() {
   function createIndexes(alphaIndex, charIndex) {
     var i = ENTITIES.length;
     var _results = [];
+
     while (i--) {
       var e = ENTITIES[i];
       var alpha = e[0];
@@ -1152,16 +1227,19 @@ function makeParser() {
       var chr = chars[0];
       var addChar = chr < 32 || chr > 126 || chr === 62 || chr === 60 || chr === 38 || chr === 34 || chr === 39;
       var charInfo;
+
       if (addChar) {
         charInfo = charIndex[chr] = charIndex[chr] || {};
       }
+
       if (chars[1]) {
         var chr2 = chars[1];
+
         alphaIndex[alpha] = String.fromCharCode(chr) + String.fromCharCode(chr2);
-        _results.push(addChar && (charInfo[chr2] = alpha));
+        _results[_results.length] = addChar && (charInfo[chr2] = alpha);
       } else {
         alphaIndex[alpha] = String.fromCharCode(chr);
-        _results.push(addChar && (charInfo[''] = alpha));
+        _results[_results.length] = addChar && (charInfo[''] = alpha);
       }
     }
   }
@@ -1170,9 +1248,11 @@ function makeParser() {
     if (str.length === 0) {
       return '';
     }
+
     return str.replace(/&(#?[\w\d]+);?/g, function (s, entity) {
       var chr;
-      if (entity.charAt(0) === "#") {
+
+      if (entity.charAt(0) === '#') {
         var code = entity.charAt(1) === 'x' ? parseInt(entity.substr(2).toLowerCase(), 16) : parseInt(entity.substr(1));
 
         if (!(isNaN(code) || code < -32768 || code > 65535)) {
@@ -1181,19 +1261,101 @@ function makeParser() {
       } else {
         chr = alphaIndex[entity];
       }
+
       return chr || s;
     });
   }
+
+  var kMarkupPattern = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
+  var kAttributePattern = /\b(id|class)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
+
+  var kBlockElements = {
+    div: true,
+    p: true,
+    li: true,
+    td: true,
+    section: true,
+    br: true
+  };
+
+  var kSelfClosingElements = {
+    meta: true,
+    img: true,
+    link: true,
+    input: true,
+    area: true,
+    br: true,
+    hr: true
+  };
+
+  var kElementsClosedByOpening = {
+    li: {
+      li: true
+    },
+
+    p: {
+      p: true, div: true
+    },
+
+    td: {
+      td: true, th: true
+    },
+
+    th: {
+      td: true, th: true
+    }
+  };
+
+  var kElementsClosedByClosing = {
+    li: {
+      ul: true, ol: true
+    },
+
+    a: {
+      div: true
+    },
+
+    b: {
+      div: true
+    },
+
+    i: {
+      div: true
+    },
+
+    p: {
+      div: true
+    },
+
+    td: {
+      tr: true, table: true
+    },
+
+    th: {
+      tr: true, table: true
+    }
+  };
+
+  var kBlockTextElements = {
+    script: true,
+    noscript: true,
+    style: true,
+    pre: true
+  };
+
+  /**
+   * Cache to store generated match functions
+   * @type {Object}
+   */
+  var pMatchFunctionCache = {};
 
   /**
    * Node Class as base class for TextNode and HTMLElement.
    */
   function Node() {}
-  Node.prototype = {
-    constructor: Node,
-    ELEMENT_NODE: 1,
-    TEXT_NODE: 3
-  };
+
+  Node.prototype.ELEMENT_NODE = 1;
+  Node.prototype.TEXT_NODE = 3;
 
   Node.ELEMENT_NODE = 1;
   Node.TEXT_NODE = 3;
@@ -1203,61 +1365,15 @@ function makeParser() {
    * @param {string} value [description]
    */
   function TextNode(value) {
-    this.nodeValue = decode(value);
-    this.nodeName = '#text';
-    this.element = pools.uuid.get();
+    var instance = pools.object.get();
+
+    instance.nodeValue = decode(value);
+    instance.nodeName = '#text';
+    instance.element = pools.uuid.get();
+    instance.nodeType = 3;
+
+    return instance;
   }
-
-  TextNode.prototype = Object.defineProperties({
-    constructor: TextNode,
-    __proto__: Node.prototype,
-
-    /**
-     * Node Type declaration.
-     * @type {Number}
-     */
-    nodeType: Node.TEXT_NODE
-
-  }, {
-    text: { /**
-             * Get unescaped text value of current node and its children.
-             * @return {string} text content
-             */
-
-      get: function get() {
-        return this.nodeValue;
-      },
-      configurable: true,
-      enumerable: true
-    },
-    isWhitespace: {
-
-      /**
-       * Detect if the node contains only white space.
-       * @return {bool}
-       */
-
-      get: function get() {
-        return (/^(\s|&nbsp;)*$/.test(this.nodeValue)
-        );
-      },
-      configurable: true,
-      enumerable: true
-    }
-  });
-
-  var kBlockElements = {
-    div: true,
-    p: true,
-    // ul: true,
-    // ol: true,
-    li: true,
-    // table: true,
-    // tr: true,
-    td: true,
-    section: true,
-    br: true
-  };
 
   /**
    * HTMLElement, which contains a set of children.
@@ -1270,39 +1386,27 @@ function makeParser() {
    */
   function HTMLElement(name, keyAttrs, rawAttrs) {
     this.nodeName = name;
-    this.attributes = [];
+    this.attributes = pools.array.get();
 
     if (rawAttrs) {
       var re = /\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
 
       for (var match; match = re.exec(rawAttrs);) {
-        var attr = {};
+        var attr = pools.object.get();
+
         attr.name = match[1];
         attr.value = match[3] || match[4] || match[5];
-        this.attributes.push(attr);
+
+        this.attributes[this.attributes.length] = attr;
       }
     }
 
-    // this.parentNode = null;
-    this.childNodes = [];
+    this.childNodes = pools.array.get();
     this.element = pools.uuid.get();
   }
-  HTMLElement.prototype = {
-    constructor: HTMLElement,
-    __proto__: Node.prototype,
 
-    /**
-     * Node Type declaration.
-     * @type {Number}
-     */
-    nodeType: Node.ELEMENT_NODE
-  };
-
-  /**
-   * Cache to store generated match functions
-   * @type {Object}
-   */
-  var pMatchFunctionCache = {};
+  HTMLElement.prototype = Object.create(Node.prototype);
+  HTMLElement.prototype.nodeType = Node.ELEMENT_NODE;
 
   /**
    * Matcher class to make CSS match
@@ -1324,6 +1428,7 @@ function makeParser() {
     });
     this.nextMatch = 0;
   }
+
   Matcher.prototype = Object.defineProperties({
     /**
      * Trying to advance match pointer
@@ -1337,6 +1442,7 @@ function makeParser() {
       }
       return false;
     },
+
     /**
      * Rewind the match pointer
      */
@@ -1364,51 +1470,11 @@ function makeParser() {
       enumerable: true
     }
   });
-  /**
-   * flush cache to free memory
-   */
-  Matcher.flushCache = function () {
-    pMatchFunctionCache = {};
-  };
-
-  var kMarkupPattern = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
-  var kAttributePattern = /\b(id|class)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
-  var kSelfClosingElements = {
-    meta: true,
-    img: true,
-    link: true,
-    input: true,
-    area: true,
-    br: true,
-    hr: true
-  };
-  var kElementsClosedByOpening = {
-    li: { li: true },
-    p: { p: true, div: true },
-    td: { td: true, th: true },
-    th: { td: true, th: true }
-  };
-  var kElementsClosedByClosing = {
-    li: { ul: true, ol: true },
-    a: { div: true },
-    b: { div: true },
-    i: { div: true },
-    p: { div: true },
-    td: { tr: true, table: true },
-    th: { tr: true, table: true }
-  };
-  var kBlockTextElements = {
-    script: true,
-    noscript: true,
-    style: true,
-    pre: true
-  };
 
   /**
    * Parses HTML and returns a root element
    */
   var htmlParser = {
-
     Matcher: Matcher,
     Node: Node,
     HTMLElement: HTMLElement,
@@ -1420,16 +1486,17 @@ function makeParser() {
      * @return {HTMLElement}      root element
      */
     parse: function parse(data, options) {
+      var rootObject = pools.object.get();
 
-      var root = new HTMLElement(null, {});
+      var root = new HTMLElement(null, rootObject);
       var currentParent = root;
       var stack = [root];
       var lastTextPos = -1;
 
-      options = options || {};
+      options = options || pools.object.get();
 
       if (data.indexOf('<') === -1 && data) {
-        currentParent.childNodes.push(new TextNode(data));
+        currentParent.childNodes[currentParent.childNodes.length] = TextNode(data);
         return root;
       }
 
@@ -1439,7 +1506,7 @@ function makeParser() {
             // if has content
             text = data.substring(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
             if (text.trim()) {
-              currentParent.childNodes.push(new TextNode(text));
+              currentParent.childNodes[currentParent.childNodes.length] = TextNode(text);
             }
           }
         }
@@ -1452,7 +1519,7 @@ function makeParser() {
 
         if (!match[1]) {
           // not </ tags
-          var attrs = {};
+          var attrs = pools.object.get();
           for (var attMatch; attMatch = kAttributePattern.exec(match[3]);) attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];
           if (!match[4] && kElementsClosedByOpening[currentParent.nodeName]) {
             if (kElementsClosedByOpening[currentParent.nodeName][match[2]]) {
@@ -1473,7 +1540,7 @@ function makeParser() {
               } else {
                 text = data.substring(kMarkupPattern.lastIndex, index);
               }
-              if (text.length > 0) currentParent.childNodes.push(new TextNode(text));
+              if (text.length > 0) currentParent.childNodes[currentParent.childNodes.length] = TextNode(text);
             }
             if (index == -1) {
               lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
@@ -1508,7 +1575,6 @@ function makeParser() {
 
       return root;
     }
-
   };
 
   return htmlParser;
@@ -1530,8 +1596,10 @@ var _uuid2 = _dereq_('./uuid');
 var uuid = _uuid2.uuid;
 
 var pools = {};
-
 exports.pools = pools;
+var count = 10000;
+
+exports.count = count;
 
 function createPool(size, name, fill) {
   var _free = [];
@@ -1578,7 +1646,7 @@ function createPool(size, name, fill) {
 
         if (typeof obj === 'string') {
           var idx = index[obj];
-          delete index[obj];
+          index[obj] = undefined;
         } else {
           var idx = index.get(obj);
           // Remove from index map.
@@ -1611,7 +1679,7 @@ function createPool(size, name, fill) {
     free: function free(obj) {
       if (typeof obj === 'string') {
         var idx = index[obj];
-        delete index[obj];
+        index[obj] = undefined;
       } else {
         var idx = index.get(obj);
         // Remove from index map.
@@ -1626,9 +1694,9 @@ function createPool(size, name, fill) {
       }
 
       // Clean.
-      if (obj.length) {
+      if (typeof obj !== 'string' && obj.length) {
         obj.length = 0;
-      } else {
+      } else if (typeof obj !== 'string') {
         for (var key in obj) {
           obj[key] = void 0;
         }
@@ -1657,6 +1725,9 @@ function initializePools(COUNT) {
     return uuid();
   });
 }
+
+// Create 10k items of each type.
+initializePools(count);
 
 },{"./uuid":10}],10:[function(_dereq_,module,exports){
 /**
@@ -1707,8 +1778,8 @@ function startup(worker) {
     var transferBuffer = data.buffer;
     var isInner = data.isInner;
 
-    if (!oldTree) {
-      // Keep a virtual tree in memory to diff against.
+    // Keep a virtual tree in memory to diff against.
+    if (data.oldTree) {
       oldTree = data.oldTree;
     }
 
@@ -1717,8 +1788,7 @@ function startup(worker) {
     if (data.newTree) {
       newTree = data.newTree;
     } else {
-      var newBuffer = transferBuffer.slice(0, offset);
-      var newHTML = bufferToString(newBuffer);
+      var newHTML = bufferToString(transferBuffer, offset);
 
       // Calculate a new tree.
       newTree = parseHTML(newHTML, isInner);
@@ -1727,8 +1797,9 @@ function startup(worker) {
         var childNodes = newTree;
 
         newTree = {
-          attributes: oldTree.attributes,
           childNodes: childNodes,
+
+          attributes: oldTree.attributes,
           element: oldTree.element,
           nodeName: oldTree.nodeName,
           nodeValue: oldTree.nodeValue
@@ -1744,7 +1815,6 @@ function startup(worker) {
     worker.postMessage(patches);
 
     // Cleanup sync node allocations.
-    //pools.uuid.freeAll(); // TODO Wipe out the node cache when free'ing.
     pools.object.freeAll();
     pools.array.freeAll();
 

@@ -32,8 +32,8 @@
     </svg>
   </script>
 
-  <script src="../dist/diffhtml.js"></script>
-  <script src="../benchmarks/node_modules/combyne/dist/combyne.js"></script>
+  <script src="../../dist/diffhtml.js"></script>
+  <script src="../../benchmarks/node_modules/combyne/dist/combyne.js"></script>
 
   <script>
     var template = combyne(document.querySelector('[type=template]').innerHTML);
@@ -61,7 +61,9 @@
         };
       }
 
-      diff.outerHTML(svg, template.render({ rects: rects }));
+      diff.outerHTML(svg, template.render({ rects: rects }), { 
+        enableWorker: true 
+      });
 
       //window.setTimeout(function() {
         requestAnimationFrame(render);
