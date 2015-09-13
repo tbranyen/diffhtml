@@ -57,8 +57,6 @@ function makeElement(descriptor) {
     }
   }
 
-  element.__descriptor__ = descriptor;
-
   // Add to the nodes cache using the designated uuid as the lookup key.
   _node.makeNode.nodes[descriptor.element] = element;
 
@@ -384,7 +382,6 @@ var forEach = Array.prototype.forEach;
 
 function syncNode(oldTree, newTree) {
   var patches = this;
-
   var oldChildNodes = oldTree.childNodes;
   var oldChildNodesLength = oldChildNodes ? oldChildNodes.length : 0;
   var oldElement = oldTree.element;
@@ -429,14 +426,14 @@ function syncNode(oldTree, newTree) {
     // generally simplier to work with.
     var _fragment = [];
 
-    for (var _i = oldChildNodesLength; _i < childNodesLength; _i++) {
-      childNodes[_i] = (0, _element.copyElement)(childNodes[_i]);
+    for (var i = oldChildNodesLength; i < childNodesLength; i++) {
+      childNodes[i] = (0, _element.copyElement)(childNodes[i]);
 
       // Internally add to the tree.
-      oldChildNodes[oldChildNodes.length] = childNodes[_i];
+      oldChildNodes[oldChildNodes.length] = childNodes[i];
 
       // Add to the document fragment.
-      _fragment[_fragment.length] = childNodes[_i];
+      _fragment[_fragment.length] = childNodes[i];
     }
 
     // Assign the fragment to the patches to be injected.
@@ -467,10 +464,10 @@ function syncNode(oldTree, newTree) {
     // Elements to remove.
     var toRemove = slice.call(oldChildNodes, childNodesLength, oldChildNodesLength);
 
-    for (var _i2 = 0; _i2 < toRemove.length; _i2++) {
+    for (var i = 0; i < toRemove.length; i++) {
       // Remove the element, this happens before the splice so that we still
       // have access to the element.
-      patches[patches.length] = { __do__: 1, old: toRemove[_i2].element };
+      patches[patches.length] = { __do__: 1, old: toRemove[i].element };
     }
 
     oldChildNodes.splice(childNodesLength, oldChildNodesLength - childNodesLength);
@@ -487,18 +484,18 @@ function syncNode(oldTree, newTree) {
     if (newLength > oldLength) {
       var toAdd = slice.call(attributes, oldLength);
 
-      for (var _i3 = 0; _i3 < toAdd.length; _i3++) {
+      for (var i = 0; i < toAdd.length; i++) {
         var change = {
           __do__: 2,
           element: oldElement,
-          name: toAdd[_i3].name,
-          value: toAdd[_i3].value
+          name: toAdd[i].name,
+          value: toAdd[i].value
         };
 
         // Push the change object into into the virtual tree.
         oldTree.attributes[oldTree.attributes.length] = {
-          name: toAdd[_i3].name,
-          value: toAdd[_i3].value
+          name: toAdd[i].name,
+          value: toAdd[i].value
         };
 
         // Add the change to the series of patches.
@@ -510,16 +507,16 @@ function syncNode(oldTree, newTree) {
     if (oldLength > newLength) {
       var toRemove = slice.call(oldTree.attributes, newLength);
 
-      for (var _i4 = 0; _i4 < toRemove.length; _i4++) {
+      for (var i = 0; i < toRemove.length; i++) {
         var change = {
           __do__: 2,
           element: oldElement,
-          name: toRemove[_i4].name,
+          name: toRemove[i].name,
           value: undefined
         };
 
         // Remove the attribute from the virtual node.
-        oldTree.attributes.splice(_i4, 1);
+        oldTree.attributes.splice(i, 1);
 
         // Add the change to the series of patches.
         patches[patches.length] = change;
@@ -553,9 +550,9 @@ function syncNode(oldTree, newTree) {
   }
 
   // Sync each current node.
-  for (var _i5 = 0; _i5 < oldChildNodes.length; _i5++) {
-    if (oldChildNodes[_i5] !== childNodes[_i5]) {
-      syncNode.call(patches, oldTree.childNodes[_i5], childNodes[_i5]);
+  for (var i = 0; i < oldChildNodes.length; i++) {
+    if (oldChildNodes[i].element !== childNodes[i].element) {
+      syncNode.call(patches, oldTree.childNodes[i], childNodes[i]);
     }
   }
 }
@@ -901,6 +898,9 @@ function processPatches(element, e) {
   }
 }
 
+// Only calculate the parent's initial state one time.
+var oldTree = null;
+
 /**
  * Patches an element's DOM to match that of the passed markup.
  *
@@ -917,9 +917,6 @@ function patchNode(element, newHTML, options) {
   if (element.__is_rendering__) {
     return;
   }
-
-  // Only calculate the parent's initial state one time.
-  var oldTree = null;
 
   if (options.inner && element._innerHTML !== element.innerHTML) {
     oldTree = makeNode(element);
@@ -1057,15 +1054,17 @@ function patchNode(element, newHTML, options) {
       element.__has_rendered__ = true;
     }
 
+    // Set the innerHTML.
+    element._innerHTML = element.innerHTML;
+    element._outerHTML = element.outerHTML;
+    element._textContent = element.textContent;
+
     // Element has stopped rendering.
     element.__is_rendering__ = false;
 
     // Free all memory after each iteration.
     pools.object.freeAll();
     pools.array.freeAll();
-
-    // TODO Figure this mess out.
-    console.log(pools.uuid._allocated.length);
 
     // Clean out the patches array.
     data.length = 0;
@@ -1140,7 +1139,8 @@ exports.bufferToString = bufferToString;
 var buffer = new Uint16Array(0);
 
 /**
- * Converts a string to a buffer.
+ * Converts a string to a buffer. Attempts to reuse the previous buffer, unless
+ * the new HTML has a longer length.
  *
  * @param string
  * @return {Uint16Array}
@@ -1226,7 +1226,7 @@ function makeParser() {
       var chars = e[1];
       var chr = chars[0];
       var addChar = chr < 32 || chr > 126 || chr === 62 || chr === 60 || chr === 38 || chr === 34 || chr === 39;
-      var charInfo;
+      var charInfo = undefined;
 
       if (addChar) {
         charInfo = charIndex[chr] = charIndex[chr] || {};
@@ -1391,7 +1391,7 @@ function makeParser() {
     if (rawAttrs) {
       var re = /\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
 
-      for (var match; match = re.exec(rawAttrs);) {
+      for (var match = undefined; match = re.exec(rawAttrs);) {
         var attr = pools.object.get();
 
         attr.name = match[1];
@@ -1641,50 +1641,18 @@ function createPool(size, name, fill) {
     freeAll: function freeAll() {
       var allocatedLength = allocated.length;
 
-      for (var i = 0; i < allocatedLength; i++) {
-        var obj = allocated[i];
-
-        if (typeof obj === 'string') {
-          var idx = index[obj];
-          index[obj] = undefined;
-        } else {
-          var idx = index.get(obj);
-          // Remove from index map.
-          index['delete'](obj);
-        }
-
-        idx = idx || -1;
-
-        // Already freed.
-        if (idx === -1) {
-          continue;
-        }
-
-        // Clean.
-        if (obj.length) {
-          obj.length = 0;
-        } else {
-          for (var key in obj) {
-            obj[key] = void 0;
-          }
-        }
-
-        // Only put back into the free queue if we're under the size.
-        _free.push(obj);
+      for (var _i = 0; _i < allocatedLength; _i++) {
+        this.free(allocated[_i]);
       }
 
       allocated.length = 0;
     },
 
     free: function free(obj) {
-      if (typeof obj === 'string') {
-        var idx = index[obj];
-        index[obj] = undefined;
-      } else {
-        var idx = index.get(obj);
-        // Remove from index map.
-        index['delete'](obj);
-      }
+      var idx = index.get(obj) || index[obj];
+
+      // Remove from index map.
+      index['delete'](obj);
 
       idx = idx || -1;
 
@@ -1817,6 +1785,9 @@ function startup(worker) {
     // Cleanup sync node allocations.
     pools.object.freeAll();
     pools.array.freeAll();
+
+    // FIXME
+    console.log(pools.uuid._allocated.length);
 
     // Wipe out the patches in memory.
     patches.length = 0;
