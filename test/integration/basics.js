@@ -72,9 +72,7 @@ describe('Basics', function() {
 
     // This is not properly tested.
     it('utilize a WebWorker', function(done) {
-      diff.innerHTML(this.fixture, '<div class="test">this</div>', {
-        enableWorker: true
-      });
+      diff.innerHTML(this.fixture, '<div class="test">this</div>');
 
       diff.innerHTML(this.fixture, '<div class="test2">this2</div>', {
         enableWorker: true
