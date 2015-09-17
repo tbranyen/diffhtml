@@ -74,12 +74,6 @@ describe('Basics', function() {
     it('utilize a WebWorker', function(done) {
       diff.innerHTML(this.fixture, '<div class="test">this</div>');
 
-      diff.innerHTML(this.fixture, '<div class="test2">this2</div>', {
-        enableWorker: true
-      });
-
-      var fixture = this.fixture;
-
       this.fixture.addEventListener('renderComplete', function() {
         try {
           assert.equal(this.firstChild.getAttribute('class'), 'test2');
@@ -91,6 +85,10 @@ describe('Basics', function() {
         finally {
           done();
         }
+      });
+
+      diff.innerHTML(this.fixture, '<div class="test2">this2</div>', {
+        enableWorker: true
       });
     });
   });

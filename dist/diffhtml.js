@@ -484,6 +484,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+var _customEvent = _dereq_('custom-event');
+
+var _customEvent2 = _interopRequireDefault(_customEvent);
+
 var _setup = _dereq_('../setup');
 
 var _make = _dereq_('./make');
@@ -523,7 +527,7 @@ function completeWorkerRender(element, elementMeta) {
     elementMeta.hasRenderedViaWorker = true;
 
     // Dispatch an event on the element once rendering has completed.
-    element.dispatchEvent(new CustomEvent('renderComplete'));
+    element.dispatchEvent(new _customEvent2['default']('renderComplete'));
   };
 }
 
@@ -700,13 +704,13 @@ function patch(element, newHTML, options) {
     data.length = 0;
 
     // Dispatch an event on the element once rendering has completed.
-    element.dispatchEvent(new CustomEvent('renderComplete'));
+    element.dispatchEvent(new _customEvent2['default']('renderComplete'));
   }
 }
 
 module.exports = exports['default'];
 
-},{"../patches/process":9,"../setup":10,"../util/buffers":13,"../util/parser":14,"../util/pools":15,"./make":6,"./sync":8}],8:[function(_dereq_,module,exports){
+},{"../patches/process":9,"../setup":10,"../util/buffers":13,"../util/parser":14,"../util/pools":15,"./make":6,"./sync":8,"custom-event":18}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1970,5 +1974,57 @@ function startup(worker) {
 exports['default'] = startup;
 module.exports = exports['default'];
 
+},{}],18:[function(_dereq_,module,exports){
+(function (global){
+
+var NativeCustomEvent = global.CustomEvent;
+
+function useNative () {
+  try {
+    var p = new NativeCustomEvent('cat', { detail: { foo: 'bar' } });
+    return  'cat' === p.type && 'bar' === p.detail.foo;
+  } catch (e) {
+  }
+  return false;
+}
+
+/**
+ * Cross-browser `CustomEvent` constructor.
+ *
+ * https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent.CustomEvent
+ *
+ * @public
+ */
+
+module.exports = useNative() ? NativeCustomEvent :
+
+// IE >= 9
+'function' === typeof document.createEvent ? function CustomEvent (type, params) {
+  var e = document.createEvent('CustomEvent');
+  if (params) {
+    e.initCustomEvent(type, params.bubbles, params.cancelable, params.detail);
+  } else {
+    e.initCustomEvent(type, false, false, void 0);
+  }
+  return e;
+} :
+
+// IE <= 8
+function CustomEvent (type, params) {
+  var e = document.createEventObject();
+  e.type = type;
+  if (params) {
+    e.bubbles = Boolean(params.bubbles);
+    e.cancelable = Boolean(params.cancelable);
+    e.detail = params.detail;
+  } else {
+    e.bubbles = false;
+    e.cancelable = false;
+    e.detail = void 0;
+  }
+  return e;
+}
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}]},{},[5])(5)
 });
