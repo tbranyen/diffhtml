@@ -71,24 +71,21 @@ describe('Basics', function() {
     });
 
     // This is not properly tested.
-    it.skip('utilize a WebWorker', function(done) {
+    it('utilize a WebWorker', function(done) {
       diff.innerHTML(this.fixture, '<div class="test">this</div>', {
         enableWorker: true
       });
 
-      // Takes
       diff.innerHTML(this.fixture, '<div class="test2">this2</div>', {
         enableWorker: true
       });
 
       var fixture = this.fixture;
 
-      if (!window.Worker) { return; }
-
-      setTimeout(function() {
+      this.fixture.addEventListener('renderComplete', function() {
         try {
-          assert.equal(fixture.firstChild.getAttribute('class'), 'test2');
-          assert.equal(fixture.firstChild.textContent, 'this2');
+          assert.equal(this.firstChild.getAttribute('class'), 'test2');
+          assert.equal(this.firstChild.textContent, 'this2');
         }
         catch (ex) {
           done(ex);
@@ -96,7 +93,7 @@ describe('Basics', function() {
         finally {
           done();
         }
-      }, 500);
+      });
     });
   });
 
