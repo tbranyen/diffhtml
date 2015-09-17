@@ -4,14 +4,14 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.elementAttribute = elementAttribute;
-exports.element = element;
+exports.copyElementAttribute = copyElementAttribute;
+exports.copyElement = copyElement;
 
-function elementAttribute(attribute) {
+function copyElementAttribute(attribute) {
   return { name: attribute.name, value: attribute.value };
 }
 
-function element(descriptor) {
+function copyElement(descriptor) {
   var newObject = {
     element: descriptor.element,
     nodeName: descriptor.nodeName,
@@ -19,11 +19,11 @@ function element(descriptor) {
   };
 
   if (descriptor.childNodes) {
-    newObject.childNodes = descriptor.childNodes.map(element);
+    newObject.childNodes = descriptor.childNodes.map(copyElement);
   }
 
   if (descriptor.attributes) {
-    newObject.attributes = descriptor.attributes.map(elementAttribute);
+    newObject.attributes = descriptor.attributes.map(copyElementAttribute);
   }
 
   return newObject;
@@ -48,10 +48,10 @@ var _elementMake = _dereq_('../element/make');
 var _elementMake2 = _interopRequireDefault(_elementMake);
 
 /**
- * getElement
+ * Takes in an element reference and resolve it to a uuid and DOM node.
  *
- * @param ref
- * @return
+ * @param ref - Element descriptor
+ * @return {Object} containing the uuid and DOM node.
  */
 
 function get(ref) {
@@ -407,11 +407,6 @@ make.nodes = {};
  */
 
 function make(node) {
-  // If this node has already been converted, do not attempt to convert again.
-  if (node && node.__node__) {
-    return node.__node__;
-  }
-
   var nodeType = node.nodeType;
   var nodeValue = node.nodeValue;
 
@@ -432,9 +427,6 @@ function make(node) {
 
   // Add to internal lookup.
   make.nodes[id] = node;
-
-  // Save a reference to this object.
-  node.__node__ = entry;
 
   entry.element = id;
   entry.nodeName = node.nodeName.toLowerCase();
@@ -528,6 +520,7 @@ function completeWorkerRender(element, elementMeta) {
     elementMeta._textContent = element.textContent;
 
     elementMeta.isRendering = false;
+    elementMeta.hasRenderedViaWorker = true;
 
     // Dispatch an event on the element once rendering has completed.
     element.dispatchEvent(new CustomEvent('renderComplete'));
@@ -588,7 +581,10 @@ function patch(element, newHTML, options) {
     // Attach all properties here to transport.
     var transferObject = {};
 
-    if (newOld) {
+    // Attach the parent element's uuid.
+    transferObject.uuid = elementMeta.oldTree.element;
+
+    if (newOld || !elementMeta.hasRenderedViaWorker) {
       transferObject.oldTree = elementMeta.oldTree;
     }
 
@@ -692,9 +688,9 @@ function patch(element, newHTML, options) {
     elementMeta.isRendering = false;
 
     // Set the innerHTML.
-    element._innerHTML = element.innerHTML;
-    element._outerHTML = element.outerHTML;
-    element._textContent = element.textContent;
+    elementMeta._innerHTML = element.innerHTML;
+    elementMeta._outerHTML = element.outerHTML;
+    elementMeta._textContent = element.textContent;
 
     // Free all memory after each iteration.
     pools.object.freeAll();
@@ -718,11 +714,10 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports['default'] = sync;
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
 var _elementCopy = _dereq_('../element/copy');
 
-var copy = _interopRequireWildcard(_elementCopy);
+var copyElement = _elementCopy.copyElement;
+var copyElementAttribute = _elementCopy.copyElementAttribute;
 
 var slice = Array.prototype.slice;
 
@@ -780,7 +775,7 @@ function sync(oldTree, newTree) {
     var fragment = [];
 
     for (var i = oldChildNodesLength; i < childNodesLength; i++) {
-      childNodes[i] = copy.element(childNodes[i]);
+      childNodes[i] = copyElement(childNodes[i]);
 
       // Internally add to the tree.
       oldChildNodes[oldChildNodes.length] = childNodes[i];
@@ -808,7 +803,7 @@ function sync(oldTree, newTree) {
       };
 
       // Replace the internal tree's point of view of this element.
-      oldTree.childNodes[i] = copy.element(childNodes[i]);
+      oldTree.childNodes[i] = copyElement(childNodes[i]);
     }
   }
 
@@ -953,8 +948,9 @@ function process(element, e) {
 
   var attachedCallback = function attachedCallback(elementDescriptor) {
     var el = (0, _elementGet2['default'])(elementDescriptor).element;
+    var fragment = this.fragment;
 
-    this.fragment.appendChild(el);
+    fragment.appendChild(el);
 
     // Trigger all the text changed values.
     if (states && el.nodeName === '#text' && states.textChanged) {
@@ -981,7 +977,7 @@ function process(element, e) {
 
   // Loop through all the patches and apply them.
 
-  var _loop = function () {
+  var _loop = function (i) {
     var patch = patches[i];
     var elementId = undefined,
         oldId = undefined,
@@ -1015,7 +1011,7 @@ function process(element, e) {
     else if (patch.__do__ === 1) {
         // Add.
         if (patch.element && patch.fragment && !patch.old) {
-          fragment = document.createDocumentFragment();
+          var fragment = document.createDocumentFragment();
 
           patch.fragment.forEach(attachedCallback, { fragment: fragment });
           patch.element.appendChild(fragment);
@@ -1089,7 +1085,7 @@ function process(element, e) {
 
       // Attribute manipulation.
       else if (patch.__do__ === 2) {
-          originalValue = patch.element.getAttribute(patch.name);
+          var originalValue = patch.element.getAttribute(patch.name);
 
           // Remove.
           if (!patch.value) {
@@ -1100,9 +1096,8 @@ function process(element, e) {
 
           // Trigger all the attribute changed values.
           if (states && states.attributeChanged) {
-            for (x = 0; x < states.attributeChanged.length; x++) {
-              callback = states.attributeChanged[x];
-
+            for (var x = 0; x < states.attributeChanged.length; x++) {
+              var callback = states.attributeChanged[x];
               callback(patch.element, patch.name, originalValue, patch.value);
             }
           }
@@ -1110,7 +1105,7 @@ function process(element, e) {
 
         // Text node manipulation.
         else if (patch.__do__ === 3) {
-            originalValue = patch.element.textContent;
+            var originalValue = patch.element.textContent;
 
             patch.element.textContent = patch.value;
 
@@ -1119,9 +1114,8 @@ function process(element, e) {
             } else {
               // Trigger all the text changed values.
               if (states && states.textChanged) {
-                for (x = 0; x < states.textChanged.length; x++) {
-                  callback = states.textChanged[x];
-
+                for (var x = 0; x < states.textChanged.length; x++) {
+                  var callback = states.textChanged[x];
                   callback(patch.element.parentNode, originalValue, patch.value);
                 }
               }
@@ -1130,15 +1124,7 @@ function process(element, e) {
   };
 
   for (var i = 0; i < patches.length; i++) {
-    var fragment;
-    var originalValue;
-    var x;
-    var callback;
-    var originalValue;
-    var x;
-    var callback;
-
-    _loop();
+    _loop(i);
   }
 }
 
@@ -1167,6 +1153,8 @@ var _utilPools = _dereq_('./util/pools');
 
 var _utilParser = _dereq_('./util/parser');
 
+var _elementCopy = _dereq_('./element/copy');
+
 var _nodeSync = _dereq_('./node/sync');
 
 var _nodeSync2 = _interopRequireDefault(_nodeSync);
@@ -1193,6 +1181,9 @@ if (hasWorker) {
 
   // Add a namespace to attach pool methods to.
   'var pools = {};', 'var nodes = 0;',
+
+  // Allows elements and attributes to be copied.
+  _elementCopy.copyElement, _elementCopy.copyElementAttribute,
 
   // Adds in a global `uuid` function.
   _utilUuid2['default'],
@@ -1227,7 +1218,7 @@ if (hasWorker) {
   }
 }
 
-},{"./node/sync":8,"./util/buffers":13,"./util/parser":14,"./util/pools":15,"./util/uuid":16,"./worker":17}],11:[function(_dereq_,module,exports){
+},{"./element/copy":1,"./node/sync":8,"./util/buffers":13,"./util/parser":14,"./util/pools":15,"./util/uuid":16,"./worker":17}],11:[function(_dereq_,module,exports){
 // List of SVG elements.
 'use strict';
 
@@ -1807,10 +1798,14 @@ function createPool(size, name, fill) {
     },
 
     freeAll: function freeAll() {
+      var except = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
       var allocatedLength = allocated.length;
 
       for (var _i = 0; _i < allocatedLength; _i++) {
-        this.free(allocated[_i]);
+        if (except.indexOf(allocated[_i]) === -1) {
+          this.free(allocated[_i]);
+        }
       }
 
       allocated.length = 0;
@@ -1920,7 +1915,7 @@ var pools;
  * @return
  */
 function startup(worker) {
-  var oldTree = null;
+  var Trees = {};
   var patches = [];
 
   worker.onmessage = function (e) {
@@ -1929,12 +1924,10 @@ function startup(worker) {
     var transferBuffer = data.buffer;
     var isInner = data.isInner;
 
-    // Keep a virtual tree in memory to diff against.
-    if (data.oldTree) {
-      oldTree = data.oldTree;
-    }
-
+    var oldTree = Trees[e.data.uuid] || data.oldTree;
     var newTree = null;
+
+    Trees[e.data.uuid] = oldTree;
 
     if (data.newTree) {
       newTree = data.newTree;

@@ -4,6 +4,15 @@ describe('diff.outerHTML', function() {
     this.fixture.innerHTML = '<div></div>';
   });
 
+  it('can recalculate the tree if contents are unexpectedly changed', function() {
+    diff.outerHTML(this.fixture, '<div><p></p></div>');
+    this.fixture.innerHTML = '<span></span>';
+    diff.outerHTML(this.fixture, '<div><p>this</p></div>');
+
+    assert.equal(this.fixture.firstChild.tagName, 'P');
+    assert.equal(this.fixture.firstChild.textContent, 'this');
+  });
+
   it('can replace the documentElement', function() {
     var iframe = document.createElement('iframe');
     document.body.appendChild(iframe);

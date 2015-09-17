@@ -10,6 +10,15 @@ describe('diff.innerHTML', function() {
     assert.equal(this.fixture.firstChild.tagName, 'P');
   });
 
+  it('can recalculate the tree if contents are unexpectedly changed', function() {
+    diff.innerHTML(this.fixture, '<p></p>');
+    this.fixture.innerHTML = '<span></span>';
+    diff.innerHTML(this.fixture, '<p>this</p>');
+
+    assert.equal(this.fixture.firstChild.tagName, 'P');
+    assert.equal(this.fixture.firstChild.textContent, 'this');
+  });
+
   describe('Comments', function() {
     it('ignores comments', function() {
       diff.innerHTML(this.fixture, '<div><p><!-- test --></p></div>');
