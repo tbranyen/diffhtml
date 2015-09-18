@@ -110,7 +110,7 @@ function make(descriptor) {
         var attribute = descriptor.attributes[i];
 
         if (isSvg) {
-          element.setAttributeNS(null, attribute.name, attribute.value);
+          element.setAttributeNS(svg.namespace, attribute.name, attribute.value);
         } else {
           element.setAttribute(attribute.name, attribute.value);
         }
@@ -1178,7 +1178,8 @@ var worker = null;
 exports.worker = worker;
 // Set up a WebWorker if available.
 if (hasWorker) {
-  // Construct the worker reusing code already organized into modules.
+  // Construct the worker reusing code already organized into modules.  Keep
+  // this code ES5 since we do not get time to pre-process it as ES6.
   exports.workerBlob = workerBlob = new Blob([[
   // Reusable Array methods.
   'var slice = Array.prototype.slice;',

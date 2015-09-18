@@ -13,24 +13,24 @@ describe('Transitions', function() {
       assert.throws(function() {
         diff.addTransitionState();
       }, function(err) {
-        return err instanceof this;
-      }.bind(diff.TransitionStateError), 'Missing transition state name');
+        return err instanceof diff.TransitionStateError;
+      }, 'Missing transition state name');
     });
 
     it('will throw when missing the required callback argument', function() {
       assert.throws(function() {
         diff.addTransitionState('attached');
       }, function(err) {
-        return err instanceof this;
-      }.bind(diff.TransitionStateError), 'Missing transition state callback');
+        return err instanceof diff.TransitionStateError;
+      }, 'Missing transition state callback');
     });
 
     it('will throw when passed an invalid state name', function() {
       assert.throws(function() {
         diff.addTransitionState('added', function() {});
       }, function(err) {
-        return err instanceof this;
-      }.bind(diff.TransitionStateError), 'Invalid state name: added');
+        return err instanceof diff.TransitionStateError;
+      }, 'Invalid state name: added');
     });
 
     it('can add the attached state', function() {
