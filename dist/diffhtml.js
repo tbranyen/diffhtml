@@ -443,7 +443,7 @@ function make(node) {
 
     if (attributesLength) {
       for (var i = 0; i < attributesLength; i++) {
-        entry.attributes[entry.attributes] = {
+        entry.attributes[entry.attributes.length] = {
           name: attributes[i].name,
           value: attributes[i].value
         };
