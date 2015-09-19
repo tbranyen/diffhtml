@@ -132,7 +132,7 @@ function make(descriptor) {
 
 module.exports = exports['default'];
 
-},{"../node/make":6,"../svg":11}],4:[function(_dereq_,module,exports){
+},{"../node/make":6,"../svg":10}],4:[function(_dereq_,module,exports){
 /**
  * Identifies an error with transitions.
  */
@@ -384,7 +384,7 @@ function enableProllyfill() {
   });
 }
 
-},{"./errors":4,"./node/patch":7,"./transitions":12}],6:[function(_dereq_,module,exports){
+},{"./errors":4,"./node/patch":7,"./transitions":11}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -472,7 +472,7 @@ function make(node) {
 
 module.exports = exports['default'];
 
-},{"../util/pools":15}],7:[function(_dereq_,module,exports){
+},{"../util/pools":14}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -488,7 +488,7 @@ var _customEvent = _dereq_('custom-event');
 
 var _customEvent2 = _interopRequireDefault(_customEvent);
 
-var _setup = _dereq_('../setup');
+var _workerCreate = _dereq_('../worker/create');
 
 var _make = _dereq_('./make');
 
@@ -550,6 +550,8 @@ function patch(element, newHTML, options) {
   // Always ensure the most up-to-date meta object is stored.
   TreeCache.set(element, elementMeta);
 
+  var worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
+
   if (
   // If already rendering, abort this loop.
   elementMeta.isRendering ||
@@ -581,7 +583,7 @@ function patch(element, newHTML, options) {
 
   // Will want to ensure that the first render went through, the worker can
   // take a bit to startup and we want to show changes as soon as possible.
-  if (options.enableWorker && _setup.hasWorker && elementMeta.hasRendered) {
+  if (options.enableWorker && _workerCreate.hasWorker && elementMeta.hasRendered) {
     // Attach all properties here to transport.
     var transferObject = {};
 
@@ -600,10 +602,10 @@ function patch(element, newHTML, options) {
 
       // Transfer this buffer to the worker, which will take over and process the
       // markup.
-      _setup.worker.postMessage(transferObject);
+      worker.postMessage(transferObject);
 
       // Wait for the worker to finish processing and then apply the patchset.
-      _setup.worker.onmessage = completeWorkerRender(element, elementMeta);
+      worker.onmessage = completeWorkerRender(element, elementMeta);
 
       return;
     }
@@ -638,11 +640,11 @@ function patch(element, newHTML, options) {
 
     // Transfer this buffer to the worker, which will take over and process the
     // markup.
-    _setup.worker.postMessage(transferObject, [transferBuffer.buffer]);
+    worker.postMessage(transferObject, [transferBuffer.buffer]);
 
     // Wait for the worker to finish processing and then apply the patchset.
-    _setup.worker.onmessage = completeWorkerRender(element, elementMeta);
-  } else if (!options.enableWorker || !_setup.hasWorker || !elementMeta.hasRendered) {
+    worker.onmessage = completeWorkerRender(element, elementMeta);
+  } else if (!options.enableWorker || !_workerCreate.hasWorker || !elementMeta.hasRendered) {
     var data = [];
     var newTree = null;
 
@@ -710,7 +712,7 @@ function patch(element, newHTML, options) {
 
 module.exports = exports['default'];
 
-},{"../patches/process":9,"../setup":10,"../util/buffers":13,"../util/parser":14,"../util/pools":15,"./make":6,"./sync":8,"custom-event":18}],8:[function(_dereq_,module,exports){
+},{"../patches/process":9,"../util/buffers":12,"../util/parser":13,"../util/pools":14,"../worker/create":16,"./make":6,"./sync":8,"custom-event":18}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1134,96 +1136,7 @@ function process(element, e) {
 
 module.exports = exports['default'];
 
-},{"../element/get":2,"../node/make":6,"../transitions":12,"../util/pools":15}],10:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _utilUuid = _dereq_('./util/uuid');
-
-var _utilUuid2 = _interopRequireDefault(_utilUuid);
-
-var _utilBuffers = _dereq_('./util/buffers');
-
-var buffers = _interopRequireWildcard(_utilBuffers);
-
-var _utilPools = _dereq_('./util/pools');
-
-var _utilParser = _dereq_('./util/parser');
-
-var _elementCopy = _dereq_('./element/copy');
-
-var _nodeSync = _dereq_('./node/sync');
-
-var _nodeSync2 = _interopRequireDefault(_nodeSync);
-
-var _worker = _dereq_('./worker');
-
-var _worker2 = _interopRequireDefault(_worker);
-
-var pools = _utilPools.pools;
-
-var hasWorker = typeof Worker === 'function';
-exports.hasWorker = hasWorker;
-var workerBlob = null;
-exports.workerBlob = workerBlob;
-var worker = null;
-
-exports.worker = worker;
-// Set up a WebWorker if available.
-if (hasWorker) {
-  // Construct the worker reusing code already organized into modules.  Keep
-  // this code ES5 since we do not get time to pre-process it as ES6.
-  exports.workerBlob = workerBlob = new Blob([[
-  // Reusable Array methods.
-  'var slice = Array.prototype.slice;',
-
-  // Add a namespace to attach pool methods to.
-  'var pools = {};', 'var nodes = 0;',
-
-  // Allows elements and attributes to be copied.
-  _elementCopy.copyElement, _elementCopy.copyElementAttribute,
-
-  // Adds in a global `uuid` function.
-  _utilUuid2['default'],
-
-  // Add in pool manipulation methods.
-  _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + _utilPools.count + ');',
-
-  // Add in Node manipulation.
-  'var syncNode = ' + _nodeSync2['default'],
-
-  // Add in the ability to parseHTML.
-  _utilParser.parseHTML,
-
-  // Give the webworker utilities.
-  buffers.stringToBuffer, buffers.bufferToString, 'var makeParser = ' + _utilParser.makeParser, 'var parser = makeParser();',
-
-  // Add in the worker source.
-  _worker2['default'],
-
-  // Metaprogramming up this worker call.
-  'startup(self);'].join('\n')], { type: 'application/javascript' });
-
-  // Construct the worker and start it up.
-  try {
-    exports.worker = worker = new Worker(URL.createObjectURL(workerBlob));
-  } catch (e) {
-    if (console && console.info) {
-      console.info("Failed to create diffhtml worker", e);
-    }
-
-    exports.hasWorker = hasWorker = false;
-  }
-}
-
-},{"./element/copy":1,"./node/sync":8,"./util/buffers":13,"./util/parser":14,"./util/pools":15,"./util/uuid":16,"./worker":17}],11:[function(_dereq_,module,exports){
+},{"../element/get":2,"../node/make":6,"../transitions":11,"../util/pools":14}],10:[function(_dereq_,module,exports){
 // List of SVG elements.
 'use strict';
 
@@ -1237,7 +1150,7 @@ exports.elements = elements;
 var namespace = 'http://www.w3.org/2000/svg';
 exports.namespace = namespace;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 /**
  * Transition states
  * =================
@@ -1279,7 +1192,7 @@ var transitionStates = {
 };
 exports.transitionStates = transitionStates;
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 // Create a default buffer at length 1024.
 'use strict';
 
@@ -1328,7 +1241,7 @@ function bufferToString(buffer, offset) {
   return string;
 }
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1734,7 +1647,7 @@ function makeParser() {
 
 ;
 
-},{"./pools":15}],15:[function(_dereq_,module,exports){
+},{"./pools":14}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1878,7 +1791,7 @@ function initializePools(COUNT) {
 // Create 10k items of each type.
 initializePools(count);
 
-},{"./uuid":16}],16:[function(_dereq_,module,exports){
+},{"./uuid":15}],15:[function(_dereq_,module,exports){
 /**
  * Generates a uuid.
  *
@@ -1902,7 +1815,101 @@ function uuid() {
 
 module.exports = exports['default'];
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+exports.create = create;
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _utilUuid = _dereq_('../util/uuid');
+
+var _utilUuid2 = _interopRequireDefault(_utilUuid);
+
+var _utilBuffers = _dereq_('../util/buffers');
+
+var buffers = _interopRequireWildcard(_utilBuffers);
+
+var _utilPools = _dereq_('../util/pools');
+
+var _utilParser = _dereq_('../util/parser');
+
+var _elementCopy = _dereq_('../element/copy');
+
+var _nodeSync = _dereq_('../node/sync');
+
+var _nodeSync2 = _interopRequireDefault(_nodeSync);
+
+var _source = _dereq_('./source');
+
+var _source2 = _interopRequireDefault(_source);
+
+var pools = _utilPools.pools;
+
+var hasWorker = typeof Worker === 'function';
+
+exports.hasWorker = hasWorker;
+
+function create() {
+  var workerBlob = null;
+  var worker = null;
+
+  // Set up a WebWorker if available.
+  if (hasWorker) {
+    // Construct the worker reusing code already organized into modules.  Keep
+    // this code ES5 since we do not get time to pre-process it as ES6.
+    workerBlob = new Blob([[
+    // Reusable Array methods.
+    'var slice = Array.prototype.slice;',
+
+    // Add a namespace to attach pool methods to.
+    'var pools = {};', 'var nodes = 0;',
+
+    // Allows elements and attributes to be copied.
+    _elementCopy.copyElement, _elementCopy.copyElementAttribute,
+
+    // Adds in a global `uuid` function.
+    _utilUuid2['default'],
+
+    // Add in pool manipulation methods.
+    _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + _utilPools.count + ');',
+
+    // Add in Node manipulation.
+    'var syncNode = ' + _nodeSync2['default'],
+
+    // Add in the ability to parseHTML.
+    _utilParser.parseHTML,
+
+    // Give the webworker utilities.
+    buffers.stringToBuffer, buffers.bufferToString, 'var makeParser = ' + _utilParser.makeParser, 'var parser = makeParser();',
+
+    // Add in the worker source.
+    _source2['default'],
+
+    // Metaprogramming up this worker call.
+    'startup(self);'].join('\n')], { type: 'application/javascript' });
+
+    // Construct the worker and start it up.
+    try {
+      worker = new Worker(URL.createObjectURL(workerBlob));
+    } catch (e) {
+      if (console && console.info) {
+        console.info("Failed to create diffhtml worker", e);
+      }
+
+      exports.hasWorker = hasWorker = false;
+    }
+  }
+
+  return worker;
+}
+
+},{"../element/copy":1,"../node/sync":8,"../util/buffers":12,"../util/parser":13,"../util/pools":14,"../util/uuid":15,"./source":17}],17:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
