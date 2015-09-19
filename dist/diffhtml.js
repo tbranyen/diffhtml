@@ -528,6 +528,12 @@ function completeWorkerRender(element, elementMeta) {
 
     // Dispatch an event on the element once rendering has completed.
     element.dispatchEvent(new _customEvent2['default']('renderComplete'));
+
+    if (elementMeta.renderBuffer) {
+      var nextRender = elementMeta.renderBuffer;
+      elementMeta.renderBuffer = undefined;
+      patch(element, nextRender.newHTML, nextRender.options);
+    }
   };
 }
 
@@ -551,6 +557,10 @@ function patch(element, newHTML, options) {
   TreeCache.set(element, elementMeta);
 
   var worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
+
+  if (element.isRendering) {
+    elementMeta.renderBuffer = { newHTML: newHTML, options: options };
+  }
 
   if (
   // If already rendering, abort this loop.
@@ -625,10 +635,10 @@ function patch(element, newHTML, options) {
 
     // This buffer starts with the offset and contains the data to be carried
     // to the worker.
-    var transferBuffer = new Uint16Array(transferByteLength);
+    var transferBuffer = newBuffer;
 
     // Set the newHTML payload.
-    transferBuffer.set(newBuffer, 0);
+    //transferBuffer.set(newBuffer, 0);
 
     // Add properties to send to worker.
     transferObject.offset = offset;
@@ -940,6 +950,7 @@ var _nodeMake = _dereq_('../node/make');
 var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
 var pools = _utilPools.pools;
+var forEach = Array.prototype.forEach;
 
 /**
  * Processes an Array of patches.
@@ -965,19 +976,6 @@ function process(element, e) {
     }
 
     fragment.appendChild(el);
-
-    // Trigger all the text changed values.
-    if (states && el.nodeName === '#text' && states.textChanged) {
-      for (var x = 0; x < states.textChanged.length; x++) {
-        var callback = states.textChanged[x];
-        callback(fragment.parentNode || element, null, fragment.textContent);
-      }
-    }
-
-    // Added state for transitions API.
-    if (states && states.attached) {
-      states.attached.forEach(callCallback, el);
-    }
   };
 
   var titleCallback = function titleCallback(elementDescriptor) {
@@ -1034,6 +1032,22 @@ function process(element, e) {
 
           patch.fragment.forEach(attachedCallback, { fragment: fragment });
           patch.element.appendChild(fragment);
+
+          forEach.call(fragment, function (el) {
+            // Trigger all the text changed values.
+            if (states && el.nodeName === '#text' && states.textChanged) {
+              for (var x = 0; x < states.textChanged.length; x++) {
+                var callback = states.textChanged[x];
+                callback(el.parentNode || el, null, el.textContent);
+              }
+            }
+
+            // Added state for transitions API.
+            if (states && states.attached) {
+              states.attached.forEach(callCallback, el);
+            }
+          });
+
           patch.fragment.forEach(titleCallback);
         }
 
@@ -1068,13 +1082,6 @@ function process(element, e) {
               // Append the element first, before doing the replacement.
               patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
 
-              // Added state for transitions API.
-              if (states && states.attached) {
-                states.attached.forEach(function (callback) {
-                  callback(patch['new']);
-                });
-              }
-
               // Removed state for transitions API.
               if (states && states.detached) {
                 states.detached.forEach(function (callback) {
@@ -1095,6 +1102,13 @@ function process(element, e) {
               }
 
               patch.old.parentNode.replaceChild(patch['new'], patch.old);
+
+              // Added state for transitions API.
+              if (states && states.attached) {
+                states.attached.forEach(function (callback) {
+                  callback(patch['new']);
+                });
+              }
 
               pools.uuid.free(oldId);
 
@@ -1453,73 +1467,9 @@ function makeParser() {
   HTMLElement.prototype.nodeType = Node.ELEMENT_NODE;
 
   /**
-   * Matcher class to make CSS match
-   * @param {string} selector Selector
-   */
-  function Matcher(selector) {
-    this.matchers = selector.split(' ').map(function (matcher) {
-      if (pMatchFunctionCache[matcher]) return pMatchFunctionCache[matcher];
-      var parts = matcher.split('.');
-      var nodeName = parts[0];
-      var classes = parts.slice(1).sort();
-      var source = '';
-      if (nodeName && nodeName != '*') {
-        if (nodeName[0] == '#') source += 'if (el.id != ' + JSON.stringify(nodeName.substr(1)) + ') return false;';else source += 'if (el.nodeName != ' + JSON.stringify(nodeName) + ') return false;';
-      }
-      if (classes.length > 0) source += 'for (var cls = ' + JSON.stringify(classes) + ', i = 0; i < cls.length; i++) if (el.classNames.indexOf(cls[i]) === -1) return false;';
-      source += 'return true;';
-      return pMatchFunctionCache[matcher] = new Function('el', source);
-    });
-    this.nextMatch = 0;
-  }
-
-  Matcher.prototype = Object.defineProperties({
-    /**
-     * Trying to advance match pointer
-     * @param  {HTMLElement} el element to make the match
-     * @return {bool}           true when pointer advanced.
-     */
-    advance: function advance(el) {
-      if (this.nextMatch < this.matchers.length && this.matchers[this.nextMatch](el)) {
-        this.nextMatch++;
-        return true;
-      }
-      return false;
-    },
-
-    /**
-     * Rewind the match pointer
-     */
-    rewind: function rewind() {
-      this.nextMatch--;
-    },
-
-    /**
-     * Rest match pointer.
-     * @return {[type]} [description]
-     */
-    reset: function reset() {
-      this.nextMatch = 0;
-    }
-  }, {
-    matched: { /**
-                * Trying to determine if match made.
-                * @return {bool} true when the match is made
-                */
-
-      get: function get() {
-        return this.nextMatch == this.matchers.length;
-      },
-      configurable: true,
-      enumerable: true
-    }
-  });
-
-  /**
    * Parses HTML and returns a root element
    */
   var htmlParser = {
-    Matcher: Matcher,
     Node: Node,
     HTMLElement: HTMLElement,
     TextNode: TextNode,
