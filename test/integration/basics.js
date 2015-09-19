@@ -1,7 +1,7 @@
 describe('Basics', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
-    this.fixture.innerHTMLHTML = '<div></div>';
+    this.fixture.innerHTML = '<div></div>';
   });
 
   describe('Expose API', function() {

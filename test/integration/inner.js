@@ -28,6 +28,11 @@ describe('diff.innerHTML', function() {
   });
 
   describe('Text', function() {
+    it('can decode HTML entities', function() {
+      diff.innerHTML(this.fixture, '<div>&lt;</div>');
+      assert.equal(this.fixture.innerHTML, '<div>&lt;</div>');
+    });
+
     it('can be override existing content', function() {
       diff.innerHTML(this.fixture, 'test');
 
