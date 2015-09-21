@@ -4,6 +4,7 @@
   "description": "",
   "main": "dist/diffhtml",
   "author": "Tim Branyen (@tbranyen)",
+  "repository": "https://github.com/tbranyen/diffhtml",
   "license": "MIT",
   "scripts": {
     "start": "http-server",
