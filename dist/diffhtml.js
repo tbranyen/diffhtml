@@ -420,19 +420,15 @@ function make(node) {
 
   // Virtual representation of a node, containing only the data we wish to
   // diff and patch.
-  var entry = {};
-
-  // Cache the element in the ids.
-  var id = pools.uuid.get();
+  var entry = pools.elementObject.get();
 
   // Add to internal lookup.
-  make.nodes[id] = node;
+  make.nodes[entry.element] = node;
 
-  entry.element = id;
   entry.nodeName = node.nodeName.toLowerCase();
   entry.nodeValue = nodeValue;
-  entry.childNodes = [];
-  entry.attributes = [];
+  entry.childNodes.length = 0;
+  entry.attributes.length = 0;
 
   // Collect attributes.
   var attributes = node.attributes;
@@ -710,7 +706,11 @@ function patch(element, newHTML, options) {
 
     // Free all memory after each iteration.
     pools.object.freeAll();
-    pools.array.freeAll();
+    pools.attributeObject.freeAll();
+    //pools.elementObject.freeAll();
+    //console.log(pools.elementObject._allocated.length);
+
+    //console.log(pools.elementObject._allocated.length);
 
     // Clean out the patches array.
     data.length = 0;
@@ -1033,12 +1033,14 @@ function process(element, e) {
           patch.fragment.forEach(attachedCallback, { fragment: fragment });
           patch.element.appendChild(fragment);
 
-          forEach.call(fragment, function (el) {
+          forEach.call(patch.fragment, function (el) {
+            var element = (0, _elementGet2['default'])(el);
+
             // Trigger all the text changed values.
             if (states && el.nodeName === '#text' && states.textChanged) {
               for (var x = 0; x < states.textChanged.length; x++) {
                 var callback = states.textChanged[x];
-                callback(el.parentNode || el, null, el.textContent);
+                callback(element.parentNode || element, null, el.nodeValue);
               }
             }
 
@@ -1046,9 +1048,9 @@ function process(element, e) {
             if (states && states.attached) {
               states.attached.forEach(callCallback, el);
             }
-          });
 
-          patch.fragment.forEach(titleCallback);
+            titleCallback(el);
+          });
         }
 
         // Remove
@@ -1067,8 +1069,6 @@ function process(element, e) {
             }
 
             patch.old.parentNode.removeChild(patch.old);
-
-            pools.uuid.free(oldId);
 
             _nodeMake2['default'].nodes[oldId] = undefined;
           }
@@ -1109,8 +1109,6 @@ function process(element, e) {
                   callback(patch['new']);
                 });
               }
-
-              pools.uuid.free(oldId);
 
               _nodeMake2['default'].nodes[oldId] = undefined;
             }
@@ -1296,6 +1294,9 @@ exports['default'] = decodeEntities;
 module.exports = exports['default'];
 
 },{}],14:[function(_dereq_,module,exports){
+// Code based off of:
+// https://github.com/ashi009/node-fast-html-parser
+
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1325,7 +1326,10 @@ function parseHTML(newHTML, isInner) {
 
 function makeParser() {
   var kMarkupPattern = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
+
   var kAttributePattern = /\b(id|class)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
+
+  var reAttrPattern = /\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
 
   var kBlockElements = {
     div: true,
@@ -1402,23 +1406,6 @@ function makeParser() {
   };
 
   /**
-   * Cache to store generated match functions
-   * @type {Object}
-   */
-  var pMatchFunctionCache = {};
-
-  /**
-   * Node Class as base class for TextNode and HTMLElement.
-   */
-  function Node() {}
-
-  Node.prototype.ELEMENT_NODE = 1;
-  Node.prototype.TEXT_NODE = 3;
-
-  Node.ELEMENT_NODE = 1;
-  Node.TEXT_NODE = 3;
-
-  /**
    * TextNode to contain a text element in DOM tree.
    * @param {string} value [description]
    */
@@ -1427,7 +1414,6 @@ function makeParser() {
 
     instance.nodeValue = value;
     instance.nodeName = '#text';
-    instance.element = pools.uuid.get();
     instance.nodeType = 3;
 
     return instance;
@@ -1435,45 +1421,40 @@ function makeParser() {
 
   /**
    * HTMLElement, which contains a set of children.
-   * Note: this is a minimalist implementation, no complete tree
-   *   structure provided (no parentNode, nextSibling,
-   *   previousSibling etc).
+   *
+   * Note: this is a minimalist implementation, no complete tree structure
+   * provided (no parentNode, nextSibling, previousSibling etc).
+   *
    * @param {string} name     nodeName
    * @param {Object} keyAttrs id and class attribute
    * @param {Object} rawAttrs attributes in string
    */
   function HTMLElement(name, keyAttrs, rawAttrs) {
-    this.nodeName = name;
-    this.attributes = pools.array.get();
+    var instance = pools.elementObject.get();
+
+    instance.nodeName = name;
+    instance.nodeType = 1;
+    instance.attributes.length = 0;
+    instance.childNodes.length = 0;
 
     if (rawAttrs) {
-      var re = /\b([a-z][a-z0-9\-]*)\s*=\s*("([^"]+)"|'([^']+)'|(\S+))/ig;
-
-      for (var match = undefined; match = re.exec(rawAttrs);) {
+      for (var match = undefined; match = reAttrPattern.exec(rawAttrs);) {
         var attr = pools.attributeObject.get();
 
         attr.name = match[1];
         attr.value = match[3] || match[4] || match[5];
 
-        this.attributes[this.attributes.length] = attr;
+        instance.attributes[instance.attributes.length] = attr;
       }
     }
 
-    this.childNodes = pools.array.get();
-    this.element = pools.uuid.get();
+    return instance;
   }
-
-  HTMLElement.prototype = Object.create(Node.prototype);
-  HTMLElement.prototype.nodeType = Node.ELEMENT_NODE;
 
   /**
    * Parses HTML and returns a root element
    */
   var htmlParser = {
-    Node: Node,
-    HTMLElement: HTMLElement,
-    TextNode: TextNode,
-
     /**
      * Parse a chuck of HTML source.
      * @param  {string} data      html
@@ -1481,8 +1462,7 @@ function makeParser() {
      */
     parse: function parse(data, options) {
       var rootObject = pools.object.get();
-
-      var root = new HTMLElement(null, rootObject);
+      var root = HTMLElement(null, rootObject);
       var currentParent = root;
       var stack = [root];
       var lastTextPos = -1;
@@ -1491,50 +1471,68 @@ function makeParser() {
 
       if (data.indexOf('<') === -1 && data) {
         currentParent.childNodes[currentParent.childNodes.length] = TextNode(data);
+
         return root;
       }
 
-      for (var match, text; match = kMarkupPattern.exec(data);) {
+      for (var match = undefined, text = undefined; match = kMarkupPattern.exec(data);) {
         if (lastTextPos > -1) {
           if (lastTextPos + match[0].length < kMarkupPattern.lastIndex) {
             // if has content
-            text = data.substring(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
+            text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
+
             if (text.trim()) {
               currentParent.childNodes[currentParent.childNodes.length] = TextNode(text);
             }
           }
         }
+
         lastTextPos = kMarkupPattern.lastIndex;
-        if (match[0][1] == '!') {
-          // this is a comment
+
+        // This is a comment.
+        if (match[0][1] === '!') {
           continue;
         }
-        if (options.lowerCaseTagName) match[2] = match[2].toLowerCase();
+
+        if (options.lowerCaseTagName) {
+          match[2] = match[2].toLowerCase();
+        }
 
         if (!match[1]) {
           // not </ tags
           var attrs = pools.object.get();
-          for (var attMatch; attMatch = kAttributePattern.exec(match[3]);) attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];
+
+          for (var attMatch = undefined; attMatch = kAttributePattern.exec(match[3]);) {
+            attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];
+          }
+
           if (!match[4] && kElementsClosedByOpening[currentParent.nodeName]) {
             if (kElementsClosedByOpening[currentParent.nodeName][match[2]]) {
               stack.pop();
               currentParent = stack[stack.length - 1];
             }
           }
-          currentParent = currentParent.childNodes[currentParent.childNodes.push(new HTMLElement(match[2], attrs, match[3])) - 1];
+
+          currentParent = currentParent.childNodes[currentParent.childNodes.push(HTMLElement(match[2], attrs, match[3])) - 1];
+
           stack.push(currentParent);
+
           if (kBlockTextElements[match[2]]) {
             // a little test to find next </script> or </style> ...
             var closeMarkup = '</' + match[2] + '>';
             var index = data.indexOf(closeMarkup, kMarkupPattern.lastIndex);
+
             if (options[match[2]]) {
               if (index == -1) {
                 // there is no matching ending for the text element.
-                text = data.substr(kMarkupPattern.lastIndex);
+                text = data.slice(kMarkupPattern.lastIndex);
               } else {
-                text = data.substring(kMarkupPattern.lastIndex, index);
+                text = data.slice(kMarkupPattern.lastIndex, index);
               }
-              if (text.length > 0) currentParent.childNodes[currentParent.childNodes.length] = TextNode(text);
+
+              if (text.length > 0) {
+                currentParent.childNodes[currentParent.childNodes.length] = TextNode(text);
+              }
             }
             if (index == -1) {
               lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
@@ -1550,6 +1548,7 @@ function makeParser() {
             if (currentParent.nodeName == match[2]) {
               stack.pop();
               currentParent = stack[stack.length - 1];
+
               break;
             } else {
               // Trying to close current tag, and move on
@@ -1557,9 +1556,11 @@ function makeParser() {
                 if (kElementsClosedByClosing[currentParent.nodeName][match[2]]) {
                   stack.pop();
                   currentParent = stack[stack.length - 1];
+
                   continue;
                 }
               }
+
               // Use aggressive strategy to handle unmatching markups.
               break;
             }
@@ -1592,7 +1593,6 @@ var _uuid2 = _dereq_('./uuid');
 var _uuid3 = _interopRequireDefault(_uuid2);
 
 var uuid = _uuid3['default'];
-
 var pools = {};
 exports.pools = pools;
 var count = 10000;
@@ -1611,7 +1611,6 @@ function createPool(opts) {
 
   var _free = [];
   var allocated = [];
-  var index = new WeakMap();
 
   // Prime the cache with n objects.
   for (var i = 0; i < size; i++) {
@@ -1634,13 +1633,7 @@ function createPool(opts) {
         obj = fill();
       }
 
-      var idx = allocated.push(obj);
-
-      if (typeof obj === 'string') {
-        index[obj] = idx;
-      } else {
-        index.set(obj, idx - 1);
-      }
+      allocated.push(obj);
 
       return obj;
     },
@@ -1657,40 +1650,17 @@ function createPool(opts) {
       allocated.length = 0;
     },
 
-    free: function free(obj) {
-      var idx = null;
-
-      if (!obj) {
-        return;
-      }
-
-      if (typeof obj === 'string') {
-        idx = index[obj];
-      }
-      // Required else, because the WeakMap polyfill has an issue with
-      // "invalid" keys.
-      else {
-          idx = index.get(obj);
-
-          // Remove from index map.
-          index['delete'](obj);
-        }
-
-      idx = idx || -1;
+    free: function free(value) {
+      var idx = allocated.indexOf(value);
 
       // Already freed.
       if (idx === -1) {
         return;
       }
 
-      // Empty arrays.
-      if (Array.isArray(obj)) {
-        obj.length = 0;
-      }
-
       // Only put back into the free queue if we're under the size.
       if (_free.length < size) {
-        _free.push(obj);
+        _free.push(value);
       }
 
       allocated.splice(idx, 1);
@@ -1711,7 +1681,11 @@ function initializePools(COUNT) {
     size: COUNT,
 
     fill: function fill() {
-      return {};
+      return {
+        element: uuid(),
+        childNodes: [],
+        attributes: []
+      };
     }
   });
 
@@ -1720,22 +1694,6 @@ function initializePools(COUNT) {
 
     fill: function fill() {
       return {};
-    }
-  });
-
-  pools.array = createPool({
-    size: COUNT,
-
-    fill: function fill() {
-      return [];
-    }
-  });
-
-  pools.uuid = createPool({
-    size: COUNT,
-
-    fill: function fill() {
-      return uuid();
     }
   });
 }
@@ -1867,6 +1825,7 @@ function create() {
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports['default'] = startup;
 var bufferToString;
 var parseHTML;
 var syncNode;
@@ -1878,6 +1837,7 @@ var pools;
  * @param worker
  * @return
  */
+
 function startup(worker) {
   var Trees = {};
   var patches = [];
@@ -1924,14 +1884,14 @@ function startup(worker) {
 
     // Cleanup sync node allocations.
     pools.object.freeAll();
-    pools.array.freeAll();
+    pools.attributeObject.freeAll();
+    //pools.elementObject.freeAll();
 
     // Wipe out the patches in memory.
     patches.length = 0;
   };
 }
 
-exports['default'] = startup;
 module.exports = exports['default'];
 
 },{}],19:[function(_dereq_,module,exports){
