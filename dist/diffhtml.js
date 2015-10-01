@@ -522,14 +522,10 @@ function completeWorkerRender(element, elementMeta) {
     element.dispatchEvent(new _customEvent2['default']('renderComplete'));
 
     if (elementMeta.renderBuffer) {
-      (function () {
-        var nextRender = elementMeta.renderBuffer;
-        elementMeta.renderBuffer = undefined;
+      var nextRender = elementMeta.renderBuffer;
+      elementMeta.renderBuffer = undefined;
 
-        requestAnimationFrame(function () {
-          patch(element, nextRender.newHTML, nextRender.options);
-        });
-      })();
+      patch(element, nextRender.newHTML, nextRender.options);
     }
   };
 }
@@ -555,15 +551,13 @@ function patch(element, newHTML, options) {
 
   var worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
 
-  if (element.isRendering) {
+  if (elementMeta.isRendering) {
+    // Add this new render into the buffer queue.
     elementMeta.renderBuffer = { newHTML: newHTML, options: options };
     return;
   }
 
   if (
-  // If already rendering, abort this loop.
-  elementMeta.isRendering ||
-
   // If the operation is `innerHTML`, but the contents haven't changed,
   // abort.
   options.inner && element.innerHTML === newHTML ||

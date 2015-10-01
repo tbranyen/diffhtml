@@ -13,7 +13,7 @@
     "watchify": "watchify -t babelify -d -s diff lib/index.js -o 'derequire > dist/diffhtml.js' -v",
     "jshint": "jshint lib/*.js",
     "mocha": "mocha-phantomjs test/index.html",
-    "cov": "npm run browserify -- -o dist/diffhtml.js -t browserify-istanbul && npm run mocha -- -k mocha-phantomjs-istanbul",
+    "cov": "npm run browserify -- -o dist/diffhtml.js -g requireify -t browserify-istanbul && npm run mocha -- -k mocha-phantomjs-istanbul",
     "report": "istanbul report --root coverage --dir test/coverage lcov",
     "test": "npm run jshint && npm run cov #&& npm run report"
   },
@@ -31,6 +31,7 @@
     "mocha-phantomjs": "^4.0.1",
     "mocha-phantomjs-istanbul": "^0.0.2",
     "promise-polyfill": "^2.1.0",
+    "requireify": "^1.0.0",
     "watchify": "^3.4.0",
     "weakmap": "^0.0.6"
   }
