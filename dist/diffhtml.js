@@ -463,6 +463,8 @@ var _customEvent2 = _interopRequireDefault(_customEvent);
 
 var _workerCreate = _dereq_('../worker/create');
 
+var _utilProtect = _dereq_('../util/protect');
+
 var _make = _dereq_('./make');
 
 var _make2 = _interopRequireDefault(_make);
@@ -488,6 +490,21 @@ var pools = _utilPools.pools;
 // Cache prebuilt trees and lookup by element.
 var TreeCache = new WeakMap();
 
+function cleanMemory() {
+  // Free all memory after each iteration.
+  pools.object.freeAll();
+  pools.attributeObject.freeAll();
+  pools.elementObject.freeAll();
+
+  // Empty out the `make.nodes`.
+  for (var uuid in _make2['default'].nodes) {
+    // If this is not a protected uuid, remove it.
+    if (pools.elementObject._uuid.indexOf(uuid) === -1) {
+      delete _make2['default'].nodes[uuid];
+    }
+  }
+}
+
 function completeWorkerRender(element, elementMeta) {
   return function (ev) {
     (0, _patchesProcess2['default'])(element, ev);
@@ -495,6 +512,8 @@ function completeWorkerRender(element, elementMeta) {
     elementMeta._innerHTML = element.innerHTML;
     elementMeta._outerHTML = element.outerHTML;
     elementMeta._textContent = element.textContent;
+
+    cleanMemory();
 
     elementMeta.isRendering = false;
     elementMeta.hasRenderedViaWorker = true;
@@ -538,6 +557,7 @@ function patch(element, newHTML, options) {
 
   if (element.isRendering) {
     elementMeta.renderBuffer = { newHTML: newHTML, options: options };
+    return;
   }
 
   if (
@@ -566,6 +586,12 @@ function patch(element, newHTML, options) {
   // If the text content ever changes, recalculate the tree.
   elementMeta._textContent !== element.textContent) {
     newOld = true;
+
+    if (elementMeta.oldTree) {
+      (0, _utilProtect.unprotectElement)(elementMeta.oldTree);
+      cleanMemory();
+    }
+
     elementMeta.oldTree = (0, _make2['default'])(element, true);
   }
 
@@ -686,18 +712,7 @@ function patch(element, newHTML, options) {
     elementMeta._outerHTML = element.outerHTML;
     elementMeta._textContent = element.textContent;
 
-    // Free all memory after each iteration.
-    pools.object.freeAll();
-    pools.attributeObject.freeAll();
-    pools.elementObject.freeAll();
-
-    // Empty out the `make.nodes`.
-    for (var uuid in _make2['default'].nodes) {
-      // If this is not a protected uuid, remove it.
-      if (pools.elementObject._uuid.indexOf(uuid) === -1) {
-        delete _make2['default'].nodes[uuid];
-      }
-    }
+    cleanMemory();
 
     // Clean out the patches array.
     data.length = 0;
@@ -709,7 +724,7 @@ function patch(element, newHTML, options) {
 
 module.exports = exports['default'];
 
-},{"../patches/process":8,"../util/buffers":11,"../util/parser":13,"../util/pools":14,"../worker/create":17,"./make":5,"./sync":7,"custom-event":19}],7:[function(_dereq_,module,exports){
+},{"../patches/process":8,"../util/buffers":11,"../util/parser":13,"../util/pools":14,"../util/protect":15,"../worker/create":17,"./make":5,"./sync":7,"custom-event":19}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
