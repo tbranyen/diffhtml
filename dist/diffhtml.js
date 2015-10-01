@@ -1,35 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.copyElementAttribute = copyElementAttribute;
-exports.copyElement = copyElement;
-
-function copyElementAttribute(attribute) {
-  return { name: attribute.name, value: attribute.value };
-}
-
-function copyElement(descriptor) {
-  var newObject = {
-    element: descriptor.element,
-    nodeName: descriptor.nodeName,
-    nodeValue: descriptor.nodeValue
-  };
-
-  if (descriptor.childNodes) {
-    newObject.childNodes = descriptor.childNodes.map(copyElement);
-  }
-
-  if (descriptor.attributes) {
-    newObject.attributes = descriptor.attributes.map(copyElementAttribute);
-  }
-
-  return newObject;
-}
-
-},{}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -63,7 +32,7 @@ function get(ref) {
 
 module.exports = exports['default'];
 
-},{"../element/make":3,"../node/make":6}],3:[function(_dereq_,module,exports){
+},{"../element/make":2,"../node/make":5}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -108,12 +77,7 @@ function make(descriptor) {
     if (descriptor.attributes && descriptor.attributes.length) {
       for (var i = 0; i < descriptor.attributes.length; i++) {
         var attribute = descriptor.attributes[i];
-
-        if (isSvg) {
-          element.setAttributeNS(svg.namespace, attribute.name, attribute.value);
-        } else {
-          element.setAttribute(attribute.name, attribute.value);
-        }
+        element.setAttribute(attribute.name, attribute.value);
       }
     }
 
@@ -132,7 +96,7 @@ function make(descriptor) {
 
 module.exports = exports['default'];
 
-},{"../node/make":6,"../svg":10}],4:[function(_dereq_,module,exports){
+},{"../node/make":5,"../svg":9}],3:[function(_dereq_,module,exports){
 /**
  * Identifies an error with transitions.
  */
@@ -164,7 +128,7 @@ var TransitionStateError = (function (_Error) {
 
 exports.TransitionStateError = TransitionStateError;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -384,7 +348,7 @@ function enableProllyfill() {
   });
 }
 
-},{"./errors":4,"./node/patch":7,"./transitions":11}],6:[function(_dereq_,module,exports){
+},{"./errors":3,"./node/patch":6,"./transitions":10}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -394,7 +358,11 @@ exports['default'] = make;
 
 var _utilPools = _dereq_('../util/pools');
 
+var _utilProtect = _dereq_('../util/protect');
+
 var pools = _utilPools.pools;
+var protectElement = _utilProtect.protectElement;
+var unprotectElement = _utilProtect.unprotectElement;
 
 // Cache created nodes inside this object.
 make.nodes = {};
@@ -406,7 +374,7 @@ make.nodes = {};
  * @return
  */
 
-function make(node) {
+function make(node, protect) {
   var nodeType = node.nodeType;
   var nodeValue = node.nodeValue;
 
@@ -421,6 +389,10 @@ function make(node) {
   // Virtual representation of a node, containing only the data we wish to
   // diff and patch.
   var entry = pools.elementObject.get();
+
+  if (protect) {
+    protectElement(entry);
+  }
 
   // Add to internal lookup.
   make.nodes[entry.element] = node;
@@ -439,10 +411,16 @@ function make(node) {
 
     if (attributesLength) {
       for (var i = 0; i < attributesLength; i++) {
-        entry.attributes[entry.attributes.length] = {
-          name: attributes[i].name,
-          value: attributes[i].value
-        };
+        var attr = pools.attributeObject.get();
+
+        if (protect) {
+          pools.attributeObject.protect(attr);
+        }
+
+        attr.name = attributes[i].name;
+        attr.value = attributes[i].value;
+
+        entry.attributes[entry.attributes.length] = attr;
       }
     }
   }
@@ -450,14 +428,14 @@ function make(node) {
   // Collect childNodes.
   var childNodes = node.childNodes;
   var childNodesLength = node.childNodes.length;
-  var newNode = null;
 
   // If the element has child nodes, convert them all to virtual nodes.
   if (node.nodeType !== 3 && childNodes) {
     for (var i = 0; i < childNodesLength; i++) {
-      newNode = make(childNodes[i]);
+      var newNode = make(childNodes[i], protect);
 
       if (newNode) {
+        protectElement(newNode);
         entry.childNodes[entry.childNodes.length] = newNode;
       }
     }
@@ -468,7 +446,7 @@ function make(node) {
 
 module.exports = exports['default'];
 
-},{"../util/pools":15}],7:[function(_dereq_,module,exports){
+},{"../util/pools":14,"../util/protect":15}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -584,7 +562,7 @@ function patch(element, newHTML, options) {
   // If the text content ever changes, recalculate the tree.
   elementMeta._textContent !== element.textContent) {
     newOld = true;
-    elementMeta.oldTree = (0, _make2['default'])(element);
+    elementMeta.oldTree = (0, _make2['default'])(element, true);
   }
 
   // Will want to ensure that the first render went through, the worker can
@@ -707,10 +685,15 @@ function patch(element, newHTML, options) {
     // Free all memory after each iteration.
     pools.object.freeAll();
     pools.attributeObject.freeAll();
-    //pools.elementObject.freeAll();
-    //console.log(pools.elementObject._allocated.length);
+    pools.elementObject.freeAll();
 
-    //console.log(pools.elementObject._allocated.length);
+    // Empty out the `make.nodes`.
+    for (var uuid in _make2['default'].nodes) {
+      // If this is not a protected uuid, remove it.
+      if (pools.elementObject._uuid.indexOf(uuid) === -1) {
+        delete _make2['default'].nodes[uuid];
+      }
+    }
 
     // Clean out the patches array.
     data.length = 0;
@@ -722,7 +705,7 @@ function patch(element, newHTML, options) {
 
 module.exports = exports['default'];
 
-},{"../patches/process":9,"../util/buffers":12,"../util/parser":14,"../util/pools":15,"../worker/create":17,"./make":6,"./sync":8,"custom-event":19}],8:[function(_dereq_,module,exports){
+},{"../patches/process":8,"../util/buffers":11,"../util/parser":13,"../util/pools":14,"../worker/create":17,"./make":5,"./sync":7,"custom-event":19}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -730,10 +713,13 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports['default'] = sync;
 
-var _elementCopy = _dereq_('../element/copy');
+var _utilPools = _dereq_('../util/pools');
 
-var copyElement = _elementCopy.copyElement;
-var copyElementAttribute = _elementCopy.copyElementAttribute;
+var _utilProtect = _dereq_('../util/protect');
+
+var pools = _utilPools.pools;
+var protectElement = _utilProtect.protectElement;
+var unprotectElement = _utilProtect.unprotectElement;
 
 var slice = Array.prototype.slice;
 
@@ -751,8 +737,13 @@ function sync(oldTree, newTree) {
   var oldElement = oldTree.element;
 
   if (!newTree) {
+    var removed = oldChildNodes.splice(0, oldChildNodesLength);
+
     patches[patches.length] = { __do__: -1, element: oldElement };
-    oldChildNodes.splice(0, oldChildNodesLength);
+
+    for (var i = 0; i < removed.length; i++) {
+      unprotectElement(removed[i]);
+    }
 
     return;
   }
@@ -771,8 +762,8 @@ function sync(oldTree, newTree) {
   // Replace text node values if they are different.
   if (newTree.nodeName === '#text' && oldTree.nodeName === '#text') {
     // Text changed.
-    if (oldTree.nodeValue !== newTree.nodeValue) {
-      oldTree.nodeValue = newTree.nodeValue;
+    if (oldTree.nodeValue !== nodeValue) {
+      oldTree.nodeValue = nodeValue;
 
       patches[patches.length] = {
         __do__: 3,
@@ -791,7 +782,7 @@ function sync(oldTree, newTree) {
     var fragment = [];
 
     for (var i = oldChildNodesLength; i < childNodesLength; i++) {
-      childNodes[i] = copyElement(childNodes[i]);
+      protectElement(childNodes[i]);
 
       // Internally add to the tree.
       oldChildNodes[oldChildNodes.length] = childNodes[i];
@@ -810,16 +801,19 @@ function sync(oldTree, newTree) {
 
   // Replace elements if they are different.
   for (var i = 0; i < childNodesLength; i++) {
-    if (oldTree.childNodes[i].nodeName !== childNodes[i].nodeName) {
+    if (oldChildNodes[i].nodeName !== childNodes[i].nodeName) {
       // Add to the patches.
       patches[patches.length] = {
         __do__: 1,
-        old: oldTree.childNodes[i],
+        old: oldChildNodes[i],
         'new': childNodes[i]
       };
 
+      unprotectElement(oldChildNodes[i]);
+      protectElement(childNodes[i]);
+
       // Replace the internal tree's point of view of this element.
-      oldTree.childNodes[i] = copyElement(childNodes[i]);
+      oldChildNodes[i] = childNodes[i];
     }
   }
 
@@ -834,7 +828,11 @@ function sync(oldTree, newTree) {
       patches[patches.length] = { __do__: 1, old: toRemove[i].element };
     }
 
-    oldChildNodes.splice(childNodesLength, oldChildNodesLength - childNodesLength);
+    var removed = oldChildNodes.splice(childNodesLength, oldChildNodesLength - childNodesLength);
+
+    for (var i = 0; i < removed.length; i++) {
+      unprotectElement(removed[i]);
+    }
   }
 
   // Synchronize attributes
@@ -856,11 +854,14 @@ function sync(oldTree, newTree) {
           value: toAdd[i].value
         };
 
+        var attr = pools.attributeObject.get();
+        attr.name = toAdd[i].name;
+        attr.value = toAdd[i].value;
+
+        pools.attributeObject.protect(attr);
+
         // Push the change object into into the virtual tree.
-        oldTree.attributes[oldTree.attributes.length] = {
-          name: toAdd[i].name,
-          value: toAdd[i].value
-        };
+        oldTree.attributes[oldTree.attributes.length] = attr;
 
         // Add the change to the series of patches.
         patches[patches.length] = change;
@@ -880,7 +881,11 @@ function sync(oldTree, newTree) {
         };
 
         // Remove the attribute from the virtual node.
-        oldTree.attributes.splice(i, 1);
+        var removed = oldTree.attributes.splice(i, 1);
+
+        for (var _i = 0; _i < removed.length; _i++) {
+          pools.attributeObject.unprotect(removed[_i]);
+        }
 
         // Add the change to the series of patches.
         patches[patches.length] = change;
@@ -904,8 +909,9 @@ function sync(oldTree, newTree) {
         };
 
         // Replace the attribute in the virtual node.
-        oldTree.attributes[i].name = toModify[i].name;
-        oldTree.attributes[i].value = toModify[i].value;
+        var attr = oldTree.attributes[i];
+        attr.name = toModify[i].name;
+        attr.value = toModify[i].value;
 
         // Add the change to the series of patches.
         patches[patches.length] = change;
@@ -923,7 +929,7 @@ function sync(oldTree, newTree) {
 
 module.exports = exports['default'];
 
-},{"../element/copy":1}],9:[function(_dereq_,module,exports){
+},{"../util/pools":14,"../util/protect":15}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1140,15 +1146,11 @@ function process(element, e) {
 
             patch.element.textContent = (0, _utilDecode2['default'])(patch.value);
 
-            if (patch.element.parentNode === null) {
-              document.title = patch.value;
-            } else {
-              // Trigger all the text changed values.
-              if (states && states.textChanged) {
-                for (var x = 0; x < states.textChanged.length; x++) {
-                  var callback = states.textChanged[x];
-                  callback(patch.element.parentNode, originalValue, patch.value);
-                }
+            // Trigger all the text changed values.
+            if (states && states.textChanged) {
+              for (var x = 0; x < states.textChanged.length; x++) {
+                var callback = states.textChanged[x];
+                callback(patch.element.parentNode, originalValue, patch.value);
               }
             }
           }
@@ -1161,7 +1163,7 @@ function process(element, e) {
 
 module.exports = exports['default'];
 
-},{"../element/get":2,"../node/make":6,"../transitions":11,"../util/decode":13,"../util/pools":15}],10:[function(_dereq_,module,exports){
+},{"../element/get":1,"../node/make":5,"../transitions":10,"../util/decode":12,"../util/pools":14}],9:[function(_dereq_,module,exports){
 // List of SVG elements.
 'use strict';
 
@@ -1175,7 +1177,7 @@ exports.elements = elements;
 var namespace = 'http://www.w3.org/2000/svg';
 exports.namespace = namespace;
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 /**
  * Transition states
  * =================
@@ -1217,7 +1219,7 @@ var transitionStates = {
 };
 exports.transitionStates = transitionStates;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 // Create a default buffer at length 1024.
 'use strict';
 
@@ -1266,7 +1268,7 @@ function bufferToString(buffer, offset) {
   return string;
 }
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1293,7 +1295,7 @@ function decodeEntities(string) {
 exports['default'] = decodeEntities;
 module.exports = exports['default'];
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
@@ -1577,7 +1579,7 @@ function makeParser() {
 
 ;
 
-},{"./pools":15}],15:[function(_dereq_,module,exports){
+},{"./pools":14}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1611,6 +1613,7 @@ function createPool(opts) {
 
   var _free = [];
   var allocated = [];
+  var _protect = [];
 
   // Prime the cache with n objects.
   for (var i = 0; i < size; i++) {
@@ -1620,6 +1623,7 @@ function createPool(opts) {
   return {
     _free: _free,
     _allocated: allocated,
+    _uuid: [],
 
     get: function get() {
       var obj = null;
@@ -1638,14 +1642,40 @@ function createPool(opts) {
       return obj;
     },
 
-    freeAll: function freeAll() {
-      var except = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+    protect: function protect(value) {
+      var idx = allocated.indexOf(value);
+      _protect.push(allocated.splice(idx, 1)[0]);
 
-      var allocatedLength = allocated.length;
-
-      for (var i = 0; i < allocatedLength; i++) {
-        this.free(allocated[i]);
+      // FIXME this isn't specific enough, we need a better way to cache the
+      // currently used uuids.
+      if (value && value.element) {
+        this._uuid.push(value.element);
       }
+    },
+
+    unprotect: function unprotect(value) {
+      var idx = _protect.indexOf(value);
+      var freeLength = _free.length;
+
+      if (freeLength < size) {
+        var obj = _protect.splice(idx, 1)[0];
+
+        if (obj) {
+          _free.push(obj);
+        }
+      }
+
+      // FIXME Read above FIXME
+      if (value && value.element) {
+        this._uuid.splice(this._uuid.indexOf(value.element), 1);
+      }
+    },
+
+    freeAll: function freeAll() {
+      var allocatedLength = allocated.length;
+      var freeLength = _free.length;
+
+      _free.push.apply(_free, allocated.slice(0, size - freeLength));
 
       allocated.length = 0;
     },
@@ -1701,7 +1731,32 @@ function initializePools(COUNT) {
 // Create 10k items of each type.
 initializePools(count);
 
-},{"./uuid":16}],16:[function(_dereq_,module,exports){
+},{"./uuid":16}],15:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+exports.protectElement = protectElement;
+exports.unprotectElement = unprotectElement;
+
+var _utilPools = _dereq_('../util/pools');
+
+var pools = _utilPools.pools;
+
+function protectElement(element) {
+  pools.elementObject.protect(element);
+  element.childNodes.forEach(protectElement);
+  element.attributes.forEach(pools.attributeObject.protect, pools.attributeObject);
+}
+
+function unprotectElement(element) {
+  pools.elementObject.unprotect(element);
+  element.childNodes.forEach(unprotectElement);
+  element.attributes.forEach(pools.attributeObject.unprotect, pools.attributeObject);
+}
+
+},{"../util/pools":14}],16:[function(_dereq_,module,exports){
 /**
  * Generates a uuid.
  *
@@ -1749,7 +1804,7 @@ var _utilPools = _dereq_('../util/pools');
 
 var _utilParser = _dereq_('../util/parser');
 
-var _elementCopy = _dereq_('../element/copy');
+var _utilProtect = _dereq_('../util/protect');
 
 var _nodeSync = _dereq_('../node/sync');
 
@@ -1780,11 +1835,11 @@ function create() {
     // Add a namespace to attach pool methods to.
     'var pools = {};', 'var nodes = 0;',
 
-    // Allows elements and attributes to be copied.
-    _elementCopy.copyElement, _elementCopy.copyElementAttribute,
-
     // Adds in a global `uuid` function.
     _utilUuid2['default'],
+
+    // Add the ability to protect elements from free'd memory.
+    _utilProtect.protectElement, _utilProtect.unprotectElement,
 
     // Add in pool manipulation methods.
     _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + _utilPools.count + ');',
@@ -1819,7 +1874,7 @@ function create() {
   return worker;
 }
 
-},{"../element/copy":1,"../node/sync":8,"../util/buffers":12,"../util/parser":14,"../util/pools":15,"../util/uuid":16,"./source":18}],18:[function(_dereq_,module,exports){
+},{"../node/sync":7,"../util/buffers":11,"../util/parser":13,"../util/pools":14,"../util/protect":15,"../util/uuid":16,"./source":18}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1882,10 +1937,10 @@ function startup(worker) {
     // Send the patches back to the userland.
     worker.postMessage(patches);
 
-    // Cleanup sync node allocations.
+    // Release allocated objects back into the pool.
     pools.object.freeAll();
     pools.attributeObject.freeAll();
-    //pools.elementObject.freeAll();
+    pools.elementObject.freeAll();
 
     // Wipe out the patches in memory.
     patches.length = 0;
@@ -1946,5 +2001,5 @@ function CustomEvent (type, params) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[5])(5)
+},{}]},{},[4])(4)
 });

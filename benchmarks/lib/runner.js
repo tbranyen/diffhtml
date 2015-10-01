@@ -34,18 +34,10 @@ select.onchange = function() {
     .then(function(template) {
       var window = iframe.contentWindow.window;
       var document = iframe.contentDocument;
-      var count = 250;
+      var count = 200;
       var lastCalled = Date.now();
 
       window.template = template;
-
-
-      template.registerFilter('logOnce', function(value) {
-        if (!hasLogged) {
-          console.log(value);
-          hasLogged = true;
-        }
-      });
 
       template.registerFilter('force', function(array, max) {
         if (array.length > max) {
@@ -66,9 +58,9 @@ select.onchange = function() {
         var start = Date.now();
 
         window.done = function(time) {
-          setTimeout(startRendering, 0);
+          //setTimeout(startRendering, 0);
           //setTimeout(startRendering, 5000);
-          //requestAnimationFrame(startRendering);
+          requestAnimationFrame(startRendering);
         };
 
         window.render(count);
