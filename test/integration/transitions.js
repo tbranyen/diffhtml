@@ -1,10 +1,11 @@
-describe('Transitions', function() {
+describe('Integration: Transitions', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
     this.fixture.innerHTML = '<div></div>';
   });
 
   afterEach(function() {
+    diff.release(this.fixture);
     diff.removeTransitionState();
   });
 

@@ -1,7 +1,11 @@
-describe('Basics', function() {
+describe('Integration: Basics', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
     this.fixture.innerHTML = '<div></div>';
+  });
+
+  afterEach(function() {
+    diff.release(this.fixture);
   });
 
   describe('Expose API', function() {
@@ -66,6 +70,8 @@ describe('Basics', function() {
 
       diff.outerHTML(documentElement, '<html><head><title>Test</title></head></html>');
       assert.equal(iframeDoc.title, 'Test');
+
+      diff.release(documentElement);
 
       iframe.parentNode.removeChild(iframe);
     });

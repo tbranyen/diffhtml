@@ -9,13 +9,11 @@
   "scripts": {
     "start": "http-server",
     "build": "browserify -t babelify -s diff lib/index.js | derequire > dist/diffhtml.js",
-    "browserify": "browserify -t babelify -s diff lib/index.js",
-    "watchify": "watchify -t babelify -d -s diff lib/index.js -o 'derequire > dist/diffhtml.js' -v",
+    "build-test": "browserify -t babelify -s diff lib/index.js -o dist/diffhtml.js -g requireify -t requireify",
+    "watch": "watchify -t babelify -t requireify -g requireify -d -s diff lib/index.js -o dist/diffhtml.js -v",
     "jshint": "jshint lib/*.js",
     "mocha": "mocha-phantomjs test/index.html",
-    "cov": "npm run browserify -- -o dist/diffhtml.js -g requireify -t browserify-istanbul && npm run mocha -- -k mocha-phantomjs-istanbul",
-    "report": "istanbul report --root coverage --dir test/coverage lcov",
-    "test": "npm run jshint && npm run cov #&& npm run report"
+    "test": "npm run jshint && npm run build-test && npm run mocha"
   },
   "devDependencies": {
     "babelify": "^6.3.0",

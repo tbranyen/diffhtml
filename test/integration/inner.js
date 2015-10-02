@@ -1,7 +1,11 @@
-describe('diff.innerHTML', function() {
+describe('Integration: innerHTML', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
     this.fixture.innerHTML = '<div></div>';
+  });
+
+  afterEach(function() {
+    diff.release(this.fixture);
   });
 
   it('can replace an element with a parent', function() {

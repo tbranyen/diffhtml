@@ -1,7 +1,11 @@
-describe('diff.outerHTML', function() {
+describe('Integration: outerHTML', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
     this.fixture.innerHTML = '<div></div>';
+  });
+
+  afterEach(function() {
+    diff.release(this.fixture);
   });
 
   it('can recalculate the tree if contents are unexpectedly changed', function() {
@@ -25,6 +29,8 @@ describe('diff.outerHTML', function() {
 
     diff.outerHTML(documentElement, originalSource);
     assert.equal(documentElement.childNodes.length, 2);
+
+    diff.release(documentElement);
 
     iframe.parentNode.removeChild(iframe);
   });

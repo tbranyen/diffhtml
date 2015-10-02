@@ -88,6 +88,11 @@ function make(descriptor) {
     }
   }
 
+  // Always set the node's value.
+  if (descriptor.nodeValue) {
+    element.textContent = descriptor.nodeValue;
+  }
+
   // Add to the nodes cache using the designated uuid as the lookup key.
   _nodeMake2['default'].nodes[descriptor.element] = element;
 
@@ -100,17 +105,17 @@ module.exports = exports['default'];
 /**
  * Identifies an error with transitions.
  */
-"use strict";
+'use strict';
 
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var TransitionStateError = (function (_Error) {
   _inherits(TransitionStateError, _Error);
@@ -118,9 +123,10 @@ var TransitionStateError = (function (_Error) {
   function TransitionStateError(message) {
     _classCallCheck(this, TransitionStateError);
 
-    _get(Object.getPrototypeOf(TransitionStateError.prototype), "constructor", this).call(this);
+    var error = _get(Object.getPrototypeOf(TransitionStateError.prototype), 'constructor', this).call(this);
 
     this.message = message;
+    this.stack = error.stack || 'Browser doesn\'t support error stack traces.';
   }
 
   return TransitionStateError;
@@ -137,15 +143,12 @@ Object.defineProperty(exports, '__esModule', {
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.element = element;
+exports.release = release;
 exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
 exports.enableProllyfill = enableProllyfill;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
 var _nodePatch = _dereq_('./node/patch');
-
-var _nodePatch2 = _interopRequireDefault(_nodePatch);
 
 var _transitions = _dereq_('./transitions');
 
@@ -176,7 +179,7 @@ function outerHTML(element) {
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
   options.inner = false;
-  (0, _nodePatch2['default'])(element, markup, options);
+  (0, _nodePatch.patchNode)(element, markup, options);
 }
 
 /**
@@ -195,7 +198,7 @@ function innerHTML(element) {
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
   options.inner = true;
-  (0, _nodePatch2['default'])(element, markup, options);
+  (0, _nodePatch.patchNode)(element, markup, options);
 }
 
 /**
@@ -212,7 +215,11 @@ function innerHTML(element) {
 function element(element, newElement) {
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-  (0, _nodePatch2['default'])(element, newElement, options);
+  (0, _nodePatch.patchNode)(element, newElement, options);
+}
+
+function release(element) {
+  (0, _nodePatch.releaseNode)(element);
 }
 
 /**
@@ -346,6 +353,15 @@ function enableProllyfill() {
       element(this, newElement);
     }
   });
+
+  // Releases the retained memory and worker instance.
+  Object.defineProperty(Element.prototype, 'diffRelease', {
+    configurable: true,
+
+    value: function value(newElement) {
+      (0, _nodePatch.releaseNode)(this);
+    }
+  });
 }
 
 },{"./errors":3,"./node/patch":6,"./transitions":10}],5:[function(_dereq_,module,exports){
@@ -358,11 +374,11 @@ exports['default'] = make;
 
 var _utilPools = _dereq_('../util/pools');
 
-var _utilProtect = _dereq_('../util/protect');
+var _utilMemory = _dereq_('../util/memory');
 
 var pools = _utilPools.pools;
-var protectElement = _utilProtect.protectElement;
-var unprotectElement = _utilProtect.unprotectElement;
+var protectElement = _utilMemory.protectElement;
+var unprotectElement = _utilMemory.unprotectElement;
 
 // Cache created nodes inside this object.
 make.nodes = {};
@@ -445,13 +461,14 @@ function make(node, protect) {
 
 module.exports = exports['default'];
 
-},{"../util/pools":14,"../util/protect":15}],6:[function(_dereq_,module,exports){
+},{"../util/memory":13,"../util/pools":15}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
-exports['default'] = patch;
+exports.releaseNode = releaseNode;
+exports.patchNode = patchNode;
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
@@ -463,7 +480,7 @@ var _customEvent2 = _interopRequireDefault(_customEvent);
 
 var _workerCreate = _dereq_('../worker/create');
 
-var _utilProtect = _dereq_('../util/protect');
+var _utilMemory = _dereq_('../util/memory');
 
 var _make = _dereq_('./make');
 
@@ -485,26 +502,17 @@ var _patchesProcess = _dereq_('../patches/process');
 
 var _patchesProcess2 = _interopRequireDefault(_patchesProcess);
 
-var pools = _utilPools.pools;
-
 // Cache prebuilt trees and lookup by element.
 var TreeCache = new WeakMap();
 
-function cleanMemory() {
-  // Free all memory after each iteration.
-  pools.object.freeAll();
-  pools.attributeObject.freeAll();
-  pools.elementObject.freeAll();
-
-  // Empty out the `make.nodes`.
-  for (var uuid in _make2['default'].nodes) {
-    // If this is not a protected uuid, remove it.
-    if (pools.elementObject._uuid.indexOf(uuid) === -1) {
-      delete _make2['default'].nodes[uuid];
-    }
-  }
-}
-
+/**
+ * When the worker completes, clean up memory and schedule the next render if
+ * necessary.
+ *
+ * @param element
+ * @param elementMeta
+ * @return
+ */
 function completeWorkerRender(element, elementMeta) {
   return function (ev) {
     (0, _patchesProcess2['default'])(element, ev);
@@ -513,7 +521,7 @@ function completeWorkerRender(element, elementMeta) {
     elementMeta._outerHTML = element.outerHTML;
     elementMeta._textContent = element.textContent;
 
-    cleanMemory();
+    (0, _utilMemory.cleanMemory)();
 
     elementMeta.isRendering = false;
     elementMeta.hasRenderedViaWorker = true;
@@ -525,9 +533,26 @@ function completeWorkerRender(element, elementMeta) {
       var nextRender = elementMeta.renderBuffer;
       elementMeta.renderBuffer = undefined;
 
-      patch(element, nextRender.newHTML, nextRender.options);
+      //patchNode(element, nextRender.newHTML, nextRender.options);
     }
   };
+}
+
+/**
+ * Release's the allocated objects and recycles internal memory.
+ *
+ * @param element
+ */
+
+function releaseNode(element) {
+  var elementMeta = TreeCache.get(element) || {};
+
+  if (elementMeta.oldTree) {
+    (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
+    (0, _utilMemory.cleanMemory)();
+  }
+
+  TreeCache['delete'](element);
 }
 
 /**
@@ -537,7 +562,7 @@ function completeWorkerRender(element, elementMeta) {
  * @param newHTML
  */
 
-function patch(element, newHTML, options) {
+function patchNode(element, newHTML, options) {
   // Ensure that the document disable worker is always picked up.
   if (typeof options.enableWorker !== 'boolean') {
     options.enableWorker = document.ENABLE_WORKER;
@@ -556,7 +581,6 @@ function patch(element, newHTML, options) {
     elementMeta.renderBuffer = { newHTML: newHTML, options: options };
     return;
   }
-
   if (
   // If the operation is `innerHTML`, but the contents haven't changed,
   // abort.
@@ -582,8 +606,8 @@ function patch(element, newHTML, options) {
     newOld = true;
 
     if (elementMeta.oldTree) {
-      (0, _utilProtect.unprotectElement)(elementMeta.oldTree);
-      cleanMemory();
+      (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
+      (0, _utilMemory.cleanMemory)();
     }
 
     elementMeta.oldTree = (0, _make2['default'])(element, true);
@@ -691,6 +715,8 @@ function patch(element, newHTML, options) {
           'new': newTree
         };
 
+        (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
+
         elementMeta.oldTree = newTree;
       }
 
@@ -706,7 +732,7 @@ function patch(element, newHTML, options) {
     elementMeta._outerHTML = element.outerHTML;
     elementMeta._textContent = element.textContent;
 
-    cleanMemory();
+    (0, _utilMemory.cleanMemory)();
 
     // Clean out the patches array.
     data.length = 0;
@@ -716,9 +742,7 @@ function patch(element, newHTML, options) {
   }
 }
 
-module.exports = exports['default'];
-
-},{"../patches/process":8,"../util/buffers":11,"../util/parser":13,"../util/pools":14,"../util/protect":15,"../worker/create":17,"./make":5,"./sync":7,"custom-event":19}],7:[function(_dereq_,module,exports){
+},{"../patches/process":8,"../util/buffers":11,"../util/memory":13,"../util/parser":14,"../util/pools":15,"../worker/create":17,"./make":5,"./sync":7,"custom-event":19}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -728,11 +752,11 @@ exports['default'] = sync;
 
 var _utilPools = _dereq_('../util/pools');
 
-var _utilProtect = _dereq_('../util/protect');
+var _utilMemory = _dereq_('../util/memory');
 
 var pools = _utilPools.pools;
-var protectElement = _utilProtect.protectElement;
-var unprotectElement = _utilProtect.unprotectElement;
+var protectElement = _utilMemory.protectElement;
+var unprotectElement = _utilMemory.unprotectElement;
 
 var slice = Array.prototype.slice;
 
@@ -774,6 +798,7 @@ function sync(oldTree, newTree) {
 
   // Replace text node values if they are different.
   if (newTree.nodeName === '#text' && oldTree.nodeName === '#text') {
+
     // Text changed.
     if (oldTree.nodeValue !== nodeValue) {
       oldTree.nodeValue = nodeValue;
@@ -942,7 +967,7 @@ function sync(oldTree, newTree) {
 
 module.exports = exports['default'];
 
-},{"../util/pools":14,"../util/protect":15}],8:[function(_dereq_,module,exports){
+},{"../util/memory":13,"../util/pools":15}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1176,7 +1201,7 @@ function process(element, e) {
 
 module.exports = exports['default'];
 
-},{"../element/get":1,"../node/make":5,"../transitions":10,"../util/decode":12,"../util/pools":14}],9:[function(_dereq_,module,exports){
+},{"../element/get":1,"../node/make":5,"../transitions":10,"../util/decode":12,"../util/pools":15}],9:[function(_dereq_,module,exports){
 // List of SVG elements.
 'use strict';
 
@@ -1192,45 +1217,50 @@ exports.namespace = namespace;
 
 },{}],10:[function(_dereq_,module,exports){
 /**
- * Transition states
- * =================
- *
- * - attached - For when elements come into the DOM. The callback triggers
- * ------------ immediately after the element enters the DOM. It is called with
- *              the element as the only argument.
- *
- * - detached - For when elements are removed from the DOM. The callback
- * ------------ triggers just before the element leaves the DOM. It is called
- *              with the element as the only argument.
- *
- * - replaced - For when elements are replaced in the DOM. The callback
- * ------------ triggers after the new element enters the DOM, and before the
- *              old element leaves. It is called with old and new elements as
- *              arguments, in that order.
- *
- * - attributeChanged - Triggered when an element's attribute has changed. The
- * -------------------- callback triggers after the attribute has changed in
- *                      the DOM. It is called with the element, the attribute
- *                      name, old value, and current value.
- *
- * - textChanged - Triggered when an element's `textContent` chnages. The
- * --------------- callback triggers after the textContent has changed in the
- *                 DOM. It is called with the element, the old value, and
- *                 current value.
+ * Contains arrays to store transition callbacks.
  */
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var transitionStates = {
-  attached: [],
-  detached: [],
-  replaced: [],
-  attributeChanged: [],
-  textChanged: []
-};
+var transitionStates = {};
+
 exports.transitionStates = transitionStates;
+/**
+ * For when elements come into the DOM. The callback triggers immediately after
+ * the element enters the DOM. It is called with the element as the only
+ * argument.
+ */
+transitionStates.attached = [];
+
+/**
+ * For when elements are removed from the DOM. The callback triggers just
+ * before the element leaves the DOM. It is called with the element as the only
+ * argument.
+ */
+transitionStates.detached = [];
+
+/*
+ * For when elements are replaced in the DOM. The callback triggers after the
+ * new element enters the DOM, and before the old element leaves. It is called
+ * with old and new elements as arguments, in that order.
+ */
+transitionStates.replaced = [];
+
+/*
+ * Triggered when an element's attribute has changed. The callback triggers
+ * after the attribute has changed in the DOM. It is called with the element,
+ * the attribute name, old value, and current value.
+ */
+transitionStates.attributeChanged = [];
+
+/*
+ * Triggered when an element's `textContent` chnages. The callback triggers
+ * after the textContent has changed in the DOM. It is called with the element,
+ * the old value, and current value.
+ */
+transitionStates.textChanged = [];
 
 },{}],11:[function(_dereq_,module,exports){
 // Create a default buffer at length 1024.
@@ -1297,18 +1327,65 @@ var element = document.createElement('div');
  * @return unescaped decoded HTML
  */
 function decodeEntities(string) {
-  // Escape HTML before decoding for HTML Entities
-  var escaped = escape(string).replace(/%26/g, '&').replace(/%23/g, '#').replace(/%3B/g, ';');
-
-  element.innerHTML = escaped;
-
-  return unescape(element.textContent);
+  element.innerHTML = string;
+  return element.textContent;
 }
 
 exports['default'] = decodeEntities;
 module.exports = exports['default'];
 
 },{}],13:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+exports.protectElement = protectElement;
+exports.unprotectElement = unprotectElement;
+exports.cleanMemory = cleanMemory;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _utilPools = _dereq_('../util/pools');
+
+var _nodeMake = _dereq_('../node/make');
+
+var _nodeMake2 = _interopRequireDefault(_nodeMake);
+
+var pools = _utilPools.pools;
+var makeNode = _nodeMake2['default'];
+
+function protectElement(element) {
+  pools.elementObject.protect(element);
+
+  element.childNodes.forEach(protectElement);
+  element.attributes.forEach(pools.attributeObject.protect, pools.attributeObject);
+}
+
+function unprotectElement(element) {
+  element.childNodes.forEach(unprotectElement);
+  element.attributes.forEach(pools.attributeObject.unprotect, pools.attributeObject);
+
+  pools.elementObject.unprotect(element);
+}
+
+function cleanMemory() {
+  // Free all memory after each iteration.
+  pools.attributeObject.freeAll();
+  pools.elementObject.freeAll();
+
+  // Empty out the `make.nodes` if on main thread.
+  if (typeof makeNode !== 'undefined') {
+    for (var uuid in makeNode.nodes) {
+      // If this is not a protected uuid, remove it.
+      if (pools.elementObject._uuid.indexOf(uuid) === -1) {
+        delete makeNode.nodes[uuid];
+      }
+    }
+  }
+}
+
+},{"../node/make":5,"../util/pools":15}],14:[function(_dereq_,module,exports){
 // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
@@ -1427,10 +1504,11 @@ function makeParser() {
   function TextNode(value) {
     var instance = pools.elementObject.get();
 
-    instance.nodeValue = value;
     instance.nodeName = '#text';
+    instance.nodeValue = value;
     instance.nodeType = 3;
     instance.childNodes.length = 0;
+    instance.attributes.length = 0;
 
     return instance;
   }
@@ -1449,9 +1527,10 @@ function makeParser() {
     var instance = pools.elementObject.get();
 
     instance.nodeName = name;
+    instance.nodeValue = '';
     instance.nodeType = 1;
-    instance.attributes.length = 0;
     instance.childNodes.length = 0;
+    instance.attributes.length = 0;
 
     if (rawAttrs) {
       for (var match = undefined; match = reAttrPattern.exec(rawAttrs);) {
@@ -1477,13 +1556,13 @@ function makeParser() {
      * @return {HTMLElement}      root element
      */
     parse: function parse(data, options) {
-      var rootObject = pools.object.get();
+      var rootObject = {};
       var root = HTMLElement(null, rootObject);
       var currentParent = root;
       var stack = [root];
       var lastTextPos = -1;
 
-      options = options || pools.object.get();
+      options = options || {};
 
       if (data.indexOf('<') === -1 && data) {
         currentParent.childNodes[currentParent.childNodes.length] = TextNode(data);
@@ -1516,7 +1595,7 @@ function makeParser() {
 
         if (!match[1]) {
           // not </ tags
-          var attrs = pools.object.get();
+          var attrs = {};
 
           for (var attMatch = undefined; attMatch = kAttributePattern.exec(match[3]);) {
             attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];
@@ -1593,7 +1672,7 @@ function makeParser() {
 
 ;
 
-},{"./pools":14}],14:[function(_dereq_,module,exports){
+},{"./pools":15}],15:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1617,11 +1696,12 @@ exports.count = count;
 /**
  * Creates a pool to query new or reused values from.
  *
+ * @param name
  * @param opts
  * @return {Object} pool
  */
 
-function createPool(opts) {
+function createPool(name, opts) {
   var size = opts.size;
   var fill = opts.fill;
 
@@ -1637,6 +1717,7 @@ function createPool(opts) {
   return {
     _free: _free,
     _allocated: allocated,
+    _protected: _protect,
     _uuid: [],
 
     get: function get() {
@@ -1658,12 +1739,17 @@ function createPool(opts) {
 
     protect: function protect(value) {
       var idx = allocated.indexOf(value);
-      _protect.push(allocated.splice(idx, 1)[0]);
 
-      // FIXME this isn't specific enough, we need a better way to cache the
-      // currently used uuids.
-      if (value && value.element) {
-        this._uuid.push(value.element);
+      // Move the value out of allocated, since we need to protect this from
+      // being free'd accidentally.
+      if (idx !== -1) {
+        _protect.push(allocated.splice(idx, 1)[0]);
+
+        // If we're protecting an element object, push the uuid into a lookup
+        // table.
+        if (name === 'elementObject') {
+          this._uuid.push(value.element);
+        }
       }
     },
 
@@ -1671,17 +1757,18 @@ function createPool(opts) {
       var idx = _protect.indexOf(value);
       var freeLength = _free.length;
 
-      if (freeLength < size) {
-        var obj = _protect.splice(idx, 1)[0];
+      if (idx !== -1) {
+        if (freeLength < size) {
+          var obj = _protect.splice(idx, 1)[0];
 
-        if (obj) {
-          _free.push(obj);
+          if (obj) {
+            _free.push(obj);
+          }
         }
-      }
 
-      // FIXME Read above FIXME
-      if (value && value.element) {
-        this._uuid.splice(this._uuid.indexOf(value.element), 1);
+        if (name === 'elementObject') {
+          this._uuid.splice(this._uuid.indexOf(value.element), 1);
+        }
       }
     },
 
@@ -1690,7 +1777,6 @@ function createPool(opts) {
       var freeLength = _free.length;
 
       _free.push.apply(_free, allocated.slice(0, size - freeLength));
-
       allocated.length = 0;
     },
 
@@ -1713,7 +1799,7 @@ function createPool(opts) {
 }
 
 function initializePools(COUNT) {
-  pools.attributeObject = createPool({
+  pools.attributeObject = createPool('attributeObject', {
     size: COUNT,
 
     fill: function fill() {
@@ -1721,7 +1807,7 @@ function initializePools(COUNT) {
     }
   });
 
-  pools.elementObject = createPool({
+  pools.elementObject = createPool('elementObject', {
     size: COUNT,
 
     fill: function fill() {
@@ -1732,47 +1818,12 @@ function initializePools(COUNT) {
       };
     }
   });
-
-  pools.object = createPool({
-    size: COUNT,
-
-    fill: function fill() {
-      return {};
-    }
-  });
 }
 
 // Create 10k items of each type.
 initializePools(count);
 
-},{"./uuid":16}],15:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-exports.protectElement = protectElement;
-exports.unprotectElement = unprotectElement;
-
-var _utilPools = _dereq_('../util/pools');
-
-var pools = _utilPools.pools;
-
-function protectElement(element) {
-  pools.elementObject.protect(element);
-
-  element.childNodes.forEach(protectElement);
-  element.attributes.forEach(pools.attributeObject.protect, pools.attributeObject);
-}
-
-function unprotectElement(element) {
-  pools.elementObject.unprotect(element);
-
-  element.childNodes.forEach(unprotectElement);
-  element.attributes.forEach(pools.attributeObject.unprotect, pools.attributeObject);
-}
-
-},{"../util/pools":14}],16:[function(_dereq_,module,exports){
+},{"./uuid":16}],16:[function(_dereq_,module,exports){
 /**
  * Generates a uuid.
  *
@@ -1820,7 +1871,7 @@ var _utilPools = _dereq_('../util/pools');
 
 var _utilParser = _dereq_('../util/parser');
 
-var _utilProtect = _dereq_('../util/protect');
+var _utilMemory = _dereq_('../util/memory');
 
 var _nodeSync = _dereq_('../node/sync');
 
@@ -1855,7 +1906,7 @@ function create() {
     _utilUuid2['default'],
 
     // Add the ability to protect elements from free'd memory.
-    _utilProtect.protectElement, _utilProtect.unprotectElement,
+    _utilMemory.protectElement, _utilMemory.unprotectElement, _utilMemory.cleanMemory,
 
     // Add in pool manipulation methods.
     _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + _utilPools.count + ');',
@@ -1890,7 +1941,7 @@ function create() {
   return worker;
 }
 
-},{"../node/sync":7,"../util/buffers":11,"../util/parser":13,"../util/pools":14,"../util/protect":15,"../util/uuid":16,"./source":18}],18:[function(_dereq_,module,exports){
+},{"../node/sync":7,"../util/buffers":11,"../util/memory":13,"../util/parser":14,"../util/pools":15,"../util/uuid":16,"./source":18}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1954,9 +2005,7 @@ function startup(worker) {
     worker.postMessage(patches);
 
     // Release allocated objects back into the pool.
-    pools.object.freeAll();
-    pools.attributeObject.freeAll();
-    pools.elementObject.freeAll();
+    cleanMemory();
 
     // Wipe out the patches in memory.
     patches.length = 0;
