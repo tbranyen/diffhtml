@@ -547,6 +547,12 @@ function completeWorkerRender(element, elementMeta) {
 function releaseNode(element) {
   var elementMeta = TreeCache.get(element) || {};
 
+  // If there is a worker associated with this element, then kill it.
+  if (elementMeta.worker) {
+    elementMeta.worker.terminate();
+  }
+
+  // If there was a tree set up, recycle the memory allocated for it.
   if (elementMeta.oldTree) {
     (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
     (0, _utilMemory.cleanMemory)();
@@ -573,8 +579,6 @@ function patchNode(element, newHTML, options) {
 
   // Always ensure the most up-to-date meta object is stored.
   TreeCache.set(element, elementMeta);
-
-  var worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
 
   if (elementMeta.isRendering) {
     // Add this new render into the buffer queue.
@@ -616,6 +620,9 @@ function patchNode(element, newHTML, options) {
   // Will want to ensure that the first render went through, the worker can
   // take a bit to startup and we want to show changes as soon as possible.
   if (options.enableWorker && _workerCreate.hasWorker && elementMeta.hasRendered) {
+    // Create a worker for this element.
+    var worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
+
     // Attach all properties here to transport.
     var transferObject = {};
 
