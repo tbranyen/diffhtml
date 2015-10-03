@@ -26,6 +26,10 @@ var titles = [
   "Vim Paper Color Theme Inspired By Google's Material Design"
 ];
 
+document.documentElement.addEventListener('renderComplete', function() {
+  window.done();
+});
+
 function render(count) {
   var data = {
     total: Math.floor(Math.random() * 1000),
@@ -35,8 +39,6 @@ function render(count) {
   };
 
   diff.outerHTML(document.documentElement, template.render(data), {
-    enableWorker: true
+    enableWorker: false
   });
-
-  window.done();
 }

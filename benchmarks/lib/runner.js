@@ -57,7 +57,7 @@ select.onchange = function() {
       function startRendering() {
         var start = Date.now();
 
-        window.done = function(time) {
+        window.done = function() {
           requestAnimationFrame(startRendering);
         };
 
