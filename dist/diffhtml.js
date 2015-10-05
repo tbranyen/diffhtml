@@ -647,9 +647,6 @@ function patchNode(element, newHTML, options) {
     // transferable object is too expensive.
     transferObject.newHTML = newHTML;
 
-    // Set the offset to be this byte length.
-    offset = newHTML.length;
-
     // Add properties to send to worker.
     transferObject.isInner = options.inner;
 
