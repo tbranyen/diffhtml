@@ -1,4 +1,16 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+/**
+ * Store all custom elements in this object.
+ */
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var components = {};
+exports.components = components;
+
+},{}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -32,7 +44,7 @@ function get(ref) {
 
 module.exports = exports['default'];
 
-},{"../element/make":2,"../node/make":5}],2:[function(_dereq_,module,exports){
+},{"../element/make":3,"../node/make":6}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -51,6 +63,8 @@ var svg = _interopRequireWildcard(_svg);
 var _nodeMake = _dereq_('../node/make');
 
 var _nodeMake2 = _interopRequireDefault(_nodeMake);
+
+var _custom = _dereq_('./custom');
 
 /**
  * Takes in a virtual descriptor and creates an HTML element. Set's the element
@@ -93,6 +107,19 @@ function make(descriptor) {
     element.textContent = descriptor.nodeValue;
   }
 
+  // Get the custom element constructor for a given element.
+  var customElement = _custom.components[descriptor.nodeName];
+
+  // Custom elements have a constructor method that should be called.
+  if (customElement.constructor) {
+    customElement.constructor.call(element);
+  }
+
+  // Custom elements have a createdCallback method that should be called.
+  if (customElement.createdCallback) {
+    customElement.createdCallback.call(element);
+  }
+
   // Add to the nodes cache using the designated uuid as the lookup key.
   _nodeMake2['default'].nodes[descriptor.element] = element;
 
@@ -101,7 +128,7 @@ function make(descriptor) {
 
 module.exports = exports['default'];
 
-},{"../node/make":5,"../svg":9}],3:[function(_dereq_,module,exports){
+},{"../node/make":6,"../svg":11,"./custom":1}],4:[function(_dereq_,module,exports){
 /**
  * Identifies an error with transitions.
  */
@@ -129,12 +156,32 @@ var TransitionStateError = (function (_Error) {
     this.stack = error.stack || 'Browser doesn\'t support error stack traces.';
   }
 
+  /**
+   * Identifies an error with registering an element.
+   */
   return TransitionStateError;
 })(Error);
 
 exports.TransitionStateError = TransitionStateError;
 
-},{}],4:[function(_dereq_,module,exports){
+var DOMException = (function (_Error2) {
+  _inherits(DOMException, _Error2);
+
+  function DOMException(message) {
+    _classCallCheck(this, DOMException);
+
+    var error = _get(Object.getPrototypeOf(DOMException.prototype), 'constructor', this).call(this);
+
+    this.message = 'Uncaught DOMException: ' + message;
+    this.stack = error.stack || 'Browser doesn\'t support error stack traces.';
+  }
+
+  return DOMException;
+})(Error);
+
+exports.DOMException = DOMException;
+
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -144,6 +191,7 @@ exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.element = element;
 exports.release = release;
+exports.registerElement = registerElement;
 exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
 exports.enableProllyfill = enableProllyfill;
@@ -151,6 +199,8 @@ exports.enableProllyfill = enableProllyfill;
 var _nodePatch = _dereq_('./node/patch');
 
 var _transitions = _dereq_('./transitions');
+
+var _elementCustom = _dereq_('./element/custom');
 
 // We export the TransitionStateError constructor so that instanceof checks can
 // be made by those publicly consuming this library.
@@ -190,7 +240,6 @@ function outerHTML(element) {
  * @param element
  * @param markup=''
  * @param options={}
- * @return
  */
 
 function innerHTML(element) {
@@ -209,7 +258,6 @@ function innerHTML(element) {
  * @param element
  * @param newElement
  * @param options={}
- * @return
  */
 
 function element(element, newElement) {
@@ -218,8 +266,32 @@ function element(element, newElement) {
   (0, _nodePatch.patchNode)(element, newElement, options);
 }
 
+/**
+ * Releases the worker and memory allocated to this element. Useful for
+ * components to clean up when removed.
+ *
+ * @param element
+ */
+
 function release(element) {
   (0, _nodePatch.releaseNode)(element);
+}
+
+/**
+ * Register's a constructor with an element to provide lifecycle events.
+ *
+ * @param tagName
+ * @param constructor
+ */
+
+function registerElement(tagName, constructor) {
+  // If the element has already been registered, raise an error.
+  if (tagName in _elementCustom.components) {
+    throw new DOMException('\n      Failed to execute \'registerElement\' on \'Document\': Registration failed\n      for type \'' + tagName + '\'. A type with that name is already registered.\n    ');
+  }
+
+  // Assign the custom element reference to the constructor.
+  _elementCustom.components[tagName] = constructor;
 }
 
 /**
@@ -362,9 +434,19 @@ function enableProllyfill() {
       (0, _nodePatch.releaseNode)(this);
     }
   });
+
+  if (document.registerElement) {
+    Object.defineProperty(document, 'registerElement', {
+      configurable: true,
+
+      value: function value(tagName, component) {
+        (0, _nodePatch.registerNode)(tagName, component);
+      }
+    });
+  }
 }
 
-},{"./errors":3,"./node/patch":6,"./transitions":10}],5:[function(_dereq_,module,exports){
+},{"./element/custom":1,"./errors":4,"./node/patch":7,"./transitions":12}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -461,7 +543,7 @@ function make(node, protect) {
 
 module.exports = exports['default'];
 
-},{"../util/memory":12,"../util/pools":14}],6:[function(_dereq_,module,exports){
+},{"../util/memory":14,"../util/pools":16}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -480,14 +562,6 @@ var _workerCreate = _dereq_('../worker/create');
 
 var _utilMemory = _dereq_('../util/memory');
 
-var _make = _dereq_('./make');
-
-var _make2 = _interopRequireDefault(_make);
-
-var _sync = _dereq_('./sync');
-
-var _sync2 = _interopRequireDefault(_sync);
-
 var _utilPools = _dereq_('../util/pools');
 
 var _utilParser = _dereq_('../util/parser');
@@ -496,8 +570,15 @@ var _patchesProcess = _dereq_('../patches/process');
 
 var _patchesProcess2 = _interopRequireDefault(_patchesProcess);
 
-// Cache prebuilt trees and lookup by element.
-var TreeCache = new WeakMap();
+var _make = _dereq_('./make');
+
+var _make2 = _interopRequireDefault(_make);
+
+var _sync = _dereq_('./sync');
+
+var _sync2 = _interopRequireDefault(_sync);
+
+var _tree = _dereq_('./tree');
 
 /**
  * When the worker completes, clean up memory and schedule the next render if
@@ -527,7 +608,8 @@ function completeWorkerRender(element, elementMeta) {
       var nextRender = elementMeta.renderBuffer;
       elementMeta.renderBuffer = undefined;
 
-      //patchNode(element, nextRender.newHTML, nextRender.options);
+      // Noticing some weird performance implications with this concept.
+      patchNode(element, nextRender.newHTML, nextRender.options);
     }
   };
 }
@@ -539,7 +621,7 @@ function completeWorkerRender(element, elementMeta) {
  */
 
 function releaseNode(element) {
-  var elementMeta = TreeCache.get(element) || {};
+  var elementMeta = _tree.TreeCache.get(element) || {};
 
   // If there is a worker associated with this element, then kill it.
   if (elementMeta.worker) {
@@ -552,7 +634,7 @@ function releaseNode(element) {
     (0, _utilMemory.cleanMemory)();
   }
 
-  TreeCache['delete'](element);
+  _tree.TreeCache['delete'](element);
 }
 
 /**
@@ -568,11 +650,11 @@ function patchNode(element, newHTML, options) {
     options.enableWorker = document.ENABLE_WORKER;
   }
 
-  var elementMeta = TreeCache.get(element) || {};
+  var elementMeta = _tree.TreeCache.get(element) || {};
   var newOld = false;
 
   // Always ensure the most up-to-date meta object is stored.
-  TreeCache.set(element, elementMeta);
+  _tree.TreeCache.set(element, elementMeta);
 
   if (elementMeta.isRendering) {
     // Add this new render into the buffer queue.
@@ -725,7 +807,7 @@ function patchNode(element, newHTML, options) {
   }
 }
 
-},{"../patches/process":8,"../util/memory":12,"../util/parser":13,"../util/pools":14,"../worker/create":16,"./make":5,"./sync":7,"custom-event":18}],7:[function(_dereq_,module,exports){
+},{"../patches/process":10,"../util/memory":14,"../util/parser":15,"../util/pools":16,"../worker/create":18,"./make":6,"./sync":8,"./tree":9,"custom-event":20}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -950,7 +1032,17 @@ function sync(oldTree, newTree) {
 
 module.exports = exports['default'];
 
-},{"../util/memory":12,"../util/pools":14}],8:[function(_dereq_,module,exports){
+},{"../util/memory":14,"../util/pools":16}],9:[function(_dereq_,module,exports){
+// Cache prebuilt trees and lookup by element.
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var TreeCache = new WeakMap();
+exports.TreeCache = TreeCache;
+
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -972,6 +1064,8 @@ var _elementGet = _dereq_('../element/get');
 
 var _elementGet2 = _interopRequireDefault(_elementGet);
 
+var _elementCustom = _dereq_('../element/custom');
+
 var _nodeMake = _dereq_('../node/make');
 
 var _nodeMake2 = _interopRequireDefault(_nodeMake);
@@ -982,8 +1076,8 @@ var forEach = Array.prototype.forEach;
 /**
  * Processes an Array of patches.
  *
+ * @param element
  * @param e
- * @return
  */
 
 function process(element, e) {
@@ -997,6 +1091,11 @@ function process(element, e) {
   var attachedCallback = function attachedCallback(elementDescriptor) {
     var el = (0, _elementGet2['default'])(elementDescriptor).element;
     var fragment = this.fragment;
+    var customElement = _elementCustom.components[elementDescriptor.nodeName] || {};
+
+    if (customElement.attachedCallback) {
+      customElement.attachedCallback.call(el);
+    }
 
     if (el.nodeName === '#text') {
       el.textContent = (0, _utilDecode2['default'])(el.textContent);
@@ -1018,28 +1117,30 @@ function process(element, e) {
 
   var _loop = function (i) {
     var patch = patches[i];
-    var elementId = undefined,
-        oldId = undefined,
-        newId = undefined,
-        result = undefined;
+    var newDescriptor = undefined,
+        oldDescriptor = undefined,
+        elementDescriptor = undefined;
     var element = patch['new'];
 
     if (patch.element) {
-      result = (0, _elementGet2['default'])(patch.element);
+      elementDescriptor = patch.element;
+
+      var result = (0, _elementGet2['default'])(patch.element);
       patch.element = result.element;
-      elementId = result.uuid;
     }
 
     if (patch.old) {
-      result = (0, _elementGet2['default'])(patch.old);
+      oldDescriptor = patch.old;
+
+      var result = (0, _elementGet2['default'])(patch.old);
       patch.old = result.element;
-      oldId = result.uuid;
     }
 
     if (patch['new']) {
-      result = (0, _elementGet2['default'])(patch['new']);
+      newDescriptor = patch['new'];
+
+      var result = (0, _elementGet2['default'])(patch['new']);
       patch['new'] = result.element;
-      newId = result.uuid;
     }
 
     if (element && element.nodeName === '#text') {
@@ -1049,6 +1150,17 @@ function process(element, e) {
     // Replace the entire Node.
     if (patch.__do__ === 0) {
       patch.old.parentNode.replaceChild(patch['new'], patch.old);
+
+      var oldCustomElement = _elementCustom.components[oldDescriptor.nodeName] || {};
+      var newCustomElement = _elementCustom.components[newDescriptor.nodeName] || {};
+
+      if (oldCustomElement.detachedCallback) {
+        oldCustomElement.detachedCallback.call(patch.old);
+      }
+
+      if (newCustomElement.attachedCallback) {
+        newCustomElement.attachedCallback.call(patch['new']);
+      }
     }
 
     // Node manip.
@@ -1095,9 +1207,15 @@ function process(element, e) {
               patch.old.ownerDocument.title = '';
             }
 
+            var customElement = _elementCustom.components[oldDescriptor.nodeName] || {};
+
+            if (customElement.detachedCallback) {
+              customElement.detachedCallback.call(patch.old);
+            }
+
             patch.old.parentNode.removeChild(patch.old);
 
-            _nodeMake2['default'].nodes[oldId] = undefined;
+            _nodeMake2['default'].nodes[oldDescriptor.element] = undefined;
           }
 
           // Replace
@@ -1130,6 +1248,17 @@ function process(element, e) {
 
               patch.old.parentNode.replaceChild(patch['new'], patch.old);
 
+              var oldCustomElement = _elementCustom.components[oldDescriptor.nodeName] || {};
+              var newCustomElement = _elementCustom.components[newDescriptor.nodeName] || {};
+
+              if (oldCustomElement.detachedCallback) {
+                oldCustomElement.detachedCallback.call(patch.old);
+              }
+
+              if (newCustomElement.attachedCallback) {
+                newCustomElement.attachedCallback.call(patch['new']);
+              }
+
               // Added state for transitions API.
               if (states && states.attached) {
                 states.attached.forEach(function (callback) {
@@ -1137,7 +1266,7 @@ function process(element, e) {
                 });
               }
 
-              _nodeMake2['default'].nodes[oldId] = undefined;
+              _nodeMake2['default'].nodes[oldDescriptor.element] = undefined;
             }
       }
 
@@ -1157,6 +1286,12 @@ function process(element, e) {
             for (var x = 0; x < states.attributeChanged.length; x++) {
               var callback = states.attributeChanged[x];
               callback(patch.element, patch.name, originalValue, patch.value);
+
+              var customElement = _elementCustom.components[elementDescriptor.nodeName] || {};
+
+              if (customElement.attributeChangedCallback) {
+                customElement.attributeChangedCallback.call(patch.old, patch.name, originalValue, patch.value);
+              }
             }
           }
         }
@@ -1184,7 +1319,7 @@ function process(element, e) {
 
 module.exports = exports['default'];
 
-},{"../element/get":1,"../node/make":5,"../transitions":10,"../util/decode":11,"../util/pools":14}],9:[function(_dereq_,module,exports){
+},{"../element/custom":1,"../element/get":2,"../node/make":6,"../transitions":12,"../util/decode":13,"../util/pools":16}],11:[function(_dereq_,module,exports){
 // List of SVG elements.
 'use strict';
 
@@ -1198,7 +1333,7 @@ exports.elements = elements;
 var namespace = 'http://www.w3.org/2000/svg';
 exports.namespace = namespace;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 /**
  * Contains arrays to store transition callbacks.
  */
@@ -1245,7 +1380,7 @@ transitionStates.attributeChanged = [];
  */
 transitionStates.textChanged = [];
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1268,7 +1403,7 @@ function decodeEntities(string) {
 exports['default'] = decodeEntities;
 module.exports = exports['default'];
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1319,7 +1454,7 @@ function cleanMemory() {
   }
 }
 
-},{"../node/make":5,"../util/pools":14}],13:[function(_dereq_,module,exports){
+},{"../node/make":6,"../util/pools":16}],15:[function(_dereq_,module,exports){
 // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
@@ -1606,7 +1741,7 @@ function makeParser() {
 
 ;
 
-},{"./pools":14}],14:[function(_dereq_,module,exports){
+},{"./pools":16}],16:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1757,7 +1892,7 @@ function initializePools(COUNT) {
 // Create 10k items of each type.
 initializePools(count);
 
-},{"./uuid":15}],15:[function(_dereq_,module,exports){
+},{"./uuid":17}],17:[function(_dereq_,module,exports){
 /**
  * Generates a uuid.
  *
@@ -1781,7 +1916,7 @@ function uuid() {
 
 module.exports = exports['default'];
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1866,7 +2001,7 @@ function create() {
   return worker;
 }
 
-},{"../node/sync":7,"../util/memory":12,"../util/parser":13,"../util/pools":14,"../util/uuid":15,"./source":17}],17:[function(_dereq_,module,exports){
+},{"../node/sync":8,"../util/memory":14,"../util/parser":15,"../util/pools":16,"../util/uuid":17,"./source":19}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1934,7 +2069,7 @@ function startup(worker) {
 
 module.exports = exports['default'];
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 (function (global){
 
 var NativeCustomEvent = global.CustomEvent;
@@ -1986,5 +2121,5 @@ function CustomEvent (type, params) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[4])(4)
+},{}]},{},[5])(5)
 });
