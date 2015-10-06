@@ -66,6 +66,8 @@ var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
 var _custom = _dereq_('./custom');
 
+var empty = {};
+
 /**
  * Takes in a virtual descriptor and creates an HTML element. Set's the element
  * into the cache.
@@ -108,7 +110,7 @@ function make(descriptor) {
   }
 
   // Get the custom element constructor for a given element.
-  var customElement = _custom.components[descriptor.nodeName];
+  var customElement = _custom.components[descriptor.nodeName] || empty;
 
   // Custom elements have a constructor method that should be called.
   if (customElement.constructor) {
@@ -214,6 +216,8 @@ Object.defineProperty(exports, 'TransitionStateError', {
   }
 });
 
+var realRegisterElement = document.registerElement;
+
 /**
  * Used to diff the outerHTML contents of the passed element with the markup
  * contents.  Very useful for applying a global diff on the
@@ -285,6 +289,11 @@ function release(element) {
  */
 
 function registerElement(tagName, constructor) {
+  // If the native web component specification is loaded, use that instead.
+  if (realRegisterElement) {
+    return realRegisterElement.call(document, tagName, constructor);
+  }
+
   // If the element has already been registered, raise an error.
   if (tagName in _elementCustom.components) {
     throw new DOMException('\n      Failed to execute \'registerElement\' on \'Document\': Registration failed\n      for type \'' + tagName + '\'. A type with that name is already registered.\n    ');
@@ -435,7 +444,8 @@ function enableProllyfill() {
     }
   });
 
-  if (document.registerElement) {
+  // Polyfill in the `registerElement` method if it doesn't already exist.
+  if (!realRegisterElement) {
     Object.defineProperty(document, 'registerElement', {
       configurable: true,
 
@@ -1072,6 +1082,7 @@ var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
 var pools = _utilPools.pools;
 var forEach = Array.prototype.forEach;
+var empty = {};
 
 /**
  * Processes an Array of patches.
@@ -1091,7 +1102,7 @@ function process(element, e) {
   var attachedCallback = function attachedCallback(elementDescriptor) {
     var el = (0, _elementGet2['default'])(elementDescriptor).element;
     var fragment = this.fragment;
-    var customElement = _elementCustom.components[elementDescriptor.nodeName] || {};
+    var customElement = _elementCustom.components[elementDescriptor.nodeName] || empty;
 
     if (customElement.attachedCallback) {
       customElement.attachedCallback.call(el);
@@ -1151,8 +1162,8 @@ function process(element, e) {
     if (patch.__do__ === 0) {
       patch.old.parentNode.replaceChild(patch['new'], patch.old);
 
-      var oldCustomElement = _elementCustom.components[oldDescriptor.nodeName] || {};
-      var newCustomElement = _elementCustom.components[newDescriptor.nodeName] || {};
+      var oldCustomElement = _elementCustom.components[oldDescriptor.nodeName] || empty;
+      var newCustomElement = _elementCustom.components[newDescriptor.nodeName] || empty;
 
       if (oldCustomElement.detachedCallback) {
         oldCustomElement.detachedCallback.call(patch.old);
@@ -1207,7 +1218,7 @@ function process(element, e) {
               patch.old.ownerDocument.title = '';
             }
 
-            var customElement = _elementCustom.components[oldDescriptor.nodeName] || {};
+            var customElement = _elementCustom.components[oldDescriptor.nodeName] || empty;
 
             if (customElement.detachedCallback) {
               customElement.detachedCallback.call(patch.old);
@@ -1248,8 +1259,8 @@ function process(element, e) {
 
               patch.old.parentNode.replaceChild(patch['new'], patch.old);
 
-              var oldCustomElement = _elementCustom.components[oldDescriptor.nodeName] || {};
-              var newCustomElement = _elementCustom.components[newDescriptor.nodeName] || {};
+              var oldCustomElement = _elementCustom.components[oldDescriptor.nodeName] || empty;
+              var newCustomElement = _elementCustom.components[newDescriptor.nodeName] || empty;
 
               if (oldCustomElement.detachedCallback) {
                 oldCustomElement.detachedCallback.call(patch.old);
@@ -1287,7 +1298,7 @@ function process(element, e) {
               var callback = states.attributeChanged[x];
               callback(patch.element, patch.name, originalValue, patch.value);
 
-              var customElement = _elementCustom.components[elementDescriptor.nodeName] || {};
+              var customElement = _elementCustom.components[elementDescriptor.nodeName] || empty;
 
               if (customElement.attributeChangedCallback) {
                 customElement.attributeChangedCallback.call(patch.old, patch.name, originalValue, patch.value);
