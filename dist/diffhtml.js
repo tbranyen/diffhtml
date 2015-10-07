@@ -7,8 +7,29 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.upgrade = upgrade;
 var components = {};
+
 exports.components = components;
+var empty = {};
+
+function upgrade(tagName, element) {
+  var CustomElement = components[tagName] || empty;
+
+  // No need to upgrade if already a subclass.
+  if (element instanceof CustomElement) {
+    return false;
+  }
+
+  // Copy the prototype into the Element.
+  if (CustomElement !== empty) {
+    element.__proto__ = CustomElement.prototype;
+  }
+
+  return true;
+}
+
+;
 
 },{}],2:[function(_dereq_,module,exports){
 'use strict';
@@ -66,7 +87,7 @@ var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
 var _custom = _dereq_('./custom');
 
-var empty = {};
+var empty = { prototype: {} };
 
 /**
  * Takes in a virtual descriptor and creates an HTML element. Set's the element
@@ -113,13 +134,13 @@ function make(descriptor) {
   var customElement = _custom.components[descriptor.nodeName] || empty;
 
   // Custom elements have a constructor method that should be called.
-  if (customElement.constructor) {
-    customElement.constructor.call(element);
+  if (customElement.prototype.constructor) {
+    customElement.prototype.constructor.call(element);
   }
 
   // Custom elements have a createdCallback method that should be called.
-  if (customElement.createdCallback) {
-    customElement.createdCallback.call(element);
+  if (customElement.prototype.createdCallback) {
+    customElement.prototype.createdCallback.call(element);
   }
 
   // Add to the nodes cache using the designated uuid as the lookup key.
@@ -217,6 +238,7 @@ Object.defineProperty(exports, 'TransitionStateError', {
 });
 
 var realRegisterElement = document.registerElement;
+var empty = {};
 
 /**
  * Used to diff the outerHTML contents of the passed element with the markup
@@ -289,9 +311,18 @@ function release(element) {
  */
 
 function registerElement(tagName, constructor) {
+  // Upgrade simple objects to inherit from HTMLElement and be usable in a real
+  // implementation.
+  var normalizedConstructor = constructor.prototype ? constructor : null;
+
+  if (!normalizedConstructor) {
+    constructor.__proto__ = HTMLElement.prototype;
+    normalizedConstructor = { prototype: constructor };
+  }
+
   // If the native web component specification is loaded, use that instead.
   if (realRegisterElement) {
-    return realRegisterElement.call(document, tagName, constructor);
+    return realRegisterElement.call(document, tagName, normalizedConstructor);
   }
 
   // If the element has already been registered, raise an error.
@@ -300,7 +331,7 @@ function registerElement(tagName, constructor) {
   }
 
   // Assign the custom element reference to the constructor.
-  _elementCustom.components[tagName] = constructor;
+  _elementCustom.components[tagName] = normalizedConstructor;
 }
 
 /**
@@ -444,16 +475,34 @@ function enableProllyfill() {
     }
   });
 
-  // Polyfill in the `registerElement` method if it doesn't already exist.
-  if (!realRegisterElement) {
-    Object.defineProperty(document, 'registerElement', {
-      configurable: true,
+  // Polyfill in the `registerElement` method if it doesn't already exist. This
+  // requires patching `createElement` as well to ensure that the proper proto
+  // chain exists.
+  Object.defineProperty(document, 'registerElement', {
+    configurable: true,
 
-      value: function value(tagName, component) {
-        (0, _nodePatch.registerNode)(tagName, component);
-      }
+    value: function value(tagName, component) {
+      registerElement(tagName, component);
+    }
+  });
+
+  // This section will automatically parse out your entire page to ensure all
+  // custom elements are hooked into.
+  window.addEventListener('load', function () {
+    var documentElement = document.documentElement;
+
+    // After the initial render, clean up the resources, no point in lingering.
+    documentElement.addEventListener('renderComplete', function render() {
+      // Release resources to the element.
+      documentElement.diffRelease(documentElement);
+
+      // Remove this event listener.
+      documentElement.removeEventListener('renderComplete', render);
     });
-  }
+
+    // Diff the entire document on activation of the prollyfill.
+    documentElement.diffOuterHTML = documentElement.outerHTML;
+  });
 }
 
 },{"./element/custom":1,"./errors":4,"./node/patch":7,"./transitions":12}],6:[function(_dereq_,module,exports){
@@ -468,9 +517,12 @@ var _utilPools = _dereq_('../util/pools');
 
 var _utilMemory = _dereq_('../util/memory');
 
+var _elementCustom = _dereq_('../element/custom');
+
 var pools = _utilPools.pools;
 var protectElement = _utilMemory.protectElement;
 var unprotectElement = _utilMemory.unprotectElement;
+var empty = {};
 
 // Cache created nodes inside this object.
 make.nodes = {};
@@ -498,10 +550,6 @@ function make(node, protect) {
   // diff and patch.
   var entry = pools.elementObject.get();
 
-  if (protect) {
-    protectElement(entry);
-  }
-
   // Add to internal lookup.
   make.nodes[entry.element] = node;
 
@@ -509,6 +557,10 @@ function make(node, protect) {
   entry.nodeValue = nodeValue;
   entry.childNodes.length = 0;
   entry.attributes.length = 0;
+
+  if (protect) {
+    protectElement(entry);
+  }
 
   // Collect attributes.
   var attributes = node.attributes;
@@ -548,12 +600,28 @@ function make(node, protect) {
     }
   }
 
+  // TODO Rename this to first-run, because we're calling the attach callback
+  // and protecting now.
+  if (protect) {
+    if (_elementCustom.components[entry.nodeName]) {
+      // Reset the prototype chain for this element. Upgrade will return `true`
+      // if the element was upgraded for the first time. This is useful so we
+      // don't end up in a loop when working with the same element.
+      if ((0, _elementCustom.upgrade)(entry.nodeName, node)) {
+        // If the Node is in the DOM, trigger attached callback.
+        if (node.parentNode && node.attachedCallback) {
+          node.attachedCallback();
+        }
+      }
+    }
+  }
+
   return entry;
 }
 
 module.exports = exports['default'];
 
-},{"../util/memory":14,"../util/pools":16}],7:[function(_dereq_,module,exports){
+},{"../element/custom":1,"../util/memory":14,"../util/pools":16}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -671,6 +739,7 @@ function patchNode(element, newHTML, options) {
     elementMeta.renderBuffer = { newHTML: newHTML, options: options };
     return;
   }
+
   if (
   // If the operation is `innerHTML`, but the contents haven't changed,
   // abort.
@@ -1082,7 +1151,7 @@ var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
 var pools = _utilPools.pools;
 var forEach = Array.prototype.forEach;
-var empty = {};
+var empty = { prototype: {} };
 
 /**
  * Processes an Array of patches.
@@ -1104,8 +1173,8 @@ function process(element, e) {
     var fragment = this.fragment;
     var customElement = _elementCustom.components[elementDescriptor.nodeName] || empty;
 
-    if (customElement.attachedCallback) {
-      customElement.attachedCallback.call(el);
+    if (customElement.prototype.attachedCallback) {
+      customElement.prototype.attachedCallback.call(el);
     }
 
     if (el.nodeName === '#text') {
@@ -1165,12 +1234,12 @@ function process(element, e) {
       var oldCustomElement = _elementCustom.components[oldDescriptor.nodeName] || empty;
       var newCustomElement = _elementCustom.components[newDescriptor.nodeName] || empty;
 
-      if (oldCustomElement.detachedCallback) {
-        oldCustomElement.detachedCallback.call(patch.old);
+      if (oldCustomElement.prototype.detachedCallback) {
+        oldCustomElement.prototype.detachedCallback.call(patch.old);
       }
 
-      if (newCustomElement.attachedCallback) {
-        newCustomElement.attachedCallback.call(patch['new']);
+      if (newCustomElement.prototype.attachedCallback) {
+        newCustomElement.prototype.attachedCallback.call(patch['new']);
       }
     }
 
@@ -1220,8 +1289,8 @@ function process(element, e) {
 
             var customElement = _elementCustom.components[oldDescriptor.nodeName] || empty;
 
-            if (customElement.detachedCallback) {
-              customElement.detachedCallback.call(patch.old);
+            if (customElement.prototype.detachedCallback) {
+              customElement.prototype.detachedCallback.call(patch.old);
             }
 
             patch.old.parentNode.removeChild(patch.old);
@@ -1262,12 +1331,12 @@ function process(element, e) {
               var oldCustomElement = _elementCustom.components[oldDescriptor.nodeName] || empty;
               var newCustomElement = _elementCustom.components[newDescriptor.nodeName] || empty;
 
-              if (oldCustomElement.detachedCallback) {
-                oldCustomElement.detachedCallback.call(patch.old);
+              if (oldCustomElement.prototype.detachedCallback) {
+                oldCustomElement.prototype.detachedCallback.call(patch.old);
               }
 
-              if (newCustomElement.attachedCallback) {
-                newCustomElement.attachedCallback.call(patch['new']);
+              if (newCustomElement.prototype.attachedCallback) {
+                newCustomElement.prototype.attachedCallback.call(patch['new']);
               }
 
               // Added state for transitions API.
@@ -1301,7 +1370,7 @@ function process(element, e) {
               var customElement = _elementCustom.components[elementDescriptor.nodeName] || empty;
 
               if (customElement.attributeChangedCallback) {
-                customElement.attributeChangedCallback.call(patch.old, patch.name, originalValue, patch.value);
+                customElement.prototype.attributeChangedCallback.call(patch.old, patch.name, originalValue, patch.value);
               }
             }
           }
