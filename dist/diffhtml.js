@@ -101,6 +101,10 @@ function make(descriptor) {
   var element = null;
   var isSvg = false;
 
+  if (_nodeMake2['default'].nodes[descriptor.element]) {
+    return _nodeMake2['default'].nodes[descriptor.element];
+  }
+
   if (descriptor.nodeName === '#text') {
     element = document.createTextNode(descriptor.nodeValue);
   } else {
@@ -152,9 +156,6 @@ function make(descriptor) {
 module.exports = exports['default'];
 
 },{"../node/make":6,"../svg":11,"./custom":1}],4:[function(_dereq_,module,exports){
-/**
- * Identifies an error with transitions.
- */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -167,6 +168,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var missingStackTrace = 'Browser doesn\'t support error stack traces.';
+
+/**
+ * Identifies an error with transitions.
+ */
+
 var TransitionStateError = (function (_Error) {
   _inherits(TransitionStateError, _Error);
 
@@ -176,7 +183,7 @@ var TransitionStateError = (function (_Error) {
     var error = _get(Object.getPrototypeOf(TransitionStateError.prototype), 'constructor', this).call(this);
 
     this.message = message;
-    this.stack = error.stack || 'Browser doesn\'t support error stack traces.';
+    this.stack = error.stack || missingStackTrace;
   }
 
   /**
@@ -196,7 +203,7 @@ var DOMException = (function (_Error2) {
     var error = _get(Object.getPrototypeOf(DOMException.prototype), 'constructor', this).call(this);
 
     this.message = 'Uncaught DOMException: ' + message;
-    this.stack = error.stack || 'Browser doesn\'t support error stack traces.';
+    this.stack = error.stack || missingStackTrace;
   }
 
   return DOMException;
@@ -652,6 +659,10 @@ var _make = _dereq_('./make');
 
 var _make2 = _interopRequireDefault(_make);
 
+var _elementMake = _dereq_('../element/make');
+
+var _elementMake2 = _interopRequireDefault(_elementMake);
+
 var _sync = _dereq_('./sync');
 
 var _sync2 = _interopRequireDefault(_sync);
@@ -664,12 +675,31 @@ var _tree = _dereq_('./tree');
  *
  * @param element
  * @param elementMeta
- * @return
+ * @return {Function}
  */
 function completeWorkerRender(element, elementMeta) {
   return function (ev) {
-    (0, _patchesProcess2['default'])(element, ev);
+    var nodes = ev.data.nodes;
 
+    // Add new elements.
+    if (nodes.additions.length) {
+      nodes.additions.map(function (descriptor) {
+        _utilPools.pools.elementObject._uuid[descriptor.element] = true;
+        return descriptor;
+      }).map(_elementMake2['default']);
+    }
+
+    // Remove unused elements.
+    if (nodes.removals.length) {
+      nodes.removals.forEach(function (descriptor) {
+        delete _utilPools.pools.elementObject._uuid[descriptor.element];
+        delete _make2['default'].nodes[descriptor.element];
+      });
+    }
+
+    (0, _patchesProcess2['default'])(element, { data: ev.data.patches });
+
+    // Reset internal caches for quicker lookups in the futures.
     elementMeta._innerHTML = element.innerHTML;
     elementMeta._outerHTML = element.outerHTML;
     elementMeta._textContent = element.textContent;
@@ -682,6 +712,9 @@ function completeWorkerRender(element, elementMeta) {
     // Dispatch an event on the element once rendering has completed.
     element.dispatchEvent(new _customEvent2['default']('renderComplete'));
 
+    // TODO Think about how this should work. Ideally it's eliminating all the
+    // "in-between" states, but this results in more skippy animations. Maybe
+    // this should be an option?
     if (elementMeta.renderBuffer) {
       var nextRender = elementMeta.renderBuffer;
       elementMeta.renderBuffer = undefined;
@@ -712,6 +745,7 @@ function releaseNode(element) {
     (0, _utilMemory.cleanMemory)();
   }
 
+  // Remove this element's meta object from the cache.
   _tree.TreeCache['delete'](element);
 }
 
@@ -886,7 +920,7 @@ function patchNode(element, newHTML, options) {
   }
 }
 
-},{"../patches/process":10,"../util/memory":14,"../util/parser":15,"../util/pools":16,"../worker/create":18,"./make":6,"./sync":8,"./tree":9,"custom-event":20}],8:[function(_dereq_,module,exports){
+},{"../element/make":3,"../patches/process":10,"../util/memory":14,"../util/parser":15,"../util/pools":16,"../worker/create":18,"./make":6,"./sync":8,"./tree":9,"custom-event":20}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -923,6 +957,11 @@ function sync(oldTree, newTree) {
     patches[patches.length] = { __do__: -1, element: oldElement };
 
     for (var i = 0; i < removed.length; i++) {
+      // Used by the Worker to track elements removed.
+      if (patches.removals) {
+        patches.removals.push(removed[i]);
+      }
+
       unprotectElement(removed[i]);
     }
 
@@ -964,6 +1003,11 @@ function sync(oldTree, newTree) {
     var fragment = [];
 
     for (var i = oldChildNodesLength; i < childNodesLength; i++) {
+      // Used by the Worker to track elements added.
+      if (patches.additions) {
+        patches.additions.push(childNodes[i]);
+      }
+
       protectElement(childNodes[i]);
 
       // Internally add to the tree.
@@ -991,6 +1035,16 @@ function sync(oldTree, newTree) {
         'new': childNodes[i]
       };
 
+      // Used by the Worker to track elements removed.
+      if (patches.removals) {
+        patches.removals.push(oldChildNodes[i]);
+      }
+
+      // Used by the Worker to track elements added.
+      if (patches.additions) {
+        patches.additions.push(childNodes[i]);
+      }
+
       unprotectElement(oldChildNodes[i]);
       protectElement(childNodes[i]);
 
@@ -1013,6 +1067,11 @@ function sync(oldTree, newTree) {
     var removed = oldChildNodes.splice(childNodesLength, oldChildNodesLength - childNodesLength);
 
     for (var i = 0; i < removed.length; i++) {
+      // Used by the Worker to track elements removed.
+      if (patches.removals) {
+        patches.removals.push(removed[i]);
+      }
+
       unprotectElement(removed[i]);
     }
   }
@@ -1149,7 +1208,6 @@ var _nodeMake = _dereq_('../node/make');
 
 var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
-var pools = _utilPools.pools;
 var forEach = Array.prototype.forEach;
 var empty = { prototype: {} };
 
@@ -1904,15 +1962,11 @@ function createPool(name, opts) {
 
     unprotect: function unprotect(value) {
       var idx = _protect.indexOf(value);
-      var freeLength = _free.length;
 
       if (idx !== -1) {
-        if (freeLength < size) {
-          var obj = _protect.splice(idx, 1)[0];
-
-          if (obj) {
-            _free.push(obj);
-          }
+        var obj = _protect.splice(idx, 1)[0];
+        if (obj) {
+          allocated.push(obj);
         }
 
         if (name === 'elementObject') {
@@ -2024,11 +2078,26 @@ var _source = _dereq_('./source');
 
 var _source2 = _interopRequireDefault(_source);
 
-var pools = _utilPools.pools;
-
+// Tests if the browser has support for the `Worker` API.
 var hasWorker = typeof Worker === 'function';
 
 exports.hasWorker = hasWorker;
+/**
+ * Creates a new Web Worker per element that will be diffed. Allows multiple
+ * concurrent diffing operations to occur simultaneously, leveraging the
+ * multi-core nature of desktop and mobile devices.
+ *
+ * Attach any functions that could be used by the Worker inside the Blob below.
+ * All functions are named so they can be accessed globally. Since we're
+ * directly injecting the methods into an Array and then calling `join` the
+ * `toString` method will be invoked on each function and will inject a valid
+ * representation of the function's source. This comes at a cost since Babel
+ * rewrites variable names when you `import` a module. This is why you'll see
+ * underscored properties being imported and then reassigned to non-underscored
+ * names in modules that are reused here.
+ *
+ * @return {Object} A Worker instance.
+ */
 
 function create() {
   var workerBlob = null;
@@ -2074,6 +2143,8 @@ function create() {
         console.info("Failed to create diffhtml worker", e);
       }
 
+      // If we cannot create a Worker, then disable trying again, all work
+      // will happen on the main UI thread.
       exports.hasWorker = hasWorker = false;
     }
   }
@@ -2084,6 +2155,8 @@ function create() {
 },{"../node/sync":8,"../util/memory":14,"../util/parser":15,"../util/pools":16,"../util/uuid":17,"./source":19}],19:[function(_dereq_,module,exports){
 'use strict';
 
+// These are globally defined to avoid issues with JSHint thinking that we're
+// referencing unknown identifiers.
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
@@ -2093,57 +2166,98 @@ var syncNode;
 var pools;
 
 /**
- * startup
+ * This is the Web Worker source code. All globals here are defined in the
+ * worker/create module. This allows code sharing and less duplication since
+ * most of the logic is identical to the UI thread.
  *
- * @param worker
- * @return
+ * @param worker - A worker instance
  */
 
 function startup(worker) {
-  var Trees = {};
   var patches = [];
+  var oldTree = null;
 
+  // Create arrays to hold element additions and removals.
+  patches.additions = [];
+  patches.removals = [];
+
+  /**
+   * Triggered whenever a `postMessage` call is made on the Worker instance
+   * from the UI thread. Signals that some work needs to occur. Will post back
+   * to the main thread with patch and node transform results.
+   *
+   * @param e - The normalized event object.
+   */
   worker.onmessage = function (e) {
     var data = e.data;
     var isInner = data.isInner;
 
-    var oldTree = Trees[e.data.uuid] || data.oldTree;
-    var newTree = null;
+    // Always unprotect the existing `oldTree` as we will be changing it later
+    // on.
+    //if (oldTree) { unprotectElement(oldTree); }
 
-    Trees[e.data.uuid] = oldTree;
-
-    if (data.newTree) {
-      newTree = data.newTree;
-    } else {
-      // Calculate a new tree.
-      newTree = parseHTML(data.newHTML, isInner);
-
-      if (isInner) {
-        var childNodes = newTree;
-
-        newTree = {
-          childNodes: childNodes,
-
-          attributes: oldTree.attributes,
-          element: oldTree.element,
-          nodeName: oldTree.nodeName,
-          nodeValue: oldTree.nodeValue
-        };
-      }
+    // If an `oldTree` was provided by the UI thread, use that in place of the
+    // current `oldTree`.
+    if (data.oldTree) {
+      oldTree = data.oldTree;
     }
 
+    var newTree = null;
+
+    // If the `newTree` was provided to the worker, use that instead of trying
+    // to create one from HTML source.
+    if (data.newTree) {
+      newTree = data.newTree;
+    }
+    // If no `newTree` was provided, we'll have to try and create one from the
+    // HTML source provided.
+    else if (typeof data.newHTML === 'string') {
+        // Calculate a new tree.
+        newTree = parseHTML(data.newHTML, isInner);
+
+        // If the operation is for `innerHTML` then we'll retain the previous
+        // tree's attributes, nodeName, and nodeValue, and only adjust the
+        // childNodes.
+        if (isInner) {
+          var childNodes = newTree;
+
+          newTree = {
+            childNodes: childNodes,
+            attributes: oldTree.attributes,
+            element: oldTree.element,
+            nodeName: oldTree.nodeName,
+            nodeValue: oldTree.nodeValue
+          };
+        }
+      }
+
     // Synchronize the old virtual tree with the new virtual tree.  This will
-    // produce a series of patches that will be excuted to update the DOM.
+    // produce a series of patches that will be executed to update the DOM.
     syncNode.call(patches, oldTree, newTree);
 
-    // Send the patches back to the userland.
-    worker.postMessage(patches);
+    // Protect the current `oldTree` so that no Nodes will be accidentally
+    // recycled in the
+    protectElement(oldTree);
 
-    // Release allocated objects back into the pool.
+    // Send the patches back to the userland.
+    worker.postMessage({
+      // Node operational changes, additions and removals.
+      nodes: {
+        additions: patches.additions,
+        removals: patches.removals
+      },
+
+      // All the patches to apply to the DOM.
+      patches: patches
+    });
+
+    // Recycle allocated objects back into the pool.
     cleanMemory();
 
     // Wipe out the patches in memory.
     patches.length = 0;
+    patches.additions.length = 0;
+    patches.removals.length = 0;
   };
 }
 
