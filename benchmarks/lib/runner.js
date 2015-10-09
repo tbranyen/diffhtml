@@ -34,10 +34,12 @@ select.onchange = function() {
     .then(function(template) {
       var window = iframe.contentWindow.window;
       var document = iframe.contentDocument;
-      var count = 200;
+      var count = 100;
       var lastCalled = Date.now();
 
       window.template = template;
+
+      template.registerFilter('log', console.log.bind(console));
 
       template.registerFilter('force', function(array, max) {
         if (array.length > max) {

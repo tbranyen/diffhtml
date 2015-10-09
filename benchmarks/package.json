@@ -1,7 +1,7 @@
 {
   "name": "benchmarks",
   "version": "1.0.0",
-  "description": "",
+  "description": "Benchmark suite for DiffHTML",
   "main": "index.js",
   "dependencies": {
     "underscore": "^1.8.3",
@@ -11,6 +11,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Tim Branyen (@tbranyen)",
+  "license": "MIT"
 }
