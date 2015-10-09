@@ -689,6 +689,8 @@ function completeWorkerRender(element, elementMeta) {
       }).map(_elementMake2['default']);
     }
 
+    (0, _patchesProcess2['default'])(element, { data: ev.data.patches });
+
     // Remove unused elements.
     if (nodes.removals.length) {
       nodes.removals.forEach(function (descriptor) {
@@ -696,8 +698,6 @@ function completeWorkerRender(element, elementMeta) {
         delete _make2['default'].nodes[descriptor.element];
       });
     }
-
-    (0, _patchesProcess2['default'])(element, { data: ev.data.patches });
 
     // Reset internal caches for quicker lookups in the futures.
     elementMeta._innerHTML = element.innerHTML;
