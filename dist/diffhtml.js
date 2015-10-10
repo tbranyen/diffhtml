@@ -1262,21 +1262,22 @@ function process(element, patches) {
   var attachedTransitionAndTitle = function attachedTransitionAndTitle(el) {
     var element = (0, _elementGet2['default'])(el).element;
 
-    // Trigger all the text changed values.
-    if (states && el.nodeName === '#text' && states.textChanged) {
-      for (var x = 0; x < states.textChanged.length; x++) {
-        var callback = states.textChanged[x];
-        callback(element.parentNode || element, null, el.nodeValue);
+    if (el.nodeName === '#text') {
+      // Trigger all the text changed values.
+      if (states && states.textChanged && states.textChanged.length) {
+        addPromises(states.textChanged.map(function (callback) {
+          return callback(element.parentNode || element, null, el.nodeValue);
+        }));
       }
     }
 
     // Added state for transitions API.
-    if (states && states.attached) {
+    if (states && states.attached && states.attached.length) {
       addPromises(states.attached.map(callCallback, element));
-
-      // Call all `childNodes` attached callbacks as well.
-      el.childNodes.forEach(attachedTransitionAndTitle);
     }
+
+    // Call all `childNodes` attached callbacks as well.
+    el.childNodes.forEach(attachedTransitionAndTitle);
 
     titleCallback(el);
   };
@@ -1378,8 +1379,8 @@ function process(element, patches) {
               throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
             }
 
-            if (states && states.detached) {
-              states.detached.forEach(callCallback, patch.old);
+            if (states && states.detached && states.detached.length) {
+              addPromises(states.detached.map(callCallback, patch.old));
             }
 
             // Ensure the title is emptied.
@@ -1408,17 +1409,15 @@ function process(element, patches) {
               patch.old.parentNode.insertBefore(patch['new'], patch.old.nextSibling);
 
               // Removed state for transitions API.
-              if (states && states.detached) {
-                states.detached.forEach(function (callback) {
-                  callback(patch.old);
-                });
+              if (states && states.detached && states.detached.length) {
+                addPromises(states.detached.map(callCallback, patch.old));
               }
 
               // Replaced state for transitions API.
-              if (states && states.replaced) {
-                states.replaced.forEach(function (callback) {
-                  callback(patch.old, patch['new']);
-                });
+              if (states && states.replaced && states.replaced.length) {
+                addPromises(states.replaced.map(function (callback) {
+                  return callback(patch.old, patch['new']);
+                }));
               }
 
               // Ensure the title is set correctly.
@@ -1440,10 +1439,8 @@ function process(element, patches) {
               }
 
               // Added state for transitions API.
-              if (states && states.attached) {
-                states.attached.forEach(function (callback) {
-                  callback(patch['new']);
-                });
+              if (states && states.attached && states.attached.length) {
+                addPromises(states.attached.map(callCallback, patch['new']));
               }
 
               _nodeMake2['default'].nodes[oldDescriptor.element] = undefined;
@@ -1495,17 +1492,31 @@ function process(element, patches) {
 
         // Text node manipulation.
         else if (patch.__do__ === 3) {
-            var originalValue = patch.element.textContent;
+            (function () {
+              var originalValue = patch.element.textContent;
 
-            patch.element.textContent = (0, _utilDecode2['default'])(patch.value);
+              // Changes the text.
+              var augmentText = function augmentText() {
+                patch.element.textContent = (0, _utilDecode2['default'])(patch.value);
+              };
 
-            // Trigger all the text changed values.
-            if (states && states.textChanged) {
-              for (var x = 0; x < states.textChanged.length; x++) {
-                var callback = states.textChanged[x];
-                callback(patch.element.parentNode, originalValue, patch.value);
+              // Trigger all the text changed values.
+              if (states && states.textChanged && states.textChanged.length) {
+                addPromises(states.textChanged.map(function (callback) {
+                  var promise = callback(patch.element, originalValue, patch.value);
+
+                  if (promise) {
+                    promise.then(augmentText);
+                  } else {
+                    augmentText();
+                  }
+
+                  return promise;
+                }));
+              } else {
+                augmentText();
               }
-            }
+            })();
           }
   };
 
