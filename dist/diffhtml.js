@@ -683,21 +683,17 @@ function completeWorkerRender(element, elementMeta) {
 
     // Add new elements.
     if (nodes.additions.length) {
-      nodes.additions.map(function (descriptor) {
-        _utilPools.pools.elementObject._uuid[descriptor.element] = true;
+      nodes.additions.map(_utilMemory.protectElement).map(function (descriptor) {
+        // Inject into the `oldTree` so it's cleaned up correctly.
+        elementMeta.oldTree.childNodes.push(descriptor);
         return descriptor;
-      }).map(_elementMake2['default']);
+      }).forEach(_elementMake2['default']);
     }
 
-    // Wait until all promises have resolved, before finishing up the patch
-    // cycle.
-    (0, _patchesProcess2['default'])(element, { data: ev.data.patches }).then(function () {
+    var completeRender = function completeRender() {
       // Remove unused elements.
       if (nodes.removals.length) {
-        nodes.removals.forEach(function (descriptor) {
-          delete _utilPools.pools.elementObject._uuid[descriptor.element];
-          delete _make2['default'].nodes[descriptor.element];
-        });
+        nodes.removals.forEach(_utilMemory.unprotectElement);
       }
 
       // Reset internal caches for quicker lookups in the futures.
@@ -705,24 +701,41 @@ function completeWorkerRender(element, elementMeta) {
       elementMeta._outerHTML = element.outerHTML;
       elementMeta._textContent = element.textContent;
 
+      // Recycle all unprotected allocations.
       (0, _utilMemory.cleanMemory)();
 
+      elementMeta.hasWorkerRendered = true;
       elementMeta.isRendering = false;
 
-      // Dispatch an event on the element once rendering has completed.
-      element.dispatchEvent(new _customEvent2['default']('renderComplete'));
-
-      // TODO Think about how this should work. Ideally it's eliminating all
-      // the "in-between" states, but this results in more skippy animations.
-      // Maybe this should be an option?
+      // This is designed to handle use cases where renders are being hammered
+      // or when transitions are used with Promises.
       if (elementMeta.renderBuffer) {
         var nextRender = elementMeta.renderBuffer;
+
+        // Reset the buffer.
         elementMeta.renderBuffer = undefined;
 
         // Noticing some weird performance implications with this concept.
         patchNode(element, nextRender.newHTML, nextRender.options);
       }
-    });
+      // Dispatch an event on the element once rendering has completed.
+      else {
+          element.dispatchEvent(new _customEvent2['default']('renderComplete'));
+        }
+    };
+
+    // Wait until all promises have resolved, before finishing up the patch
+    // cycle.
+    // Process the data immediately and wait until all transition callbacks
+    // have completed.
+    var processPromise = (0, _patchesProcess2['default'])(element, ev.data.patches);
+
+    // Operate synchronously unless opted into a Promise-chain.
+    if (processPromise) {
+      processPromise.then(completeRender);
+    } else {
+      completeRender();
+    }
   };
 }
 
@@ -734,6 +747,9 @@ function completeWorkerRender(element, elementMeta) {
 
 function releaseNode(element) {
   var elementMeta = _tree.TreeCache.get(element) || {};
+
+  // Unbind the `renderComplete` events.
+  element.removeEventListener('renderComplete');
 
   // If there is a worker associated with this element, then kill it.
   if (elementMeta.worker) {
@@ -764,7 +780,6 @@ function patchNode(element, newHTML, options) {
   }
 
   var elementMeta = _tree.TreeCache.get(element) || {};
-  var updateOldTree = false;
 
   // Always ensure the most up-to-date meta object is stored.
   _tree.TreeCache.set(element, elementMeta);
@@ -803,12 +818,15 @@ function patchNode(element, newHTML, options) {
     }
 
     elementMeta.oldTree = (0, _make2['default'])(element, true);
-    updateOldTree = true;
+    elementMeta.updateOldTree = true;
   }
 
   // Will want to ensure that the first render went through, the worker can
   // take a bit to startup and we want to show changes as soon as possible.
   if (options.enableWorker && _workerCreate.hasWorker) {
+    // Set a render lock as to not flood the worker.
+    elementMeta.isRendering = true;
+
     // Create a worker for this element.
     var worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
 
@@ -817,8 +835,9 @@ function patchNode(element, newHTML, options) {
 
     // This should only occur once, or whenever the markup changes externally
     // to diffHTML.
-    if (updateOldTree) {
+    if (!elementMeta.hasWorkerRendered || elementMeta.updateOldTree) {
       transferObject.oldTree = elementMeta.oldTree;
+      elementMeta.updateOldTree = false;
     }
 
     // Attach the parent element's uuid.
@@ -826,9 +845,6 @@ function patchNode(element, newHTML, options) {
 
     if (typeof newHTML !== 'string') {
       transferObject.newTree = (0, _make2['default'])(newHTML);
-
-      // Set a render lock as to not flood the worker.
-      elementMeta.isRendering = true;
 
       // Transfer this buffer to the worker, which will take over and process the
       // markup.
@@ -847,9 +863,6 @@ function patchNode(element, newHTML, options) {
     // Add properties to send to worker.
     transferObject.isInner = options.inner;
 
-    // Set a render lock as to not flood the worker.
-    elementMeta.isRendering = true;
-
     // Transfer this buffer to the worker, which will take over and process the
     // markup.
     worker.postMessage(transferObject);
@@ -861,7 +874,7 @@ function patchNode(element, newHTML, options) {
       // We're rendering in the UI thread.
       elementMeta.isRendering = true;
 
-      var data = [];
+      var patches = [];
       var newTree = null;
 
       if (typeof newHTML === 'string') {
@@ -889,11 +902,11 @@ function patchNode(element, newHTML, options) {
       // If the element node types match, try and compare them.
       if (oldTreeName === newNodeName) {
         // Synchronize the tree.
-        _sync2['default'].call(data, elementMeta.oldTree, newTree);
+        _sync2['default'].call(patches, elementMeta.oldTree, newTree);
       }
       // Otherwise replace the top level elements.
       else if (newHTML) {
-          data[data.length] = {
+          patches[patches.length] = {
             __do__: 0,
             old: elementMeta.oldTree,
             'new': newTree
@@ -916,14 +929,12 @@ function patchNode(element, newHTML, options) {
         (0, _utilMemory.cleanMemory)();
 
         // Clean out the patches array.
-        data.length = 0;
+        patches.length = 0;
 
         // Dispatch an event on the element once rendering has completed.
         element.dispatchEvent(new _customEvent2['default']('renderComplete'));
 
-        // TODO Think about how this should work. Ideally it's eliminating all
-        // the "in-between" states, but this results in more skippy animations.
-        // Maybe this should be an option?
+        // TODO Update this comment and/or refactor to use the same as the Worker.
         if (elementMeta.renderBuffer) {
           var nextRender = elementMeta.renderBuffer;
           elementMeta.renderBuffer = undefined;
@@ -935,7 +946,7 @@ function patchNode(element, newHTML, options) {
 
       // Process the data immediately and wait until all transition callbacks
       // have completed.
-      var processPromise = (0, _patchesProcess2['default'])(element, { data: data });
+      var processPromise = (0, _patchesProcess2['default'])(element, patches);
 
       // Operate synchronously unless opted into a Promise-chain.
       if (processPromise) {
@@ -1241,12 +1252,11 @@ var empty = { prototype: {} };
 /**
  * Processes an Array of patches.
  *
- * @param element
- * @param e
+ * @param element - Element to process patchsets on.
+ * @param e - Object that contains patches.
  */
 
-function process(element, e) {
-  var patches = e.data;
+function process(element, patches) {
   var states = _transitions.transitionStates;
   var promises = [];
   var addPromises = promises.push.apply.bind(promises.push, promises);
@@ -1470,6 +1480,8 @@ function process(element, e) {
                 } else {
                   augmentAttribute();
                 }
+
+                return promise;
               }));
             } else {
               augmentAttribute();
@@ -1619,19 +1631,41 @@ var _nodeMake2 = _interopRequireDefault(_nodeMake);
 var pools = _utilPools.pools;
 var makeNode = _nodeMake2['default'];
 
+/**
+ * Ensures that an element is not recycled during a render cycle.
+ *
+ * @param element
+ * @return element
+ */
+
 function protectElement(element) {
   pools.elementObject.protect(element);
 
   element.childNodes.forEach(protectElement);
   element.attributes.forEach(pools.attributeObject.protect, pools.attributeObject);
+
+  return element;
 }
+
+/**
+ * Allows an element to be recycled during a render cycle.
+ *
+ * @param element
+ * @return
+ */
 
 function unprotectElement(element) {
   element.childNodes.forEach(unprotectElement);
   element.attributes.forEach(pools.attributeObject.unprotect, pools.attributeObject);
 
   pools.elementObject.unprotect(element);
+
+  return element;
 }
+
+/**
+ * Recycles all unprotected allocations.
+ */
 
 function cleanMemory() {
   // Free all memory after each iteration.
@@ -1643,7 +1677,7 @@ function cleanMemory() {
     for (var uuid in makeNode.nodes) {
       // If this is not a protected uuid, remove it.
       if (!pools.elementObject._uuid[uuid]) {
-        makeNode.nodes[uuid] = undefined;
+        delete makeNode.nodes[uuid];
       }
     }
   }
@@ -2015,6 +2049,16 @@ function createPool(name, opts) {
           this._uuid[value.element] = 1;
         }
       }
+      // From a worker.
+      else {
+          _protect.push(value);
+
+          // If we're protecting an element object, push the uuid into a lookup
+          // table.
+          if (name === 'elementObject') {
+            this._uuid[value.element] = 1;
+          }
+        }
     },
 
     unprotect: function unprotect(value) {
@@ -2250,9 +2294,10 @@ function startup(worker) {
     var isInner = data.isInner;
     var newTree = null;
 
-    // Always unprotect the existing `oldTree` as we will be changing it later
-    // on.
-    //if (oldTree) { unprotectElement(oldTree); }
+    // Always unprotect allocations before the start of a render cycle.
+    if (oldTree) {
+      unprotectElement(oldTree);
+    }
 
     // If an `oldTree` was provided by the UI thread, use that in place of the
     // current `oldTree`.
@@ -2265,6 +2310,7 @@ function startup(worker) {
     if (data.newTree) {
       newTree = data.newTree;
     }
+
     // If no `newTree` was provided, we'll have to try and create one from the
     // HTML source provided.
     else if (typeof data.newHTML === 'string') {

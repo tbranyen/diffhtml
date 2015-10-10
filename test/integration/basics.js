@@ -77,10 +77,29 @@ describe('Integration: Basics', function() {
     });
 
     // This is not properly tested.
-    it.skip('utilize a WebWorker', function(done) {
+    it('supports basic Worker usage', function(done) {
       diff.innerHTML(this.fixture, '<div class="test">this</div>');
 
+      this.fixture.addEventListener('renderComplete', function() {
+        try {
+          assert.equal(this.firstChild.getAttribute('class'), 'test2');
+          assert.equal(this.firstChild.textContent, 'this2');
+        }
+        catch (ex) {
+          done(ex);
+        }
+        finally {
+          done();
+        }
+      });
+
       diff.innerHTML(this.fixture, '<div class="test2">this2</div>', {
+        enableWorker: true
+      });
+    });
+
+    it('can track state in a Worker', function(done) {
+      diff.innerHTML(this.fixture, '<div class="test"><p>this</p></div>', {
         enableWorker: true
       });
 
@@ -95,6 +114,10 @@ describe('Integration: Basics', function() {
         finally {
           done();
         }
+      });
+
+      diff.innerHTML(this.fixture, '<div class="test2"><p>this2</p></div>', {
+        enableWorker: true
       });
     });
   });
