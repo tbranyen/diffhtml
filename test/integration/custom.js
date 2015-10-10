@@ -10,19 +10,19 @@ describe('Integration: Custom Elements', function() {
 
   // Currently skipping, because the native implementation does not seem to
   // implement this feature, which is odd since I thought it did.
-  it.skip('can register an element', function() {
-    var callbackTriggered = false;
+  //it('can register an element', function() {
+  //  var callbackTriggered = false;
 
-    diff.registerElement('custom-element', {
-      constructor: function() {
-        callbackTriggered = true;
-      }
-    });
+  //  diff.registerElement('custom-element', {
+  //    constructor: function() {
+  //      callbackTriggered = true;
+  //    }
+  //  });
 
-    diff.innerHTML(this.fixture, '<custom-element></custom-element>');
+  //  diff.innerHTML(this.fixture, '<custom-element></custom-element>');
 
-    assert.ok(callbackTriggered, 'constructor was called');
-  });
+  //  assert.ok(callbackTriggered, 'constructor was called');
+  //});
 
   it('cannot register over an existing component', function() {
     diff.registerElement('custom-element-two', {});

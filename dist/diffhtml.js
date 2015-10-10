@@ -689,39 +689,40 @@ function completeWorkerRender(element, elementMeta) {
       }).map(_elementMake2['default']);
     }
 
-    (0, _patchesProcess2['default'])(element, { data: ev.data.patches });
+    // Wait until all promises have resolved, before finishing up the patch
+    // cycle.
+    (0, _patchesProcess2['default'])(element, { data: ev.data.patches }).then(function () {
+      // Remove unused elements.
+      if (nodes.removals.length) {
+        nodes.removals.forEach(function (descriptor) {
+          delete _utilPools.pools.elementObject._uuid[descriptor.element];
+          delete _make2['default'].nodes[descriptor.element];
+        });
+      }
 
-    // Remove unused elements.
-    if (nodes.removals.length) {
-      nodes.removals.forEach(function (descriptor) {
-        delete _utilPools.pools.elementObject._uuid[descriptor.element];
-        delete _make2['default'].nodes[descriptor.element];
-      });
-    }
+      // Reset internal caches for quicker lookups in the futures.
+      elementMeta._innerHTML = element.innerHTML;
+      elementMeta._outerHTML = element.outerHTML;
+      elementMeta._textContent = element.textContent;
 
-    // Reset internal caches for quicker lookups in the futures.
-    elementMeta._innerHTML = element.innerHTML;
-    elementMeta._outerHTML = element.outerHTML;
-    elementMeta._textContent = element.textContent;
+      (0, _utilMemory.cleanMemory)();
 
-    (0, _utilMemory.cleanMemory)();
+      elementMeta.isRendering = false;
 
-    elementMeta.isRendering = false;
-    elementMeta.hasRenderedViaWorker = true;
+      // Dispatch an event on the element once rendering has completed.
+      element.dispatchEvent(new _customEvent2['default']('renderComplete'));
 
-    // Dispatch an event on the element once rendering has completed.
-    element.dispatchEvent(new _customEvent2['default']('renderComplete'));
+      // TODO Think about how this should work. Ideally it's eliminating all
+      // the "in-between" states, but this results in more skippy animations.
+      // Maybe this should be an option?
+      if (elementMeta.renderBuffer) {
+        var nextRender = elementMeta.renderBuffer;
+        elementMeta.renderBuffer = undefined;
 
-    // TODO Think about how this should work. Ideally it's eliminating all the
-    // "in-between" states, but this results in more skippy animations. Maybe
-    // this should be an option?
-    if (elementMeta.renderBuffer) {
-      var nextRender = elementMeta.renderBuffer;
-      elementMeta.renderBuffer = undefined;
-
-      // Noticing some weird performance implications with this concept.
-      patchNode(element, nextRender.newHTML, nextRender.options);
-    }
+        // Noticing some weird performance implications with this concept.
+        patchNode(element, nextRender.newHTML, nextRender.options);
+      }
+    });
   };
 }
 
@@ -763,7 +764,7 @@ function patchNode(element, newHTML, options) {
   }
 
   var elementMeta = _tree.TreeCache.get(element) || {};
-  var newOld = false;
+  var updateOldTree = false;
 
   // Always ensure the most up-to-date meta object is stored.
   _tree.TreeCache.set(element, elementMeta);
@@ -796,31 +797,32 @@ function patchNode(element, newHTML, options) {
 
   // If the text content ever changes, recalculate the tree.
   elementMeta._textContent !== element.textContent) {
-    newOld = true;
-
     if (elementMeta.oldTree) {
       (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
       (0, _utilMemory.cleanMemory)();
     }
 
     elementMeta.oldTree = (0, _make2['default'])(element, true);
+    updateOldTree = true;
   }
 
   // Will want to ensure that the first render went through, the worker can
   // take a bit to startup and we want to show changes as soon as possible.
-  if (options.enableWorker && _workerCreate.hasWorker && elementMeta.hasRendered) {
+  if (options.enableWorker && _workerCreate.hasWorker) {
     // Create a worker for this element.
     var worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
 
     // Attach all properties here to transport.
     var transferObject = {};
 
-    // Attach the parent element's uuid.
-    transferObject.uuid = elementMeta.oldTree.element;
-
-    if (newOld || !elementMeta.hasRenderedViaWorker) {
+    // This should only occur once, or whenever the markup changes externally
+    // to diffHTML.
+    if (updateOldTree) {
       transferObject.oldTree = elementMeta.oldTree;
     }
+
+    // Attach the parent element's uuid.
+    transferObject.uuid = elementMeta.oldTree.element;
 
     if (typeof newHTML !== 'string') {
       transferObject.newTree = (0, _make2['default'])(newHTML);
@@ -854,69 +856,94 @@ function patchNode(element, newHTML, options) {
 
     // Wait for the worker to finish processing and then apply the patchset.
     worker.onmessage = completeWorkerRender(element, elementMeta);
-  } else if (!options.enableWorker || !_workerCreate.hasWorker || !elementMeta.hasRendered) {
-    var data = [];
-    var newTree = null;
+  } else {
+    (function () {
+      // We're rendering in the UI thread.
+      elementMeta.isRendering = true;
 
-    if (typeof newHTML === 'string') {
-      newTree = (0, _utilParser.parseHTML)(newHTML, options.inner);
-    } else {
-      newTree = (0, _make2['default'])(newHTML);
-    }
+      var data = [];
+      var newTree = null;
 
-    if (options.inner) {
-      var childNodes = newTree;
-
-      newTree = {
-        childNodes: childNodes,
-
-        attributes: elementMeta.oldTree.attributes,
-        element: elementMeta.oldTree.element,
-        nodeName: elementMeta.oldTree.nodeName,
-        nodeValue: elementMeta.oldTree.nodeValue
-      };
-    }
-
-    var oldTreeName = elementMeta.oldTree.nodeName || '';
-    var newNodeName = newTree && newTree.nodeName;
-
-    // If the element node types match, try and compare them.
-    if (oldTreeName === newNodeName) {
-      // Synchronize the tree.
-      _sync2['default'].call(data, elementMeta.oldTree, newTree);
-    }
-    // Otherwise replace the top level elements.
-    else if (newHTML) {
-        data[data.length] = {
-          __do__: 0,
-          old: elementMeta.oldTree,
-          'new': newTree
-        };
-
-        (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
-
-        elementMeta.oldTree = newTree;
+      if (typeof newHTML === 'string') {
+        newTree = (0, _utilParser.parseHTML)(newHTML, options.inner);
+      } else {
+        newTree = (0, _make2['default'])(newHTML);
       }
 
-    // Process the data immediately.
-    (0, _patchesProcess2['default'])(element, { data: data });
+      if (options.inner) {
+        var childNodes = newTree;
 
-    // Mark that this element has initially rendered and is done rendering.
-    elementMeta.hasRendered = true;
-    elementMeta.isRendering = false;
+        newTree = {
+          childNodes: childNodes,
 
-    // Set the innerHTML.
-    elementMeta._innerHTML = element.innerHTML;
-    elementMeta._outerHTML = element.outerHTML;
-    elementMeta._textContent = element.textContent;
+          attributes: elementMeta.oldTree.attributes,
+          element: elementMeta.oldTree.element,
+          nodeName: elementMeta.oldTree.nodeName,
+          nodeValue: elementMeta.oldTree.nodeValue
+        };
+      }
 
-    (0, _utilMemory.cleanMemory)();
+      var oldTreeName = elementMeta.oldTree.nodeName || '';
+      var newNodeName = newTree && newTree.nodeName;
 
-    // Clean out the patches array.
-    data.length = 0;
+      // If the element node types match, try and compare them.
+      if (oldTreeName === newNodeName) {
+        // Synchronize the tree.
+        _sync2['default'].call(data, elementMeta.oldTree, newTree);
+      }
+      // Otherwise replace the top level elements.
+      else if (newHTML) {
+          data[data.length] = {
+            __do__: 0,
+            old: elementMeta.oldTree,
+            'new': newTree
+          };
 
-    // Dispatch an event on the element once rendering has completed.
-    element.dispatchEvent(new _customEvent2['default']('renderComplete'));
+          (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
+
+          elementMeta.oldTree = newTree;
+        }
+
+      var completeRender = function completeRender() {
+        // Mark that this element has initially rendered and is done rendering.
+        elementMeta.isRendering = false;
+
+        // Set the innerHTML.
+        elementMeta._innerHTML = element.innerHTML;
+        elementMeta._outerHTML = element.outerHTML;
+        elementMeta._textContent = element.textContent;
+
+        (0, _utilMemory.cleanMemory)();
+
+        // Clean out the patches array.
+        data.length = 0;
+
+        // Dispatch an event on the element once rendering has completed.
+        element.dispatchEvent(new _customEvent2['default']('renderComplete'));
+
+        // TODO Think about how this should work. Ideally it's eliminating all
+        // the "in-between" states, but this results in more skippy animations.
+        // Maybe this should be an option?
+        if (elementMeta.renderBuffer) {
+          var nextRender = elementMeta.renderBuffer;
+          elementMeta.renderBuffer = undefined;
+
+          // Noticing some weird performance implications with this concept.
+          patchNode(element, nextRender.newHTML, nextRender.options);
+        }
+      };
+
+      // Process the data immediately and wait until all transition callbacks
+      // have completed.
+      var processPromise = (0, _patchesProcess2['default'])(element, { data: data });
+
+      // Operate synchronously unless opted into a Promise-chain.
+      if (processPromise) {
+        processPromise.then(completeRender);
+      } else {
+        completeRender();
+      }
+    })();
   }
 }
 
@@ -1221,9 +1248,34 @@ var empty = { prototype: {} };
 function process(element, e) {
   var patches = e.data;
   var states = _transitions.transitionStates;
+  var promises = [];
+  var addPromises = promises.push.apply.bind(promises.push, promises);
+
+  // Trigger the attached transition state for this element and all childNodes.
+  var attachedTransitionAndTitle = function attachedTransitionAndTitle(el) {
+    var element = (0, _elementGet2['default'])(el).element;
+
+    // Trigger all the text changed values.
+    if (states && el.nodeName === '#text' && states.textChanged) {
+      for (var x = 0; x < states.textChanged.length; x++) {
+        var callback = states.textChanged[x];
+        callback(element.parentNode || element, null, el.nodeValue);
+      }
+    }
+
+    // Added state for transitions API.
+    if (states && states.attached) {
+      addPromises(states.attached.map(callCallback, element));
+
+      // Call all `childNodes` attached callbacks as well.
+      el.childNodes.forEach(attachedTransitionAndTitle);
+    }
+
+    titleCallback(el);
+  };
 
   var callCallback = function callCallback(callback) {
-    callback(this);
+    return callback(this);
   };
 
   var attachedCallback = function attachedCallback(elementDescriptor) {
@@ -1310,27 +1362,10 @@ function process(element, e) {
           patch.fragment.forEach(attachedCallback, { fragment: fragment });
           patch.element.appendChild(fragment);
 
-          forEach.call(patch.fragment, function (el) {
-            var element = (0, _elementGet2['default'])(el);
-
-            // Trigger all the text changed values.
-            if (states && el.nodeName === '#text' && states.textChanged) {
-              for (var x = 0; x < states.textChanged.length; x++) {
-                var callback = states.textChanged[x];
-                callback(element.parentNode || element, null, el.nodeValue);
-              }
-            }
-
-            // Added state for transitions API.
-            if (states && states.attached) {
-              states.attached.forEach(callCallback, el);
-            }
-
-            titleCallback(el);
-          });
+          forEach.call(patch.fragment, attachedTransitionAndTitle);
         }
 
-        // Remove
+        // Remove.
         else if (patch.old && !patch['new']) {
             if (!patch.old.parentNode) {
               throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
@@ -1356,7 +1391,7 @@ function process(element, e) {
             _nodeMake2['default'].nodes[oldDescriptor.element] = undefined;
           }
 
-          // Replace
+          // Replace.
           else if (patch.old && patch['new']) {
               if (!patch.old.parentNode) {
                 throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
@@ -1410,28 +1445,43 @@ function process(element, e) {
 
       // Attribute manipulation.
       else if (patch.__do__ === 2) {
-          var originalValue = patch.element.getAttribute(patch.name);
+          (function () {
+            var oldValue = patch.element.getAttribute(patch.name);
 
-          // Remove.
-          if (!patch.value) {
-            patch.element.removeAttribute(patch.name);
-          } else {
-            patch.element.setAttribute(patch.name, patch.value);
-          }
-
-          // Trigger all the attribute changed values.
-          if (states && states.attributeChanged) {
-            for (var x = 0; x < states.attributeChanged.length; x++) {
-              var callback = states.attributeChanged[x];
-              callback(patch.element, patch.name, originalValue, patch.value);
-
-              var customElement = _elementCustom.components[elementDescriptor.nodeName] || empty;
-
-              if (customElement.attributeChangedCallback) {
-                customElement.prototype.attributeChangedCallback.call(patch.old, patch.name, originalValue, patch.value);
+            // Changes the attribute on the element.
+            var augmentAttribute = function augmentAttribute() {
+              // Remove.
+              if (!patch.value) {
+                patch.element.removeAttribute(patch.name);
               }
+              // Change.
+              else {
+                  patch.element.setAttribute(patch.name, patch.value);
+                }
+            };
+
+            // Trigger all the attribute changed values.
+            if (states && states.attributeChanged && states.attributeChanged.length) {
+              addPromises(states.attributeChanged.map(function (callback) {
+                var promise = callback(patch.element, patch.name, oldValue, patch.value);
+
+                if (promise) {
+                  promise.then(augmentAttribute);
+                } else {
+                  augmentAttribute();
+                }
+              }));
+            } else {
+              augmentAttribute();
             }
-          }
+
+            // Trigger custom element attributeChanged events.
+            var customElement = _elementCustom.components[elementDescriptor.nodeName] || empty;
+
+            if (customElement.attributeChangedCallback) {
+              customElement.prototype.attributeChangedCallback.call(patch.old, patch.name, oldValue, patch.value);
+            }
+          })();
         }
 
         // Text node manipulation.
@@ -1452,6 +1502,13 @@ function process(element, e) {
 
   for (var i = 0; i < patches.length; i++) {
     _loop(i);
+  }
+
+  var activePromises = promises.filter(Boolean);
+
+  // Wait until all transition promises have resolved.
+  if (activePromises.length) {
+    return Promise.all(promises.filter(Boolean));
   }
 }
 
@@ -2191,6 +2248,7 @@ function startup(worker) {
   worker.onmessage = function (e) {
     var data = e.data;
     var isInner = data.isInner;
+    var newTree = null;
 
     // Always unprotect the existing `oldTree` as we will be changing it later
     // on.
@@ -2201,8 +2259,6 @@ function startup(worker) {
     if (data.oldTree) {
       oldTree = data.oldTree;
     }
-
-    var newTree = null;
 
     // If the `newTree` was provided to the worker, use that instead of trying
     // to create one from HTML source.

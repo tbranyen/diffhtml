@@ -184,4 +184,24 @@ describe('Integration: Transitions', function() {
       assert.equal(hit, 1);
     });
   });
+
+  describe('Argument verification', function() {
+    it('will provide the correct element to attached transition', function() {
+      var result = null;
+
+      diff.addTransitionState('attached', function(el) { result = el; });
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+
+      assert.equal(result, this.fixture.querySelector('p'));
+    });
+
+    it('will provide the correct element to added text', function() {
+      var result = null;
+
+      diff.addTransitionState('textChanged', function(el) { result = el; });
+      diff.innerHTML(this.fixture, '<div><p>test</p></div>');
+
+      assert.equal(result, this.fixture.querySelector('p'));
+    });
+  });
 });

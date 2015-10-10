@@ -77,8 +77,12 @@ describe('Integration: Basics', function() {
     });
 
     // This is not properly tested.
-    it('utilize a WebWorker', function(done) {
+    it.skip('utilize a WebWorker', function(done) {
       diff.innerHTML(this.fixture, '<div class="test">this</div>');
+
+      diff.innerHTML(this.fixture, '<div class="test2">this2</div>', {
+        enableWorker: true
+      });
 
       this.fixture.addEventListener('renderComplete', function() {
         try {
@@ -91,10 +95,6 @@ describe('Integration: Basics', function() {
         finally {
           done();
         }
-      });
-
-      diff.innerHTML(this.fixture, '<div class="test2">this2</div>', {
-        enableWorker: true
       });
     });
   });
