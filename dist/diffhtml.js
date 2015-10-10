@@ -748,9 +748,6 @@ function completeWorkerRender(element, elementMeta) {
 function releaseNode(element) {
   var elementMeta = _tree.TreeCache.get(element) || {};
 
-  // Unbind the `renderComplete` events.
-  element.removeEventListener('renderComplete');
-
   // If there is a worker associated with this element, then kill it.
   if (elementMeta.worker) {
     elementMeta.worker.terminate();
