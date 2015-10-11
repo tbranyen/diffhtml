@@ -1270,11 +1270,10 @@ function process(element, patches) {
         }));
       }
     }
-
     // Added state for transitions API.
-    if (states && states.attached && states.attached.length) {
-      addPromises(states.attached.map(callCallback, element));
-    }
+    else if (states && states.attached && states.attached.length) {
+        addPromises(states.attached.map(callCallback, element));
+      }
 
     // Call all `childNodes` attached callbacks as well.
     el.childNodes.forEach(attachedTransitionAndTitle);
