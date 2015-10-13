@@ -21,8 +21,8 @@ describe('Integration: outerHTML', function() {
     var iframe = document.createElement('iframe');
     document.body.appendChild(iframe);
 
-    var originalSource = document.documentElement.outerHTML;
     var documentElement = iframe.contentDocument.documentElement;
+    var originalSource = documentElement.outerHTML;
 
     diff.outerHTML(documentElement, '<html><head></head></html>');
     assert.equal(documentElement.childNodes.length, 1);

@@ -985,6 +985,7 @@ function sync(oldTree, newTree) {
   var oldChildNodes = oldTree.childNodes;
   var oldChildNodesLength = oldChildNodes ? oldChildNodes.length : 0;
   var oldElement = oldTree.element;
+  var textElements = ['script', 'style', 'textarea', '#text'];
 
   if (!newTree) {
     var removed = oldChildNodes.splice(0, oldChildNodesLength);
@@ -1015,8 +1016,7 @@ function sync(oldTree, newTree) {
   }
 
   // Replace text node values if they are different.
-  if (newTree.nodeName === '#text' && oldTree.nodeName === '#text') {
-
+  if (textElements.indexOf(newTree.nodeName) > -1) {
     // Text changed.
     if (oldTree.nodeValue !== nodeValue) {
       oldTree.nodeValue = nodeValue;
@@ -1937,6 +1937,7 @@ function makeParser() {
             if (index == -1) {
               lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
             } else {
+              currentParent.nodeValue = data.slice(kMarkupPattern.lastIndex, index);
               lastTextPos = kMarkupPattern.lastIndex = index + closeMarkup.length;
               match[1] = true;
             }

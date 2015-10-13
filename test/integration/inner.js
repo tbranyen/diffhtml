@@ -23,6 +23,13 @@ describe('Integration: innerHTML', function() {
     assert.equal(this.fixture.firstChild.textContent, 'this');
   });
 
+  it('can swap out style text', function() {
+    diff.innerHTML(this.fixture, '<style>h1 { color: red; }</style>');
+    diff.innerHTML(this.fixture, '<style>h1 { color: blue; }</style>');
+
+    assert.equal(this.fixture.querySelector('style').textContent, 'h1 { color: blue; }');
+  });
+
   describe('Comments', function() {
     it('ignores comments', function() {
       diff.innerHTML(this.fixture, '<div><p><!-- test --></p></div>');
