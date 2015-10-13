@@ -1262,7 +1262,7 @@ function process(element, patches) {
   var attachedTransitionAndTitle = function attachedTransitionAndTitle(el) {
     var element = (0, _elementGet2['default'])(el).element;
 
-    if (el.nodeName === '#text') {
+    if (el.nodeName === '#text' || el.nodeName === 'text') {
       // Trigger all the text changed values.
       if (states && states.textChanged && states.textChanged.length) {
         addPromises(states.textChanged.map(function (callback) {
@@ -1439,7 +1439,7 @@ function process(element, patches) {
 
               // Added state for transitions API.
               if (states && states.attached && states.attached.length) {
-                addPromises(states.attached.map(callCallback, patch['new']));
+                attachedTransitionAndTitle(newDescriptor);
               }
 
               _nodeMake2['default'].nodes[oldDescriptor.element] = undefined;
