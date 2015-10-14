@@ -239,18 +239,18 @@ describe('Integration: Transitions', function() {
       diff.addTransitionState('attributeChanged', function() {
         element = arguments[0];
         attributeName = arguments[1];
-        oldValue = arguments[1];
+        oldValue = arguments[2];
+        newValue = arguments[3];
       });
+
+      diff.innerHTML(this.fixture, '<div><p class="test"></p></div>');
 
       var p = this.fixture.querySelector('p');
 
-      diff.innerHTML(this.fixture, '<div><span></span></div>');
-
-      assert.equal(oldElement, p);
-      assert.equal(oldElement.parentNode, null);
-
-      assert.equal(newElement, this.fixture.querySelector('span'));
-      assert.equal(newElement.parentNode, this.fixture.firstChild);
+      assert.equal(element, p);
+      assert.equal(attributeName, 'class');
+      assert.equal(oldValue, null);
+      assert.equal(newValue, 'test');
     });
 
     it('will provide the correct arguments to textChanged (added)', function() {
