@@ -6,6 +6,7 @@ describe('Integration: innerHTML', function() {
 
   afterEach(function() {
     diff.release(this.fixture);
+    diff.removeTransitionState();
   });
 
   it('can replace an element with a parent', function() {

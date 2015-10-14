@@ -6,6 +6,7 @@ describe('Integration: outerHTML', function() {
 
   afterEach(function() {
     diff.release(this.fixture);
+    diff.removeTransitionState();
   });
 
   it('can recalculate the tree if contents are unexpectedly changed', function() {

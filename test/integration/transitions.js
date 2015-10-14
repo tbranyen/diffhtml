@@ -222,4 +222,150 @@ describe('Integration: Transitions', function() {
       assert.equal(result, this.fixture.querySelector('p'));
     });
   });
+
+  describe('Handling Promise return values', function() {
+    it('will hold off rendering until attached promise resolves', function(done) {
+      var count = 0;
+      var promise = new Promise(function(resolve) {
+        setTimeout(resolve, 10);
+      });
+
+      diff.addTransitionState('attached', function(el) { return promise; });
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+      diff.innerHTML(this.fixture, '<div><p>test</p</div>');
+
+      this.fixture.addEventListener('renderComplete', function() {
+        count++;
+
+        if (count === 2) {
+          assert.equal(this.fixture.querySelector('p').textContent, 'test');
+          done();
+        }
+      }.bind(this));
+
+      assert.equal(this.fixture.querySelector('p').textContent, '');
+    });
+
+    it('will hold off rendering until detached (during replace) promise resolves', function(done) {
+      var count = 0;
+      var promise = new Promise(function(resolve) {
+        setTimeout(resolve, 10);
+      });
+
+      diff.addTransitionState('detached', function(el) { return promise; });
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+      diff.innerHTML(this.fixture, '<div><span>test</span></div>');
+      diff.innerHTML(this.fixture, '<div><span>test2</span></div>');
+
+      this.fixture.addEventListener('renderComplete', function() {
+        count++;
+
+        if (count === 2) {
+          assert.equal(this.fixture.querySelector('span').textContent, 'test2');
+          done();
+        }
+      }.bind(this));
+
+      assert.equal(this.fixture.querySelector('p'), null);
+      assert.ok(this.fixture.querySelector('span'));
+      assert.equal(this.fixture.querySelector('span').textContent, 'test');
+    });
+
+    it('will hold off rendering until detached (no replace) promise resolves', function(done) {
+      var count = 0;
+      var promise = new Promise(function(resolve) {
+        setTimeout(resolve, 10);
+      });
+
+      diff.addTransitionState('detached', function(el) { return promise; });
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+      diff.innerHTML(this.fixture, '<div></div>');
+      diff.innerHTML(this.fixture, '<div><span>test</span></div>');
+
+      this.fixture.addEventListener('renderComplete', function() {
+        count++;
+
+        if (count === 2) {
+          assert.equal(this.fixture.querySelector('span').textContent, 'test');
+          done();
+        }
+      }.bind(this));
+
+      assert.equal(this.fixture.querySelector('p'), null);
+      assert.equal(this.fixture.querySelector('span'), null);
+    });
+
+    it('will hold off rendering until replaced promise resolves', function(done) {
+      var count = 0;
+      var promise = new Promise(function(resolve) {
+        setTimeout(resolve, 10);
+      });
+
+      diff.addTransitionState('replaced', function(el) { return promise; });
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+      diff.innerHTML(this.fixture, '<div><span>test</span></div>');
+      diff.innerHTML(this.fixture, '<div><span>test2</span></div>');
+
+      this.fixture.addEventListener('renderComplete', function() {
+        count++;
+
+        if (count === 2) {
+          assert.equal(this.fixture.querySelector('span').textContent, 'test2');
+          done();
+        }
+      }.bind(this));
+
+      assert.equal(this.fixture.querySelector('p'), null);
+      assert.ok(this.fixture.querySelector('span'));
+      assert.equal(this.fixture.querySelector('span').textContent, 'test');
+    });
+
+    it('will hold off rendering until attributeChanged promise resolves', function(done) {
+      var count = 0;
+      var promise = new Promise(function(resolve) {
+        setTimeout(resolve, 10);
+      });
+
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+      diff.addTransitionState('attributeChanged', function(el) { return promise; });
+      diff.innerHTML(this.fixture, '<div><p class="test"></p></div>');
+
+      diff.innerHTML(this.fixture, '<div><p class="test2"></p></div>');
+
+      this.fixture.addEventListener('renderComplete', function() {
+        count++;
+
+        if (count === 2) {
+          assert.equal(this.fixture.querySelector('p').className, 'test2');
+          done();
+        }
+      }.bind(this));
+
+      assert.equal(this.fixture.querySelector('p').className, 'test');
+    });
+
+    it('will hold off rendering until textChanged promise resolves', function(done) {
+      var count = 0;
+      var promise = new Promise(function(resolve) {
+        setTimeout(resolve, 10);
+      });
+
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+      diff.addTransitionState('textChanged', function(el) { return promise; });
+      diff.innerHTML(this.fixture, '<div><p>test</p></div>');
+
+      diff.innerHTML(this.fixture, '<div><p>test2</p></div>');
+
+      this.fixture.addEventListener('renderComplete', function() {
+        count++;
+
+        if (count === 2) {
+          assert.equal(this.fixture.querySelector('p').textContent, 'test2');
+          done();
+        }
+      }.bind(this));
+
+      assert.equal(this.fixture.querySelector('p').textContent, 'test');
+    });
+  });
 });

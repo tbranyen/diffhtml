@@ -6,6 +6,7 @@ describe('Integration: Basics', function() {
 
   afterEach(function() {
     diff.release(this.fixture);
+    diff.removeTransitionState();
   });
 
   describe('Expose API', function() {

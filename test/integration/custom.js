@@ -6,6 +6,7 @@ describe('Integration: Custom Elements', function() {
 
   afterEach(function() {
     diff.release(this.fixture);
+    diff.removeTransitionState();
   });
 
   // Currently skipping, because the native implementation does not seem to

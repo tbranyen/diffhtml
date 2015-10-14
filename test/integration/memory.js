@@ -12,6 +12,7 @@ describe('Integration: Memory management', function() {
 
   afterEach(function() {
     diff.release(this.fixture);
+    diff.removeTransitionState();
   });
 
   it('can allocate/deallocate uuids', function() {
