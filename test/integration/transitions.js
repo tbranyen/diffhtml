@@ -186,7 +186,7 @@ describe('Integration: Transitions', function() {
   });
 
   describe('Argument verification', function() {
-    it('will provide the correct element to attached transition', function() {
+    it('will provide the correct element to attached', function() {
       var result = null;
 
       diff.addTransitionState('attached', function(el) { result = el; });
@@ -195,7 +195,83 @@ describe('Integration: Transitions', function() {
       assert.equal(result, this.fixture.querySelector('p'));
     });
 
-    it('will provide the correct arguments to added text', function() {
+    it('will provide the correct element to detached', function() {
+      var result = null;
+
+      diff.addTransitionState('detached', function(el) { result = el; });
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+
+      var p = this.fixture.querySelector('p');
+
+      diff.innerHTML(this.fixture, '<div></div>');
+
+      assert.equal(result, p);
+      assert.equal(result.parentNode, null);
+    });
+
+    it('will provide the correct arguments to replaced', function() {
+      var oldElement = null;
+      var newElement = null;
+
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+
+      diff.addTransitionState('replaced', function() {
+        oldElement = arguments[0];
+        newElement = arguments[1];
+      });
+
+      var p = this.fixture.querySelector('p');
+
+      diff.innerHTML(this.fixture, '<div><span></span></div>');
+
+      assert.equal(oldElement, p);
+      assert.equal(oldElement.parentNode, null);
+
+      assert.equal(newElement, this.fixture.querySelector('span'));
+      assert.equal(newElement.parentNode, this.fixture.firstChild);
+    });
+
+    it('will provide the correct arguments to attributeChanged (added)', function() {
+      var element, attributeName, oldValue, newValue;
+
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+
+      diff.addTransitionState('attributeChanged', function() {
+        element = arguments[0];
+        attributeName = arguments[1];
+        oldValue = arguments[1];
+      });
+
+      var p = this.fixture.querySelector('p');
+
+      diff.innerHTML(this.fixture, '<div><span></span></div>');
+
+      assert.equal(oldElement, p);
+      assert.equal(oldElement.parentNode, null);
+
+      assert.equal(newElement, this.fixture.querySelector('span'));
+      assert.equal(newElement.parentNode, this.fixture.firstChild);
+    });
+
+    it('will provide the correct arguments to textChanged (added)', function() {
+      var el, oldText, newText;
+
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+
+      diff.addTransitionState('textChanged', function() {
+        el = arguments[0];
+        oldText = arguments[1];
+        newText = arguments[2];
+      });
+
+      diff.innerHTML(this.fixture, '<div><p>test</p></div>');
+
+      assert.equal(el, this.fixture.querySelector('p'));
+      assert.equal(oldText, null);
+      assert.equal(newText, 'test');
+    });
+
+    it('will provide the correct arguments to textChanged (replaced)', function() {
       var el, oldText, newText;
 
       diff.innerHTML(this.fixture, '<div><p>test</p></div>');
@@ -211,15 +287,6 @@ describe('Integration: Transitions', function() {
       assert.equal(el, this.fixture.querySelector('p'));
       assert.equal(oldText, 'test');
       assert.equal(newText, 'test2');
-    });
-
-    it('will provide the correct element to changed text', function() {
-      var result = null;
-
-      diff.addTransitionState('textChanged', function(el) { result = el; });
-      diff.innerHTML(this.fixture, '<div><p>test</p></div>');
-
-      assert.equal(result, this.fixture.querySelector('p'));
     });
   });
 
