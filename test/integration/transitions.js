@@ -341,7 +341,7 @@ describe('Integration: Transitions', function() {
         }
       }.bind(this));
 
-      assert.equal(this.fixture.querySelector('p').className, 'test');
+      assert.equal(this.fixture.querySelector('p').className, '');
     });
 
     it('will hold off rendering until textChanged (added) promise resolves', function(done) {
@@ -377,7 +377,6 @@ describe('Integration: Transitions', function() {
       diff.innerHTML(this.fixture, '<div><p>test</p></div>');
       diff.addTransitionState('textChanged', function(el) { return promise; });
       diff.innerHTML(this.fixture, '<div><p>test2</p></div>');
-
       diff.innerHTML(this.fixture, '<div><p>test3</p></div>');
 
       this.fixture.addEventListener('renderComplete', function() {
@@ -389,7 +388,7 @@ describe('Integration: Transitions', function() {
         }
       }.bind(this));
 
-      assert.equal(this.fixture.querySelector('p').textContent, 'test2');
+      assert.equal(this.fixture.querySelector('p').textContent, 'test');
     });
   });
 });
