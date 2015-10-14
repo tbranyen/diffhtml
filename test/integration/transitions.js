@@ -195,7 +195,25 @@ describe('Integration: Transitions', function() {
       assert.equal(result, this.fixture.querySelector('p'));
     });
 
-    it('will provide the correct element to added text', function() {
+    it('will provide the correct arguments to added text', function() {
+      var el, oldText, newText;
+
+      diff.innerHTML(this.fixture, '<div><p>test</p></div>');
+
+      diff.addTransitionState('textChanged', function() {
+        el = arguments[0];
+        oldText = arguments[1];
+        newText = arguments[2];
+      });
+
+      diff.innerHTML(this.fixture, '<div><p>test2</p></div>');
+
+      assert.equal(el, this.fixture.querySelector('p'));
+      assert.equal(oldText, 'test');
+      assert.equal(newText, 'test2');
+    });
+
+    it('will provide the correct element to changed text', function() {
       var result = null;
 
       diff.addTransitionState('textChanged', function(el) { result = el; });
