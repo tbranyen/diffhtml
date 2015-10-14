@@ -1490,25 +1490,13 @@ function process(element, patches) {
               var originalValue = patch.element.textContent;
 
               // Changes the text.
-              var augmentText = function augmentText() {
-                patch.element.textContent = (0, _utilDecode2['default'])(patch.value);
-              };
+              patch.element.textContent = (0, _utilDecode2['default'])(patch.value);
 
               // Trigger all the text changed values.
               if (states && states.textChanged && states.textChanged.length) {
                 addPromises(states.textChanged.map(function (callback) {
-                  var promise = callback(patch.element.parentNode || patch.element, originalValue, patch.value);
-
-                  if (promise) {
-                    promise.then(augmentText);
-                  } else {
-                    augmentText();
-                  }
-
-                  return promise;
+                  return callback(patch.element.parentNode || patch.element, originalValue, patch.value);
                 }));
-              } else {
-                patch.element.textContent = (0, _utilDecode2['default'])(patch.value);
               }
             })();
           }

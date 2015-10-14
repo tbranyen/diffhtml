@@ -344,7 +344,7 @@ describe('Integration: Transitions', function() {
       assert.equal(this.fixture.querySelector('p').className, 'test');
     });
 
-    it('will hold off rendering until textChanged promise resolves', function(done) {
+    it('will hold off rendering until textChanged (added) promise resolves', function(done) {
       var count = 0;
       var promise = new Promise(function(resolve) {
         setTimeout(resolve, 10);
@@ -366,6 +366,30 @@ describe('Integration: Transitions', function() {
       }.bind(this));
 
       assert.equal(this.fixture.querySelector('p').textContent, 'test');
+    });
+
+    it('will hold off rendering until textChanged (replaced) promise resolves', function(done) {
+      var count = 0;
+      var promise = new Promise(function(resolve) {
+        setTimeout(resolve, 10);
+      });
+
+      diff.innerHTML(this.fixture, '<div><p>test</p></div>');
+      diff.addTransitionState('textChanged', function(el) { return promise; });
+      diff.innerHTML(this.fixture, '<div><p>test2</p></div>');
+
+      diff.innerHTML(this.fixture, '<div><p>test3</p></div>');
+
+      this.fixture.addEventListener('renderComplete', function() {
+        count++;
+
+        if (count === 2) {
+          assert.equal(this.fixture.querySelector('p').textContent, 'test3');
+          done();
+        }
+      }.bind(this));
+
+      assert.equal(this.fixture.querySelector('p').textContent, 'test2');
     });
   });
 });
