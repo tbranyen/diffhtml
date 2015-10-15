@@ -500,6 +500,16 @@ function enableProllyfill() {
     }
   });
 
+  // If HTMLElement is an object, rejigger it to work like a function so that
+  // it can be extended. Specifically affects IE and Safari.
+  if (typeof HTMLElement === 'object') {
+    var realHTMLElement = HTMLElement;
+
+    HTMLElement = function () {};
+    HTMLElement.prototype = Object.create(realHTMLElement.prototype);
+    HTMLElement.__proto__ = realHTMLElement;
+  }
+
   var activateComponents = function activateComponents() {
     var documentElement = document.documentElement;
 
