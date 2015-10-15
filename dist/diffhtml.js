@@ -700,7 +700,9 @@ function completeWorkerRender(element, elementMeta) {
     var completeRender = function completeRender() {
       // Remove unused elements.
       if (nodes.removals.length) {
-        nodes.removals.forEach(_utilMemory.unprotectElement);
+        nodes.removals.map(function (uuid) {
+          return _utilPools.pools.elementObject._uuid[uuid];
+        }).forEach(_utilMemory.unprotectElement);
       }
 
       // Reset internal caches for quicker lookups in the futures.
@@ -1008,7 +1010,7 @@ function sync(oldTree, newTree) {
     for (var i = 0; i < removed.length; i++) {
       // Used by the Worker to track elements removed.
       if (patches.removals) {
-        patches.removals.push(removed[i]);
+        patches.removals.push(removed[i].element);
       }
 
       unprotectElement(removed[i]);
@@ -1085,7 +1087,7 @@ function sync(oldTree, newTree) {
 
       // Used by the Worker to track elements removed.
       if (patches.removals) {
-        patches.removals.push(oldChildNodes[i]);
+        patches.removals.push(oldChildNodes[i].element);
       }
 
       // Used by the Worker to track elements added.
@@ -1117,7 +1119,7 @@ function sync(oldTree, newTree) {
     for (var i = 0; i < removed.length; i++) {
       // Used by the Worker to track elements removed.
       if (patches.removals) {
-        patches.removals.push(removed[i]);
+        patches.removals.push(removed[i].element);
       }
 
       unprotectElement(removed[i]);
@@ -2061,25 +2063,13 @@ function createPool(name, opts) {
 
       // Move the value out of allocated, since we need to protect this from
       // being free'd accidentally.
-      if (idx !== -1) {
-        _protect.push(allocated.splice(idx, 1)[0]);
+      _protect.push(idx === -1 ? value : allocated.splice(idx, 1)[0]);
 
-        // If we're protecting an element object, push the uuid into a lookup
-        // table.
-        if (name === 'elementObject') {
-          this._uuid[value.element] = 1;
-        }
+      // If we're protecting an element object, push the uuid into a lookup
+      // table.
+      if (name === 'elementObject') {
+        this._uuid[value.element] = value;
       }
-      // From a worker.
-      else {
-          _protect.push(value);
-
-          // If we're protecting an element object, push the uuid into a lookup
-          // table.
-          if (name === 'elementObject') {
-            this._uuid[value.element] = 1;
-          }
-        }
     },
 
     unprotect: function unprotect(value) {
