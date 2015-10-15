@@ -799,6 +799,15 @@ function patchNode(element, newHTML, options) {
   // If the operation is `outerHTML`, but the contents haven't changed, abort.
   var differentOuterHTML = !options.inner && element.outerHTML === newHTML;
 
+  // Start with worker being a falsy value.
+  var worker = null;
+
+  // If we can use a worker and the user wants one, try and create it.
+  if (options.enableWorker && _workerCreate.hasWorker) {
+    // Create a worker for this element.
+    worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
+  }
+
   // And ensure that an `oldTree` exists, otherwise this is the first render
   // potentially.
   if ((differentInnerHTML || differentOuterHTML) && elementMeta.oldTree) {
@@ -827,12 +836,9 @@ function patchNode(element, newHTML, options) {
 
   // Will want to ensure that the first render went through, the worker can
   // take a bit to startup and we want to show changes as soon as possible.
-  if (options.enableWorker && _workerCreate.hasWorker) {
+  if (options.enableWorker && _workerCreate.hasWorker && worker) {
     // Set a render lock as to not flood the worker.
     elementMeta.isRendering = true;
-
-    // Create a worker for this element.
-    var worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
 
     // Attach all properties here to transport.
     var transferObject = {};
