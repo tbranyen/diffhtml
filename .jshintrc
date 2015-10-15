@@ -4,5 +4,8 @@
   "shadow": true,
   "node": true,
   "browser": true,
-  "proto": true
+  "proto": true,
+  "globals": {
+    "HTMLElement": true
+  }
 }
