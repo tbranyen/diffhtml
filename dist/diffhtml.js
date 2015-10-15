@@ -2270,9 +2270,9 @@ function create() {
     // Construct the worker and start it up.
     try {
       worker = new Worker(URL.createObjectURL(workerBlob));
-    } catch (e) {
+    } catch (ex) {
       if (console && console.info) {
-        console.info("Failed to create diffhtml worker", e);
+        console.info('Failed to create diffhtml worker', ex);
       }
 
       // If we cannot create a Worker, then disable trying again, all work
