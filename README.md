@@ -4,13 +4,18 @@ diffhtml
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Join the chat at https://gitter.im/tbranyen/diffhtml](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/tbranyen/diffhtml)
 
+Inspired by React and motivated by the Web, this is a low-level tool which aims
+to help web developers write applications. By focusing on the markup
+representing how your application state should look, diffhtml will figure out
+how to modify the page with the fewest amount of operations.
 
-Allows you to easily swap out markup and have an intelligent virtual diff patch
-in the changes.  Contrast to `innerHTML`/`outerHTML` which destroys and creates
-all elements when set.
+**Features:**
 
-Provides a transitions API to hook into state changes.  This is useful for
-animations or reacting to changes.
+- Intelligent virtual DOM diffing and patching of HTML text and elements.
+- Transitions API to hook into element and attribute state changes. 
+- Custom Elements even in browsers without native support.
+- Offloading diff to Web Workers which provides better rendering performance.
+- Object pooling to avoid GC thrashing and expensive uuid generation.
 
 #### Install
 
@@ -117,6 +122,21 @@ addTransitionState('attached', function(element) {
 });
 ```
 
+**Available states**
+
+Format is: `name[callbackArgs]`
+
+- `attached[element]`
+  For when an element is attached to the DOM.
+- `detached[element]`
+  For when an element leaves the DOM.
+- `replaced[oldElement, newElement]`
+  For when elements are swapped
+- `attributeChanged[element, attributeName, oldValue, newValue]` 
+  For when attributes are changed.
+- `textChanged[element, oldValue, newValue]`
+  For when text has changed in either TextNodes or SVG text elements.
+
 ##### Remove a transition state callback
 
 Removes a global transition listener.
@@ -126,49 +146,75 @@ callbacks.  When invoked with the name argument it will remove all transition
 state callbacks matching the name, and so on for the callback.
 
 ``` javascript
-// Removes all.
+// Removes all registered transition states.
 diff.removeTransitionState();
 
-// Removes by name.
+// Removes states by name.
 diff.removeTransitionState('attached');
 
-// Removes by name and callback reference.
+// Removes states by name and callback reference.
 diff.removeTransitionState('attached', callbackReference);
 ```
 
 #### [Prollyfill](https://twitter.com/slexaxton/status/257543702124306432)
 
-I'd love to see this project become a browser standard in the future.  To
-enable how I'd envision it working, simply call `enableProllyfill();` on the
-diff object.
+*Click above to learn what prollyfill "means".*
 
-This will augment the `Element.prototype` and 
+I'd love to see this project become a browser standard in the future.  To
+enable how I'd envision it working, simply invoke the following method on the
+diff object:
 
 ``` javascript
 diff.enableProllyfill();
 ```
 
-Now you can use the API defined below.
+*Disclaimer: By calling this method, you are agreeing that it's okay for
+diffhtml to modify your browser's `HTMLElement` constructor,
+`Element.prototype`, the `document` object, and run some logic on your page
+load event.*
 
-##### Diff an element and all children
+If you have already loaded the page (meaning the load event has fired),
+diffhtml will immediately search the page for Custom Elements and automatically
+initialize them. If the page has not yet loaded, it will wait before invoking
+which gives you time to register your elements first.
+
+##### `Element.prototype.diffOuterHTML`
+
+Scans for changes in attributes and text on the parent, and all child nodes.
 
 ``` javascript
 document.querySelector('main').diffOuterHTML = '<new markup to diff/>';
 ```
 
-##### Diff an element's children
+##### `Element.prototype.diffInnerHTML`
+
+Only scans for changes in child nodes.
 
 ``` javascript
 document.querySelector('main').diffInnerHTML = '<new child markup to diff/>';
 ```
 
-##### Diff two elements
+##### `Element.prototype.diffElement`
+
+Compares the two elements for changes like `outerHTML`, if you pass `{ inner:
+true }` as the second argument it will act like `innerHTML`.
 
 ``` javascript
 var newElement = document.createElement('main');
 newElement.innerHTML = '<div></div>';
 
-document.querySelector('main').diff = newElement;
+document.querySelector('main').diffElement(newElement);
+```
+
+##### `Element.prototype.diffRelease`
+
+Cleans up after diffhtml and removes the associated worker.
+
+``` javascript
+var newElement = document.createElement('main');
+newElement.innerHTML = '<div></div>';
+
+document.querySelector('main').diffRelease(newElement);
 ```
 
 [More information and a demo are available on http://www.diffhtml.org/](http://www.diffhtml.org/)

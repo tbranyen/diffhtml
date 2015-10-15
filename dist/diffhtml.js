@@ -475,8 +475,8 @@ function enableProllyfill() {
   Object.defineProperty(Element.prototype, 'diffElement', {
     configurable: true,
 
-    value: function value(newElement) {
-      element(this, newElement);
+    value: function value(newElement, options) {
+      element(this, newElement, options);
     }
   });
 
@@ -500,9 +500,7 @@ function enableProllyfill() {
     }
   });
 
-  // This section will automatically parse out your entire page to ensure all
-  // custom elements are hooked into.
-  window.addEventListener('load', function () {
+  var activateComponents = function activateComponents() {
     var documentElement = document.documentElement;
 
     // After the initial render, clean up the resources, no point in lingering.
@@ -516,7 +514,19 @@ function enableProllyfill() {
 
     // Diff the entire document on activation of the prollyfill.
     documentElement.diffOuterHTML = documentElement.outerHTML;
-  });
+
+    // Remove the load event listener, since it's complete.
+    window.removeEventListener('load', activateComponents);
+  };
+
+  // This section will automatically parse out your entire page to ensure all
+  // custom elements are hooked into.
+  window.addEventListener('load', activateComponents);
+
+  // If the document has already loaded, immediately activate the components.
+  if (document.readyState === 'complete') {
+    activateComponents();
+  }
 }
 
 },{"./element/custom":1,"./errors":4,"./node/patch":7,"./transitions":12}],6:[function(_dereq_,module,exports){
