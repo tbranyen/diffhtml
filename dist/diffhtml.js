@@ -34,6 +34,11 @@ function upgrade(tagName, element) {
     element.__proto__ = Object.create(CustomElement.prototype);
   }
 
+  // Custom elements have a createdCallback method that should be called.
+  if (CustomElement.prototype.createdCallback) {
+    CustomElement.prototype.createdCallback.call(element);
+  }
+
   return true;
 }
 
@@ -108,6 +113,8 @@ var empty = { prototype: {} };
 function make(descriptor) {
   var element = null;
   var isSvg = false;
+  // Get the custom element constructor for a given element.
+  var CustomElement = _custom.components[descriptor.nodeName] || empty;
 
   if (_nodeMake2['default'].nodes[descriptor.element]) {
     return _nodeMake2['default'].nodes[descriptor.element];
@@ -142,17 +149,9 @@ function make(descriptor) {
     element.textContent = descriptor.nodeValue;
   }
 
-  // Get the custom element constructor for a given element.
-  var customElement = _custom.components[descriptor.nodeName] || empty;
-
-  // Custom elements have a constructor method that should be called.
-  if (customElement.prototype.constructor) {
-    customElement.prototype.constructor.call(element);
-  }
-
   // Custom elements have a createdCallback method that should be called.
-  if (customElement.prototype.createdCallback) {
-    customElement.prototype.createdCallback.call(element);
+  if (CustomElement.prototype.createdCallback) {
+    CustomElement.prototype.createdCallback.call(element);
   }
 
   // Add to the nodes cache using the designated uuid as the lookup key.
@@ -795,14 +794,14 @@ function patchNode(element, newHTML, options) {
     return;
   }
 
-  if (
-  // If the operation is `innerHTML`, but the contents haven't changed,
-  // abort.
-  options.inner && element.innerHTML === newHTML ||
+  // If the operation is `innerHTML`, but the contents haven't changed, abort.
+  var differentInnerHTML = options.inner && element.innerHTML === newHTML;
+  // If the operation is `outerHTML`, but the contents haven't changed, abort.
+  var differentOuterHTML = !options.inner && element.outerHTML === newHTML;
 
-  // If the operation is `outerHTML`, but the contents haven't changed,
-  // abort.
-  !options.inner && element.outerHTML === newHTML) {
+  // And ensure that an `oldTree` exists, otherwise this is the first render
+  // potentially.
+  if ((differentInnerHTML || differentOuterHTML) && elementMeta.oldTree) {
     return;
   }
 
