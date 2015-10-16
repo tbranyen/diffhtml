@@ -502,9 +502,26 @@ function enableProllyfill() {
 
   // If HTMLElement is an object, rejigger it to work like a function so that
   // it can be extended. Specifically affects IE and Safari.
-  if (typeof HTMLElement === 'object') {
+  if (typeof Element === 'object' || typeof HTMLElement === 'object') {
     // Fall back to the Element constructor if the HTMLElement does not exist.
     var realHTMLElement = HTMLElement || Element;
+
+    // If there is no `__proto__` available, add one to the prototype.
+    if (!realHTMLElement.__proto__) {
+      var copy = {
+        set: function set(val) {
+          val = Object.keys(val).length ? val : Object.getPrototypeOf(val);
+          for (var key in val) {
+            if (val.hasOwnProperty(key)) {
+              this[key] = val[key];
+            }
+          }
+        }
+      };
+
+      Object.defineProperty(realHTMLElement, '__proto__', copy);
+      Object.defineProperty(realHTMLElement.prototype, '__proto__', copy);
+    }
 
     HTMLElement = function () {};
     HTMLElement.prototype = Object.create(realHTMLElement.prototype);
