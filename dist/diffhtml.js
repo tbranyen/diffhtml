@@ -1777,6 +1777,12 @@ function parseHTML(newHTML, isInner) {
   return isInner ? nodes : nodes[0];
 }
 
+/**
+ * makeParser
+ *
+ * @return
+ */
+
 function makeParser() {
   var kMarkupPattern = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
 
@@ -1898,7 +1904,7 @@ function makeParser() {
         var attr = pools.attributeObject.get();
 
         attr.name = match[1];
-        attr.value = match[3] || match[4] || match[5];
+        attr.value = match[3] || match[4];
 
         instance.attributes[instance.attributes.length] = attr;
       }
@@ -2001,7 +2007,7 @@ function makeParser() {
         }
         if (match[1] || match[4] || kSelfClosingElements[match[2]]) {
           // </ or /> or <br> etc.
-          while (true && currentParent) {
+          while (currentParent) {
             if (currentParent.nodeName == match[2]) {
               stack.pop();
               currentParent = stack[stack.length - 1];

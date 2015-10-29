@@ -13,7 +13,7 @@ how to modify the page with the fewest amount of operations.
 
 - Intelligent virtual DOM diffing and patching of HTML text and elements.
 - Transitions API to hook into element and attribute state changes. 
-- Custom Elements even in browsers without native support.
+- Custom Elements in browsers without native support.
 - Offloading diff to Web Workers which provides better rendering performance.
 - Object pooling to avoid GC thrashing and expensive uuid generation.
 
