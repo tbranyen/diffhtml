@@ -91,6 +91,13 @@ describe('Integration: outerHTML', function() {
   });
 
   describe('Attributes', function() {
+    it('can set attributes to empty', function() {
+      diff.outerHTML(this.fixture, '<div class="hello"></div>');
+      diff.outerHTML(this.fixture, '<div class=""></div>');
+
+      assert.equal(this.fixture.outerHTML, '<div></div>');
+    });
+
     it('can change attributes', function() {
       diff.outerHTML(this.fixture, '<div class="hello"></div>');
 
