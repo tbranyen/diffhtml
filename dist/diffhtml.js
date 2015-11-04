@@ -1904,7 +1904,7 @@ function makeParser() {
         var attr = pools.attributeObject.get();
 
         attr.name = match[1];
-        attr.value = match[3] || match[4];
+        attr.value = match[3] || match[4] || '';
 
         instance.attributes[instance.attributes.length] = attr;
       }
