@@ -1358,7 +1358,15 @@ function process(element, patches) {
       el.textContent = (0, _utilDecode2['default'])(el.textContent);
     }
 
-    fragment.appendChild(el);
+    if (elementDescriptor.childNodes) {
+      elementDescriptor.childNodes.forEach(attachedCallback, {
+        fragment: false
+      });
+    }
+
+    if (fragment) {
+      fragment.appendChild(el);
+    }
   };
 
   var titleCallback = function titleCallback(elementDescriptor) {
