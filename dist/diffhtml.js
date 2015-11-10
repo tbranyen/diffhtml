@@ -11,7 +11,7 @@ exports.upgrade = upgrade;
 var components = {};
 
 exports.components = components;
-var empty = {};
+var empty = function empty() {};
 
 /**
  * Ensures the element instance matches the CustomElement's prototype.
@@ -149,6 +149,9 @@ function make(descriptor) {
     element.textContent = descriptor.nodeValue;
   }
 
+  // Upgrade the element after creating it.
+  (0, _custom.upgrade)(descriptor.nodeName, element);
+
   // Custom elements have a createdCallback method that should be called.
   if (CustomElement.prototype.createdCallback) {
     CustomElement.prototype.createdCallback.call(element);
@@ -169,7 +172,7 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -331,7 +334,8 @@ function registerElement(tagName, constructor) {
 
   if (!normalizedConstructor) {
     constructor.__proto__ = HTMLElement.prototype;
-    normalizedConstructor = { prototype: constructor };
+    normalizedConstructor = function () {};
+    normalizedConstructor.prototype = constructor;
   }
 
   // If the native web component specification is loaded, use that instead.

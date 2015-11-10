@@ -9,22 +9,6 @@ describe('Integration: Custom Elements', function() {
     diff.removeTransitionState();
   });
 
-  // Currently skipping, because the native implementation does not seem to
-  // implement this feature, which is odd since I thought it did.
-  //it('can register an element', function() {
-  //  var callbackTriggered = false;
-
-  //  diff.registerElement('custom-element', {
-  //    constructor: function() {
-  //      callbackTriggered = true;
-  //    }
-  //  });
-
-  //  diff.innerHTML(this.fixture, '<custom-element></custom-element>');
-
-  //  assert.ok(callbackTriggered, 'constructor was called');
-  //});
-
   it('cannot register over an existing component', function() {
     diff.registerElement('custom-element-two', {});
 
@@ -61,6 +45,28 @@ describe('Integration: Custom Elements', function() {
     document.body.appendChild(this.fixture);
 
     assert.ok(callbackTriggered, 'attachedCallback was called');
+
+    document.body.removeChild(this.fixture);
+  });
+
+  it('can call a custom method', function() {
+    var callbackTriggered = false;
+
+    diff.registerElement('custom-element-five', {
+      getValue: function() {
+        return true;
+      },
+
+      attachedCallback: function() {
+        callbackTriggered = this.getValue();
+      }
+    });
+
+    diff.innerHTML(this.fixture, '<custom-element-five></custom-element-five>');
+
+    document.body.appendChild(this.fixture);
+
+    assert.ok(callbackTriggered, 'getValue was called');
 
     document.body.removeChild(this.fixture);
   });
