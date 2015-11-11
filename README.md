@@ -15,6 +15,7 @@ how to modify the page with the fewest amount of operations.
 - Transitions API to hook into element and attribute state changes. 
 - Custom Elements in browsers without native support.
 - Offloading diff to Web Workers which provides better rendering performance.
+  * Considered experimental, may not work 100% to your liking.
 - Object pooling to avoid GC thrashing and expensive uuid generation.
 
 #### Install
