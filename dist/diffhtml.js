@@ -876,14 +876,19 @@ function patchNode(element, newHTML, options) {
   !options.inner && elementMeta._outerHTML !== element.outerHTML ||
 
   // If the text content ever changes, recalculate the tree.
-  elementMeta._textContent !== element.textContent) {
+  elementMeta._textContent !== element.textContent ||
+
+  // The last render was done via Worker, but now we're rendering in the UI
+  // thread. This is very uncommon, but we need to ensure tree's stay in
+  // sync.
+  elementMeta.renderedViaWorker === true && !options.enableWorker) {
     if (elementMeta.oldTree) {
       (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
       (0, _utilMemory.cleanMemory)();
     }
 
     elementMeta.oldTree = (0, _make2['default'])(element, true);
-    elementMeta.updateOldTree = true;
+    elementMeta.updateWorkerTree = true;
   }
 
   // Will want to ensure that the first render went through, the worker can
@@ -891,15 +896,16 @@ function patchNode(element, newHTML, options) {
   if (options.enableWorker && _workerCreate.hasWorker && worker) {
     // Set a render lock as to not flood the worker.
     elementMeta.isRendering = true;
+    elementMeta.renderedViaWorker = true;
 
     // Attach all properties here to transport.
     var transferObject = {};
 
     // This should only occur once, or whenever the markup changes externally
     // to diffHTML.
-    if (!elementMeta.hasWorkerRendered || elementMeta.updateOldTree) {
+    if (!elementMeta.hasWorkerRendered || elementMeta.updateWorkerTree) {
       transferObject.oldTree = elementMeta.oldTree;
-      elementMeta.updateOldTree = false;
+      elementMeta.updateWorkerTree = false;
     }
 
     // Attach the parent element's uuid.
@@ -935,6 +941,9 @@ function patchNode(element, newHTML, options) {
     (function () {
       // We're rendering in the UI thread.
       elementMeta.isRendering = true;
+      // Whenever we render in the UI-thread, ensure that the Worker gets a
+      // refreshed copy of the `oldTree`.
+      elementMeta.updateWorkerTree = true;
 
       var patches = [];
       var newTree = null;
