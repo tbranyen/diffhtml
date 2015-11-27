@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Playground</title>
+
+  <style>
+    button { border: none; padding: 10px; -webkit-user-select: none; }
+    [id^=add] { background-color: green; color: #FFF; } 
+    [id^=remove] { background-color: red; color: #FFF; } 
+  </style>
+</head>
+<body>
+  <button id="add-with">Add item with worker</button>
+  <button id="add-without">Add item without worker</button>
+
+  <button id="remove-with">Remove item with worker</button>
+  <button id="remove-without">Remove item without worker</button>
+
+  <hr>
+
+  <main id="sandbox"></main>
+
+  <script src="dist/diffhtml.js"></script>
+
+  <script>
+    function addWith() {
+      diff.innerHTML(sandbox, sandbox.innerHTML += `
+        <div>with worker</div>
+      `, { enableWorker: true });
+    }
+
+    function addWithout() {
+      diff.innerHTML(sandbox, sandbox.innerHTML += `
+        <div>without worker</div>
+      `, { enableWorker: false });
+    }
+
+    function addNestedWith() {
+      diff.innerHTML(sandbox, sandbox.innerHTML += `
+        <div><div>with worker nested</div></div>
+      `, { enableWorker: true });
+    }
+
+    function addNestedWithout() {
+      diff.innerHTML(sandbox, sandbox.innerHTML += `
+        <div><div>without worker nested</div></div>
+      `, { enableWorker: true });
+    }
+
+    function removeWith() {
+      var newHTML = sandbox.innerHTML.split(/<div>(.*)<\/div>/).filter(function(x) {
+        return x.trim(); 
+      }).slice(0, -1).map(function(val) {
+        return '<div>' + val + '</div>';
+      }).join('');
+
+      diff.innerHTML(sandbox, newHTML, { enableWorker: true });
+    }
+
+    function removeWithout() {
+      var newHTML = sandbox.innerHTML.split(/<div>(.*)<\/div>/).filter(function(x) {
+        return x.trim(); 
+      }).slice(0, -1).map(function(val) {
+        return '<div>' + val + '</div>';
+      }).join('');
+
+      diff.innerHTML(sandbox, newHTML, { enableWorker: false });
+    }
+
+    var $ = document.querySelector.bind(document);
+
+    $('#add-with').onclick = addWith;
+    $('#add-without').onclick = addWithout;
+    $('#remove-with').onclick = removeWith;
+    $('#remove-without').onclick = removeWithout;
+  </script>
+</body>
+</html>

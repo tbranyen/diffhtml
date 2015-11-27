@@ -242,20 +242,22 @@ var _transitions = _dereq_('./transitions');
 
 var _elementCustom = _dereq_('./element/custom');
 
-// We export the TransitionStateError constructor so that instanceof checks can
-// be made by those publicly consuming this library.
-
 var _errors = _dereq_('./errors');
 
+// Export the custom Error constructors so that instanceof checks can be made
+// by those publicly consuming this library.
 Object.defineProperty(exports, 'TransitionStateError', {
   enumerable: true,
   get: function get() {
     return _errors.TransitionStateError;
   }
 });
-
-var realRegisterElement = document.registerElement;
-var empty = {};
+Object.defineProperty(exports, 'DOMException', {
+  enumerable: true,
+  get: function get() {
+    return _errors.DOMException;
+  }
+});
 
 /**
  * Used to diff the outerHTML contents of the passed element with the markup
@@ -311,7 +313,7 @@ function element(element, newElement) {
 
 /**
  * Releases the worker and memory allocated to this element. Useful for
- * components to clean up when removed.
+ * cleaning up components when removed in tests and applications.
  *
  * @param element
  */
@@ -319,6 +321,9 @@ function element(element, newElement) {
 function release(element) {
   (0, _nodePatch.releaseNode)(element);
 }
+
+// Store a reference to the real `registerElement` method if it exists.
+var realRegisterElement = document.registerElement;
 
 /**
  * Register's a constructor with an element to provide lifecycle events.
@@ -345,7 +350,7 @@ function registerElement(tagName, constructor) {
 
   // If the element has already been registered, raise an error.
   if (tagName in _elementCustom.components) {
-    throw new DOMException('\n      Failed to execute \'registerElement\' on \'Document\': Registration failed\n      for type \'' + tagName + '\'. A type with that name is already registered.\n    ');
+    throw new _errors.DOMException('\n      Failed to execute \'registerElement\' on \'Document\': Registration failed\n      for type \'' + tagName + '\'. A type with that name is already registered.\n    ');
   }
 
   // Assign the custom element reference to the constructor.
@@ -545,7 +550,7 @@ function enableProllyfill() {
 
     // After the initial render, clean up the resources, no point in lingering.
     documentElement.addEventListener('renderComplete', function render() {
-      // Release resources to the element.
+      // Release resources allocated to the element.
       documentElement.diffRelease(documentElement);
 
       // Remove this event listener.
@@ -720,6 +725,10 @@ var _elementMake = _dereq_('../element/make');
 
 var _elementMake2 = _interopRequireDefault(_elementMake);
 
+var _elementGet = _dereq_('../element/get');
+
+var _elementGet2 = _interopRequireDefault(_elementGet);
+
 var _sync = _dereq_('./sync');
 
 var _sync2 = _interopRequireDefault(_sync);
@@ -750,9 +759,12 @@ function completeWorkerRender(element, elementMeta) {
     var completeRender = function completeRender() {
       // Remove unused elements.
       if (nodes.removals.length) {
-        nodes.removals.map(function (uuid) {
+        var els = nodes.removals.map(function (uuid) {
           return _utilPools.pools.elementObject._uuid[uuid];
-        }).forEach(_utilMemory.unprotectElement);
+        }).map(_utilMemory.unprotectElement).forEach(function (el) {
+          var idx = elementMeta.oldTree.childNodes.indexOf(el);
+          elementMeta.oldTree.childNodes.splice(idx, 1);
+        });
       }
 
       // Reset internal caches for quicker lookups in the futures.
@@ -777,10 +789,9 @@ function completeWorkerRender(element, elementMeta) {
         // Noticing some weird performance implications with this concept.
         patchNode(element, nextRender.newHTML, nextRender.options);
       }
+
       // Dispatch an event on the element once rendering has completed.
-      else {
-          element.dispatchEvent(new _customEvent2['default']('renderComplete'));
-        }
+      element.dispatchEvent(new _customEvent2['default']('renderComplete'));
     };
 
     // Wait until all promises have resolved, before finishing up the patch
@@ -835,21 +846,30 @@ function patchNode(element, newHTML, options) {
     options.enableWorker = document.ENABLE_WORKER;
   }
 
+  // The element meta object is a location to associate metadata with the
+  // currently rendering element. This prevents attaching properties to the
+  // instance itself.
   var elementMeta = _tree.TreeCache.get(element) || {};
 
   // Always ensure the most up-to-date meta object is stored.
   _tree.TreeCache.set(element, elementMeta);
 
+  // If this element is already rendering, add this new render request into the
+  // buffer queue.
   if (elementMeta.isRendering) {
-    // Add this new render into the buffer queue.
-    elementMeta.renderBuffer = { newHTML: newHTML, options: options };
-    return;
+    return elementMeta.renderBuffer = { newHTML: newHTML, options: options };
   }
 
-  // If the operation is `innerHTML`, but the contents haven't changed, abort.
-  var differentInnerHTML = options.inner && element.innerHTML === newHTML;
-  // If the operation is `outerHTML`, but the contents haven't changed, abort.
-  var differentOuterHTML = !options.inner && element.outerHTML === newHTML;
+  // If the operation is `innerHTML`, but the contents haven't changed.
+  var sameInnerHTML = options.inner && element.innerHTML === newHTML;
+  // If the operation is `outerHTML`, but the contents haven't changed.
+  var sameOuterHTML = !options.inner && element.outerHTML === newHTML;
+
+  // If the contents haven't changed, abort, since there is no point in
+  // continuing.
+  if ((sameInnerHTML || sameOuterHTML) && elementMeta.oldTree) {
+    return;
+  }
 
   // Start with worker being a falsy value.
   var worker = null;
@@ -858,12 +878,6 @@ function patchNode(element, newHTML, options) {
   if (options.enableWorker && _workerCreate.hasWorker) {
     // Create a worker for this element.
     worker = elementMeta.worker = elementMeta.worker || (0, _workerCreate.create)();
-  }
-
-  // And ensure that an `oldTree` exists, otherwise this is the first render
-  // potentially.
-  if ((differentInnerHTML || differentOuterHTML) && elementMeta.oldTree) {
-    return;
   }
 
   if (
@@ -876,14 +890,19 @@ function patchNode(element, newHTML, options) {
   !options.inner && elementMeta._outerHTML !== element.outerHTML ||
 
   // If the text content ever changes, recalculate the tree.
-  elementMeta._textContent !== element.textContent) {
+  elementMeta._textContent !== element.textContent ||
+
+  // The last render was done via Worker, but now we're rendering in the UI
+  // thread. This is very uncommon, but we need to ensure tree's stay in
+  // sync.
+  elementMeta.renderedViaWorker === true && !options.enableWorker) {
     if (elementMeta.oldTree) {
       (0, _utilMemory.unprotectElement)(elementMeta.oldTree);
       (0, _utilMemory.cleanMemory)();
     }
 
     elementMeta.oldTree = (0, _make2['default'])(element, true);
-    elementMeta.updateOldTree = true;
+    elementMeta.updateWorkerTree = true;
   }
 
   // Will want to ensure that the first render went through, the worker can
@@ -891,15 +910,16 @@ function patchNode(element, newHTML, options) {
   if (options.enableWorker && _workerCreate.hasWorker && worker) {
     // Set a render lock as to not flood the worker.
     elementMeta.isRendering = true;
+    elementMeta.renderedViaWorker = true;
 
     // Attach all properties here to transport.
     var transferObject = {};
 
     // This should only occur once, or whenever the markup changes externally
     // to diffHTML.
-    if (!elementMeta.hasWorkerRendered || elementMeta.updateOldTree) {
+    if (!elementMeta.hasWorkerRendered || elementMeta.updateWorkerTree) {
       transferObject.oldTree = elementMeta.oldTree;
-      elementMeta.updateOldTree = false;
+      elementMeta.updateWorkerTree = false;
     }
 
     // Attach the parent element's uuid.
@@ -935,6 +955,9 @@ function patchNode(element, newHTML, options) {
     (function () {
       // We're rendering in the UI thread.
       elementMeta.isRendering = true;
+      // Whenever we render in the UI-thread, ensure that the Worker gets a
+      // refreshed copy of the `oldTree`.
+      elementMeta.updateWorkerTree = true;
 
       var patches = [];
       var newTree = null;
@@ -1020,7 +1043,7 @@ function patchNode(element, newHTML, options) {
   }
 }
 
-},{"../element/make":3,"../patches/process":10,"../util/memory":14,"../util/parser":15,"../util/pools":16,"../worker/create":18,"./make":6,"./sync":8,"./tree":9,"custom-event":20}],8:[function(_dereq_,module,exports){
+},{"../element/get":2,"../element/make":3,"../patches/process":10,"../util/memory":14,"../util/parser":15,"../util/pools":16,"../worker/create":18,"./make":6,"./sync":8,"./tree":9,"custom-event":20}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1926,7 +1949,7 @@ function makeParser() {
         var attr = pools.attributeObject.get();
 
         attr.name = match[1];
-        attr.value = match[5] || match[4] || match[1];
+        attr.value = match[6] || match[5] || match[4] || match[1];
 
         // Look for empty attributes.
         if (match[6] === '""') {
