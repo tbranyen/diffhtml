@@ -119,6 +119,13 @@ describe('Integration: outerHTML', function() {
       assert.equal(this.fixture.innerHTML, '<p style="font-size: 11px"></p>');
     });
 
+    it('supports setting input value', function() {
+      diff.outerHTML(this.fixture, '<div><input value="one"></div>');
+      diff.outerHTML(this.fixture, '<div><input value="test"></div>');
+
+      assert.equal(this.fixture.firstChild.value, 'test');
+    });
+
     describe('Data', function() {
       it('has basic support', function() {
         diff.outerHTML(this.fixture, '<div><p data-test="test2"></p></div>');
