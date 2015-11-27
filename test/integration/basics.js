@@ -103,10 +103,6 @@ describe('Integration: Basics', function() {
       it('can track simple state', function(done) {
         var count = 0;
 
-        diff.innerHTML(this.fixture, '<div class="test"><p>this</p></div>', {
-          enableWorker: true
-        });
-
         this.fixture.addEventListener('renderComplete', function() {
           count++;
 
@@ -122,6 +118,10 @@ describe('Integration: Basics', function() {
               done();
             }
           }
+        });
+
+        diff.innerHTML(this.fixture, '<div class="test"><p>this</p></div>', {
+          enableWorker: true
         });
 
         diff.innerHTML(this.fixture, '<div class="test2"><p>this2</p></div>', {
@@ -191,10 +191,10 @@ describe('Integration: Basics', function() {
 
         var makePs = function(count) {
           var elements = [];
-          var tagName = elements[Math.floor(Math.random() * tagNames.length)];
+          var tagName = tagNames[Math.floor(Math.random() * tagNames.length)];
 
           for (var i = 0; i < count; i++) {
-            elements.push('<' + tagName + '> class="' + (Math.random() * count)
+            elements.push('<' + tagName + ' class="' + (Math.random() * count)
               + '"></' + tagName + '>');
           }
 
@@ -204,11 +204,13 @@ describe('Integration: Basics', function() {
         this.fixture.addEventListener('renderComplete', function() {
           count++;
 
-          if (count === 2) {
-            assert.equal(this.fixture.childNodes.length, 10000);
+          if (count === 3) {
+            assert.equal(this.fixture.childNodes.length, 100);
             done();
           }
           else if (count === 1) {
+            assert.equal(this.fixture.childNodes.length, 1000);
+
             diff.innerHTML(this.fixture, makePs(10), {
               enableWorker: false
             });
@@ -219,7 +221,7 @@ describe('Integration: Basics', function() {
           }
         }.bind(this));
 
-        diff.innerHTML(this.fixture, makePs(10000), {
+        diff.innerHTML(this.fixture, makePs(1000), {
           enableWorker: true
         });
       });
