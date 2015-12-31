@@ -63,18 +63,18 @@ describe('Integration: Basics', function() {
 
   describe('Special features', function() {
     it('can modify the document\'s title', function() {
-      var iframe = document.createElement('iframe');
-      document.body.appendChild(iframe);
+      var doc = document.implementation.createHTMLDocument();
 
-      var iframeDoc = iframe.contentDocument;
-      var documentElement = iframeDoc.documentElement;
+      doc.open();
+      doc.write('<html><head><title></title></head></html>');
 
+      var documentElement = doc.documentElement;
       diff.outerHTML(documentElement, '<html><head><title>Test</title></head></html>');
-      assert.equal(iframeDoc.title, 'Test');
+
+      assert.equal(doc.title, 'Test');
 
       diff.release(documentElement);
-
-      iframe.parentNode.removeChild(iframe);
+      doc.close();
     });
 
     // This is not properly tested.

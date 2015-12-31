@@ -266,7 +266,7 @@ describe('Integration: Transitions', function() {
 
       diff.innerHTML(this.fixture, '<div><p>test</p></div>');
 
-      assert.equal(el, this.fixture.querySelector('p'));
+      assert.equal(el, this.fixture.querySelector('p').firstChild);
       assert.equal(oldText, null);
       assert.equal(newText, 'test');
     });
@@ -284,7 +284,7 @@ describe('Integration: Transitions', function() {
 
       diff.innerHTML(this.fixture, '<div><p>test2</p></div>');
 
-      assert.equal(el, this.fixture.querySelector('p'));
+      assert.equal(el, this.fixture.querySelector('p').firstChild);
       assert.equal(oldText, 'test');
       assert.equal(newText, 'test2');
     });
@@ -327,14 +327,16 @@ describe('Integration: Transitions', function() {
       this.fixture.addEventListener('renderComplete', function() {
         count++;
 
-        if (count === 2) {
+        if (count === 1) {
+          assert.equal(this.fixture.querySelector('p'), null);
+          assert.ok(this.fixture.querySelector('span'));
+        }
+        else if (count === 2) {
           assert.equal(this.fixture.querySelector('span').textContent, 'test2');
           done();
         }
       }.bind(this));
 
-      assert.equal(this.fixture.querySelector('p'), null);
-      assert.ok(this.fixture.querySelector('span'));
       assert.equal(this.fixture.querySelector('span').textContent, 'test');
     });
 
@@ -352,13 +354,15 @@ describe('Integration: Transitions', function() {
       this.fixture.addEventListener('renderComplete', function() {
         count++;
 
-        if (count === 2) {
+        if (count === 1) {
+          assert.equal(this.fixture.querySelector('p'), null);
+        }
+        else if (count === 2) {
           assert.equal(this.fixture.querySelector('span').textContent, 'test');
           done();
         }
       }.bind(this));
 
-      assert.equal(this.fixture.querySelector('p'), null);
       assert.equal(this.fixture.querySelector('span'), null);
     });
 
@@ -376,14 +380,16 @@ describe('Integration: Transitions', function() {
       this.fixture.addEventListener('renderComplete', function() {
         count++;
 
-        if (count === 2) {
+        if (count === 1) {
+          assert.equal(this.fixture.querySelector('p'), null);
+          assert.ok(this.fixture.querySelector('span'));
+        }
+        else if (count === 2) {
           assert.equal(this.fixture.querySelector('span').textContent, 'test2');
           done();
         }
       }.bind(this));
 
-      assert.equal(this.fixture.querySelector('p'), null);
-      assert.ok(this.fixture.querySelector('span'));
       assert.equal(this.fixture.querySelector('span').textContent, 'test');
     });
 

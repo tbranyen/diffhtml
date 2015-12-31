@@ -28,7 +28,7 @@ var titles = [
 
 function render(count) {
   var data = {
-    total: Math.floor(Math.random() * 1000),
+    total: Math.floor(Math.random() * 100),
     posts: new Array(count).join(' ').split(' ').map(function() {
       return { title: titles[Math.floor(Math.random() * titles.length)] };
     })
