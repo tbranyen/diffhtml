@@ -19,10 +19,11 @@ describe('Integration: outerHTML', function() {
   });
 
   it('can replace the documentElement', function() {
-    var iframe = document.createElement('iframe');
-    document.body.appendChild(iframe);
+    var doc = document.implementation.createHTMLDocument();
+    doc.open();
+    doc.write('<html><head></head></html>');
 
-    var documentElement = iframe.contentDocument.documentElement;
+    var documentElement = doc.documentElement;
     var originalSource = documentElement.outerHTML;
 
     diff.outerHTML(documentElement, '<html><head></head></html>');
@@ -32,14 +33,20 @@ describe('Integration: outerHTML', function() {
     assert.equal(documentElement.childNodes.length, 2);
 
     diff.release(documentElement);
-
-    iframe.parentNode.removeChild(iframe);
+    doc.close();
   });
 
   it('cannot replace an element without a parent', function() {
     assert.throws(function() {
       diff.outerHTML(this.fixture, '<p></p>');
     });
+  });
+
+  it('will not error when replacing with more elements', function() {
+    assert.doesNotThrow(function() {
+      diff.outerHTML(this.fixture, '<div><p></p><p></p></div>');
+      diff.outerHTML(this.fixture, '<div><span></span><i></i>test</div>');
+    }.bind(this));
   });
 
   it('can replace an element with a parent', function() {

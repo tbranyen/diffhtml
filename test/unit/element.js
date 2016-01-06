@@ -4,7 +4,7 @@ describe('Unit: Element', function() {
 
     it('creates an element from descriptor on first access', function() {
       var retVal = getElement({
-        element: 'some_uuid',
+        uuid: 'some_uuid',
         nodeName: 'div',
         nodeValue: 'test'
       });
@@ -16,12 +16,12 @@ describe('Unit: Element', function() {
 
     it('can get an existing element descriptor', function() {
       getElement({
-        element: 'some_uuid',
+        uuid: 'some_uuid',
         nodeName: 'div',
         nodeValue: 'test'
       });
 
-      var retVal = getElement({ element: 'some_uuid' });
+      var retVal = getElement({ uuid: 'some_uuid' });
 
       assert.equal(retVal.uuid, 'some_uuid');
       assert.ok(retVal.element instanceof Element);
@@ -34,7 +34,7 @@ describe('Unit: Element', function() {
 
     it('can create an empty element', function() {
       var element = makeElement({
-        element: 'some_uuid_0',
+        uuid: 'some_uuid_0',
         nodeName: 'p'
       });
 
@@ -45,7 +45,7 @@ describe('Unit: Element', function() {
 
     it('will return the same element if same element uuid is used', function() {
       var element = makeElement({
-        element: 'some_uuid_0',
+        uuid: 'some_uuid_0',
         nodeName: 'span'
       });
 
@@ -56,7 +56,7 @@ describe('Unit: Element', function() {
 
     it('can set text content', function() {
       var element = makeElement({
-        element: 'some_uuid_1',
+        uuid: 'some_uuid_2',
         nodeName: 'p',
         nodeValue: 'hello'
       });
@@ -67,9 +67,9 @@ describe('Unit: Element', function() {
 
     it('can create an element with children', function() {
       var element = makeElement({
-        element: 'some_uuid_2',
+        uuid: 'some_uuid_3',
         nodeName: 'div',
-        childNodes: [{ nodeName: 'p', nodeValue: 'hello' }]
+        childNodes: [{ uuid: 'some_uuid_4', nodeName: 'p', nodeValue: 'hello' }]
       });
 
       assert.equal(element.childNodes[0].nodeName, 'P');
@@ -78,7 +78,7 @@ describe('Unit: Element', function() {
 
     it('can create an element with attributes', function() {
       var element = makeElement({
-        element: 'some_uuid_3',
+        uuid: 'some_uuid_5',
         nodeName: 'div',
         attributes: [{ name: 'class', value: 'some_Value' }]
       });

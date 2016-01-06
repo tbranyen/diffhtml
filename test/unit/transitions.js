@@ -1,5 +1,5 @@
 describe('Unit: Transitions', function() {
-  var transitionStates = require('/lib/transitions').transitionStates;
+  var transitionStates = require('/lib/transitions').states;
 
   it('exports arrays to store callbacks in', function() {
     assert.ok(Array.isArray(transitionStates.attached));

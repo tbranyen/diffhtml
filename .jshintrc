@@ -5,6 +5,8 @@
   "node": true,
   "browser": true,
   "proto": true,
+  "loopfunc": true,
+  "boss": true,
   "globals": {
     "HTMLElement": true,
     "Element": true
