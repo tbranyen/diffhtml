@@ -26,6 +26,8 @@
   <script src="dist/diffhtml.js"></script>
 
   <script>
+    diff.enableProllyfill();
+
     function addWith() {
       diff.innerHTML(sandbox, sandbox.innerHTML += `
         <div>with worker</div>
