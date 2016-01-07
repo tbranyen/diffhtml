@@ -724,8 +724,6 @@ var _workerCreate = _dereq_('../worker/create');
 
 var _utilMemory = _dereq_('../util/memory');
 
-var _utilPools = _dereq_('../util/pools');
-
 var _utilParser = _dereq_('../util/parser');
 
 var _make = _dereq_('./make');
@@ -735,14 +733,6 @@ var _make2 = _interopRequireDefault(_make);
 var _patchesProcess = _dereq_('../patches/process');
 
 var _patchesProcess2 = _interopRequireDefault(_patchesProcess);
-
-var _elementMake = _dereq_('../element/make');
-
-var _elementMake2 = _interopRequireDefault(_elementMake);
-
-var _elementGet = _dereq_('../element/get');
-
-var _elementGet2 = _interopRequireDefault(_elementGet);
 
 var _sync = _dereq_('./sync');
 
@@ -951,7 +941,7 @@ function patchNode(element, newHTML, options) {
   }
 }
 
-},{"../element/get":2,"../element/make":3,"../patches/process":11,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../worker/create":19,"../worker/render":20,"./make":6,"./sync":9,"./tree":10,"custom-event":22}],8:[function(_dereq_,module,exports){
+},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../worker/create":19,"../worker/render":20,"./make":6,"./sync":9,"./tree":10,"custom-event":22}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
