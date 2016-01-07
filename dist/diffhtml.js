@@ -1,6 +1,5 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }/**
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+/**
  * Store all Custom Element definitions in this object. The tagName is the key.
  *
  * @public
@@ -43,12 +42,8 @@ function upgrade(tagName, element) {
   return true;
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/element/custom.js")
-},{}],2:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{}],2:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -57,11 +52,11 @@ exports['default'] = get;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _nodeMake = require('../node/make');
+var _nodeMake = _dereq_('../node/make');
 
 var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
-var _elementMake = require('../element/make');
+var _elementMake = _dereq_('../element/make');
 
 var _elementMake2 = _interopRequireDefault(_elementMake);
 
@@ -81,12 +76,8 @@ function get(descriptor) {
 
 module.exports = exports['default'];
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/element/get.js")
-},{"../element/make":3,"../node/make":6}],3:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"../element/make":3,"../node/make":6}],3:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -97,15 +88,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
-var _svg = require('../svg');
+var _svg = _dereq_('../svg');
 
 var svg = _interopRequireWildcard(_svg);
 
-var _nodeMake = require('../node/make');
+var _nodeMake = _dereq_('../node/make');
 
 var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
-var _custom = require('./custom');
+var _custom = _dereq_('./custom');
 
 /**
  * Takes in a virtual descriptor and creates an HTML element. Sets the element
@@ -176,12 +167,8 @@ function make(descriptor) {
 
 module.exports = exports['default'];
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/element/make.js")
-},{"../node/make":6,"../svg":12,"./custom":1}],4:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"../node/make":6,"../svg":12,"./custom":1}],4:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -236,12 +223,8 @@ var DOMException = (function (_Error2) {
 
 exports.DOMException = DOMException;
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/errors.js")
-},{}],5:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -257,19 +240,19 @@ exports.enableProllyfill = enableProllyfill;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _nodePatch = require('./node/patch');
+var _nodePatch = _dereq_('./node/patch');
 
 var _nodePatch2 = _interopRequireDefault(_nodePatch);
 
-var _nodeRelease = require('./node/release');
+var _nodeRelease = _dereq_('./node/release');
 
 var _nodeRelease2 = _interopRequireDefault(_nodeRelease);
 
-var _transitions = require('./transitions');
+var _transitions = _dereq_('./transitions');
 
-var _elementCustom = require('./element/custom');
+var _elementCustom = _dereq_('./element/custom');
 
-var _errors = require('./errors');
+var _errors = _dereq_('./errors');
 
 // Export the custom Error constructors so that instanceof checks can be made
 // by those publicly consuming this library.
@@ -601,23 +584,19 @@ function enableProllyfill() {
   }
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/index.js")
-},{"./element/custom":1,"./errors":4,"./node/patch":7,"./node/release":8,"./transitions":13}],6:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"./element/custom":1,"./errors":4,"./node/patch":7,"./node/release":8,"./transitions":13}],6:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports['default'] = make;
 
-var _utilPools = require('../util/pools');
+var _utilPools = _dereq_('../util/pools');
 
-var _utilMemory = require('../util/memory');
+var _utilMemory = _dereq_('../util/memory');
 
-var _elementCustom = require('../element/custom');
+var _elementCustom = _dereq_('../element/custom');
 
 var pools = _utilPools.pools;
 var protectElement = _utilMemory.protectElement;
@@ -725,12 +704,8 @@ function make(node, protect) {
 
 module.exports = exports['default'];
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/node/make.js")
-},{"../element/custom":1,"../util/memory":15,"../util/pools":17}],7:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  };var global = (function(){ return this; }).call(null);global.require['custom-event'] = require('custom-event');;var global = (function(){ return this; }).call(null);global.require['custom-event'] = require('custom-event');  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  };var global = (function(){ return this; }).call(null);global.require['custom-event'] = require('custom-event');'use strict';
+},{"../element/custom":1,"../util/memory":15,"../util/pools":17}],7:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -739,31 +714,31 @@ exports['default'] = patchNode;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _customEvent = require('custom-event');
+var _customEvent = _dereq_('custom-event');
 
 var _customEvent2 = _interopRequireDefault(_customEvent);
 
-var _workerCreate = require('../worker/create');
+var _workerCreate = _dereq_('../worker/create');
 
-var _utilMemory = require('../util/memory');
+var _utilMemory = _dereq_('../util/memory');
 
-var _utilParser = require('../util/parser');
+var _utilParser = _dereq_('../util/parser');
 
-var _make = require('./make');
+var _make = _dereq_('./make');
 
 var _make2 = _interopRequireDefault(_make);
 
-var _patchesProcess = require('../patches/process');
+var _patchesProcess = _dereq_('../patches/process');
 
 var _patchesProcess2 = _interopRequireDefault(_patchesProcess);
 
-var _sync = require('./sync');
+var _sync = _dereq_('./sync');
 
 var _sync2 = _interopRequireDefault(_sync);
 
-var _tree = require('./tree');
+var _tree = _dereq_('./tree');
 
-var _workerRender = require('../worker/render');
+var _workerRender = _dereq_('../worker/render');
 
 /**
  * When the UI thread completes, clean up memory and schedule the next render
@@ -966,12 +941,8 @@ function patchNode(element, newHTML, options) {
 
 module.exports = exports['default'];
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/node/patch.js")
-},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../worker/create":19,"../worker/render":20,"./make":6,"./sync":9,"./tree":10,"custom-event":22}],8:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../worker/create":19,"../worker/render":20,"./make":6,"./sync":9,"./tree":10,"custom-event":22}],8:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -980,11 +951,11 @@ exports['default'] = releaseNode;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _tree = require('./tree');
+var _tree = _dereq_('./tree');
 
-var _utilMemory = require('../util/memory');
+var _utilMemory = _dereq_('../util/memory');
 
-var _make = require('./make');
+var _make = _dereq_('./make');
 
 var _make2 = _interopRequireDefault(_make);
 
@@ -1017,24 +988,28 @@ function releaseNode(element) {
 
 module.exports = exports['default'];
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/node/release.js")
-},{"../util/memory":15,"./make":6,"./tree":10}],9:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"../util/memory":15,"./make":6,"./tree":10}],9:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports['default'] = sync;
 
-var _utilPools = require('../util/pools');
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _utilMemory = require('../util/memory');
+var _utilPools = _dereq_('../util/pools');
+
+var _utilMemory = _dereq_('../util/memory');
+
+var _nodeMake = _dereq_('../node/make');
+
+var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
 var pools = _utilPools.pools;
 var protectElement = _utilMemory.protectElement;
+var unprotectElement = _utilMemory.unprotectElement;
+var makeNode = _nodeMake2['default'];
 
 var slice = Array.prototype.slice;
 var filter = Array.prototype.filter;
@@ -1173,12 +1148,16 @@ function sync(oldTree, newTree, patches) {
       };
     } else {
       for (var i = 0; i < toRemove.length; i++) {
-        // Remove the element, this happens before the splice so that we
-        // still have access to the element.
-        patches[patches.length] = {
-          __do__: MODIFY_ELEMENT,
-          old: toRemove[i]
-        };
+        if (toRemove[i].nodeName !== '#text' || toRemove[i].nodeValue.trim()) {
+          // Remove the element, this happens before the splice so that we
+          // still have access to the element.
+          patches[patches.length] = {
+            __do__: MODIFY_ELEMENT,
+            old: toRemove[i]
+          };
+        } else {
+          unprotectElement(toRemove[i], makeNode);
+        }
       }
     }
   }
@@ -1186,6 +1165,10 @@ function sync(oldTree, newTree, patches) {
   // Replace elements if they are different.
   if (oldChildNodesLength) {
     for (var i = 0; i < childNodesLength; i++) {
+      if (!oldChildNodes[i]) {
+        continue;
+      }
+
       if (oldChildNodes[i].nodeName !== childNodes[i].nodeName) {
         // Add to the patches.
         patches[patches.length] = {
@@ -1295,12 +1278,8 @@ function sync(oldTree, newTree, patches) {
   return patches;
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/node/sync.js")
-},{"../util/memory":15,"../util/pools":17}],10:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }// Cache prebuilt trees and lookup by element.
+},{"../node/make":6,"../util/memory":15,"../util/pools":17}],10:[function(_dereq_,module,exports){
+// Cache prebuilt trees and lookup by element.
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1309,12 +1288,8 @@ Object.defineProperty(exports, "__esModule", {
 var TreeCache = new WeakMap();
 exports.TreeCache = TreeCache;
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/node/tree.js")
-},{}],11:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{}],11:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -1325,29 +1300,29 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
-var _transitions = require('../transitions');
+var _transitions = _dereq_('../transitions');
 
 var transition = _interopRequireWildcard(_transitions);
 
-var _utilPools = require('../util/pools');
+var _utilPools = _dereq_('../util/pools');
 
-var _elementGet = require('../element/get');
+var _elementGet = _dereq_('../element/get');
 
 var _elementGet2 = _interopRequireDefault(_elementGet);
 
-var _elementCustom = require('../element/custom');
+var _elementCustom = _dereq_('../element/custom');
 
-var _nodeMake = require('../node/make');
+var _nodeMake = _dereq_('../node/make');
 
 var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
-var _nodeSync = require('../node/sync');
+var _nodeSync = _dereq_('../node/sync');
 
 var sync = _interopRequireWildcard(_nodeSync);
 
-var _utilMemory = require('../util/memory');
+var _utilMemory = _dereq_('../util/memory');
 
-var _utilEntities = require('../util/entities');
+var _utilEntities = _dereq_('../util/entities');
 
 /**
  * Processes an Array of patches.
@@ -1628,12 +1603,8 @@ function process(element, patches) {
 
 module.exports = exports['default'];
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/patches/process.js")
-},{"../element/custom":1,"../element/get":2,"../node/make":6,"../node/sync":9,"../transitions":13,"../util/entities":14,"../util/memory":15,"../util/pools":17}],12:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }// List of SVG elements.
+},{"../element/custom":1,"../element/get":2,"../node/make":6,"../node/sync":9,"../transitions":13,"../util/entities":14,"../util/memory":15,"../util/pools":17}],12:[function(_dereq_,module,exports){
+// List of SVG elements.
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1646,12 +1617,8 @@ exports.elements = elements;
 var namespace = 'http://www.w3.org/2000/svg';
 exports.namespace = namespace;
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/svg.js")
-},{}],13:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{}],13:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -1659,7 +1626,7 @@ Object.defineProperty(exports, '__esModule', {
 exports.buildTrigger = buildTrigger;
 exports.makePromises = makePromises;
 
-var _elementCustom = require('./element/custom');
+var _elementCustom = _dereq_('./element/custom');
 
 var slice = Array.prototype.slice;
 var forEach = Array.prototype.forEach;
@@ -1890,12 +1857,8 @@ function makePromises(stateName) {
   };
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/transitions.js")
-},{"./element/custom":1}],14:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"./element/custom":1}],14:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -1916,12 +1879,8 @@ function decodeEntities(string) {
   return element.textContent;
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/util/entities.js")
-},{}],15:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{}],15:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -1932,9 +1891,9 @@ exports.cleanMemory = cleanMemory;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _utilPools = require('../util/pools');
+var _utilPools = _dereq_('../util/pools');
 
-var _nodeMake = require('../node/make');
+var _nodeMake = _dereq_('../node/make');
 
 var _nodeMake2 = _interopRequireDefault(_nodeMake);
 
@@ -1990,12 +1949,8 @@ function cleanMemory() {
   pools.elementObject.freeAll();
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/util/memory.js")
-},{"../node/make":6,"../util/pools":17}],16:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }// Code based off of:
+},{"../node/make":6,"../util/pools":17}],16:[function(_dereq_,module,exports){
+// Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
 'use strict';
@@ -2006,7 +1961,7 @@ Object.defineProperty(exports, '__esModule', {
 exports.parseHTML = parseHTML;
 exports.makeParser = makeParser;
 
-var _pools2 = require('./pools');
+var _pools2 = _dereq_('./pools');
 
 var pools = _pools2.pools;
 var parser = makeParser();
@@ -2258,12 +2213,8 @@ function makeParser() {
   return htmlParser;
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/util/parser.js")
-},{"./pools":17}],17:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"./pools":17}],17:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -2273,7 +2224,7 @@ exports.initializePools = initializePools;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _uuid2 = require('./uuid');
+var _uuid2 = _dereq_('./uuid');
 
 var _uuid3 = _interopRequireDefault(_uuid2);
 
@@ -2416,12 +2367,8 @@ function initializePools(COUNT) {
 // Create 10k items of each type.
 initializePools(count);
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/util/pools.js")
-},{"./uuid":18}],18:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }/**
+},{"./uuid":18}],18:[function(_dereq_,module,exports){
+/**
  * Generates a uuid.
  *
  * @see http://stackoverflow.com/a/2117523/282175
@@ -2444,12 +2391,8 @@ function uuid() {
 
 module.exports = exports['default'];
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/util/uuid.js")
-},{}],19:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{}],19:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -2458,21 +2401,25 @@ exports.create = create;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _utilUuid = require('../util/uuid');
+var _utilUuid = _dereq_('../util/uuid');
 
 var _utilUuid2 = _interopRequireDefault(_utilUuid);
 
-var _utilPools = require('../util/pools');
+var _utilPools = _dereq_('../util/pools');
 
-var _utilParser = require('../util/parser');
+var _utilParser = _dereq_('../util/parser');
 
-var _utilMemory = require('../util/memory');
+var _utilMemory = _dereq_('../util/memory');
 
-var _nodeSync = require('../node/sync');
+var _nodeSync = _dereq_('../node/sync');
 
 var _nodeSync2 = _interopRequireDefault(_nodeSync);
 
-var _source = require('./source');
+var _nodeMake = _dereq_('../node/make');
+
+var _nodeMake2 = _interopRequireDefault(_nodeMake);
+
+var _source = _dereq_('./source');
 
 var _source2 = _interopRequireDefault(_source);
 
@@ -2522,7 +2469,7 @@ function create() {
     _utilPools.createPool, _utilPools.initializePools, 'initializePools(' + _utilPools.count + ');',
 
     // Add in Node manipulation.
-    'var syncNode = ' + _nodeSync2['default'],
+    'var syncNode = ' + _nodeSync2['default'], 'var makeNode = ' + _nodeMake2['default'],
 
     // Add in the ability to parseHTML.
     _utilParser.parseHTML, 'var makeParser = ' + _utilParser.makeParser, 'var parser = makeParser();',
@@ -2550,12 +2497,8 @@ function create() {
   return worker;
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/worker/create.js")
-},{"../node/sync":9,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/uuid":18,"./source":21}],20:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"../node/make":6,"../node/sync":9,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/uuid":18,"./source":21}],20:[function(_dereq_,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -2564,15 +2507,15 @@ exports.completeWorkerRender = completeWorkerRender;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _patchesProcess = require('../patches/process');
+var _patchesProcess = _dereq_('../patches/process');
 
 var _patchesProcess2 = _interopRequireDefault(_patchesProcess);
 
-var _nodePatch = require('../node/patch');
+var _nodePatch = _dereq_('../node/patch');
 
 var _nodePatch2 = _interopRequireDefault(_nodePatch);
 
-var _utilMemory = require('../util/memory');
+var _utilMemory = _dereq_('../util/memory');
 
 /**
  * When the worker completes, clean up memory and schedule the next render if
@@ -2630,12 +2573,8 @@ function completeWorkerRender(element, elementMeta) {
   };
 }
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
-
-}).call(this,"/lib/worker/render.js")
-},{"../node/patch":7,"../patches/process":11,"../util/memory":15}],21:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }'use strict';
+},{"../node/patch":7,"../patches/process":11,"../util/memory":15}],21:[function(_dereq_,module,exports){
+'use strict';
 
 // These are globally defined to avoid issues with JSHint thinking that we're
 // referencing unknown identifiers.
@@ -2737,12 +2676,9 @@ function startup(worker) {
 
 module.exports = exports['default'];
 
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
+},{}],22:[function(_dereq_,module,exports){
+(function (global){
 
-}).call(this,"/lib/worker/source.js")
-},{}],22:[function(require,module,exports){
-(function (__filename){
-  var global = (function(){ return this; }).call(null);  if(!global.require){    global.require = function require(key){        return global.require[key.replace(/\\/g, '/')];    };    (function(){    var require = global.require;    var ret = global.require;    Object.defineProperty(global, 'require', {        get: function(){          return ret;        },        set: function(newRequire){            ret = function(key){                key = key.replace(/\\/g, '/');                if(require[key]){                  return require[key];                }else if(require[key + '/index']){                  return require[key + '/index'];                }else{                  var temp = ret;                  var module;                  ret = newRequire;                  try {                    module = newRequire(key);                  }                  catch(e){                    ret = temp;                    throw e;                  }                  ret = temp;                  return module;                }            };            for(var key in require){              ret[key] = require[key];            }        }    });    })();  }
 var NativeCustomEvent = global.CustomEvent;
 
 function useNative () {
@@ -2790,8 +2726,7 @@ function CustomEvent (type, params) {
   }
   return e;
 }
-;  var global = (function(){ return this; }).call(null);  if(typeof __filename !== 'undefined'){    var moduleName = __filename.slice(0, __filename.lastIndexOf('.')).replace(/\\/g, '/');    global.require[moduleName] = module.exports;  }
 
-}).call(this,"/node_modules/custom-event/index.js")
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}]},{},[5])(5)
 });
