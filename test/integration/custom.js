@@ -1,6 +1,6 @@
 import * as diff from '../../lib/index.js';
 
-describe.skip('Integration: Custom Elements', function() {
+describe('Integration: Custom Elements', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
     this.fixture.innerHTML = '<div></div>';
