@@ -340,7 +340,7 @@ function registerElement(tagName, constructor) {
 
   if (!normalizedConstructor) {
     constructor.__proto__ = HTMLElement.prototype;
-    normalizedConstructor = function () {};
+    normalizedConstructor = function normalizedConstructor() {};
     normalizedConstructor.prototype = constructor;
   }
 
@@ -530,7 +530,7 @@ function enableProllyfill() {
       Object.defineProperty(realHTMLElement.prototype, '__proto__', copy);
     }
 
-    HTMLElement = function () {};
+    HTMLElement = function HTMLElement() {};
     HTMLElement.prototype = Object.create(realHTMLElement.prototype);
     HTMLElement.__proto__ = realHTMLElement;
 

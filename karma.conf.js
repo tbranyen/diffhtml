@@ -7,6 +7,7 @@ module.exports = function(config) {
     frameworks: ['browserify', 'mocha'],
 
     files: [
+      'node_modules/promise-polyfill/Promise.js',
       'node_modules/phantomjs-polyfill/bind-polyfill.js',
       'node_modules/weakmap/weakmap.js',
       'lib/**/*.js',
