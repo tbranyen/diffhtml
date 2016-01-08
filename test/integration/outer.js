@@ -39,7 +39,7 @@ describe('Integration: outerHTML', function() {
   });
 
   it('cannot replace an element without a parent', function() {
-    assert.throws(function() {
+    assert.throws(() => {
       diff.outerHTML(this.fixture, '<p></p>');
     });
   });
@@ -92,10 +92,25 @@ describe('Integration: outerHTML', function() {
       assert.equal(this.fixture.firstChild, span, 'are the same element');
     });
 
-    it('supports html5 entities', function() {
+    it('supports HTML5 entities', function() {
       diff.outerHTML(this.fixture, '<div>&gla;</div>');
 
-      assert.equal(this.fixture.innerHTML, '⪥');
+      assert.equal(this.fixture.innerText, '&gla;');
+    });
+
+    it('will properly escape markup being injected into script tags', function() {
+      diff.outerHTML(this.fixture, `
+        <div>
+          <script test>
+            var test = "<p></p>";
+          </script>
+        </div>
+      `);
+
+      assert.equal(this.fixture.querySelector('p'), null);
+      assert.equal(this.fixture.firstChild.firstChild.textContent.trim(), `
+         var test = \"<p></p>\";
+      `.trim());
     });
   });
 

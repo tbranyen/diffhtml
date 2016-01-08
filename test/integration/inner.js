@@ -44,7 +44,7 @@ describe('Integration: innerHTML', function() {
   describe('Text', function() {
     it('can decode HTML entities', function() {
       diff.innerHTML(this.fixture, '<div>&lt;</div>');
-      assert.equal(this.fixture.innerHTML, '<div>&lt;</div>');
+      assert.equal(this.fixture.innerText, '&lt;');
     });
 
     it('can be override existing content', function() {
@@ -82,7 +82,7 @@ describe('Integration: innerHTML', function() {
     it('supports html5 entities', function() {
       diff.innerHTML(this.fixture, '<div>&gla;</div>');
 
-      assert.equal(this.fixture.firstChild.innerHTML, '⪥');
+      assert.equal(this.fixture.firstChild.innerText, '&gla;');
     });
   });
 

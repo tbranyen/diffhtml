@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -40,7 +40,7 @@ function upgrade(tagName, element) {
   return true;
 }
 
-},{}],2:[function(_dereq_,module,exports){
+},{}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -48,11 +48,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = get;
 
-var _make = _dereq_('../node/make');
+var _make = require('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
-var _make3 = _dereq_('../element/make');
+var _make3 = require('../element/make');
 
 var _make4 = _interopRequireDefault(_make3);
 
@@ -71,7 +71,7 @@ function get(descriptor) {
   return { uuid: uuid, element: element };
 }
 
-},{"../element/make":3,"../node/make":6}],3:[function(_dereq_,module,exports){
+},{"../element/make":3,"../node/make":6}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -79,15 +79,17 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = make;
 
-var _svg = _dereq_('../svg');
+var _svg = require('../svg');
 
 var svg = _interopRequireWildcard(_svg);
 
-var _make = _dereq_('../node/make');
+var _make = require('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
-var _custom = _dereq_('./custom');
+var _custom = require('./custom');
+
+var _entities = require('../util/entities');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -142,7 +144,7 @@ function make(descriptor) {
   // Set the text content, this should be refactored such that only text nodes
   // should ever get assigned a value.
   if (descriptor.nodeValue) {
-    element.textContent = descriptor.nodeValue;
+    element.textContent = (0, _entities.decodeEntities)(descriptor.nodeValue);
   }
 
   // Upgrade the element after creating it.
@@ -159,7 +161,7 @@ function make(descriptor) {
   return element;
 }
 
-},{"../node/make":6,"../svg":12,"./custom":1}],4:[function(_dereq_,module,exports){
+},{"../node/make":6,"../svg":12,"../util/entities":14,"./custom":1}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -218,7 +220,7 @@ var DOMException = exports.DOMException = function (_Error2) {
   return DOMException;
 }(Error);
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -228,7 +230,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.DOMException = exports.TransitionStateError = undefined;
 
-var _errors = _dereq_('./errors');
+var _errors = require('./errors');
 
 Object.defineProperty(exports, 'TransitionStateError', {
   enumerable: true,
@@ -251,17 +253,17 @@ exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
 exports.enableProllyfill = enableProllyfill;
 
-var _patch = _dereq_('./node/patch');
+var _patch = require('./node/patch');
 
 var _patch2 = _interopRequireDefault(_patch);
 
-var _release = _dereq_('./node/release');
+var _release = require('./node/release');
 
 var _release2 = _interopRequireDefault(_release);
 
-var _transitions = _dereq_('./transitions');
+var _transitions = require('./transitions');
 
-var _custom = _dereq_('./element/custom');
+var _custom = require('./element/custom');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -572,7 +574,7 @@ function enableProllyfill() {
   }
 }
 
-},{"./element/custom":1,"./errors":4,"./node/patch":7,"./node/release":8,"./transitions":13}],6:[function(_dereq_,module,exports){
+},{"./element/custom":1,"./errors":4,"./node/patch":7,"./node/release":8,"./transitions":13}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -580,11 +582,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = make;
 
-var _pools2 = _dereq_('../util/pools');
+var _pools2 = require('../util/pools');
 
-var _memory = _dereq_('../util/memory');
+var _memory = require('../util/memory');
 
-var _custom = _dereq_('../element/custom');
+var _custom = require('../element/custom');
 
 var pools = _pools2.pools;
 var protectElement = _memory.protectElement;
@@ -689,7 +691,7 @@ function make(node, protect) {
   return entry;
 }
 
-},{"../element/custom":1,"../util/memory":15,"../util/pools":17}],7:[function(_dereq_,module,exports){
+},{"../element/custom":1,"../util/memory":15,"../util/pools":17}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -697,31 +699,31 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = patchNode;
 
-var _customEvent = _dereq_('custom-event');
+var _customEvent = require('custom-event');
 
 var _customEvent2 = _interopRequireDefault(_customEvent);
 
-var _create = _dereq_('../worker/create');
+var _create = require('../worker/create');
 
-var _memory = _dereq_('../util/memory');
+var _memory = require('../util/memory');
 
-var _parser = _dereq_('../util/parser');
+var _parser = require('../util/parser');
 
-var _make = _dereq_('./make');
+var _make = require('./make');
 
 var _make2 = _interopRequireDefault(_make);
 
-var _process = _dereq_('../patches/process');
+var _process = require('../patches/process');
 
 var _process2 = _interopRequireDefault(_process);
 
-var _sync = _dereq_('./sync');
+var _sync = require('./sync');
 
 var _sync2 = _interopRequireDefault(_sync);
 
-var _tree = _dereq_('./tree');
+var _tree = require('./tree');
 
-var _render = _dereq_('../worker/render');
+var _render = require('../worker/render');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -923,7 +925,7 @@ function patchNode(element, newHTML, options) {
   }
 }
 
-},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../worker/create":19,"../worker/render":20,"./make":6,"./sync":9,"./tree":10,"custom-event":22}],8:[function(_dereq_,module,exports){
+},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../worker/create":19,"../worker/render":20,"./make":6,"./sync":9,"./tree":10,"custom-event":22}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -931,11 +933,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = releaseNode;
 
-var _tree = _dereq_('./tree');
+var _tree = require('./tree');
 
-var _memory = _dereq_('../util/memory');
+var _memory = require('../util/memory');
 
-var _make = _dereq_('./make');
+var _make = require('./make');
 
 var _make2 = _interopRequireDefault(_make);
 
@@ -967,7 +969,7 @@ function releaseNode(element) {
   (0, _memory.cleanMemory)();
 }
 
-},{"../util/memory":15,"./make":6,"./tree":10}],9:[function(_dereq_,module,exports){
+},{"../util/memory":15,"./make":6,"./tree":10}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -976,11 +978,11 @@ Object.defineProperty(exports, "__esModule", {
 exports.CHANGE_TEXT = exports.MODIFY_ATTRIBUTE = exports.MODIFY_ELEMENT = exports.REPLACE_ENTIRE_ELEMENT = exports.REMOVE_ENTIRE_ELEMENT = exports.REMOVE_ELEMENT_CHILDREN = undefined;
 exports.default = sync;
 
-var _pools2 = _dereq_('../util/pools');
+var _pools2 = require('../util/pools');
 
-var _memory = _dereq_('../util/memory');
+var _memory = require('../util/memory');
 
-var _make = _dereq_('../node/make');
+var _make = require('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
@@ -1251,7 +1253,7 @@ function sync(oldTree, newTree, patches) {
   return patches;
 }
 
-},{"../node/make":6,"../util/memory":15,"../util/pools":17}],10:[function(_dereq_,module,exports){
+},{"../node/make":6,"../util/memory":15,"../util/pools":17}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1260,7 +1262,7 @@ Object.defineProperty(exports, "__esModule", {
 // Cache prebuilt trees and lookup by element.
 var TreeCache = exports.TreeCache = new WeakMap();
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1268,33 +1270,35 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = process;
 
-var _transitions = _dereq_('../transitions');
+var _transitions = require('../transitions');
 
 var transition = _interopRequireWildcard(_transitions);
 
-var _pools = _dereq_('../util/pools');
+var _pools = require('../util/pools');
 
-var _get = _dereq_('../element/get');
+var _get = require('../element/get');
 
 var _get2 = _interopRequireDefault(_get);
 
-var _custom = _dereq_('../element/custom');
+var _custom = require('../element/custom');
 
-var _make = _dereq_('../node/make');
+var _make = require('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
-var _sync = _dereq_('../node/sync');
+var _sync = require('../node/sync');
 
 var sync = _interopRequireWildcard(_sync);
 
-var _memory = _dereq_('../util/memory');
+var _memory = require('../util/memory');
 
-var _entities = _dereq_('../util/entities');
+var _entities = require('../util/entities');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var blockTextElements = ['script', 'noscript', 'style', 'pre'];
 
 /**
  * Processes an Array of patches.
@@ -1315,9 +1319,7 @@ function process(element, patches) {
     if (descriptor.nodeName === '#text' || descriptor.nodeName === 'text') {
       var textPromises = transition.makePromises('textChanged', [element], null, descriptor.nodeValue);
 
-      var decoded = (0, _entities.decodeEntities)(descriptor.nodeValue);
-
-      element.nodeValue = decoded;
+      element.nodeValue = descriptor.nodeValue;
 
       triggerTransition('textChanged', textPromises, function (promises) {});
     }
@@ -1548,12 +1550,12 @@ function process(element, patches) {
                 var textChangePromises = transition.makePromises('textChanged', [patch.element], patch.element.nodeValue, patch.value);
 
                 triggerTransition('textChanged', textChangePromises, function (promises) {
-                  var decoded = (0, _entities.decodeEntities)(patch.value);
+                  patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
 
-                  patch.element.nodeValue = decoded;
+                  var nodeName = patch.element.parentNode.nodeName.toLowerCase();
 
-                  if (patch.element.parentNode) {
-                    patch.element.parentNode.nodeValue = decoded;
+                  if (blockTextElements[nodeName]) {
+                    patch.element.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.value);
                   }
                 });
               }
@@ -1573,7 +1575,7 @@ function process(element, patches) {
   }
 }
 
-},{"../element/custom":1,"../element/get":2,"../node/make":6,"../node/sync":9,"../transitions":13,"../util/entities":14,"../util/memory":15,"../util/pools":17}],12:[function(_dereq_,module,exports){
+},{"../element/custom":1,"../element/get":2,"../node/make":6,"../node/sync":9,"../transitions":13,"../util/entities":14,"../util/memory":15,"../util/pools":17}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1585,7 +1587,7 @@ var elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'a
 // Namespace.
 var namespace = exports.namespace = 'http://www.w3.org/2000/svg';
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1595,7 +1597,7 @@ exports.states = undefined;
 exports.buildTrigger = buildTrigger;
 exports.makePromises = makePromises;
 
-var _custom = _dereq_('./element/custom');
+var _custom = require('./element/custom');
 
 var slice = Array.prototype.slice;
 var forEach = Array.prototype.forEach;
@@ -1789,15 +1791,19 @@ function triggerLifecycleEvent(stateName, args, elements) {
   // Trigger custom element
   var customElementFn = fnSignatures[stateName].customElementsFn;
 
-  elements.filter(Boolean).forEach(function (element) {
-    var customElement = _custom.components[element.nodeName.toLowerCase()] || empty;
-    var customElementMethodName = stateName + 'Callback';
+  for (var i = 0; i < elements.length; i++) {
+    var element = elements[i];
 
-    // Call the associated CustomElement's lifecycle callback, if it exists.
-    if (customElement.prototype[customElementMethodName]) {
-      customElementFn.apply(null, args)(customElement.prototype[customElementMethodName].bind(element));
+    if (element) {
+      var customElement = _custom.components[element.nodeName.toLowerCase()] || empty;
+      var customElementMethodName = stateName + 'Callback';
+
+      // Call the associated CustomElement's lifecycle callback, if it exists.
+      if (customElement.prototype[customElementMethodName]) {
+        customElementFn.apply(null, args)(customElement.prototype[customElementMethodName].bind(element));
+      }
     }
-  });
+  }
 }
 
 /**
@@ -1823,7 +1829,7 @@ function makePromises(stateName) {
   };
 }
 
-},{"./element/custom":1}],14:[function(_dereq_,module,exports){
+},{"./element/custom":1}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1833,18 +1839,18 @@ exports.decodeEntities = decodeEntities;
 var element = document.createElement('div');
 
 /**
- * Decode's HTML entities.
+ * Decodes HTML strings.
  *
  * @see http://stackoverflow.com/a/13091266
  * @param stringing
- * @return unescaped decoded HTML
+ * @return unescaped HTML
  */
 function decodeEntities(string) {
   element.innerHTML = string;
   return element.textContent;
 }
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1854,9 +1860,9 @@ exports.protectElement = protectElement;
 exports.unprotectElement = unprotectElement;
 exports.cleanMemory = cleanMemory;
 
-var _pools2 = _dereq_('../util/pools');
+var _pools2 = require('../util/pools');
 
-var _make = _dereq_('../node/make');
+var _make = require('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
@@ -1911,7 +1917,7 @@ function cleanMemory() {
   pools.elementObject.freeAll();
 }
 
-},{"../node/make":6,"../util/pools":17}],16:[function(_dereq_,module,exports){
+},{"../node/make":6,"../util/pools":17}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1920,7 +1926,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.parseHTML = parseHTML;
 exports.makeParser = makeParser;
 
-var _pools2 = _dereq_('./pools');
+var _pools2 = require('./pools');
 
 var pools = _pools2.pools; // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
@@ -2019,6 +2025,14 @@ function makeParser() {
     }
   };
 
+  var kBlockTextElements = {
+    script: true,
+    noscript: true,
+    style: true,
+    pre: true,
+    template: true
+  };
+
   /**
    * TextNode to contain a text element in DOM tree.
    * @param {string} value [description]
@@ -2082,14 +2096,12 @@ function makeParser() {
      * @param  {string} data      html
      * @return {HTMLElement}      root element
      */
-    parse: function parse(data, options) {
+    parse: function parse(data) {
       var rootObject = {};
       var root = HTMLElement(null, rootObject);
       var currentParent = root;
       var stack = [root];
       var lastTextPos = -1;
-
-      options = options || {};
 
       if (data.indexOf('<') === -1 && data) {
         currentParent.childNodes[currentParent.childNodes.length] = TextNode(data);
@@ -2104,7 +2116,7 @@ function makeParser() {
             text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
 
             if (text.trim()) {
-              currentParent.childNodes[currentParent.childNodes.length] = TextNode(text);
+              currentParent.childNodes.push(TextNode(text));
             }
           }
         }
@@ -2114,10 +2126,6 @@ function makeParser() {
         // This is a comment.
         if (match[0][1] === '!') {
           continue;
-        }
-
-        if (options.lowerCaseTagName) {
-          match[2] = match[2].toLowerCase();
         }
 
         if (!match[1]) {
@@ -2138,6 +2146,26 @@ function makeParser() {
           currentParent = currentParent.childNodes[currentParent.childNodes.push(HTMLElement(match[2], attrs, match[3])) - 1];
 
           stack.push(currentParent);
+
+          if (kBlockTextElements[match[2]]) {
+            // A little test to find next </script> or </style> ...
+            var closeMarkup = '</' + match[2] + '>';
+            var index = data.indexOf(closeMarkup, kMarkupPattern.lastIndex);
+            var length = match[2].length;
+
+            if (index === -1) {
+              lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
+            } else {
+              lastTextPos = kMarkupPattern.lastIndex = index + closeMarkup.length;
+              match[1] = true;
+            }
+
+            var newText = data.slice(match.index + match[0].length, index);
+
+            if (newText.trim()) {
+              currentParent.childNodes.push(TextNode(newText));
+            }
+          }
         }
         if (match[1] || match[4] || kSelfClosingElements[match[2]]) {
           // </ or /> or <br> etc.
@@ -2172,7 +2200,7 @@ function makeParser() {
   return htmlParser;
 }
 
-},{"./pools":17}],17:[function(_dereq_,module,exports){
+},{"./pools":17}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2182,7 +2210,7 @@ exports.count = exports.pools = undefined;
 exports.createPool = createPool;
 exports.initializePools = initializePools;
 
-var _uuid2 = _dereq_('./uuid');
+var _uuid2 = require('./uuid');
 
 var _uuid3 = _interopRequireDefault(_uuid2);
 
@@ -2324,7 +2352,7 @@ function initializePools(COUNT) {
 // Create 10k items of each type.
 initializePools(count);
 
-},{"./uuid":18}],18:[function(_dereq_,module,exports){
+},{"./uuid":18}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2345,7 +2373,7 @@ function uuid() {
   });
 }
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2354,25 +2382,25 @@ Object.defineProperty(exports, "__esModule", {
 exports.hasWorker = undefined;
 exports.create = create;
 
-var _uuid = _dereq_('../util/uuid');
+var _uuid = require('../util/uuid');
 
 var _uuid2 = _interopRequireDefault(_uuid);
 
-var _pools = _dereq_('../util/pools');
+var _pools = require('../util/pools');
 
-var _parser = _dereq_('../util/parser');
+var _parser = require('../util/parser');
 
-var _memory = _dereq_('../util/memory');
+var _memory = require('../util/memory');
 
-var _sync = _dereq_('../node/sync');
+var _sync = require('../node/sync');
 
 var _sync2 = _interopRequireDefault(_sync);
 
-var _make = _dereq_('../node/make');
+var _make = require('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
-var _source = _dereq_('./source');
+var _source = require('./source');
 
 var _source2 = _interopRequireDefault(_source);
 
@@ -2381,12 +2409,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // Tests if the browser has support for the `Worker` API.
 var hasWorker = exports.hasWorker = typeof Worker === 'function';
 
+// Find all the coverage statements and expressions.
+var COV_EXP = /__cov_([^\+\+]*)\+\+/gi;
+
 /**
  * Awful hack to remove `__cov` lines from the source before sending over to
  * the worker. Only useful while testing.
  */
 function filterOutCoverage(string) {
-  return string.replace(/__cov_([^\+\+]*)\+\+/gi, 'null');
+  return string.replace(COV_EXP, 'null');
 }
 
 /**
@@ -2396,12 +2427,13 @@ function filterOutCoverage(string) {
  *
  * Attach any functions that could be used by the Worker inside the Blob below.
  * All functions are named so they can be accessed globally. Since we're
- * directly injecting the methods into an Array and then calling `join` the
- * `toString` method will be invoked on each function and will inject a valid
- * representation of the function's source. This comes at a cost since Babel
- * rewrites variable names when you `import` a module. This is why you'll see
- * underscored properties being imported and then reassigned to non-underscored
- * names in modules that are reused here.
+ * directly injecting the methods into the ES6 template string,
+ * `Function.prototype.toString` will be invoked returning a representation of
+ * the function's source. This comes at a cost since Babel rewrites variable
+ * names when you `import` a module. This is why you'll see underscored
+ * properties being imported and then reassigned to non-underscored names in
+ * modules that are reused here. Isparta injects coverage function calls that
+ * will error out in the Worker, which is why we strip them out.
  *
  * @return {Object} A Worker instance.
  */
@@ -2433,7 +2465,7 @@ function create() {
   return worker;
 }
 
-},{"../node/make":6,"../node/sync":9,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/uuid":18,"./source":21}],20:[function(_dereq_,module,exports){
+},{"../node/make":6,"../node/sync":9,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/uuid":18,"./source":21}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2441,15 +2473,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.completeWorkerRender = completeWorkerRender;
 
-var _process = _dereq_('../patches/process');
+var _process = require('../patches/process');
 
 var _process2 = _interopRequireDefault(_process);
 
-var _patch = _dereq_('../node/patch');
+var _patch = require('../node/patch');
 
 var _patch2 = _interopRequireDefault(_patch);
 
-var _memory = _dereq_('../util/memory');
+var _memory = require('../util/memory');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2463,8 +2495,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 function completeWorkerRender(element, elementMeta) {
   return function (ev) {
-    var nodes = ev.data.nodes;
-
     var completeRender = function completeRender() {
       // Reset internal caches for quicker lookups in the futures.
       elementMeta._innerHTML = element.innerHTML;
@@ -2508,7 +2538,7 @@ function completeWorkerRender(element, elementMeta) {
   };
 }
 
-},{"../node/patch":7,"../patches/process":11,"../util/memory":15}],21:[function(_dereq_,module,exports){
+},{"../node/patch":7,"../patches/process":11,"../util/memory":15}],21:[function(require,module,exports){
 'use strict';
 
 // These are globally defined to avoid issues with JSHint thinking that we're
@@ -2548,14 +2578,13 @@ function startup(worker) {
     var isInner = data.isInner;
     var newTree = null;
 
-    // Always unprotect allocations before the start of a render cycle.
-    if (oldTree) {
-      unprotectElement(oldTree);
-    }
-
     // If an `oldTree` was provided by the UI thread, use that in place of the
     // current `oldTree`.
     if (data.oldTree) {
+      if (oldTree) {
+        unprotectElement(oldTree);
+      }
+
       oldTree = data.oldTree;
     }
 
@@ -2609,7 +2638,7 @@ function startup(worker) {
   };
 }
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],22:[function(require,module,exports){
 (function (global){
 
 var NativeCustomEvent = global.CustomEvent;

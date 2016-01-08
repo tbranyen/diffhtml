@@ -12,12 +12,13 @@ module.exports = function(config) {
       'node_modules/weakmap/weakmap.js',
       'lib/**/*.js',
       'test/assert.js',
+
       { pattern: 'test/unit/**/*.js', watched: false },
       { pattern: 'test/integration/**/*.js', watched: false }
     ],
 
     preprocessors: {
-      '{lib/**/*, lib/worker/!source}.js': ['browserify'],
+      'lib/**/*.js': ['browserify'],
       'test/unit/**/*.js': ['browserify'],
       'test/integration/**/*.js': ['browserify'],
     },
@@ -27,7 +28,6 @@ module.exports = function(config) {
     coverageReporter: {
       type: 'lcov',
       dir: 'test/coverage',
-
       instrumenters: { isparta: isparta },
       instrumenter: { '**/*.js': 'isparta' }
     },
