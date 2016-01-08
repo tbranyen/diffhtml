@@ -25,8 +25,9 @@ module.exports = function(config) {
     reporters: ['progress', 'coverage'],
 
     coverageReporter: {
-      type: 'html',
+      type: 'lcov',
       dir: 'test/coverage',
+      file: 'test/coverage/lcov.info',
 
       instrumenters: { isparta: isparta },
       instrumenter: { '**/*.js': 'isparta' }

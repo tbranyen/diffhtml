@@ -19,6 +19,7 @@
     "babelify": "^7.2.0",
     "browserify": "^12.0.1",
     "browserify-istanbul": "^0.2.1",
+    "coveralls": "^2.11.6",
     "custom-event": "^1.0.0",
     "http-server": "^0.8.5",
     "isparta": "^4.0.0",
