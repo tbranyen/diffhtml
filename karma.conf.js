@@ -27,7 +27,6 @@ module.exports = function(config) {
     coverageReporter: {
       type: 'lcov',
       dir: 'test/coverage',
-      file: 'test/coverage/lcov.info',
 
       instrumenters: { isparta: isparta },
       instrumenter: { '**/*.js': 'isparta' }
