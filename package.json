@@ -9,7 +9,7 @@
   "scripts": {
     "start": "http-server",
     "build": "browserify -t [ babelify --presets [ es2015 ] ] -s diff lib/index.js | derequire > dist/diffhtml.js",
-    "watch": "watchify -t [ babelify --presets [ es2015 ] ] -s diff lib/index.js -o dist/diffhtml.js -v",
+    "watch": "watchify -t [ babelify --presets [ es2015 ] ] -s diff lib/index.js -o 'derequire > dist/diffhtml.js' -v",
     "jshint": "jshint lib/**/*.js",
     "test": "npm run jshint && karma start --single-run"
   },

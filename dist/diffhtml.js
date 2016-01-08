@@ -265,6 +265,8 @@ var _transitions = _dereq_('./transitions');
 
 var _custom = _dereq_('./element/custom');
 
+var _tree = _dereq_('./node/tree');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
@@ -550,8 +552,12 @@ function enableProllyfill() {
 
     // After the initial render, clean up the resources, no point in lingering.
     documentElement.addEventListener('renderComplete', function render() {
+      var elementMeta = _tree.TreeCache.get(documentElement) || {};
+
       // Release resources allocated to the element.
-      documentElement.diffRelease(documentElement);
+      if (!elementMeta.isRendering) {
+        documentElement.diffRelease(documentElement);
+      }
 
       // Remove this event listener.
       documentElement.removeEventListener('renderComplete', render);
@@ -574,7 +580,7 @@ function enableProllyfill() {
   }
 }
 
-},{"./element/custom":1,"./errors":4,"./node/patch":7,"./node/release":8,"./transitions":13}],6:[function(_dereq_,module,exports){
+},{"./element/custom":1,"./errors":4,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -858,12 +864,12 @@ function patchNode(element, newHTML, options) {
     if (typeof newHTML !== 'string') {
       transferObject.newTree = (0, _make2.default)(newHTML);
 
+      // Wait for the worker to finish processing and then apply the patchset.
+      worker.onmessage = (0, _render.completeWorkerRender)(element, elementMeta);
+
       // Transfer this buffer to the worker, which will take over and process the
       // markup.
       worker.postMessage(transferObject);
-
-      // Wait for the worker to finish processing and then apply the patchset.
-      worker.onmessage = (0, _render.completeWorkerRender)(element, elementMeta);
 
       return;
     }
@@ -875,12 +881,12 @@ function patchNode(element, newHTML, options) {
     // Add properties to send to worker.
     transferObject.isInner = options.inner;
 
+    // Wait for the worker to finish processing and then apply the patchset.
+    worker.onmessage = (0, _render.completeWorkerRender)(element, elementMeta);
+
     // Transfer this buffer to the worker, which will take over and process the
     // markup.
     worker.postMessage(transferObject);
-
-    // Wait for the worker to finish processing and then apply the patchset.
-    worker.onmessage = (0, _render.completeWorkerRender)(element, elementMeta);
   } else {
     // We're rendering in the UI thread.
     elementMeta.isRendering = true;
@@ -951,10 +957,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function releaseNode(element) {
   var elementMeta = _tree.TreeCache.get(element);
 
+  // Do not remove an element that is in process of rendering. User intentions
+  // come first, so if we are cleaning up an element being used by another part
+  // of the code, keep it alive.
   if (elementMeta) {
     // If there is a worker associated with this element, then kill it.
     if (elementMeta.worker) {
       elementMeta.worker.terminate();
+      delete elementMeta.worker;
     }
 
     // If there was a tree set up, recycle the memory allocated for it.
@@ -1488,7 +1498,11 @@ function process(element, patches) {
                     }
 
                     // Append the element first, before doing the replacement.
-                    patch.old.parentNode.insertBefore(patch.new, patch.old.nextSibling);
+                    if (patch.old.nextSibling) {
+                      patch.old.parentNode.insertBefore(patch.new, patch.old.nextSibling);
+                    } else {
+                      patch.old.parentNode.appendChild(patch.new);
+                    }
 
                     // Removed state for transitions API.
                     var allPromises = [];
@@ -2623,7 +2637,7 @@ function startup(worker) {
     syncNode(oldTree, newTree, patches);
 
     // Protect the current `oldTree` so that no Nodes will be accidentally
-    // recycled in the
+    // recycled in the cleanup process.
     protectElement(oldTree);
 
     // Send the patches back to the userland.
