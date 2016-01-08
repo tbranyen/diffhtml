@@ -92,12 +92,6 @@ describe('Integration: outerHTML', function() {
       assert.equal(this.fixture.firstChild, span, 'are the same element');
     });
 
-    it('supports HTML5 entities', function() {
-      diff.outerHTML(this.fixture, '<div>&gla;</div>');
-
-      assert.equal(this.fixture.innerText, '&gla;');
-    });
-
     it('will properly escape markup being injected into script tags', function() {
       diff.outerHTML(this.fixture, `
         <div>

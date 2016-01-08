@@ -1329,7 +1329,7 @@ function process(element, patches) {
     if (descriptor.nodeName === '#text' || descriptor.nodeName === 'text') {
       var textPromises = transition.makePromises('textChanged', [element], null, descriptor.nodeValue);
 
-      element.nodeValue = descriptor.nodeValue;
+      element.innerHTML = descriptor.nodeValue;
 
       triggerTransition('textChanged', textPromises, function (promises) {});
     }
@@ -1948,6 +1948,7 @@ var pools = _pools2.pools; // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
 var parser = makeParser();
+var slice = Array.prototype.slice;
 
 /**
  * parseHTML
@@ -1973,15 +1974,6 @@ function makeParser() {
   var kAttributePattern = /\b(id|class)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 
   var reAttrPattern = /\b([a-z][a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
-
-  var kBlockElements = {
-    div: true,
-    p: true,
-    li: true,
-    td: true,
-    section: true,
-    br: true
-  };
 
   var kSelfClosingElements = {
     meta: true,
@@ -2047,6 +2039,15 @@ function makeParser() {
     style: true,
     pre: true,
     template: true
+  };
+
+  var escapeMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '`': '&#x60;'
   };
 
   /**
@@ -2179,6 +2180,10 @@ function makeParser() {
             var newText = data.slice(match.index + match[0].length, index);
 
             if (newText.trim()) {
+              newText = slice.call(newText).map(function (ch) {
+                return escapeMap[ch] || ch;
+              }).join('');
+
               currentParent.childNodes.push(TextNode(newText));
             }
           }
