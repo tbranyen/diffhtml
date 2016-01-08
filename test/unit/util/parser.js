@@ -1,6 +1,6 @@
-describe('Unit: Parser', function() {
-  var parser = require('/lib/util/parser');
+import * as parser from '../../../lib/util/parser';
 
+describe('Unit: Parser', function() {
   it('supports empty attributes', function() {
     var node = parser.parseHTML('<option value="test" selected></option>');
 

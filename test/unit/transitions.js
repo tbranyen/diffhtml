@@ -1,6 +1,6 @@
-describe('Unit: Transitions', function() {
-  var transitionStates = require('/lib/transitions').states;
+import { states as transitionStates } from '../../lib/transitions';
 
+describe('Unit: Transitions', function() {
   it('exports arrays to store callbacks in', function() {
     assert.ok(Array.isArray(transitionStates.attached));
     assert.ok(Array.isArray(transitionStates.detached));

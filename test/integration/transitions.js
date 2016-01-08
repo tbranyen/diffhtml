@@ -1,3 +1,5 @@
+import * as diff from '../../lib/index.js';
+
 describe('Integration: Transitions', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
@@ -13,24 +15,18 @@ describe('Integration: Transitions', function() {
     it('will throw when missing the required name argument', function() {
       assert.throws(function() {
         diff.addTransitionState();
-      }, function(err) {
-        return err instanceof diff.TransitionStateError;
       }, 'Missing transition state name');
     });
 
     it('will throw when missing the required callback argument', function() {
       assert.throws(function() {
         diff.addTransitionState('attached');
-      }, function(err) {
-        return err instanceof diff.TransitionStateError;
       }, 'Missing transition state callback');
     });
 
     it('will throw when passed an invalid state name', function() {
       assert.throws(function() {
         diff.addTransitionState('added', function() {});
-      }, function(err) {
-        return err instanceof diff.TransitionStateError;
       }, 'Invalid state name: added');
     });
 
