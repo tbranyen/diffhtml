@@ -1,6 +1,6 @@
-describe('Unit: Errors', function() {
-  var errors = require('/lib/errors');
+import * as errors from '../../lib/errors';
 
+describe('Unit: Errors', function() {
   describe('TransitionStateError', function() {
     var TransitionStateError = errors.TransitionStateError;
 

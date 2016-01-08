@@ -1,3 +1,5 @@
+import * as diff from '../../lib/index.js';
+
 describe('Integration: Basics', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');

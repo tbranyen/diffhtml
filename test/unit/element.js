@@ -1,7 +1,8 @@
+import getElement from '../../lib/element/get';
+import makeElement from '../../lib/element/make';
+
 describe('Unit: Element', function() {
   describe('get', function() {
-    var getElement = require('/lib/element/get');
-
     it('creates an element from descriptor on first access', function() {
       var retVal = getElement({
         uuid: 'some_uuid',
@@ -30,8 +31,6 @@ describe('Unit: Element', function() {
   });
 
   describe('make', function() {
-    var makeElement = require('/lib/element/make');
-
     it('can create an empty element', function() {
       var element = makeElement({
         uuid: 'some_uuid_0',
