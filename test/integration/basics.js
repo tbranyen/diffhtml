@@ -188,6 +188,12 @@ describe('Integration: Basics', function() {
       });
 
       it('can track very-complex state', function(done) {
+        function filterOutText(elements) {
+          return [].slice.call(elements).filter(element => {
+            return element.nodeType === 1;
+          });
+        }
+
         var count = 0;
         var tagNames = ['p', 'strong', 'div', 'span'];
 
@@ -207,11 +213,11 @@ describe('Integration: Basics', function() {
           count++;
 
           if (count === 3) {
-            assert.equal(this.fixture.childNodes.length, 100);
+            assert.equal(this.fixture.querySelectorAll('p, strong, div, span').length, 100);
             done();
           }
           else if (count === 1) {
-            assert.equal(this.fixture.childNodes.length, 1000);
+            assert.equal(this.fixture.querySelectorAll('p, strong, div, span').length, 1000);
 
             diff.innerHTML(this.fixture, makePs(10), {
               enableWorker: false

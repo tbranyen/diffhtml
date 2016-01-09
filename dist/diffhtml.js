@@ -1066,8 +1066,8 @@ function sync(oldTree, newTree, patches) {
   }
 
   // If the top level nodeValue has changed we should reflect it.
-  if (oldTree.nodeValue !== nodeValue && !(!oldTree.nodeValue && !nodeValue)) {
-    if (oldTree.nodeValue !== null) {
+  if (oldTree.nodeValue && nodeValue) {
+    if (oldTree.nodeValue !== null && newTree.nodeValue) {
       patches[patches.length] = {
         __do__: CHANGE_TEXT,
         element: oldTree,
@@ -1108,24 +1108,13 @@ function sync(oldTree, newTree, patches) {
 
   // Remove these elements.
   if (oldChildNodesLength > childNodesLength) {
-    var cloneOldChildNodes = slice.call(oldChildNodes, 0);
-
-    // Find the correct elements to remove, is smart about keeping existing
-    // elements.
-    var toRemove = filter.call(cloneOldChildNodes, function (el, index) {
-      var newChild = childNodes[oldChildNodes.indexOf(el)];
-      var notSame = newChild ? el.nodeName !== newChild.nodeName : true;
-
-      if (notSame && oldChildNodes.indexOf(el) > -1) {
-        oldChildNodes.splice(oldChildNodes.indexOf(el), 1);
-      }
-
-      return notSame;
-    });
+    // For now just splice out the end items.
+    var diff = oldChildNodesLength - childNodesLength;
+    var toRemove = oldChildNodes.splice(oldChildNodesLength - diff, diff);
 
     oldChildNodesLength = oldChildNodes.length;
 
-    if (oldChildNodesLength === 0) {
+    if (oldChildNodesLength === 0 && childNodesLength === 0) {
       patches[patches.length] = {
         __do__: REMOVE_ELEMENT_CHILDREN,
         element: oldTree,
@@ -1148,12 +1137,8 @@ function sync(oldTree, newTree, patches) {
   }
 
   // Replace elements if they are different.
-  if (oldChildNodesLength) {
+  if (oldChildNodesLength >= childNodesLength) {
     for (var i = 0; i < childNodesLength; i++) {
-      if (!oldChildNodes[i]) {
-        continue;
-      }
-
       if (oldChildNodes[i].nodeName !== childNodes[i].nodeName) {
         // Add to the patches.
         patches[patches.length] = {
@@ -1329,7 +1314,11 @@ function process(element, patches) {
     if (descriptor.nodeName === '#text' || descriptor.nodeName === 'text') {
       var textPromises = transition.makePromises('textChanged', [element], null, descriptor.nodeValue);
 
-      element.innerHTML = descriptor.nodeValue;
+      if (descriptor.nodeName === 'text') {
+        element.innerText = descriptor.nodeValue;
+      } else {
+        element.innerHTML = descriptor.nodeValue;
+      }
 
       triggerTransition('textChanged', textPromises, function (promises) {});
     }
@@ -2132,9 +2121,7 @@ function makeParser() {
             // if has content
             text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
 
-            if (text.trim()) {
-              currentParent.childNodes.push(TextNode(text));
-            }
+            currentParent.childNodes.push(TextNode(text));
           }
         }
 
