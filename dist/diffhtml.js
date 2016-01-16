@@ -66,7 +66,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 function get(descriptor) {
   var uuid = descriptor.uuid;
-  var element = _make2.default.nodes[uuid] || (0, _make4.default)(descriptor);
+  var element = (0, _make4.default)(descriptor);
 
   return { uuid: uuid, element: element };
 }
@@ -344,7 +344,7 @@ function registerElement(tagName, constructor) {
 
   if (!normalizedConstructor) {
     constructor.__proto__ = HTMLElement.prototype;
-    normalizedConstructor = function () {};
+    normalizedConstructor = function normalizedConstructor() {};
     normalizedConstructor.prototype = constructor;
   }
 
@@ -534,7 +534,7 @@ function enableProllyfill() {
       Object.defineProperty(realHTMLElement.prototype, '__proto__', copy);
     }
 
-    HTMLElement = function () {};
+    HTMLElement = function HTMLElement() {};
     HTMLElement.prototype = Object.create(realHTMLElement.prototype);
     HTMLElement.__proto__ = realHTMLElement;
 
@@ -900,14 +900,14 @@ function patchNode(element, newHTML, options) {
     if (typeof newHTML === 'string') {
       newTree = (0, _parser.parseHTML)(newHTML, options.inner);
     } else {
-      newTree = (0, _make2.default)(newHTML);
+      newTree = options.inner ? [(0, _make2.default)(newHTML)] : (0, _make2.default)(newHTML);
     }
 
     if (options.inner) {
       var childNodes = newTree;
 
       newTree = {
-        childNodes: newTree,
+        childNodes: childNodes,
         attributes: elementMeta.oldTree.attributes,
         uuid: elementMeta.oldTree.uuid,
         nodeName: elementMeta.oldTree.nodeName,
@@ -1039,6 +1039,7 @@ function sync(oldTree, newTree, patches) {
   if (!newTree) {
     var removed = oldChildNodes.splice(0, oldChildNodesLength);
 
+    //debugger;
     patches[patches.length] = {
       __do__: REMOVE_ENTIRE_ELEMENT,
       element: oldTree,
@@ -1066,8 +1067,8 @@ function sync(oldTree, newTree, patches) {
   }
 
   // If the top level nodeValue has changed we should reflect it.
-  if (oldTree.nodeValue && nodeValue) {
-    if (oldTree.nodeValue !== null && newTree.nodeValue) {
+  if (typeof oldTree.nodeValue === 'string' && typeof nodeValue === 'string') {
+    if (oldTree.nodeValue !== nodeValue) {
       patches[patches.length] = {
         __do__: CHANGE_TEXT,
         element: oldTree,
@@ -1151,6 +1152,8 @@ function sync(oldTree, newTree, patches) {
         oldChildNodes[i] = childNodes[i];
         protectElement(childNodes[i]);
       }
+
+      sync(oldChildNodes[i], childNodes[i], patches);
     }
   }
 
@@ -1235,13 +1238,6 @@ function sync(oldTree, newTree, patches) {
         // Add the change to the series of patches.
         patches[patches.length] = change;
       }
-    }
-  }
-
-  // Sync each current node.
-  for (var i = 0; i < oldChildNodes.length; i++) {
-    if (oldChildNodes[i].uuid !== childNodes[i].uuid) {
-      sync(oldTree.childNodes[i], childNodes[i], patches);
     }
   }
 
@@ -1426,12 +1422,24 @@ function process(element, patches) {
             // promises were added, this will be a synchronous operation.
             if (allPromises.length) {
               Promise.all(allPromises).then(function () {
-                patch.old.parentNode.replaceChild(patch.new, patch.old);
                 (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+                (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+
+                if (!patch.old.parentNode) {
+                  throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
+                }
+
+                patch.old.parentNode.replaceChild(patch.new, patch.old);
               });
             } else {
-              patch.old.parentNode.replaceChild(patch.new, patch.old);
               (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+              (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+
+              if (!patch.old.parentNode) {
+                throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
+              }
+
+              patch.old.parentNode.replaceChild(patch.new, patch.old);
             }
           })();
         }
@@ -1462,6 +1470,8 @@ function process(element, patches) {
             // Remove.
             else if (patch.old && !patch.new) {
                 if (!patch.old.parentNode) {
+                  (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+
                   throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
                 }
 
@@ -1483,6 +1493,8 @@ function process(element, patches) {
               else if (patch.old && patch.new) {
                   (function () {
                     if (!patch.old.parentNode) {
+                      (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+
                       throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
                     }
 
@@ -1516,10 +1528,24 @@ function process(element, patches) {
                     // promises were added, this will be a synchronous operation.
                     if (allPromises.length) {
                       Promise.all(allPromises).then(function () {
+                        if (!patch.old.parentNode) {
+                          (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+                          (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+
+                          throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
+                        }
+
                         patch.old.parentNode.replaceChild(patch.new, patch.old);
                         (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
                       });
                     } else {
+                      if (!patch.old.parentNode) {
+                        (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+                        (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+
+                        throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
+                      }
+
                       patch.old.parentNode.replaceChild(patch.new, patch.old);
                       (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
                     }
@@ -1885,7 +1911,14 @@ var makeNode = _make2.default;
 function protectElement(element) {
   pools.elementObject.protect(element);
 
-  element.childNodes.forEach(protectElement);
+  if (element.childNodes) {
+    element.childNodes.forEach(protectElement);
+  }
+
+  if (!element.attributes) {
+    console.log(element);debugger;
+  }
+
   element.attributes.forEach(pools.attributeObject.protect, pools.attributeObject);
 
   return element;
@@ -1898,9 +1931,11 @@ function protectElement(element) {
  * @return
  */
 function unprotectElement(element, makeNode) {
-  element.childNodes.forEach(function (element) {
-    unprotectElement(element, makeNode);
-  });
+  if (element.childNodes) {
+    element.childNodes.forEach(function (element) {
+      unprotectElement(element, makeNode);
+    });
+  }
 
   element.attributes.forEach(pools.attributeObject.unprotect, pools.attributeObject);
 
