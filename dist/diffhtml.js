@@ -344,7 +344,7 @@ function registerElement(tagName, constructor) {
 
   if (!normalizedConstructor) {
     constructor.__proto__ = HTMLElement.prototype;
-    normalizedConstructor = function normalizedConstructor() {};
+    normalizedConstructor = function () {};
     normalizedConstructor.prototype = constructor;
   }
 
@@ -522,6 +522,7 @@ function enableProllyfill() {
       var copy = {
         set: function set(val) {
           val = Object.keys(val).length ? val : Object.getPrototypeOf(val);
+
           for (var key in val) {
             if (val.hasOwnProperty(key)) {
               this[key] = val[key];
@@ -534,7 +535,7 @@ function enableProllyfill() {
       Object.defineProperty(realHTMLElement.prototype, '__proto__', copy);
     }
 
-    HTMLElement = function HTMLElement() {};
+    HTMLElement = function () {};
     HTMLElement.prototype = Object.create(realHTMLElement.prototype);
     HTMLElement.__proto__ = realHTMLElement;
 
@@ -549,6 +550,23 @@ function enableProllyfill() {
    */
   var activateComponents = function activateComponents() {
     var documentElement = document.documentElement;
+    var bufferSet = false;
+
+    // If this element is already rendering, add this new render request into
+    // the buffer queue. Check and see if any element is currently rendering,
+    // can only do one at a time.
+    _tree.TreeCache.forEach(function (elementMeta, element) {
+      if (elementMeta.isRendering) {
+        bufferSet = true;
+        console.log('here');
+      }
+    });
+
+    // Short circuit the rest of this render.
+    if (bufferSet) {
+      // Remove the load event listener, since it's complete.
+      return window.removeEventListener('load', activateComponents);
+    }
 
     // After the initial render, clean up the resources, no point in lingering.
     documentElement.addEventListener('renderComplete', function render() {
@@ -590,12 +608,9 @@ exports.default = make;
 
 var _pools2 = _dereq_('../util/pools');
 
-var _memory = _dereq_('../util/memory');
-
 var _custom = _dereq_('../element/custom');
 
 var pools = _pools2.pools;
-var protectElement = _memory.protectElement;
 var empty = {};
 
 // Cache created nodes inside this object.
@@ -605,10 +620,9 @@ make.nodes = {};
  * Converts a live node into a virtual node.
  *
  * @param node
- * @param protect
  * @return
  */
-function make(node, protect) {
+function make(node) {
   // Default the nodeType to Element (1).
   var nodeType = 'nodeType' in node ? node.nodeType : 1;
 
@@ -621,24 +635,19 @@ function make(node, protect) {
   // diff and patch.
   var entry = pools.elementObject.get();
 
+  // Associate this newly allocated uuid with this Node.
+  make.nodes[entry.uuid] = node;
+
+  // Set a lowercased (normalized) version of the element's nodeName.
   entry.nodeName = node.nodeName.toLowerCase();
 
   // If the element is a text node set the nodeValue.
   if (nodeType === 3) {
-    var nodeValue = node.textContent;
-    entry.nodeValue = nodeValue;
+    entry.nodeValue = node.textContent;
   }
 
   entry.childNodes.length = 0;
   entry.attributes.length = 0;
-
-  if (protect) {
-    // Add to internal lookup.
-    make.nodes[entry.uuid] = node;
-
-    // Ensure this element will not be automatically cleaned up.
-    protectElement(entry);
-  }
 
   // Collect attributes.
   var attributes = node.attributes;
@@ -650,10 +659,6 @@ function make(node, protect) {
     if (attributesLength) {
       for (var i = 0; i < attributesLength; i++) {
         var attr = pools.attributeObject.get();
-
-        if (protect) {
-          pools.attributeObject.protect(attr);
-        }
 
         attr.name = attributes[i].name;
         attr.value = attributes[i].value;
@@ -670,7 +675,7 @@ function make(node, protect) {
   // If the element has child nodes, convert them all to virtual nodes.
   if (node.nodeType !== 3 && childNodes) {
     for (var i = 0; i < childNodesLength; i++) {
-      var newNode = make(childNodes[i], protect);
+      var newNode = make(childNodes[i]);
 
       if (newNode) {
         entry.childNodes[entry.childNodes.length] = newNode;
@@ -678,18 +683,14 @@ function make(node, protect) {
     }
   }
 
-  // TODO Rename this to first-run, because we're calling the attach callback
-  // and protecting now.
-  if (protect) {
-    if (_custom.components[entry.nodeName]) {
-      // Reset the prototype chain for this element. Upgrade will return `true`
-      // if the element was upgraded for the first time. This is useful so we
-      // don't end up in a loop when working with the same element.
-      if ((0, _custom.upgrade)(entry.nodeName, node)) {
-        // If the Node is in the DOM, trigger attached callback.
-        if (node.parentNode && node.attachedCallback) {
-          node.attachedCallback();
-        }
+  if (_custom.components[entry.nodeName]) {
+    // Reset the prototype chain for this element. Upgrade will return `true`
+    // if the element was upgraded for the first time. This is useful so we
+    // don't end up in a loop when working with the same element.
+    if ((0, _custom.upgrade)(entry.nodeName, node)) {
+      // If the Node is in the DOM, trigger attached callback.
+      if (node.parentNode && node.attachedCallback) {
+        node.attachedCallback();
       }
     }
   }
@@ -697,7 +698,7 @@ function make(node, protect) {
   return entry;
 }
 
-},{"../element/custom":1,"../util/memory":15,"../util/pools":17}],7:[function(_dereq_,module,exports){
+},{"../element/custom":1,"../util/pools":17}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -705,15 +706,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = patchNode;
 
-var _customEvent = _dereq_('custom-event');
-
-var _customEvent2 = _interopRequireDefault(_customEvent);
-
 var _create = _dereq_('../worker/create');
 
 var _memory = _dereq_('../util/memory');
 
 var _parser = _dereq_('../util/parser');
+
+var _render = _dereq_('../util/render');
 
 var _make = _dereq_('./make');
 
@@ -729,42 +728,9 @@ var _sync2 = _interopRequireDefault(_sync);
 
 var _tree = _dereq_('./tree');
 
-var _render = _dereq_('../worker/render');
+var _pools = _dereq_('../util/pools');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * When the UI thread completes, clean up memory and schedule the next render
- * if necessary.
- *
- * @param element
- * @param elementMeta
- */
-function completeUIRender(element, elementMeta) {
-  return function () {
-    // Mark that this element has initially rendered and is done rendering.
-    elementMeta.isRendering = false;
-
-    // Set the innerHTML.
-    elementMeta._innerHTML = element.innerHTML;
-    elementMeta._outerHTML = element.outerHTML;
-    elementMeta._textContent = element.textContent;
-
-    (0, _memory.cleanMemory)();
-
-    // Dispatch an event on the element once rendering has completed.
-    element.dispatchEvent(new _customEvent2.default('renderComplete'));
-
-    // TODO Update this comment and/or refactor to use the same as the Worker.
-    if (elementMeta.renderBuffer) {
-      var nextRender = elementMeta.renderBuffer;
-      elementMeta.renderBuffer = undefined;
-
-      // Noticing some weird performance implications with this concept.
-      patchNode(element, nextRender.newHTML, nextRender.options);
-    }
-  };
-}
 
 /**
  * Patches an element's DOM to match that of the passed markup.
@@ -781,31 +747,46 @@ function patchNode(element, newHTML, options) {
   // The element meta object is a location to associate metadata with the
   // currently rendering element. This prevents attaching properties to the
   // instance itself.
-  var elementMeta = _tree.TreeCache.get(element) || {
-    // Store protected elements here from the Worker.
-    workerCache: []
-  };
+  var elementMeta = _tree.TreeCache.get(element) || {};
+
+  // Last options used.
+  elementMeta.options = options;
 
   // Always ensure the most up-to-date meta object is stored.
   _tree.TreeCache.set(element, elementMeta);
 
+  var bufferSet = false;
+  var isInner = options.inner;
+  var previousMarkup = elementMeta.previousMarkup;
+
   // If this element is already rendering, add this new render request into the
-  // buffer queue.
-  if (elementMeta.isRendering) {
-    elementMeta.renderBuffer = { newHTML: newHTML, options: options };
-    return elementMeta.renderBuffer;
+  // buffer queue. Check and see if any element is currently rendering, can
+  // only do one at a time.
+  _tree.TreeCache.forEach(function (_elementMeta, _element) {
+    if (_elementMeta.isRendering) {
+      elementMeta.renderBuffer = { element: element, newHTML: newHTML, options: options };
+      bufferSet = true;
+    }
+  });
+
+  // Short circuit the rest of this render.
+  if (bufferSet) {
+    return;
   }
 
-  // If the operation is `innerHTML`, but the contents haven't changed.
-  var sameInnerHTML = options.inner && element.innerHTML === newHTML;
-  // If the operation is `outerHTML`, but the contents haven't changed.
-  var sameOuterHTML = !options.inner && element.outerHTML === newHTML;
+  var sameInnerHTML = isInner ? previousMarkup === element.innerHTML : true;
+  var sameOuterHTML = !isInner ? previousMarkup === element.outerHTML : true;
+  var sameTextContent = elementMeta._textContent === element.textContent;
 
   // If the contents haven't changed, abort, since there is no point in
   // continuing.
-  if ((sameInnerHTML || sameOuterHTML) && elementMeta.oldTree) {
+  if (elementMeta.newHTML === newHTML) {
+    elementMeta.isRendering = false;
     return;
   }
+
+  // Associate the last markup rendered with this element.
+  elementMeta.newHTML = newHTML;
 
   // Start with worker being a falsy value.
   var worker = null;
@@ -816,29 +797,26 @@ function patchNode(element, newHTML, options) {
     worker = elementMeta.worker = elementMeta.worker || (0, _create.create)();
   }
 
-  if (
-  // If the operation is `innerHTML`, and the current element's contents have
-  // changed since the last render loop, recalculate the tree.
-  options.inner && elementMeta._innerHTML !== element.innerHTML ||
+  var rebuildTree = function rebuildTree() {
+    var oldTree = elementMeta.oldTree;
 
-  // If the operation is `outerHTML`, and the current element's contents have
-  // changed since the last render loop, recalculate the tree.
-  !options.inner && elementMeta._outerHTML !== element.outerHTML ||
-
-  // If the text content ever changes, recalculate the tree.
-  elementMeta._textContent !== element.textContent ||
-
-  // The last render was done via Worker, but now we're rendering in the UI
-  // thread. This is very uncommon, but we need to ensure tree's stay in
-  // sync.
-  elementMeta.renderedViaWorker === true && !options.enableWorker) {
-    if (elementMeta.oldTree) {
-      (0, _memory.unprotectElement)(elementMeta.oldTree, _make2.default);
-      (0, _memory.cleanMemory)();
+    if (oldTree) {
+      (0, _memory.unprotectElement)(oldTree, _make2.default);
+      (0, _memory.cleanMemory)(_make2.default);
     }
 
-    elementMeta.oldTree = (0, _make2.default)(element, true);
+    elementMeta.oldTree = (0, _memory.protectElement)((0, _make2.default)(element));
     elementMeta.updateWorkerTree = true;
+  };
+
+  // The last render was done via Worker, but now we're rendering in the UI
+  // thread. This is very uncommon, but we need to ensure trees stay in sync.
+  if (elementMeta.renderedViaWorker === true && !options.enableWorker) {
+    rebuildTree();
+  }
+
+  if (!sameInnerHTML || !sameOuterHTML || !sameTextContent) {
+    rebuildTree();
   }
 
   // Will want to ensure that the first render went through, the worker can
@@ -847,6 +825,7 @@ function patchNode(element, newHTML, options) {
     // Set a render lock as to not flood the worker.
     elementMeta.isRendering = true;
     elementMeta.renderedViaWorker = true;
+    elementMeta.workerCache = elementMeta.workerCache || [];
 
     // Attach all properties here to transport.
     var transferObject = {};
@@ -858,14 +837,33 @@ function patchNode(element, newHTML, options) {
       elementMeta.updateWorkerTree = false;
     }
 
-    // Attach the parent element's uuid.
-    transferObject.uuid = elementMeta.oldTree.uuid;
+    // Wait for the worker to finish processing and then apply the patchset.
+    worker.onmessage = function (ev) {
+      var wrapRender = function wrapRender(cb) {
+        return function () {
+          elementMeta.hasWorkerRendered = true;
+          cb();
+        };
+      };
+      // Wait until all promises have resolved, before finishing up the patch
+      // cycle.
+      // Process the data immediately and wait until all transition callbacks
+      // have completed.
+      var processPromise = (0, _process2.default)(element, ev.data.patches);
+      var invokeRender = wrapRender((0, _render.completeRender)(element, elementMeta));
+
+      // Operate synchronously unless opted into a Promise-chain.
+      if (processPromise) {
+        processPromise.then(invokeRender).catch(function (ex) {
+          return console.log(ex);
+        });
+      } else {
+        invokeRender();
+      }
+    };
 
     if (typeof newHTML !== 'string') {
       transferObject.newTree = (0, _make2.default)(newHTML);
-
-      // Wait for the worker to finish processing and then apply the patchset.
-      worker.onmessage = (0, _render.completeWorkerRender)(element, elementMeta);
 
       // Transfer this buffer to the worker, which will take over and process the
       // markup.
@@ -881,13 +879,17 @@ function patchNode(element, newHTML, options) {
     // Add properties to send to worker.
     transferObject.isInner = options.inner;
 
-    // Wait for the worker to finish processing and then apply the patchset.
-    worker.onmessage = (0, _render.completeWorkerRender)(element, elementMeta);
-
     // Transfer this buffer to the worker, which will take over and process the
     // markup.
     worker.postMessage(transferObject);
   } else {
+    if (elementMeta.workerCache) {
+      elementMeta.workerCache.forEach(function (x) {
+        return (0, _memory.unprotectElement)(x, _make2.default);
+      });
+      delete elementMeta.workerCache;
+    }
+
     // We're rendering in the UI thread.
     elementMeta.isRendering = true;
 
@@ -900,11 +902,11 @@ function patchNode(element, newHTML, options) {
     if (typeof newHTML === 'string') {
       newTree = (0, _parser.parseHTML)(newHTML, options.inner);
     } else {
-      newTree = options.inner ? [(0, _make2.default)(newHTML)] : (0, _make2.default)(newHTML);
+      newTree = (0, _make2.default)(newHTML);
     }
 
     if (options.inner) {
-      var childNodes = newTree;
+      var childNodes = Array.isArray(newTree) ? newTree : [newTree];
 
       newTree = {
         childNodes: childNodes,
@@ -917,6 +919,7 @@ function patchNode(element, newHTML, options) {
 
     // Synchronize the tree.
     var patches = (0, _sync2.default)(elementMeta.oldTree, newTree);
+    var invokeRender = (0, _render.completeRender)(element, elementMeta);
 
     // Process the data immediately and wait until all transition callbacks
     // have completed.
@@ -924,14 +927,16 @@ function patchNode(element, newHTML, options) {
 
     // Operate synchronously unless opted into a Promise-chain.
     if (processPromise) {
-      processPromise.then(completeUIRender(element, elementMeta));
+      processPromise.then(invokeRender).catch(function (ex) {
+        return console.log(ex);
+      });
     } else {
-      completeUIRender(element, elementMeta)();
+      invokeRender();
     }
   }
 }
 
-},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../worker/create":19,"../worker/render":20,"./make":6,"./sync":9,"./tree":10,"custom-event":22}],8:[function(_dereq_,module,exports){
+},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/render":18,"../worker/create":20,"./make":6,"./sync":9,"./tree":10}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -941,11 +946,13 @@ exports.default = releaseNode;
 
 var _tree = _dereq_('./tree');
 
-var _memory = _dereq_('../util/memory');
-
 var _make = _dereq_('./make');
 
 var _make2 = _interopRequireDefault(_make);
+
+var _memory = _dereq_('../util/memory');
+
+var _pools = _dereq_('../util/pools');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -972,14 +979,21 @@ function releaseNode(element) {
       (0, _memory.unprotectElement)(elementMeta.oldTree, _make2.default);
     }
 
+    if (elementMeta.workerCache) {
+      elementMeta.workerCache.forEach(function (x) {
+        return (0, _memory.unprotectElement)(x, _make2.default);
+      });
+      delete elementMeta.workerCache;
+    }
+
     // Remove this element's meta object from the cache.
     _tree.TreeCache.delete(element);
   }
 
-  (0, _memory.cleanMemory)();
+  (0, _memory.cleanMemory)(_make2.default);
 }
 
-},{"../util/memory":15,"./make":6,"./tree":10}],9:[function(_dereq_,module,exports){
+},{"../util/memory":15,"../util/pools":17,"./make":6,"./tree":10}],9:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -990,18 +1004,7 @@ exports.default = sync;
 
 var _pools2 = _dereq_('../util/pools');
 
-var _memory = _dereq_('../util/memory');
-
-var _make = _dereq_('../node/make');
-
-var _make2 = _interopRequireDefault(_make);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 var pools = _pools2.pools;
-var protectElement = _memory.protectElement;
-var unprotectElement = _memory.unprotectElement;
-var makeNode = _make2.default;
 
 var slice = Array.prototype.slice;
 var filter = Array.prototype.filter;
@@ -1032,14 +1035,16 @@ function sync(oldTree, newTree, patches) {
     throw new Error('Missing existing tree to sync');
   }
 
+  var oldNodeValue = oldTree.nodeValue;
   var oldChildNodes = oldTree.childNodes;
   var oldChildNodesLength = oldChildNodes ? oldChildNodes.length : 0;
   var oldElement = oldTree.uuid;
+  var oldNodeName = oldTree.nodeName;
+  var oldIsTextNode = oldNodeName === '#text';
 
   if (!newTree) {
-    var removed = oldChildNodes.splice(0, oldChildNodesLength);
+    var removed = [oldTree].concat(oldChildNodes.splice(0, oldChildNodesLength));
 
-    //debugger;
     patches[patches.length] = {
       __do__: REMOVE_ENTIRE_ELEMENT,
       element: oldTree,
@@ -1053,6 +1058,8 @@ function sync(oldTree, newTree, patches) {
   var childNodes = newTree.childNodes;
   var childNodesLength = childNodes ? childNodes.length : 0;
   var newElement = newTree.uuid;
+  var nodeName = newTree.nodeName;
+  var newIsTextNode = nodeName === '#text';
 
   // If the element we're replacing is totally different from the previous
   // replace the entire element, don't bother investigating children.
@@ -1067,14 +1074,16 @@ function sync(oldTree, newTree, patches) {
   }
 
   // If the top level nodeValue has changed we should reflect it.
-  if (typeof oldTree.nodeValue === 'string' && typeof nodeValue === 'string') {
-    if (oldTree.nodeValue !== nodeValue) {
-      patches[patches.length] = {
-        __do__: CHANGE_TEXT,
-        element: oldTree,
-        value: newTree.nodeValue
-      };
-    }
+  if (oldIsTextNode && newIsTextNode && oldNodeValue !== nodeValue) {
+    patches[patches.length] = {
+      __do__: CHANGE_TEXT,
+      element: oldTree,
+      value: newTree.nodeValue
+    };
+
+    oldTree.nodeValue = newTree.nodeValue;
+
+    return;
   }
 
   // Most common additive elements.
@@ -1084,17 +1093,11 @@ function sync(oldTree, newTree, patches) {
     var fragment = [];
 
     for (var i = oldChildNodesLength; i < childNodesLength; i++) {
-      protectElement(childNodes[i]);
-
       // Internally add to the tree.
       oldChildNodes[oldChildNodes.length] = childNodes[i];
 
       // Add to the document fragment.
       fragment[fragment.length] = childNodes[i];
-
-      if (childNodes[i].nodeName === '#text') {
-        childNodes[i].nodeValue = childNodes[i].nodeValue;
-      }
     }
 
     oldChildNodesLength = oldChildNodes.length;
@@ -1130,8 +1133,6 @@ function sync(oldTree, newTree, patches) {
             __do__: MODIFY_ELEMENT,
             old: toRemove[i]
           };
-        } else {
-          unprotectElement(toRemove[i], makeNode);
         }
       }
     }
@@ -1150,10 +1151,9 @@ function sync(oldTree, newTree, patches) {
 
         // Replace the internal tree's point of view of this element.
         oldChildNodes[i] = childNodes[i];
-        protectElement(childNodes[i]);
+      } else {
+        sync(oldChildNodes[i], childNodes[i], patches);
       }
-
-      sync(oldChildNodes[i], childNodes[i], patches);
     }
   }
 
@@ -1244,14 +1244,14 @@ function sync(oldTree, newTree, patches) {
   return patches;
 }
 
-},{"../node/make":6,"../util/memory":15,"../util/pools":17}],10:[function(_dereq_,module,exports){
+},{"../util/pools":17}],10:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 // Cache prebuilt trees and lookup by element.
-var TreeCache = exports.TreeCache = new WeakMap();
+var TreeCache = exports.TreeCache = new Map();
 
 },{}],11:[function(_dereq_,module,exports){
 'use strict';
@@ -1281,6 +1281,8 @@ var _sync = _dereq_('../node/sync');
 
 var sync = _interopRequireWildcard(_sync);
 
+var _tree = _dereq_('../node/tree');
+
 var _memory = _dereq_('../util/memory');
 
 var _entities = _dereq_('../util/entities');
@@ -1289,7 +1291,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var blockTextElements = ['script', 'noscript', 'style', 'pre'];
+var blockTextElements = ['script', 'noscript', 'style', 'pre', 'template'];
 
 /**
  * Processes an Array of patches.
@@ -1298,38 +1300,58 @@ var blockTextElements = ['script', 'noscript', 'style', 'pre'];
  * @param e - Object that contains patches.
  */
 function process(element, patches) {
+  var elementMeta = _tree.TreeCache.get(element) || {};
   var promises = [];
   var triggerTransition = transition.buildTrigger(promises);
 
   // Trigger the attached transition state for this element and all childNodes.
-  var attached = function attached(descriptor, fragment) {
-    var element = (0, _get2.default)(descriptor).element;
+  var attached = function attached(descriptor, fragment, parentNode) {
+    (0, _memory.protectElement)(descriptor);
+
+    if (elementMeta.workerCache) {
+      elementMeta.workerCache.push(descriptor);
+    }
+
+    var el = (0, _get2.default)(descriptor).element;
 
     // If the element added was a DOM text node or SVG text element, trigger
     // the textChanged transition.
-    if (descriptor.nodeName === '#text' || descriptor.nodeName === 'text') {
-      var textPromises = transition.makePromises('textChanged', [element], null, descriptor.nodeValue);
+    if (descriptor.nodeName === '#text') {
+      var textPromises = transition.makePromises('textChanged', [el], null, descriptor.nodeValue);
 
-      if (descriptor.nodeName === 'text') {
-        element.innerText = descriptor.nodeValue;
-      } else {
-        element.innerHTML = descriptor.nodeValue;
+      el.textContent = (0, _entities.decodeEntities)(descriptor.nodeValue);
+
+      if (parentNode) {
+        var nodeName = parentNode.nodeName.toLowerCase();
+
+        if (blockTextElements.indexOf(nodeName) > -1) {
+          parentNode.nodeValue = (0, _entities.decodeEntities)(descriptor.nodeValue);
+        }
       }
 
       triggerTransition('textChanged', textPromises, function (promises) {});
     }
 
+    // Ensure all attributes are properly synchronized.
+    if (descriptor.attributes && descriptor.attributes.length) {
+      descriptor.attributes.forEach(function (attr) {
+        el.setAttribute(attr.name, attr.value);
+      });
+    }
+
     // Call all `childNodes` attached callbacks as well.
-    descriptor.childNodes.forEach(function (descriptor) {
-      return attached(descriptor);
-    });
+    if (descriptor.childNodes && descriptor.childNodes.length) {
+      descriptor.childNodes.forEach(function (x) {
+        return attached(x, null, el);
+      });
+    }
 
     // If a document fragment was specified, append the real element into it.
     if (fragment) {
-      fragment.appendChild(element);
+      fragment.appendChild(el);
     }
 
-    return element;
+    return el;
   };
 
   // Loop through all the patches and apply them.
@@ -1411,31 +1433,39 @@ function process(element, patches) {
 
             triggerTransition('attached', attachedPromises, function (promises) {
               allPromises.push.apply(allPromises, promises);
-              attached(newDescriptor);
+              attached(newDescriptor, null, patch.new);
             });
 
             triggerTransition('replaced', replacedPromises, function (promises) {
               allPromises.push.apply(allPromises, promises);
             });
 
+            (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+
+            // Reset the tree cache.
+            _tree.TreeCache.set(patch.new, {
+              oldTree: newDescriptor,
+              element: patch.new
+            });
+
             // Once all the promises have completed, invoke the action, if no
             // promises were added, this will be a synchronous operation.
             if (allPromises.length) {
               Promise.all(allPromises).then(function () {
-                (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
-                (0, _memory.unprotectElement)(newDescriptor, _make2.default);
-
                 if (!patch.old.parentNode) {
+                  (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+
                   throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
                 }
 
                 patch.old.parentNode.replaceChild(patch.new, patch.old);
+              }, function (ex) {
+                console.log(ex);
               });
             } else {
-              (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
-              (0, _memory.unprotectElement)(newDescriptor, _make2.default);
-
               if (!patch.old.parentNode) {
+                (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+
                 throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
               }
 
@@ -1453,8 +1483,8 @@ function process(element, patches) {
 
                 // Loop over every element to be added and process the descriptor
                 // into the real element and append into the DOM fragment.
-                toAttach = patch.fragment.map(function (x) {
-                  return attached(x, fragment);
+                toAttach = patch.fragment.map(function (el) {
+                  return attached(el, fragment, patch.element);
                 });
 
                 // Turn elements into childNodes of the patch element.
@@ -1537,6 +1567,14 @@ function process(element, patches) {
 
                         patch.old.parentNode.replaceChild(patch.new, patch.old);
                         (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+
+                        (0, _memory.protectElement)(newDescriptor);
+
+                        if (elementMeta.workerCache) {
+                          elementMeta.workerCache.push(newDescriptor);
+                        }
+                      }, function (ex) {
+                        console.log(ex);
                       });
                     } else {
                       if (!patch.old.parentNode) {
@@ -1548,6 +1586,11 @@ function process(element, patches) {
 
                       patch.old.parentNode.replaceChild(patch.new, patch.old);
                       (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+                      (0, _memory.protectElement)(newDescriptor);
+
+                      if (elementMeta.workerCache) {
+                        elementMeta.workerCache.push(newDescriptor);
+                      }
                     }
                   })();
                 }
@@ -1579,13 +1622,14 @@ function process(element, patches) {
                 var textChangePromises = transition.makePromises('textChanged', [patch.element], patch.element.nodeValue, patch.value);
 
                 triggerTransition('textChanged', textChangePromises, function (promises) {
-                  patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
+                  elementDescriptor.nodeValue = (0, _entities.decodeEntities)(patch.value);
+                  patch.element.nodeValue = elementDescriptor.nodeValue;
 
                   if (patch.element.parentNode) {
                     var nodeName = patch.element.parentNode.nodeName.toLowerCase();
 
-                    if (blockTextElements[nodeName]) {
-                      patch.element.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.value);
+                    if (blockTextElements.indexOf(nodeName) > -1) {
+                      patch.element.parentNode.nodeValue = elementDescriptor.nodeValue;
                     }
                   }
                 });
@@ -1602,11 +1646,11 @@ function process(element, patches) {
 
   // Wait until all transition promises have resolved.
   if (activePromises.length) {
-    return Promise.all(promises.filter(Boolean));
+    return Promise.all(activePromises);
   }
 }
 
-},{"../element/custom":1,"../element/get":2,"../node/make":6,"../node/sync":9,"../transitions":13,"../util/entities":14,"../util/memory":15,"../util/pools":17}],12:[function(_dereq_,module,exports){
+},{"../element/custom":1,"../element/get":2,"../node/make":6,"../node/sync":9,"../node/tree":10,"../transitions":13,"../util/entities":14,"../util/memory":15,"../util/pools":17}],12:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1803,7 +1847,9 @@ function buildTrigger(allPromises) {
       if (!promises.length) {
         callback(promises);
       } else {
-        Promise.all(promises).then(callback, callback);
+        Promise.all(promises).then(callback, function (ex) {
+          console.log(ex);
+        });
       }
     } else {
       callback();
@@ -1911,15 +1957,11 @@ var makeNode = _make2.default;
 function protectElement(element) {
   pools.elementObject.protect(element);
 
+  element.attributes.forEach(pools.attributeObject.protect, pools.attributeObject);
+
   if (element.childNodes) {
     element.childNodes.forEach(protectElement);
   }
-
-  if (!element.attributes) {
-    console.log(element);debugger;
-  }
-
-  element.attributes.forEach(pools.attributeObject.protect, pools.attributeObject);
 
   return element;
 }
@@ -1931,15 +1973,15 @@ function protectElement(element) {
  * @return
  */
 function unprotectElement(element, makeNode) {
-  if (element.childNodes) {
-    element.childNodes.forEach(function (element) {
-      unprotectElement(element, makeNode);
-    });
-  }
+  pools.elementObject.unprotect(element);
 
   element.attributes.forEach(pools.attributeObject.unprotect, pools.attributeObject);
 
-  pools.elementObject.unprotect(element);
+  if (element.childNodes) {
+    element.childNodes.forEach(function (node) {
+      return unprotectElement(node, makeNode);
+    });
+  }
 
   if (makeNode && makeNode.nodes) {
     delete makeNode.nodes[element.uuid];
@@ -1951,10 +1993,19 @@ function unprotectElement(element, makeNode) {
 /**
  * Recycles all unprotected allocations.
  */
-function cleanMemory() {
+function cleanMemory(makeNode) {
   // Free all memory after each iteration.
   pools.attributeObject.freeAll();
   pools.elementObject.freeAll();
+
+  // Clean out unused elements.
+  if (makeNode && makeNode.nodes) {
+    for (var uuid in makeNode.nodes) {
+      if (!pools.elementObject._uuid[uuid]) {
+        delete makeNode.nodes[uuid];
+      }
+    }
+  }
 }
 
 },{"../node/make":6,"../util/pools":17}],16:[function(_dereq_,module,exports){
@@ -2311,7 +2362,9 @@ function createPool(name, opts) {
 
       // Move the value out of allocated, since we need to protect this from
       // being free'd accidentally.
-      _protect.push(idx === -1 ? value : allocated.splice(idx, 1)[0]);
+      if (_protect.indexOf(value) === -1) {
+        _protect.push(idx === -1 ? value : allocated.splice(idx, 1)[0]);
+      }
 
       // If we're protecting an element object, push the uuid into a lookup
       // table.
@@ -2325,8 +2378,9 @@ function createPool(name, opts) {
 
       if (idx !== -1) {
         var obj = _protect.splice(idx, 1)[0];
+
         if (obj) {
-          allocated.push(obj);
+          _free.push(obj);
         }
 
         if (name === 'elementObject') {
@@ -2395,7 +2449,79 @@ function initializePools(COUNT) {
 // Create 10k items of each type.
 initializePools(count);
 
-},{"./uuid":18}],18:[function(_dereq_,module,exports){
+},{"./uuid":19}],18:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.completeRender = completeRender;
+
+var _customEvent = _dereq_('custom-event');
+
+var _customEvent2 = _interopRequireDefault(_customEvent);
+
+var _patch = _dereq_('../node/patch');
+
+var _patch2 = _interopRequireDefault(_patch);
+
+var _make = _dereq_('../node/make');
+
+var _make2 = _interopRequireDefault(_make);
+
+var _tree = _dereq_('../node/tree');
+
+var _memory = _dereq_('../util/memory');
+
+var _pools = _dereq_('../util/pools');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function renderNext(elementMeta) {
+  var nextRender = elementMeta.renderBuffer;
+  elementMeta.renderBuffer = undefined;
+
+  // Noticing some weird performance implications with this concept.
+  (0, _patch2.default)(nextRender.element, nextRender.newHTML, nextRender.options);
+}
+
+/**
+ * When the UI or Worker thread completes, clean up memory and schedule the
+ * next render if necessary.
+ *
+ * @param element
+ * @param elementMeta
+ */
+function completeRender(element, elementMeta) {
+  return function invokeRender() {
+    elementMeta.previousMarkup = elementMeta.options.inner ? element.innerHTML : element.outerHTML;
+    elementMeta._textContent = element.textContent;
+
+    (0, _memory.cleanMemory)(_make2.default);
+
+    elementMeta.isRendering = false;
+
+    var stopLooping = false;
+
+    // This is designed to handle use cases where renders are being hammered
+    // or when transitions are used with Promises.
+    if (elementMeta.renderBuffer) {
+      renderNext(elementMeta);
+    } else {
+      _tree.TreeCache.forEach(function (elementMeta) {
+        if (!stopLooping && elementMeta.renderBuffer) {
+          renderNext(elementMeta);
+          stopLooping = true;
+        }
+      });
+    }
+
+    // Dispatch an event on the element once rendering has completed.
+    element.dispatchEvent(new _customEvent2.default('renderComplete'));
+  };
+}
+
+},{"../node/make":6,"../node/patch":7,"../node/tree":10,"../util/memory":15,"../util/pools":17,"custom-event":22}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2416,7 +2542,7 @@ function uuid() {
   });
 }
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2508,80 +2634,7 @@ function create() {
   return worker;
 }
 
-},{"../node/make":6,"../node/sync":9,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/uuid":18,"./source":21}],20:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.completeWorkerRender = completeWorkerRender;
-
-var _process = _dereq_('../patches/process');
-
-var _process2 = _interopRequireDefault(_process);
-
-var _patch = _dereq_('../node/patch');
-
-var _patch2 = _interopRequireDefault(_patch);
-
-var _memory = _dereq_('../util/memory');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * When the worker completes, clean up memory and schedule the next render if
- * necessary.
- *
- * @param element
- * @param elementMeta
- * @return {Function}
- */
-function completeWorkerRender(element, elementMeta) {
-  return function (ev) {
-    var completeRender = function completeRender() {
-      // Reset internal caches for quicker lookups in the futures.
-      elementMeta._innerHTML = element.innerHTML;
-      elementMeta._outerHTML = element.outerHTML;
-      elementMeta._textContent = element.textContent;
-
-      // Recycle all unprotected allocations.
-      (0, _memory.cleanMemory)();
-
-      elementMeta.hasWorkerRendered = true;
-      elementMeta.isRendering = false;
-
-      // This is designed to handle use cases where renders are being hammered
-      // or when transitions are used with Promises.
-      if (elementMeta.renderBuffer) {
-        var nextRender = elementMeta.renderBuffer;
-
-        // Reset the buffer.
-        elementMeta.renderBuffer = undefined;
-
-        // Noticing some weird performance implications with this concept.
-        (0, _patch2.default)(element, nextRender.newHTML, nextRender.options);
-      }
-
-      // Dispatch an event on the element once rendering has completed.
-      element.dispatchEvent(new CustomEvent('renderComplete'));
-    };
-
-    // Wait until all promises have resolved, before finishing up the patch
-    // cycle.
-    // Process the data immediately and wait until all transition callbacks
-    // have completed.
-    var processPromise = (0, _process2.default)(element, ev.data.patches);
-
-    // Operate synchronously unless opted into a Promise-chain.
-    if (processPromise) {
-      processPromise.then(completeRender);
-    } else {
-      completeRender();
-    }
-  };
-}
-
-},{"../node/patch":7,"../patches/process":11,"../util/memory":15}],21:[function(_dereq_,module,exports){
+},{"../node/make":6,"../node/sync":9,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/uuid":19,"./source":21}],21:[function(_dereq_,module,exports){
 'use strict';
 
 // These are globally defined to avoid issues with JSHint thinking that we're
@@ -2626,6 +2679,7 @@ function startup(worker) {
     if (data.oldTree) {
       if (oldTree) {
         unprotectElement(oldTree);
+        cleanMemory();
       }
 
       oldTree = data.oldTree;
@@ -2663,7 +2717,7 @@ function startup(worker) {
     // produce a series of patches that will be executed to update the DOM.
     syncNode(oldTree, newTree, patches);
 
-    // Protect the current `oldTree` so that no Nodes will be accidentally
+    // Protect the current `oldTree` so that Nodes will not be accidentally
     // recycled in the cleanup process.
     protectElement(oldTree);
 

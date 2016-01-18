@@ -1,4 +1,5 @@
 import * as diff from '../../lib/index.js';
+import validateMemory from '../util/validateMemory';
 
 describe('Integration: Custom Elements', function() {
   beforeEach(function() {
@@ -9,6 +10,8 @@ describe('Integration: Custom Elements', function() {
   afterEach(function() {
     diff.release(this.fixture);
     diff.removeTransitionState();
+
+    validateMemory();
   });
 
   it('cannot register over an existing component', function() {

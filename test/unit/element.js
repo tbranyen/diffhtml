@@ -1,7 +1,13 @@
 import getElement from '../../lib/element/get';
 import makeElement from '../../lib/element/make';
+import makeNode from '../../lib/node/make';
 
 describe('Unit: Element', function() {
+  afterEach(function() {
+    delete makeNode.nodes.some_uuid;
+    delete makeNode.nodes.some_uuid_1;
+  });
+
   describe('get', function() {
     it('creates an element from descriptor on first access', function() {
       var retVal = getElement({
@@ -33,7 +39,7 @@ describe('Unit: Element', function() {
   describe('make', function() {
     it('can create an empty element', function() {
       var element = makeElement({
-        uuid: 'some_uuid_0',
+        uuid: 'some_uuid',
         nodeName: 'p'
       });
 
@@ -43,8 +49,13 @@ describe('Unit: Element', function() {
     });
 
     it('will return the same element if same element uuid is used', function() {
+      makeElement({
+        uuid: 'some_uuid',
+        nodeName: 'p'
+      });
+
       var element = makeElement({
-        uuid: 'some_uuid_0',
+        uuid: 'some_uuid',
         nodeName: 'span'
       });
 
@@ -55,7 +66,7 @@ describe('Unit: Element', function() {
 
     it('can set text content', function() {
       var element = makeElement({
-        uuid: 'some_uuid_2',
+        uuid: 'some_uuid',
         nodeName: 'p',
         nodeValue: 'hello'
       });
@@ -66,9 +77,9 @@ describe('Unit: Element', function() {
 
     it('can create an element with children', function() {
       var element = makeElement({
-        uuid: 'some_uuid_3',
+        uuid: 'some_uuid',
         nodeName: 'div',
-        childNodes: [{ uuid: 'some_uuid_4', nodeName: 'p', nodeValue: 'hello' }]
+        childNodes: [{ uuid: 'some_uuid_1', nodeName: 'p', nodeValue: 'hello' }]
       });
 
       assert.equal(element.childNodes[0].nodeName, 'P');
@@ -77,7 +88,7 @@ describe('Unit: Element', function() {
 
     it('can create an element with attributes', function() {
       var element = makeElement({
-        uuid: 'some_uuid_5',
+        uuid: 'some_uuid',
         nodeName: 'div',
         attributes: [{ name: 'class', value: 'some_Value' }]
       });

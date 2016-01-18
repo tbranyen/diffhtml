@@ -21,6 +21,7 @@
     "browserify-istanbul": "^0.2.1",
     "coveralls": "^2.11.6",
     "custom-event": "^1.0.0",
+    "es6-collections": "^0.5.5",
     "http-server": "^0.8.5",
     "isparta": "^4.0.0",
     "jshint": "^2.8.0",
@@ -33,7 +34,6 @@
     "phantomjs": "^1.9.19",
     "phantomjs-polyfill": "^0.0.1",
     "promise-polyfill": "^2.1.4",
-    "watchify": "^3.6.1",
-    "weakmap": "^0.0.6"
+    "watchify": "^3.6.1"
   }
 }

@@ -1,4 +1,5 @@
 import * as diff from '../../lib/index.js';
+import validateMemory from '../util/validateMemory';
 
 describe('Integration: element', function() {
   beforeEach(function() {
@@ -9,6 +10,8 @@ describe('Integration: element', function() {
   afterEach(function() {
     diff.release(this.fixture);
     diff.removeTransitionState();
+
+    validateMemory();
   });
 
   it('can not replace an element not in the dom', function() {
