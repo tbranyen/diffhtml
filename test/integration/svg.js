@@ -1,4 +1,5 @@
 import * as diff from '../../lib/index.js';
+import validateMemory from '../util/validateMemory';
 
 describe('Integration: SVG', function() {
   beforeEach(function() {
@@ -10,6 +11,8 @@ describe('Integration: SVG', function() {
   afterEach(function() {
     diff.release(this.fixture);
     diff.removeTransitionState();
+
+    validateMemory();
   });
 
   describe('Support', function() {

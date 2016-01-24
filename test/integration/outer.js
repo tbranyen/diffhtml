@@ -1,4 +1,5 @@
 import * as diff from '../../lib/index.js';
+import validateMemory from '../util/validateMemory';
 
 describe('Integration: outerHTML', function() {
   beforeEach(function() {
@@ -7,8 +8,11 @@ describe('Integration: outerHTML', function() {
   });
 
   afterEach(function() {
+    diff.release(this.fixture.firstChild);
     diff.release(this.fixture);
     diff.removeTransitionState();
+
+    validateMemory();
   });
 
   it('can recalculate the tree if contents are unexpectedly changed', function() {

@@ -1,4 +1,5 @@
 import * as diff from '../../lib/index.js';
+import validateMemory from '../util/validateMemory';
 
 describe('Integration: Basics', function() {
   beforeEach(function() {
@@ -9,6 +10,8 @@ describe('Integration: Basics', function() {
   afterEach(function() {
     diff.release(this.fixture);
     diff.removeTransitionState();
+
+    validateMemory();
   });
 
   describe('Expose API', function() {
@@ -163,6 +166,7 @@ describe('Integration: Basics', function() {
               assert.equal(this.fixture.childNodes[2].className, '3');
               break;
             }
+
             case 2: {
               assert.equal(this.fixture.childNodes[0].nodeName, 'P');
               assert.equal(this.fixture.childNodes[0].className, '1');
@@ -170,6 +174,7 @@ describe('Integration: Basics', function() {
               assert.equal(this.fixture.childNodes[1].nodeName, 'P');
               assert.equal(this.fixture.childNodes[1].className, '3');
             }
+
             default: {
               diff.innerHTML(this.fixture, '<p class=1></p><p class=3></p><p class=2></p>', {
                 enableWorker: true
@@ -209,15 +214,21 @@ describe('Integration: Basics', function() {
           return elements.join('\n');
         };
 
-        this.fixture.addEventListener('renderComplete', function() {
+        this.fixture.addEventListener('renderComplete', ev => {
           count++;
 
           if (count === 3) {
-            assert.equal(this.fixture.querySelectorAll('p, strong, div, span').length, 100);
+            assert.equal(
+              this.fixture.querySelectorAll('p, strong, div, span').length,
+              100
+            );
             done();
           }
           else if (count === 1) {
-            assert.equal(this.fixture.querySelectorAll('p, strong, div, span').length, 1000);
+            assert.equal(
+              this.fixture.querySelectorAll('p, strong, div, span').length,
+              1000
+            );
 
             diff.innerHTML(this.fixture, makePs(10), {
               enableWorker: false
@@ -227,7 +238,7 @@ describe('Integration: Basics', function() {
               enableWorker: false
             });
           }
-        }.bind(this));
+        });
 
         diff.innerHTML(this.fixture, makePs(1000), {
           enableWorker: true
