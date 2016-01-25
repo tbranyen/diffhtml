@@ -558,7 +558,6 @@ function enableProllyfill() {
     _tree.TreeCache.forEach(function (elementMeta, element) {
       if (elementMeta.isRendering) {
         bufferSet = true;
-        console.log('here');
       }
     });
 
@@ -883,6 +882,10 @@ function patchNode(element, newHTML, options) {
     // markup.
     worker.postMessage(transferObject);
   } else {
+    if (elementMeta.renderedViaWorker && elementMeta.oldTree) {
+      rebuildTree();
+    }
+
     if (elementMeta.workerCache) {
       elementMeta.workerCache.forEach(function (x) {
         return (0, _memory.unprotectElement)(x, _make2.default);
@@ -1126,14 +1129,12 @@ function sync(oldTree, newTree, patches) {
       };
     } else {
       for (var i = 0; i < toRemove.length; i++) {
-        if (toRemove[i].nodeName !== '#text' || toRemove[i].nodeValue.trim()) {
-          // Remove the element, this happens before the splice so that we
-          // still have access to the element.
-          patches[patches.length] = {
-            __do__: MODIFY_ELEMENT,
-            old: toRemove[i]
-          };
-        }
+        // Remove the element, this happens before the splice so that we
+        // still have access to the element.
+        patches[patches.length] = {
+          __do__: MODIFY_ELEMENT,
+          old: toRemove[i]
+        };
       }
     }
   }
