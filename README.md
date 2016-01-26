@@ -1,4 +1,4 @@
-diffhtml
+diffHTML
 --------
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
@@ -8,8 +8,10 @@ Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&ser
 
 Inspired by React and motivated by the Web, this is a low-level tool which aims
 to help web developers write applications. By focusing on the markup
-representing how your application state should look, diffhtml will figure out
+representing how your application state should look, diffHTML will figure out
 how to modify the page with the fewest amount of operations.
+
+<img src="https://raw.githubusercontent.com/tbranyen/diffhtml/gh-pages/kiwi.png" width="120px">
 
 **Features:**
 
@@ -172,12 +174,12 @@ diff.enableProllyfill();
 ```
 
 *Disclaimer: By calling this method, you are agreeing that it's okay for
-diffhtml to modify your browser's `HTMLElement` constructor,
+diffHTML to modify your browser's `HTMLElement` constructor,
 `Element.prototype`, the `document` object, and run some logic on your page
 load event.*
 
 If you have already loaded the page (meaning the load event has fired),
-diffhtml will immediately search the page for Custom Elements and automatically
+diffHTML will immediately search the page for Custom Elements and automatically
 initialize them. If the page has not yet loaded, it will wait before invoking
 which gives you time to register your elements first.
 
@@ -211,7 +213,7 @@ document.querySelector('main').diffElement(newElement);
 
 ##### `Element.prototype.diffRelease`
 
-Cleans up after diffhtml and removes the associated worker.
+Cleans up after diffHTML and removes the associated worker.
 
 ``` javascript
 var newElement = document.createElement('main');
