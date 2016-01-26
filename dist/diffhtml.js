@@ -503,13 +503,15 @@ function enableProllyfill() {
   // Polyfill in the `registerElement` method if it doesn't already exist. This
   // requires patching `createElement` as well to ensure that the proper proto
   // chain exists.
-  Object.defineProperty(document, 'registerElement', {
-    configurable: true,
+  if (!realRegisterElement) {
+    Object.defineProperty(document, 'registerElement', {
+      configurable: true,
 
-    value: function value(tagName, component) {
-      registerElement(tagName, component);
-    }
-  });
+      value: function value(tagName, component) {
+        registerElement(tagName, component);
+      }
+    });
+  }
 
   // If HTMLElement is an object, rejigger it to work like a function so that
   // it can be extended. Specifically affects IE and Safari.
@@ -587,13 +589,13 @@ function enableProllyfill() {
     window.removeEventListener('load', activateComponents);
   };
 
-  // This section will automatically parse out your entire page to ensure all
-  // custom elements are hooked into.
-  window.addEventListener('load', activateComponents);
-
   // If the document has already loaded, immediately activate the components.
   if (document.readyState === 'complete') {
     activateComponents();
+  } else {
+    // This section will automatically parse out your entire page to ensure all
+    // custom elements are hooked into.
+    window.addEventListener('load', activateComponents);
   }
 }
 
@@ -2113,7 +2115,6 @@ function makeParser() {
     script: true,
     noscript: true,
     style: true,
-    pre: true,
     template: true
   };
 
