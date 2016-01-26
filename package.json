@@ -1,6 +1,6 @@
 {
   "name": "diffhtml",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "",
   "main": "dist/diffhtml",
   "author": "Tim Branyen (@tbranyen)",
@@ -14,26 +14,26 @@
     "test": "npm run jshint && karma start --single-run"
   },
   "devDependencies": {
-    "babel-core": "^6.4.0",
+    "babel-core": "^6.4.5",
     "babel-preset-es2015": "^6.3.13",
     "babelify": "^7.2.0",
-    "browserify": "^12.0.1",
+    "browserify": "^13.0.0",
     "browserify-istanbul": "^0.2.1",
     "coveralls": "^2.11.6",
     "custom-event": "^1.0.0",
     "es6-collections": "^0.5.5",
     "http-server": "^0.8.5",
     "isparta": "^4.0.0",
-    "jshint": "^2.8.0",
+    "jshint": "^2.9.1",
     "karma": "^0.13.19",
-    "karma-browserify": "^4.4.2",
+    "karma-browserify": "^5.0.1",
     "karma-coverage": "^0.5.3",
     "karma-mocha": "^0.2.1",
     "karma-phantomjs-launcher": "^0.2.3",
     "mocha": "^2.3.4",
-    "phantomjs": "^1.9.19",
+    "phantomjs": "^2.1.2",
     "phantomjs-polyfill": "^0.0.1",
-    "promise-polyfill": "^2.1.4",
-    "watchify": "^3.6.1"
+    "promise-polyfill": "^3.1.0",
+    "watchify": "^3.7.0"
   }
 }
