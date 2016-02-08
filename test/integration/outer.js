@@ -27,16 +27,17 @@ describe('Integration: outerHTML', function() {
   it('can replace the documentElement', function() {
     var doc = document.implementation.createHTMLDocument();
     doc.open();
-    doc.write('<html><head></head></html>');
+    doc.write('<html><head><title>Test</title></head></html>');
 
     var documentElement = doc.documentElement;
     var originalSource = documentElement.outerHTML;
 
     diff.outerHTML(documentElement, '<html><head></head></html>');
-    assert.equal(documentElement.childNodes.length, 1);
+    assert.equal(documentElement.childNodes[0].childNodes.length, 0);
 
     diff.outerHTML(documentElement, originalSource);
-    assert.equal(documentElement.childNodes.length, 2);
+    assert.equal(documentElement.childNodes[0].childNodes.length, 1);
+    assert.equal(documentElement.childNodes[0].childNodes[0].childNodes[0].nodeValue, 'Test');
 
     diff.release(documentElement);
     doc.close();

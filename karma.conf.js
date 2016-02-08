@@ -8,7 +8,6 @@ module.exports = function(config) {
 
     files: [
       'node_modules/promise-polyfill/Promise.js',
-      'node_modules/phantomjs-polyfill/bind-polyfill.js',
       'node_modules/es6-collections/es6-collections.js',
       'lib/**/*.js',
       'test/assert.js',
