@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "underscore": "^1.8.3",
-    "combyne": "tbranyen/combyne"
+    "combyne": "^0.8.1"
   },
   "devDependencies": {},
   "scripts": {
