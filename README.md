@@ -120,10 +120,10 @@ You can do fun, highly specific, filters:
 
 ``` javascript
 addTransitionState('attached', function(element) {
- // Fade in the main container after it's attached into the DOM.
- if (element.matches('body main.container')) {
-   $(element).stop(true, true).fadeIn();
- }
+  // Fade in the main container after it's attached into the DOM.
+  if (element.matches('body main.container')) {
+    $(element).stop(true, true).fadeIn();
+  }
 });
 ```
 
