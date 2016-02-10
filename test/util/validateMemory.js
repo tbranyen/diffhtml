@@ -5,10 +5,10 @@ import makeNode from '../../lib/node/make';
  * Validates that the memory has been successfully cleaned per render.
  */
 export default function validateMemory() {
-  assert.equal(pools.elementObject.cache.protected.length, 0,
+  assert.equal(pools.elementObject.cache.protected.size, 0,
     'Should not leave leftover protected elements');
 
-  assert.equal(pools.elementObject.cache.allocated.length, 0,
+  assert.equal(pools.elementObject.cache.allocated.size, 0,
     'Should not leave leftover allocations');
 
   assert.equal(Object.keys(pools.elementObject.cache.uuid).length, 0,

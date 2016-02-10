@@ -643,6 +643,9 @@ function make(node) {
   // Set a lowercased (normalized) version of the element's nodeName.
   entry.nodeName = node.nodeName.toLowerCase();
 
+  // Keep consistent with our internal HTML parser and set the nodeType.
+  entry.nodeType = node.nodeType;
+
   // If the element is a text node set the nodeValue.
   if (nodeType === 3) {
     entry.nodeValue = node.textContent;
@@ -675,7 +678,7 @@ function make(node) {
   var childNodesLength = childNodes.length;
 
   // If the element has child nodes, convert them all to virtual nodes.
-  if (node.nodeType !== 3 && childNodes) {
+  if (entry.nodeType !== 3 && childNodesLength) {
     for (var i = 0; i < childNodesLength; i++) {
       var newNode = make(childNodes[i]);
 
@@ -2396,8 +2399,8 @@ function createPool(name, opts) {
 
   var cache = {
     free: [],
-    allocated: [],
-    protected: [],
+    allocated: new Set(),
+    protected: new Set(),
     uuid: {}
   };
 
@@ -2410,58 +2413,42 @@ function createPool(name, opts) {
     cache: cache,
 
     get: function get() {
-      var obj = null;
-      var freeLength = cache.free.length;
-      var minusOne = freeLength - 1;
-
-      if (freeLength) {
-        obj = cache.free[minusOne];
-        cache.free.length = minusOne;
-      } else {
-        obj = fill();
-      }
-
-      cache.allocated.push(obj);
-
-      return obj;
+      var value = cache.free.pop() || fill();
+      cache.allocated.add(value);
+      return value;
     },
     protect: function protect(value) {
-      var idx = cache.allocated.indexOf(value);
+      cache.allocated.delete(value);
+      cache.protected.add(value);
 
-      // Move the value out of allocated, since we need to protect this from
-      // being free'd accidentally.
-      if (cache.protected.indexOf(value) === -1) {
-        cache.protected.push(idx === -1 ? value : cache.allocated.splice(idx, 1)[0]);
-      }
-
-      // If we're protecting an element object, push the uuid into a lookup
-      // table.
       if (name === 'elementObject') {
         cache.uuid[value.uuid] = value;
       }
     },
     unprotect: function unprotect(value) {
-      var idx = cache.protected.indexOf(value);
+      if (cache.protected.has(value)) {
+        cache.protected.delete(value);
+        cache.free.push(value);
+      }
 
-      if (idx !== -1) {
-        var obj = cache.protected.splice(idx, 1)[0];
-
-        if (obj) {
-          cache.free.push(obj);
-        }
-
-        if (name === 'elementObject') {
-          delete cache.uuid[value.uuid];
-        }
+      if (name === 'elementObject') {
+        delete cache.uuid[value.uuid];
       }
     },
     freeAll: function freeAll() {
       var freeLength = cache.free.length;
       var minusOne = freeLength - 1;
-      var reAlloc = cache.allocated.slice(0, size - minusOne);
+
+      // All of this could go away if we could figure out `Array.from` within
+      // a PhantomJS web-worker.
+      var reAlloc = [];
+      cache.allocated.forEach(function (v) {
+        return reAlloc.push(v);
+      });
+      reAlloc = reAlloc.slice(0, size - minusOne);
 
       cache.free.push.apply(cache.free, reAlloc);
-      cache.allocated.length = 0;
+      cache.allocated.clear();
 
       if (name === 'elementObject') {
         reAlloc.forEach(function (element) {
@@ -2470,10 +2457,8 @@ function createPool(name, opts) {
       }
     },
     free: function free(value) {
-      var idx = cache.allocated.indexOf(value);
-
       // Already freed.
-      if (idx === -1) {
+      if (!cache.allocated.has(value)) {
         return;
       }
 
@@ -2482,7 +2467,7 @@ function createPool(name, opts) {
         cache.free.push(value);
       }
 
-      cache.allocated.splice(idx, 1);
+      cache.allocated.delete(value);
     }
   };
 }
