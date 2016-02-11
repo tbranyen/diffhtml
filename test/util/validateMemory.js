@@ -11,7 +11,7 @@ export default function validateMemory() {
   assert.equal(pools.elementObject.cache.allocated.size, 0,
     'Should not leave leftover allocations');
 
-  assert.equal(Object.keys(pools.elementObject.cache.uuid).length, 0,
+  assert.equal(pools.elementObject.cache.uuid.size, 0,
     'All UUIDs should be unprotected');
 
   assert.equal(Object.keys(makeNode.nodes).length, 0,

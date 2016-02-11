@@ -2000,7 +2000,7 @@ function cleanMemory(makeNode) {
   // Clean out unused elements.
   if (makeNode && makeNode.nodes) {
     for (var uuid in makeNode.nodes) {
-      if (!pools.elementObject.cache.uuid[uuid]) {
+      if (!pools.elementObject.cache.uuid.has(uuid)) {
         delete makeNode.nodes[uuid];
       }
     }
@@ -2401,7 +2401,7 @@ function createPool(name, opts) {
     free: [],
     allocated: new Set(),
     protected: new Set(),
-    uuid: {}
+    uuid: new Set()
   };
 
   // Prime the cache with n objects.
@@ -2422,7 +2422,7 @@ function createPool(name, opts) {
       cache.protected.add(value);
 
       if (name === 'elementObject') {
-        cache.uuid[value.uuid] = value;
+        cache.uuid.add(value.uuid);
       }
     },
     unprotect: function unprotect(value) {
@@ -2432,29 +2432,22 @@ function createPool(name, opts) {
       }
 
       if (name === 'elementObject') {
-        delete cache.uuid[value.uuid];
+        cache.uuid.delete(value.uuid);
       }
     },
     freeAll: function freeAll() {
-      var freeLength = cache.free.length;
-      var minusOne = freeLength - 1;
-
       // All of this could go away if we could figure out `Array.from` within
       // a PhantomJS web-worker.
-      var reAlloc = [];
-      cache.allocated.forEach(function (v) {
-        return reAlloc.push(v);
+      cache.allocated.forEach(function (value) {
+        cache.free.push(value);
+
+        if (name === 'elementObject') {
+          cache.uuid.delete(value.uuid);
+        }
       });
-      reAlloc = reAlloc.slice(0, size - minusOne);
 
-      cache.free.push.apply(cache.free, reAlloc);
       cache.allocated.clear();
-
-      if (name === 'elementObject') {
-        reAlloc.forEach(function (element) {
-          return delete cache.uuid[element.uuid];
-        });
-      }
+      cache.free.length = size;
     },
     free: function free(value) {
       // Already freed.

@@ -14,9 +14,9 @@ describe('Integration: Memory management', function() {
 
   it('can allocate/deallocate uuids', function() {
     diff.innerHTML(this.fixture, '<p></p>');
-    assert.equal(Object.keys(pools.elementObject.cache.uuid).length, 2);
+    assert.equal(pools.elementObject.cache.uuid.size, 2);
 
     diff.innerHTML(this.fixture, '');
-    assert.equal(Object.keys(pools.elementObject.cache.uuid).length, 1);
+    assert.equal(pools.elementObject.cache.uuid.size, 1);
   });
 });
