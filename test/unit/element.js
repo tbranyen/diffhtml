@@ -6,6 +6,7 @@ describe('Unit: Element', function() {
   afterEach(function() {
     delete makeNode.nodes.some_uuid;
     delete makeNode.nodes.some_uuid_1;
+    delete makeNode.nodes.some_uuid_text;
   });
 
   describe('get', function() {
@@ -13,7 +14,11 @@ describe('Unit: Element', function() {
       var retVal = getElement({
         uuid: 'some_uuid',
         nodeName: 'div',
-        nodeValue: 'test'
+        childNodes: [{
+          uuid: 'some_uuid_text',
+          nodeName: '#text',
+          nodeValue: 'test'
+        }]
       });
 
       assert.equal(retVal.uuid, 'some_uuid');
@@ -25,7 +30,11 @@ describe('Unit: Element', function() {
       getElement({
         uuid: 'some_uuid',
         nodeName: 'div',
-        nodeValue: 'test'
+        childNodes: [{
+          uuid: 'some_uuid_text',
+          nodeName: '#text',
+          nodeValue: 'test'
+        }]
       });
 
       var retVal = getElement({ uuid: 'some_uuid' });
@@ -68,7 +77,11 @@ describe('Unit: Element', function() {
       var element = makeElement({
         uuid: 'some_uuid',
         nodeName: 'p',
-        nodeValue: 'hello'
+        childNodes: [{
+          uuid: 'some_uuid_text',
+          nodeName: '#text',
+          nodeValue: 'hello'
+        }]
       });
 
       assert.equal(element.nodeName, 'P');
@@ -79,7 +92,15 @@ describe('Unit: Element', function() {
       var element = makeElement({
         uuid: 'some_uuid',
         nodeName: 'div',
-        childNodes: [{ uuid: 'some_uuid_1', nodeName: 'p', nodeValue: 'hello' }]
+        childNodes: [{
+          uuid: 'some_uuid_1',
+          nodeName: 'p',
+          childNodes: [{
+            uuid: 'some_uuid_text',
+            nodeName: '#text',
+            nodeValue: 'hello'
+          }]
+        }]
       });
 
       assert.equal(element.childNodes[0].nodeName, 'P');

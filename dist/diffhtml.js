@@ -24,7 +24,7 @@ function upgrade(tagName, element) {
 
   // If no Custom Element was registered, bail early. Don't need to upgrade
   // if the element was already processed..
-  if (!CustomElement || element instanceof CustomElement) {
+  if (element instanceof CustomElement) {
     return false;
   }
 
@@ -141,14 +141,10 @@ function make(descriptor) {
     }
   }
 
-  // Set the text content, this should be refactored such that only text nodes
-  // should ever get assigned a value.
-  if (descriptor.nodeValue) {
-    element.textContent = (0, _entities.decodeEntities)(descriptor.nodeValue);
+  // Upgrade the element after creating it, if necessary.
+  if (CustomElement) {
+    (0, _custom.upgrade)(descriptor.nodeName, element);
   }
-
-  // Upgrade the element after creating it.
-  (0, _custom.upgrade)(descriptor.nodeName, element);
 
   // Custom elements have a createdCallback method that should be called.
   if (CustomElement && CustomElement.prototype.createdCallback) {
@@ -2602,17 +2598,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // Tests if the browser has support for the `Worker` API.
 var hasWorker = exports.hasWorker = typeof Worker === 'function';
 
-// Find all the coverage statements and expressions.
-var COV_EXP = /__cov_([^\+\+]*)\+\+/gi;
-
-/**
- * Awful hack to remove `__cov` lines from the source before sending over to
- * the worker. Only useful while testing.
- */
-function filterOutCoverage(string) {
-  return string.replace(COV_EXP, 'null');
-}
-
 /**
  * Creates a new Web Worker per element that will be diffed. Allows multiple
  * concurrent diffing operations to occur simultaneously, leveraging the
@@ -2633,7 +2618,7 @@ function filterOutCoverage(string) {
 function create() {
   var worker = null;
   var workerBlob = null;
-  var workerSource = filterOutCoverage('\n    // Reusable Array methods.\n    var slice = Array.prototype.slice;\n    var filter = Array.prototype.filter;\n\n    // Add a namespace to attach pool methods to.\n    var pools = {};\n    var nodes = 0;\n    var REMOVE_ELEMENT_CHILDREN = -2;\n    var REMOVE_ENTIRE_ELEMENT = -1;\n    var MODIFY_ELEMENT = 1;\n    var MODIFY_ATTRIBUTE = 2;\n    var CHANGE_TEXT = 3;\n\n    ' + _uuid2.default + ';\n\n    // Add the ability to protect elements from free\'d memory.\n    ' + _memory.protectElement + ';\n    ' + _memory.unprotectElement + ';\n    ' + _memory.cleanMemory + ';\n\n    // Add in pool manipulation methods.\n    ' + _pools.createPool + ';\n    ' + _pools.initializePools + ';\n\n    initializePools(' + _pools.count + ');\n\n    // Add in Node manipulation.\n    var syncNode = ' + _sync2.default + ';\n    var makeNode = ' + _make2.default + ';\n\n    // Add in the ability to parseHTML.\n    ' + _parser.parseHTML + ';\n\n    var makeParser = ' + _parser.makeParser + ';\n    var parser = makeParser();\n\n    // Add in the worker source.\n    ' + _source2.default + ';\n\n    // Metaprogramming up this worker call.\n    startup(self);\n  ');
+  var workerSource = '\n    // Reusable Array methods.\n    var slice = Array.prototype.slice;\n    var filter = Array.prototype.filter;\n\n    // Add a namespace to attach pool methods to.\n    var pools = {};\n    var nodes = 0;\n    var REMOVE_ELEMENT_CHILDREN = -2;\n    var REMOVE_ENTIRE_ELEMENT = -1;\n    var MODIFY_ELEMENT = 1;\n    var MODIFY_ATTRIBUTE = 2;\n    var CHANGE_TEXT = 3;\n\n    ' + _uuid2.default + ';\n\n    // Add the ability to protect elements from free\'d memory.\n    ' + _memory.protectElement + ';\n    ' + _memory.unprotectElement + ';\n    ' + _memory.cleanMemory + ';\n\n    // Add in pool manipulation methods.\n    ' + _pools.createPool + ';\n    ' + _pools.initializePools + ';\n\n    initializePools(' + _pools.count + ');\n\n    // Short hands for pool access.\n    var elementObject = pools.elementObject;\n    var attributeObject = pools.attributeObject;\n\n    // Add in Node manipulation.\n    var syncNode = ' + _sync2.default + ';\n    var makeNode = ' + _make2.default + ';\n\n    // Add in the ability to parseHTML.\n    ' + _parser.parseHTML + ';\n\n    var makeParser = ' + _parser.makeParser + ';\n    var parser = makeParser();\n\n    // Add in the worker source.\n    ' + _source2.default + ';\n\n    // Metaprogramming up this worker call.\n    startup(self);\n  ';
 
   // Set up a WebWorker if available.
   if (hasWorker) {
