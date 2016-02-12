@@ -1345,6 +1345,14 @@ function process(element, patches) {
       triggerTransition('textChanged', textPromises, function (promises) {});
     }
 
+    if (descriptor.attributes && descriptor.attributes.length) {
+      descriptor.attributes.forEach(function (attr) {
+        var attrChangePromises = transition.makePromises('attributeChanged', [el], attr.name, null, attr.value);
+
+        triggerTransition('attributeChanged', attrChangePromises, function (promises) {});
+      });
+    }
+
     // Call all `childNodes` attached callbacks as well.
     if (descriptor.childNodes && descriptor.childNodes.length) {
       descriptor.childNodes.forEach(function (x) {

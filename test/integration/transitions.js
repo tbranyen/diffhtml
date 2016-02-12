@@ -130,6 +130,22 @@ describe('Integration: Transitions', function() {
       diff.removeTransitionState('attributeChanged', setValues);
     });
 
+    it('will trigger attributeChanged when attached', function() {
+      var called = false;
+
+      diff.addTransitionState('attributeChanged', function() {
+        called = arguments;
+      });
+
+      diff.innerHTML(this.fixture, '<div id="test"></div>');
+
+      assert.ok(called);
+      assert.equal(called[0], this.fixture.firstChild);
+      assert.equal(called[1], 'id');
+      assert.equal(called[2], null);
+      assert.equal(called[3], 'test');
+    });
+
     it('will trigger all element states with replacement', function() {
       var hit = { attached: 0, replaced: 0, detached: 0 };
 
