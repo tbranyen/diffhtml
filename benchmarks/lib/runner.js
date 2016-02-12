@@ -34,7 +34,7 @@ select.onchange = function() {
     .then(function(template) {
       var window = iframe.contentWindow.window;
       var document = iframe.contentDocument;
-      var count = 50;
+      var count = 20;
       var lastCalled = Date.now();
 
       window.template = template;
@@ -57,7 +57,6 @@ select.onchange = function() {
       document.close();
 
       function startRendering() {
-        var start = Date.now();
         window.render(count);
         requestAnimationFrame(startRendering);
       }

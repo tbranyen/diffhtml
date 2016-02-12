@@ -1947,6 +1947,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var pools = _pools2.pools;
 var makeNode = _make2.default;
 
+var elementObject = pools.elementObject;
+var attributeObject = pools.attributeObject;
+
 /**
  * Ensures that an element is not recycled during a render cycle.
  *
@@ -1972,9 +1975,10 @@ function protectElement(element) {
  * @return
  */
 function unprotectElement(element, makeNode) {
-  pools.elementObject.unprotect(element);
+  elementObject.unprotect(element);
+  elementObject.cache.uuid.delete(element.uuid);
 
-  element.attributes.forEach(pools.attributeObject.unprotect, pools.attributeObject);
+  element.attributes.forEach(attributeObject.unprotect, attributeObject);
 
   if (element.childNodes) {
     element.childNodes.forEach(function (node) {
@@ -1993,18 +1997,19 @@ function unprotectElement(element, makeNode) {
  * Recycles all unprotected allocations.
  */
 function cleanMemory(makeNode) {
-  // Free all memory after each iteration.
-  pools.attributeObject.freeAll();
-  pools.elementObject.freeAll();
-
   // Clean out unused elements.
   if (makeNode && makeNode.nodes) {
     for (var uuid in makeNode.nodes) {
-      if (!pools.elementObject.cache.uuid.has(uuid)) {
+      if (!elementObject.cache.uuid.has(uuid)) {
         delete makeNode.nodes[uuid];
       }
     }
   }
+
+  elementObject.cache.allocated.forEach(function (v) {
+    return elementObject.cache.free.push(v);
+  });
+  elementObject.cache.allocated.clear();
 }
 
 },{"../node/make":6,"../util/pools":17}],16:[function(_dereq_,module,exports){
@@ -2383,6 +2388,7 @@ var _uuid3 = _interopRequireDefault(_uuid2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var uuid = _uuid3.default;
+
 var pools = exports.pools = {};
 var count = exports.count = 10000;
 
@@ -2430,37 +2436,6 @@ function createPool(name, opts) {
         cache.protected.delete(value);
         cache.free.push(value);
       }
-
-      if (name === 'elementObject') {
-        cache.uuid.delete(value.uuid);
-      }
-    },
-    freeAll: function freeAll() {
-      // All of this could go away if we could figure out `Array.from` within
-      // a PhantomJS web-worker.
-      cache.allocated.forEach(function (value) {
-        cache.free.push(value);
-
-        if (name === 'elementObject') {
-          cache.uuid.delete(value.uuid);
-        }
-      });
-
-      cache.allocated.clear();
-      cache.free.length = size;
-    },
-    free: function free(value) {
-      // Already freed.
-      if (!cache.allocated.has(value)) {
-        return;
-      }
-
-      // Only put back into the free queue if we're under the size.
-      if (cache.free.length < size) {
-        cache.free.push(value);
-      }
-
-      cache.allocated.delete(value);
     }
   };
 }
@@ -2549,7 +2524,7 @@ function completeRender(element, elementMeta) {
     if (elementMeta.renderBuffer) {
       renderNext(elementMeta);
     } else {
-      _tree.TreeCache.forEach(function (elementMeta) {
+      _tree.TreeCache.forEach(function iterateTreeCache(elementMeta) {
         if (!stopLooping && elementMeta.renderBuffer) {
           renderNext(elementMeta);
           stopLooping = true;
