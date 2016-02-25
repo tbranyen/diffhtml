@@ -378,7 +378,7 @@ function registerElement(tagName, constructor) {
     // Still store the reference internally, since we use it to circumvent the
     // `is` attribute bug.
     _custom.components[tagName] = normalized;
-    return realRegisterElement.call(document, tagName, normalizedConstructor);
+    return realRegisterElement.call(document, tagName, normalized);
   }
 
   // If the element has already been registered, raise an error.
