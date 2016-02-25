@@ -2215,7 +2215,7 @@ function makeParser() {
           attr.value = '';
         }
 
-        instance.attributes[instance.attributes.length] = attr;
+        instance.attributes.push(attr);
       }
     }
 
@@ -2239,7 +2239,7 @@ function makeParser() {
       var lastTextPos = -1;
 
       if (data.indexOf('<') === -1 && data) {
-        currentParent.childNodes[currentParent.childNodes.length] = TextNode(data);
+        currentParent.childNodes.push(TextNode(data));
 
         return root;
       }
@@ -2502,7 +2502,7 @@ function initializePools(COUNT) {
   });
 }
 
-// Create 10k items of each type.
+// Create ${COUNT} items of each type.
 initializePools(count);
 
 },{"./uuid":19}],18:[function(_dereq_,module,exports){
