@@ -75,4 +75,26 @@ describe('Integration: Custom Elements', function() {
 
     document.body.removeChild(this.fixture);
   });
+
+  it('supports the `is` attribute', function() {
+    var callbackTriggered = false;
+
+    diff.registerElement('extended-div', {
+      extends: 'div',
+
+      prototype: {
+        createdCallback: function() {
+          callbackTriggered = true;
+        }
+      }
+    });
+
+    diff.innerHTML(this.fixture, '<div is="extended-div"></div>');
+
+    document.body.appendChild(this.fixture);
+
+    assert.ok(callbackTriggered, 'attachedCallback was called');
+
+    document.body.removeChild(this.fixture);
+  });
 });

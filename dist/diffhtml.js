@@ -1,5 +1,5 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.diff = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -15,16 +15,44 @@ var components = exports.components = {};
 /**
  * Ensures the element instance matches the CustomElement's prototype.
  *
- * @param tagName - The HTML tagName to use for the Custom Element
+ * @param nodeName - The HTML nodeName to use for the Custom Element
  * @param element - The element to upgrade
+ * @param descriptor - The virtual node backing the element
  * @return {Boolean} successfully upgraded
  */
-function upgrade(tagName, element) {
-  var CustomElement = components[tagName];
+function upgrade(nodeName, element, descriptor) {
+  // Value of the `is` attribute, if it exists.
+  var isAttr = null;
+
+  // Check for the `is` attribute. It has a known bug where it cannot be
+  // applied dynamically.
+  if (!components[nodeName] && Array.isArray(descriptor.attributes)) {
+    descriptor.attributes.some(function (attr, idx) {
+      if (attr.name === 'is') {
+        isAttr = attr.value;
+        return true;
+      }
+    });
+  }
+
+  // Hack around the `is` attribute being unable to be set dynamically.
+  if (isAttr && components[isAttr]) {
+    nodeName = isAttr;
+  }
+
+  var CustomElement = components[nodeName];
+
+  if (!CustomElement) {
+    return false;
+  }
+
+  if (CustomElement.extends && CustomElement.extends !== descriptor.nodeName) {
+    return false;
+  }
 
   // If no Custom Element was registered, bail early. Don't need to upgrade
   // if the element was already processed..
-  if (element instanceof CustomElement) {
+  if (typeof CustomElement === 'function' && element instanceof CustomElement) {
     return false;
   }
 
@@ -106,7 +134,8 @@ function make(descriptor) {
   var element = null;
   var isSvg = false;
   // Get the Custom Element constructor for a given element.
-  var CustomElement = _custom.components[descriptor.nodeName];
+  var nodeName = descriptor.nodeName;
+  var CustomElement = _custom.components[nodeName];
 
   // If the element descriptor was already created, reuse the existing element.
   if (_make2.default.nodes[descriptor.uuid]) {
@@ -142,9 +171,7 @@ function make(descriptor) {
   }
 
   // Upgrade the element after creating it, if necessary.
-  if (CustomElement) {
-    (0, _custom.upgrade)(descriptor.nodeName, element);
-  }
+  (0, _custom.upgrade)(nodeName, element, descriptor);
 
   // Custom elements have a createdCallback method that should be called.
   if (CustomElement && CustomElement.prototype.createdCallback) {
@@ -337,16 +364,20 @@ var realRegisterElement = document.registerElement;
 function registerElement(tagName, constructor) {
   // Upgrade simple objects to inherit from HTMLElement and be usable in a real
   // implementation.
-  var normalizedConstructor = constructor.prototype ? constructor : null;
+  var normalized = typeof constructor === 'function' ? constructor : null;
 
-  if (!normalizedConstructor) {
-    constructor.__proto__ = HTMLElement.prototype;
-    normalizedConstructor = function NormalizedConstructor() {};
-    normalizedConstructor.prototype = constructor;
+  // If this is not a valid constructor, create one.
+  if (normalized === null) {
+    normalized = function HTMLElement() {};
+    normalized.prototype = constructor.prototype || constructor;
+    normalized.prototype.__proto__ = HTMLElement.prototype;
   }
 
   // If the native web component specification is loaded, use that instead.
   if (realRegisterElement) {
+    // Still store the reference internally, since we use it to circumvent the
+    // `is` attribute bug.
+    _custom.components[tagName] = normalized;
     return realRegisterElement.call(document, tagName, normalizedConstructor);
   }
 
@@ -356,7 +387,7 @@ function registerElement(tagName, constructor) {
   }
 
   // Assign the custom element reference to the constructor.
-  _custom.components[tagName] = normalizedConstructor;
+  _custom.components[tagName] = normalized;
 }
 
 /**
@@ -500,15 +531,13 @@ function enableProllyfill() {
   // Polyfill in the `registerElement` method if it doesn't already exist. This
   // requires patching `createElement` as well to ensure that the proper proto
   // chain exists.
-  if (!realRegisterElement) {
-    Object.defineProperty(document, 'registerElement', {
-      configurable: true,
+  Object.defineProperty(document, 'registerElement', {
+    configurable: true,
 
-      value: function value(tagName, component) {
-        registerElement(tagName, component);
-      }
-    });
-  }
+    value: function value(tagName, component) {
+      registerElement(tagName, component);
+    }
+  });
 
   // If HTMLElement is an object, rejigger it to work like a function so that
   // it can be extended. Specifically affects IE and Safari.
@@ -695,7 +724,7 @@ function make(node) {
     // Reset the prototype chain for this element. Upgrade will return `true`
     // if the element was upgraded for the first time. This is useful so we
     // don't end up in a loop when working with the same element.
-    if ((0, _custom.upgrade)(entry.nodeName, node)) {
+    if ((0, _custom.upgrade)(entry.nodeName, node, entry)) {
       // If the Node is in the DOM, trigger attached callback.
       if (node.parentNode && node.attachedCallback) {
         node.attachedCallback();
@@ -1604,6 +1633,8 @@ function process(element, patches) {
           else if (patch.__do__ === sync.MODIFY_ATTRIBUTE) {
               var attrChangePromises = transition.makePromises('attributeChanged', [patch.element], patch.name, patch.element.getAttribute(patch.name), patch.value);
 
+              (0, _custom.upgrade)(elementDescriptor.nodeName, patch.element, elementDescriptor);
+
               triggerTransition('attributeChanged', attrChangePromises, function (promises) {
                 // Remove.
                 if (patch.value === undefined) {
@@ -1834,11 +1865,7 @@ function buildTrigger(allPromises) {
   var addPromises = allPromises.push.apply.bind(allPromises.push, allPromises);
 
   // This becomes `triggerTransition` in process.js.
-  return function (stateName, makePromisesCallback) {
-    var callback = arguments.length <= 2 || arguments[2] === undefined ? function (x) {
-      return x;
-    } : arguments[2];
-
+  return function (stateName, makePromisesCallback, callback) {
     if (states[stateName] && states[stateName].length) {
       // Calls into each custom hook to bind Promises into the local array,
       // these will then get merged into the main `allPromises` array.
@@ -1847,14 +1874,14 @@ function buildTrigger(allPromises) {
       // Add these promises into the global cache.
       addPromises(promises);
 
-      if (!promises.length) {
+      if (!promises.length && callback) {
         callback(promises);
       } else {
         Promise.all(promises).then(callback, function handleRejection(ex) {
           console.log(ex);
         });
       }
-    } else {
+    } else if (callback) {
       callback();
     }
   };
@@ -2010,10 +2037,19 @@ function cleanMemory(makeNode) {
     }
   }
 
+  // Empty all element allocations.
   elementObject.cache.allocated.forEach(function (v) {
-    return elementObject.cache.free.push(v);
+    elementObject.cache.free.push(v);
   });
+
   elementObject.cache.allocated.clear();
+
+  // Empty all attribute allocations.
+  attributeObject.cache.allocated.forEach(function (v) {
+    attributeObject.cache.free.push(v);
+  });
+
+  attributeObject.cache.allocated.clear();
 }
 
 },{"../node/make":6,"../util/pools":17}],16:[function(_dereq_,module,exports){
@@ -2521,6 +2557,7 @@ function completeRender(element, elementMeta) {
 
     elementMeta.isRendering = false;
 
+    // Boolean to stop operations in the TreeCache loop below.
     var stopLooping = false;
 
     // This is designed to handle use cases where renders are being hammered
