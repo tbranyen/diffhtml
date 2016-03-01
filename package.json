@@ -11,7 +11,8 @@
     "build": "browserify -t [ babelify --presets [ es2015 ] ] -s diff lib/index.js | derequire > dist/diffhtml.js",
     "watch": "watchify -t [ babelify --presets [ es2015 ] ] -s diff lib/index.js -o 'derequire > dist/diffhtml.js' -v",
     "jshint": "jshint lib/**/*.js",
-    "test": "npm run jshint && karma start --single-run"
+    "karma": "karma start",
+    "test": "npm run jshint && npm run karma -- --single-run"
   },
   "devDependencies": {
     "babel-core": "^6.5.2",

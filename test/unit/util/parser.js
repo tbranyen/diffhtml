@@ -59,4 +59,12 @@ describe('Unit: Parser', function() {
     assert.equal(node.childNodes[1].childNodes.length, 1);
     assert.equal(node.childNodes[1].childNodes[0].nodeName, 'p');
   });
+
+  it('cannot support brackets in attribute values', function() {
+    var node = parser.parseHTML(`<a data-text="<li class='test'></li>"></a>`);
+
+    assert.equal(node.nodeName, 'a');
+    assert.equal(node.attributes[0].name, 'data-text');
+    assert.equal(node.attributes[0].value,  '\"<li');
+  });
 });

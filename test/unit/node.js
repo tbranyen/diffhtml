@@ -13,7 +13,6 @@ describe('Unit: Node', function() {
       var node = makeNode(document.createElement('div'));
 
       assert.equal(node.nodeName, 'div');
-      assert.equal(node.nodeType, 1);
       assert.equal(node.childNodes.length, 0);
       assert.equal(node.attributes.length, 0);
     });
@@ -22,7 +21,6 @@ describe('Unit: Node', function() {
       var node = makeNode(document.createTextNode('test'));
 
       assert.equal(node.nodeName, '#text');
-      assert.equal(node.nodeType, 3);
       assert.equal(node.nodeValue, 'test');
       assert.equal(node.childNodes.length, 0);
       assert.equal(node.attributes.length, 0);
