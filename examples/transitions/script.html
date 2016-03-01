@@ -16,8 +16,13 @@
     var textarea = document.querySelector('textarea');
 
     diff.addTransitionState('textChanged', function(el, old, current) {
-      if (el.matches('script')) {
-        eval(el.textContent);
+      if (el.parentNode.matches('script')) {
+        try {
+          eval(current);
+        }
+        catch (ex) {
+          console.log('Unable to evaluate the script');
+        }
       }
     });
 

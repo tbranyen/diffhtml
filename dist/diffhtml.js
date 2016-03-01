@@ -291,6 +291,12 @@ var _custom = _dereq_('./element/custom');
 
 var _tree = _dereq_('./node/tree');
 
+var _make = _dereq_('./node/make');
+
+var _make2 = _interopRequireDefault(_make);
+
+var _memory = _dereq_('./util/memory');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
@@ -492,40 +498,43 @@ function enableProllyfill() {
     }
   });
 
-  // Allows a developer to set the `innerHTML` of an element.
-  Object.defineProperty(Element.prototype, 'diffInnerHTML', {
-    configurable: true,
+  // Exposes the API into the Element, ShadowDOM, and DocumentFragment
+  // constructors.
+  [typeof Element !== 'undefined' ? Element : undefined, typeof HTMLElement !== 'undefined' ? HTMLElement : undefined, typeof ShadowRoot !== 'undefined' ? ShadowRoot : undefined, typeof DocumentFragment !== 'undefined' ? DocumentFragment : undefined].filter(Boolean).forEach(function (Ctor) {
+    Object.defineProperty(Ctor.prototype, 'diffInnerHTML', {
+      configurable: true,
 
-    set: function set(newHTML) {
-      innerHTML(this, newHTML);
-    }
-  });
+      set: function set(newHTML) {
+        innerHTML(this, newHTML);
+      }
+    });
 
-  // Allows a developer to set the `outerHTML` of an element.
-  Object.defineProperty(Element.prototype, 'diffOuterHTML', {
-    configurable: true,
+    // Allows a developer to set the `outerHTML` of an element.
+    Object.defineProperty(Ctor.prototype, 'diffOuterHTML', {
+      configurable: true,
 
-    set: function set(newHTML) {
-      outerHTML(this, newHTML);
-    }
-  });
+      set: function set(newHTML) {
+        outerHTML(this, newHTML);
+      }
+    });
 
-  // Allows a developer to diff the current element with a new element.
-  Object.defineProperty(Element.prototype, 'diffElement', {
-    configurable: true,
+    // Allows a developer to diff the current element with a new element.
+    Object.defineProperty(Ctor.prototype, 'diffElement', {
+      configurable: true,
 
-    value: function value(newElement, options) {
-      element(this, newElement, options);
-    }
-  });
+      value: function value(newElement, options) {
+        element(this, newElement, options);
+      }
+    });
 
-  // Releases the retained memory and worker instance.
-  Object.defineProperty(Element.prototype, 'diffRelease', {
-    configurable: true,
+    // Releases the retained memory and worker instance.
+    Object.defineProperty(Ctor.prototype, 'diffRelease', {
+      configurable: true,
 
-    value: function value(newElement) {
-      (0, _release2.default)(this);
-    }
+      value: function value() {
+        (0, _release2.default)(this);
+      }
+    });
   });
 
   // Polyfill in the `registerElement` method if it doesn't already exist. This
@@ -595,18 +604,26 @@ function enableProllyfill() {
       return window.removeEventListener('load', activateComponents);
     }
 
+    var descriptor = (0, _make2.default)(documentElement);
+
     // After the initial render, clean up the resources, no point in lingering.
     documentElement.addEventListener('renderComplete', function render() {
       var elementMeta = _tree.TreeCache.get(documentElement) || {};
 
       // Release resources allocated to the element.
       if (!elementMeta.isRendering) {
+
+        // Unprotect after the activation is complete.
+        (0, _memory.unprotectElement)(descriptor, _make2.default);
         documentElement.diffRelease(documentElement);
       }
 
       // Remove this event listener.
       documentElement.removeEventListener('renderComplete', render);
     });
+
+    // Protect the documentElement before applying the changes.
+    (0, _memory.protectElement)(descriptor);
 
     // Diff the entire document on activation of the prollyfill.
     documentElement.diffOuterHTML = documentElement.outerHTML;
@@ -625,7 +642,7 @@ function enableProllyfill() {
   }
 }
 
-},{"./element/custom":1,"./errors":4,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13}],6:[function(_dereq_,module,exports){
+},{"./element/custom":1,"./errors":4,"./node/make":6,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13,"./util/memory":15}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -650,11 +667,10 @@ make.nodes = {};
  * @return
  */
 function make(node) {
-  // Default the nodeType to Element (1).
-  var nodeType = 'nodeType' in node ? node.nodeType : 1;
+  var nodeType = node.nodeType;
 
-  // Ignore attribute, comment, and CDATA nodes.
-  if (nodeType === 2 || nodeType === 4 || nodeType === 8) {
+  // Whitelist: Elements, TextNodes, and Shadow Root.
+  if (nodeType !== 1 && nodeType !== 3 && nodeType !== 11) {
     return false;
   }
 
@@ -667,9 +683,6 @@ function make(node) {
 
   // Set a lowercased (normalized) version of the element's nodeName.
   entry.nodeName = node.nodeName.toLowerCase();
-
-  // Keep consistent with our internal HTML parser and set the nodeType.
-  entry.nodeType = node.nodeType;
 
   // If the element is a text node set the nodeValue.
   if (nodeType === 3) {
@@ -703,7 +716,7 @@ function make(node) {
   var childNodesLength = childNodes.length;
 
   // If the element has child nodes, convert them all to virtual nodes.
-  if (entry.nodeType !== 3 && childNodesLength) {
+  if (nodeType !== 3 && childNodesLength) {
     for (var i = 0; i < childNodesLength; i++) {
       var newNode = make(childNodes[i]);
 
@@ -720,15 +733,13 @@ function make(node) {
     });
   }
 
-  if (_custom.components[entry.nodeName]) {
-    // Reset the prototype chain for this element. Upgrade will return `true`
-    // if the element was upgraded for the first time. This is useful so we
-    // don't end up in a loop when working with the same element.
-    if ((0, _custom.upgrade)(entry.nodeName, node, entry)) {
-      // If the Node is in the DOM, trigger attached callback.
-      if (node.parentNode && node.attachedCallback) {
-        node.attachedCallback();
-      }
+  // Reset the prototype chain for this element. Upgrade will return `true`
+  // if the element was upgraded for the first time. This is useful so we
+  // don't end up in a loop when working with the same element.
+  if ((0, _custom.upgrade)(entry.nodeName, node, entry)) {
+    // If the Node is in the DOM, trigger attached callback.
+    if (node.parentNode && node.attachedCallback) {
+      node.attachedCallback();
     }
   }
 
@@ -1440,7 +1451,7 @@ function process(element, patches) {
     // Remove the entire Node. Only does something if the Node has a parent
     // element.
     else if (patch.__do__ === sync.REMOVE_ENTIRE_ELEMENT) {
-        var detachPromises = transition.makePromises('detached', [patch.elemnt]);
+        var detachPromises = transition.makePromises('detached', [patch.element]);
 
         if (patch.element.parentNode) {
           triggerTransition('detached', detachPromises, function (promises) {
@@ -1706,6 +1717,12 @@ exports.makePromises = makePromises;
 
 var _custom = _dereq_('./element/custom');
 
+var _make = _dereq_('./node/make');
+
+var _make2 = _interopRequireDefault(_make);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var slice = Array.prototype.slice;
 var forEach = Array.prototype.forEach;
 var concat = Array.prototype.concat;
@@ -1812,6 +1829,11 @@ var fnSignatures = {
       return function (cb) {
         return cb(el, oldVal, newVal);
       };
+    },
+    customElementsFn: function customElementsFn(el, oldVal, newVal) {
+      return function (cb) {
+        return cb.call(el, oldVal, newVal);
+      };
     }
   }
 };
@@ -1900,15 +1922,35 @@ function triggerLifecycleEvent(stateName, args, elements) {
 
   for (var i = 0; i < elements.length; i++) {
     var element = elements[i];
+    var isTextNode = element.nodeType === 3;
+    var nodeName = element.nodeName.toLowerCase();
+    var descriptor = (0, _make2.default)(element);
 
-    if (element) {
-      var customElement = _custom.components[element.nodeName.toLowerCase()] || empty;
-      var customElementMethodName = stateName + 'Callback';
+    // Value of the `is` attribute, if it exists.
+    var isAttr = null;
 
-      // Call the associated CustomElement's lifecycle callback, if it exists.
-      if (customElement.prototype[customElementMethodName]) {
-        customElementFn.apply(null, args)(customElement.prototype[customElementMethodName].bind(element));
-      }
+    // Check for the `is` attribute. It has a known bug where it cannot be
+    // applied dynamically.
+    if (!_custom.components[nodeName] && Array.isArray(descriptor.attributes)) {
+      descriptor.attributes.some(function (attr, idx) {
+        if (attr.name === 'is') {
+          isAttr = attr.value;
+          return true;
+        }
+      });
+    }
+
+    // Hack around the `is` attribute being unable to be set dynamically.
+    if (isAttr && _custom.components[isAttr]) {
+      nodeName = isAttr;
+    }
+
+    var customElement = _custom.components[nodeName] || empty;
+    var customElementMethodName = stateName + 'Callback';
+
+    // Call the associated CustomElement's lifecycle callback, if it exists.
+    if (customElement.prototype[customElementMethodName]) {
+      customElementFn.apply(null, args)(customElement.prototype[customElementMethodName].bind(element));
     }
   }
 }
@@ -1928,6 +1970,7 @@ function makePromises(stateName) {
   // Ensure elements is always an array.
   var elements = slice.call(args[0]);
 
+  // Triggers the custom element callback.
   triggerLifecycleEvent(stateName, args.slice(1), elements);
 
   // Accepts the local Array of promises to use.
@@ -1936,7 +1979,7 @@ function makePromises(stateName) {
   };
 }
 
-},{"./element/custom":1}],14:[function(_dereq_,module,exports){
+},{"./element/custom":1,"./node/make":6}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1948,12 +1991,13 @@ var element = document.createElement('div');
 /**
  * Decodes HTML strings.
  *
- * @see http://stackoverflow.com/a/13091266
+ * @see http://stackoverflow.com/a/5796718
  * @param stringing
  * @return unescaped HTML
  */
 function decodeEntities(string) {
   element.innerHTML = string;
+
   return element.textContent;
 }
 
@@ -1988,9 +2032,9 @@ var attributeObject = pools.attributeObject;
  * @return element
  */
 function protectElement(element) {
-  pools.elementObject.protect(element);
+  elementObject.protect(element);
 
-  element.attributes.forEach(pools.attributeObject.protect, pools.attributeObject);
+  element.attributes.forEach(attributeObject.protect, attributeObject);
 
   if (element.childNodes) {
     element.childNodes.forEach(protectElement);
@@ -2494,6 +2538,7 @@ function initializePools(COUNT) {
 
     fill: function fill() {
       return {
+        nodeName: '',
         uuid: uuid(),
         childNodes: [],
         attributes: []
@@ -2635,6 +2680,17 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // Tests if the browser has support for the `Worker` API.
 var hasWorker = exports.hasWorker = typeof Worker === 'function';
 
+// Find all the coverage statements and expressions.
+var COV_EXP = /__cov_([^\+\+]*)\+\+/gi;
+
+/**
+ * Awful hack to remove `__cov` lines from the source before sending over to
+ * the worker. Only useful while testing.
+ */
+function filterOutCoverage(string) {
+  return string.replace(COV_EXP, 'null');
+}
+
 /**
  * Creates a new Web Worker per element that will be diffed. Allows multiple
  * concurrent diffing operations to occur simultaneously, leveraging the
@@ -2655,7 +2711,7 @@ var hasWorker = exports.hasWorker = typeof Worker === 'function';
 function create() {
   var worker = null;
   var workerBlob = null;
-  var workerSource = '\n    // Reusable Array methods.\n    var slice = Array.prototype.slice;\n    var filter = Array.prototype.filter;\n\n    // Add a namespace to attach pool methods to.\n    var pools = {};\n    var nodes = 0;\n    var REMOVE_ELEMENT_CHILDREN = -2;\n    var REMOVE_ENTIRE_ELEMENT = -1;\n    var MODIFY_ELEMENT = 1;\n    var MODIFY_ATTRIBUTE = 2;\n    var CHANGE_TEXT = 3;\n\n    ' + _uuid2.default + ';\n\n    // Add the ability to protect elements from free\'d memory.\n    ' + _memory.protectElement + ';\n    ' + _memory.unprotectElement + ';\n    ' + _memory.cleanMemory + ';\n\n    // Add in pool manipulation methods.\n    ' + _pools.createPool + ';\n    ' + _pools.initializePools + ';\n\n    initializePools(' + _pools.count + ');\n\n    // Short hands for pool access.\n    var elementObject = pools.elementObject;\n    var attributeObject = pools.attributeObject;\n\n    // Add in Node manipulation.\n    var syncNode = ' + _sync2.default + ';\n    var makeNode = ' + _make2.default + ';\n\n    // Add in the ability to parseHTML.\n    ' + _parser.parseHTML + ';\n\n    var makeParser = ' + _parser.makeParser + ';\n    var parser = makeParser();\n\n    // Add in the worker source.\n    ' + _source2.default + ';\n\n    // Metaprogramming up this worker call.\n    startup(self);\n  ';
+  var workerSource = filterOutCoverage('\n    // Reusable Array methods.\n    var slice = Array.prototype.slice;\n    var filter = Array.prototype.filter;\n\n    // Add a namespace to attach pool methods to.\n    var pools = {};\n    var nodes = 0;\n    var REMOVE_ELEMENT_CHILDREN = -2;\n    var REMOVE_ENTIRE_ELEMENT = -1;\n    var MODIFY_ELEMENT = 1;\n    var MODIFY_ATTRIBUTE = 2;\n    var CHANGE_TEXT = 3;\n\n    ' + _uuid2.default + ';\n\n    // Add the ability to protect elements from free\'d memory.\n    ' + _memory.protectElement + ';\n    ' + _memory.unprotectElement + ';\n    ' + _memory.cleanMemory + ';\n\n    // Add in pool manipulation methods.\n    ' + _pools.createPool + ';\n    ' + _pools.initializePools + ';\n\n    initializePools(' + _pools.count + ');\n\n    // Short hands for pool access.\n    var elementObject = pools.elementObject;\n    var attributeObject = pools.attributeObject;\n\n    // Add in Node manipulation.\n    var syncNode = ' + _sync2.default + ';\n    var makeNode = ' + _make2.default + ';\n\n    // Add in the ability to parseHTML.\n    ' + _parser.parseHTML + ';\n\n    var makeParser = ' + _parser.makeParser + ';\n    var parser = makeParser();\n\n    // Add in the worker source.\n    ' + _source2.default + ';\n\n    // Metaprogramming up this worker call.\n    startup(self);\n  ');
 
   // Set up a WebWorker if available.
   if (hasWorker) {

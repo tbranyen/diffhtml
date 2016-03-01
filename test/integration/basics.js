@@ -247,6 +247,36 @@ describe('Integration: Basics', function() {
     });
   });
 
+  describe('DocumentFragment', function() {
+    it('can diff elements into a fragment', function() {
+      var fragment = document.createDocumentFragment();
+
+      diff.innerHTML(fragment, `
+        <p>Supports DocumentFragments</p>
+      `);
+
+      assert.equal(fragment.childNodes[0].nodeName.toLowerCase(), 'p');
+      assert.equal(fragment.childNodes[0].childNodes[0].nodeValue, 'Supports DocumentFragments');
+
+      diff.release(fragment);
+    });
+
+    it('can diff a fragment into an element', function() {
+      var fragment = document.createDocumentFragment();
+
+      diff.innerHTML(fragment, `
+        <h1>It works</h1>
+      `);
+
+      diff.element(this.fixture, fragment, { inner: true });
+
+      assert.equal(this.fixture.childNodes[0].nodeName.toLowerCase(), 'h1');
+      assert.equal(this.fixture.childNodes[0].childNodes[0].nodeValue, 'It works');
+
+      diff.release(fragment);
+    });
+  });
+
   describe('Custom elements', function() {
     it('supports the use of custom elements', function() {
       diff.innerHTML(this.fixture, '<custom-element></custom-element>');
