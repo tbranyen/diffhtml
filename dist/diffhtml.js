@@ -291,6 +291,12 @@ var _custom = _dereq_('./element/custom');
 
 var _tree = _dereq_('./node/tree');
 
+var _make = _dereq_('./node/make');
+
+var _make2 = _interopRequireDefault(_make);
+
+var _memory = _dereq_('./util/memory');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
@@ -598,12 +604,17 @@ function enableProllyfill() {
       return window.removeEventListener('load', activateComponents);
     }
 
+    var descriptor = (0, _make2.default)(documentElement);
+
     // After the initial render, clean up the resources, no point in lingering.
     documentElement.addEventListener('renderComplete', function render() {
       var elementMeta = _tree.TreeCache.get(documentElement) || {};
 
       // Release resources allocated to the element.
       if (!elementMeta.isRendering) {
+
+        // Unprotect after the activation is complete.
+        (0, _memory.unprotectElement)(descriptor, _make2.default);
         documentElement.diffRelease(documentElement);
       }
 
@@ -611,16 +622,11 @@ function enableProllyfill() {
       documentElement.removeEventListener('renderComplete', render);
     });
 
-    //var descriptor = makeNode(documentElement);
-
-    // Lock the document element before running.
-    //protectElement(descriptor);
+    // Protect the documentElement before applying the changes.
+    (0, _memory.protectElement)(descriptor);
 
     // Diff the entire document on activation of the prollyfill.
     documentElement.diffOuterHTML = documentElement.outerHTML;
-
-    // Unprotect the element afterwards.
-    //unprotectElement(descriptor, makeNode);
 
     // Remove the load event listener, since it's complete.
     window.removeEventListener('load', activateComponents);
@@ -636,7 +642,7 @@ function enableProllyfill() {
   }
 }
 
-},{"./element/custom":1,"./errors":4,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13}],6:[function(_dereq_,module,exports){
+},{"./element/custom":1,"./errors":4,"./node/make":6,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13,"./util/memory":15}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
