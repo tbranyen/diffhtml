@@ -64,6 +64,14 @@ function upgrade(nodeName, element, descriptor) {
     CustomElement.prototype.createdCallback.call(element);
   }
 
+  // Is the element existing in the DOM?
+  var inDOM = element.ownerDocument.contains(element);
+
+  // If the Node is in the DOM, trigger attached callback.
+  if (inDOM && CustomElement.prototype.attachedCallback) {
+    element.attachedCallback();
+  }
+
   // The upgrade was successful.
   return true;
 }
@@ -375,6 +383,7 @@ function registerElement(tagName, constructor) {
   // If this is not a valid constructor, create one.
   if (normalized === null) {
     normalized = function HTMLElement() {};
+    normalized.__proto__ = constructor;
     normalized.prototype = constructor.prototype || constructor;
     normalized.prototype.__proto__ = HTMLElement.prototype;
   }
@@ -550,35 +559,37 @@ function enableProllyfill() {
 
   // If HTMLElement is an object, rejigger it to work like a function so that
   // it can be extended. Specifically affects IE and Safari.
-  if ((typeof Element === 'undefined' ? 'undefined' : _typeof(Element)) === 'object' || (typeof HTMLElement === 'undefined' ? 'undefined' : _typeof(HTMLElement)) === 'object') {
+  Object.getOwnPropertyNames(window).filter(function (key) {
+    return key.indexOf('HTML') === 0 && _typeof(window[key]) === 'object';
+  }).forEach(function (key) {
     // Fall back to the Element constructor if the HTMLElement does not exist.
-    var realHTMLElement = HTMLElement || Element;
+    var realElement = window[key];
 
     // If there is no `__proto__` available, add one to the prototype.
-    if (!realHTMLElement.__proto__) {
+    if (!realElement.__proto__) {
       var copy = {
         set: function set(val) {
           val = Object.keys(val).length ? val : Object.getPrototypeOf(val);
 
-          for (var key in val) {
-            if (val.hasOwnProperty(key)) {
-              this[key] = val[key];
+          for (var _key in val) {
+            if (val.hasOwnProperty(_key)) {
+              this[_key] = val[_key];
             }
           }
         }
       };
 
-      Object.defineProperty(realHTMLElement, '__proto__', copy);
-      Object.defineProperty(realHTMLElement.prototype, '__proto__', copy);
+      Object.defineProperty(realElement, '__proto__', copy);
+      Object.defineProperty(realElement.prototype, '__proto__', copy);
     }
 
-    HTMLElement = function HTMLElement() {};
-    HTMLElement.prototype = Object.create(realHTMLElement.prototype);
-    HTMLElement.__proto__ = realHTMLElement;
+    var Element = new Function('return function ' + key + '() {};')();
+    Element.prototype = Object.create(realElement.prototype);
+    Element.__proto__ = realElement;
 
     // Ensure that the global Element matches the HTMLElement.
-    Element = HTMLElement;
-  }
+    window[key] = Element;
+  });
 
   /**
    * Will automatically activate any components found in the page automatically
@@ -687,6 +698,8 @@ function make(node) {
   // If the element is a text node set the nodeValue.
   if (nodeType === 3) {
     entry.nodeValue = node.textContent;
+  } else {
+    entry.nodeValue = '';
   }
 
   entry.childNodes.length = 0;
@@ -736,12 +749,7 @@ function make(node) {
   // Reset the prototype chain for this element. Upgrade will return `true`
   // if the element was upgraded for the first time. This is useful so we
   // don't end up in a loop when working with the same element.
-  if ((0, _custom.upgrade)(entry.nodeName, node, entry)) {
-    // If the Node is in the DOM, trigger attached callback.
-    if (node.parentNode && node.attachedCallback) {
-      node.attachedCallback();
-    }
-  }
+  (0, _custom.upgrade)(entry.nodeName, node, entry, true);
 
   return entry;
 }
@@ -1408,54 +1416,47 @@ function process(element, patches) {
 
   var _loop = function _loop(i) {
     var patch = patches[i];
-    var newDescriptor = undefined,
-        oldDescriptor = undefined,
-        elementDescriptor = undefined;
-    var element = patch.new;
+    var newEl = undefined,
+        oldEl = undefined,
+        el = undefined;
 
     if (patch.element) {
-      elementDescriptor = patch.element;
-
       var result = (0, _get2.default)(patch.element);
-      patch.element = result.element;
+      el = result.element;
     }
 
     if (patch.old) {
-      oldDescriptor = patch.old;
-
       var result = (0, _get2.default)(patch.old);
-      patch.old = result.element;
+      oldEl = result.element;
     }
 
     if (patch.new) {
-      newDescriptor = patch.new;
-
       var result = (0, _get2.default)(patch.new);
-      patch.new = result.element;
+      newEl = result.element;
     }
 
     // Empty the Node's contents. This is an optimization, since `innerHTML`
     // will be faster than iterating over every element and manually removing.
     if (patch.__do__ === sync.REMOVE_ELEMENT_CHILDREN) {
-      var childNodes = patch.element.childNodes;
+      var childNodes = el.childNodes;
       var detachPromises = transition.makePromises('detached', childNodes);
 
       triggerTransition('detached', detachPromises, function (promises) {
         patch.toRemove.forEach(function (x) {
           return (0, _memory.unprotectElement)(x, _make2.default);
         });
-        patch.element.innerHTML = '';
+        el.innerHTML = '';
       });
     }
 
     // Remove the entire Node. Only does something if the Node has a parent
     // element.
     else if (patch.__do__ === sync.REMOVE_ENTIRE_ELEMENT) {
-        var detachPromises = transition.makePromises('detached', [patch.element]);
+        var detachPromises = transition.makePromises('detached', [el]);
 
-        if (patch.element.parentNode) {
+        if (el.parentNode) {
           triggerTransition('detached', detachPromises, function (promises) {
-            patch.element.parentNode.removeChild(patch.element);
+            el.parentNode.removeChild(el);
             patch.toRemove.forEach(function (x) {
               return (0, _memory.unprotectElement)(x, _make2.default);
             });
@@ -1471,9 +1472,9 @@ function process(element, patches) {
       else if (patch.__do__ === sync.REPLACE_ENTIRE_ELEMENT) {
           (function () {
             var allPromises = [];
-            var attachedPromises = transition.makePromises('attached', [patch.new]);
-            var detachedPromises = transition.makePromises('detached', [patch.old]);
-            var replacedPromises = transition.makePromises('replaced', [patch.old], patch.new);
+            var attachedPromises = transition.makePromises('attached', [newEl]);
+            var detachedPromises = transition.makePromises('detached', [oldEl]);
+            var replacedPromises = transition.makePromises('replaced', [oldEl], newEl);
 
             // Add all the transition state promises into the main array, we'll use
             // them all to decide when to alter the DOM.
@@ -1483,43 +1484,43 @@ function process(element, patches) {
 
             triggerTransition('attached', attachedPromises, function (promises) {
               allPromises.push.apply(allPromises, promises);
-              attached(newDescriptor, null, patch.new);
+              attached(patch.new, null, newEl);
             });
 
             triggerTransition('replaced', replacedPromises, function (promises) {
               allPromises.push.apply(allPromises, promises);
             });
 
-            (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+            (0, _memory.unprotectElement)(patch.old, _make2.default);
 
             // Reset the tree cache.
-            _tree.TreeCache.set(patch.new, {
-              oldTree: newDescriptor,
-              element: patch.new
+            _tree.TreeCache.set(newEl, {
+              oldTree: patch.new,
+              element: newEl
             });
 
             // Once all the promises have completed, invoke the action, if no
             // promises were added, this will be a synchronous operation.
             if (allPromises.length) {
               Promise.all(allPromises).then(function replaceEntireElement() {
-                if (!patch.old.parentNode) {
-                  (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+                if (!oldEl.parentNode) {
+                  (0, _memory.unprotectElement)(patch.new, _make2.default);
 
                   throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
                 }
 
-                patch.old.parentNode.replaceChild(patch.new, patch.old);
+                oldEl.parentNode.replaceChild(newEl, oldEl);
               }, function (ex) {
                 return console.log(ex);
               });
             } else {
-              if (!patch.old.parentNode) {
-                (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+              if (!oldEl.parentNode) {
+                (0, _memory.unprotectElement)(patch.new, _make2.default);
 
                 throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
               }
 
-              patch.old.parentNode.replaceChild(patch.new, patch.old);
+              oldEl.parentNode.replaceChild(newEl, oldEl);
             }
           })();
         }
@@ -1527,19 +1528,19 @@ function process(element, patches) {
         // Node manip.
         else if (patch.__do__ === sync.MODIFY_ELEMENT) {
             // Add.
-            if (patch.element && patch.fragment && !patch.old) {
+            if (el && patch.fragment && !oldEl) {
               (function () {
                 var fragment = document.createDocumentFragment();
 
                 // Loop over every element to be added and process the descriptor
                 // into the real element and append into the DOM fragment.
                 toAttach = patch.fragment.map(function (el) {
-                  return attached(el, fragment, patch.element);
+                  return attached(el, fragment, el);
                 });
 
                 // Turn elements into childNodes of the patch element.
 
-                patch.element.appendChild(fragment);
+                el.appendChild(fragment);
 
                 // Trigger transitions.
                 var makeAttached = transition.makePromises('attached', toAttach);
@@ -1548,49 +1549,49 @@ function process(element, patches) {
             }
 
             // Remove.
-            else if (patch.old && !patch.new) {
-                if (!patch.old.parentNode) {
-                  (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+            else if (oldEl && !newEl) {
+                if (!oldEl.parentNode) {
+                  (0, _memory.unprotectElement)(patch.old, _make2.default);
 
                   throw new Error('Can\'t remove without parent, is this the ' + 'document root?');
                 }
 
-                var makeDetached = transition.makePromises('detached', [patch.old]);
+                var makeDetached = transition.makePromises('detached', [oldEl]);
 
                 triggerTransition('detached', makeDetached, function () {
                   // And then empty out the entire contents.
-                  patch.old.innerHTML = '';
+                  oldEl.innerHTML = '';
 
-                  if (patch.old.parentNode) {
-                    patch.old.parentNode.removeChild(patch.old);
+                  if (oldEl.parentNode) {
+                    oldEl.parentNode.removeChild(oldEl);
                   }
 
-                  (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+                  (0, _memory.unprotectElement)(patch.old, _make2.default);
                 });
               }
 
               // Replace.
-              else if (patch.old && patch.new) {
+              else if (oldEl && newEl) {
                   (function () {
-                    if (!patch.old.parentNode) {
-                      (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
-                      (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+                    if (!oldEl.parentNode) {
+                      (0, _memory.unprotectElement)(patch.old, _make2.default);
+                      (0, _memory.unprotectElement)(patch.new, _make2.default);
 
                       throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
                     }
 
                     // Append the element first, before doing the replacement.
-                    if (patch.old.nextSibling) {
-                      patch.old.parentNode.insertBefore(patch.new, patch.old.nextSibling);
+                    if (oldEl.nextSibling) {
+                      oldEl.parentNode.insertBefore(newEl, oldEl.nextSibling);
                     } else {
-                      patch.old.parentNode.appendChild(patch.new);
+                      oldEl.parentNode.appendChild(newEl);
                     }
 
                     // Removed state for transitions API.
                     var allPromises = [];
-                    var attachPromises = transition.makePromises('attached', [patch.new]);
-                    var detachPromises = transition.makePromises('detached', [patch.old]);
-                    var replacePromises = transition.makePromises('replaced', [patch.old], patch.new);
+                    var attachPromises = transition.makePromises('attached', [newEl]);
+                    var detachPromises = transition.makePromises('detached', [oldEl]);
+                    var replacePromises = transition.makePromises('replaced', [oldEl], newEl);
 
                     triggerTransition('detached', detachPromises, function (promises) {
                       allPromises.push.apply(allPromises, promises);
@@ -1598,7 +1599,7 @@ function process(element, patches) {
 
                     triggerTransition('attached', attachPromises, function (promises) {
                       allPromises.push.apply(allPromises, promises);
-                      attached(newDescriptor);
+                      attached(patch.new);
                     });
 
                     triggerTransition('replaced', replacePromises, function (promises) {
@@ -1609,31 +1610,31 @@ function process(element, patches) {
                     // promises were added, this will be a synchronous operation.
                     if (allPromises.length) {
                       Promise.all(allPromises).then(function replaceElement() {
-                        patch.old.parentNode.replaceChild(patch.new, patch.old);
-                        (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
+                        oldEl.parentNode.replaceChild(newEl, oldEl);
+                        (0, _memory.unprotectElement)(patch.old, _make2.default);
 
-                        (0, _memory.protectElement)(newDescriptor);
+                        (0, _memory.protectElement)(patch.new);
 
                         if (elementMeta.workerCache) {
-                          elementMeta.workerCache.push(newDescriptor);
+                          elementMeta.workerCache.push(patch.new);
                         }
                       }, function (ex) {
                         return console.log(ex);
                       });
                     } else {
-                      if (!patch.old.parentNode) {
-                        (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
-                        (0, _memory.unprotectElement)(newDescriptor, _make2.default);
+                      if (!oldEl.parentNode) {
+                        (0, _memory.unprotectElement)(patch.old, _make2.default);
+                        (0, _memory.unprotectElement)(patch.new, _make2.default);
 
                         throw new Error('Can\'t replace without parent, is this the ' + 'document root?');
                       }
 
-                      patch.old.parentNode.replaceChild(patch.new, patch.old);
-                      (0, _memory.unprotectElement)(oldDescriptor, _make2.default);
-                      (0, _memory.protectElement)(newDescriptor);
+                      oldEl.parentNode.replaceChild(newEl, oldEl);
+                      (0, _memory.unprotectElement)(patch.old, _make2.default);
+                      (0, _memory.protectElement)(patch.new);
 
                       if (elementMeta.workerCache) {
-                        elementMeta.workerCache.push(newDescriptor);
+                        elementMeta.workerCache.push(patch.new);
                       }
                     }
                   })();
@@ -1642,22 +1643,23 @@ function process(element, patches) {
 
           // Attribute manipulation.
           else if (patch.__do__ === sync.MODIFY_ATTRIBUTE) {
-              var attrChangePromises = transition.makePromises('attributeChanged', [patch.element], patch.name, patch.element.getAttribute(patch.name), patch.value);
-
-              (0, _custom.upgrade)(elementDescriptor.nodeName, patch.element, elementDescriptor);
+              var attrChangePromises = transition.makePromises('attributeChanged', [el], patch.name, el.getAttribute(patch.name), patch.value);
 
               triggerTransition('attributeChanged', attrChangePromises, function (promises) {
                 // Remove.
                 if (patch.value === undefined) {
-                  patch.element.removeAttribute(patch.name);
+                  el.removeAttribute(patch.name);
                 }
                 // Change.
                 else {
-                    patch.element.setAttribute(patch.name, patch.value);
+                    el.setAttribute(patch.name, patch.value);
+
+                    // If an `is` attribute was set, we should upgrade it.
+                    (0, _custom.upgrade)(patch.element.nodeName, el, patch.element);
 
                     // Support live updating of the value attribute.
                     if (patch.name === 'value') {
-                      patch.element[patch.name] = patch.value;
+                      el[patch.name] = patch.value;
                     }
                   }
               });
@@ -1665,17 +1667,17 @@ function process(element, patches) {
 
             // Text node manipulation.
             else if (patch.__do__ === sync.CHANGE_TEXT) {
-                var textChangePromises = transition.makePromises('textChanged', [patch.element], patch.element.nodeValue, patch.value);
+                var textChangePromises = transition.makePromises('textChanged', [el], el.nodeValue, patch.value);
 
                 triggerTransition('textChanged', textChangePromises, function (promises) {
-                  elementDescriptor.nodeValue = (0, _entities.decodeEntities)(patch.value);
-                  patch.element.nodeValue = elementDescriptor.nodeValue;
+                  patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
+                  el.nodeValue = patch.element.nodeValue;
 
-                  if (patch.element.parentNode) {
-                    var nodeName = patch.element.parentNode.nodeName.toLowerCase();
+                  if (el.parentNode) {
+                    var nodeName = el.parentNode.nodeName.toLowerCase();
 
                     if (blockTextElements.indexOf(nodeName) > -1) {
-                      patch.element.parentNode.nodeValue = elementDescriptor.nodeValue;
+                      el.parentNode.nodeValue = patch.element.nodeValue;
                     }
                   }
                 });
@@ -2022,9 +2024,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var pools = _pools2.pools;
 var makeNode = _make2.default;
 
-var elementObject = pools.elementObject;
-var attributeObject = pools.attributeObject;
-
 /**
  * Ensures that an element is not recycled during a render cycle.
  *
@@ -2032,6 +2031,9 @@ var attributeObject = pools.attributeObject;
  * @return element
  */
 function protectElement(element) {
+  var elementObject = pools.elementObject;
+  var attributeObject = pools.attributeObject;
+
   elementObject.protect(element);
 
   element.attributes.forEach(attributeObject.protect, attributeObject);
@@ -2050,6 +2052,9 @@ function protectElement(element) {
  * @return
  */
 function unprotectElement(element, makeNode) {
+  var elementObject = pools.elementObject;
+  var attributeObject = pools.attributeObject;
+
   elementObject.unprotect(element);
   elementObject.cache.uuid.delete(element.uuid);
 
@@ -2072,6 +2077,9 @@ function unprotectElement(element, makeNode) {
  * Recycles all unprotected allocations.
  */
 function cleanMemory(makeNode) {
+  var elementObject = pools.elementObject;
+  var attributeObject = pools.attributeObject;
+
   // Clean out unused elements.
   if (makeNode && makeNode.nodes) {
     for (var uuid in makeNode.nodes) {
@@ -2539,6 +2547,7 @@ function initializePools(COUNT) {
     fill: function fill() {
       return {
         nodeName: '',
+        nodeValue: '',
         uuid: uuid(),
         childNodes: [],
         attributes: []
@@ -2711,7 +2720,7 @@ function filterOutCoverage(string) {
 function create() {
   var worker = null;
   var workerBlob = null;
-  var workerSource = filterOutCoverage('\n    // Reusable Array methods.\n    var slice = Array.prototype.slice;\n    var filter = Array.prototype.filter;\n\n    // Add a namespace to attach pool methods to.\n    var pools = {};\n    var nodes = 0;\n    var REMOVE_ELEMENT_CHILDREN = -2;\n    var REMOVE_ENTIRE_ELEMENT = -1;\n    var MODIFY_ELEMENT = 1;\n    var MODIFY_ATTRIBUTE = 2;\n    var CHANGE_TEXT = 3;\n\n    ' + _uuid2.default + ';\n\n    // Add the ability to protect elements from free\'d memory.\n    ' + _memory.protectElement + ';\n    ' + _memory.unprotectElement + ';\n    ' + _memory.cleanMemory + ';\n\n    // Add in pool manipulation methods.\n    ' + _pools.createPool + ';\n    ' + _pools.initializePools + ';\n\n    initializePools(' + _pools.count + ');\n\n    // Short hands for pool access.\n    var elementObject = pools.elementObject;\n    var attributeObject = pools.attributeObject;\n\n    // Add in Node manipulation.\n    var syncNode = ' + _sync2.default + ';\n    var makeNode = ' + _make2.default + ';\n\n    // Add in the ability to parseHTML.\n    ' + _parser.parseHTML + ';\n\n    var makeParser = ' + _parser.makeParser + ';\n    var parser = makeParser();\n\n    // Add in the worker source.\n    ' + _source2.default + ';\n\n    // Metaprogramming up this worker call.\n    startup(self);\n  ');
+  var workerSource = filterOutCoverage('\n    // Reusable Array methods.\n    var slice = Array.prototype.slice;\n    var filter = Array.prototype.filter;\n\n    // Add a namespace to attach pool methods to.\n    var pools = {};\n    var nodes = 0;\n    var REMOVE_ELEMENT_CHILDREN = -2;\n    var REMOVE_ENTIRE_ELEMENT = -1;\n    var MODIFY_ELEMENT = 1;\n    var MODIFY_ATTRIBUTE = 2;\n    var CHANGE_TEXT = 3;\n\n    // Inject the uuid code.\n    ' + _uuid2.default + ';\n\n    // Add in pool manipulation methods.\n    ' + _pools.createPool + ';\n    ' + _pools.initializePools + ';\n\n    initializePools(' + _pools.count + ');\n\n    // Add the ability to protect elements from free\'d memory.\n    ' + _memory.protectElement + ';\n    ' + _memory.unprotectElement + ';\n    ' + _memory.cleanMemory + ';\n\n    // Add in Node manipulation.\n    var syncNode = ' + _sync2.default + ';\n    var makeNode = ' + _make2.default + ';\n\n    // Add in the ability to parseHTML.\n    ' + _parser.parseHTML + ';\n\n    var makeParser = ' + _parser.makeParser + ';\n    var parser = makeParser();\n\n    // Add in the worker source.\n    ' + _source2.default + ';\n\n    // Metaprogramming up this worker call.\n    startup(self);\n  ');
 
   // Set up a WebWorker if available.
   if (hasWorker) {

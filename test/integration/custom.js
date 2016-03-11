@@ -93,6 +93,53 @@ describe('Integration: Custom Elements', function() {
 
     document.body.appendChild(this.fixture);
 
+    assert.ok(callbackTriggered, 'createdCallback was called');
+
+    document.body.removeChild(this.fixture);
+  });
+
+  it('can activate previously attached elements', function() {
+    var callbackTriggered = false;
+
+    diff.registerElement('extended-div-two', {
+      extends: 'div',
+
+      prototype: {
+        attachedCallback: function() {
+          callbackTriggered = true;
+        }
+      }
+    });
+
+    // Clear the children for this specific test.
+    this.fixture.innerHTML = '';
+
+    document.body.appendChild(this.fixture);
+
+    diff.innerHTML(this.fixture, '<div is="extended-div-two"></div>');
+
+    assert.ok(callbackTriggered, 'attachedCallback was called');
+
+    document.body.removeChild(this.fixture);
+  });
+
+  it('can activate previously attached elements by attribute', function() {
+    var callbackTriggered = false;
+
+    diff.registerElement('extended-div-three', {
+      extends: 'div',
+
+      prototype: {
+        attachedCallback: function() {
+          callbackTriggered = true;
+        }
+      }
+    });
+
+    document.body.appendChild(this.fixture);
+
+    diff.innerHTML(this.fixture, '<div is="extended-div-three"></div>');
+
     assert.ok(callbackTriggered, 'attachedCallback was called');
 
     document.body.removeChild(this.fixture);

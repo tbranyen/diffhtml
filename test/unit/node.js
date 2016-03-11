@@ -90,29 +90,6 @@ describe('Unit: Node', function() {
 
       assert.equal(createdCalled, 1);
     });
-
-    it('can upgrade and call attachedCallback if parentNode exists', function() {
-      var fixture = document.createElement('div');
-      fixture.appendChild(document.createElement('my-fun-element-two'));
-
-      var createdCalled = 0;
-      var attachedCalled = 0;
-
-      registerElement('my-fun-element-two', {
-        createdCallback() {
-          createdCalled += 1;
-        },
-
-        attachedCallback() {
-          attachedCalled += 1;
-        }
-      });
-
-      var node = makeNode(fixture);
-
-      assert.equal(createdCalled, 1);
-      assert.equal(attachedCalled, 1);
-    });
   });
 
   describe('sync', function() {
