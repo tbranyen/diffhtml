@@ -1662,7 +1662,7 @@ function process(element, patches) {
                     (0, _custom.upgrade)(patch.element.nodeName, el, patch.element);
 
                     // Support live updating of the value attribute.
-                    if (patch.name === 'value') {
+                    if (patch.name === 'value' || patch.name === 'checked') {
                       el[patch.name] = patch.value;
                     }
                   }
