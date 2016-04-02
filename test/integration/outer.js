@@ -149,6 +149,29 @@ describe('Integration: outerHTML', function() {
       assert.equal(this.fixture.firstChild.value, 'test');
     });
 
+    it('supports toggling checked attribute', function() {
+      diff.outerHTML(this.fixture, '<div><input type="checkbox"></div>');
+
+      var input = this.fixture.querySelector('input');
+      var evt = document.createEvent('MouseEvent');
+
+      evt.initMouseEvent(
+        'click', true, true, window, null, 0, 0, 0, 0, false, false, false,
+        false, 0, null
+      );
+
+      input.dispatchEvent(evt);
+      diff.outerHTML(this.fixture, '<div><input type="checkbox" checked="checked"></div>');
+
+      assert.equal(input.getAttribute('checked'), 'checked');
+      assert.equal(input.checked, true);
+
+      diff.outerHTML(this.fixture, '<div><input type="checkbox"></div>');
+
+      assert.equal(input.getAttribute('checked'), null);
+      assert.equal(input.checked, false);
+    });
+
     describe('Data', function() {
       it('has basic support', function() {
         diff.outerHTML(this.fixture, '<div><p data-test="test2"></p></div>');

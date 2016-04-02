@@ -172,8 +172,8 @@ function make(descriptor) {
     // Append all the children into the element, making sure to run them
     // through this `make` function as well.
     if (descriptor.childNodes && descriptor.childNodes.length) {
-      for (var i = 0; i < descriptor.childNodes.length; i++) {
-        element.appendChild(make(descriptor.childNodes[i]));
+      for (var _i = 0; _i < descriptor.childNodes.length; _i++) {
+        element.appendChild(make(descriptor.childNodes[_i]));
       }
     }
   }
@@ -293,15 +293,15 @@ var _release = _dereq_('./node/release');
 
 var _release2 = _interopRequireDefault(_release);
 
-var _transitions = _dereq_('./transitions');
-
-var _custom = _dereq_('./element/custom');
-
-var _tree = _dereq_('./node/tree');
-
 var _make = _dereq_('./node/make');
 
 var _make2 = _interopRequireDefault(_make);
+
+var _tree = _dereq_('./node/tree');
+
+var _transitions = _dereq_('./transitions');
+
+var _custom = _dereq_('./element/custom');
 
 var _memory = _dereq_('./util/memory');
 
@@ -730,8 +730,8 @@ function make(node) {
 
   // If the element has child nodes, convert them all to virtual nodes.
   if (nodeType !== 3 && childNodesLength) {
-    for (var i = 0; i < childNodesLength; i++) {
-      var newNode = make(childNodes[i]);
+    for (var _i = 0; _i < childNodesLength; _i++) {
+      var newNode = make(childNodes[_i]);
 
       if (newNode) {
         entry.childNodes[entry.childNodes.length] = newNode;
@@ -1184,12 +1184,12 @@ function sync(oldTree, newTree, patches) {
         toRemove: toRemove
       });
     } else {
-      for (var i = 0; i < toRemove.length; i++) {
+      for (var _i = 0; _i < toRemove.length; _i++) {
         // Remove the element, this happens before the splice so that we
         // still have access to the element.
         patches.push({
           __do__: MODIFY_ELEMENT,
-          old: toRemove[i]
+          old: toRemove[_i]
         });
       }
     }
@@ -1197,19 +1197,19 @@ function sync(oldTree, newTree, patches) {
 
   // Replace elements if they are different.
   if (oldChildNodesLength >= childNodesLength) {
-    for (var i = 0; i < childNodesLength; i++) {
-      if (oldChildNodes[i].nodeName !== childNodes[i].nodeName) {
+    for (var _i2 = 0; _i2 < childNodesLength; _i2++) {
+      if (oldChildNodes[_i2].nodeName !== childNodes[_i2].nodeName) {
         // Add to the patches.
         patches.push({
           __do__: MODIFY_ELEMENT,
-          old: oldChildNodes[i],
-          new: childNodes[i]
+          old: oldChildNodes[_i2],
+          new: childNodes[_i2]
         });
 
         // Replace the internal tree's point of view of this element.
-        oldChildNodes[i] = childNodes[i];
+        oldChildNodes[_i2] = childNodes[_i2];
       } else {
-        sync(oldChildNodes[i], childNodes[i], patches);
+        sync(oldChildNodes[_i2], childNodes[_i2], patches);
       }
     }
   }
@@ -1225,17 +1225,17 @@ function sync(oldTree, newTree, patches) {
     if (newLength > oldLength) {
       var toAdd = slice.call(attributes, oldLength);
 
-      for (var i = 0; i < toAdd.length; i++) {
+      for (var _i3 = 0; _i3 < toAdd.length; _i3++) {
         var change = {
           __do__: MODIFY_ATTRIBUTE,
           element: oldTree,
-          name: toAdd[i].name,
-          value: toAdd[i].value
+          name: toAdd[_i3].name,
+          value: toAdd[_i3].value
         };
 
         var attr = pools.attributeObject.get();
-        attr.name = toAdd[i].name;
-        attr.value = toAdd[i].value;
+        attr.name = toAdd[_i3].name;
+        attr.value = toAdd[_i3].value;
 
         pools.attributeObject.protect(attr);
 
@@ -1249,51 +1249,51 @@ function sync(oldTree, newTree, patches) {
 
     // Check for removals.
     if (oldLength > newLength) {
-      var toRemove = slice.call(oldTree.attributes, newLength);
+      var _toRemove = slice.call(oldTree.attributes, newLength);
 
-      for (var i = 0; i < toRemove.length; i++) {
-        var change = {
+      for (var _i4 = 0; _i4 < _toRemove.length; _i4++) {
+        var _change = {
           __do__: MODIFY_ATTRIBUTE,
           element: oldTree,
-          name: toRemove[i].name,
+          name: _toRemove[_i4].name,
           value: undefined
         };
 
         // Remove the attribute from the virtual node.
-        var removed = oldTree.attributes.splice(i, 1);
+        var _removed = oldTree.attributes.splice(_i4, 1);
 
-        for (var _i = 0; _i < removed.length; _i++) {
-          pools.attributeObject.unprotect(removed[_i]);
+        for (var _i5 = 0; _i5 < _removed.length; _i5++) {
+          pools.attributeObject.unprotect(_removed[_i5]);
         }
 
         // Add the change to the series of patches.
-        patches.push(change);
+        patches.push(_change);
       }
     }
 
     // Check for modifications.
     var toModify = attributes;
 
-    for (var i = 0; i < toModify.length; i++) {
-      var oldAttrValue = oldTree.attributes[i] && oldTree.attributes[i].value;
-      var newAttrValue = attributes[i] && attributes[i].value;
+    for (var _i6 = 0; _i6 < toModify.length; _i6++) {
+      var oldAttrValue = oldTree.attributes[_i6] && oldTree.attributes[_i6].value;
+      var newAttrValue = attributes[_i6] && attributes[_i6].value;
 
       // Only push in a change if the attribute or value changes.
       if (oldAttrValue !== newAttrValue) {
-        var change = {
+        var _change2 = {
           __do__: MODIFY_ATTRIBUTE,
           element: oldTree,
-          name: toModify[i].name,
-          value: toModify[i].value
+          name: toModify[_i6].name,
+          value: toModify[_i6].value
         };
 
         // Replace the attribute in the virtual node.
-        var attr = oldTree.attributes[i];
-        attr.name = toModify[i].name;
-        attr.value = toModify[i].value;
+        var _attr = oldTree.attributes[_i6];
+        _attr.name = toModify[_i6].name;
+        _attr.value = toModify[_i6].value;
 
         // Add the change to the series of patches.
-        patches.push(change);
+        patches.push(_change2);
       }
     }
   }
@@ -1416,9 +1416,9 @@ function process(element, patches) {
 
   var _loop = function _loop(i) {
     var patch = patches[i];
-    var newEl = undefined,
-        oldEl = undefined,
-        el = undefined;
+    var newEl = void 0,
+        oldEl = void 0,
+        el = void 0;
 
     if (patch.element) {
       var result = (0, _get2.default)(patch.element);
@@ -1426,13 +1426,13 @@ function process(element, patches) {
     }
 
     if (patch.old) {
-      var result = (0, _get2.default)(patch.old);
-      oldEl = result.element;
+      var _result = (0, _get2.default)(patch.old);
+      oldEl = _result.element;
     }
 
     if (patch.new) {
-      var result = (0, _get2.default)(patch.new);
-      newEl = result.element;
+      var _result2 = (0, _get2.default)(patch.new);
+      newEl = _result2.element;
     }
 
     // Empty the Node's contents. This is an optimization, since `innerHTML`
@@ -1452,10 +1452,10 @@ function process(element, patches) {
     // Remove the entire Node. Only does something if the Node has a parent
     // element.
     else if (patch.__do__ === sync.REMOVE_ENTIRE_ELEMENT) {
-        var detachPromises = transition.makePromises('detached', [el]);
+        var _detachPromises = transition.makePromises('detached', [el]);
 
         if (el.parentNode) {
-          triggerTransition('detached', detachPromises, function (promises) {
+          triggerTransition('detached', _detachPromises, function (promises) {
             el.parentNode.removeChild(el);
             patch.toRemove.forEach(function (x) {
               return (0, _memory.unprotectElement)(x, _make2.default);
@@ -1649,6 +1649,10 @@ function process(element, patches) {
                 // Remove.
                 if (patch.value === undefined) {
                   el.removeAttribute(patch.name);
+
+                  if (patch.name === 'checked') {
+                    el.checked = false;
+                  }
                 }
                 // Change.
                 else {
@@ -2433,9 +2437,9 @@ function makeParser() {
 
             HTML.childNodes.unshift(headInstance);
           } else {
-            var existing = HTML.childNodes[0].childNodes;
-            existing.unshift.apply(existing, head.before);
-            existing.push.apply(existing, head.after);
+            var _existing = HTML.childNodes[0].childNodes;
+            _existing.unshift.apply(_existing, head.before);
+            _existing.push.apply(_existing, head.after);
           }
 
           // Ensure the second element is the body tag.
@@ -2445,13 +2449,13 @@ function makeParser() {
             bodyInstance.childNodes.length = 0;
             bodyInstance.attributes.length = 0;
 
-            var existing = bodyInstance.childNodes;
-            existing.push.apply(existing, body.after);
+            var _existing2 = bodyInstance.childNodes;
+            _existing2.push.apply(_existing2, body.after);
 
             HTML.childNodes.push(bodyInstance);
           } else {
-            var existing = HTML.childNodes[1].childNodes;
-            existing.push.apply(existing, body.after);
+            var _existing3 = HTML.childNodes[1].childNodes;
+            _existing3.push.apply(_existing3, body.after);
           }
         })();
       }
