@@ -200,6 +200,68 @@ Format is: `name[callbackArgs]`
 - `textChanged[element, oldValue, newValue]`
   For when text has changed in either TextNodes or SVG text elements.
 
+##### A note about detached/replaced element accuracy
+
+When rendering Nodes that contain lists of identical elements, you may not
+receive the elements you expect in the detached and replaced transition state
+hooks. This is a known limitation of string diffing and allows for better
+performance. By default if no key is specified, the last element will be
+removed and the subsequent elements from the one that was removed will be
+mutated via replace.
+
+This isn't really ideal. **At all.**
+
+What you should do here is add a `key` attribute with a unique `value` that
+persists between renders.
+
+For example, when the following markup...
+
+``` html
+<ul>
+  <li>Test</li>
+  <li>This</li>
+  <li>Out</li>
+</ul>
+```
+
+...is changed into...
+
+``` html
+<ul>
+  <li>Test</li>
+  <li>Out</li>
+</ul>
+```
+
+The transformative operations are:
+
+1. Remove the last element
+2. Replace the text of the second element to 'out'
+
+What we intended, however, was to simply remove the second item. And to achieve
+that, decorate your markup like so...
+
+``` html
+<ul>
+  <li key="1">Test</li>
+  <li key="2">This</li>
+  <li key="3">Out</li>
+</ul>
+```
+
+...and update with matching attributes...
+
+``` html
+<ul>
+  <li key="1">Test</li>
+  <li key="3">Out</li>
+</ul>
+```
+
+Now the transformative operations are:
+
+1. Remove the second element
+
 ##### Remove a transition state callback
 
 Removes a global transition listener.
