@@ -7,7 +7,7 @@ module.exports = function(config) {
     frameworks: ['browserify', 'mocha'],
 
     files: [
-      'node_modules/promise-polyfill/Promise.js',
+      'node_modules/promise-polyfill/promise.js',
       'node_modules/es6-collections/es6-collections.js',
       'lib/**/*.js',
       'test/assert.js',
@@ -26,27 +26,26 @@ module.exports = function(config) {
 
     coverageReporter: {
       type: 'lcov',
-      dir: 'test/coverage',
-      instrumenters: { isparta: isparta },
-      instrumenter: { '**/*.js': 'isparta' }
+      dir: 'test/coverage'
     },
 
     browserify: {
       debug: true,
 
       transform: [
-        [istanbul({
+        !process.env.SKIP_COV ? [istanbul({
+          ignore: ['**/worker/**'],
           instrumenter: isparta,
           instrumenterConfig: {
             babel: {
               presets: ['es2015']
             }
           }
-        })],
+        })] : undefined,
         ['babelify', {
           presets: ['es2015']
         }]
-      ]
+      ].filter(Boolean)
     },
 
     browsers: [

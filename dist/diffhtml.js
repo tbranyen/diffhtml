@@ -107,7 +107,7 @@ function get(descriptor) {
   return { uuid: uuid, element: element };
 }
 
-},{"../element/make":3,"../node/make":6}],3:[function(_dereq_,module,exports){
+},{"../element/make":3,"../node/make":7}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -165,7 +165,12 @@ function make(descriptor) {
     if (descriptor.attributes && descriptor.attributes.length) {
       for (var i = 0; i < descriptor.attributes.length; i++) {
         var attribute = descriptor.attributes[i];
-        element.setAttribute(attribute.name, attribute.value);
+
+        if (typeof attribute.value === 'string') {
+          element.setAttribute(attribute.name, attribute.value);
+        } else {
+          element[attribute.name] = attribute.value;
+        }
       }
     }
 
@@ -173,7 +178,21 @@ function make(descriptor) {
     // through this `make` function as well.
     if (descriptor.childNodes && descriptor.childNodes.length) {
       for (var _i = 0; _i < descriptor.childNodes.length; _i++) {
-        element.appendChild(make(descriptor.childNodes[_i]));
+        var text = descriptor.childNodes.nodeValue;
+
+        if (text && text.trim && text.trim() === '__DIFFHTML__') {
+          var value = supplemental.children.shift();
+
+          if (Array.isArray(value)) {
+            value.forEach(function (el) {
+              return element.appendChild(make(el));
+            });
+          } else {
+            element.appendChild(make(value));
+          }
+        } else {
+          element.appendChild(make(descriptor.childNodes[_i]));
+        }
       }
     }
   }
@@ -192,7 +211,7 @@ function make(descriptor) {
   return element;
 }
 
-},{"../node/make":6,"../svg":12,"../util/entities":14,"./custom":1}],4:[function(_dereq_,module,exports){
+},{"../node/make":7,"../svg":13,"../util/entities":15,"./custom":1}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -258,7 +277,80 @@ var DOMException = exports.DOMException = function (_Error2) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DOMException = exports.TransitionStateError = undefined;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.html = html;
+
+var _parser = _dereq_('./util/parser');
+
+// Make a parser.
+var parser = (0, _parser.makeParser)();
+var isPropEx = /(=|'|")/;
+
+/**
+ * Parses a tagged template literal into a diffHTML Virtual DOM representation.
+ *
+ * @param strings
+ * @param ...values
+ *
+ * @return
+ */
+function html(strings) {
+  for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    values[_key - 1] = arguments[_key];
+  }
+
+  // Do not attempt to parse empty strings.
+  if (!strings[0].length && !values.length) {
+    return null;
+  }
+
+  // Parse only the text, no dynamic bits.
+  if (strings.length === 1 && !values.length) {
+    var _childNodes = parser.parse(strings[0]).childNodes;
+    return _childNodes.length > 1 ? _childNodes : _childNodes[0];
+  }
+
+  var retVal = [];
+  var supplemental = {
+    props: [],
+    children: []
+  };
+
+  // Loop over the strings and interpolate the values.
+  strings.forEach(function (string) {
+    retVal.push(string);
+
+    if (values.length) {
+      var value = values.shift();
+      var lastSegment = string.split(' ').pop();
+      var lastCharacter = lastSegment.trim().slice(-1);
+      var isProp = Boolean(lastCharacter.match(isPropEx));
+
+      if (isProp && typeof value !== 'string') {
+        supplemental.props.push(value);
+        retVal.push('__DIFFHTML__');
+      } else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
+        supplemental.children.push(value);
+        retVal.push('__DIFFHTML__');
+      } else {
+        retVal.push(String(value));
+      }
+    }
+  });
+
+  var childNodes = parser.parse(retVal.join(''), supplemental).childNodes;
+  return childNodes.length > 1 ? childNodes : childNodes[0];
+}
+
+},{"./util/parser":17}],6:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.html = exports.DOMException = exports.TransitionStateError = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
@@ -274,6 +366,15 @@ Object.defineProperty(exports, 'DOMException', {
   enumerable: true,
   get: function get() {
     return _errors.DOMException;
+  }
+});
+
+var _html = _dereq_('./html');
+
+Object.defineProperty(exports, 'html', {
+  enumerable: true,
+  get: function get() {
+    return _html.html;
   }
 });
 exports.outerHTML = outerHTML;
@@ -481,6 +582,14 @@ function removeTransitionState(state, callback) {
  * benefit from the performance gains of DOM diffing.
  */
 function enableProllyfill() {
+  // Exposes the `html` tagged template helper globally so that developers
+  // can trivially craft VDOMs.
+  Object.defineProperty(window, 'html', {
+    configurable: true,
+
+    value: _html.html
+  });
+
   // Exposes the `TransitionStateError` constructor globally so that developers
   // can instanceof check exception errors.
   Object.defineProperty(window, 'TransitionStateError', {
@@ -653,7 +762,7 @@ function enableProllyfill() {
   }
 }
 
-},{"./element/custom":1,"./errors":4,"./node/make":6,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13,"./util/memory":15}],6:[function(_dereq_,module,exports){
+},{"./element/custom":1,"./errors":4,"./html":5,"./node/make":7,"./node/patch":8,"./node/release":9,"./node/tree":11,"./transitions":14,"./util/memory":16}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -754,7 +863,7 @@ function make(node) {
   return entry;
 }
 
-},{"../element/custom":1,"../util/pools":17}],7:[function(_dereq_,module,exports){
+},{"../element/custom":1,"../util/pools":18}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -793,6 +902,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *
  * @param element
  * @param newHTML
+ * @param options
  */
 function patchNode(element, newHTML, options) {
   // Ensure that the document disable worker is always picked up.
@@ -835,13 +945,15 @@ function patchNode(element, newHTML, options) {
   var sameTextContent = elementMeta._textContent === element.textContent;
 
   // If the contents haven't changed, abort, since there is no point in
-  // continuing.
-  if (elementMeta.newHTML === newHTML) {
+  // continuing. Only support this if the new markup is a string, otherwise
+  // it's possible for our object recycling to match twice.
+  if (typeof newHTML === 'string' && elementMeta.newHTML === newHTML) {
     return;
   }
-
   // Associate the last markup rendered with this element.
-  elementMeta.newHTML = newHTML;
+  else if (typeof newHTML === 'string') {
+      elementMeta.newHTML = newHTML;
+    }
 
   // Start with worker being a falsy value.
   var worker = null;
@@ -857,7 +969,6 @@ function patchNode(element, newHTML, options) {
 
     if (oldTree) {
       (0, _memory.unprotectElement)(oldTree, _make2.default);
-      (0, _memory.cleanMemory)(_make2.default);
     }
 
     elementMeta.oldTree = (0, _memory.protectElement)((0, _make2.default)(element));
@@ -960,8 +1071,10 @@ function patchNode(element, newHTML, options) {
 
     if (typeof newHTML === 'string') {
       newTree = (0, _parser.parseHTML)(newHTML, options.inner);
-    } else {
+    } else if (newHTML.ownerDocument) {
       newTree = (0, _make2.default)(newHTML);
+    } else {
+      newTree = newHTML;
     }
 
     if (options.inner) {
@@ -977,6 +1090,8 @@ function patchNode(element, newHTML, options) {
     }
 
     // Synchronize the tree.
+
+    // Find out when newTree gets fucked up
     var patches = (0, _sync2.default)(elementMeta.oldTree, newTree);
     var invokeRender = (0, _render.completeRender)(element, elementMeta);
 
@@ -995,7 +1110,7 @@ function patchNode(element, newHTML, options) {
   }
 }
 
-},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/render":18,"../worker/create":20,"./make":6,"./sync":9,"./tree":10}],8:[function(_dereq_,module,exports){
+},{"../patches/process":12,"../util/memory":16,"../util/parser":17,"../util/pools":18,"../util/render":19,"../worker/create":21,"./make":7,"./sync":10,"./tree":11}],9:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1052,7 +1167,7 @@ function releaseNode(element) {
   (0, _memory.cleanMemory)(_make2.default);
 }
 
-},{"../util/memory":15,"../util/pools":17,"./make":6,"./tree":10}],9:[function(_dereq_,module,exports){
+},{"../util/memory":16,"../util/pools":18,"./make":7,"./tree":11}],10:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1119,10 +1234,15 @@ function sync(oldTree, newTree, patches) {
   var newElement = newTree.uuid;
   var nodeName = newTree.nodeName;
   var newIsTextNode = nodeName === '#text';
+  var oldIsFragment = oldTree.nodeName === '#document-fragment';
+  var newIsFragment = newTree.nodeName === '#document-fragment';
+  var skipAttributeCompare = false;
 
   // If the element we're replacing is totally different from the previous
   // replace the entire element, don't bother investigating children.
-  if (oldTree.nodeName !== newTree.nodeName) {
+  if (oldIsFragment || newIsFragment) {
+    skipAttributeCompare = true;
+  } else if (oldTree.nodeName !== newTree.nodeName) {
     patches.push({
       __do__: REPLACE_ENTIRE_ELEMENT,
       old: oldTree,
@@ -1217,7 +1337,7 @@ function sync(oldTree, newTree, patches) {
   // Synchronize attributes
   var attributes = newTree.attributes;
 
-  if (attributes) {
+  if (attributes && !skipAttributeCompare) {
     var oldLength = oldTree.attributes.length;
     var newLength = attributes.length;
 
@@ -1301,7 +1421,7 @@ function sync(oldTree, newTree, patches) {
   return patches;
 }
 
-},{"../util/pools":17}],10:[function(_dereq_,module,exports){
+},{"../util/pools":18}],11:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1310,7 +1430,7 @@ Object.defineProperty(exports, "__esModule", {
 // Cache prebuilt trees and lookup by element.
 var TreeCache = exports.TreeCache = new Map();
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1354,7 +1474,7 @@ var blockTextElements = ['script', 'noscript', 'style', 'pre', 'template'];
  * Processes an array of patches.
  *
  * @param element - Element to process patchsets on.
- * @param e - Object that contains patches.
+ * @param patches - Array that contains patch objects.
  */
 function process(element, patches) {
   var elementMeta = _tree.TreeCache.get(element);
@@ -1416,24 +1536,9 @@ function process(element, patches) {
 
   var _loop = function _loop(i) {
     var patch = patches[i];
-    var newEl = void 0,
-        oldEl = void 0,
-        el = void 0;
-
-    if (patch.element) {
-      var result = (0, _get2.default)(patch.element);
-      el = result.element;
-    }
-
-    if (patch.old) {
-      var _result = (0, _get2.default)(patch.old);
-      oldEl = _result.element;
-    }
-
-    if (patch.new) {
-      var _result2 = (0, _get2.default)(patch.new);
-      newEl = _result2.element;
-    }
+    var el = patch.element ? (0, _get2.default)(patch.element).element : null;
+    var oldEl = patch.old ? (0, _get2.default)(patch.old).element : null;
+    var newEl = patch.new ? (0, _get2.default)(patch.new).element : null;
 
     // Empty the Node's contents. This is an optimization, since `innerHTML`
     // will be faster than iterating over every element and manually removing.
@@ -1650,17 +1755,27 @@ function process(element, patches) {
                 if (patch.value === undefined) {
                   el.removeAttribute(patch.name);
 
-                  if (patch.name === 'checked') {
-                    el.checked = false;
+                  if (patch.name in el) {
+                    el[patch.name] = undefined;
                   }
                 }
                 // Change.
                 else {
-                    el.setAttribute(patch.name, patch.value);
+                    // Is an attribute.
+                    if (typeof patch.value === 'string') {
+                      el.setAttribute(patch.name, patch.value);
+                    }
+                    // Is a property.
+                    else {
+                        // Necessary to track the attribute/prop existence.
+                        el.setAttribute(patch.name, '');
+                        el[patch.name] = patch.value;
+                      }
 
                     // If an `is` attribute was set, we should upgrade it.
                     (0, _custom.upgrade)(patch.element.nodeName, el, patch.element);
 
+                    // Support live updating of the value attribute.
                     // Support live updating of the value attribute.
                     if (patch.name === 'value' || patch.name === 'checked') {
                       el[patch.name] = patch.value;
@@ -1699,7 +1814,7 @@ function process(element, patches) {
   return promises.filter(Boolean);
 }
 
-},{"../element/custom":1,"../element/get":2,"../node/make":6,"../node/sync":9,"../node/tree":10,"../transitions":13,"../util/entities":14,"../util/memory":15,"../util/pools":17}],12:[function(_dereq_,module,exports){
+},{"../element/custom":1,"../element/get":2,"../node/make":7,"../node/sync":10,"../node/tree":11,"../transitions":14,"../util/entities":15,"../util/memory":16,"../util/pools":18}],13:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1711,7 +1826,7 @@ var elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'a
 // Namespace.
 var namespace = exports.namespace = 'http://www.w3.org/2000/svg';
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1985,7 +2100,7 @@ function makePromises(stateName) {
   };
 }
 
-},{"./element/custom":1,"./node/make":6}],14:[function(_dereq_,module,exports){
+},{"./element/custom":1,"./node/make":7}],15:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2007,7 +2122,7 @@ function decodeEntities(string) {
   return element.textContent;
 }
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2041,10 +2156,7 @@ function protectElement(element) {
   elementObject.protect(element);
 
   element.attributes.forEach(attributeObject.protect, attributeObject);
-
-  if (element.childNodes) {
-    element.childNodes.forEach(protectElement);
-  }
+  element.childNodes.forEach(protectElement);
 
   return element;
 }
@@ -2063,12 +2175,9 @@ function unprotectElement(element, makeNode) {
   elementObject.cache.uuid.delete(element.uuid);
 
   element.attributes.forEach(attributeObject.unprotect, attributeObject);
-
-  if (element.childNodes) {
-    element.childNodes.forEach(function (node) {
-      return unprotectElement(node, makeNode);
-    });
-  }
+  element.childNodes.forEach(function (node) {
+    return unprotectElement(node, makeNode);
+  });
 
   if (makeNode && makeNode.nodes) {
     delete makeNode.nodes[element.uuid];
@@ -2108,7 +2217,7 @@ function cleanMemory(makeNode) {
   attributeObject.cache.allocated.clear();
 }
 
-},{"../node/make":6,"../util/pools":17}],16:[function(_dereq_,module,exports){
+},{"../node/make":7,"../util/pools":18}],17:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2249,8 +2358,9 @@ function makeParser() {
    * @param {string} name     nodeName
    * @param {Object} keyAttrs id and class attribute
    * @param {Object} rawAttrs attributes in string
+   * @param {Object} supplemental data
    */
-  function HTMLElement(name, keyAttrs, rawAttrs) {
+  function HTMLElement(name, keyAttrs, rawAttrs, supplemental) {
     var instance = pools.elementObject.get();
 
     instance.nodeName = name;
@@ -2265,6 +2375,10 @@ function makeParser() {
 
         attr.name = match[1];
         attr.value = match[6] || match[5] || match[4] || match[1];
+
+        if (attr.value === '__DIFFHTML__') {
+          attr.value = supplemental.props.shift();
+        }
 
         // Look for empty attributes.
         if (match[6] === '""') {
@@ -2285,18 +2399,20 @@ function makeParser() {
     /**
      * Parse a chuck of HTML source.
      * @param  {string} data      html
+     * @param  {array} supplemental      data
      * @return {HTMLElement}      root element
      */
-    parse: function parse(data) {
+    parse: function parse(data, supplemental) {
       var rootObject = {};
       var root = HTMLElement(null, rootObject);
       var currentParent = root;
       var stack = [root];
       var lastTextPos = -1;
 
+      // If there are no HTML elements, treat the passed in data as a single
+      // text node.
       if (data.indexOf('<') === -1 && data) {
         currentParent.childNodes.push(TextNode(data));
-
         return root;
       }
 
@@ -2306,7 +2422,14 @@ function makeParser() {
             // if has content
             text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
 
-            currentParent.childNodes.push(TextNode(text));
+            if (text && text.trim && text.trim() === '__DIFFHTML__') {
+              var value = supplemental.children.shift();
+              var childrenToAdd = [].concat(value);
+
+              currentParent.childNodes.push.apply(currentParent.childNodes, childrenToAdd);
+            } else {
+              currentParent.childNodes.push(TextNode(text));
+            }
           }
         }
 
@@ -2332,7 +2455,7 @@ function makeParser() {
             }
           }
 
-          currentParent = currentParent.childNodes[currentParent.childNodes.push(HTMLElement(match[2], attrs, match[3])) - 1];
+          currentParent = currentParent.childNodes[currentParent.childNodes.push(HTMLElement(match[2], attrs, match[3], supplemental)) - 1];
 
           stack.push(currentParent);
 
@@ -2345,7 +2468,8 @@ function makeParser() {
             if (index === -1) {
               lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
             } else {
-              lastTextPos = kMarkupPattern.lastIndex = index + closeMarkup.length;
+              lastTextPos = index + closeMarkup.length;
+              kMarkupPattern.lastIndex = lastTextPos;
               match[1] = true;
             }
 
@@ -2369,9 +2493,11 @@ function makeParser() {
 
               break;
             } else {
+              var tag = kElementsClosedByClosing[currentParent.nodeName];
+
               // Trying to close current tag, and move on
-              if (kElementsClosedByClosing[currentParent.nodeName]) {
-                if (kElementsClosedByClosing[currentParent.nodeName][match[2]]) {
+              if (tag) {
+                if (tag[match[2]]) {
                   stack.pop();
                   currentParent = stack[stack.length - 1];
 
@@ -2467,7 +2593,7 @@ function makeParser() {
   return htmlParser;
 }
 
-},{"./pools":17}],17:[function(_dereq_,module,exports){
+},{"./pools":18}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2563,7 +2689,7 @@ function initializePools(COUNT) {
 // Create ${COUNT} items of each type.
 initializePools(count);
 
-},{"./uuid":19}],18:[function(_dereq_,module,exports){
+},{"./uuid":20}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2636,7 +2762,7 @@ function completeRender(element, elementMeta) {
   };
 }
 
-},{"../node/make":6,"../node/patch":7,"../node/tree":10,"../util/memory":15,"../util/pools":17,"custom-event":22}],19:[function(_dereq_,module,exports){
+},{"../node/make":7,"../node/patch":8,"../node/tree":11,"../util/memory":16,"../util/pools":18,"custom-event":23}],20:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2657,7 +2783,7 @@ function uuid() {
   });
 }
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2749,7 +2875,7 @@ function create() {
   return worker;
 }
 
-},{"../node/make":6,"../node/sync":9,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/uuid":19,"./source":21}],21:[function(_dereq_,module,exports){
+},{"../node/make":7,"../node/sync":10,"../util/memory":16,"../util/parser":17,"../util/pools":18,"../util/uuid":20,"./source":22}],22:[function(_dereq_,module,exports){
 'use strict';
 
 // These are globally defined to avoid issues with JSHint thinking that we're
@@ -2850,7 +2976,7 @@ function startup(worker) {
   };
 }
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 (function (global){
 
 var NativeCustomEvent = global.CustomEvent;
@@ -2902,5 +3028,5 @@ function CustomEvent (type, params) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[5])(5)
+},{}]},{},[6])(6)
 });
