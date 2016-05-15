@@ -22,10 +22,7 @@ this tree and the DOM.
 
 - Intelligent virtual DOM diffing and patching of HTML text and elements.
 - Transitions API to hook into element and attribute state changes. 
-- Custom Elements in browsers without native support.
 - Tagged template string helper to build a VTree with dynamic content. 
-- Experimental offloading to Web Workers which can sometimes provide better
-  rendering performance.
 - Object pooling to avoid GC thrashing and expensive uuid generation.
 
 #### Install
@@ -284,11 +281,6 @@ diff.enableProllyfill();
 diffHTML to modify your browser's `HTMLElement` constructor,
 `Element.prototype`, the `document` object, and run some logic on your page
 load event.*
-
-If you have already loaded the page (meaning the load event has fired),
-diffHTML will immediately search the page for Custom Elements and automatically
-initialize them. If the page has not yet loaded, it will wait before invoking
-which gives you time to register your elements first.
 
 ##### `Element.prototype.diffOuterHTML`
 
