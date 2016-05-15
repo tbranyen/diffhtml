@@ -816,10 +816,6 @@ function make(node) {
   entry.childNodes.length = 0;
   entry.attributes.length = 0;
 
-  if (window.enablePatches) {
-    console.log(JSON.stringify(entry));
-  }
-
   // Collect attributes.
   var attributes = node.attributes;
 
