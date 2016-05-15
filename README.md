@@ -7,29 +7,69 @@ Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&ser
 [![Join the chat at https://gitter.im/tbranyen/diffhtml](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/tbranyen/diffhtml)
 
 Inspired by React and motivated by the Web, this is a low-level tool which aims
-to help web developers write applications. By focusing on the markup
+to help web developers write components for the web. By focusing on the markup
 representing how your application state should look, diffHTML will figure out
-how to modify the page with the fewest amount of operations.
+how to modify the page with a minimal amount of operations.
 
-<img src="https://raw.githubusercontent.com/tbranyen/diffhtml/gh-pages/kiwi.png" width="120px">
+It works by parsing your HTML markup into a lightweight JSON-serializable
+Virtual DOM heirarchy. I refer to these as Virtual Trees or *VTree*. These
+element (and attribute) objects are pooled to provide consistent memory
+management and garbage collection. diffHTML maintains a single VTree root that
+mirrors a mounted element in the DOM, it reconciles all future renders into
+this tree and the DOM.
 
-**Features:**
+#### Features
 
 - Intelligent virtual DOM diffing and patching of HTML text and elements.
 - Transitions API to hook into element and attribute state changes. 
 - Custom Elements in browsers without native support.
-- Offloading diff to Web Workers which provides better rendering performance.
-  * Considered experimental, may not work 100% to your liking.
+- Tagged template string helper to build a VTree with dynamic content. 
+- Experimental offloading to Web Workers which can sometimes provide better
+  rendering performance.
 - Object pooling to avoid GC thrashing and expensive uuid generation.
 
 #### Install
+
+The latest built version is available for quick download from the [master
+branch](https://raw.githubusercontent.com/tbranyen/diffhtml/master/dist/diffhtml.js).
 
 ``` sh
 npm install diffhtml
 ```
 
-The module can be required via Node or browser environments.  It is exported as
-a global named `diff`.
+The module can be required via Node or browser environments. It is exported as
+a global named `diff` unless loaded as a module.
+
+#### Quick start
+
+Before diving into the API details, the easiest way to start using diffHTML is
+to replace `innerHTML`.
+
+For example, the following destroys the span and recreates it every time the
+render method is called:
+
+``` html
+<span></span>
+```
+
+``` javascript
+function render(string) {
+  document.querySelector('span').innerHTML = string;
+}
+```
+
+``` javascript
+render('Hello world!');
+render('Foo bar baz!');
+```
+
+We could rewrite this with diffHTML to leverage the Virtual DOM like this:
+
+``` javascript
+function render(string) {
+  diff.outerHTML(document.querySelector('span'), string);
+}
+```
 
 #### API
 
@@ -38,9 +78,16 @@ The exposed API provides the following methods:
 - [outerHTML(element, markup, options)](#user-content-diff-an-element-with-markup)
 - [innerHTML(element, markup, options)](#user-content-diff-an-elements-children-with-markup)
 - [element(oldElement, newElement, options)](#user-content-diff-an-element-to-another-element)
+- [release(element)](#user-content-release-element)
 - [addTransitionState(name, callback)](#user-content-add-a-transition-state-callback)
 - [removeTransitionState(name, callback)](#user-content-remove-a-transition-state-callback)
+- [html\`markup\`](#user-content-html)
 - [enableProllyfill()](#user-content-prollyfill)
+
+The follow error types are exposed:
+
+- TransitionStateError - Happens when errors occur during transitions.
+- DOMException - Happens whenever a DOM manipulation fails.
 
 ##### Options
 
@@ -104,6 +151,22 @@ h1.innerHTML = 'Hello world!';
 diff.element(document.body, h1, { inner: true });
 ```
 
+##### Release element
+
+Use this method if you need to clean up Web Worker usage, memory allocations,
+and anything else internal to diffHTML associated with your element. This is
+very useful for unit testing and general cleanup when you're done with an
+element.
+
+``` javascript
+var h1 = document.createElement('h1');
+
+h1.innerHTML = 'Hello world!';
+
+diff.element(document.body, h1, { inner: true });
+diff.release(document.body);
+```
+
 ##### Add a transition state callback
 
 Adds a global transition listener.  With many elements this could be an
@@ -160,6 +223,50 @@ diff.removeTransitionState('attached');
 // Removes states by name and callback reference.
 diff.removeTransitionState('attached', callbackReference);
 ```
+
+#### HTML
+
+You can use the `diff.html` tagged template helper to build up dynamic trees in
+a way that looks very similar to JSX.
+
+For instance the following example:
+
+``` javascript
+const fixture = document.createElement('div');
+
+function showUnixTime() {
+  fixture.querySelector('span').innerHTML = Date.now();
+}
+
+diff.outerHTML(fixture, `
+  <div>
+    <button>Show current unix time</button>
+    <span>${Date.now()}</span>
+  </div>
+`);
+
+fixture.addEventListener('click', showUnixTime);
+```
+
+Could be rebuilt as:
+
+``` javascript
+const fixture = document.createElement('div');
+
+function showUnixTime() {
+  fixture.querySelector('span').innerHTML = Date.now();
+}
+
+diff.outerHTML(fixture, html`
+  <div onclick=${showUnixTime}>
+    <button>Show current unix time</button>
+    <span>${Date.now()}</span>
+  </div>
+`);
+```
+
+So this feature allows for inline binding of any DOM event, sending complex
+property data to any element.
 
 #### [Prollyfill](https://twitter.com/slexaxton/status/257543702124306432)
 
