@@ -807,12 +807,18 @@ function make(node) {
   // If the element is a text node set the nodeValue.
   if (nodeType === 3) {
     entry.nodeValue = node.textContent;
+    entry.nodeType = 3;
   } else {
     entry.nodeValue = '';
+    entry.nodeType = 1;
   }
 
   entry.childNodes.length = 0;
   entry.attributes.length = 0;
+
+  if (window.enablePatches) {
+    console.log(JSON.stringify(entry));
+  }
 
   // Collect attributes.
   var attributes = node.attributes;
@@ -1090,8 +1096,6 @@ function patchNode(element, newHTML, options) {
     }
 
     // Synchronize the tree.
-
-    // Find out when newTree gets fucked up
     var patches = (0, _sync2.default)(elementMeta.oldTree, newTree);
     var invokeRender = (0, _render.completeRender)(element, elementMeta);
 
@@ -1238,19 +1242,21 @@ function sync(oldTree, newTree, patches) {
   var newIsFragment = newTree.nodeName === '#document-fragment';
   var skipAttributeCompare = false;
 
-  // If the element we're replacing is totally different from the previous
-  // replace the entire element, don't bother investigating children.
+  // Fragments should not compare attributes.
   if (oldIsFragment || newIsFragment) {
     skipAttributeCompare = true;
-  } else if (oldTree.nodeName !== newTree.nodeName) {
-    patches.push({
-      __do__: REPLACE_ENTIRE_ELEMENT,
-      old: oldTree,
-      new: newTree
-    });
-
-    return patches;
   }
+  // If the element we're replacing is totally different from the previous
+  // replace the entire element, don't bother investigating children.
+  else if (oldTree.nodeName !== newTree.nodeName) {
+      patches.push({
+        __do__: REPLACE_ENTIRE_ELEMENT,
+        old: oldTree,
+        new: newTree
+      });
+
+      return patches;
+    }
 
   // If the top level nodeValue has changed we should reflect it.
   if (oldIsTextNode && newIsTextNode && oldNodeValue !== nodeValue) {
@@ -1262,7 +1268,7 @@ function sync(oldTree, newTree, patches) {
 
     oldTree.nodeValue = newTree.nodeValue;
 
-    return;
+    return patches;
   }
 
   // Most common additive elements.
@@ -2678,6 +2684,7 @@ function initializePools(COUNT) {
       return {
         nodeName: '',
         nodeValue: '',
+        nodeType: null,
         uuid: uuid(),
         childNodes: [],
         attributes: []
@@ -2717,6 +2724,12 @@ var _pools = _dereq_('../util/pools');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * renderNext
+ *
+ * @param elementMeta
+ * @return
+ */
 function renderNext(elementMeta) {
   var nextRender = elementMeta.renderBuffer;
   elementMeta.renderBuffer = undefined;
@@ -2726,7 +2739,7 @@ function renderNext(elementMeta) {
 }
 
 /**
- * When the UI or Worker thread completes, clean up memory and schedule the
+ * When the UI or Worker thread completes, clean up memory, and schedule the
  * next render if necessary.
  *
  * @param element
@@ -2736,8 +2749,6 @@ function completeRender(element, elementMeta) {
   return function invokeRender() {
     elementMeta.previousMarkup = elementMeta.options.inner ? element.innerHTML : element.outerHTML;
     elementMeta._textContent = element.textContent;
-
-    (0, _memory.cleanMemory)(_make2.default);
 
     elementMeta.isRendering = false;
 
@@ -2756,6 +2767,9 @@ function completeRender(element, elementMeta) {
         }
       });
     }
+
+    // Clean out all the existing allocations.
+    (0, _memory.cleanMemory)(_make2.default);
 
     // Dispatch an event on the element once rendering has completed.
     element.dispatchEvent(new _customEvent2.default('renderComplete'));
