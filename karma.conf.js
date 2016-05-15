@@ -34,7 +34,6 @@ module.exports = function(config) {
 
       transform: [
         !process.env.SKIP_COV ? [istanbul({
-          ignore: ['**/worker/**'],
           instrumenter: isparta,
           instrumenterConfig: {
             babel: {

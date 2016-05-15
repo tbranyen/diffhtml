@@ -88,13 +88,10 @@ The follow error types are exposed:
 
 ##### Options
 
-This is an optional argument that can be passed to any diff method.  Here you
-can specify if you'd like to opt into the WebWorker to offload calculates to
-increase performance.  The `inner` property can only be used with the element
-method.
+This is an optional argument that can be passed to any diff method. The `inner`
+property can only be used with the element method.
 
 - `inner` - Boolean that determines if `innerHTML` is used.
-- `enableWorker` - Boolean that determines if the WebWorker is utilized.
 
 ##### Diff an element with markup
 
@@ -150,10 +147,9 @@ diff.element(document.body, h1, { inner: true });
 
 ##### Release element
 
-Use this method if you need to clean up Web Worker usage, memory allocations,
-and anything else internal to diffHTML associated with your element. This is
-very useful for unit testing and general cleanup when you're done with an
-element.
+Use this method if you need to clean up memory allocations and anything else
+internal to diffHTML associated with your element. This is very useful for unit
+testing and general cleanup when you're done with an element.
 
 ``` javascript
 var h1 = document.createElement('h1');

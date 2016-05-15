@@ -306,8 +306,6 @@ var _tree = _dereq_('./node/tree');
 
 var _transitions = _dereq_('./transitions');
 
-var _memory = _dereq_('./util/memory');
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
@@ -360,8 +358,8 @@ function element(element, newElement) {
 }
 
 /**
- * Releases the worker and memory allocated to this element. Useful for
- * cleaning up components when removed in tests and applications.
+ * Releases the memory allocated to this element. Useful for cleaning up
+ * components when removed in tests and applications.
  *
  * @param element
  */
@@ -508,7 +506,7 @@ function enableProllyfill() {
       }
     });
 
-    // Releases the retained memory and worker instance.
+    // Releases the retained memory.
     Object.defineProperty(Ctor.prototype, 'diffRelease', {
       configurable: true,
 
@@ -519,7 +517,7 @@ function enableProllyfill() {
   });
 }
 
-},{"./errors":3,"./html":4,"./node/make":6,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13,"./util/memory":15}],6:[function(_dereq_,module,exports){
+},{"./errors":3,"./html":4,"./node/make":6,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -527,9 +525,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = make;
 
-var _pools2 = _dereq_('../util/pools');
+var _pools = _dereq_('../util/pools');
 
-var pools = _pools2.pools;
 var empty = {};
 
 // Cache created nodes inside this object.
@@ -551,7 +548,7 @@ function make(node) {
 
   // Virtual representation of a node, containing only the data we wish to
   // diff and patch.
-  var entry = pools.elementObject.get();
+  var entry = _pools.pools.elementObject.get();
 
   // Associate this newly allocated uuid with this Node.
   make.nodes[entry.uuid] = node;
@@ -580,7 +577,7 @@ function make(node) {
 
     if (attributesLength) {
       for (var i = 0; i < attributesLength; i++) {
-        var attr = pools.attributeObject.get();
+        var attr = _pools.pools.attributeObject.get();
 
         attr.name = attributes[i].name;
         attr.value = attributes[i].value;
@@ -810,9 +807,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.CHANGE_TEXT = exports.MODIFY_ATTRIBUTE = exports.MODIFY_ELEMENT = exports.REPLACE_ENTIRE_ELEMENT = exports.REMOVE_ENTIRE_ELEMENT = exports.REMOVE_ELEMENT_CHILDREN = undefined;
 exports.default = sync;
 
-var _pools2 = _dereq_('../util/pools');
-
-var pools = _pools2.pools;
+var _pools = _dereq_('../util/pools');
 
 var slice = Array.prototype.slice;
 var filter = Array.prototype.filter;
@@ -989,11 +984,11 @@ function sync(oldTree, newTree, patches) {
           value: toAdd[_i3].value
         };
 
-        var attr = pools.attributeObject.get();
+        var attr = _pools.pools.attributeObject.get();
         attr.name = toAdd[_i3].name;
         attr.value = toAdd[_i3].value;
 
-        pools.attributeObject.protect(attr);
+        _pools.pools.attributeObject.protect(attr);
 
         // Push the change object into into the virtual tree.
         oldTree.attributes.push(attr);
@@ -1019,7 +1014,7 @@ function sync(oldTree, newTree, patches) {
         var _removed = oldTree.attributes.splice(_i4, 1);
 
         for (var _i5 = 0; _i5 < _removed.length; _i5++) {
-          pools.attributeObject.unprotect(_removed[_i5]);
+          _pools.pools.attributeObject.unprotect(_removed[_i5]);
         }
 
         // Add the change to the series of patches.
@@ -1680,16 +1675,13 @@ exports.protectElement = protectElement;
 exports.unprotectElement = unprotectElement;
 exports.cleanMemory = cleanMemory;
 
-var _pools2 = _dereq_('../util/pools');
+var _pools = _dereq_('../util/pools');
 
 var _make = _dereq_('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var pools = _pools2.pools;
-var makeNode = _make2.default;
 
 /**
  * Ensures that an element is not recycled during a render cycle.
@@ -1698,8 +1690,8 @@ var makeNode = _make2.default;
  * @return element
  */
 function protectElement(element) {
-  var elementObject = pools.elementObject;
-  var attributeObject = pools.attributeObject;
+  var elementObject = _pools.pools.elementObject;
+  var attributeObject = _pools.pools.attributeObject;
 
   elementObject.protect(element);
 
@@ -1716,8 +1708,8 @@ function protectElement(element) {
  * @return
  */
 function unprotectElement(element, makeNode) {
-  var elementObject = pools.elementObject;
-  var attributeObject = pools.attributeObject;
+  var elementObject = _pools.pools.elementObject;
+  var attributeObject = _pools.pools.attributeObject;
 
   elementObject.unprotect(element);
   elementObject.cache.uuid.delete(element.uuid);
@@ -1738,8 +1730,8 @@ function unprotectElement(element, makeNode) {
  * Recycles all unprotected allocations.
  */
 function cleanMemory(makeNode) {
-  var elementObject = pools.elementObject;
-  var attributeObject = pools.attributeObject;
+  var elementObject = _pools.pools.elementObject;
+  var attributeObject = _pools.pools.attributeObject;
 
   // Clean out unused elements.
   if (makeNode && makeNode.nodes) {
@@ -1774,12 +1766,11 @@ Object.defineProperty(exports, "__esModule", {
 exports.parseHTML = parseHTML;
 exports.makeParser = makeParser;
 
-var _pools2 = _dereq_('./pools');
+var _pools = _dereq_('./pools');
 
-var pools = _pools2.pools; // Code based off of:
+var parser = makeParser(); // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
-var parser = makeParser();
 var slice = Array.prototype.slice;
 
 /**
@@ -1886,7 +1877,7 @@ function makeParser() {
    * @param {string} value [description]
    */
   function TextNode(value) {
-    var instance = pools.elementObject.get();
+    var instance = _pools.pools.elementObject.get();
 
     instance.nodeName = '#text';
     instance.nodeValue = value;
@@ -1909,7 +1900,7 @@ function makeParser() {
    * @param {Object} supplemental data
    */
   function HTMLElement(name, keyAttrs, rawAttrs, supplemental) {
-    var instance = pools.elementObject.get();
+    var instance = _pools.pools.elementObject.get();
 
     instance.nodeName = name;
     instance.nodeValue = '';
@@ -1919,7 +1910,7 @@ function makeParser() {
 
     if (rawAttrs) {
       for (var match; match = reAttrPattern.exec(rawAttrs);) {
-        var attr = pools.attributeObject.get();
+        var attr = _pools.pools.attributeObject.get();
 
         attr.name = match[1];
         attr.value = match[6] || match[5] || match[4] || match[1];
@@ -2100,7 +2091,7 @@ function makeParser() {
 
           // Ensure the first element is the HEAD tag.
           if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
-            var headInstance = pools.elementObject.get();
+            var headInstance = _pools.pools.elementObject.get();
             headInstance.nodeName = 'head';
             headInstance.childNodes.length = 0;
             headInstance.attributes.length = 0;
@@ -2118,7 +2109,7 @@ function makeParser() {
 
           // Ensure the second element is the body tag.
           if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
-            var bodyInstance = pools.elementObject.get();
+            var bodyInstance = _pools.pools.elementObject.get();
             bodyInstance.nodeName = 'body';
             bodyInstance.childNodes.length = 0;
             bodyInstance.attributes.length = 0;
@@ -2246,10 +2237,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.completeRender = completeRender;
 
-var _customEvent = _dereq_('custom-event');
-
-var _customEvent2 = _interopRequireDefault(_customEvent);
-
 var _patch = _dereq_('../node/patch');
 
 var _patch2 = _interopRequireDefault(_patch);
@@ -2281,8 +2268,8 @@ function renderNext(elementMeta) {
 }
 
 /**
- * When the UI or Worker thread completes, clean up memory, and schedule the
- * next render if necessary.
+ * When the render completes, clean up memory, and schedule the next render if
+ * necessary.
  *
  * @param element
  * @param elementMeta
@@ -2314,11 +2301,11 @@ function completeRender(element, elementMeta) {
     (0, _memory.cleanMemory)(_make2.default);
 
     // Dispatch an event on the element once rendering has completed.
-    element.dispatchEvent(new _customEvent2.default('renderComplete'));
+    element.dispatchEvent(new CustomEvent('renderComplete'));
   };
 }
 
-},{"../node/make":6,"../node/patch":7,"../node/tree":10,"../util/memory":15,"../util/pools":17,"custom-event":20}],19:[function(_dereq_,module,exports){
+},{"../node/make":6,"../node/patch":7,"../node/tree":10,"../util/memory":15,"../util/pools":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2339,57 +2326,5 @@ function uuid() {
   });
 }
 
-},{}],20:[function(_dereq_,module,exports){
-(function (global){
-
-var NativeCustomEvent = global.CustomEvent;
-
-function useNative () {
-  try {
-    var p = new NativeCustomEvent('cat', { detail: { foo: 'bar' } });
-    return  'cat' === p.type && 'bar' === p.detail.foo;
-  } catch (e) {
-  }
-  return false;
-}
-
-/**
- * Cross-browser `CustomEvent` constructor.
- *
- * https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent.CustomEvent
- *
- * @public
- */
-
-module.exports = useNative() ? NativeCustomEvent :
-
-// IE >= 9
-'function' === typeof document.createEvent ? function CustomEvent (type, params) {
-  var e = document.createEvent('CustomEvent');
-  if (params) {
-    e.initCustomEvent(type, params.bubbles, params.cancelable, params.detail);
-  } else {
-    e.initCustomEvent(type, false, false, void 0);
-  }
-  return e;
-} :
-
-// IE <= 8
-function CustomEvent (type, params) {
-  var e = document.createEventObject();
-  e.type = type;
-  if (params) {
-    e.bubbles = Boolean(params.bubbles);
-    e.cancelable = Boolean(params.cancelable);
-    e.detail = params.detail;
-  } else {
-    e.bubbles = false;
-    e.cancelable = false;
-    e.detail = void 0;
-  }
-  return e;
-}
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}]},{},[5])(5)
 });
