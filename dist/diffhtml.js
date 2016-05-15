@@ -4,84 +4,6 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.upgrade = upgrade;
-/**
- * Store all Custom Element definitions in this object. The tagName is the key.
- *
- * @public
- */
-var components = exports.components = {};
-
-/**
- * Ensures the element instance matches the CustomElement's prototype.
- *
- * @param nodeName - The HTML nodeName to use for the Custom Element
- * @param element - The element to upgrade
- * @param descriptor - The virtual node backing the element
- * @return {Boolean} successfully upgraded
- */
-function upgrade(nodeName, element, descriptor) {
-  // Value of the `is` attribute, if it exists.
-  var isAttr = null;
-
-  // Check for the `is` attribute. It has a known bug where it cannot be
-  // applied dynamically.
-  if (!components[nodeName] && Array.isArray(descriptor.attributes)) {
-    descriptor.attributes.some(function (attr, idx) {
-      if (attr.name === 'is') {
-        isAttr = attr.value;
-        return true;
-      }
-    });
-  }
-
-  // Hack around the `is` attribute being unable to be set dynamically.
-  if (isAttr && components[isAttr]) {
-    nodeName = isAttr;
-  }
-
-  var CustomElement = components[nodeName];
-
-  if (!CustomElement) {
-    return false;
-  }
-
-  if (CustomElement.extends && CustomElement.extends !== descriptor.nodeName) {
-    return false;
-  }
-
-  // If no Custom Element was registered, bail early. Don't need to upgrade
-  // if the element was already processed..
-  if (typeof CustomElement === 'function' && element instanceof CustomElement) {
-    return false;
-  }
-
-  // Copy the prototype into the Element.
-  element.__proto__ = Object.create(CustomElement.prototype);
-
-  // Custom elements have a createdCallback method that should be called.
-  if (CustomElement.prototype.createdCallback) {
-    CustomElement.prototype.createdCallback.call(element);
-  }
-
-  // Is the element existing in the DOM?
-  var inDOM = element.ownerDocument.contains(element);
-
-  // If the Node is in the DOM, trigger attached callback.
-  if (inDOM && CustomElement.prototype.attachedCallback) {
-    element.attachedCallback();
-  }
-
-  // The upgrade was successful.
-  return true;
-}
-
-},{}],2:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 exports.default = get;
 
 var _make = _dereq_('../node/make');
@@ -107,7 +29,7 @@ function get(descriptor) {
   return { uuid: uuid, element: element };
 }
 
-},{"../element/make":3,"../node/make":7}],3:[function(_dereq_,module,exports){
+},{"../element/make":2,"../node/make":6}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -123,10 +45,6 @@ var _make = _dereq_('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
-var _custom = _dereq_('./custom');
-
-var _entities = _dereq_('../util/entities');
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -141,9 +59,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function make(descriptor) {
   var element = null;
   var isSvg = false;
-  // Get the Custom Element constructor for a given element.
-  var nodeName = descriptor.nodeName;
-  var CustomElement = _custom.components[nodeName];
 
   // If the element descriptor was already created, reuse the existing element.
   if (_make2.default.nodes[descriptor.uuid]) {
@@ -197,21 +112,13 @@ function make(descriptor) {
     }
   }
 
-  // Upgrade the element after creating it, if necessary.
-  (0, _custom.upgrade)(nodeName, element, descriptor);
-
-  // Custom elements have a createdCallback method that should be called.
-  if (CustomElement && CustomElement.prototype.createdCallback) {
-    CustomElement.prototype.createdCallback.call(element);
-  }
-
   // Add to the nodes cache using the designated uuid as the lookup key.
   _make2.default.nodes[descriptor.uuid] = element;
 
   return element;
 }
 
-},{"../node/make":7,"../svg":13,"../util/entities":15,"./custom":1}],4:[function(_dereq_,module,exports){
+},{"../node/make":6,"../svg":12}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -271,7 +178,7 @@ var DOMException = exports.DOMException = function (_Error2) {
   return DOMException;
 }(Error);
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -344,15 +251,13 @@ function html(strings) {
   return childNodes.length > 1 ? childNodes : childNodes[0];
 }
 
-},{"./util/parser":17}],6:[function(_dereq_,module,exports){
+},{"./util/parser":16}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.html = exports.DOMException = exports.TransitionStateError = undefined;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var _errors = _dereq_('./errors');
 
@@ -381,7 +286,6 @@ exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.element = element;
 exports.release = release;
-exports.registerElement = registerElement;
 exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
 exports.enableProllyfill = enableProllyfill;
@@ -401,10 +305,6 @@ var _make2 = _interopRequireDefault(_make);
 var _tree = _dereq_('./node/tree');
 
 var _transitions = _dereq_('./transitions');
-
-var _custom = _dereq_('./element/custom');
-
-var _memory = _dereq_('./util/memory');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -458,52 +358,13 @@ function element(element, newElement) {
 }
 
 /**
- * Releases the worker and memory allocated to this element. Useful for
- * cleaning up components when removed in tests and applications.
+ * Releases the memory allocated to this element. Useful for cleaning up
+ * components when removed in tests and applications.
  *
  * @param element
  */
 function release(element) {
   (0, _release2.default)(element);
-}
-
-// Store a reference to the real `registerElement` method if it exists.
-var realRegisterElement = document.registerElement;
-
-/**
- * Register's a constructor with an element to provide lifecycle events.
- *
- * @param tagName
- * @param constructor
- */
-function registerElement(tagName, constructor) {
-  // Upgrade simple objects to inherit from HTMLElement and be usable in a real
-  // implementation.
-  var normalized = typeof constructor === 'function' ? constructor : null;
-
-  // If this is not a valid constructor, create one.
-  if (normalized === null) {
-    normalized = function HTMLElement() {};
-    normalized.__proto__ = constructor;
-    normalized.prototype = constructor.prototype || constructor;
-    normalized.prototype.__proto__ = HTMLElement.prototype;
-  }
-
-  // If the native web component specification is loaded, use that instead.
-  if (realRegisterElement) {
-    // Still store the reference internally, since we use it to circumvent the
-    // `is` attribute bug.
-    _custom.components[tagName] = normalized;
-    return realRegisterElement.call(document, tagName, normalized);
-  }
-
-  // If the element has already been registered, raise an error.
-  if (tagName in _custom.components) {
-    throw new _errors.DOMException('\n      Failed to execute \'registerElement\' on \'Document\': Registration failed\n      for type \'' + tagName + '\'. A type with that name is already registered.\n    ');
-  }
-
-  // Assign the custom element reference to the constructor.
-  _custom.components[tagName] = normalized;
 }
 
 /**
@@ -645,7 +506,7 @@ function enableProllyfill() {
       }
     });
 
-    // Releases the retained memory and worker instance.
+    // Releases the retained memory.
     Object.defineProperty(Ctor.prototype, 'diffRelease', {
       configurable: true,
 
@@ -654,115 +515,9 @@ function enableProllyfill() {
       }
     });
   });
-
-  // Polyfill in the `registerElement` method if it doesn't already exist. This
-  // requires patching `createElement` as well to ensure that the proper proto
-  // chain exists.
-  Object.defineProperty(document, 'registerElement', {
-    configurable: true,
-
-    value: function value(tagName, component) {
-      registerElement(tagName, component);
-    }
-  });
-
-  // If HTMLElement is an object, rejigger it to work like a function so that
-  // it can be extended. Specifically affects IE and Safari.
-  Object.getOwnPropertyNames(window).filter(function (key) {
-    return key.indexOf('HTML') === 0 && _typeof(window[key]) === 'object';
-  }).forEach(function (key) {
-    // Fall back to the Element constructor if the HTMLElement does not exist.
-    var realElement = window[key];
-
-    // If there is no `__proto__` available, add one to the prototype.
-    if (!realElement.__proto__) {
-      var copy = {
-        set: function set(val) {
-          val = Object.keys(val).length ? val : Object.getPrototypeOf(val);
-
-          for (var _key in val) {
-            if (val.hasOwnProperty(_key)) {
-              this[_key] = val[_key];
-            }
-          }
-        }
-      };
-
-      Object.defineProperty(realElement, '__proto__', copy);
-      Object.defineProperty(realElement.prototype, '__proto__', copy);
-    }
-
-    var Element = new Function('return function ' + key + '() {};')();
-    Element.prototype = Object.create(realElement.prototype);
-    Element.__proto__ = realElement;
-
-    // Ensure that the global Element matches the HTMLElement.
-    window[key] = Element;
-  });
-
-  /**
-   * Will automatically activate any components found in the page automatically
-   * after calling `enableProllyfill`. This is useful to simulate a real-world
-   * usage of Custom Elements.
-   */
-  var activateComponents = function activateComponents() {
-    var documentElement = document.documentElement;
-    var bufferSet = false;
-
-    // If this element is already rendering, add this new render request into
-    // the buffer queue. Check and see if any element is currently rendering,
-    // can only do one at a time.
-    _tree.TreeCache.forEach(function iterateTreeCache(elementMeta, element) {
-      if (elementMeta.isRendering) {
-        bufferSet = true;
-      }
-    });
-
-    // Short circuit the rest of this render.
-    if (bufferSet) {
-      // Remove the load event listener, since it's complete.
-      return window.removeEventListener('load', activateComponents);
-    }
-
-    var descriptor = (0, _make2.default)(documentElement);
-
-    // After the initial render, clean up the resources, no point in lingering.
-    documentElement.addEventListener('renderComplete', function render() {
-      var elementMeta = _tree.TreeCache.get(documentElement) || {};
-
-      // Release resources allocated to the element.
-      if (!elementMeta.isRendering) {
-
-        // Unprotect after the activation is complete.
-        (0, _memory.unprotectElement)(descriptor, _make2.default);
-        documentElement.diffRelease(documentElement);
-      }
-
-      // Remove this event listener.
-      documentElement.removeEventListener('renderComplete', render);
-    });
-
-    // Protect the documentElement before applying the changes.
-    (0, _memory.protectElement)(descriptor);
-
-    // Diff the entire document on activation of the prollyfill.
-    documentElement.diffOuterHTML = documentElement.outerHTML;
-
-    // Remove the load event listener, since it's complete.
-    window.removeEventListener('load', activateComponents);
-  };
-
-  // If the document has already loaded, immediately activate the components.
-  if (document.readyState === 'complete') {
-    activateComponents();
-  } else {
-    // This section will automatically parse out your entire page to ensure all
-    // custom elements are hooked into.
-    window.addEventListener('load', activateComponents);
-  }
 }
 
-},{"./element/custom":1,"./errors":4,"./html":5,"./node/make":7,"./node/patch":8,"./node/release":9,"./node/tree":11,"./transitions":14,"./util/memory":16}],7:[function(_dereq_,module,exports){
+},{"./errors":3,"./html":4,"./node/make":6,"./node/patch":7,"./node/release":8,"./node/tree":10,"./transitions":13}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -770,11 +525,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = make;
 
-var _pools2 = _dereq_('../util/pools');
+var _pools = _dereq_('../util/pools');
 
-var _custom = _dereq_('../element/custom');
-
-var pools = _pools2.pools;
 var empty = {};
 
 // Cache created nodes inside this object.
@@ -796,7 +548,7 @@ function make(node) {
 
   // Virtual representation of a node, containing only the data we wish to
   // diff and patch.
-  var entry = pools.elementObject.get();
+  var entry = _pools.pools.elementObject.get();
 
   // Associate this newly allocated uuid with this Node.
   make.nodes[entry.uuid] = node;
@@ -825,7 +577,7 @@ function make(node) {
 
     if (attributesLength) {
       for (var i = 0; i < attributesLength; i++) {
-        var attr = pools.attributeObject.get();
+        var attr = _pools.pools.attributeObject.get();
 
         attr.name = attributes[i].name;
         attr.value = attributes[i].value;
@@ -857,23 +609,16 @@ function make(node) {
     });
   }
 
-  // Reset the prototype chain for this element. Upgrade will return `true`
-  // if the element was upgraded for the first time. This is useful so we
-  // don't end up in a loop when working with the same element.
-  (0, _custom.upgrade)(entry.nodeName, node, entry, true);
-
   return entry;
 }
 
-},{"../element/custom":1,"../util/pools":18}],8:[function(_dereq_,module,exports){
+},{"../util/pools":17}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = patchNode;
-
-var _create = _dereq_('../worker/create');
 
 var _memory = _dereq_('../util/memory');
 
@@ -907,11 +652,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param options
  */
 function patchNode(element, newHTML, options) {
-  // Ensure that the document disable worker is always picked up.
-  if (typeof options.enableWorker !== 'boolean') {
-    options.enableWorker = document.ENABLE_WORKER;
-  }
-
   // The element meta object is a location to associate metadata with the
   // currently rendering element. This prevents attaching properties to the
   // instance itself.
@@ -957,15 +697,6 @@ function patchNode(element, newHTML, options) {
       elementMeta.newHTML = newHTML;
     }
 
-  // Start with worker being a falsy value.
-  var worker = null;
-
-  // If we can use a worker and the user wants one, try and create it.
-  if (options.enableWorker && _create.hasWorker) {
-    // Create a worker for this element.
-    worker = elementMeta.worker = elementMeta.worker || (0, _create.create)();
-  }
-
   var rebuildTree = function rebuildTree() {
     var oldTree = elementMeta.oldTree;
 
@@ -974,143 +705,56 @@ function patchNode(element, newHTML, options) {
     }
 
     elementMeta.oldTree = (0, _memory.protectElement)((0, _make2.default)(element));
-    elementMeta.updateWorkerTree = true;
   };
-
-  // The last render was done via Worker, but now we're rendering in the UI
-  // thread. This is very uncommon, but we need to ensure trees stay in sync.
-  if (elementMeta.renderedViaWorker === true && !options.enableWorker) {
-    rebuildTree();
-  }
 
   if (!sameInnerHTML || !sameOuterHTML || !sameTextContent) {
     rebuildTree();
   }
 
-  // Will want to ensure that the first render went through, the worker can
-  // take a bit to startup and we want to show changes as soon as possible.
-  if (options.enableWorker && _create.hasWorker && worker) {
-    // Set a render lock as to not flood the worker.
-    elementMeta.isRendering = true;
-    elementMeta.renderedViaWorker = true;
-    elementMeta.workerCache = elementMeta.workerCache || [];
+  // We're rendering in the UI thread.
+  elementMeta.isRendering = true;
 
-    // Attach all properties here to transport.
-    var transferObject = {};
+  var newTree = null;
 
-    // This should only occur once, or whenever the markup changes externally
-    // to diffHTML.
-    if (!elementMeta.hasWorkerRendered || elementMeta.updateWorkerTree) {
-      transferObject.oldTree = elementMeta.oldTree;
-      elementMeta.updateWorkerTree = false;
-    }
-
-    // Wait for the worker to finish processing and then apply the patchset.
-    worker.onmessage = function onmessage(ev) {
-      var wrapRender = function wrapRender(cb) {
-        return function () {
-          elementMeta.hasWorkerRendered = true;
-          cb();
-        };
-      };
-      var invokeRender = wrapRender((0, _render.completeRender)(element, elementMeta));
-
-      // Wait until all promises have resolved, before finishing up the patch
-      // cycle.  Process the data immediately and wait until all transition
-      // callbacks have completed.
-      var promises = (0, _process2.default)(element, ev.data.patches);
-
-      // Operate synchronously unless opted into a Promise-chain.
-      if (promises.length) {
-        Promise.all(promises).then(invokeRender, function (ex) {
-          return console.log(ex);
-        });
-      } else {
-        invokeRender();
-      }
-    };
-
-    if (typeof newHTML !== 'string') {
-      transferObject.newTree = (0, _make2.default)(newHTML);
-
-      // Transfer this buffer to the worker, which will take over and process
-      // the markup.
-      worker.postMessage(transferObject);
-
-      return;
-    }
-
-    // Let the browser copy the HTML into the worker, converting to a
-    // transferable object is too expensive.
-    transferObject.newHTML = newHTML;
-
-    // Add properties to send to worker.
-    transferObject.isInner = options.inner;
-
-    // Transfer this buffer to the worker, which will take over and process the
-    // markup.
-    worker.postMessage(transferObject);
+  if (typeof newHTML === 'string') {
+    newTree = (0, _parser.parseHTML)(newHTML, options.inner);
+  } else if (newHTML.ownerDocument) {
+    newTree = (0, _make2.default)(newHTML);
   } else {
-    if (elementMeta.renderedViaWorker && elementMeta.oldTree) {
-      rebuildTree();
-    }
+    newTree = newHTML;
+  }
 
-    if (elementMeta.workerCache) {
-      elementMeta.workerCache.forEach(function (x) {
-        return (0, _memory.unprotectElement)(x, _make2.default);
-      });
-      delete elementMeta.workerCache;
-    }
+  if (options.inner) {
+    var childNodes = Array.isArray(newTree) ? newTree : [newTree];
 
-    // We're rendering in the UI thread.
-    elementMeta.isRendering = true;
+    newTree = {
+      childNodes: childNodes,
+      attributes: elementMeta.oldTree.attributes,
+      uuid: elementMeta.oldTree.uuid,
+      nodeName: elementMeta.oldTree.nodeName,
+      nodeValue: elementMeta.oldTree.nodeValue
+    };
+  }
 
-    // Whenever we render in the UI-thread, ensure that the Worker gets a
-    // refreshed copy of the `oldTree`.
-    elementMeta.updateWorkerTree = true;
+  // Synchronize the tree.
+  var patches = (0, _sync2.default)(elementMeta.oldTree, newTree);
+  var invokeRender = (0, _render.completeRender)(element, elementMeta);
 
-    var newTree = null;
+  // Process the data immediately and wait until all transition callbacks
+  // have completed.
+  var promises = (0, _process2.default)(element, patches);
 
-    if (typeof newHTML === 'string') {
-      newTree = (0, _parser.parseHTML)(newHTML, options.inner);
-    } else if (newHTML.ownerDocument) {
-      newTree = (0, _make2.default)(newHTML);
-    } else {
-      newTree = newHTML;
-    }
-
-    if (options.inner) {
-      var childNodes = Array.isArray(newTree) ? newTree : [newTree];
-
-      newTree = {
-        childNodes: childNodes,
-        attributes: elementMeta.oldTree.attributes,
-        uuid: elementMeta.oldTree.uuid,
-        nodeName: elementMeta.oldTree.nodeName,
-        nodeValue: elementMeta.oldTree.nodeValue
-      };
-    }
-
-    // Synchronize the tree.
-    var patches = (0, _sync2.default)(elementMeta.oldTree, newTree);
-    var invokeRender = (0, _render.completeRender)(element, elementMeta);
-
-    // Process the data immediately and wait until all transition callbacks
-    // have completed.
-    var promises = (0, _process2.default)(element, patches);
-
-    // Operate synchronously unless opted into a Promise-chain.
-    if (promises.length) {
-      Promise.all(promises).then(invokeRender, function (ex) {
-        return console.log(ex);
-      });
-    } else {
-      invokeRender();
-    }
+  // Operate synchronously unless opted into a Promise-chain.
+  if (promises.length) {
+    Promise.all(promises).then(invokeRender, function (ex) {
+      return console.log(ex);
+    });
+  } else {
+    invokeRender();
   }
 }
 
-},{"../patches/process":12,"../util/memory":16,"../util/parser":17,"../util/pools":18,"../util/render":19,"../worker/create":21,"./make":7,"./sync":10,"./tree":11}],9:[function(_dereq_,module,exports){
+},{"../patches/process":11,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/render":18,"./make":6,"./sync":9,"./tree":10}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1142,22 +786,9 @@ function releaseNode(element) {
   // come first, so if we are cleaning up an element being used by another part
   // of the code, keep it alive.
   if (elementMeta) {
-    // If there is a worker associated with this element, then kill it.
-    if (elementMeta.worker) {
-      elementMeta.worker.terminate();
-      delete elementMeta.worker;
-    }
-
     // If there was a tree set up, recycle the memory allocated for it.
     if (elementMeta.oldTree) {
       (0, _memory.unprotectElement)(elementMeta.oldTree, _make2.default);
-    }
-
-    if (elementMeta.workerCache) {
-      elementMeta.workerCache.forEach(function (x) {
-        return (0, _memory.unprotectElement)(x, _make2.default);
-      });
-      delete elementMeta.workerCache;
     }
 
     // Remove this element's meta object from the cache.
@@ -1167,7 +798,7 @@ function releaseNode(element) {
   (0, _memory.cleanMemory)(_make2.default);
 }
 
-},{"../util/memory":16,"../util/pools":18,"./make":7,"./tree":11}],10:[function(_dereq_,module,exports){
+},{"../util/memory":15,"../util/pools":17,"./make":6,"./tree":10}],9:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1176,9 +807,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.CHANGE_TEXT = exports.MODIFY_ATTRIBUTE = exports.MODIFY_ELEMENT = exports.REPLACE_ENTIRE_ELEMENT = exports.REMOVE_ENTIRE_ELEMENT = exports.REMOVE_ELEMENT_CHILDREN = undefined;
 exports.default = sync;
 
-var _pools2 = _dereq_('../util/pools');
-
-var pools = _pools2.pools;
+var _pools = _dereq_('../util/pools');
 
 var slice = Array.prototype.slice;
 var filter = Array.prototype.filter;
@@ -1355,11 +984,11 @@ function sync(oldTree, newTree, patches) {
           value: toAdd[_i3].value
         };
 
-        var attr = pools.attributeObject.get();
+        var attr = _pools.pools.attributeObject.get();
         attr.name = toAdd[_i3].name;
         attr.value = toAdd[_i3].value;
 
-        pools.attributeObject.protect(attr);
+        _pools.pools.attributeObject.protect(attr);
 
         // Push the change object into into the virtual tree.
         oldTree.attributes.push(attr);
@@ -1385,7 +1014,7 @@ function sync(oldTree, newTree, patches) {
         var _removed = oldTree.attributes.splice(_i4, 1);
 
         for (var _i5 = 0; _i5 < _removed.length; _i5++) {
-          pools.attributeObject.unprotect(_removed[_i5]);
+          _pools.pools.attributeObject.unprotect(_removed[_i5]);
         }
 
         // Add the change to the series of patches.
@@ -1423,7 +1052,7 @@ function sync(oldTree, newTree, patches) {
   return patches;
 }
 
-},{"../util/pools":18}],11:[function(_dereq_,module,exports){
+},{"../util/pools":17}],10:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1432,7 +1061,7 @@ Object.defineProperty(exports, "__esModule", {
 // Cache prebuilt trees and lookup by element.
 var TreeCache = exports.TreeCache = new Map();
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1449,8 +1078,6 @@ var _pools = _dereq_('../util/pools');
 var _get = _dereq_('../element/get');
 
 var _get2 = _interopRequireDefault(_get);
-
-var _custom = _dereq_('../element/custom');
 
 var _make = _dereq_('../node/make');
 
@@ -1486,10 +1113,6 @@ function process(element, patches) {
   // Trigger the attached transition state for this element and all childNodes.
   var attached = function attached(descriptor, fragment, parentNode) {
     (0, _memory.protectElement)(descriptor);
-
-    if (elementMeta.workerCache) {
-      elementMeta.workerCache.push(descriptor);
-    }
 
     var el = (0, _get2.default)(descriptor).element;
 
@@ -1721,10 +1344,6 @@ function process(element, patches) {
                         (0, _memory.unprotectElement)(patch.old, _make2.default);
 
                         (0, _memory.protectElement)(patch.new);
-
-                        if (elementMeta.workerCache) {
-                          elementMeta.workerCache.push(patch.new);
-                        }
                       }, function (ex) {
                         return console.log(ex);
                       });
@@ -1739,10 +1358,6 @@ function process(element, patches) {
                       oldEl.parentNode.replaceChild(newEl, oldEl);
                       (0, _memory.unprotectElement)(patch.old, _make2.default);
                       (0, _memory.protectElement)(patch.new);
-
-                      if (elementMeta.workerCache) {
-                        elementMeta.workerCache.push(patch.new);
-                      }
                     }
                   })();
                 }
@@ -1773,9 +1388,6 @@ function process(element, patches) {
                         el.setAttribute(patch.name, '');
                         el[patch.name] = patch.value;
                       }
-
-                    // If an `is` attribute was set, we should upgrade it.
-                    (0, _custom.upgrade)(patch.element.nodeName, el, patch.element);
 
                     // Support live updating of the value attribute.
                     // Support live updating of the value attribute.
@@ -1816,7 +1428,7 @@ function process(element, patches) {
   return promises.filter(Boolean);
 }
 
-},{"../element/custom":1,"../element/get":2,"../node/make":7,"../node/sync":10,"../node/tree":11,"../transitions":14,"../util/entities":15,"../util/memory":16,"../util/pools":18}],13:[function(_dereq_,module,exports){
+},{"../element/get":1,"../node/make":6,"../node/sync":9,"../node/tree":10,"../transitions":13,"../util/entities":14,"../util/memory":15,"../util/pools":17}],12:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1828,7 +1440,7 @@ var elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'a
 // Namespace.
 var namespace = exports.namespace = 'http://www.w3.org/2000/svg';
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1837,8 +1449,6 @@ Object.defineProperty(exports, "__esModule", {
 exports.states = undefined;
 exports.buildTrigger = buildTrigger;
 exports.makePromises = makePromises;
-
-var _custom = _dereq_('./element/custom');
 
 var _make = _dereq_('./node/make');
 
@@ -1905,11 +1515,6 @@ var fnSignatures = {
       return function (cb) {
         return cb(el);
       };
-    },
-    customElementsFn: function customElementsFn(el) {
-      return function (cb) {
-        return cb.call(el);
-      };
     }
   },
 
@@ -1917,11 +1522,6 @@ var fnSignatures = {
     mapFn: function mapFn(el) {
       return function (cb) {
         return cb(el);
-      };
-    },
-    customElementsFn: function customElementsFn(el) {
-      return function (cb) {
-        return cb.call(el);
       };
     }
   },
@@ -1939,11 +1539,6 @@ var fnSignatures = {
       return function (cb) {
         return cb(el, name, oldVal, newVal);
       };
-    },
-    customElementsFn: function customElementsFn(el, name, oldVal, newVal) {
-      return function (cb) {
-        return cb.call(el, name, oldVal, newVal);
-      };
     }
   },
 
@@ -1951,11 +1546,6 @@ var fnSignatures = {
     mapFn: function mapFn(el, oldVal, newVal) {
       return function (cb) {
         return cb(el, oldVal, newVal);
-      };
-    },
-    customElementsFn: function customElementsFn(el, oldVal, newVal) {
-      return function (cb) {
-        return cb.call(el, oldVal, newVal);
       };
     }
   }
@@ -2033,52 +1623,6 @@ function buildTrigger(allPromises) {
 }
 
 /**
- * Triggers the lifecycle events on an HTMLElement.
- *
- * @param stateName
- * @param elements
- * @return
- */
-function triggerLifecycleEvent(stateName, args, elements) {
-  // Trigger custom element
-  var customElementFn = fnSignatures[stateName].customElementsFn;
-
-  for (var i = 0; i < elements.length; i++) {
-    var element = elements[i];
-    var isTextNode = element.nodeType === 3;
-    var nodeName = element.nodeName.toLowerCase();
-    var descriptor = (0, _make2.default)(element);
-
-    // Value of the `is` attribute, if it exists.
-    var isAttr = null;
-
-    // Check for the `is` attribute. It has a known bug where it cannot be
-    // applied dynamically.
-    if (!_custom.components[nodeName] && Array.isArray(descriptor.attributes)) {
-      descriptor.attributes.some(function (attr, idx) {
-        if (attr.name === 'is') {
-          isAttr = attr.value;
-          return true;
-        }
-      });
-    }
-
-    // Hack around the `is` attribute being unable to be set dynamically.
-    if (isAttr && _custom.components[isAttr]) {
-      nodeName = isAttr;
-    }
-
-    var customElement = _custom.components[nodeName] || empty;
-    var customElementMethodName = stateName + 'Callback';
-
-    // Call the associated CustomElement's lifecycle callback, if it exists.
-    if (customElement.prototype[customElementMethodName]) {
-      customElementFn.apply(null, args)(customElement.prototype[customElementMethodName].bind(element));
-    }
-  }
-}
-
-/**
  * Make a reusable function for easy transition calling.
  *
  * @param stateName
@@ -2093,16 +1637,13 @@ function makePromises(stateName) {
   // Ensure elements is always an array.
   var elements = slice.call(args[0]);
 
-  // Triggers the custom element callback.
-  triggerLifecycleEvent(stateName, args.slice(1), elements);
-
   // Accepts the local Array of promises to use.
   return function (promises) {
     return make[stateName](elements, args.slice(1), promises);
   };
 }
 
-},{"./element/custom":1,"./node/make":7}],15:[function(_dereq_,module,exports){
+},{"./node/make":6}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2124,7 +1665,7 @@ function decodeEntities(string) {
   return element.textContent;
 }
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2134,16 +1675,13 @@ exports.protectElement = protectElement;
 exports.unprotectElement = unprotectElement;
 exports.cleanMemory = cleanMemory;
 
-var _pools2 = _dereq_('../util/pools');
+var _pools = _dereq_('../util/pools');
 
 var _make = _dereq_('../node/make');
 
 var _make2 = _interopRequireDefault(_make);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var pools = _pools2.pools;
-var makeNode = _make2.default;
 
 /**
  * Ensures that an element is not recycled during a render cycle.
@@ -2152,8 +1690,8 @@ var makeNode = _make2.default;
  * @return element
  */
 function protectElement(element) {
-  var elementObject = pools.elementObject;
-  var attributeObject = pools.attributeObject;
+  var elementObject = _pools.pools.elementObject;
+  var attributeObject = _pools.pools.attributeObject;
 
   elementObject.protect(element);
 
@@ -2170,8 +1708,8 @@ function protectElement(element) {
  * @return
  */
 function unprotectElement(element, makeNode) {
-  var elementObject = pools.elementObject;
-  var attributeObject = pools.attributeObject;
+  var elementObject = _pools.pools.elementObject;
+  var attributeObject = _pools.pools.attributeObject;
 
   elementObject.unprotect(element);
   elementObject.cache.uuid.delete(element.uuid);
@@ -2192,8 +1730,8 @@ function unprotectElement(element, makeNode) {
  * Recycles all unprotected allocations.
  */
 function cleanMemory(makeNode) {
-  var elementObject = pools.elementObject;
-  var attributeObject = pools.attributeObject;
+  var elementObject = _pools.pools.elementObject;
+  var attributeObject = _pools.pools.attributeObject;
 
   // Clean out unused elements.
   if (makeNode && makeNode.nodes) {
@@ -2219,7 +1757,7 @@ function cleanMemory(makeNode) {
   attributeObject.cache.allocated.clear();
 }
 
-},{"../node/make":7,"../util/pools":18}],17:[function(_dereq_,module,exports){
+},{"../node/make":6,"../util/pools":17}],16:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2228,12 +1766,11 @@ Object.defineProperty(exports, "__esModule", {
 exports.parseHTML = parseHTML;
 exports.makeParser = makeParser;
 
-var _pools2 = _dereq_('./pools');
+var _pools = _dereq_('./pools');
 
-var pools = _pools2.pools; // Code based off of:
+var parser = makeParser(); // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
-var parser = makeParser();
 var slice = Array.prototype.slice;
 
 /**
@@ -2340,7 +1877,7 @@ function makeParser() {
    * @param {string} value [description]
    */
   function TextNode(value) {
-    var instance = pools.elementObject.get();
+    var instance = _pools.pools.elementObject.get();
 
     instance.nodeName = '#text';
     instance.nodeValue = value;
@@ -2363,7 +1900,7 @@ function makeParser() {
    * @param {Object} supplemental data
    */
   function HTMLElement(name, keyAttrs, rawAttrs, supplemental) {
-    var instance = pools.elementObject.get();
+    var instance = _pools.pools.elementObject.get();
 
     instance.nodeName = name;
     instance.nodeValue = '';
@@ -2373,7 +1910,7 @@ function makeParser() {
 
     if (rawAttrs) {
       for (var match; match = reAttrPattern.exec(rawAttrs);) {
-        var attr = pools.attributeObject.get();
+        var attr = _pools.pools.attributeObject.get();
 
         attr.name = match[1];
         attr.value = match[6] || match[5] || match[4] || match[1];
@@ -2554,7 +2091,7 @@ function makeParser() {
 
           // Ensure the first element is the HEAD tag.
           if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
-            var headInstance = pools.elementObject.get();
+            var headInstance = _pools.pools.elementObject.get();
             headInstance.nodeName = 'head';
             headInstance.childNodes.length = 0;
             headInstance.attributes.length = 0;
@@ -2572,7 +2109,7 @@ function makeParser() {
 
           // Ensure the second element is the body tag.
           if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
-            var bodyInstance = pools.elementObject.get();
+            var bodyInstance = _pools.pools.elementObject.get();
             bodyInstance.nodeName = 'body';
             bodyInstance.childNodes.length = 0;
             bodyInstance.attributes.length = 0;
@@ -2595,7 +2132,7 @@ function makeParser() {
   return htmlParser;
 }
 
-},{"./pools":18}],18:[function(_dereq_,module,exports){
+},{"./pools":17}],17:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2692,17 +2229,13 @@ function initializePools(COUNT) {
 // Create ${COUNT} items of each type.
 initializePools(count);
 
-},{"./uuid":20}],19:[function(_dereq_,module,exports){
+},{"./uuid":19}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.completeRender = completeRender;
-
-var _customEvent = _dereq_('custom-event');
-
-var _customEvent2 = _interopRequireDefault(_customEvent);
 
 var _patch = _dereq_('../node/patch');
 
@@ -2735,8 +2268,8 @@ function renderNext(elementMeta) {
 }
 
 /**
- * When the UI or Worker thread completes, clean up memory, and schedule the
- * next render if necessary.
+ * When the render completes, clean up memory, and schedule the next render if
+ * necessary.
  *
  * @param element
  * @param elementMeta
@@ -2768,11 +2301,11 @@ function completeRender(element, elementMeta) {
     (0, _memory.cleanMemory)(_make2.default);
 
     // Dispatch an event on the element once rendering has completed.
-    element.dispatchEvent(new _customEvent2.default('renderComplete'));
+    element.dispatchEvent(new CustomEvent('renderComplete'));
   };
 }
 
-},{"../node/make":7,"../node/patch":8,"../node/tree":11,"../util/memory":16,"../util/pools":18,"custom-event":23}],20:[function(_dereq_,module,exports){
+},{"../node/make":6,"../node/patch":7,"../node/tree":10,"../util/memory":15,"../util/pools":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2793,250 +2326,5 @@ function uuid() {
   });
 }
 
-},{}],21:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.hasWorker = undefined;
-exports.create = create;
-
-var _uuid = _dereq_('../util/uuid');
-
-var _uuid2 = _interopRequireDefault(_uuid);
-
-var _pools = _dereq_('../util/pools');
-
-var _parser = _dereq_('../util/parser');
-
-var _memory = _dereq_('../util/memory');
-
-var _sync = _dereq_('../node/sync');
-
-var _sync2 = _interopRequireDefault(_sync);
-
-var _make = _dereq_('../node/make');
-
-var _make2 = _interopRequireDefault(_make);
-
-var _source = _dereq_('./source');
-
-var _source2 = _interopRequireDefault(_source);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// Tests if the browser has support for the `Worker` API.
-var hasWorker = exports.hasWorker = typeof Worker === 'function';
-
-// Find all the coverage statements and expressions.
-var COV_EXP = /__cov_([^\+\+]*)\+\+/gi;
-
-/**
- * Awful hack to remove `__cov` lines from the source before sending over to
- * the worker. Only useful while testing.
- */
-function filterOutCoverage(string) {
-  return string.replace(COV_EXP, 'null');
-}
-
-/**
- * Creates a new Web Worker per element that will be diffed. Allows multiple
- * concurrent diffing operations to occur simultaneously, leveraging the
- * multi-core nature of desktop and mobile devices.
- *
- * Attach any functions that could be used by the Worker inside the Blob below.
- * All functions are named so they can be accessed globally. Since we're
- * directly injecting the methods into the ES6 template string,
- * `Function.prototype.toString` will be invoked returning a representation of
- * the function's source. This comes at a cost since Babel rewrites variable
- * names when you `import` a module. This is why you'll see underscored
- * properties being imported and then reassigned to non-underscored names in
- * modules that are reused here. Isparta injects coverage function calls that
- * will error out in the Worker, which is why we strip them out.
- *
- * @return {Object} A Worker instance.
- */
-function create() {
-  var worker = null;
-  var workerBlob = null;
-  var workerSource = filterOutCoverage('\n    // Reusable Array methods.\n    var slice = Array.prototype.slice;\n    var filter = Array.prototype.filter;\n\n    // Add a namespace to attach pool methods to.\n    var pools = {};\n    var nodes = 0;\n    var REMOVE_ELEMENT_CHILDREN = -2;\n    var REMOVE_ENTIRE_ELEMENT = -1;\n    var MODIFY_ELEMENT = 1;\n    var MODIFY_ATTRIBUTE = 2;\n    var CHANGE_TEXT = 3;\n\n    // Inject the uuid code.\n    ' + _uuid2.default + ';\n\n    // Add in pool manipulation methods.\n    ' + _pools.createPool + ';\n    ' + _pools.initializePools + ';\n\n    initializePools(' + _pools.count + ');\n\n    // Add the ability to protect elements from free\'d memory.\n    ' + _memory.protectElement + ';\n    ' + _memory.unprotectElement + ';\n    ' + _memory.cleanMemory + ';\n\n    // Add in Node manipulation.\n    var syncNode = ' + _sync2.default + ';\n    var makeNode = ' + _make2.default + ';\n\n    // Add in the ability to parseHTML.\n    ' + _parser.parseHTML + ';\n\n    var makeParser = ' + _parser.makeParser + ';\n    var parser = makeParser();\n\n    // Add in the worker source.\n    ' + _source2.default + ';\n\n    // Metaprogramming up this worker call.\n    startup(self);\n  ');
-
-  // Set up a WebWorker if available.
-  if (hasWorker) {
-    // Construct the worker reusing code already organized into modules.  Keep
-    // this code ES5 since we do not get time to pre-process it as ES6.
-    workerBlob = new Blob([workerSource], { type: 'application/javascript' });
-
-    // Construct the worker and start it up.
-    try {
-      worker = new Worker(URL.createObjectURL(workerBlob));
-    } catch (ex) {
-      if (console && console.info) {
-        console.info('Failed to create diffhtml worker', ex);
-      }
-
-      // If we cannot create a Worker, then disable trying again, all work
-      // will happen on the main UI thread.
-      exports.hasWorker = hasWorker = false;
-    }
-  }
-
-  return worker;
-}
-
-},{"../node/make":7,"../node/sync":10,"../util/memory":16,"../util/parser":17,"../util/pools":18,"../util/uuid":20,"./source":22}],22:[function(_dereq_,module,exports){
-'use strict';
-
-// These are globally defined to avoid issues with JSHint thinking that we're
-// referencing unknown identifiers.
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = startup;
-var parseHTML;
-var syncNode;
-var pools;
-var unprotectElement;
-var protectElement;
-var cleanMemory;
-
-/**
- * This is the Web Worker source code. All globals here are defined in the
- * worker/create module. This allows code sharing and less duplication since
- * most of the logic is identical to the UI thread.
- *
- * @param worker - A worker instance
- */
-function startup(worker) {
-  var patches = [];
-  var oldTree = null;
-
-  /**
-   * Triggered whenever a `postMessage` call is made on the Worker instance
-   * from the UI thread. Signals that some work needs to occur. Will post back
-   * to the main thread with patch and node transform results.
-   *
-   * @param e - The normalized event object.
-   */
-  worker.onmessage = function onmessage(e) {
-    var data = e.data;
-    var isInner = data.isInner;
-    var newTree = null;
-
-    // If an `oldTree` was provided by the UI thread, use that in place of the
-    // current `oldTree`.
-    if (data.oldTree) {
-      if (oldTree) {
-        unprotectElement(oldTree);
-        cleanMemory();
-      }
-
-      oldTree = data.oldTree;
-    }
-
-    // If the `newTree` was provided to the worker, use that instead of trying
-    // to create one from HTML source.
-    if (data.newTree) {
-      newTree = data.newTree;
-    }
-
-    // If no `newTree` was provided, we'll have to try and create one from the
-    // HTML source provided.
-    else if (typeof data.newHTML === 'string') {
-        // Calculate a new tree.
-        newTree = parseHTML(data.newHTML, isInner);
-
-        // If the operation is for `innerHTML` then we'll retain the previous
-        // tree's attributes, nodeName, and nodeValue, and only adjust the
-        // childNodes.
-        if (isInner) {
-          var childNodes = newTree;
-
-          newTree = {
-            childNodes: childNodes,
-            attributes: oldTree.attributes,
-            uuid: oldTree.uuid,
-            nodeName: oldTree.nodeName,
-            nodeValue: oldTree.nodeValue
-          };
-        }
-      }
-
-    // Synchronize the old virtual tree with the new virtual tree.  This will
-    // produce a series of patches that will be executed to update the DOM.
-    syncNode(oldTree, newTree, patches);
-
-    // Protect the current `oldTree` so that Nodes will not be accidentally
-    // recycled in the cleanup process.
-    protectElement(oldTree);
-
-    // Send the patches back to the userland.
-    worker.postMessage({
-      // All the patches to apply to the DOM.
-      patches: patches
-    });
-
-    // Recycle allocated objects back into the pool.
-    cleanMemory();
-
-    // Wipe out the patches in memory.
-    patches.length = 0;
-  };
-}
-
-},{}],23:[function(_dereq_,module,exports){
-(function (global){
-
-var NativeCustomEvent = global.CustomEvent;
-
-function useNative () {
-  try {
-    var p = new NativeCustomEvent('cat', { detail: { foo: 'bar' } });
-    return  'cat' === p.type && 'bar' === p.detail.foo;
-  } catch (e) {
-  }
-  return false;
-}
-
-/**
- * Cross-browser `CustomEvent` constructor.
- *
- * https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent.CustomEvent
- *
- * @public
- */
-
-module.exports = useNative() ? NativeCustomEvent :
-
-// IE >= 9
-'function' === typeof document.createEvent ? function CustomEvent (type, params) {
-  var e = document.createEvent('CustomEvent');
-  if (params) {
-    e.initCustomEvent(type, params.bubbles, params.cancelable, params.detail);
-  } else {
-    e.initCustomEvent(type, false, false, void 0);
-  }
-  return e;
-} :
-
-// IE <= 8
-function CustomEvent (type, params) {
-  var e = document.createEventObject();
-  e.type = type;
-  if (params) {
-    e.bubbles = Boolean(params.bubbles);
-    e.cancelable = Boolean(params.cancelable);
-    e.detail = params.detail;
-  } else {
-    e.bubbles = false;
-    e.cancelable = false;
-    e.detail = void 0;
-  }
-  return e;
-}
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[6])(6)
+},{}]},{},[5])(5)
 });

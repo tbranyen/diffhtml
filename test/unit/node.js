@@ -75,21 +75,6 @@ describe('Unit: Node', function() {
       assert.equal(node.childNodes[0].nodeName, 'head');
       assert.equal(node.childNodes[1].nodeName, 'body');
     });
-
-    it('can upgrade a regular element to custom element', function() {
-      var fixture = document.createElement('my-fun-element');
-      var createdCalled = 0;
-
-      registerElement('my-fun-element', {
-        createdCallback() {
-          createdCalled += 1;
-        }
-      });
-
-      var node = makeNode(fixture);
-
-      assert.equal(createdCalled, 1);
-    });
   });
 
   describe('sync', function() {

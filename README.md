@@ -22,10 +22,7 @@ this tree and the DOM.
 
 - Intelligent virtual DOM diffing and patching of HTML text and elements.
 - Transitions API to hook into element and attribute state changes. 
-- Custom Elements in browsers without native support.
 - Tagged template string helper to build a VTree with dynamic content. 
-- Experimental offloading to Web Workers which can sometimes provide better
-  rendering performance.
 - Object pooling to avoid GC thrashing and expensive uuid generation.
 
 #### Install
@@ -91,13 +88,10 @@ The follow error types are exposed:
 
 ##### Options
 
-This is an optional argument that can be passed to any diff method.  Here you
-can specify if you'd like to opt into the WebWorker to offload calculates to
-increase performance.  The `inner` property can only be used with the element
-method.
+This is an optional argument that can be passed to any diff method. The `inner`
+property can only be used with the element method.
 
 - `inner` - Boolean that determines if `innerHTML` is used.
-- `enableWorker` - Boolean that determines if the WebWorker is utilized.
 
 ##### Diff an element with markup
 
@@ -153,10 +147,9 @@ diff.element(document.body, h1, { inner: true });
 
 ##### Release element
 
-Use this method if you need to clean up Web Worker usage, memory allocations,
-and anything else internal to diffHTML associated with your element. This is
-very useful for unit testing and general cleanup when you're done with an
-element.
+Use this method if you need to clean up memory allocations and anything else
+internal to diffHTML associated with your element. This is very useful for unit
+testing and general cleanup when you're done with an element.
 
 ``` javascript
 var h1 = document.createElement('h1');
@@ -284,11 +277,6 @@ diff.enableProllyfill();
 diffHTML to modify your browser's `HTMLElement` constructor,
 `Element.prototype`, the `document` object, and run some logic on your page
 load event.*
-
-If you have already loaded the page (meaning the load event has fired),
-diffHTML will immediately search the page for Custom Elements and automatically
-initialize them. If the page has not yet loaded, it will wait before invoking
-which gives you time to register your elements first.
 
 ##### `Element.prototype.diffOuterHTML`
 

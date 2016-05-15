@@ -56,9 +56,7 @@ function getData() {
 function render(count) {
   var data = getData();
 
-  diff.outerHTML(document.documentElement, template.render(data), {
-    enableWorker: true
-  });
+  diff.outerHTML(document.documentElement, template.render(data));
 
   //window.done();
 }

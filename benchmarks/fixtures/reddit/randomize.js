@@ -34,7 +34,5 @@ function render(count) {
     })
   };
 
-  diff.outerHTML(document.documentElement, template.render(data), {
-    enableWorker: false
-  });
+  diff.outerHTML(document.documentElement, template.render(data));
 }

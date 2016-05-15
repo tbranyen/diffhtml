@@ -61,9 +61,7 @@
         };
       }
 
-      diff.outerHTML(svg, template.render({ rects: rects }), { 
-        enableWorker: true 
-      });
+      diff.outerHTML(svg, template.render({ rects: rects }));
 
       //window.setTimeout(function() {
         requestAnimationFrame(render);
