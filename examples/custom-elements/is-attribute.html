@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>is Attribute Example</title>
+</head>
+<body>
+  <span is="marquee-text">Isn't this awesome?</span> 
+
+  <script src="../../dist/diffhtml.js"></script>
+  <script>
+
+    diff.enableProllyfill();
+
+    diff.registerElement('marquee-text', {
+      extends: 'span',
+
+      prototype: {
+        attachedCallback() {
+          var render = () => {
+            var makeArray = this.innerHTML.split('');
+
+            makeArray.push(makeArray.shift());
+
+            diff.innerHTML(this, makeArray.join(''));
+
+            this.timeout = setTimeout(render, 90);
+          };
+
+          render();
+        },
+
+        detachedCallback() {
+          clearTimeout(this.timeout);
+        },
+
+        textChangedCallback(oldValue, newValue) {
+          //
+        }
+      }
+    });
+
+  </script>
+</body>
+</html>
+

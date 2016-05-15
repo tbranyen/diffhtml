@@ -1,4 +1,5 @@
-import * as diff from '../../lib/index.js';
+import * as diff from '../../lib/index';
+import { html } from '../../lib/index';
 import validateMemory from '../util/validateMemory';
 
 describe('Integration: outerHTML', function() {
@@ -60,6 +61,40 @@ describe('Integration: outerHTML', function() {
     diff.outerHTML(this.fixture.firstChild, '<p></p>');
 
     assert.equal(this.fixture.firstChild.tagName, 'P');
+  });
+
+  it('can use a virtual dom element', function() {
+    diff.outerHTML(this.fixture.firstChild, {
+      uuid: String(Math.random() * 500),
+      nodeName: 'div',
+      nodeType: 1,
+      nodeValue: '',
+      attributes: [{ name: 'id', value: 'test' }],
+      childNodes: [{
+        uuid: String(Math.random() * 500),
+        nodeName: '#text',
+        nodeValue: 'hello world',
+        nodeType: 3,
+        attributes: [],
+        childNodes: []
+      }]
+    });
+
+    assert.equal(this.fixture.firstChild.nodeName, 'DIV');
+    assert.equal(this.fixture.firstChild.getAttribute('id'), 'test');
+    assert.equal(this.fixture.firstChild.id, 'test');
+    assert.equal(this.fixture.firstChild.textContent, 'hello world');
+  });
+
+  it('can use a tagged template function', function() {
+    diff.outerHTML(this.fixture.firstChild, html
+      `<div id="test">hello world</div>`
+    );
+
+    assert.equal(this.fixture.firstChild.nodeName, 'DIV');
+    assert.equal(this.fixture.firstChild.getAttribute('id'), 'test');
+    assert.equal(this.fixture.firstChild.id, 'test');
+    assert.equal(this.fixture.firstChild.textContent, 'hello world');
   });
 
   describe('Comments', function() {
