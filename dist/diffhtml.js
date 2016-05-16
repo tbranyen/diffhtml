@@ -35,6 +35,9 @@ function get(descriptor) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.default = make;
 
 var _svg = _dereq_('../svg');
@@ -79,12 +82,20 @@ function make(descriptor) {
     // Node.
     if (descriptor.attributes && descriptor.attributes.length) {
       for (var i = 0; i < descriptor.attributes.length; i++) {
-        var attribute = descriptor.attributes[i];
+        var attr = descriptor.attributes[i];
+        var isObject = _typeof(attr.value) === 'object';
+        var isFunction = typeof attr.value === 'function';
 
-        if (typeof attribute.value === 'string') {
-          element.setAttribute(attribute.name, attribute.value);
-        } else {
-          element[attribute.name] = attribute.value;
+        // If not a dynamic type, set as an attribute, since it's a valid
+        // attribute value.
+        if (!isObject && !isFunction) {
+          element.setAttribute(attr.name, attr.value);
+        } else if (typeof attr.value !== 'string') {
+          // Necessary to track the attribute/prop existence.
+          element.setAttribute(attr.name, '');
+
+          // Since this is a dynamic value it gets set as a property.
+          element[attr.name] = attr.value;
         }
       }
     }
@@ -234,7 +245,7 @@ function html(strings) {
       var lastCharacter = lastSegment.trim().slice(-1);
       var isProp = Boolean(lastCharacter.match(isPropEx));
 
-      if (isProp && typeof value !== 'string') {
+      if (isProp) {
         supplemental.props.push(value);
         retVal.push('__DIFFHTML__');
       } else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
@@ -720,8 +731,8 @@ function patchNode(element, newHTML, options) {
   var newTree = null;
 
   if (typeof newHTML === 'string') {
-    newTree = (0, _parser.parse)(newHTML);
-    newTree = options.inner ? newTree : newTree[0];
+    var childNodes = (0, _parser.parse)(newHTML).childNodes;
+    newTree = options.inner ? childNodes : childNodes[0];
   } else if (newHTML.ownerDocument) {
     newTree = (0, _make2.default)(newHTML);
   } else {
@@ -729,10 +740,10 @@ function patchNode(element, newHTML, options) {
   }
 
   if (options.inner) {
-    var childNodes = Array.isArray(newTree) ? newTree : [newTree];
+    var _childNodes = Array.isArray(newTree) ? newTree : [newTree];
 
     newTree = {
-      childNodes: childNodes,
+      childNodes: _childNodes,
       attributes: elementMeta.oldTree.attributes,
       uuid: elementMeta.oldTree.uuid,
       nodeName: elementMeta.oldTree.nodeName,
@@ -929,52 +940,66 @@ function sync(oldTree, newTree, patches) {
     });
   }
 
+  // Ensure keys exist for all the old & new elements.
+  var noOldKeys = !oldChildNodes.some(function (oldChildNode) {
+    return oldChildNode.key;
+  });
+
   // Remove these elements.
   if (oldChildNodesLength > childNodesLength) {
     (function () {
       // For now just splice out the end items.
       var diff = oldChildNodesLength - childNodesLength;
+      var toRemove = [];
       var shallowClone = [].concat(_toConsumableArray(oldChildNodes));
-      var offset = 0;
-      var toRemove = null;
-
-      // Ensure keys exist for all the old & new elements.
-      var newHasKeys = childNodes.some(function (childNode) {
-        return !childNode.is;
-      });
 
       // There needs to be keys to diff, if not, there's no point in checking.
-      if (!newHasKeys) {
+      if (noOldKeys) {
         toRemove = oldChildNodes.splice(oldChildNodesLength - diff, diff);
       }
       // This is an expensive operation so we do the above check to ensure that a
       // key was specified.
       else {
-          // If the original childNodes contain a key attribute, use this to
-          // compare over the naive method below.
-          toRemove = shallowClone.reduce(function (toRemove, oldChildNode, index) {
-            var newChildNode = childNodes[index + offset];
-            var oldIndex = oldChildNodes.indexOf(oldChildNode);
+          (function () {
+            var newKeys = new Set(childNodes.map(function (childNode) {
+              return String(childNode.key);
+            }).filter(Boolean));
 
-            // We've found all the removals.
-            if (toRemove.length === diff) {
-              return toRemove;
-            }
-            // If we're still iterating and ran out of items.
-            else if (!newChildNode) {
-                offset += 1;
-                toRemove.push(oldChildNode);
-                oldChildNodes.splice(oldIndex, 1);
+            var oldKeys = new Set(oldChildNodes.map(function (childNode) {
+              return String(childNode.key);
+            }).filter(Boolean));
+
+            var keysToRemove = {};
+            var truthy = 1;
+
+            // Find the keys in the sets to remove.
+            oldKeys.forEach(function (key) {
+              if (!newKeys.has(key)) {
+                keysToRemove[key] = truthy;
               }
-              // The keys do not match.
-              else if (oldChildNode.key !== newChildNode.key) {
-                  offset += 1;
-                  toRemove.push(oldChildNode);
-                  oldChildNodes.splice(oldIndex, 1);
+            });
+
+            // If the original childNodes contain a key attribute, use this to
+            // compare over the naive method below.
+            shallowClone.forEach(function (oldChildNode, i) {
+              if (keysToRemove[oldChildNode.key]) {
+                var nextChild = oldChildNodes[i + 1];
+                var nextIsTextNode = nextChild && nextChild.nodeType === 3;
+                var count = 1;
+
+                // Always remove whitespace in between the elements.
+                if (nextIsTextNode && toRemove.length + 2 <= diff) {
+                  count = 2;
                 }
 
-            return toRemove;
-          }, []);
+                // Find the index position from the original array.
+                var indexPos = oldChildNodes.indexOf(oldChildNode);
+
+                // Find all the items to remove.
+                toRemove.push.apply(toRemove, oldChildNodes.splice(indexPos, count));
+              }
+            });
+          })();
         }
 
       oldChildNodesLength = oldChildNodes.length;
@@ -1119,6 +1144,9 @@ var TreeCache = exports.TreeCache = new Map();
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.default = process;
 
 var _transitions = _dereq_('../transitions');
@@ -1150,6 +1178,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var blockTextElements = ['script', 'noscript', 'style', 'pre', 'template'];
+
+var isElement = function isElement(element) {
+  return element.nodeType === 1;
+};
 
 /**
  * Processes an array of patches.
@@ -1220,7 +1252,7 @@ function process(element, patches) {
     // Empty the Node's contents. This is an optimization, since `innerHTML`
     // will be faster than iterating over every element and manually removing.
     if (patch.__do__ === sync.REMOVE_ELEMENT_CHILDREN) {
-      var childNodes = el.childNodes;
+      var childNodes = slice.call(el.childNodes).filter(isElement);
       var detachPromises = transition.makePromises('detached', childNodes);
 
       triggerTransition('detached', detachPromises, function (promises) {
@@ -1234,7 +1266,8 @@ function process(element, patches) {
     // Remove the entire Node. Only does something if the Node has a parent
     // element.
     else if (patch.__do__ === sync.REMOVE_ENTIRE_ELEMENT) {
-        var _detachPromises = transition.makePromises('detached', [el]);
+        var _childNodes = [el].filter(isElement);
+        var _detachPromises = transition.makePromises('detached', _childNodes);
 
         if (el.parentNode) {
           triggerTransition('detached', _detachPromises, function (promises) {
@@ -1254,8 +1287,8 @@ function process(element, patches) {
       else if (patch.__do__ === sync.REPLACE_ENTIRE_ELEMENT) {
           (function () {
             var allPromises = [];
-            var attachedPromises = transition.makePromises('attached', [newEl]);
-            var detachedPromises = transition.makePromises('detached', [oldEl]);
+            var attachedPromises = transition.makePromises('attached', [newEl].filter(isElement));
+            var detachedPromises = transition.makePromises('detached', [oldEl].filter(isElement));
             var replacedPromises = transition.makePromises('replaced', [oldEl], newEl);
 
             // Add all the transition state promises into the main array, we'll use
@@ -1431,18 +1464,22 @@ function process(element, patches) {
                     el[patch.name] = undefined;
                   }
                 }
-                // Change.
+                // Change attributes.
                 else {
-                    // Is an attribute.
-                    if (typeof patch.value === 'string') {
+                    var isObject = _typeof(patch.value) === 'object';
+                    var isFunction = typeof patch.value === 'function';
+
+                    // If not a dynamic type, set as an attribute, since it's a valid
+                    // attribute value.
+                    if (!isObject && !isFunction) {
                       el.setAttribute(patch.name, patch.value);
+                    } else if (typeof patch.value !== 'string') {
+                      // Necessary to track the attribute/prop existence.
+                      el.setAttribute(patch.name, '');
+
+                      // Since this is a dynamic value it gets set as a property.
+                      el[patch.name] = patch.value;
                     }
-                    // Is a property.
-                    else {
-                        // Necessary to track the attribute/prop existence.
-                        el.setAttribute(patch.name, '');
-                        el[patch.name] = patch.value;
-                      }
 
                     // Support live updating of the value attribute.
                     // Support live updating of the value attribute.
@@ -1690,7 +1727,7 @@ function makePromises(stateName) {
   }
 
   // Ensure elements is always an array.
-  var elements = slice.call(args[0]);
+  var elements = [].concat(args[0]);
 
   // Accepts the local Array of promises to use.
   return function (promises) {
