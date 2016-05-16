@@ -41,23 +41,27 @@ a global named `diff` unless loaded as a module.
 
 #### Quick start
 
-Before diving into the API details, the easiest way to start using diffHTML is
-to replace `innerHTML`.
+Before diving into all the API details, the easiest way to understand using
+diffHTML is to replace the usage of `innerHTML`.
 
-For example, the following destroys the span and recreates it every time the
-render method is called:
+For example, the following example destroys and recreates the span every time
+the render method is called:
+
+Assume the following markup:
 
 ``` html
-<span></span>
+<body>
+  <span></span>
+</body>
 ```
+
+The following code:
 
 ``` javascript
 function render(string) {
   document.querySelector('span').innerHTML = string;
 }
-```
 
-``` javascript
 render('Hello world!');
 render('Foo bar baz!');
 ```
@@ -66,7 +70,7 @@ We could rewrite this with diffHTML to leverage the Virtual DOM like this:
 
 ``` javascript
 function render(string) {
-  diff.outerHTML(document.querySelector('span'), string);
+  diff.innerHTML(document.querySelector('span'), string);
 }
 ```
 
