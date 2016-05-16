@@ -1182,6 +1182,7 @@ var blockTextElements = ['script', 'noscript', 'style', 'pre', 'template'];
 var isElement = function isElement(element) {
   return element.nodeType === 1;
 };
+var slice = Array.prototype.slice;
 
 /**
  * Processes an array of patches.
@@ -1287,8 +1288,11 @@ function process(element, patches) {
       else if (patch.__do__ === sync.REPLACE_ENTIRE_ELEMENT) {
           (function () {
             var allPromises = [];
+
             var attachedPromises = transition.makePromises('attached', [newEl].filter(isElement));
+
             var detachedPromises = transition.makePromises('detached', [oldEl].filter(isElement));
+
             var replacedPromises = transition.makePromises('replaced', [oldEl], newEl);
 
             // Add all the transition state promises into the main array, we'll use
@@ -1351,7 +1355,7 @@ function process(element, patches) {
                 // into the real element and append into the DOM fragment.
                 toAttach = patch.fragment.map(function (el) {
                   return attached(el, fragment, el);
-                });
+                }).filter(isElement);
 
                 // Turn elements into childNodes of the patch element.
 
@@ -1404,8 +1408,11 @@ function process(element, patches) {
 
                     // Removed state for transitions API.
                     var allPromises = [];
-                    var attachPromises = transition.makePromises('attached', [newEl]);
-                    var detachPromises = transition.makePromises('detached', [oldEl]);
+
+                    var attachPromises = transition.makePromises('attached', [newEl].filter(isElement));
+
+                    var detachPromises = transition.makePromises('detached', [oldEl].filter(isElement));
+
                     var replacePromises = transition.makePromises('replaced', [oldEl], newEl);
 
                     triggerTransition('replaced', replacePromises, function (promises) {
