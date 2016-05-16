@@ -35,6 +35,9 @@ function get(descriptor) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.default = make;
 
 var _svg = _dereq_('../svg');
@@ -79,12 +82,20 @@ function make(descriptor) {
     // Node.
     if (descriptor.attributes && descriptor.attributes.length) {
       for (var i = 0; i < descriptor.attributes.length; i++) {
-        var attribute = descriptor.attributes[i];
+        var attr = descriptor.attributes[i];
+        var isObject = _typeof(attr.value) === 'object';
+        var isFunction = typeof attr.value === 'function';
 
-        if (typeof attribute.value === 'string') {
-          element.setAttribute(attribute.name, attribute.value);
-        } else {
-          element[attribute.name] = attribute.value;
+        // If not a dynamic type, set as an attribute, since it's a valid
+        // attribute value.
+        if (!isObject && !isFunction) {
+          element.setAttribute(attr.name, attr.value);
+        } else if (typeof attr.value !== 'string') {
+          // Necessary to track the attribute/prop existence.
+          element.setAttribute(attr.name, '');
+
+          // Since this is a dynamic value it gets set as a property.
+          element[attr.name] = attr.value;
         }
       }
     }
@@ -192,7 +203,6 @@ exports.html = html;
 var _parser = _dereq_('./util/parser');
 
 // Make a parser.
-var parser = (0, _parser.makeParser)();
 var isPropEx = /(=|'|")/;
 
 /**
@@ -215,7 +225,7 @@ function html(strings) {
 
   // Parse only the text, no dynamic bits.
   if (strings.length === 1 && !values.length) {
-    var _childNodes = parser.parse(strings[0]).childNodes;
+    var _childNodes = (0, _parser.parse)(strings[0]).childNodes;
     return _childNodes.length > 1 ? _childNodes : _childNodes[0];
   }
 
@@ -235,7 +245,7 @@ function html(strings) {
       var lastCharacter = lastSegment.trim().slice(-1);
       var isProp = Boolean(lastCharacter.match(isPropEx));
 
-      if (isProp && typeof value !== 'string') {
+      if (isProp) {
         supplemental.props.push(value);
         retVal.push('__DIFFHTML__');
       } else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
@@ -247,7 +257,7 @@ function html(strings) {
     }
   });
 
-  var childNodes = parser.parse(retVal.join(''), supplemental).childNodes;
+  var childNodes = (0, _parser.parse)(retVal.join(''), supplemental).childNodes;
   return childNodes.length > 1 ? childNodes : childNodes[0];
 }
 
@@ -582,6 +592,10 @@ function make(node) {
         attr.name = attributes[i].name;
         attr.value = attributes[i].value;
 
+        if (attr.name === 'key') {
+          entry.key = attr.value;
+        }
+
         entry.attributes[entry.attributes.length] = attr;
       }
     }
@@ -717,7 +731,8 @@ function patchNode(element, newHTML, options) {
   var newTree = null;
 
   if (typeof newHTML === 'string') {
-    newTree = (0, _parser.parseHTML)(newHTML, options.inner);
+    var childNodes = (0, _parser.parse)(newHTML).childNodes;
+    newTree = options.inner ? childNodes : childNodes[0];
   } else if (newHTML.ownerDocument) {
     newTree = (0, _make2.default)(newHTML);
   } else {
@@ -725,10 +740,10 @@ function patchNode(element, newHTML, options) {
   }
 
   if (options.inner) {
-    var childNodes = Array.isArray(newTree) ? newTree : [newTree];
+    var _childNodes = Array.isArray(newTree) ? newTree : [newTree];
 
     newTree = {
-      childNodes: childNodes,
+      childNodes: _childNodes,
       attributes: elementMeta.oldTree.attributes,
       uuid: elementMeta.oldTree.uuid,
       nodeName: elementMeta.oldTree.nodeName,
@@ -809,6 +824,8 @@ exports.default = sync;
 
 var _pools = _dereq_('../util/pools');
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var slice = Array.prototype.slice;
 var filter = Array.prototype.filter;
 
@@ -867,6 +884,9 @@ function sync(oldTree, newTree, patches) {
   var newIsFragment = newTree.nodeName === '#document-fragment';
   var skipAttributeCompare = false;
 
+  // Replace the key attributes.
+  oldTree.key = newTree.key;
+
   // Fragments should not compare attributes.
   if (oldIsFragment || newIsFragment) {
     skipAttributeCompare = true;
@@ -920,47 +940,104 @@ function sync(oldTree, newTree, patches) {
     });
   }
 
+  // Ensure keys exist for all the old & new elements.
+  var noOldKeys = !oldChildNodes.some(function (oldChildNode) {
+    return oldChildNode.key;
+  });
+
   // Remove these elements.
   if (oldChildNodesLength > childNodesLength) {
-    // For now just splice out the end items.
-    var diff = oldChildNodesLength - childNodesLength;
-    var toRemove = oldChildNodes.splice(oldChildNodesLength - diff, diff);
+    (function () {
+      // For now just splice out the end items.
+      var diff = oldChildNodesLength - childNodesLength;
+      var toRemove = [];
+      var shallowClone = [].concat(_toConsumableArray(oldChildNodes));
 
-    oldChildNodesLength = oldChildNodes.length;
+      // There needs to be keys to diff, if not, there's no point in checking.
+      if (noOldKeys) {
+        toRemove = oldChildNodes.splice(oldChildNodesLength - diff, diff);
+      }
+      // This is an expensive operation so we do the above check to ensure that a
+      // key was specified.
+      else {
+          (function () {
+            var newKeys = new Set(childNodes.map(function (childNode) {
+              return String(childNode.key);
+            }).filter(Boolean));
 
-    if (oldChildNodesLength === 0 && childNodesLength === 0) {
-      patches.push({
-        __do__: REMOVE_ELEMENT_CHILDREN,
-        element: oldTree,
-        toRemove: toRemove
-      });
-    } else {
-      for (var _i = 0; _i < toRemove.length; _i++) {
-        // Remove the element, this happens before the splice so that we
-        // still have access to the element.
+            var oldKeys = new Set(oldChildNodes.map(function (childNode) {
+              return String(childNode.key);
+            }).filter(Boolean));
+
+            var keysToRemove = {};
+            var truthy = 1;
+
+            // Find the keys in the sets to remove.
+            oldKeys.forEach(function (key) {
+              if (!newKeys.has(key)) {
+                keysToRemove[key] = truthy;
+              }
+            });
+
+            // If the original childNodes contain a key attribute, use this to
+            // compare over the naive method below.
+            shallowClone.forEach(function (oldChildNode, i) {
+              if (keysToRemove[oldChildNode.key]) {
+                var nextChild = oldChildNodes[i + 1];
+                var nextIsTextNode = nextChild && nextChild.nodeType === 3;
+                var count = 1;
+
+                // Always remove whitespace in between the elements.
+                if (nextIsTextNode && toRemove.length + 2 <= diff) {
+                  count = 2;
+                }
+
+                // Find the index position from the original array.
+                var indexPos = oldChildNodes.indexOf(oldChildNode);
+
+                // Find all the items to remove.
+                toRemove.push.apply(toRemove, oldChildNodes.splice(indexPos, count));
+              }
+            });
+          })();
+        }
+
+      oldChildNodesLength = oldChildNodes.length;
+
+      if (childNodesLength === 0) {
         patches.push({
-          __do__: MODIFY_ELEMENT,
-          old: toRemove[_i]
+          __do__: REMOVE_ELEMENT_CHILDREN,
+          element: oldTree,
+          toRemove: toRemove
+        });
+      } else {
+        // Remove the element, this happens before the splice so that we still
+        // have access to the element.
+        toRemove.forEach(function (old) {
+          return patches.push({
+            __do__: MODIFY_ELEMENT,
+            old: old
+          });
         });
       }
-    }
+    })();
   }
 
   // Replace elements if they are different.
   if (oldChildNodesLength >= childNodesLength) {
-    for (var _i2 = 0; _i2 < childNodesLength; _i2++) {
-      if (oldChildNodes[_i2].nodeName !== childNodes[_i2].nodeName) {
+    for (var _i = 0; _i < childNodesLength; _i++) {
+      if (oldChildNodes[_i].nodeName !== childNodes[_i].nodeName) {
         // Add to the patches.
         patches.push({
           __do__: MODIFY_ELEMENT,
-          old: oldChildNodes[_i2],
-          new: childNodes[_i2]
+          old: oldChildNodes[_i],
+          new: childNodes[_i]
         });
 
         // Replace the internal tree's point of view of this element.
-        oldChildNodes[_i2] = childNodes[_i2];
+        oldChildNodes[_i] = childNodes[_i];
       } else {
-        sync(oldChildNodes[_i2], childNodes[_i2], patches);
+        sync(oldChildNodes[_i], childNodes[_i], patches);
       }
     }
   }
@@ -976,17 +1053,17 @@ function sync(oldTree, newTree, patches) {
     if (newLength > oldLength) {
       var toAdd = slice.call(attributes, oldLength);
 
-      for (var _i3 = 0; _i3 < toAdd.length; _i3++) {
+      for (var _i2 = 0; _i2 < toAdd.length; _i2++) {
         var change = {
           __do__: MODIFY_ATTRIBUTE,
           element: oldTree,
-          name: toAdd[_i3].name,
-          value: toAdd[_i3].value
+          name: toAdd[_i2].name,
+          value: toAdd[_i2].value
         };
 
         var attr = _pools.pools.attributeObject.get();
-        attr.name = toAdd[_i3].name;
-        attr.value = toAdd[_i3].value;
+        attr.name = toAdd[_i2].name;
+        attr.value = toAdd[_i2].value;
 
         _pools.pools.attributeObject.protect(attr);
 
@@ -1002,19 +1079,19 @@ function sync(oldTree, newTree, patches) {
     if (oldLength > newLength) {
       var _toRemove = slice.call(oldTree.attributes, newLength);
 
-      for (var _i4 = 0; _i4 < _toRemove.length; _i4++) {
+      for (var _i3 = 0; _i3 < _toRemove.length; _i3++) {
         var _change = {
           __do__: MODIFY_ATTRIBUTE,
           element: oldTree,
-          name: _toRemove[_i4].name,
+          name: _toRemove[_i3].name,
           value: undefined
         };
 
         // Remove the attribute from the virtual node.
-        var _removed = oldTree.attributes.splice(_i4, 1);
+        var _removed = oldTree.attributes.splice(_i3, 1);
 
-        for (var _i5 = 0; _i5 < _removed.length; _i5++) {
-          _pools.pools.attributeObject.unprotect(_removed[_i5]);
+        for (var _i4 = 0; _i4 < _removed.length; _i4++) {
+          _pools.pools.attributeObject.unprotect(_removed[_i4]);
         }
 
         // Add the change to the series of patches.
@@ -1025,23 +1102,23 @@ function sync(oldTree, newTree, patches) {
     // Check for modifications.
     var toModify = attributes;
 
-    for (var _i6 = 0; _i6 < toModify.length; _i6++) {
-      var oldAttrValue = oldTree.attributes[_i6] && oldTree.attributes[_i6].value;
-      var newAttrValue = attributes[_i6] && attributes[_i6].value;
+    for (var _i5 = 0; _i5 < toModify.length; _i5++) {
+      var oldAttrValue = oldTree.attributes[_i5] && oldTree.attributes[_i5].value;
+      var newAttrValue = attributes[_i5] && attributes[_i5].value;
 
       // Only push in a change if the attribute or value changes.
       if (oldAttrValue !== newAttrValue) {
         var _change2 = {
           __do__: MODIFY_ATTRIBUTE,
           element: oldTree,
-          name: toModify[_i6].name,
-          value: toModify[_i6].value
+          name: toModify[_i5].name,
+          value: toModify[_i5].value
         };
 
         // Replace the attribute in the virtual node.
-        var _attr = oldTree.attributes[_i6];
-        _attr.name = toModify[_i6].name;
-        _attr.value = toModify[_i6].value;
+        var _attr = oldTree.attributes[_i5];
+        _attr.name = toModify[_i5].name;
+        _attr.value = toModify[_i5].value;
 
         // Add the change to the series of patches.
         patches.push(_change2);
@@ -1067,6 +1144,9 @@ var TreeCache = exports.TreeCache = new Map();
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.default = process;
 
 var _transitions = _dereq_('../transitions');
@@ -1098,6 +1178,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var blockTextElements = ['script', 'noscript', 'style', 'pre', 'template'];
+
+var isElement = function isElement(element) {
+  return element.nodeType === 1;
+};
 
 /**
  * Processes an array of patches.
@@ -1168,7 +1252,7 @@ function process(element, patches) {
     // Empty the Node's contents. This is an optimization, since `innerHTML`
     // will be faster than iterating over every element and manually removing.
     if (patch.__do__ === sync.REMOVE_ELEMENT_CHILDREN) {
-      var childNodes = el.childNodes;
+      var childNodes = slice.call(el.childNodes).filter(isElement);
       var detachPromises = transition.makePromises('detached', childNodes);
 
       triggerTransition('detached', detachPromises, function (promises) {
@@ -1182,7 +1266,8 @@ function process(element, patches) {
     // Remove the entire Node. Only does something if the Node has a parent
     // element.
     else if (patch.__do__ === sync.REMOVE_ENTIRE_ELEMENT) {
-        var _detachPromises = transition.makePromises('detached', [el]);
+        var _childNodes = [el].filter(isElement);
+        var _detachPromises = transition.makePromises('detached', _childNodes);
 
         if (el.parentNode) {
           triggerTransition('detached', _detachPromises, function (promises) {
@@ -1202,8 +1287,8 @@ function process(element, patches) {
       else if (patch.__do__ === sync.REPLACE_ENTIRE_ELEMENT) {
           (function () {
             var allPromises = [];
-            var attachedPromises = transition.makePromises('attached', [newEl]);
-            var detachedPromises = transition.makePromises('detached', [oldEl]);
+            var attachedPromises = transition.makePromises('attached', [newEl].filter(isElement));
+            var detachedPromises = transition.makePromises('detached', [oldEl].filter(isElement));
             var replacedPromises = transition.makePromises('replaced', [oldEl], newEl);
 
             // Add all the transition state promises into the main array, we'll use
@@ -1289,12 +1374,12 @@ function process(element, patches) {
                 var makeDetached = transition.makePromises('detached', [oldEl]);
 
                 triggerTransition('detached', makeDetached, function () {
-                  // And then empty out the entire contents.
-                  oldEl.innerHTML = '';
-
                   if (oldEl.parentNode) {
                     oldEl.parentNode.removeChild(oldEl);
                   }
+
+                  // And then empty out the entire contents.
+                  oldEl.innerHTML = '';
 
                   (0, _memory.unprotectElement)(patch.old, _make2.default);
                 });
@@ -1323,6 +1408,10 @@ function process(element, patches) {
                     var detachPromises = transition.makePromises('detached', [oldEl]);
                     var replacePromises = transition.makePromises('replaced', [oldEl], newEl);
 
+                    triggerTransition('replaced', replacePromises, function (promises) {
+                      allPromises.push.apply(allPromises, promises);
+                    });
+
                     triggerTransition('detached', detachPromises, function (promises) {
                       allPromises.push.apply(allPromises, promises);
                     });
@@ -1332,15 +1421,14 @@ function process(element, patches) {
                       attached(patch.new);
                     });
 
-                    triggerTransition('replaced', replacePromises, function (promises) {
-                      allPromises.push.apply(allPromises, promises);
-                    });
-
                     // Once all the promises have completed, invoke the action, if no
                     // promises were added, this will be a synchronous operation.
                     if (allPromises.length) {
                       Promise.all(allPromises).then(function replaceElement() {
-                        oldEl.parentNode.replaceChild(newEl, oldEl);
+                        if (oldEl.parentNode) {
+                          oldEl.parentNode.replaceChild(newEl, oldEl);
+                        }
+
                         (0, _memory.unprotectElement)(patch.old, _make2.default);
 
                         (0, _memory.protectElement)(patch.new);
@@ -1376,18 +1464,22 @@ function process(element, patches) {
                     el[patch.name] = undefined;
                   }
                 }
-                // Change.
+                // Change attributes.
                 else {
-                    // Is an attribute.
-                    if (typeof patch.value === 'string') {
+                    var isObject = _typeof(patch.value) === 'object';
+                    var isFunction = typeof patch.value === 'function';
+
+                    // If not a dynamic type, set as an attribute, since it's a valid
+                    // attribute value.
+                    if (!isObject && !isFunction) {
                       el.setAttribute(patch.name, patch.value);
+                    } else if (typeof patch.value !== 'string') {
+                      // Necessary to track the attribute/prop existence.
+                      el.setAttribute(patch.name, '');
+
+                      // Since this is a dynamic value it gets set as a property.
+                      el[patch.name] = patch.value;
                     }
-                    // Is a property.
-                    else {
-                        // Necessary to track the attribute/prop existence.
-                        el.setAttribute(patch.name, '');
-                        el[patch.name] = patch.value;
-                      }
 
                     // Support live updating of the value attribute.
                     // Support live updating of the value attribute.
@@ -1635,7 +1727,7 @@ function makePromises(stateName) {
   }
 
   // Ensure elements is always an array.
-  var elements = slice.call(args[0]);
+  var elements = [].concat(args[0]);
 
   // Accepts the local Array of promises to use.
   return function (promises) {
@@ -1763,373 +1855,351 @@ function cleanMemory(makeNode) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.parseHTML = parseHTML;
-exports.makeParser = makeParser;
+exports.parse = parse;
 
 var _pools = _dereq_('./pools');
 
-var parser = makeParser(); // Code based off of:
+var slice = Array.prototype.slice; // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
-var slice = Array.prototype.slice;
+var kMarkupPattern = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
+
+var kAttributePattern = /\b(id|class)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+
+var reAttrPattern = /\b([a-z][a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+
+var kSelfClosingElements = {
+  meta: true,
+  img: true,
+  link: true,
+  input: true,
+  area: true,
+  br: true,
+  hr: true
+};
+
+var kElementsClosedByOpening = {
+  li: {
+    li: true
+  },
+
+  p: {
+    p: true, div: true
+  },
+
+  td: {
+    td: true, th: true
+  },
+
+  th: {
+    td: true, th: true
+  }
+};
+
+var kElementsClosedByClosing = {
+  li: {
+    ul: true, ol: true
+  },
+
+  a: {
+    div: true
+  },
+
+  b: {
+    div: true
+  },
+
+  i: {
+    div: true
+  },
+
+  p: {
+    div: true
+  },
+
+  td: {
+    tr: true, table: true
+  },
+
+  th: {
+    tr: true, table: true
+  }
+};
+
+var kBlockTextElements = {
+  script: true,
+  noscript: true,
+  style: true,
+  template: true
+};
+
+var escapeMap = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#x27;',
+  '`': '&#x60;'
+};
 
 /**
- * parseHTML
- *
- * @param newHTML
- * @return
+ * TextNode to contain a text element in DOM tree.
+ * @param {string} value [description]
  */
-function parseHTML(newHTML, isInner) {
-  var documentElement = parser.parse(newHTML);
-  var nodes = documentElement.childNodes;
+function TextNode(value) {
+  var instance = _pools.pools.elementObject.get();
 
-  return isInner ? nodes : nodes[0];
+  instance.nodeName = '#text';
+  instance.nodeValue = value;
+  instance.nodeType = 3;
+  instance.key = '';
+  instance.childNodes.length = 0;
+  instance.attributes.length = 0;
+
+  return instance;
 }
 
 /**
- * makeParser
+ * HTMLElement, which contains a set of children.
  *
- * @return
+ * Note: this is a minimalist implementation, no complete tree structure
+ * provided (no parentNode, nextSibling, previousSibling etc).
+ *
+ * @param {string} name     nodeName
+ * @param {Object} keyAttrs id and class attribute
+ * @param {Object} rawAttrs attributes in string
+ * @param {Object} supplemental data
  */
-function makeParser() {
-  var kMarkupPattern = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
+function HTMLElement(name, keyAttrs, rawAttrs, supplemental) {
+  var instance = _pools.pools.elementObject.get();
 
-  var kAttributePattern = /\b(id|class)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+  instance.nodeName = name;
+  instance.nodeValue = '';
+  instance.nodeType = 1;
+  instance.key = '';
+  instance.childNodes.length = 0;
+  instance.attributes.length = 0;
 
-  var reAttrPattern = /\b([a-z][a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+  if (rawAttrs) {
+    for (var match; match = reAttrPattern.exec(rawAttrs);) {
+      var attr = _pools.pools.attributeObject.get();
 
-  var kSelfClosingElements = {
-    meta: true,
-    img: true,
-    link: true,
-    input: true,
-    area: true,
-    br: true,
-    hr: true
-  };
+      attr.name = match[1];
+      attr.value = match[6] || match[5] || match[4] || match[1];
 
-  var kElementsClosedByOpening = {
-    li: {
-      li: true
-    },
+      if (attr.value === '__DIFFHTML__') {
+        attr.value = supplemental.props.shift();
+      }
 
-    p: {
-      p: true, div: true
-    },
+      // If a key attribute is found attach directly to the instance.
+      if (attr.name === 'key') {
+        instance.key = attr.value;
+      }
 
-    td: {
-      td: true, th: true
-    },
+      // Look for empty attributes.
+      if (match[6] === '""') {
+        attr.value = '';
+      }
 
-    th: {
-      td: true, th: true
+      instance.attributes.push(attr);
     }
-  };
-
-  var kElementsClosedByClosing = {
-    li: {
-      ul: true, ol: true
-    },
-
-    a: {
-      div: true
-    },
-
-    b: {
-      div: true
-    },
-
-    i: {
-      div: true
-    },
-
-    p: {
-      div: true
-    },
-
-    td: {
-      tr: true, table: true
-    },
-
-    th: {
-      tr: true, table: true
-    }
-  };
-
-  var kBlockTextElements = {
-    script: true,
-    noscript: true,
-    style: true,
-    template: true
-  };
-
-  var escapeMap = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '`': '&#x60;'
-  };
-
-  /**
-   * TextNode to contain a text element in DOM tree.
-   * @param {string} value [description]
-   */
-  function TextNode(value) {
-    var instance = _pools.pools.elementObject.get();
-
-    instance.nodeName = '#text';
-    instance.nodeValue = value;
-    instance.nodeType = 3;
-    instance.childNodes.length = 0;
-    instance.attributes.length = 0;
-
-    return instance;
   }
 
-  /**
-   * HTMLElement, which contains a set of children.
-   *
-   * Note: this is a minimalist implementation, no complete tree structure
-   * provided (no parentNode, nextSibling, previousSibling etc).
-   *
-   * @param {string} name     nodeName
-   * @param {Object} keyAttrs id and class attribute
-   * @param {Object} rawAttrs attributes in string
-   * @param {Object} supplemental data
-   */
-  function HTMLElement(name, keyAttrs, rawAttrs, supplemental) {
-    var instance = _pools.pools.elementObject.get();
+  return instance;
+}
 
-    instance.nodeName = name;
-    instance.nodeValue = '';
-    instance.nodeType = 1;
-    instance.childNodes.length = 0;
-    instance.attributes.length = 0;
+/**
+ * Parses HTML and returns a root element
+ *
+ * @param  {string} data      html
+ * @param  {array} supplemental      data
+ * @return {HTMLElement}      root element
+ */
+function parse(data, supplemental) {
+  var rootObject = {};
+  var root = HTMLElement(null, rootObject);
+  var currentParent = root;
+  var stack = [root];
+  var lastTextPos = -1;
 
-    if (rawAttrs) {
-      for (var match; match = reAttrPattern.exec(rawAttrs);) {
-        var attr = _pools.pools.attributeObject.get();
+  // If there are no HTML elements, treat the passed in data as a single
+  // text node.
+  if (data.indexOf('<') === -1 && data) {
+    currentParent.childNodes.push(TextNode(data));
+    return root;
+  }
 
-        attr.name = match[1];
-        attr.value = match[6] || match[5] || match[4] || match[1];
+  for (var match, text; match = kMarkupPattern.exec(data);) {
+    if (lastTextPos > -1) {
+      if (lastTextPos + match[0].length < kMarkupPattern.lastIndex) {
+        // if has content
+        text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
 
-        if (attr.value === '__DIFFHTML__') {
-          attr.value = supplemental.props.shift();
+        if (text && text.trim && text.trim() === '__DIFFHTML__') {
+          var value = supplemental.children.shift();
+          var childrenToAdd = [].concat(value);
+
+          currentParent.childNodes.push.apply(currentParent.childNodes, childrenToAdd);
+        } else {
+          currentParent.childNodes.push(TextNode(text));
         }
-
-        // Look for empty attributes.
-        if (match[6] === '""') {
-          attr.value = '';
-        }
-
-        instance.attributes.push(attr);
       }
     }
 
-    return instance;
-  }
+    lastTextPos = kMarkupPattern.lastIndex;
 
-  /**
-   * Parses HTML and returns a root element
-   */
-  var htmlParser = {
-    /**
-     * Parse a chuck of HTML source.
-     * @param  {string} data      html
-     * @param  {array} supplemental      data
-     * @return {HTMLElement}      root element
-     */
-    parse: function parse(data, supplemental) {
-      var rootObject = {};
-      var root = HTMLElement(null, rootObject);
-      var currentParent = root;
-      var stack = [root];
-      var lastTextPos = -1;
+    // This is a comment.
+    if (match[0][1] === '!') {
+      continue;
+    }
 
-      // If there are no HTML elements, treat the passed in data as a single
-      // text node.
-      if (data.indexOf('<') === -1 && data) {
-        currentParent.childNodes.push(TextNode(data));
-        return root;
+    if (!match[1]) {
+      // not </ tags
+      var attrs = {};
+
+      for (var attMatch; attMatch = kAttributePattern.exec(match[3]);) {
+        attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];
       }
 
-      for (var match, text; match = kMarkupPattern.exec(data);) {
-        if (lastTextPos > -1) {
-          if (lastTextPos + match[0].length < kMarkupPattern.lastIndex) {
-            // if has content
-            text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
+      if (!match[4] && kElementsClosedByOpening[currentParent.nodeName]) {
+        if (kElementsClosedByOpening[currentParent.nodeName][match[2]]) {
+          stack.pop();
+          currentParent = stack[stack.length - 1];
+        }
+      }
 
-            if (text && text.trim && text.trim() === '__DIFFHTML__') {
-              var value = supplemental.children.shift();
-              var childrenToAdd = [].concat(value);
+      currentParent = currentParent.childNodes[currentParent.childNodes.push(HTMLElement(match[2], attrs, match[3], supplemental)) - 1];
 
-              currentParent.childNodes.push.apply(currentParent.childNodes, childrenToAdd);
-            } else {
-              currentParent.childNodes.push(TextNode(text));
-            }
-          }
+      stack.push(currentParent);
+
+      if (kBlockTextElements[match[2]]) {
+        // A little test to find next </script> or </style> ...
+        var closeMarkup = '</' + match[2] + '>';
+        var index = data.indexOf(closeMarkup, kMarkupPattern.lastIndex);
+        var length = match[2].length;
+
+        if (index === -1) {
+          lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
+        } else {
+          lastTextPos = index + closeMarkup.length;
+          kMarkupPattern.lastIndex = lastTextPos;
+          match[1] = true;
         }
 
-        lastTextPos = kMarkupPattern.lastIndex;
+        var newText = data.slice(match.index + match[0].length, index);
 
-        // This is a comment.
-        if (match[0][1] === '!') {
-          continue;
+        if (newText.trim()) {
+          newText = slice.call(newText).map(function (ch) {
+            return escapeMap[ch] || ch;
+          }).join('');
+
+          currentParent.childNodes.push(TextNode(newText));
         }
+      }
+    }
+    if (match[1] || match[4] || kSelfClosingElements[match[2]]) {
+      // </ or /> or <br> etc.
+      while (currentParent) {
+        if (currentParent.nodeName == match[2]) {
+          stack.pop();
+          currentParent = stack[stack.length - 1];
 
-        if (!match[1]) {
-          // not </ tags
-          var attrs = {};
+          break;
+        } else {
+          var tag = kElementsClosedByClosing[currentParent.nodeName];
 
-          for (var attMatch; attMatch = kAttributePattern.exec(match[3]);) {
-            attrs[attMatch[1]] = attMatch[3] || attMatch[4] || attMatch[5];
-          }
-
-          if (!match[4] && kElementsClosedByOpening[currentParent.nodeName]) {
-            if (kElementsClosedByOpening[currentParent.nodeName][match[2]]) {
-              stack.pop();
-              currentParent = stack[stack.length - 1];
-            }
-          }
-
-          currentParent = currentParent.childNodes[currentParent.childNodes.push(HTMLElement(match[2], attrs, match[3], supplemental)) - 1];
-
-          stack.push(currentParent);
-
-          if (kBlockTextElements[match[2]]) {
-            // A little test to find next </script> or </style> ...
-            var closeMarkup = '</' + match[2] + '>';
-            var index = data.indexOf(closeMarkup, kMarkupPattern.lastIndex);
-            var length = match[2].length;
-
-            if (index === -1) {
-              lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
-            } else {
-              lastTextPos = index + closeMarkup.length;
-              kMarkupPattern.lastIndex = lastTextPos;
-              match[1] = true;
-            }
-
-            var newText = data.slice(match.index + match[0].length, index);
-
-            if (newText.trim()) {
-              newText = slice.call(newText).map(function (ch) {
-                return escapeMap[ch] || ch;
-              }).join('');
-
-              currentParent.childNodes.push(TextNode(newText));
-            }
-          }
-        }
-        if (match[1] || match[4] || kSelfClosingElements[match[2]]) {
-          // </ or /> or <br> etc.
-          while (currentParent) {
-            if (currentParent.nodeName == match[2]) {
+          // Trying to close current tag, and move on
+          if (tag) {
+            if (tag[match[2]]) {
               stack.pop();
               currentParent = stack[stack.length - 1];
 
-              break;
-            } else {
-              var tag = kElementsClosedByClosing[currentParent.nodeName];
-
-              // Trying to close current tag, and move on
-              if (tag) {
-                if (tag[match[2]]) {
-                  stack.pop();
-                  currentParent = stack[stack.length - 1];
-
-                  continue;
-                }
-              }
-
-              // Use aggressive strategy to handle unmatching markups.
-              break;
+              continue;
             }
           }
+
+          // Use aggressive strategy to handle unmatching markups.
+          break;
         }
       }
+    }
+  }
 
-      // This is an entire document, so only allow the HTML children to be
-      // body or head.
-      if (root.childNodes.length && root.childNodes[0].nodeName === 'html') {
-        (function () {
-          // Store elements from before body end and after body end.
-          var head = { before: [], after: [] };
-          var body = { after: [] };
-          var beforeHead = true;
-          var beforeBody = true;
-          var HTML = root.childNodes[0];
+  // This is an entire document, so only allow the HTML children to be
+  // body or head.
+  if (root.childNodes.length && root.childNodes[0].nodeName === 'html') {
+    (function () {
+      // Store elements from before body end and after body end.
+      var head = { before: [], after: [] };
+      var body = { after: [] };
+      var beforeHead = true;
+      var beforeBody = true;
+      var HTML = root.childNodes[0];
 
-          // Iterate the children and store elements in the proper array for
-          // later concat, replace the current childNodes with this new array.
-          HTML.childNodes = HTML.childNodes.filter(function (el) {
-            // If either body or head, allow as a valid element.
-            if (el.nodeName === 'body' || el.nodeName === 'head') {
-              if (el.nodeName === 'head') {
-                beforeHead = false;
-              }
+      // Iterate the children and store elements in the proper array for
+      // later concat, replace the current childNodes with this new array.
+      HTML.childNodes = HTML.childNodes.filter(function (el) {
+        // If either body or head, allow as a valid element.
+        if (el.nodeName === 'body' || el.nodeName === 'head') {
+          if (el.nodeName === 'head') {
+            beforeHead = false;
+          }
 
-              if (el.nodeName === 'body') {
-                beforeBody = false;
-              }
+          if (el.nodeName === 'body') {
+            beforeBody = false;
+          }
 
-              return true;
+          return true;
+        }
+        // Not a valid nested HTML tag element, move to respective container.
+        else if (el.nodeType === 1) {
+            if (beforeHead && beforeBody) {
+              head.before.push(el);
+            } else if (!beforeHead && beforeBody) {
+              head.after.push(el);
+            } else if (!beforeBody) {
+              body.after.push(el);
             }
-            // Not a valid nested HTML tag element, move to respective container.
-            else if (el.nodeType === 1) {
-                if (beforeHead && beforeBody) {
-                  head.before.push(el);
-                } else if (!beforeHead && beforeBody) {
-                  head.after.push(el);
-                } else if (!beforeBody) {
-                  body.after.push(el);
-                }
-              }
-          });
-
-          // Ensure the first element is the HEAD tag.
-          if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
-            var headInstance = _pools.pools.elementObject.get();
-            headInstance.nodeName = 'head';
-            headInstance.childNodes.length = 0;
-            headInstance.attributes.length = 0;
-
-            var existing = headInstance.childNodes;
-            existing.unshift.apply(existing, head.before);
-            existing.push.apply(existing, head.after);
-
-            HTML.childNodes.unshift(headInstance);
-          } else {
-            var _existing = HTML.childNodes[0].childNodes;
-            _existing.unshift.apply(_existing, head.before);
-            _existing.push.apply(_existing, head.after);
           }
+      });
 
-          // Ensure the second element is the body tag.
-          if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
-            var bodyInstance = _pools.pools.elementObject.get();
-            bodyInstance.nodeName = 'body';
-            bodyInstance.childNodes.length = 0;
-            bodyInstance.attributes.length = 0;
+      // Ensure the first element is the HEAD tag.
+      if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
+        var headInstance = _pools.pools.elementObject.get();
+        headInstance.nodeName = 'head';
+        headInstance.childNodes.length = 0;
+        headInstance.attributes.length = 0;
 
-            var _existing2 = bodyInstance.childNodes;
-            _existing2.push.apply(_existing2, body.after);
+        var existing = headInstance.childNodes;
+        existing.unshift.apply(existing, head.before);
+        existing.push.apply(existing, head.after);
 
-            HTML.childNodes.push(bodyInstance);
-          } else {
-            var _existing3 = HTML.childNodes[1].childNodes;
-            _existing3.push.apply(_existing3, body.after);
-          }
-        })();
+        HTML.childNodes.unshift(headInstance);
+      } else {
+        var _existing = HTML.childNodes[0].childNodes;
+        _existing.unshift.apply(_existing, head.before);
+        _existing.push.apply(_existing, head.after);
       }
 
-      return root;
-    }
-  };
+      // Ensure the second element is the body tag.
+      if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
+        var bodyInstance = _pools.pools.elementObject.get();
+        bodyInstance.nodeName = 'body';
+        bodyInstance.childNodes.length = 0;
+        bodyInstance.attributes.length = 0;
 
-  return htmlParser;
+        var _existing2 = bodyInstance.childNodes;
+        _existing2.push.apply(_existing2, body.after);
+
+        HTML.childNodes.push(bodyInstance);
+      } else {
+        var _existing3 = HTML.childNodes[1].childNodes;
+        _existing3.push.apply(_existing3, body.after);
+      }
+    })();
+  }
+
+  return root;
 }
 
 },{"./pools":17}],17:[function(_dereq_,module,exports){
@@ -2217,7 +2287,8 @@ function initializePools(COUNT) {
       return {
         nodeName: '',
         nodeValue: '',
-        nodeType: null,
+        nodeType: 1,
+        key: '',
         uuid: uuid(),
         childNodes: [],
         attributes: []

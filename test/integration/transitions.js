@@ -210,16 +210,48 @@ describe('Integration: Transitions', function() {
       assert.equal(result, this.fixture.querySelector('p'));
     });
 
-    it('will provide the correct element to detached', function() {
+    it('will provide the last element to detached without key', function() {
       var result = null;
 
-      diff.addTransitionState('detached', function(el) { result = el; });
-      diff.innerHTML(this.fixture, '<div><p></p></div>');
+      diff.addTransitionState('detached', el => { result = el; });
 
-      var p = this.fixture.querySelector('p');
+      diff.innerHTML(this.fixture, `<div>
+        <p id="1"></p>
+        <p id="2"></p>
+        <p id="3"></p>
+      </div>`);
 
-      diff.innerHTML(this.fixture, '<div></div>');
+      var p = this.fixture.querySelector('[id="3"]');
 
+      diff.innerHTML(this.fixture, `<div>
+        <p id="1"></p>
+        <p id="3"></p>
+      </div>`);
+
+      assert.equal(result.id, '3');
+      assert.equal(result, p);
+      assert.equal(result.parentNode, null);
+    });
+
+    it('will provide the correct element to detached when using key', function() {
+      var result = null;
+
+      diff.addTransitionState('detached', el => { result = el; });
+
+      diff.innerHTML(this.fixture, `<div>
+        <p id="1" key="1"></p>
+        <p id="2" key="2"></p>
+        <p id="3" key="3"></p>
+      </div>`);
+
+      var p = this.fixture.querySelector('[id="2"]');
+
+      diff.innerHTML(this.fixture, `<div>
+        <p id="1" key="1"></p>
+        <p id="3" key="3"></p>
+      </div>`);
+
+      assert.equal(result.id, '2');
       assert.equal(result, p);
       assert.equal(result.parentNode, null);
     });

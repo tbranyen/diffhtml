@@ -2,7 +2,7 @@ import * as parser from '../../../lib/util/parser';
 
 describe('Unit: Parser', function() {
   it('supports empty attributes', function() {
-    var node = parser.parseHTML('<option value="test" selected></option>');
+    var node = parser.parse('<option value="test" selected></option>').childNodes[0];
 
     assert.equal(node.attributes[0].name, 'value');
     assert.equal(node.attributes[0].value, 'test');
@@ -10,25 +10,25 @@ describe('Unit: Parser', function() {
   });
 
   it('supports quote-less values', function() {
-    var node = parser.parseHTML('<option value=test></option>');
+    var node = parser.parse('<option value=test></option>').childNodes[0];
 
     assert.equal(node.attributes[0].name, 'value');
     assert.equal(node.attributes[0].value, 'test');
   });
 
   it('does not parse whitespace from inside <html></html> tags', function() {
-    var node = parser.parseHTML('<html>\n</html>');
+    var node = parser.parse('<html>\n</html>').childNodes[0];
 
     assert.equal(node.childNodes.length, 2);
   });
 
   it('will move elements found between the ends of body and html', function() {
-    var node = parser.parseHTML(`
+    var node = parser.parse(`
       <html>
         <body></body>
         <script></script>
       </html>
-    `);
+    `).childNodes[0];
 
     assert.equal(node.childNodes.length, 2);
     assert.equal(node.childNodes[0].nodeName, 'head');
@@ -39,7 +39,7 @@ describe('Unit: Parser', function() {
   });
 
   it('will move elements found before or after head and before body', function() {
-    var node = parser.parseHTML(`
+    var node = parser.parse(`
       <html>
         <script>test</script>
         <head></head>
@@ -47,7 +47,7 @@ describe('Unit: Parser', function() {
         <body></body>
         <p></p>
       </html>
-    `);
+    `).childNodes[0];
 
     assert.equal(node.childNodes.length, 2);
     assert.equal(node.childNodes[0].nodeName, 'head');
@@ -61,7 +61,7 @@ describe('Unit: Parser', function() {
   });
 
   it('cannot support brackets in attribute values', function() {
-    var node = parser.parseHTML(`<a data-text="<li class='test'></li>"></a>`);
+    var node = parser.parse(`<a data-text="<li class='test'></li>"></a>`).childNodes[0];
 
     assert.equal(node.nodeName, 'a');
     assert.equal(node.attributes[0].name, 'data-text');
