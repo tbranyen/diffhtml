@@ -1,6 +1,6 @@
 {
   "name": "diffhtml",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Easily swap out markup with an intelligent virtual dom",
   "main": "dist/diffhtml",
   "author": "Tim Branyen (@tbranyen)",

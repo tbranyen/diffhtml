@@ -1,7 +1,7 @@
 diffHTML
 --------
 
-Latest stable: 0.7.0
+Latest stable: 0.8.0
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Coverage
