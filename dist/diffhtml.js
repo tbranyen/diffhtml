@@ -990,7 +990,7 @@ function sync(oldTree, newTree, patches) {
                 var count = 1;
 
                 // Always remove whitespace in between the elements.
-                if (emptyTextNode && toRemove.length + 2 <= diff) {
+                if (nextIsTextNode && toRemove.length + 2 <= diff) {
                   count = 2;
                 }
                 // All siblings must contain a key attribute if they exist.
