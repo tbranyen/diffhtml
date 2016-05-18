@@ -1,12 +1,10 @@
-/*import { decodeEntities } from '../../../lib/util/entities';
+import { decodeEntities } from '../../../lib/util/entities';
 
 describe.skip('Unit: DecodeEntities', function() {
-  it.only('can decode an unencoded string', function() {
-    var string = decodeEntities(`
-      <p></p>
-    `);
+  it('can decode an unencoded string', function() {
+    var string = decodeEntities('<p></p>');
 
-    assert.equal(string.trim(), '<p></p>');
+    assert.equal(string, '<p></p>');
   });
 
   it('can decode an HTML5 encoded string', function() {
@@ -14,4 +12,3 @@ describe.skip('Unit: DecodeEntities', function() {
     assert.equal(string, '⪥');
   });
 });
-*/
