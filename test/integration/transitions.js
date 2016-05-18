@@ -233,6 +233,19 @@ describe('Integration: Transitions', function() {
       assert.equal(result.parentNode, null);
     });
 
+    it('will replace instead of remove if no new keys match', function() {
+      diff.innerHTML(this.fixture, `<div>
+        <p id="1"></p>
+        <p id="2"></p>
+      </div>`);
+
+      diff.innerHTML(this.fixture, `<div>
+        <p id="3"></p>
+      </div>`);
+
+      assert.equal(this.fixture.querySelectorAll('p').length, 1);
+    });
+
     it('will provide the correct element to detached when using key', function() {
       var result = null;
 

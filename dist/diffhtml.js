@@ -982,15 +982,21 @@ function sync(oldTree, newTree, patches) {
             // If the original childNodes contain a key attribute, use this to
             // compare over the naive method below.
             shallowClone.forEach(function (oldChildNode, i) {
-              if (keysToRemove[oldChildNode.key]) {
+              if (toRemove.length >= diff) {
+                return;
+              } else if (keysToRemove[oldChildNode.key]) {
                 var nextChild = oldChildNodes[i + 1];
                 var nextIsTextNode = nextChild && nextChild.nodeType === 3;
                 var count = 1;
 
                 // Always remove whitespace in between the elements.
-                if (nextIsTextNode && toRemove.length + 2 <= diff) {
+                if (emptyTextNode && toRemove.length + 2 <= diff) {
                   count = 2;
                 }
+                // All siblings must contain a key attribute if they exist.
+                else if (nextChild && nextChild.nodeType === 1 && !nextChild.key) {
+                    throw new Error('\n              All element siblings must consistently contain key attributes.\n            '.trim());
+                  }
 
                 // Find the index position from the original array.
                 var indexPos = oldChildNodes.indexOf(oldChildNode);
@@ -1002,6 +1008,10 @@ function sync(oldTree, newTree, patches) {
           })();
         }
 
+      // Ensure we don't remove too many elements by accident;
+      toRemove.length = diff;
+
+      // Ensure our internal length check is matched.
       oldChildNodesLength = oldChildNodes.length;
 
       if (childNodesLength === 0) {
@@ -1509,7 +1519,7 @@ function process(element, patches) {
                     var nodeName = el.parentNode.nodeName.toLowerCase();
 
                     if (blockTextElements.indexOf(nodeName) > -1) {
-                      el.parentNode.nodeValue = patch.element.nodeValue;
+                      el.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.element.nodeValue);
                     }
                   }
                 });
