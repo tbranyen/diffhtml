@@ -39,6 +39,15 @@ npm install diffhtml
 The module can be required via Node or browser environments. It is exported as
 a global named `diff` unless loaded as a module.
 
+##### Module format locations
+
+The codebase is authored with JavaScript (ES6 enhancements) and transpiled into
+ES5 (CJS) into the `dist/cjs` folder on every NPM publish. If you want
+to reference the ES5 files, point your entry to `diffhtml/dist/cjs`. If you
+want ES6, point to `diffhtml/lib`. If you want the UMD build you can simply
+point to `diffhtml` as it is the default or reference `dist/diffhtml.js` in
+your browser.
+
 #### Quick start
 
 Before diving into all the API details, the easiest way to understand using
