@@ -1,0 +1,10 @@
+benchmarks
+examples
+test
+karma.conf.js
+.babelrc
+.gitattributes
+.gitignore
+.jshintrc
+.npmignore
+.travis.yml
