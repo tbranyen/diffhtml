@@ -1,0 +1,29 @@
+{
+  "name": "transform-tagged-diffhtml",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "browserify -s transform -g [ babelify --presets [ es2015 ] ]  src/index.js -o dist/index.js",
+    "watch": "watchify -s transform -g [ babelify --presets [ es2015 ] ] src/index.js -o dist/index.js -v",
+    "build-fixtures": "babel --ignore node_modules test/fixtures.js -o test/.__fixtures__.js",
+    "test": "npm run build-fixtures && mocha",
+    "watch-tests": "npm run build-fixtures && mocha -w"
+  },
+  "author": "Tim Branyen (@tbranyen)",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-plugin-transform-runtime": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babelify": "^7.3.0",
+    "babylon": "^6.8.0",
+    "browserify": "^13.0.1",
+    "mocha": "^2.5.1",
+    "stringdom": "^0.2.0",
+    "watchify": "^3.7.0"
+  },
+  "dependencies": {
+    "diffhtml": "^0.8.4"
+  }
+}
