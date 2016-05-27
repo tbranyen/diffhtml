@@ -1,17 +1,19 @@
-diffHTML
---------
+diffHTML: A JavaScript View Layer
+---------------------------------
 
-Latest stable: 0.8.4
+Latest stable version: 0.8.4
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Coverage
 Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master) 
 [![Join the chat at https://gitter.im/tbranyen/diffhtml](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/tbranyen/diffhtml)
 
-Inspired by React and motivated by the Web, this is a low-level tool which aims
-to help web developers write components for the web. By focusing on the markup
-representing how your application state should look, diffHTML will figure out
-how to modify the page with a minimal amount of operations.
+Inspired by React and motivated by the Web, this is a lowish-level tool which
+aims to help web developers write components for the web. By focusing on the
+markup representing how your application state should look, diffHTML will
+figure out how to modify the page with a minimal amount of operations. This
+tool is designed and optimized around HTML and standards features within
+JavaScript.
 
 It works by parsing your HTML markup into a lightweight JSON-serializable
 Virtual DOM heirarchy. I refer to these as Virtual Trees or *VTree*. These
@@ -22,15 +24,20 @@ this tree and the DOM.
 
 #### Features
 
-- Intelligent virtual DOM diffing and patching of HTML text and elements.
-- Transitions API to hook into element and attribute state changes. 
-- Tagged template string helper to build a VTree with dynamic content. 
-- Object pooling to avoid GC thrashing and expensive uuid generation.
+- Helps you build components using HTML and JavaScript
+- Provides a [tagged template
+  function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_template_literals) to inline your markup with dynamic interpolation into your component code
+- Your markup is compiled to a *VTree* and patched efficiently to the DOM
+- Transitions API to hook into element and attribute state changes
+- Object pooling to avoid GC thrashing and expensive childNode/attribute/uuid
+  generation
 
-#### Install
+### Install
 
 The latest built version is available for quick download from the [master
 branch](https://raw.githubusercontent.com/tbranyen/diffhtml/master/dist/diffhtml.js).
+
+Or you can use npm:
 
 ``` sh
 npm install diffhtml
@@ -38,6 +45,15 @@ npm install diffhtml
 
 The module can be required via Node or browser environments. It is exported as
 a global named `diff` unless loaded as a module.
+
+You can import only what you need if you're using ES6 modules with a
+transpiler:
+
+``` javascript
+import { innerHTML } from 'diffhtml';
+
+innerHTML(document.body, 'Hello world!');
+```
 
 ##### Module format locations
 
@@ -48,7 +64,7 @@ want ES6, point to `diffhtml/lib`. If you want the UMD build you can simply
 point to `diffhtml` as it is the default or reference `dist/diffhtml.js` in
 your browser.
 
-#### Quick start
+### Quick start
 
 Before diving into all the API details, the easiest way to understand using
 diffHTML is to replace the usage of `innerHTML`.
@@ -83,7 +99,7 @@ function render(string) {
 }
 ```
 
-#### API
+### API
 
 The exposed API provides the following methods:
 
@@ -96,7 +112,7 @@ The exposed API provides the following methods:
 - [html\`markup\`](#user-content-html)
 - [enableProllyfill()](#user-content-prollyfill)
 
-The follow error types are exposed:
+The follow error types are exposed so you can test exceptions:
 
 - TransitionStateError - Happens when errors occur during transitions.
 - DOMException - Happens whenever a DOM manipulation fails.
