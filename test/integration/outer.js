@@ -65,13 +65,11 @@ describe('Integration: outerHTML', function() {
 
   it('can use a virtual dom element', function() {
     diff.outerHTML(this.fixture.firstChild, {
-      uuid: String(Math.random() * 500),
       nodeName: 'div',
       nodeType: 1,
       nodeValue: '',
       attributes: [{ name: 'id', value: 'test' }],
       childNodes: [{
-        uuid: String(Math.random() * 500),
         nodeName: '#text',
         nodeValue: 'hello world',
         nodeType: 3,
