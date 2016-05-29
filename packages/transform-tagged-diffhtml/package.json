@@ -20,10 +20,10 @@
     "babylon": "^6.8.0",
     "browserify": "^13.0.1",
     "mocha": "^2.5.1",
-    "stringdom": "^0.2.0",
+    "stringdom": "jugglinmike/stringdom#f42ad65227fc4e5a1d120ae432c7ec4eaf6aa11b",
     "watchify": "^3.7.0"
   },
   "dependencies": {
-    "diffhtml": "^0.8.4"
+    "diffhtml": "tbranyen/diffhtml#fbdacb0b5d5aabf8708989111fbb9e81897c6535"
   }
 }
