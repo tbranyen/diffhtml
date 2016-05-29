@@ -24,6 +24,6 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
-    "diffhtml": "tbranyen/diffhtml#fbdacb0b5d5aabf8708989111fbb9e81897c6535"
+    "diffhtml": "tbranyen/diffhtml#8194e68e3c3a2cad4364af2eaed6b8338f3773bc"
   }
 }
