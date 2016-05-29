@@ -12,44 +12,80 @@ This plugin transforms tagged template strings in your projects to
 **Note!* This plugin has been built for use in Babel 6.x environments, and will
 not work with Babel 5.x ( *deprecated*) or older versions.**
 
-## How to install
+### How to install
 
-```js
-npm i --save-dev babel-plugin-diffhtml
-
+``` javascript
+npm i --save-dev transform-tagged-diffhtml
 ```
 
-## How to use
+### How to use
 
 Add the plugin to your `package.json` and update the plugin section in your
 `.babelrc` file. Or if your Babel settings are located inside the
 `package.json` - update the plugin section there.
 
+You will then need to tag your diffHTML templates with the `html` function,
+examples below.
+
 Example on a `.babelrc` file that will work with diffHTML:
 
 
-```js
+``` javascript
 {   
-  "plugins": ["babel-plugin-diffhtml"]
+  "plugins": ["transform-tagged-diffhtml"]
 }
 ```
 
-## Examples    
+Write a View `view.js`:
 
 ``` javascript
-// Render a simple div
-diff.innerHTML(document.body, html`<div></div>`); 
-
-// Render a div with text
-diff.innerHTML(document.body, html`<div>Hello world</div>`);
-
 // Render a div with dynamic children and onclick
-function render(time) {
+function renderComponent(time) {
   diff.innerHTML(document.body, html`
-    <button onclick=${e => render(new Date())}>Get time</button>
+    <button onclick=${e => renderComponent(new Date())}>Get time</button>
     <output>${time}</output>
   `);
 }
 
-render(new Date());
+renderComponent(new Date());
+```
+
+Then compile it:
+
+``` sh
+babel view.js -o view.es5.js
+```
+
+
+### Specifying options
+
+- **tagName** - The tagged template function name default is `html`.
+- **createElement** - The create element function default is `diff.createElement`
+- **createAttribute** - The create attribute function default is `diff.createAttribute`
+
+
+Specifying the options in your `.babelrc`:
+
+``` javascript
+{
+  plugins: [
+    ["transform-tagged-diffhtml", {
+      "tagName": "diff.html",
+      "createElement": "createElement",
+      "createAttribute": "createAttribute"
+    }]
+  ]
+}
+```
+
+Using customized source:
+
+``` javascript
+import * as diff from 'diffhtml';
+
+const { createElement, createAttribute } = diff;
+
+diff.html`
+  <div></div>
+`;
 ```

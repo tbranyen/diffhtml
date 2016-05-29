@@ -30,9 +30,56 @@ export default function({ types: t }) {
     }, null);
   };
 
+  const identifierToMemberExpression = (identifier) => {
+    const identifiers = identifier.split('.');
+
+    if (identifiers.length === 0) {
+      return;
+    }
+    else if (identifiers.length === 1) {
+      return identifiers[0];
+    }
+    else {
+      return identifiers.reduce((memo, identifier) => {
+        if (!memo) {
+          memo = t.identifier(identifier);
+        }
+        else {
+          memo = t.memberExpression(memo, t.identifier(identifier));
+        }
+
+        return memo;
+      }, null);
+    }
+  };
+
+  const memberExpressionToString = (memberExpression) => {
+    var retVal = '';
+
+    retVal += memberExpression.object.name + '.';
+
+    if (memberExpression.property.type === 'Identifier') {
+      retVal += memberExpression.property.name;
+    }
+    else if (memberExpression.property.type === 'MemberExpression') {
+      retVal += memberExpressionToString(memberExpression.property.type);
+    }
+
+    return retVal;
+  };
+
   const visitor = {
-    TaggedTemplateExpression(path) {
-      if (path.node.tag.name !== 'html') { return; }
+    TaggedTemplateExpression(path, plugin) {
+      let tagName = '';
+
+      if (path.node.tag.type === 'Identifier') {
+        tagName = path.node.tag.name
+      }
+      else if (path.node.tag.type === 'MemberExpression') {
+        tagName = memberExpressionToString(path.node.tag);
+      }
+
+      if (tagName !== (plugin.opts.tagName || 'html')) { return; }
 
       const supplemental = {
         props: [],
@@ -102,13 +149,13 @@ export default function({ types: t }) {
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');
 
-      const createElement = t.memberExpression(
-        t.identifier('diff'), t.identifier('createElement')
-      );
+      const createElement = plugin.opts.createElement ?
+        identifierToMemberExpression(plugin.opts.createElement) :
+        identifierToMemberExpression('diff.createElement');
 
-      const createAttribute = t.memberExpression(
-        t.identifier('diff'), t.identifier('createAttribute')
-      );
+      const createAttribute = plugin.opts.createAttribute ?
+        identifierToMemberExpression(plugin.opts.createAttribute) :
+        identifierToMemberExpression('diff.createAttribute');
 
       /**
        * Replace the dynamic parts of the AST with the actual quasi
