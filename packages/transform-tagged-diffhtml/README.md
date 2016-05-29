@@ -1,5 +1,9 @@
 # diffHTML Babel Plugin
 
+Latest stable version: 1.0.0
+
+[![Build Status](https://travis-ci.org/tbranyen/transform-tagged-diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/transform-tagged-diffhtml)
+
 > Plugin for babel 6.x to enable tagged template compilation for diffHTML
 
 This plugin transforms tagged template strings in your projects to
