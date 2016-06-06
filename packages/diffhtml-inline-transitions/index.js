@@ -13,6 +13,12 @@ const transitionsMap = new WeakMap();
  * nested children.
  */
 export default function({ addTransitionState, removeTransitionState }) {
+  addTransitionState('attached', (element) => {
+    if (element.attributes.attached) {
+      return element.attached.call(this, element, element);
+    }
+  });
+
   // Set a "global" `attributeChanged` to monitor all elements for transition
   // states being attached.
   addTransitionState('attributeChanged', (element, name, oldVal, newVal) => {

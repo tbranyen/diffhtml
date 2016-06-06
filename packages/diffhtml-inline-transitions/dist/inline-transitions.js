@@ -17,6 +17,12 @@ exports.default = function (_ref) {
   addTransitionState = _ref.addTransitionState;
   var removeTransitionState = _ref.removeTransitionState;
 
+  addTransitionState('attached', function (element) {
+    if (element.attributes.attached) {
+      return element.attached.call(_this, element, element);
+    }
+  });
+
   // Set a "global" `attributeChanged` to monitor all elements for transition
   // states being attached.
   addTransitionState('attributeChanged', function (element, name, oldVal, newVal) {
