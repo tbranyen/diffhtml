@@ -1,0 +1,23 @@
+{
+  "name": "diffhtml-inline-transitions",
+  "version": "1.0.0-rc1",
+  "description": "Monitors inline attributes and assigns transition hooks",
+  "main": "dist/inline-transitions.js",
+  "scripts": {
+    "build": "browserify -t babelify -s inlineTransitions index.js -o dist/inline-transitions.js"
+  },
+  "keywords": [
+    "diffhtml",
+    "transitions",
+    "tagged template"
+  ],
+  "author": "Tim Branyen (@tbranyen)",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-es2015": "^6.9.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.0.1",
+    "derequire": "^2.0.3"
+  }
+}
