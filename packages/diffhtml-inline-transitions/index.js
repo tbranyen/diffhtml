@@ -31,10 +31,12 @@ export default function({ addTransitionState, removeTransitionState }) {
         }
       }));
 
-      addTransitionState(name, transitionsMap[name])
+      addTransitionState(name, internalMap[name])
     }
-    else if (transitionsMap[name]) {
-      removeTransitionState(name, transitionsMap[name])
+    else if (internalMap[name]) {
+      removeTransitionState(name, internalMap[name])
+      delete internalMap[name];
+      transitionsMap.set(element, internalMap);
     }
   })
 }

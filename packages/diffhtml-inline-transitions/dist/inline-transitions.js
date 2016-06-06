@@ -37,9 +37,11 @@ exports.default = function (_ref) {
         }
       })));
 
-      addTransitionState(name, transitionsMap[name]);
-    } else if (transitionsMap[name]) {
-      removeTransitionState(name, transitionsMap[name]);
+      addTransitionState(name, internalMap[name]);
+    } else if (internalMap[name]) {
+      removeTransitionState(name, internalMap[name]);
+      delete internalMap[name];
+      transitionsMap.set(element, internalMap);
     }
   });
 };
