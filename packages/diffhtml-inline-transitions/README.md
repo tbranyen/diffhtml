@@ -9,6 +9,27 @@ Tiny module to support binding/unbinding transition hooks declaratively.
 npm install diffhtml-inline-transitions
 ```
 
+#### Transition hooks
+
+diffHTML allows developers to globally define transitions that can react to
+changes in the DOM and optionally prevent renders until a returned Promise
+completes. This is ideal for animations and monitoring when things happen.
+
+What isn't ideal is defining all these transitions globally. It'd be nicer to
+be able to inline them directly into a tagged template...
+
+This module does just that, and works identical to `addTransitionState`, except
+for one minor difference. It adds the element you defined the transition on as
+the first argument to the transition callback.
+
+For instance with diffHTML, the attached callback would be called with the
+element being added. With this helper, the element you defined the transition
+on would be the first argument, and the second argument would be any element
+that is a descendant or in some cases the same element.
+
+More docs on transitions here:
+https://github.com/tbranyen/diffhtml#user-content-add-a-transition-state-callback
+
 #### Example
 
 ``` javascript
