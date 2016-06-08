@@ -1426,15 +1426,22 @@ function process(element, patches) {
                     var replacePromises = transition.makePromises('replaced', [oldEl], newEl);
 
                     triggerTransition('replaced', replacePromises, function (promises) {
-                      allPromises.push.apply(allPromises, promises);
+                      if (promises && promises.length) {
+                        allPromises.push.apply(allPromises, promises);
+                      }
                     });
 
                     triggerTransition('detached', detachPromises, function (promises) {
-                      allPromises.push.apply(allPromises, promises);
+                      if (promises && promises.length) {
+                        allPromises.push.apply(allPromises, promises);
+                      }
                     });
 
                     triggerTransition('attached', attachPromises, function (promises) {
-                      allPromises.push.apply(allPromises, promises);
+                      if (promises && promises.length) {
+                        allPromises.push.apply(allPromises, promises);
+                      }
+
                       attached(patch.new);
                     });
 
@@ -1700,10 +1707,7 @@ Object.keys(states).forEach(function iterateStates(stateName) {
 /**
  * Builds a reusable trigger mechanism for the element transitions.
  *
- * @param stateName
- * @param nodes
- * @param callback
- * @return
+ * @param allPromises
  */
 function buildTrigger(allPromises) {
   var addPromises = allPromises.push.apply.bind(allPromises.push, allPromises);
@@ -1718,12 +1722,8 @@ function buildTrigger(allPromises) {
       // Add these promises into the global cache.
       addPromises(promises);
 
-      if (!promises.length && callback) {
-        callback(promises);
-      } else {
-        Promise.all(promises).then(callback, function handleRejection(ex) {
-          console.log(ex);
-        });
+      if (callback) {
+        callback(promises.length ? promises : undefined);
       }
     } else if (callback) {
       callback();
@@ -1735,8 +1735,6 @@ function buildTrigger(allPromises) {
  * Make a reusable function for easy transition calling.
  *
  * @param stateName
- * @param elements
- * @return
  */
 function makePromises(stateName) {
   for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
