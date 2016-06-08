@@ -31,13 +31,9 @@ for two minor differences.
 - First, it adds the element you defined the transition on as the first argument
   to the transition callback. This way you can track the relationship between
   where the transition was mounted and any child elements that may trigger it.
+
 - Second, it sets the transition callback context (the `this`) to be the
   current element being affected, which makes it more useful.
-
-For instance with diffHTML, the attached callback would be called with the
-element being added. With this helper, the element you defined the transition
-on would be the first argument, and the second argument would be any element
-that is a descendant or in some cases the same element.
 
 #### API
 
