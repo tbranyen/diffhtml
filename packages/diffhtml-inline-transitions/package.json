@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-inline-transitions",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Monitors inline attributes and assigns transition hooks",
   "main": "dist/inline-transitions.js",
   "scripts": {
