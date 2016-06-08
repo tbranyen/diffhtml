@@ -40,11 +40,13 @@ that is a descendant or in some cases the same element.
 #### API
 
 - Subscribe to attribute changes
-  ``` js
+
+  ```js
   const unsubscribe = inlineTransitions(diff);
   ```
 - Unsubscribe from attribute changes:
-  ``` js
+
+  ```js
   unsubscribe();
   ```
 
