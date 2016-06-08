@@ -39,8 +39,14 @@ that is a descendant or in some cases the same element.
 
 #### API
 
-Subscribe to attribute changes: `const unsubscribe = inlineTransitions(diff);`
-Unsubscribe from attribute changes: `unsubscribe();`
+- Subscribe to attribute changes
+  ``` js
+  const unsubscribe = inlineTransitions(diff);
+  ```
+- Unsubscribe from attribute changes:
+  ``` js
+  unsubscribe();
+  ```
 
 Apply to an element by passing the function to the associated state name:
 
