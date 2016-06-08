@@ -66,4 +66,14 @@ describe('Basics', function() {
       done();
     }, 20);
   });
+
+  it('supports detached transitions on the root element', (done) => {
+    const detached = el => {
+      assert.equal(el.nodeName, 'p')
+      done();
+    };
+
+    innerHTML(this.fixture, html`<div><p detached=${detached}/></div>`);
+    innerHTML(this.fixture, html`<div></div>`);
+  });
 });

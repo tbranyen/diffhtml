@@ -15,12 +15,17 @@ describe('Regressions', function() {
   });
 
   it('does not error when non-Promises are returned', () => {
+    var count = 0;
+
     const attached = el => {
+      count++;
       return undefined;
     };
 
     innerHTML(this.fixture, html`<div attached=${attached}>
       <div></div>
     </div>`);
+
+    assert.equal(count, 2);
   });
 });

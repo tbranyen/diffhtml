@@ -15,6 +15,12 @@ const boundHandlers = [];
  * nested children.
  */
 module.exports = function({ addTransitionState, removeTransitionState }) {
+  const attached = function(element) {
+    if (element.attached) {
+      return element.attached(element, element);
+    }
+  };
+
   // Monitors whenever an element changes an attribute, if the attribute
   // is a valid state name, add this element into the related Set.
   const attributeChanged = function(element, name, oldVal, newVal) {
@@ -33,6 +39,7 @@ module.exports = function({ addTransitionState, removeTransitionState }) {
   // This will unbind any internally bound transition states.
   const unsubscribe = () => {
     // Unbind all the transition states.
+    removeTransitionState('attached', attached);
     removeTransitionState('attributeChanged', attributeChanged);
 
     // Remove all elements from the internal cache.
@@ -55,6 +62,7 @@ module.exports = function({ addTransitionState, removeTransitionState }) {
 
   // Set a "global" `attributeChanged` to monitor all elements for transition
   // states being attached.
+  addTransitionState('attached', attached);
   addTransitionState('attributeChanged', attributeChanged);
 
   // Add a transition for every type.
@@ -69,7 +77,10 @@ module.exports = function({ addTransitionState, removeTransitionState }) {
       // If the child element triggered in the transition is the root element,
       // this is an easy lookup for the handler.
       else if (map.has(child)) {
-        return map.get(child).apply(child, [child].concat(rest));
+        // Attached is handled special by the separate global attached handler.
+        if (name !== 'attached') {
+          return map.get(child).apply(child, [child].concat(rest));
+        }
       }
       // The last resort is looping through all the registered elements to see
       // if the child is contained within. If so, it aggregates all the valid
