@@ -12,8 +12,6 @@ Tiny module to support binding/unbinding transition hooks declaratively.
 npm install diffhtml-inline-transitions
 ```
 
-#### Usage
-
 #### About transition hooks
 
 diffHTML allows developers to globally define transitions that can react to
