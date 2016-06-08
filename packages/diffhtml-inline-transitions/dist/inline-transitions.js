@@ -98,7 +98,7 @@ module.exports = function (_ref) {
               });
 
               var hasPromise = retVal.some(function (ret) {
-                return Boolean(ret.then);
+                return Boolean(ret && ret.then);
               });
 
               // This is the only time the return value matters.

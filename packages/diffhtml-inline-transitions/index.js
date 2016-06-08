@@ -84,7 +84,7 @@ module.exports = function({ addTransitionState, removeTransitionState }) {
           }
         });
 
-        const hasPromise = retVal.some(ret => Boolean(ret.then));
+        const hasPromise = retVal.some(ret => Boolean(ret && ret.then));
 
         // This is the only time the return value matters.
         if (hasPromise) {
