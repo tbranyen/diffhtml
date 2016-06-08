@@ -12,52 +12,58 @@ Tiny module to support binding/unbinding transition hooks declaratively.
 npm install diffhtml-inline-transitions
 ```
 
-#### Transition hooks
+#### Usage
+
+#### About transition hooks
 
 diffHTML allows developers to globally define transitions that can react to
 changes in the DOM and optionally prevent renders until a returned Promise
 completes. This is ideal for animations and monitoring when things happen.
 
+You can read more on them here: https://github.com/tbranyen/diffhtml#user-content-add-a-transition-state-callback
+
 What isn't ideal is defining all these transitions globally. It'd be nicer to
 be able to inline them directly into a tagged template...
 
 This module does just that, and works identical to `addTransitionState`, except
-for one minor difference. It adds the element you defined the transition on as
-the first argument to the transition callback.
+for two minor differences.
+
+- First, it adds the element you defined the transition on as the first argument
+  to the transition callback. This way you can track the relationship between
+  where the transition was mounted and any child elements that may trigger it.
+- Second, it sets the transition callback context (the `this`) to be the
+  current element being affected, which makes it more useful.
 
 For instance with diffHTML, the attached callback would be called with the
 element being added. With this helper, the element you defined the transition
 on would be the first argument, and the second argument would be any element
 that is a descendant or in some cases the same element.
 
-More docs on transitions here:
-https://github.com/tbranyen/diffhtml#user-content-add-a-transition-state-callback
+#### API
 
-#### Example
+Subscribe to attribute changes: `const unsubscribe = inlineTransitions(diff);`
+Unsubscribe from attribute changes: `unsubscribe();`
 
-``` javascript
+Apply to an element by passing the function to the associated state name:
+
+``` js
+import $ from 'jquery';
 import * as diff from 'diffhtml';
 import inlineTransitions from 'diffhtml-inline-transitions';
 
 const { innerHTML, html } = diff;
 
-// Sets up a global attribute handler that will monitor for hooks and
-// auto-assign/remove them. If you don't want to globally import diffhtml, you
-// pass an object with just addTransitionState and removeTransitionState.
+// Enable the monitoring of attributes for changes.
 inlineTransitions(diff);
 
-// Logs out whenever the element or a child triggers the hook.
-function attachedHook(parent, child) {
-  console.log('Parent attached', parent === child ? 'itself' : child);
+// Use jQuery to return a promise and fade in the body and paragraph.
+function fadeIn() {
+  return $(this).fadeIn('slow').promise();
 }
 
-function render() {
-  return html`<div attached=${attachedhook}>
-    <div>I'm new!</div>
-  </div>`;
-}
-
-innerHTML(document.body, render());
+innerHTML(document.body, html`<body attached=${fadeIn}>
+  <p>Watch me fade in slowly!</p>
+</body>`);
 ```
 
 #### License
