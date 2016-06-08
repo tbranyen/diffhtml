@@ -214,6 +214,10 @@ addTransitionState('attached', function(element) {
 });
 ```
 
+If you like these transitions and want to declaratively assign them in tagged
+templates, check out the [diffhtml-inline-transitions
+plugin](https://github.com/tbranyen/diffhtml-inline-transitions).
+
 **Available states**
 
 Format is: `name[callbackArgs]`
