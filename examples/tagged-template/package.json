@@ -1,6 +1,0 @@
-{
-  "name": "tagged-template-basic",
-  "scripts": {
-    "build": "browserify -t [ babelify --presets [ es2015 ] ] basic.js > basic.es5.js"
-  }
-}
