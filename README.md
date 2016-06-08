@@ -358,6 +358,21 @@ diff.outerHTML(fixture, html`
 So this feature allows for inline binding of any DOM event, sending complex
 property data to any element.
 
+Tagged templates also have no problem consuming other tagged templates (even
+from arrays), so you will be able to do:
+
+``` javascript
+const fixture = document.createElement('div');
+
+const listItems = ['diff', 'HTML', '♥'];
+
+diff.outerHtml(fixture, html`
+  <ul>
+    ${listItems.map(item => html`<li>${item.text}</li>`)}
+  </ul>
+`);
+```
+
 #### [Prollyfill](https://twitter.com/slexaxton/status/257543702124306432)
 
 *Click above to learn what prollyfill "means".*
