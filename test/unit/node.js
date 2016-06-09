@@ -1,11 +1,12 @@
 import makeNode from '../../lib/node/make';
 import syncNode from '../../lib/node/sync';
 import { cleanMemory } from '../../lib/util/memory';
-import { registerElement } from '../../lib/index';
+import validateMemory from '../util/validateMemory';
 
 describe('Unit: Node', function() {
   afterEach(function() {
     cleanMemory();
+    validateMemory();
   });
 
   describe('make', function() {

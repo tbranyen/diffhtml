@@ -1,6 +1,13 @@
 import * as parser from '../../../lib/util/parser';
+import { cleanMemory } from '../../../lib/util/memory';
+import validateMemory from '../../util/validateMemory';
 
 describe('Unit: Parser', function() {
+  afterEach(function() {
+    cleanMemory();
+    validateMemory();
+  });
+
   it('supports empty attributes', function() {
     var node = parser.parse('<option value="test" selected></option>').childNodes[0];
 
@@ -68,6 +75,14 @@ describe('Unit: Parser', function() {
     assert.equal(node.attributes[0].value,  '\"<li');
   });
 
+  it('can parse text siblings next to elements', function() {
+    var nodes = parser.parse(`<div></div> Hello world`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'div');
+    assert.equal(nodes[1].nodeName, '#text');
+    assert.equal(nodes[1].nodeValue, 'Hello world');
+  });
+
   it('supports parsing text before element', function() {
     var nodes = parser.parse(`Hello <div></div>`).childNodes;
 
@@ -75,5 +90,13 @@ describe('Unit: Parser', function() {
     assert.equal(nodes[0].nodeName, '#text');
     assert.equal(nodes[0].nodeValue, 'Hello ');
     assert.equal(nodes[1].nodeName, 'div');
+  });
+
+  it('can parse out full token attributes', function() {
+    var token = '__DIFFHTML_BABEL__';
+    var nodes = parser.parse(`<input ${token}>`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'input');
+    assert.deepEqual(nodes[0].attributes, [{ name: token, value: token }]);
   });
 });

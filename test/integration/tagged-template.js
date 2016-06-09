@@ -19,16 +19,12 @@ describe('Integration: Tagged template', function() {
     it('works?', function() {
       var actual = html`<div>hello world</div>`;
       var expected = {
-        uuid: actual.uuid,
         key: '',
         nodeName: 'div',
         nodeType: 1,
         nodeValue: '',
         attributes: [],
         childNodes: [{
-          // We use the real uuid here, because we don't really need to test
-          // if a uuid function works here.
-          uuid: actual.childNodes[0].uuid,
           key: '',
           nodeName: '#text',
           nodeType: 3,
@@ -48,23 +44,18 @@ describe('Integration: Tagged template', function() {
       </ul>`;
 
       var expected = {
-        uuid: actual.uuid,
         key: '',
         nodeName: 'ul',
         nodeType: 1,
         nodeValue: '',
         attributes: [],
         childNodes: [{
-          // We use the real uuid here, because we don't really need to test
-          // if a uuid function works here.
-          uuid: actual.childNodes[0].uuid,
           key: '',
           nodeName: 'li',
           nodeType: 1,
           nodeValue: '',
           attributes: [],
           childNodes: [{
-            uuid: actual.childNodes[0].childNodes[0].uuid,
             key: '',
             nodeName: '#text',
             nodeValue: '1',
@@ -73,16 +64,12 @@ describe('Integration: Tagged template', function() {
             nodeType: 3
           }],
         }, {
-          // We use the real uuid here, because we don't really need to test
-          // if a uuid function works here.
-          uuid: actual.childNodes[1].uuid,
           key: '',
           nodeName: 'li',
           nodeType: 1,
           nodeValue: '',
           attributes: [],
           childNodes: [{
-            uuid: actual.childNodes[1].childNodes[0].uuid,
             key: '',
             nodeName: '#text',
             nodeValue: '2',
@@ -91,16 +78,12 @@ describe('Integration: Tagged template', function() {
             nodeType: 3
           }],
         }, {
-          // We use the real uuid here, because we don't really need to test
-          // if a uuid function works here.
-          uuid: actual.childNodes[2].uuid,
           key: '',
           nodeName: 'li',
           nodeType: 1,
           nodeValue: '',
           attributes: [],
           childNodes: [{
-            uuid: actual.childNodes[2].childNodes[0].uuid,
             key: '',
             nodeName: '#text',
             nodeValue: '3',
@@ -119,7 +102,6 @@ describe('Integration: Tagged template', function() {
         var actual = html`<div><p>${text}</p></div>`;
 
         var expected = {
-          uuid: actual.uuid,
           key: '',
           nodeName: 'div',
           nodeType: 1,
@@ -127,7 +109,6 @@ describe('Integration: Tagged template', function() {
           attributes: [],
 
           childNodes: [{
-            uuid: actual.childNodes[0].uuid,
             key: '',
             nodeName: 'p',
             nodeType: 1,
@@ -135,7 +116,6 @@ describe('Integration: Tagged template', function() {
             attributes: [],
 
             childNodes: [{
-              uuid: actual.childNodes[0].childNodes[0].uuid,
               key: '',
               nodeName: '#text',
               nodeValue: text,
