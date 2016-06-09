@@ -1,8 +1,8 @@
 import { decodeEntities } from '../../../lib/util/entities';
 
-describe.skip('Unit: DecodeEntities', function() {
+describe('Unit: DecodeEntities', function() {
   it('can decode an unencoded string', function() {
-    var string = decodeEntities('<p></p>');
+    var string = decodeEntities('&lt;p&gt;&lt;/p&gt;');
 
     assert.equal(string, '<p></p>');
   });
