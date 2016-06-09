@@ -55,6 +55,23 @@ import { innerHTML } from 'diffhtml';
 innerHTML(document.body, 'Hello world!');
 ```
 
+### Polyfills
+
+diffHTML is authored using many modern browser features, such as
+[Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set),
+which are not available in [all
+browsers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#Browser_compatibility).
+
+If you wish to use diffHTML in older browsers, make sure you have polyfills for
+at least:
+
+- [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+- [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set)
+- [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
+
+You can find polyfills for these globals in the core-js project:
+https://github.com/zloirock/core-js
+
 ##### Module format locations
 
 The codebase is authored with JavaScript (ES6 enhancements) and transpiled into
