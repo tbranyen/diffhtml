@@ -1,6 +1,13 @@
 import * as parser from '../../../lib/util/parser';
+import { cleanMemory } from '../../../lib/util/memory';
+import validateMemory from '../../util/validateMemory';
 
 describe('Unit: Parser', function() {
+  afterEach(function() {
+    cleanMemory();
+    validateMemory();
+  });
+
   it('supports empty attributes', function() {
     var node = parser.parse('<option value="test" selected></option>').childNodes[0];
 

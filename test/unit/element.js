@@ -1,14 +1,17 @@
 import makeElement from '../../lib/element/make';
 import makeNode from '../../lib/node/make';
+import { cleanMemory } from '../../lib/util/memory';
+import validateMemory from '../util/validateMemory';
 
 describe('Unit: Element', function() {
   afterEach(function() {
-    makeNode.nodes.clear();
+    cleanMemory();
+    validateMemory();
   });
 
   describe('make', function() {
     it('creates an element from descriptor on first access', function() {
-      var retVal = makeElement({
+      this.fixture = makeElement({
         nodeName: 'div',
         childNodes: [{
           nodeName: '#text',
@@ -16,8 +19,8 @@ describe('Unit: Element', function() {
         }]
       });
 
-      assert.ok(retVal instanceof Element);
-      assert.equal(retVal.textContent, 'test');
+      assert.ok(this.fixture instanceof Element);
+      assert.equal(this.fixture.textContent, 'test');
     });
 
     it('can get an existing element descriptor', function() {

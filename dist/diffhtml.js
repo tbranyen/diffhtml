@@ -558,8 +558,6 @@ function make(node) {
   // diff and patch.
   var entry = _pools.pools.elementObject.get();
 
-  _pools.pools.elementObject.protect(entry);
-
   // Associate this newly allocated descriptor with this Node.
   make.nodes.set(entry, node);
 
@@ -724,13 +722,19 @@ function patchNode(element, newHTML, options) {
     var childNodes = (0, _parser.parse)(newHTML).childNodes;
     newTree = isInner ? childNodes : childNodes[0];
   } else if (newHTML.ownerDocument) {
-    var vTree = (0, _make2.default)(newHTML);
-    newTree = vTree.nodeType === 11 ? vTree.childNodes : vTree;
+    newTree = (0, _make2.default)(newHTML);
+
+    if (newTree.nodeType === 11) {
+      _pools.pools.elementObject.unprotect(newTree);
+      newTree = newTree.childNodes;
+    }
   } else {
     newTree = newHTML;
   }
 
   if (options.inner) {
+    _pools.pools.elementObject.unprotect(newTree);
+
     newTree = {
       childNodes: [].concat(newTree),
       attributes: elementMeta.oldTree.attributes,
@@ -883,7 +887,6 @@ function sync(oldTree, newTree, patches) {
   var childNodesLength = childNodes ? childNodes.length : 0;
   var nodeName = newTree.nodeName;
   var newIsTextNode = nodeName === '#text';
-  var oldIsFragment = oldTree.nodeName === '#document-fragment';
   var newIsFragment = newTree.nodeName === '#document-fragment';
   var skipAttributeCompare = false;
 
@@ -891,7 +894,7 @@ function sync(oldTree, newTree, patches) {
   oldTree.key = newTree.key;
 
   // Fragments should not compare attributes.
-  if (oldIsFragment || newIsFragment) {
+  if (newIsFragment) {
     skipAttributeCompare = true;
   }
   // If the element we're replacing is totally different from the previous
@@ -909,6 +912,9 @@ function sync(oldTree, newTree, patches) {
     else if (oldTree === newTree) {
         return patches;
       }
+
+  // Clean up the newTree since we're not using it.
+  _pools.pools.elementObject.unprotect(newTree);
 
   var areTextNodes = oldIsTextNode && newIsTextNode;
 
@@ -1479,7 +1485,7 @@ function process(element, patches) {
                     });
 
                     triggerTransition('attached', attachPromises, function (promises) {
-                      if (promises && promises.length) {
+                      if (promises && promises.filter(Boolean).length) {
                         allPromises.push.apply(allPromises, promises);
                       }
 
@@ -1568,18 +1574,26 @@ function process(element, patches) {
             else if (patch.__do__ === sync.CHANGE_TEXT) {
                 var textChangePromises = transition.makePromises('textChanged', [el], el.nodeValue, patch.value);
 
-                triggerTransition('textChanged', textChangePromises);
+                triggerTransition('textChanged', textChangePromises, function (promises) {
+                  var callback = function callback() {
+                    patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
+                    el.nodeValue = patch.element.nodeValue;
 
-                patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
-                el.nodeValue = patch.element.nodeValue;
+                    if (el.parentNode) {
+                      var nodeName = el.parentNode.nodeName.toLowerCase();
 
-                if (el.parentNode) {
-                  var nodeName = el.parentNode.nodeName.toLowerCase();
+                      if (blockTextElements.indexOf(nodeName) > -1) {
+                        el.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.element.nodeValue);
+                      }
+                    }
+                  };
 
-                  if (blockTextElements.indexOf(nodeName) > -1) {
-                    el.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.element.nodeValue);
+                  if (promises && promises.length) {
+                    Promise.all(promises).then(callback);
+                  } else {
+                    callback();
                   }
-                }
+                });
               }
   };
 
@@ -2529,7 +2543,9 @@ exports.createAttribute = createAttribute;
 
 var _pools = _dereq_('./pools');
 
-var _parser = _dereq_('./parser');
+var _escape = _dereq_('./escape');
+
+var _escape2 = _interopRequireDefault(_escape);
 
 var _make = _dereq_('../node/make');
 
@@ -2548,12 +2564,7 @@ function normalizeChildNodes(childNodes) {
 
   [].concat(childNodes).forEach(function (childNode) {
     if ((typeof childNode === 'undefined' ? 'undefined' : _typeof(childNode)) !== 'object') {
-      if (childNode.indexOf && childNode.indexOf('<') > -1) {
-        var nodes = (0, _parser.parse)(childNode).childNodes;
-        newChildNodes.push(nodes.length === 1 ? nodes[0] : nodes);
-      } else {
-        newChildNodes.push(createElement('#text', null, childNode));
-      }
+      newChildNodes.push(createElement('#text', null, String(childNode)));
     } else if ('length' in childNode) {
       for (var i = 0; i < childNode.length; i++) {
         var newChild = childNode[i];
@@ -2606,7 +2617,7 @@ function createElement(nodeName, attributes, childNodes) {
     var value = Array.isArray(childNodes) ? childNodes.join('') : childNodes;
 
     entry.nodeType = 3;
-    entry.nodeValue = value;
+    entry.nodeValue = (0, _escape2.default)(String(value));
     entry.attributes.length = 0;
     entry.childNodes.length = 0;
   }
@@ -2630,5 +2641,5 @@ function createAttribute(name, value) {
   return entry;
 }
 
-},{"../node/make":5,"./parser":16,"./pools":17}]},{},[4])(4)
+},{"../node/make":5,"./escape":14,"./pools":17}]},{},[4])(4)
 });

@@ -16,6 +16,12 @@ module.exports = function(config) {
       { pattern: 'test/integration/**/*.js', watched: false }
     ],
 
+    client: {
+      mocha: {
+        bail: true
+      }
+    },
+
     preprocessors: {
       'lib/**/*.js': ['browserify'],
       'test/unit/**/*.js': ['browserify'],
