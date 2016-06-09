@@ -55,7 +55,7 @@ import { innerHTML } from 'diffhtml';
 innerHTML(document.body, 'Hello world!');
 ```
 
-### Polyfills
+##### Polyfills
 
 diffHTML is authored using many modern browser features, such as
 [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set),
