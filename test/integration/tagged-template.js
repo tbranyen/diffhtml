@@ -192,4 +192,14 @@ describe('Integration: Tagged template', function() {
       assert.ok(this.fixture.querySelector('footer'));
     });
   });
+
+  it('can support multiple interpolated values', function() {
+    diff.innerHTML(this.fixture, html`${html('foo')}${html('bar<baz></baz>')}`);
+    assert.equal(this.fixture.innerHTML, 'foobar<baz></baz>');
+  });
+
+  it('escapes incoming string values', function() {
+    diff.innerHTML(this.fixture, html`${'<baz>'}`);
+    assert.equal(this.fixture.innerHTML, '&lt;baz&gt;');
+  });
 });

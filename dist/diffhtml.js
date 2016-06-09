@@ -206,6 +206,18 @@ var _parser = _dereq_('./util/parser');
 var isPropEx = /(=|'|")/;
 
 /**
+ * Tiny HTML escaping function.
+ *
+ * @param str unescaped
+ * @return {String} escaped
+ */
+function encode(str) {
+  return str.replace(/["&'<>`]/g, function (match) {
+    return '&#' + match.charCodeAt(0) + ';';
+  });
+}
+
+/**
  * Parses a tagged template literal into a diffHTML Virtual DOM representation.
  *
  * @param strings
@@ -216,6 +228,11 @@ var isPropEx = /(=|'|")/;
 function html(strings) {
   for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     values[_key - 1] = arguments[_key];
+  }
+
+  // Automatically coerce a string literal to array.
+  if (typeof strings === 'string') {
+    strings = [strings];
   }
 
   // Do not attempt to parse empty strings.
@@ -244,6 +261,10 @@ function html(strings) {
       var lastSegment = string.split(' ').pop();
       var lastCharacter = lastSegment.trim().slice(-1);
       var isProp = Boolean(lastCharacter.match(isPropEx));
+
+      if (typeof value === 'string') {
+        value = encode(value);
+      }
 
       if (isProp) {
         supplemental.props.push(value);
@@ -1480,37 +1501,45 @@ function process(element, patches) {
               var attrChangePromises = transition.makePromises('attributeChanged', [el], patch.name, el.getAttribute(patch.name), patch.value);
 
               triggerTransition('attributeChanged', attrChangePromises, function (promises) {
-                // Remove.
-                if (patch.value === undefined) {
-                  el.removeAttribute(patch.name);
+                var callback = function callback() {
+                  // Remove.
+                  if (patch.value === undefined) {
+                    el.removeAttribute(patch.name);
 
-                  if (patch.name in el) {
-                    el[patch.name] = undefined;
+                    if (patch.name in el) {
+                      el[patch.name] = undefined;
+                    }
                   }
+                  // Change attributes.
+                  else {
+                      var isObject = _typeof(patch.value) === 'object';
+                      var isFunction = typeof patch.value === 'function';
+
+                      // If not a dynamic type, set as an attribute, since it's a valid
+                      // attribute value.
+                      if (!isObject && !isFunction) {
+                        el.setAttribute(patch.name, patch.value);
+                      } else if (typeof patch.value !== 'string') {
+                        // Necessary to track the attribute/prop existence.
+                        el.setAttribute(patch.name, '');
+
+                        // Since this is a dynamic value it gets set as a property.
+                        el[patch.name] = patch.value;
+                      }
+
+                      // Support live updating of the value attribute.
+                      // Support live updating of the value attribute.
+                      if (patch.name === 'value' || patch.name === 'checked') {
+                        el[patch.name] = patch.value;
+                      }
+                    }
+                };
+
+                if (promises && promises.length) {
+                  Promise.all(promises).then(callback, function unhandledException() {});
+                } else {
+                  callback();
                 }
-                // Change attributes.
-                else {
-                    var isObject = _typeof(patch.value) === 'object';
-                    var isFunction = typeof patch.value === 'function';
-
-                    // If not a dynamic type, set as an attribute, since it's a valid
-                    // attribute value.
-                    if (!isObject && !isFunction) {
-                      el.setAttribute(patch.name, patch.value);
-                    } else if (typeof patch.value !== 'string') {
-                      // Necessary to track the attribute/prop existence.
-                      el.setAttribute(patch.name, '');
-
-                      // Since this is a dynamic value it gets set as a property.
-                      el[patch.name] = patch.value;
-                    }
-
-                    // Support live updating of the value attribute.
-                    // Support live updating of the value attribute.
-                    if (patch.name === 'value' || patch.name === 'checked') {
-                      el[patch.name] = patch.value;
-                    }
-                  }
               });
             }
 
@@ -1519,15 +1548,23 @@ function process(element, patches) {
                 var textChangePromises = transition.makePromises('textChanged', [el], el.nodeValue, patch.value);
 
                 triggerTransition('textChanged', textChangePromises, function (promises) {
-                  patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
-                  el.nodeValue = patch.element.nodeValue;
+                  var callback = function callback() {
+                    patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
+                    el.nodeValue = patch.element.nodeValue;
 
-                  if (el.parentNode) {
-                    var nodeName = el.parentNode.nodeName.toLowerCase();
+                    if (el.parentNode) {
+                      var nodeName = el.parentNode.nodeName.toLowerCase();
 
-                    if (blockTextElements.indexOf(nodeName) > -1) {
-                      el.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.element.nodeValue);
+                      if (blockTextElements.indexOf(nodeName) > -1) {
+                        el.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.element.nodeValue);
+                      }
                     }
+                  };
+
+                  if (promises && promises.length) {
+                    Promise.all(promises).then(callback, function unhandledException() {});
+                  } else {
+                    callback();
                   }
                 });
               }
@@ -1893,6 +1930,8 @@ var kSelfClosingElements = {
   hr: true
 };
 
+var TOKEN = '__DIFFHTML__';
+
 var kElementsClosedByOpening = {
   li: {
     li: true
@@ -1958,6 +1997,56 @@ var escapeMap = {
 };
 
 /**
+ * Interpolate dynamic supplemental values from the tagged template into the
+ * tree.
+ *
+ * @param currentParent
+ * @param string
+ * @param supplemental
+ */
+function interpolateDynamicBits(currentParent, string, supplemental) {
+  if (string && string.indexOf(TOKEN) > -1) {
+    (function () {
+      var toAdd = [];
+
+      // Break up the incoming string into dynamic parts that are then pushed
+      // into a new set of child nodes.
+      string.split(TOKEN).forEach(function (value, index) {
+        if (index === 0) {
+          // We trim here to allow for newlines before and after markup starts.
+          if (value && value.trim()) {
+            toAdd.push(TextNode(value));
+          }
+
+          // The first item does not mean there was dynamic content.
+          return;
+        }
+
+        // If we are in the second iteration, this
+        var dynamicBit = supplemental.children.shift();
+
+        if (typeof dynamicBit === 'string') {
+          toAdd.push(TextNode(dynamicBit));
+        } else if (Array.isArray(dynamicBit)) {
+          toAdd.push.apply(toAdd, dynamicBit);
+        } else {
+          toAdd.push(dynamicBit);
+        }
+
+        // This is a useful Text Node.
+        if (value && value.trim()) {
+          toAdd.push(TextNode(value));
+        }
+      });
+
+      currentParent.childNodes.push.apply(currentParent.childNodes, toAdd);
+    })();
+  } else if (string && string.length) {
+    currentParent.childNodes.push(TextNode(string));
+  }
+}
+
+/**
  * TextNode to contain a text element in DOM tree.
  * @param {string} value [description]
  */
@@ -2002,7 +2091,7 @@ function HTMLElement(name, keyAttrs, rawAttrs, supplemental) {
       attr.name = match[1];
       attr.value = match[6] || match[5] || match[4] || match[1];
 
-      if (attr.value === '__DIFFHTML__') {
+      if (attr.value === TOKEN) {
         attr.value = supplemental.props.shift();
       }
 
@@ -2040,7 +2129,7 @@ function parse(data, supplemental) {
   // If there are no HTML elements, treat the passed in data as a single
   // text node.
   if (data.indexOf('<') === -1 && data) {
-    currentParent.childNodes.push(TextNode(data));
+    interpolateDynamicBits(currentParent, data, supplemental);
     return root;
   }
 
@@ -2050,14 +2139,17 @@ function parse(data, supplemental) {
         // if has content
         text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
 
-        if (text && text.trim && text.trim() === '__DIFFHTML__') {
-          var value = supplemental.children.shift();
-          var childrenToAdd = [].concat(value);
+        interpolateDynamicBits(currentParent, text, supplemental);
+      }
+    }
 
-          currentParent.childNodes.push.apply(currentParent.childNodes, childrenToAdd);
-        } else {
-          currentParent.childNodes.push(TextNode(text));
-        }
+    var matchOffset = kMarkupPattern.lastIndex - match[0].length;
+
+    if (lastTextPos === -1 && matchOffset > 0) {
+      var string = data.slice(0, matchOffset);
+
+      if (string && string.trim()) {
+        root.childNodes.push(TextNode(string));
       }
     }
 

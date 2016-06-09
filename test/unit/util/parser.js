@@ -67,4 +67,13 @@ describe('Unit: Parser', function() {
     assert.equal(node.attributes[0].name, 'data-text');
     assert.equal(node.attributes[0].value,  '\"<li');
   });
+
+  it('supports parsing text before element', function() {
+    var nodes = parser.parse(`Hello <div></div>`).childNodes;
+
+    assert.equal(nodes.length, 2);
+    assert.equal(nodes[0].nodeName, '#text');
+    assert.equal(nodes[0].nodeValue, 'Hello ');
+    assert.equal(nodes[1].nodeName, 'div');
+  });
 });
