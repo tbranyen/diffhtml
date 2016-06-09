@@ -171,6 +171,12 @@ exports.html = html;
 
 var _parser = _dereq_('./util/parser');
 
+var _escape = _dereq_('./util/escape');
+
+var _escape2 = _interopRequireDefault(_escape);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var isPropEx = /(=|'|")/;
 
 /**
@@ -184,6 +190,11 @@ var isPropEx = /(=|'|")/;
 function html(strings) {
   for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     values[_key - 1] = arguments[_key];
+  }
+
+  // Automatically coerce a string literal to array.
+  if (typeof strings === 'string') {
+    strings = [strings];
   }
 
   // Do not attempt to parse empty strings.
@@ -213,6 +224,10 @@ function html(strings) {
       var lastCharacter = lastSegment.trim().slice(-1);
       var isProp = Boolean(lastCharacter.match(isPropEx));
 
+      if (typeof value === 'string') {
+        value = (0, _escape2.default)(value);
+      }
+
       if (isProp) {
         supplemental.props.push(value);
         retVal.push('__DIFFHTML__');
@@ -229,7 +244,7 @@ function html(strings) {
   return childNodes.length > 1 ? childNodes : childNodes[0];
 }
 
-},{"./util/parser":15}],4:[function(_dereq_,module,exports){
+},{"./util/escape":14,"./util/parser":16}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -510,7 +525,7 @@ function enableProllyfill() {
   });
 }
 
-},{"./errors":2,"./html":3,"./node/make":5,"./node/patch":6,"./node/release":7,"./node/tree":9,"./transitions":12,"./util/transform":18}],5:[function(_dereq_,module,exports){
+},{"./errors":2,"./html":3,"./node/make":5,"./node/patch":6,"./node/release":7,"./node/tree":9,"./transitions":12,"./util/transform":19}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -601,7 +616,7 @@ function make(node) {
   return entry;
 }
 
-},{"../util/pools":16}],6:[function(_dereq_,module,exports){
+},{"../util/pools":17}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -742,7 +757,7 @@ function patchNode(element, newHTML, options) {
   }
 }
 
-},{"../patches/process":10,"../util/memory":14,"../util/parser":15,"../util/pools":16,"../util/render":17,"./make":5,"./sync":8,"./tree":9}],7:[function(_dereq_,module,exports){
+},{"../patches/process":10,"../util/memory":15,"../util/parser":16,"../util/pools":17,"../util/render":18,"./make":5,"./sync":8,"./tree":9}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -780,7 +795,7 @@ function releaseNode(element) {
   (0, _memory.cleanMemory)();
 }
 
-},{"../util/memory":14,"../util/pools":16,"./tree":9}],8:[function(_dereq_,module,exports){
+},{"../util/memory":15,"../util/pools":17,"./tree":9}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1151,7 +1166,7 @@ function sync(oldTree, newTree, patches) {
   return patches;
 }
 
-},{"../util/pools":16}],9:[function(_dereq_,module,exports){
+},{"../util/pools":17}],9:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1579,7 +1594,7 @@ function process(element, patches) {
   return promises.filter(Boolean);
 }
 
-},{"../element/make":1,"../node/sync":8,"../node/tree":9,"../transitions":12,"../util/entities":13,"../util/memory":14,"../util/pools":16}],11:[function(_dereq_,module,exports){
+},{"../element/make":1,"../node/sync":8,"../node/tree":9,"../transitions":12,"../util/entities":13,"../util/memory":15,"../util/pools":17}],11:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1812,6 +1827,25 @@ function decodeEntities(string) {
 }
 
 },{}],14:[function(_dereq_,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = escape;
+/**
+ * Tiny HTML escaping function.
+ *
+ * @param str unescaped
+ * @return {String} escaped
+ */
+function escape(str) {
+  return str.replace(/["&'<>`]/g, function (match) {
+    return "&#" + match.charCodeAt(0) + ";";
+  });
+}
+
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1908,7 +1942,7 @@ function cleanMemory() {
   attributeCache.allocated.clear();
 }
 
-},{"../node/make":5,"../util/pools":16}],15:[function(_dereq_,module,exports){
+},{"../node/make":5,"../util/pools":17}],16:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1917,6 +1951,16 @@ Object.defineProperty(exports, "__esModule", {
 exports.parse = parse;
 
 var _pools = _dereq_('./pools');
+
+var _make = _dereq_('../node/make');
+
+var _make2 = _interopRequireDefault(_make);
+
+var _escape = _dereq_('./escape');
+
+var _escape2 = _interopRequireDefault(_escape);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var slice = Array.prototype.slice; // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
@@ -1936,6 +1980,8 @@ var kSelfClosingElements = {
   br: true,
   hr: true
 };
+
+var TOKEN = '__DIFFHTML__';
 
 var kElementsClosedByOpening = {
   li: {
@@ -1992,14 +2038,57 @@ var kBlockTextElements = {
   template: true
 };
 
-var escapeMap = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#x27;',
-  '`': '&#x60;'
-};
+/**
+ * Interpolate dynamic supplemental values from the tagged template into the
+ * tree.
+ *
+ * @param currentParent
+ * @param string
+ * @param supplemental
+ */
+function interpolateDynamicBits(currentParent, string, supplemental) {
+  if (string && string.indexOf(TOKEN) > -1) {
+    (function () {
+      var toAdd = [];
+
+      // Break up the incoming string into dynamic parts that are then pushed
+      // into a new set of child nodes.
+      string.split(TOKEN).forEach(function (value, index) {
+        if (index === 0) {
+          // We trim here to allow for newlines before and after markup starts.
+          if (value && value.trim()) {
+            toAdd.push(TextNode(value));
+          }
+
+          // The first item does not mean there was dynamic content.
+          return;
+        }
+
+        // If we are in the second iteration, this
+        var dynamicBit = supplemental.children.shift();
+
+        if (typeof dynamicBit === 'string') {
+          toAdd.push(TextNode(dynamicBit));
+        } else if (Array.isArray(dynamicBit)) {
+          toAdd.push.apply(toAdd, dynamicBit);
+        } else if (dynamicBit.ownerDocument) {
+          toAdd.push((0, _make2.default)(dynamicBit));
+        } else {
+          toAdd.push(dynamicBit);
+        }
+
+        // This is a useful Text Node.
+        if (value && value.trim()) {
+          toAdd.push(TextNode(value));
+        }
+      });
+
+      currentParent.childNodes.push.apply(currentParent.childNodes, toAdd);
+    })();
+  } else if (string && string.length) {
+    currentParent.childNodes.push(TextNode(string));
+  }
+}
 
 /**
  * TextNode to contain a text element in DOM tree.
@@ -2046,7 +2135,7 @@ function HTMLElement(name, keyAttrs, rawAttrs, supplemental) {
       attr.name = match[1];
       attr.value = match[6] || match[5] || match[4] || match[1];
 
-      if (attr.value === '__DIFFHTML__') {
+      if (attr.value === TOKEN) {
         attr.value = supplemental.props.shift();
       }
 
@@ -2084,7 +2173,7 @@ function parse(data, supplemental) {
   // If there are no HTML elements, treat the passed in data as a single
   // text node.
   if (data.indexOf('<') === -1 && data) {
-    currentParent.childNodes.push(TextNode(data));
+    interpolateDynamicBits(currentParent, data, supplemental);
     return root;
   }
 
@@ -2094,14 +2183,17 @@ function parse(data, supplemental) {
         // if has content
         text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
 
-        if (text && text.trim && text.trim() === '__DIFFHTML__') {
-          var value = supplemental.children.shift();
-          var childrenToAdd = [].concat(value);
+        interpolateDynamicBits(currentParent, text, supplemental);
+      }
+    }
 
-          currentParent.childNodes.push.apply(currentParent.childNodes, childrenToAdd);
-        } else {
-          currentParent.childNodes.push(TextNode(text));
-        }
+    var matchOffset = kMarkupPattern.lastIndex - match[0].length;
+
+    if (lastTextPos === -1 && matchOffset > 0) {
+      var string = data.slice(0, matchOffset);
+
+      if (string && string.trim()) {
+        root.childNodes.push(TextNode(string));
       }
     }
 
@@ -2148,11 +2240,7 @@ function parse(data, supplemental) {
         var newText = data.slice(match.index + match[0].length, index);
 
         if (newText.trim()) {
-          newText = slice.call(newText).map(function (ch) {
-            return escapeMap[ch] || ch;
-          }).join('');
-
-          currentParent.childNodes.push(TextNode(newText));
+          currentParent.childNodes.push(TextNode((0, _escape2.default)(newText)));
         }
       }
     }
@@ -2189,7 +2277,7 @@ function parse(data, supplemental) {
 
   // If the text exists and isn't just whitespace, push into a new TextNode.
   if (remainingText) {
-    currentParent.childNodes.push(TextNode(remainingText));
+    interpolateDynamicBits(currentParent, remainingText, supplemental);
   }
 
   // This is an entire document, so only allow the HTML children to be
@@ -2269,7 +2357,7 @@ function parse(data, supplemental) {
   return root;
 }
 
-},{"./pools":16}],16:[function(_dereq_,module,exports){
+},{"../node/make":5,"./escape":14,"./pools":17}],17:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2351,7 +2439,7 @@ function initializePools(COUNT) {
 // Create ${COUNT} items of each type.
 initializePools(count);
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2427,7 +2515,7 @@ function completeRender(element, elementMeta) {
   };
 }
 
-},{"../node/make":5,"../node/patch":6,"../node/tree":9,"../util/memory":14,"../util/pools":16}],18:[function(_dereq_,module,exports){
+},{"../node/make":5,"../node/patch":6,"../node/tree":9,"../util/memory":15,"../util/pools":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2542,5 +2630,5 @@ function createAttribute(name, value) {
   return entry;
 }
 
-},{"../node/make":5,"./parser":15,"./pools":16}]},{},[4])(4)
+},{"../node/make":5,"./parser":16,"./pools":17}]},{},[4])(4)
 });
