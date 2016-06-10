@@ -94,9 +94,14 @@ describe('Unit: Parser', function() {
 
   it('can parse out full token attributes', function() {
     var token = '__DIFFHTML_BABEL__';
-    var nodes = parser.parse(`<input ${token}>`).childNodes;
+    var nodes = parser.parse(`<input ${token}/>`).childNodes;
 
     assert.equal(nodes[0].nodeName, 'input');
     assert.deepEqual(nodes[0].attributes, [{ name: token, value: token }]);
+  });
+
+  it('will ignore parsing doctypes', function() {
+    var nodes = parser.parse(`<!doctype html>`).childNodes[0];
+    assert.equal(nodes, undefined);
   });
 });

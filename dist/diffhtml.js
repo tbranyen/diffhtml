@@ -1753,7 +1753,7 @@ Object.keys(states).forEach(function iterateStates(stateName) {
       }
 
       // Call the map function with each element.
-      var newPromises = states[stateName].map(mapFn.apply(null, [element].concat(args))).filter(Boolean);
+      var newPromises = states[stateName].map(mapFn.apply(null, [element].concat(args)));
 
       // Merge these Promises into the main cache.
       promises.push.apply(promises, newPromises);
@@ -1764,7 +1764,9 @@ Object.keys(states).forEach(function iterateStates(stateName) {
       }
     });
 
-    return promises;
+    return promises.filter(function (promise) {
+      return Boolean(promise && promise.then);
+    });
   };
 });
 
@@ -1979,6 +1981,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var slice = Array.prototype.slice; // Code based off of:
 // https://github.com/ashi009/node-fast-html-parser
 
+var kDoctypePattern = /<!.*>/ig;
+
 var kMarkupPattern = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
 
 var kAttributePattern = /\b(id|class)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
@@ -2061,6 +2065,7 @@ var kBlockTextElements = {
  * @param supplemental
  */
 function interpolateDynamicBits(currentParent, string, supplemental) {
+  console.log(string);
   if (string && string.indexOf(TOKEN) > -1) {
     (function () {
       var toAdd = [];
@@ -2099,7 +2104,7 @@ function interpolateDynamicBits(currentParent, string, supplemental) {
 
       currentParent.childNodes.push.apply(currentParent.childNodes, toAdd);
     })();
-  } else if (string && string.length) {
+  } else if (string && string.length && !kDoctypePattern.exec(string)) {
     currentParent.childNodes.push(TextNode(string));
   }
 }
@@ -2206,7 +2211,7 @@ function parse(data, supplemental) {
     if (lastTextPos === -1 && matchOffset > 0) {
       var string = data.slice(0, matchOffset);
 
-      if (string && string.trim()) {
+      if (string && string.trim() && !kDoctypePattern.exec(string)) {
         root.childNodes.push(TextNode(string));
       }
     }
