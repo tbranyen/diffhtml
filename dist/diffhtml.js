@@ -2065,7 +2065,6 @@ var kBlockTextElements = {
  * @param supplemental
  */
 function interpolateDynamicBits(currentParent, string, supplemental) {
-  console.log(string);
   if (string && string.indexOf(TOKEN) > -1) {
     (function () {
       var toAdd = [];
@@ -2182,25 +2181,25 @@ function HTMLElement(name, keyAttrs, rawAttrs, supplemental) {
  * @param  {array} supplemental      data
  * @return {HTMLElement}      root element
  */
-function parse(data, supplemental) {
+function parse(html, supplemental) {
   var rootObject = {};
   var root = HTMLElement(null, rootObject);
   var currentParent = root;
   var stack = [root];
   var lastTextPos = -1;
 
-  // If there are no HTML elements, treat the passed in data as a single
+  // If there are no HTML elements, treat the passed in html as a single
   // text node.
-  if (data.indexOf('<') === -1 && data) {
-    interpolateDynamicBits(currentParent, data, supplemental);
+  if (html.indexOf('<') === -1 && html) {
+    interpolateDynamicBits(currentParent, html, supplemental);
     return root;
   }
 
-  for (var match, text; match = kMarkupPattern.exec(data);) {
+  for (var match, text; match = kMarkupPattern.exec(html);) {
     if (lastTextPos > -1) {
       if (lastTextPos + match[0].length < kMarkupPattern.lastIndex) {
         // if has content
-        text = data.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
+        text = html.slice(lastTextPos, kMarkupPattern.lastIndex - match[0].length);
 
         interpolateDynamicBits(currentParent, text, supplemental);
       }
@@ -2209,7 +2208,7 @@ function parse(data, supplemental) {
     var matchOffset = kMarkupPattern.lastIndex - match[0].length;
 
     if (lastTextPos === -1 && matchOffset > 0) {
-      var string = data.slice(0, matchOffset);
+      var string = html.slice(0, matchOffset);
 
       if (string && string.trim() && !kDoctypePattern.exec(string)) {
         root.childNodes.push(TextNode(string));
@@ -2245,18 +2244,18 @@ function parse(data, supplemental) {
       if (kBlockTextElements[match[2]]) {
         // A little test to find next </script> or </style> ...
         var closeMarkup = '</' + match[2] + '>';
-        var index = data.indexOf(closeMarkup, kMarkupPattern.lastIndex);
+        var index = html.indexOf(closeMarkup, kMarkupPattern.lastIndex);
         var length = match[2].length;
 
         if (index === -1) {
-          lastTextPos = kMarkupPattern.lastIndex = data.length + 1;
+          lastTextPos = kMarkupPattern.lastIndex = html.length + 1;
         } else {
           lastTextPos = index + closeMarkup.length;
           kMarkupPattern.lastIndex = lastTextPos;
           match[1] = true;
         }
 
-        var newText = data.slice(match.index + match[0].length, index);
+        var newText = html.slice(match.index + match[0].length, index);
 
         if (newText.trim()) {
           currentParent.childNodes.push(TextNode((0, _escape2.default)(newText)));
@@ -2292,12 +2291,10 @@ function parse(data, supplemental) {
   }
 
   // Find any last remaining text after the parsing completes over tags.
-  var remainingText = data.slice(lastTextPos).trim();
+  var remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
 
   // If the text exists and isn't just whitespace, push into a new TextNode.
-  if (remainingText) {
-    interpolateDynamicBits(currentParent, remainingText, supplemental);
-  }
+  interpolateDynamicBits(currentParent, remainingText, supplemental);
 
   // This is an entire document, so only allow the HTML children to be
   // body or head.
