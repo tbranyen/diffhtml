@@ -1,5 +1,5 @@
 import { pools } from '../../lib/util/pools';
-import makeNode from '../../lib/node/make';
+import { NodeCache } from '../../lib/util/cache';
 
 /**
  * Validates that the memory has been successfully cleaned per render.
@@ -14,5 +14,5 @@ export default function validateMemory() {
   assert.equal(pools.attributeObject.cache.allocated.size, 0,
     'Should not leave leftover attribute allocations');
 
-  assert.equal(makeNode.nodes.size, 0, 'The node cache should be empty');
+  assert.equal(NodeCache.size, 0, 'The node cache should be empty');
 }
