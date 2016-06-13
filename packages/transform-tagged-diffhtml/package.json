@@ -1,6 +1,6 @@
 {
   "name": "transform-tagged-diffhtml",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -24,6 +24,6 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
-    "diffhtml": "tbranyen/diffhtml#8194e68e3c3a2cad4364af2eaed6b8338f3773bc"
+    "diffhtml": "tbranyen/diffhtml#9552578069fafacc1c04db14e409aabe0a71e1d1"
   }
 }
