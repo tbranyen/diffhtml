@@ -1,6 +1,6 @@
 # diffHTML Babel Plugin
 
-Latest stable version: 1.0.0
+Latest stable version: 1.0.0-rc.1
 
 [![Build Status](https://travis-ci.org/tbranyen/transform-tagged-diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/transform-tagged-diffhtml)
 
@@ -25,7 +25,8 @@ Add the plugin to your `package.json` and update the plugin section in your
 `package.json` - update the plugin section there.
 
 You will then need to tag your diffHTML templates with the `html` function,
-examples below.
+examples below. This will *only* optimize tagged templates, allowing you to
+use the diffHTML runtime build avoiding runtime HTML parsing.
 
 Example on a `.babelrc` file that will work with diffHTML:
 
@@ -59,6 +60,8 @@ babel view.js -o view.es5.js
 
 ### Specifying options
 
+You can override three identifiers that are used within the transform:
+
 - **tagName** - The tagged template function name default is `html`.
 - **createElement** - The create element function default is `diff.createElement`
 - **createAttribute** - The create attribute function default is `diff.createAttribute`
@@ -71,19 +74,19 @@ Specifying the options in your `.babelrc`:
   plugins: [
     ["transform-tagged-diffhtml", {
       "tagName": "diff.html",
-      "createElement": "createElement",
-      "createAttribute": "createAttribute"
+      "createElement": "createEl",
+      "createAttribute": "createAttr"
     }]
   ]
 }
 ```
 
-Using customized source:
+How your source would look reflecting the options:
 
 ``` javascript
 import * as diff from 'diffhtml';
 
-const { createElement, createAttribute } = diff;
+const { createElement as createEl, createAttribute as createAttr } = diff;
 
 diff.html`
   <div></div>
