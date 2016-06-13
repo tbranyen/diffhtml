@@ -1,4 +1,4 @@
-import { states as transitionStates } from '../../lib/transitions';
+import { states as transitionStates } from '../../../lib/util/transitions';
 
 describe('Unit: Transitions', function() {
   it('exports arrays to store callbacks in', function() {

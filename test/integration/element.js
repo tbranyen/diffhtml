@@ -1,4 +1,4 @@
-import * as diff from '../../lib/index.js';
+import * as diff from '../../lib/index';
 import validateMemory from '../util/validateMemory';
 
 describe('Integration: element', function() {

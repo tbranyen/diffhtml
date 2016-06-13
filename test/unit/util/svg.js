@@ -1,6 +1,6 @@
-import * as svg from '../../lib/svg';
-import { cleanMemory } from '../../lib/util/memory';
-import validateMemory from '../util/validateMemory';
+import * as svg from '../../../lib/util/svg';
+import { cleanMemory } from '../../../lib/util/memory';
+import validateMemory from '../../util/validateMemory';
 
 describe('Unit: SVG', function() {
   afterEach(function() {
