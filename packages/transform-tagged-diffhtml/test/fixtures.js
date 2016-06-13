@@ -21,6 +21,12 @@ QUASIS: {
     `}
   `;
 
+  exports.renderNestedQuasiConcat = () => html`
+    ${html`
+       Text Node <div>Hello world</div>
+    `}
+  `;
+
 }
 
 EXPRESSIONS: {

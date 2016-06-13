@@ -30,6 +30,12 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
       diff.outerHTML(this.fixture, fixtures.renderNestedQuasi());
       assert.equal(this.fixture.innerText, 'Hello world');
     });
+
+    it('can render a nested quasi literal w/ concat text', () => {
+      let patches = fixtures.renderNestedQuasiConcat();
+      diff.innerHTML(this.fixture, patches);
+      assert.equal(this.fixture.innerText, 'Text Node Hello world');
+    });
   });
 
   describe('Expressions', () => {
