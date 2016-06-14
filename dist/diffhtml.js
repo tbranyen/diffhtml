@@ -244,7 +244,107 @@ function enableProllyfill() {
   });
 }
 
-},{"./node/release":4,"./node/transaction":5,"./tree/helpers":6,"./util/tagged-template":17,"./util/transitions":18}],2:[function(_dereq_,module,exports){
+},{"./node/release":5,"./node/transaction":6,"./tree/helpers":7,"./util/tagged-template":17,"./util/transitions":18}],2:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = getFinalizeCallback;
+
+var _transaction = _dereq_('../node/transaction');
+
+var _transaction2 = _interopRequireDefault(_transaction);
+
+var _cache = _dereq_('../util/cache');
+
+var _memory = _dereq_('../util/memory');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Pulls the next render object (containing the respective arguments to
+ * patchNode) and invokes the next transaction.
+ *
+ * @param state
+ */
+var renderNext = function renderNext(state) {
+  var nextRender = state.nextRender;
+  state.nextRender = undefined;
+
+  (0, _transaction2.default)(nextRender.node, nextRender.newHTML, nextRender.options);
+};
+
+/**
+ * Returns a callback that finalizes the transaction, setting the isRendering
+ * flag to false. This allows us to pick off and invoke the next available
+ * transaction to render. This code recyles the unprotected allocated pool
+ * objects and triggers a `renderComplete` event.
+ *
+ * @param {Object} node - A DOM Node that has just had patches applied
+ * @param {Object} state - The current state object associated with the Node
+ * @return {Function} - Closure that when called completes the transaction
+ */
+function getFinalizeCallback(node, state) {
+  /**
+   * When the render completes, clean up memory, and schedule the next render
+   * if necessary.
+   */
+  return function finalizeTransaction() {
+    var isInner = state.options.inner;
+
+    state.previousMarkup = isInner ? node.innerHTML : node.outerHTML;
+    state.previousText = node.textContent;
+
+    state.isRendering = false;
+
+    // This is designed to handle use cases where renders are being hammered
+    // or when transitions are used with Promises. If this element has a next
+    // render state, trigger it first as priority.
+    if (state.nextRender) {
+      renderNext(state);
+    }
+    // Otherwise dig into the other states and pick off the first one
+    // available.
+    else {
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+          for (var _iterator = _cache.StateCache.entries()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var _state = _step.value;
+
+            if (_state.nextRender) {
+              renderNext(_state);
+              break;
+            }
+          }
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
+            }
+          }
+        }
+      }
+
+    // Clean out all the existing allocations.
+    (0, _memory.cleanMemory)();
+
+    // Dispatch an event on the node once rendering has completed.
+    node.dispatchEvent(new CustomEvent('renderComplete'));
+  };
+}
+
+},{"../node/transaction":6,"../util/cache":10,"../util/memory":13}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -346,7 +446,7 @@ function make(vTree) {
   return node;
 }
 
-},{"../util/cache":9,"../util/svg":16}],3:[function(_dereq_,module,exports){
+},{"../util/cache":10,"../util/svg":16}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -771,7 +871,7 @@ function patchNode(node, patches) {
   return promises.filter(Boolean);
 }
 
-},{"../tree/sync":8,"../util/cache":9,"../util/entities":10,"../util/memory":12,"../util/parser":13,"../util/transitions":18,"./make":2}],4:[function(_dereq_,module,exports){
+},{"../tree/sync":9,"../util/cache":10,"../util/entities":11,"../util/memory":13,"../util/parser":14,"../util/transitions":18,"./make":3}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -804,7 +904,7 @@ function releaseNode(node) {
   (0, _memory.cleanMemory)();
 }
 
-},{"../util/cache":9,"../util/memory":12}],5:[function(_dereq_,module,exports){
+},{"../util/cache":10,"../util/memory":13}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -815,6 +915,10 @@ exports.default = createTransaction;
 var _patch = _dereq_('./patch');
 
 var _patch2 = _interopRequireDefault(_patch);
+
+var _finalize = _dereq_('./finalize');
+
+var _finalize2 = _interopRequireDefault(_finalize);
 
 var _make = _dereq_('../tree/make');
 
@@ -831,8 +935,6 @@ var _memory = _dereq_('../util/memory');
 var _parser = _dereq_('../util/parser');
 
 var _pools = _dereq_('../util/pools');
-
-var _render = _dereq_('../util/render');
 
 var _cache = _dereq_('../util/cache');
 
@@ -982,22 +1084,27 @@ function createTransaction(node, newHTML, options) {
 
   // Synchronize the tree.
   var patches = (0, _sync2.default)(state.oldTree, newTree);
+
+  // Apply the set of patches to the Node.
   var promises = (0, _patch2.default)(node, patches);
-  var invokeRender = (0, _render.completeRender)(node, state);
+
+  // Clean up and finalize this transaction. If there is another transaction,
+  // get a callback to run once this completes to run it.
+  var finalizeTransaction = (0, _finalize2.default)(node, state);
 
   // Operate synchronously unless opted into a Promise-chain. Doesn't matter if
   // they are actually Promises or not, since they will all resolve eventually
   // with `Promise.all`.
   if (promises.length) {
-    Promise.all(promises).then(invokeRender, function (ex) {
+    Promise.all(promises).then(finalizeTransaction, function (ex) {
       return console.log(ex);
     });
   } else {
-    invokeRender();
+    finalizeTransaction();
   }
 }
 
-},{"../tree/helpers":6,"../tree/make":7,"../tree/sync":8,"../util/cache":9,"../util/memory":12,"../util/parser":13,"../util/pools":14,"../util/render":15,"./patch":3}],6:[function(_dereq_,module,exports){
+},{"../tree/helpers":7,"../tree/make":8,"../tree/sync":9,"../util/cache":10,"../util/memory":13,"../util/parser":14,"../util/pools":15,"./finalize":2,"./patch":4}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1109,7 +1216,7 @@ function createAttribute(name, value) {
   return entry;
 }
 
-},{"../tree/make":7,"../util/escape":11,"../util/pools":14}],7:[function(_dereq_,module,exports){
+},{"../tree/make":8,"../util/escape":12,"../util/pools":15}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1192,7 +1299,7 @@ function makeNode(node) {
   return vTree;
 }
 
-},{"../util/cache":9,"../util/pools":14,"./helpers":6}],8:[function(_dereq_,module,exports){
+},{"../util/cache":10,"../util/pools":15,"./helpers":7}],9:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1557,7 +1664,7 @@ function sync(oldTree, newTree, patches) {
   return patches;
 }
 
-},{"../util/pools":14}],9:[function(_dereq_,module,exports){
+},{"../util/pools":15}],10:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1569,7 +1676,7 @@ var StateCache = exports.StateCache = new Map();
 // Associates Virtual Tree Elements with DOM Nodes.
 var NodeCache = exports.NodeCache = new Map();
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1595,7 +1702,7 @@ function decodeEntities(string) {
   return element.textContent;
 }
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1615,7 +1722,7 @@ function escape(unescaped) {
   });
 }
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1708,7 +1815,7 @@ function cleanMemory() {
   attributeCache.allocated.clear();
 }
 
-},{"../util/pools":14,"./cache":9}],13:[function(_dereq_,module,exports){
+},{"../util/pools":15,"./cache":10}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2060,7 +2167,7 @@ function parse(html, supplemental) {
   return root;
 }
 
-},{"../tree/helpers":6,"../tree/make":7,"./escape":11,"./pools":14}],14:[function(_dereq_,module,exports){
+},{"../tree/helpers":7,"../tree/make":8,"./escape":12,"./pools":15}],15:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2142,83 +2249,7 @@ function initializePools(COUNT) {
 // Create ${COUNT} items of each type.
 initializePools(count);
 
-},{}],15:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.completeRender = completeRender;
-
-var _transaction = _dereq_('../node/transaction');
-
-var _transaction2 = _interopRequireDefault(_transaction);
-
-var _cache = _dereq_('../util/cache');
-
-var _memory = _dereq_('../util/memory');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * Pulls the next render buffer object (containing the respective arguments to
- * patchNode) and invokes the next render transaction.
- *
- * @param state
- */
-var renderNext = function renderNext(state) {
-  var nextRender = state.nextRender;
-  state.nextRender = undefined;
-
-  (0, _transaction2.default)(nextRender.node, nextRender.newHTML, nextRender.options);
-};
-
-/**
- * When the render completes, clean up memory, and schedule the next render if
- * necessary.
- *
- * @param node
- * @param state
- * @return {Function} - Closure that when called completes rendering
- */
-function completeRender(node, state) {
-  return function invokeRender() {
-    var isInner = state.options.inner;
-
-    state.previousMarkup = isInner ? node.innerHTML : node.outerHTML;
-    state.previousText = node.textContent;
-
-    state.isRendering = false;
-
-    // Boolean to stop operations in the StateCache loop below.
-    var stopLooping = false;
-
-    // This is designed to handle use cases where renders are being hammered
-    // or when transitions are used with Promises. If this element has a next
-    // render state, trigger it first as priority.
-    if (state.nextRender) {
-      renderNext(state);
-    }
-    // Otherwise dig into the other states and pick off the first one
-    // available.
-    else {
-        _cache.StateCache.forEach(function (state) {
-          if (!stopLooping && state.nextRender) {
-            renderNext(state);
-            stopLooping = true;
-          }
-        });
-      }
-
-    // Clean out all the existing allocations.
-    (0, _memory.cleanMemory)();
-
-    // Dispatch an event on the node once rendering has completed.
-    node.dispatchEvent(new CustomEvent('renderComplete'));
-  };
-}
-
-},{"../node/transaction":5,"../util/cache":9,"../util/memory":12}],16:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2339,7 +2370,7 @@ function html(strings) {
   return childNodes.length > 1 ? childNodes : childNodes[0];
 }
 
-},{"./escape":11,"./parser":13}],18:[function(_dereq_,module,exports){
+},{"./escape":12,"./parser":14}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {

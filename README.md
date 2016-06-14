@@ -62,15 +62,10 @@ diffHTML is authored using many modern browser features, such as
 which are not available in [all
 browsers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#Browser_compatibility).
 
-If you wish to use diffHTML in older browsers, make sure you have polyfills for
-at least:
+If you wish to use diffHTML in older browsers, make sure you have the Babel
+polyfill loaded first:
 
-- [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)
-- [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set)
-- [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
-
-You can find polyfills for these globals in the core-js project:
-https://github.com/zloirock/core-js
+https://babeljs.io/docs/usage/polyfill/
 
 ##### Module format locations
 
