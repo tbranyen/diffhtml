@@ -65,7 +65,8 @@ module.exports = function (_ref) {
     boundHandlers.length = 0;
   };
 
-  // If this function gets repeatedly called, unbind the previous to avoid doubling up.
+  // If this function gets repeatedly called, unbind the previous to avoid
+  // doubling up.
   unsubscribe();
 
   // Set a "global" `attributeChanged` to monitor all elements for transition

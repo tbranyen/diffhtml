@@ -57,7 +57,8 @@ module.exports = function({ addTransitionState, removeTransitionState }) {
     boundHandlers.length = 0;
   };
 
-  // If this function gets repeatedly called, unbind the previous to avoid doubling up.
+  // If this function gets repeatedly called, unbind the previous to avoid
+  // doubling up.
   unsubscribe();
 
   // Set a "global" `attributeChanged` to monitor all elements for transition
@@ -69,7 +70,7 @@ module.exports = function({ addTransitionState, removeTransitionState }) {
   Object.keys(transitionsMap).forEach(name => {
     const map = transitionsMap[name];
 
-    const handler = (child, ...rest) => {
+    const handler = function(child, ...rest) {
       // If there are no elements to match here, abort.
       if (!map.size) {
         return;
