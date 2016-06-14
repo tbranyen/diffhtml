@@ -7,8 +7,7 @@ module.exports = function(config) {
     frameworks: ['browserify', 'mocha'],
 
     files: [
-      'node_modules/promise-polyfill/promise.js',
-      'node_modules/es6-collections/es6-collections.js',
+      'node_modules/babel-polyfill/dist/polyfill.js',
       'lib/**/*.js',
       'test/assert.js',
 
