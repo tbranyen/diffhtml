@@ -62,7 +62,7 @@ inlineTransitions(diff);
 
 // Use jQuery to return a promise and fade in the body and paragraph.
 function fadeIn() {
-  return $(this).fadeIn('slow').promise();
+  return $(this).fadeOut(0).fadeIn(1000).promise();
 }
 
 innerHTML(document.body, html`<body attached=${fadeIn}>
