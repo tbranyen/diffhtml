@@ -1040,7 +1040,8 @@ var setBufferState = function setBufferState(state, nextRender) {
 var getTreeFromNewHTML = function getTreeFromNewHTML(newHTML, options, callback) {
   // This is HTML Markup, so we need to parse it.
   if (typeof newHTML === 'string') {
-    var childNodes = (0, _parser.parse)(newHTML).childNodes;
+    var silenceWarnings = options.silenceWarnings;
+    var childNodes = (0, _parser.parse)(newHTML, null, { silenceWarnings: silenceWarnings }).childNodes;
 
     // If we are dealing with innerHTML, use all the Nodes. If we're dealing
     // with outerHTML, we can only support diffing against a single element,
@@ -1120,6 +1121,8 @@ function createTransaction(node, newHTML, options) {
       state.newHTML = newHTML;
     }
 
+  // We rebuild the tree whenever the DOM Node changes, including the first
+  // time we patch a DOM Node.
   var rebuildTree = function rebuildTree() {
     var oldTree = state.oldTree;
 

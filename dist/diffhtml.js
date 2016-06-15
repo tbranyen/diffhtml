@@ -1040,7 +1040,8 @@ var setBufferState = function setBufferState(state, nextRender) {
 var getTreeFromNewHTML = function getTreeFromNewHTML(newHTML, options, callback) {
   // This is HTML Markup, so we need to parse it.
   if (typeof newHTML === 'string') {
-    var childNodes = (0, _parser.parse)(newHTML).childNodes;
+    var silenceWarnings = options.silenceWarnings;
+    var childNodes = (0, _parser.parse)(newHTML, null, { silenceWarnings: silenceWarnings }).childNodes;
 
     // If we are dealing with innerHTML, use all the Nodes. If we're dealing
     // with outerHTML, we can only support diffing against a single element,
@@ -1120,6 +1121,8 @@ function createTransaction(node, newHTML, options) {
       state.newHTML = newHTML;
     }
 
+  // We rebuild the tree whenever the DOM Node changes, including the first
+  // time we patch a DOM Node.
   var rebuildTree = function rebuildTree() {
     var oldTree = state.oldTree;
 
@@ -1955,6 +1958,7 @@ var TOKEN = '__DIFFHTML__';
 var doctypeEx = /<!.*>/ig;
 var attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 var tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
+var spaceEx = /[^ ]/;
 
 // We use this Set in the node/patch module so marking it exported.
 var blockText = exports.blockText = new Set(['script', 'noscript', 'style', 'pre', 'template']);
@@ -2084,14 +2088,17 @@ var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
 /**
  * Parses HTML and returns a root element
  *
- * @param  {string} data      html
- * @param  {array} supplemental      data
- * @return {HTMLElement}      root element
+ * @param {String} html - String of HTML markup to parse into a Virtual Tree
+ * @param {Object} supplemental - Dynamic interpolated data values
+ * @param {Object} options - Contains options like silencing warnings
+ * @return {Object} - Parsed Virtual Tree Element
  */
 function parse(html, supplemental) {
+  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
   var root = HTMLElement('#document-fragment');
-  var currentParent = root;
   var stack = [root];
+  var currentParent = root;
   var lastTextPos = -1;
 
   // If there are no HTML elements, treat the passed in html as a single
@@ -2165,7 +2172,24 @@ function parse(html, supplemental) {
         }
       }
     }
+
     if (match[1] || match[4] || selfClosing.has(match[2])) {
+      if (match[2] !== currentParent.rawNodeName && options.strict) {
+        var nodeName = currentParent.rawNodeName;
+
+        // Find a subset of the markup passed in to validate.
+        var markup = html.slice(tagEx.lastIndex - match[0].length).split('\n').slice(0, 3);
+
+        // Position the caret next to the first non-whitespace character.
+        var caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
+
+        // Craft the warning message and inject it into the markup.
+        markup.splice(1, 0, caret + '\nPossibly invalid markup. Saw ' + match[2] + ', expected ' + nodeName + '...\n        ');
+
+        // Throw an error message if the markup isn't what we expected.
+        throw new Error('' + markup.join('\n'));
+      }
+
       // </ or /> or <br> etc.
       while (currentParent) {
         if (currentParent.rawNodeName == match[2]) {
@@ -2178,6 +2202,7 @@ function parse(html, supplemental) {
 
           // Trying to close current tag, and move on
           if (tag) {
+
             if (tag[match[2]]) {
               stack.pop();
               currentParent = stack[stack.length - 1];
