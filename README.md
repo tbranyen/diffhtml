@@ -25,7 +25,7 @@ this tree and the DOM.
 #### Features
 
 - Helps you build components using HTML and JavaScript
-- Provides a [tagged template
+- [Provides a tagged template
   function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_template_literals) to inline your markup with dynamic interpolation into your component code
 - Your markup is compiled to a *VTree* and patched efficiently to the DOM
 - Transitions API to hook into element and attribute state changes
@@ -350,7 +350,7 @@ diff.outerHTML(fixture, `
 fixture.addEventListener('click', showUnixTime);
 ```
 
-Could be rebuilt as:
+Could be rewritten with the helper as:
 
 ``` javascript
 const fixture = document.createElement('div');
@@ -367,7 +367,7 @@ diff.outerHTML(fixture, html`
 `);
 ```
 
-So this feature allows for inline binding of any DOM event, sending complex
+So this feature allows for inline binding of any DOM event, and sending dynamic
 property data to any element.
 
 Tagged templates also have no problem consuming other tagged templates (even
