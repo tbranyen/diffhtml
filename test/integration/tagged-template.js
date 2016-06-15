@@ -182,4 +182,19 @@ describe('Integration: Tagged template', function() {
     diff.innerHTML(this.fixture, html`${'<baz>'}`);
     assert.equal(this.fixture.innerHTML, '&lt;baz&gt;');
   });
+
+  it('properly injects values where a text node appears first', function() {
+    var tableElement = document.createElement('table');
+    var anotherTableElement = document.createElement('table');
+
+    diff.innerHTML(this.fixture, html`
+      Foo ${tableElement} <div class="something">${anotherTableElement}</div>
+    `);
+
+    var expected = `
+      Foo <table></table><div class="something"><table></table></div>
+    `;
+
+    assert.equal(this.fixture.innerHTML.trim(), expected.trim());
+  });
 });
