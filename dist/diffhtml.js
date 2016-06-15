@@ -2009,7 +2009,7 @@ function parse(html, supplemental) {
       var string = html.slice(0, matchOffset);
 
       if (string && string.trim() && !doctypeEx.exec(string)) {
-        root.childNodes.push(TextNode(string));
+        interpolateDynamicBits(currentParent, string, supplemental);
       }
     }
 
