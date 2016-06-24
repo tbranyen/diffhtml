@@ -1,1 +1,2 @@
 dist/diffhtml.js -diff
+dist/diffhtml-runtime.js -diff

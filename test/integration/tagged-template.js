@@ -21,12 +21,14 @@ describe('Integration: Tagged template', function() {
       var expected = {
         key: '',
         nodeName: 'div',
+        rawNodeName: 'div',
         nodeType: 1,
         nodeValue: '',
         attributes: [],
         childNodes: [{
           key: '',
           nodeName: '#text',
+          rawNodeName: '#text',
           nodeType: 3,
           nodeValue: 'hello world',
           attributes: [],
@@ -46,18 +48,21 @@ describe('Integration: Tagged template', function() {
       var expected = {
         key: '',
         nodeName: 'ul',
+        rawNodeName: 'ul',
         nodeType: 1,
         nodeValue: '',
         attributes: [],
         childNodes: [{
           key: '',
           nodeName: 'li',
+          rawNodeName: 'li',
           nodeType: 1,
           nodeValue: '',
           attributes: [],
           childNodes: [{
             key: '',
             nodeName: '#text',
+            rawNodeName: '#text',
             nodeValue: '1',
             childNodes: [],
             attributes: [],
@@ -66,12 +71,14 @@ describe('Integration: Tagged template', function() {
         }, {
           key: '',
           nodeName: 'li',
+          rawNodeName: 'li',
           nodeType: 1,
           nodeValue: '',
           attributes: [],
           childNodes: [{
             key: '',
             nodeName: '#text',
+            rawNodeName: '#text',
             nodeValue: '2',
             childNodes: [],
             attributes: [],
@@ -80,12 +87,14 @@ describe('Integration: Tagged template', function() {
         }, {
           key: '',
           nodeName: 'li',
+          rawNodeName: 'li',
           nodeType: 1,
           nodeValue: '',
           attributes: [],
           childNodes: [{
             key: '',
             nodeName: '#text',
+            rawNodeName: '#text',
             nodeValue: '3',
             childNodes: [],
             attributes: [],
@@ -104,6 +113,7 @@ describe('Integration: Tagged template', function() {
         var expected = {
           key: '',
           nodeName: 'div',
+          rawNodeName: 'div',
           nodeType: 1,
           nodeValue: '',
           attributes: [],
@@ -111,6 +121,7 @@ describe('Integration: Tagged template', function() {
           childNodes: [{
             key: '',
             nodeName: 'p',
+            rawNodeName: 'p',
             nodeType: 1,
             nodeValue: '',
             attributes: [],
@@ -118,6 +129,7 @@ describe('Integration: Tagged template', function() {
             childNodes: [{
               key: '',
               nodeName: '#text',
+              rawNodeName: '#text',
               nodeValue: text,
               attributes: [],
               nodeType: 3,

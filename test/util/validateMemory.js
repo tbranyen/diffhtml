@@ -1,5 +1,5 @@
 import { pools } from '../../lib/util/pools';
-import { NodeCache } from '../../lib/util/cache';
+import { StateCache, NodeCache, MiddlewareCache } from '../../lib/util/cache';
 
 /**
  * Validates that the memory has been successfully cleaned per render.
@@ -15,4 +15,5 @@ export default function validateMemory() {
     'Should not leave leftover attribute allocations');
 
   assert.equal(NodeCache.size, 0, 'The node cache should be empty');
+  assert.equal(MiddlewareCache.size, 0, 'The middleware cache should be empty');
 }

@@ -104,4 +104,16 @@ describe('Unit: Parser', function() {
     var nodes = parser.parse(`<!doctype html>`).childNodes[0];
     assert.equal(nodes, undefined);
   });
+
+  it('supports mixed cased elements being self closed', function() {
+    var nodes = parser.parse(`<CustomElement
+      attr="test"
+      /><div>Hello world</div>`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'customelement');
+    assert.deepEqual(nodes[0].attributes[0], { name: 'attr', value: 'test' });
+    assert.equal(nodes[1].nodeName, 'div');
+    assert.equal(nodes[1].childNodes[0].nodeName, '#text');
+    assert.equal(nodes[1].childNodes[0].nodeValue, 'Hello world');
+  });
 });

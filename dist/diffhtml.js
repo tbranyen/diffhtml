@@ -43,6 +43,7 @@ exports.innerHTML = innerHTML;
 exports.element = element;
 exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
+exports.use = use;
 exports.enableProllyfill = enableProllyfill;
 
 var _transaction = _dereq_('./node/transaction');
@@ -50,6 +51,8 @@ var _transaction = _dereq_('./node/transaction');
 var _transaction2 = _interopRequireDefault(_transaction);
 
 var _transitions = _dereq_('./util/transitions');
+
+var _cache = _dereq_('./util/cache');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -173,6 +176,26 @@ function removeTransitionState(state, callback) {
 }
 
 /**
+ * Registers middleware to be consumed lightly.
+ *
+ * @param {Function} middleware - A function that gets passed internals
+ * @return {Function} - That when invoked removes the middleware
+ */
+function use(middleware) {
+  if (typeof middleware !== 'function') {
+    throw new Error('Middleware must be a function');
+  }
+
+  // Add the function to the set of middlewares.
+  _cache.MiddlewareCache.add(middleware);
+
+  // This function will remove the middleware from the set when called.
+  return function () {
+    return _cache.MiddlewareCache.delete(middleware);
+  };
+}
+
+/**
  * By calling this function your browser environment is enhanced globally. This
  * project would love to hit the standards track and allow all developers to
  * benefit from the performance gains of DOM diffing.
@@ -244,7 +267,7 @@ function enableProllyfill() {
   });
 }
 
-},{"./node/release":5,"./node/transaction":6,"./tree/helpers":7,"./util/tagged-template":17,"./util/transitions":18}],2:[function(_dereq_,module,exports){
+},{"./node/release":5,"./node/transaction":6,"./tree/helpers":7,"./util/cache":10,"./util/tagged-template":17,"./util/transitions":18}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -289,14 +312,23 @@ function getFinalizeCallback(node, state) {
   /**
    * When the render completes, clean up memory, and schedule the next render
    * if necessary.
+   *
+   * @param {Array} remainingMiddleware - Array of middleware to invoke
    */
   return function finalizeTransaction() {
+    var remainingMiddleware = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
     var isInner = state.options.inner;
 
     state.previousMarkup = isInner ? node.innerHTML : node.outerHTML;
     state.previousText = node.textContent;
 
     state.isRendering = false;
+
+    // Call the remaining middleware signaling the render is complete.
+    for (var i = 0; i < remainingMiddleware.length; i++) {
+      remainingMiddleware[i]();
+    }
 
     // This is designed to handle use cases where renders are being hammered
     // or when transitions are used with Promises. If this element has a next
@@ -502,11 +534,12 @@ var checkForMissingParent = function checkForMissingParent(verb, oldNode, patch)
 };
 
 // Trigger the attached transition state for this element and all childNodes.
-var attached = function attached(_ref) {
+var attach = function attach(_ref) {
   var vTree = _ref.vTree;
   var fragment = _ref.fragment;
   var parentNode = _ref.parentNode;
   var triggerTransition = _ref.triggerTransition;
+  var state = _ref.state;
 
   // This element has been attached, so it should definitely be marked as
   // protected.
@@ -539,8 +572,8 @@ var attached = function attached(_ref) {
 
   // Call all `childNodes` attached callbacks as well.
   vTree.childNodes.forEach(function (vTree) {
-    return attached({
-      vTree: vTree, parentNode: node, triggerTransition: triggerTransition
+    return attach({
+      vTree: vTree, parentNode: node, triggerTransition: triggerTransition, state: state
     });
   });
 
@@ -559,7 +592,7 @@ var attached = function attached(_ref) {
  * @param {Array} patches - Contains patch objects
  */
 function patchNode(node, patches) {
-  var state = _cache.StateCache.get(state);
+  var state = _cache.StateCache.get(node);
   var promises = [];
   var triggerTransition = (0, _transitions.buildTrigger)(promises);
 
@@ -634,7 +667,7 @@ function patchNode(node, patches) {
 
             triggerTransition('attached', attachedPromises, function (promises) {
               allPromises.push.apply(allPromises, promises);
-              attached({ vTree: patch.new, triggerTransition: triggerTransition });
+              attach({ vTree: patch.new, triggerTransition: triggerTransition, state: state });
             });
 
             triggerTransition('replaced', replacedPromises, function (promises) {
@@ -661,6 +694,11 @@ function patchNode(node, patches) {
             } else {
               if (!oldEl.parentNode) {
                 (0, _memory.unprotectElement)(patch.new);
+
+                if (_cache.StateCache.has(newEl)) {
+                  _cache.StateCache.delete(newEl);
+                }
+
                 throw new Error(replaceFailMsg);
               }
 
@@ -679,8 +717,8 @@ function patchNode(node, patches) {
                 // Loop over every element to be added and process the Virtual Tree
                 // element into the DOM Node and append into the DOM fragment.
                 var toAttach = patch.fragment.map(function (vTree) {
-                  return attached({
-                    vTree: vTree, fragment: fragment, triggerTransition: triggerTransition
+                  return attach({
+                    vTree: vTree, fragment: fragment, triggerTransition: triggerTransition, state: state
                   });
                 }).filter(isElementNode);
 
@@ -759,7 +797,7 @@ function patchNode(node, patches) {
                         allPromises.push.apply(allPromises, promises);
                       }
 
-                      attached({ vTree: patch.new, triggerTransition: triggerTransition });
+                      attach({ vTree: patch.new, triggerTransition: triggerTransition, state: state });
                     });
 
                     // Once all the promises have completed, invoke the action, if no
@@ -910,6 +948,9 @@ function releaseNode(node) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.default = createTransaction;
 
 var _patch = _dereq_('./patch');
@@ -1007,6 +1048,10 @@ var getTreeFromNewHTML = function getTreeFromNewHTML(newHTML, options, callback)
  * @param options
  */
 function createTransaction(node, newHTML, options) {
+  if ((typeof node === 'undefined' ? 'undefined' : _typeof(node)) !== 'object') {
+    throw new Error('Missing DOM Node object');
+  }
+
   // Used to associate state with the currently rendering node. This
   // prevents attaching properties to the instance itself.
   var state = _cache.StateCache.get(node) || {};
@@ -1065,6 +1110,22 @@ function createTransaction(node, newHTML, options) {
   // We're rendering in the UI thread.
   state.isRendering = true;
 
+  // Store all transaction starting middleware functions being executed here.
+  var startTransactionMiddlewares = [];
+
+  // Start off the middleware execution.
+  _cache.MiddlewareCache.forEach(function (executeMiddleware) {
+    // Pass the start transaction call with the newHTML argument.
+    var result = executeMiddleware(newHTML);
+
+    if (result) {
+      startTransactionMiddlewares.push(result);
+    }
+  });
+
+  // Alias the `oldTree` off of state for parity.
+  var oldTree = state.oldTree;
+
   // We need to ensure that our target to diff is a Virtual Tree Element. This
   // function takes in whatever `newHTML` is and normalizes to a tree object.
   // The callback function runs on every normalized Node to wrap childNodes
@@ -1082,11 +1143,50 @@ function createTransaction(node, newHTML, options) {
     return Array.isArray(newTree) ? newTree[0] : newTree;
   });
 
+  // Trigger any middleware with the DOM Node, old Virtual Tree Element, and
+  // new Virtual Tree Element. This allows the middleware to mutate and inspect
+  // the trees before they get consumed by diffHTML.
+  var prePatchMiddlewares = [];
+
+  for (var i = 0; i < startTransactionMiddlewares.length; i++) {
+    // Pass the currently operated on DOM Node, the existing Virtual Tree
+    // Element, and the new Virtual Tree Element. This is triggered before
+    // the synchronization and patching has occured.
+    var result = startTransactionMiddlewares[i]({
+      node: node,
+      oldTree: oldTree,
+      newTree: newTree
+    });
+
+    if (result) {
+      prePatchMiddlewares.push(result);
+    }
+  }
+
   // Synchronize the tree.
-  var patches = (0, _sync2.default)(state.oldTree, newTree);
+  var patches = (0, _sync2.default)(oldTree, newTree);
 
   // Apply the set of patches to the Node.
   var promises = (0, _patch2.default)(node, patches);
+
+  // Trigger any middleware after syncing and patching the element. This is
+  // mainly useful to get the Promises for something like devtools and patches
+  // for something like logging.
+  var postPatchMiddlewares = [];
+
+  for (var _i = 0; _i < prePatchMiddlewares.length; _i++) {
+    // The DOM Node patching has finished and now we're sending the patchset
+    // and the promises which can also be pushed into to do some asynchronous
+    // behavior in a middleware.
+    var _result = prePatchMiddlewares[_i]({
+      patches: patches,
+      promises: promises
+    });
+
+    if (_result) {
+      postPatchMiddlewares.push(_result);
+    }
+  }
 
   // Clean up and finalize this transaction. If there is another transaction,
   // get a callback to run once this completes to run it.
@@ -1096,11 +1196,15 @@ function createTransaction(node, newHTML, options) {
   // they are actually Promises or not, since they will all resolve eventually
   // with `Promise.all`.
   if (promises.length) {
-    Promise.all(promises).then(finalizeTransaction, function (ex) {
+    Promise.all(promises).then(function () {
+      finalizeTransaction(postPatchMiddlewares);
+    }, function (ex) {
       return console.log(ex);
     });
   } else {
-    finalizeTransaction();
+    // Pass off the remaining middleware to allow users to dive into the
+    // transaction completed lifecycle event.
+    finalizeTransaction(postPatchMiddlewares);
   }
 }
 
@@ -1134,10 +1238,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param childNodes
  * @return
  */
-var normalizeChildNodes = function normalizeChildNodes(childNodes) {
+var normalizeChildNodes = function normalizeChildNodes(_childNodes) {
   var newChildNodes = [];
+  var childNodes = Array.isArray(_childNodes) ? _childNodes : [_childNodes];
 
-  [].concat(childNodes).forEach(function (childNode) {
+  childNodes.forEach(function (childNode) {
     if ((typeof childNode === 'undefined' ? 'undefined' : _typeof(childNode)) !== 'object') {
       newChildNodes.push(createElement('#text', null, String(childNode)));
     } else if ('length' in childNode) {
@@ -1169,11 +1274,22 @@ function createElement(nodeName, attributes, childNodes) {
     return normalizeChildNodes(childNodes);
   }
 
+  if (typeof nodeName === 'function') {
+    var props = attributes;
+    props.children = childNodes;
+    return new nodeName(props).render(props);
+  } else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
+    var _props = attributes;
+    _props.children = childNodes;
+    return nodeName.render(_props);
+  }
+
   var entry = _pools.pools.elementObject.get();
   var isTextNode = nodeName === 'text' || nodeName === '#text';
 
   entry.key = '';
   entry.nodeName = nodeName.toLowerCase();
+  entry.rawNodeName = nodeName;
 
   if (!isTextNode) {
     entry.nodeType = 1;
@@ -1238,7 +1354,7 @@ var _cache = _dereq_('../util/cache');
  */
 function makeNode(node) {
   // These are the only DOM Node properties we care about.
-  var nodeName = node.nodeName;
+  var nodeName = node.nodeName.toLowerCase();
   var nodeType = node.nodeType;
   var nodeValue = node.nodeValue;
   var attributes = node.attributes || [];
@@ -1676,6 +1792,9 @@ var StateCache = exports.StateCache = new Map();
 // Associates Virtual Tree Elements with DOM Nodes.
 var NodeCache = exports.NodeCache = new Map();
 
+// Caches all middleware. You cannot unset a middleware once it has been added.
+var MiddlewareCache = exports.MiddlewareCache = new Set();
+
 },{}],11:[function(_dereq_,module,exports){
 'use strict';
 
@@ -1939,9 +2058,9 @@ var TextNode = function TextNode(value) {
  * Note: this is a minimalist implementation, no complete tree structure
  * provided (no parentNode, nextSibling, previousSibling etc).
  *
- * @param {string} name     nodeName
- * @param {Object} rawAttrs attributes in string
- * @param {Object} supplemental data
+ * @param {String} nodeName - DOM Node name
+ * @param {Object} rawAttrs - DOM Node Attributes
+ * @param {Object} supplemental - Interpolated data from a tagged template
  * @return {Object} vTree
  */
 var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
@@ -2024,8 +2143,8 @@ function parse(html, supplemental) {
       // not </ tags
       var attrs = {};
 
-      if (!match[4] && kElementsClosedByOpening[currentParent.nodeName]) {
-        if (kElementsClosedByOpening[currentParent.nodeName][match[2]]) {
+      if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
+        if (kElementsClosedByOpening[currentParent.rawNodeName][match[2]]) {
           stack.pop();
           currentParent = stack[stack.length - 1];
         }
@@ -2059,13 +2178,13 @@ function parse(html, supplemental) {
     if (match[1] || match[4] || selfClosing.has(match[2])) {
       // </ or /> or <br> etc.
       while (currentParent) {
-        if (currentParent.nodeName == match[2]) {
+        if (currentParent.rawNodeName == match[2]) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
           break;
         } else {
-          var tag = kElementsClosedByClosing[currentParent.nodeName];
+          var tag = kElementsClosedByClosing[currentParent.rawNodeName];
 
           // Trying to close current tag, and move on
           if (tag) {
@@ -2235,6 +2354,7 @@ function initializePools(COUNT) {
 
     fill: function fill() {
       return {
+        rawNodeName: '',
         nodeName: '',
         nodeValue: '',
         nodeType: 1,
