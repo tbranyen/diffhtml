@@ -68,7 +68,7 @@ describe('Integration: Basics', function() {
 
   describe('Special features', function() {
     it('can modify the document\'s title', function() {
-      var doc = document.implementation.createHTMLDocument();
+      var doc = document.implementation.createHTMLDocument('');
 
       doc.open();
       doc.write('<html><head><title></title></head></html>');

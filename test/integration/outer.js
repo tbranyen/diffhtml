@@ -26,9 +26,13 @@ describe('Integration: outerHTML', function() {
   });
 
   it('can replace the documentElement', function() {
-    var doc = document.implementation.createHTMLDocument();
+    var doc = document.implementation.createHTMLDocument('');
     doc.open();
     doc.write('<html><head><title>Test</title></head></html>');
+
+    // Ensure the title is actually set, seems like Firefox does not do this
+    // automatically with `document.write`.
+    doc.title = 'Test';
 
     var documentElement = doc.documentElement;
     var originalSource = documentElement.outerHTML;
