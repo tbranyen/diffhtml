@@ -1,6 +1,7 @@
 import * as parser from '../../../lib/util/parser';
 import { cleanMemory } from '../../../lib/util/memory';
 import validateMemory from '../../util/validateMemory';
+import { innerHTML, release } from '../../../lib/index';
 
 describe('Unit: Parser', function() {
   afterEach(function() {
@@ -115,5 +116,43 @@ describe('Unit: Parser', function() {
     assert.equal(nodes[1].nodeName, 'div');
     assert.equal(nodes[1].childNodes[0].nodeName, '#text');
     assert.equal(nodes[1].childNodes[0].nodeValue, 'Hello world');
+  });
+
+  it('will throw on invalid markup, when in strict mode', function() {
+    assert.throws(e => {
+      parser.parse(`
+        <span></span><div><div></div>
+        <ul>
+          <li>test</p>
+        </ul>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      `, null, { strict: true }).childNodes[0];
+
+      assert.equal(ex.message,
+        "</p>\n^\nPossibly invalid markup. Saw p, expected li...\n        \n      </ul>\n      <div></div>"
+      );
+    });
+  });
+
+  it('will not throw on invalid markup when strict mode is false', function() {
+    assert.doesNotThrow(() => {
+      parser.parse(`
+        <span></span><div><div></div>
+        <ul>
+          <li>test</p>
+        </ul>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      `, null, { strict: false }).childNodes[0];
+    });
   });
 });
