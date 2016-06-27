@@ -39,7 +39,7 @@ describe('Integration: Middleware', function() {
   it('can register middleware and pass the new HTML arg', function() {
     var actual = null;
 
-    this.unset = diff.use(newHTML => {
+    this.unset = diff.use(({ newHTML }) => {
       actual = newHTML;
     });
 
@@ -58,9 +58,9 @@ describe('Integration: Middleware', function() {
     diff.innerHTML(this.fixture, '<div></div>');
 
     assert.deepEqual(Object.keys(options), [
-      'node',
       'oldTree',
       'newTree',
+      'transactionMethods',
     ]);
   });
 
@@ -89,5 +89,13 @@ describe('Integration: Middleware', function() {
     }));
 
     diff.innerHTML(this.fixture, '<div></div>');
+  });
+
+  it('will call the unsubscribe middleware method when removed', function(done) {
+    function middleware() {}
+    middleware.unsubscribe = done;
+    this.unset = diff.use(middleware);
+
+    this.unset();
   });
 });
