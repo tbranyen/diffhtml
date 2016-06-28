@@ -18,16 +18,6 @@ describe('Integration: Basics', function() {
     it('exposes diffhtml global', function() {
       assert.equal(typeof diff, 'object');
     });
-
-    it('exists on Element prototype', function() {
-      assert(!('diffInnerHTML' in Element.prototype));
-      assert(!('diffOuterHTML' in Element.prototype));
-
-      diff.enableProllyfill();
-
-      assert('diffInnerHTML' in Element.prototype);
-      assert('diffOuterHTML' in Element.prototype);
-    });
   });
 
   describe('Call API', function() {

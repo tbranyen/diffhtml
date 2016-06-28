@@ -44,7 +44,6 @@ exports.element = element;
 exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
 exports.use = use;
-exports.enableProllyfill = enableProllyfill;
 
 var _transaction = _dereq_('./node/transaction');
 
@@ -199,78 +198,6 @@ function use(middleware) {
     // to cleanup).
     middleware.unsubscribe && middleware.unsubscribe();
   };
-}
-
-/**
- * By calling this function your browser environment is enhanced globally. This
- * project would love to hit the standards track and allow all developers to
- * benefit from the performance gains of DOM diffing.
- */
-function enableProllyfill() {
-  // Exposes the `html` tagged template helper globally so that developers
-  // can trivially craft VDOMs.
-  Object.defineProperty(window, 'html', {
-    configurable: true,
-
-    value: _taggedTemplate.html
-  });
-
-  // Allows a developer to add transition state callbacks.
-  Object.defineProperty(document, 'addTransitionState', {
-    configurable: true,
-
-    value: function value(state, callback) {
-      addTransitionState(state, callback);
-    }
-  });
-
-  // Allows a developer to remove transition state callbacks.
-  Object.defineProperty(document, 'removeTransitionState', {
-    configurable: true,
-
-    value: function value(state, callback) {
-      removeTransitionState(state, callback);
-    }
-  });
-
-  // Exposes the API into the Element, ShadowDOM, and DocumentFragment
-  // constructors.
-  [typeof Element !== 'undefined' ? Element : undefined, typeof HTMLElement !== 'undefined' ? HTMLElement : undefined, typeof ShadowRoot !== 'undefined' ? ShadowRoot : undefined, typeof DocumentFragment !== 'undefined' ? DocumentFragment : undefined].filter(Boolean).forEach(function (Ctor) {
-    Object.defineProperty(Ctor.prototype, 'diffInnerHTML', {
-      configurable: true,
-
-      set: function set(newHTML) {
-        innerHTML(this, newHTML);
-      }
-    });
-
-    // Allows a developer to set the `outerHTML` of an element.
-    Object.defineProperty(Ctor.prototype, 'diffOuterHTML', {
-      configurable: true,
-
-      set: function set(newHTML) {
-        outerHTML(this, newHTML);
-      }
-    });
-
-    // Allows a developer to diff the current element with a new element.
-    Object.defineProperty(Ctor.prototype, 'diffElement', {
-      configurable: true,
-
-      value: function value(newElement, options) {
-        element(this, newElement, options);
-      }
-    });
-
-    // Releases the retained memory.
-    Object.defineProperty(Ctor.prototype, 'diffRelease', {
-      configurable: true,
-
-      value: function value() {
-        releaseNode(this);
-      }
-    });
-  });
 }
 
 },{"./node/release":5,"./node/transaction":6,"./tree/helpers":7,"./util/cache":10,"./util/tagged-template":16,"./util/transitions":17}],2:[function(_dereq_,module,exports){
