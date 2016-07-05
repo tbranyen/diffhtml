@@ -84,8 +84,6 @@ module.exports = function(config) {
     },
 
     browserify: {
-      debug: true,
-
       transform: [
         !process.env.SKIP_COV ? [istanbul({
           instrumenter: isparta,

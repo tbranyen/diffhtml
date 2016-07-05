@@ -5,11 +5,18 @@ describe('Integration: Basics', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
     this.fixture.innerHTML = '<div></div>';
+
+    // Ensure this fixture is in the DOM.
+    document.body.appendChild(this.fixture);
   });
 
   afterEach(function() {
     diff.release(this.fixture);
     diff.removeTransitionState();
+
+    if (this.fixture.parentNode) {
+      document.body.removeChild(this.fixture);
+    }
 
     validateMemory();
   });
@@ -31,7 +38,7 @@ describe('Integration: Basics', function() {
       });
     });
 
-    it('will not error if markup is missing', function() {
+    it('will not error if markup is empty', function() {
       var test = this;
 
       assert.doesNotThrow(function() {
@@ -64,7 +71,10 @@ describe('Integration: Basics', function() {
       doc.write('<html><head><title></title></head></html>');
 
       var documentElement = doc.documentElement;
-      diff.outerHTML(documentElement, '<html><head><title>Test</title></head></html>');
+
+      diff.outerHTML(documentElement, `<html>
+        <head><title>Test</title></head>
+      </html>`);
 
       assert.equal(doc.title, 'Test');
 
