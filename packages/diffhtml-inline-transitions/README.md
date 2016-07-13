@@ -6,7 +6,7 @@ Latest stable version: 1.2.0
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml-inline-transitions.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml-inline-transitions)
 [![Coverage Status](https://coveralls.io/repos/github/tbranyen/diffhtml-inline-transitions/badge.svg?branch=master)](https://coveralls.io/github/tbranyen/diffhtml-inline-transitions?branch=master)
 
-Tiny module to support binding/unbinding transition hooks declaratively.
+Tiny module to support binding/unbinding declarative diffHTML transition hooks.
 
 #### Install
 
@@ -18,15 +18,46 @@ npm install diffhtml-inline-transitions
 
 diffHTML allows developers to globally define transitions that can react to
 changes in the DOM and optionally prevent renders until a returned Promise
-completes. This is ideal for animations and monitoring when things happen.
+completes. This is ideal for animations and monitoring when things happen.  You
+can read more on them [on the diffHTML GitHub
+page](https://github.com/tbranyen/diffhtml#user-content-add-a-transition-state-callback).
 
-You can read more on them here: https://github.com/tbranyen/diffhtml#user-content-add-a-transition-state-callback
+##### Basic jQuery fadeOut example
 
-What isn't ideal is defining all these transitions globally. It'd be nicer to
-be able to inline them directly into a tagged template...
+> Each element will fade out for a second before being removed from the page.
 
-This module does just that, and works identical to `addTransitionState`, except
-for two minor differences.
+``` js
+diff.addTransitionState('detached', el => $(el).fadeOut(1000).promise());
+```
+
+
+While it is very easy to set up global state handlers, it becomes complicated
+once you try to filter down to the eact element you want to match. You can
+envision the complications of many transitions:
+
+``` js
+document.addTransitionState('detached', el => {
+  if (el.matches('.shopping-cart li')) {
+    // Do one thing.
+  }
+  else if (/* imagine even more */) {
+
+  }
+  else {
+    // The default thing.
+  }
+});
+```
+
+Since the handlers are global and expensive to run you typically want to only
+register one at a time. This builds up the if/else logic. The best way to fix
+this is to expose the state callbacks as an inline attribute => prop hook. So
+basically you set the property `attached` to a function and it registers it for
+you.
+
+Internally it will only create a single transition hook and will batch and
+optimize your scoped placement. **There are two notable API signature
+differences:**
 
 - First, it adds the element you defined the transition on as the first argument
   to the transition callback. This way you can track the relationship between
@@ -39,14 +70,16 @@ for two minor differences.
 
 - Subscribe to attribute changes
 
-  ```js
+  ``` js
   const unsubscribe = inlineTransitions(diff);
   ```
 - Unsubscribe from attribute changes:
 
-  ```js
+  ``` js
   unsubscribe();
   ```
+
+#### Full example
 
 Apply to an element by passing the function to the associated state name:
 
