@@ -1,0 +1,19 @@
+{
+  "name": "diffhtml-website",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "combyne": "^2.0.0",
+    "connect-livereload": "^0.5.4",
+    "diffhtml": "tbranyen/diffhtml#master",
+    "express": "^4.14.0",
+    "serve-favicon": "^2.3.0"
+  }
+}

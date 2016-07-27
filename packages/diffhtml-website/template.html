@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>diffHTML: Easily diff HTML with tagged template strings and transitions</title>
+
+  <link rel="stylesheet" href="./highlight.min.css">
+  <link rel="stylesheet" href="./simple-hint.min.css">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./node_modules/font-awesome/css/font-awesome.css">
+</head>
+<body>
+  <nav>
+    <ul>
+      <li class="header"><h4>Getting started</h4></li>
+
+      <a href="#about"><li>About</li></a>
+      <a href="#features"><li>Features</li></a>
+      <a href="#api"><li>API</li></a>
+
+      {%if api%}
+      <ul class="sub">
+        {%each api.comments as comment%}
+          <a href="#{{comment.ctx.name}}"><li>{{comment.ctx.name}}</li></a>
+        {%endeach%}
+      </ul>
+      {%endif%}
+      <a href="#changelog"><li>Changelog</li></a>
+
+      <li class="header"><h4>Concepts</h4></li>
+
+      <a href="#virtual-trees"><li>Virtual trees</li></a>
+      <a href="#object-pooling"><li>Object pooling</li></a>
+      <a href="#render-transaction"><li>Render transactions</li></a>
+      <a href="#tagged-templates"><li>Tagged templates</li></a>
+      <a href="#transitions"><li>Transitions</li></a>
+      <a href="#middleware"><li>Middleware</li></a>
+
+      <li class="header"><h4>Middleware</h4></li>
+      <a href="#logging"><li>Logging</li></a>
+      <a href="#inline-transition-hooks"><li>Inline transition hooks</li></a>
+
+      <li class="header"><h4>External tools</h4></li>
+
+      <a href="#transpiler"><li>Babel transform</li></a>
+      <a href="#prollyfill"><li>Browser prollyfill</li></a>
+
+      <li class="header"><h4>Examples</h4></li>
+
+      <a href="https://github.com/tbranyen/todomvc"><li>TodoMVC</li></a>
+    </ul>
+  </nav>
+  <section id="content">
+    <header>
+      <h1>diffHTML |</h1> 
+      Easily diff HTML with tagged template strings and transitions
+    </header>
+
+    <center>
+      <a class="header" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE">MIT License</a>
+    </center>
+
+    <br>
+
+    <p class="social">
+      <a class="github hint-top-t-error" data-hint="GitHub" href="https://github.com/tbranyen/diffhtml"><i class="fa fa-github" aria-hidden="true"></i></a><a class="stackoverflow hint-top-t-notice" data-hint="Stack Overflow" href="https://stackoverflow.com/search?q=diffhtml+javascript"><i class="fa fa-stack-overflow" aria-hidden="true"></i></a><a class="twitter hint-top-t-info" data-hint="Twitter" href="https://twitter.com/diffhtml"><i class="fa fa-twitter" aria-hidden="true"></i></a><a class="gitter hint-top-t-success" data-hint="Gitter" href="https://gitter.im/tbranyen/diffhtml">
+        <svg class="gitter" viewBox="60 -20 107.25 187.25">
+          <g id="_x38_MJ9tV.tif" display="none">
+            
+              <image display="inline" overflow="visible" width="117" height="32" id="Layer_0" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHYAAAAhCAYAAAAMLF9eAAAACXBIWXMAAAsSAAALEgHS3X78AAAA GXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABO1JREFUeNrsWm9oVWUYP9s92KRr WTmSxqxoEEqLCStYJIUg6BcTB0K1QELsY0iDvoj74AcRFD+M/lAjlKDCf6BDsMJImlExaDqdTm4l m6vrrq6lY1cu3tnv2f2d+e7lnLv37Aa99/r+4Me599z3vec97/M+z/t7nnOqMvWb9nme1+QV8AF4 snb44ITnUNbwadRX+f0YzzmUOardFDjDOpRZKA5Fpn5jAw5Jfh0D07XDR3M4X4fPj4IJMAsO4XwW 5+XcUnCBet5NsWWGBd4Hm/m5G/wY/BN8HVwPLgIHwQ4eXwbfAZ/QzjtYZtgGRS2fpScKxGMbwcX8 vpBH8dgV4FPaeQe3xzo4wzrMOxT/r3js+eZGhnY9pKfAvhvneidC+gTC7h8Re2iTwzlV1MXBCEVg 3Ty2lbESrj8tPNE3y3tSRWwUUvp8+BYa9BUc2ri/P0L1rUJu4C+0+xbHz3FDaeW3QNh9r4g9VdTF wR6Kv3bw2Zh9u0u4vi48VREbhQnMx484fkYj533LjLoBh3d5Iw+C58GLXMWCGk5yCzjpFSplqmED Yfe7gYfM8m4wF2OogRfmxbuU8UW1lcjzuEHbYiJ2hJEgH3Efco2XZCFiHnt9i4wqN7CVRrsOSg37 JHhNuZkE06wnGR7HDf66h+FbN3Q7vfuM4l1hobgjJBSvpxfeikjrxngPKoYMU8As2+r4EjzOa6qQ sa1R5m6LLFSbPLYVXAlOgbvBw+CohJWQRTBA752c60/Rf4wTrf9HhgtGfhtAuytFQqPet4keLkYY RN8+w73TtG3Unt+P/uMh40nRa98C14FdviXeKoNaDS4BvwFPUXzcjTBWLmborGhgPjLUHGsZumts SXee5h4kC+0EeDXKqA6REJ1wm9tVlS2GDSR9lqHPPQ+Oj+XgQ7alOwu50kQ0jMNbpypw4mXxfoqQ WWzRTr/oEJajGwjPN5hS9YvSty2PzYbI+agbSQYpQJjAshBJg3y02IsOL4iuwL3rgvE58EVFeIp6 Hi7XtyWCpH1PRApgI1JU+6k52kR561oWO/Ro9jBD8B/gAfAr8G+f7n+MjU7PI4EO8Au4kxfJ0Jvi wrR8FyTttSGVKVshBustId0Ro/+mZAPPcA6StKGkhxeCCOazCOAroTBXwoWveoUHC3mTHDNkpdZL RQfhZgFTGod7+JrGu8nvsqh3gatoZEkPMzPi6b96I1HerihhUQwynCY40J9DKkH3O6SQMhQUKLD4 h3HopDNIiG7FuU8C41ZbNOgeHqWQ34JBugf1xYsSeRZyDjHSbhYBJdHOGsNykF/QcyXEbAe3YpDL wISmiOfzGK1SjSvRdj/4K/XJewzLVj22k/rvXnCHV3hS0c7crB/GvKWIqzr+Xol57Ix6htFShv8r avhDr/BKkmxjbbhGp2/R6pMcTQSC7CFvgq8xPxMj3lEKGeLdl8GfwO+88qlSmeSxgsXe3A/WZ0U7 zFsQkuUJz9tgt29baMEgf6Cs76JRk1oBQ1boqDQHr6HPHa1yc8QrPDJLz3G5OG11SCZxiQsuZdi2 JkZapP7nNho7MsflvH3kFersD8j1rCtQMM25IsRgz2nbxXQaFVVpYvhKGV7HuG1I37TpYojTNqJ/ n2G7EbV2YHXlKW7N1OEe3FuKzrAO5YRioTjYtD3uEWlNdPghG72DJfhXgAEAeZ7JyudM7bYAAAAA SUVORK5CYII=" transform="matrix(1 0 0 1 1052.3047 715.1357)">
+            </image>
+          </g>
+          <g id="VZchZG.tif" display="none">
+            
+              <image display="inline" overflow="visible" width="32" height="32" id="Layer_0_1_" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsSAAALEgHS3X78AAAA GXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAIhJREFUeNpiZAACC2PbM4x//0gx 0BH8Z2Z5duLsYRNGkOUggYFwAIhmobfFMACzl4lhgMGoA0YdMOoAvA5wcnX5ffTc0bMgTA2x0SgY dcCoA0YdgA2w4JPct3sPKxAbk2MwsXpHo2DUAaMOYLQ0sHw2GgUjuyiGdRIHqnPKBOoiD5TvQXYD BBgAmlpH8O1Ct20AAAAASUVORK5CYII=" transform="matrix(1 0 0 1 792 546)">
+            </image>
+          </g>
+          <g id="jxJjd2.tif" display="none">
+            
+              <image display="inline" overflow="visible" width="64" height="64" id="Layer_0_2_" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAP/AAAD/wGuK+TeAAAA GXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAnFJREFUeNrsW79LHEEUntE9KzHk clwjeI2FTapACIhdsDgkhMRCbSzCWVkEUoR0KUPaFMJZiH+AIhaHEBBMGSGNf4Bco0fCVYIG0X35 5n7OXW7hZHd25/bNg+9m7it2bt59772Z3R0pNKvnN16iWQUWgDwwLtJjd8A58B3YAqpPfpdJapP/ gqYEZEX67QLYBI5kc/Klr2jeMZl8266AN7KeK71Apww8Ffxsfwwfr4FpwdMWPSFpFp1Jpg6YVArw AMnUAUI54B4grg7wGM+95QCf9fwbIcBcAZKcApjnAN8pwDnAgE0dfhTZ+k4Dmfk5pwBrcwAZqgL6 VdUYZGm1cQqI459xCtDs0cEnkfuz24CeHB/Kj+BmiAzzLgdYthfQr6v67e9R8aMVAhQg3aj4MFWA 9fSdAoTnS3NT1vvtcaLiXRm0XQG6qTEGjRMVHzIJkogjCLrjRMWP6G4wKt6VQftDoF+4ZIwPGQKG Zi17+51xouJtVwD9J12KlLdfAf0/XJrjQy6EzFht+bNV14m9DA4THL1ljYyWu+CVYMyPx/uXNf7A WO/yxh2Q5K3KOOt9okkw0AEBZY0MlDsLdoN2asBL+m59PJvehJfCYRZIMeSAmN8PkHq580Vn/CDe vAJkgvKXYtD4QXwqQmDQ/m54PgVJkAJyPSW0DpBnM6/20C4BE4Khebxfkks8BzgFJG7u8bgLAe4K cC9LNw9Hsj0y4/nuyAxV0V4zXQn+VSFQAS6ZCuBHI/ZPC8VtNCuC1/lBFfZvWw9G6D0+Mopg4oQb 4ANw3JP9fxaKa2jWgWfA45StFFWyrwEnwDfg1/Nq5fafAAMAE6xkAvixwqwAAAAASUVORK5CYII=" transform="matrix(2.7695 0 0 2.7695 86.75 49.25)">
+            </image>
+          </g>
+          <rect x="61" y="41.5" width="8.25" height="61"/>
+          <rect x="110.75" y="55.5" width="8.25" height="47"/>
+          <rect x="77.5" y="55.5" width="8.25" height="80.25"/>
+          <rect x="94.25" y="55.5" width="8.25" height="80.25"/>
+        </svg>
+      </a>
+    </p>
+
+    <a class="header" href="#about"><h3 id="about">About</h3></a>
+
+    <p>
+      diffHTML is well suited for architecting production web views and
+      components. It is powered by an efficient object pooling system which
+      provides stable memory consumption. Transition hooks are embedded into
+      the rendering flow allowing them to be scheduled asynchronously. This
+      makes them very useful for animating elements in and out of the DOM.
+      Lightweight middleware, modeled after <a
+      href="https://github.com/senchalabs/connect#use-middleware">connect</a>,
+      exposes internals useful for development tools.
+    </p>
+
+    <p>
+      This library was influenced and inspired by existing projects like: <a
+      href="https://facebook.github.io/react/">React</a>, <a
+      href="https://github.com/Matt-Esch/virtual-dom">virtual-dom</a>, <a
+      href="https://github.com/shama/bel">bel</a>, and <a
+      href="https://github.com/maxogden/yo-yo">yo-yo</a>. 
+    </p>
+
+    <a class="header" href="#install"><h5 id="install">Install using &nbsp;
+    
+      <svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
+        <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
+        <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
+      </svg>
+    </h5></a>
+
+    <p>
+      <pre><code class="bash">npm install diffhtml --save</code></pre>
+    </p>
+
+    <a class="header" href="#hello-world"><h5 id="hello-world">Hello world example</h5></a>
+
+    <pre><code class="javascript">diff.innerHTML(document.body, '&lt;h1&gt;Hello world!&lt;/h1&gt;')</code></pre>
+
+    <a class="header" href="#features"><h3 id="features">Features</h3></a>
+
+    <p>
+      While the surface area of diffHTML is minimal, it packs a ton:
+    </p>
+
+    <p>
+      <ul>
+      <li>Aids you with writing components and composing applications. Think of it as
+      the the View layer to reflect a Redux store.</li>
+      <li>Transpiling is optional which encourages you to write valid JS.</li>
+      <li>Real HTML with dynamic interpolation including inline event binding.
+      Uses a loose parser and supports <code>class</code>, <code>value</code>,
+      and <code>data-*</code> attributes without issue.</li>
+      <li>A rich transitions API that animates your application and components with
+      ease.</li>
+      <li>Performance and memory management are core to this library. It is built with
+      object recyling to keep memory constant and reduces garbage collection during
+      tight loops.</li>
+      </ul>
+    </p>
+
+    <a class="header" href="#file-size"><h5 id="file-size">File size</h5></a>
+
+    <p>
+      Pretty darn tiny once compressed at <strong>9.9kb</strong> minified +
+      gzip. If you are transpiling or not using HTML, you can omit the parser
+      by requiring <code>diffhtml/runtime</code> instead, bringing the size
+      down to <strong>8.5kb</strong>!
+    </p>
+
+    <p>
+      <pre><code class="bash">  # Full build (includes parser)
+   81K Jun 23 23:27 diffhtml.js
+   43K Jun 23 23:28 diffhtml.min.js
+  9.9K Jun 23 23:27 diffhtml.min.js.gz
+
+  # Runtime build (excludes parser)
+   71K Jun 23 23:28 diffhtml-runtime.js
+   38K Jun 23 23:28 diffhtml-runtime.min.js
+  8.5K Jun 23 23:27 diffhtml-runtime.min.js.gz</code></pre>
+    </p>
+
+    <a class="header" href="#browser-compatibility"><h5 id="browser-compatibility">Browser compatibility</h5></a>
+
+    <p>
+      We aim for broad compatibility amongst devices and their various
+      browsers. The output bundles are valid ES5, but may require the Babel
+      polyfill to be loaded in unsupported browsers.
+    </p>
+
+    <strong>Supporting legacy browsers</strong>
+
+    <p>
+      diffHTML uses many modern browser features, such as <a
+      href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>,
+      which are not available in all browsers.
+
+      If you wish to use diffHTML in older browsers, make sure you have the <a
+      href="https://babeljs.io/docs/usage/polyfill/">Babel polyfill</a> loaded
+      first.
+    </p>
+
+    <p>
+      <table>
+        <thead>
+          <tr style="font-weight: bold; text-align: center;">
+            <th style="background-color: #FFF2CC;">IE (9/10/11)
+            <th style="background-color: #FFF2CC;">Edge (13)
+            <th style="background-color: #FFF2CC;">Firefox (47)
+            <th style="background-color: #FFF2CC;">Chrome (51)
+            <th style="background-color: #FFF2CC;">Safari (9.1)
+            <th style="background-color: #FFF2CC;">Opera (38)
+            <th style="background-color: #FFF2CC;">iOS iPhone Safari (9.3)
+            <th style="background-color: #FFF2CC;">Android Chrome (50)
+        <tbody>
+          <tr style="font-weight: bold; text-align: center;">
+            <td style="background-color: #F4CCCC;">✗
+            <td style="background-color: #CEE2DC;">✓
+            <td style="background-color: #CEE2DC;">✓
+            <td style="background-color: #CEE2DC;">✓
+            <td style="background-color: #CEE2DC;">✓
+            <td style="background-color: #CEE2DC;">✓
+            <td style="background-color: #CEE2DC;">✓
+            <td style="background-color: #CEE2DC;">✓
+      </table>
+    </p>
+
+    <a class="header" href="#api"><h3 id="api">API</h3></a>
+
+    <div id="api-browser"></div>
+
+    <a class="header" href="#changelog"><h3 id="changelog">Changelog</h3></a>
+
+    <p></p>
+
+    <a class="header" href="https://github.com/tbranyen/diffhtml/master"><h5>1.0.0 (Unreleased)</h5></a>
+
+    <ul>
+      <li>Will be initial public release</li>
+      <li>Middleware API</li>
+      <li>Better HTML parsing</li>
+    </ul>
+
+    <hr>
+
+    <a class="header" href="#virtual-trees"><h3 id="virtual-trees">Virtual trees</h3></a>
+
+    <p>
+      Fundamental to diffHTML is the notion of a Virtual DOM. In order for this
+      to work, all DOM Elements and Attributes must be "virtualized", which
+      means converted to a simple object. This virtualized object is much
+      lighter, as it contains only the very bare properties:
+      <code>rawNodeName</code>, <code>nodeName</code>, <code>nodeValue</code>,
+      <code>key</code>, <code>attributes</code>, <code>childNodes</code>. Two
+      attributes that may look odd are <code>rawNodeName</code> and
+      <code>key</code>. The first is used to reference the exact casing as
+      written, `nodeName` is always lowercased. The <code>key</code> is used
+      for sibling elements when you want to have precise control over which
+      elements are added, moved, and removed.
+    </p>
+
+    <p>
+      You can create Virtual Elements using the API method,
+      <code>createElement</code>.
+
+      <h5>Example markup and respective Virtual Element JSON</h5>
+
+      <pre><code class="html">&lt;div class=&quot;test&quot;&gt;Hello world&lt;/div&gt;</code></pre>
+
+      <pre><code class="javascript">{
+  "rawNodeName": "DIV",
+  "nodeName": "div",
+  "nodeValue": "",
+  "nodeType": 1,
+  "key": "",
+  "attributes": [{ "class": "test" }],
+  "childNodes": [{
+    "rawNodeName": "#text",
+    "nodeName": "#text",
+    "nodeValue": "Hello world",
+    "nodeType": 3,
+    "key": "",
+    "attributes": [],
+    "childNodes": []
+  }]
+}</code></pre>
+    </p>
+
+    <p>
+      Elements aren't the only objects that are "virtualized", attributes are
+      as well, due to how frequently they are used. Every attribute has a
+      <code>name</code> and <code>value</code>, making them easy to reuse.
+      The above example's attribute would be created using the API like so:
+
+      <pre><code class="javascript">diff.createAttribute('class', 'test')</code></pre>
+
+      <h5>Example Virtual Attribute JSON, it looks exactly like above</h5>
+
+      <pre><code class="javascript">{ "class": "test" }</code></pre>
+
+      You may wonder what the difference is between using the raw object and
+      calling <code>createAttribute</code>. The main difference is that using
+      <code>createAttribute</code> will pull from the <a
+      href="#object-pooling">object pooling</a> system. This is much more
+      efficient.
+    </p>
+
+    <a class="header" href="#object-pooling"><h3 id="object-pooling">Object pooling</h3></a>
+
+    <p>
+      One of the most  
+    </p>
+
+    <a class="header" href="#render-transaction"><h3 id="render-transaction">Render transactions</h3></a>
+    <p>Coming soon...</p>
+
+    <a class="header" href="#tagged-templates"><h3 id="tagged-templates">Tagged templates</h3></a>
+
+    <p>
+      JSX has shown that developers like to declartively describe their UI in
+      their component's source. For instance take a look at React's <a
+      href="https://facebook.github.io/react/docs/getting-started.html#separate-file">hello
+      world</a>:
+
+      <pre><code>ReactDOM.render(
+  &lt;h1&gt;Hello, world!&lt;/h1&gt;,
+  document.getElementById('example')
+);</code></pre>
+
+      This shows markup being embedded directly into the component. Note this
+      isn't exactly HTML per-se, but a similar flavor that leans closer to
+      strict XHTML than HTML. It also deals purely with properties and not
+      attributes. This is fairly far and away from standards and to use JSX
+      effecitively you'll need to align your tooling around it.
+    </p>
+
+    <p>
+      There is another way, however, 
+
+    <a class="header" href="#transitions"><h3 id="transitions">Transitions</h3></a>
+    <p>Coming soon...</p>
+
+    <a class="header" href="#middleware"><h3 id="middleware">Middleware</h3></a>
+    <p>Coming soon...</p>
+
+    <hr>
+
+    <a class="header" href="#logging"><h3 id="logging">Logging</h3></a>
+    <p>Coming soon...</p>
+
+    <a class="header" href="#inline-transition-hooks"><h3 id="inline-transition-hooks">Inline transition hooks</h3></a>
+    <p>Coming soon...</p>
+
+    <hr>
+
+    <a class="header" href="#babel-transform"><h3 id="babel-transform">Babel transform</h3></a>
+    <p>Coming soon...</p>
+
+    <a class="header" href="#browser-prollyfill"><h3 id="browser-prollyfill">Browser prollyfill</h3></a>
+    <p>Coming soon...</p>
+  </section>
+
+  <footer></footer>
+
+  <script src="/node_modules/diffhtml/dist/diffhtml.js"></script>
+  <script src="/highlight.min.js"></script>
+  <script src="/api-browser.js"></script>
+  <script>
+    const setTarget = selector => {
+      const target = document.querySelector(`a[href='${selector}']`);
+
+      if (target) {
+        [...document.querySelectorAll('.target')].forEach(el => el.classList.remove('target'));
+        target.classList.add('target');
+        document.querySelector(selector).scrollIntoView();
+      }
+    };
+
+    // This is due to the lack of server-side rendering for API docs. This should
+    // be rectified.
+    setTimeout(() => setTarget(location.hash), 200);
+
+    document.querySelector('nav ul').onclick = ev => {
+      if (ev.target.parentNode.matches('a')) {
+        setTarget(ev.target.parentNode.getAttribute('href'));
+      }
+    };
+  </script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>
