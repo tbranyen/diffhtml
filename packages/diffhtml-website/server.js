@@ -6,6 +6,7 @@ const favicon = require('serve-favicon');
 const apiDox = require('diffhtml-dox');
 
 const app = express();
+const port = process.env.PORT || 8000;
 const path = './template.html';
 
 const renderResponse = version => res => {
@@ -25,4 +26,4 @@ app.use('/api', apiDox.router);
 app.get('/:version', (req, res) => renderResponse(req.params.version)(res));
 app.get('/', (req, res) => renderResponse()(res));
 
-app.listen(8000, () => console.log('Listening at http://localhost:8000'));
+app.listen(port, () => console.log(`Listening at http://localhost:${port}`));

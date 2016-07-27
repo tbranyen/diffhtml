@@ -1,0 +1,12 @@
+[Service]
+ExecStart=/usr/bin/node /var/sites/diffhtml.org/source/server
+Restart=always
+StandardOutput=syslog
+SyslogIdentifier=www.drinkstandards.com
+User=tim
+Group=users
+Environment=PORT=/var/sites/diffhtml.org/socket
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
