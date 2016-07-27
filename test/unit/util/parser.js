@@ -155,4 +155,71 @@ describe('Unit: Parser', function() {
       `, null, { strict: false }).childNodes[0];
     });
   });
+
+  it('supports nested elements within <pre>', function() {
+    var nodes = parser.parse(`<pre><code></code></pre>`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'pre');
+    assert.equal(nodes[0].childNodes.length, 1);
+    assert.equal(nodes[0].childNodes[0].nodeName, 'code');
+  });
+
+  it('does not support nested elements within <script>', function() {
+    var nodes = parser.parse(`<script><pre></pre></script>`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'script');
+    assert.equal(nodes[0].childNodes.length, 1);
+    assert.equal(nodes[0].childNodes[0].nodeName, '#text');
+    assert.equal(nodes[0].childNodes[0].nodeValue, '<pre></pre>');
+  });
+
+  it('does not support nested elements within <noscript>', function() {
+    var nodes = parser.parse(`<noscript><pre></pre></noscript>`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'noscript');
+    assert.equal(nodes[0].childNodes.length, 1);
+    assert.equal(nodes[0].childNodes[0].nodeName, '#text');
+    assert.equal(nodes[0].childNodes[0].nodeValue, '<pre></pre>');
+  });
+
+  it('does not support nested elements within <style>', function() {
+    var nodes = parser.parse(`<style><pre></pre></style>`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'style');
+    assert.equal(nodes[0].childNodes.length, 1);
+    assert.equal(nodes[0].childNodes[0].nodeName, '#text');
+    assert.equal(nodes[0].childNodes[0].nodeValue, '<pre></pre>');
+  });
+
+  it('does not support nested elements within <code>', function() {
+    var nodes = parser.parse(`<code><pre></pre></code>`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'code');
+    assert.equal(nodes[0].childNodes.length, 1);
+    assert.equal(nodes[0].childNodes[0].nodeName, '#text');
+    assert.equal(nodes[0].childNodes[0].nodeValue, '<pre></pre>');
+  });
+
+  it('does not support nested elements within <template>', function() {
+    var nodes = parser.parse(`<template><pre></pre></template>`).childNodes;
+
+    assert.equal(nodes[0].nodeName, 'template');
+    assert.equal(nodes[0].childNodes.length, 1);
+    assert.equal(nodes[0].childNodes[0].nodeName, '#text');
+    assert.equal(nodes[0].childNodes[0].nodeValue, '<pre></pre>');
+  });
+
+  it('supports self closing elements', function() {
+    var nodes = parser.parse(`
+      <meta/>
+      <img/>
+      <link/>
+      <input/>
+      <area/>
+      <br/>
+      <hr/>
+    `.trim()).childNodes.filter(el => el.nodeType === 1);
+
+    assert.equal(nodes.length, 7);
+  });
 });

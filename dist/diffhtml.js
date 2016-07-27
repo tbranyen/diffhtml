@@ -1888,7 +1888,7 @@ var tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
 var spaceEx = /[^ ]/;
 
 // We use this Set in the node/patch module so marking it exported.
-var blockText = exports.blockText = new Set(['script', 'noscript', 'style', 'pre', 'template']);
+var blockText = exports.blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 
 var selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr']);
 
@@ -2093,10 +2093,7 @@ function parse(html, supplemental) {
         }
 
         var newText = html.slice(match.index + match[0].length, index);
-
-        if (newText.trim()) {
-          currentParent.childNodes.push(TextNode((0, _escape2.default)(newText)));
-        }
+        interpolateDynamicBits(currentParent, newText.trim(), supplemental);
       }
     }
 
