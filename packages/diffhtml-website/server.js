@@ -20,8 +20,10 @@ const renderResponse = version => res => {
   });
 };
 
-app.use(express.static('./'));
-app.use(favicon(new Buffer(20)));
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/assets', express.static('./'));
+  app.use(favicon(new Buffer(20)));
+}
 app.use('/api', apiDox.router);
 app.get('/:version', (req, res) => renderResponse(req.params.version)(res));
 app.get('/', (req, res) => renderResponse()(res));
