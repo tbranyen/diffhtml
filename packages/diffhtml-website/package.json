@@ -14,6 +14,7 @@
     "connect-livereload": "^0.5.4",
     "diffhtml": "tbranyen/diffhtml#master",
     "express": "^4.14.0",
+    "font-awesome": "^4.6.3",
     "serve-favicon": "^2.3.0"
   }
 }
