@@ -7,7 +7,7 @@ const apiDox = require('diffhtml-dox');
 
 const app = express();
 const port = process.env.PORT || 8000;
-const path = './template.html';
+const path = join(__dirname, './template.html');
 
 const renderResponse = version => res => {
   readFile(path, (err, result) => {
