@@ -331,7 +331,78 @@
     <p>Coming soon...</p>
 
     <a class="header" href="#middleware"><h3 id="middleware">Middleware</h3></a>
-    <p>Coming soon...</p>
+
+    <p>
+      Middleware is a minimalist way to gain access to the internals of the
+      render transaction cycle. It was designed with inspiration from: <a
+      href="http://redux.js.org/docs/advanced/Middleware.html#the-final-approach">Redux</a>
+      and <a
+      href="https://github.com/senchalabs/connect#use-middleware">connect</a>.
+      From Redux I saw an elegant way of returning functions to opt-in more
+      into the render flow. I chose the <a href="#use"
+      class="code"><code>use</code></a> method name from
+      connect. It is concise and familiar, simple, and 
+    </p>
+
+    <p>
+      What makes this approach great is that it follows a common, existing,
+      pattern. This puts it in harmony with other frontend libraries like: <a
+      href="https://vuejs.org/api/#Vue-use">VueJS</a> and <a
+      href="https://github.com/yoshuawuyts/choo#appusehooks">choo</a>.
+    </p>
+
+    <h5>Consuming & creating middleware</h5>
+
+    <p>
+      Middleware in diffHTML are just a collection of closures. They run in
+      order and whenever a return value is found, it is assumed to be a
+      function and is pushed into an array for the next render stage. It is
+      recommended to use arrow functions, since they are significantly cleaner
+      looking when nested.
+    </p>
+
+    <p>An example middleware</p>
+
+    <pre><code class="javascript">const middleware = start => sync => patch => finish => {
+  console.log('A render transaction completed');
+};</code></pre>
+
+    <p>
+      Register middleware by invoking the <a href="#use"
+      class="code"><code>use</code></a> method. 
+    </p>
+
+    <pre><code class="javascript">import { use } from 'diffhtml';
+
+const unsubscribe = diff.use(middleware);
+</code></pre>
+
+    <h5>Unsubscribe a middleware</h5>
+
+    <pre><code class="javascript">unsubscribe();</code></pre>
+
+    <p>
+      The return value of invoking the <a href="#use"
+      class="code"><code>use</code></a> method is an
+      unsubscribe function. When you invoke this, it will remove the middleware
+      from being invoked during renders. It will also invoke the
+      <code>unsubscribe</code> method on the middleware function object, if it
+      exists.
+    </p>
+
+    <p>
+      An example of adding cleanup logic to our previous middleware:
+    </p>
+
+    <pre><code class="javascript">const middleware = start => sync => patch => finish => {
+  console.log('A render transaction completed');
+};
+
+// Attach a handler that is called whenever this middleware is removed from
+// diffHTML.
+middleware.unsubscribe = () => {
+  console.log('This middleware was removed from diffHTML');
+};</code></pre>
 
     <hr>
 

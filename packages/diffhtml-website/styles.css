@@ -22,11 +22,21 @@ a.view-on-github {
   margin-left: 10px !important;
 }
 
+a.code {
+  border-bottom: 0 !important;
+}
+a.code code {
+  transition: all linear 240ms;
+}
+a.code:hover code {
+  background-color: #D5F3ED;
+}
+
 p.push-left {
   position: relative;
   left: -5px;
   padding: 8px;
-  background: #F0F0F0;
+  background: #FBFBFB;
 }
 
 a.methods, a.view-on-github {
@@ -46,6 +56,8 @@ ul.methods strong.args {
   color: #308486;
   padding-left: 3px;
   font-weight: 400;
+  position: relative;
+  top: -2px;
 }
 strong.args {
   font-family: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
@@ -150,12 +162,14 @@ section#content h4.api-method {
 #api-browser h5 {
   margin-top: 20px !important;
   margin-bottom: 10px !important;
+  font-size: 16px;
 }
 #api-browser table.details {
   background-color: #FBFBFB;
   border: 1px solid #F0F0F0;
   font-size: 14px;
   box-shadow: 2px 2px 3px rgba(51, 51, 51, 0.05);
+  margin: 16px 0;
 }
 #api-browser table.details th {
   font-size: 14px;
