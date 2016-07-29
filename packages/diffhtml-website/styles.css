@@ -243,7 +243,8 @@ section#content header {
 }
 
 section#content header h1 {
-  font-size: 20px;
+  font-weight: bold;
+  font-size: 26px;
   color: #676767;
 }
 
@@ -251,6 +252,10 @@ svg.gitter {
   position: relative;
   top: 5px;
   width: 17px;
+}
+
+p.social {
+  margin: 0;
 }
 
 p.social a {
@@ -330,6 +335,10 @@ section#content a.header {
   position: relative;
   color: #676767;
   display: inline-block;
+  border-bottom: 2px solid transparent;
+}
+section#content a.header:hover {
+  border-bottom: 2px solid #626262;
 }
 
 section#content a.header:hover h3 {
@@ -439,10 +448,29 @@ table th,td {
 
 @media only screen and (max-width : 1000px) {
   .nav-toggle { display: inline-block; }
-  nav { display: none; }
 
-  nav.open {
+  nav {
+    display: block;
+    left: -240px;
+    width: 240px;
+    transition: all linear 240ms;
+    opacity: 0;
+  }
 
+  center {
+    /* did you expect better */
+    text-align: left;
+  }
+
+  body.open nav {
+    left: 0;
+    opacity: 1;
+    z-index: 101;
+  }
+
+  body.open .open-menu {
+    left: 299px;
+    opacity: 0;
   }
 
   section#content {
@@ -450,5 +478,61 @@ table th,td {
     max-width: 100% !important;
     width: 100%;
     margin: 0 !important;
+    padding-left: 70px !important;
   }
+
+  section#content header {
+    text-align: left;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .open-menu {
+    display: inline-block !important;
+    position: fixed;
+    left: 0;
+    top: 25px;
+    padding: 10px;
+    fill: #626262;
+    border-color: #E2E2E2;
+    border-left-width: 1px;
+    border-bottom-width: 1px;
+    cursor: pointer;
+    z-index: 0;
+    transition: all linear 240ms;
+  }
+
+	/* Force table to not be like tables anymore */
+	table, thead, tbody, th, td, tr { 
+		display: block; 
+	}
+	
+	tr { border: 1px solid #ccc; }
+	
+	td { 
+		/* Behave  like a "row" */
+		border: none;
+		border-bottom: 1px solid #eee; 
+		position: relative;
+		padding-left: 50%; 
+	}
+	
+	td:before { 
+		/* Now like a table header */
+		position: absolute;
+		/* Top/left values mimic padding */
+		top: 6px;
+		left: 6px;
+		width: 45%; 
+		padding-right: 10px; 
+		white-space: nowrap;
+	}
+}
+
+.open-menu {
+  display: none;
+}
+
+.open-menu svg {
+  width: 40px;
 }
