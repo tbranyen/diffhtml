@@ -451,10 +451,9 @@ table th,td {
 
   nav {
     display: block;
-    left: -240px;
+    transform: translateX(-240px);
     width: 240px;
     transition: all linear 240ms;
-    opacity: 0;
   }
 
   center {
@@ -463,17 +462,16 @@ table th,td {
   }
 
   body.open nav {
-    left: 0;
-    opacity: 1;
+    transform: translateX(0px);
     z-index: 101;
   }
 
   body.open .open-menu {
-    left: 299px;
-    opacity: 0;
+    transform: translateX(299px);
   }
 
   section#content {
+    transform: translateX(0px);
     left: 0 !important;
     max-width: 100% !important;
     width: 100%;
@@ -490,7 +488,8 @@ table th,td {
   .open-menu {
     display: inline-block !important;
     position: fixed;
-    left: 0;
+    left: 0px;
+    transform: translate(10px, 0);
     top: 25px;
     padding: 10px;
     fill: #626262;
@@ -498,7 +497,7 @@ table th,td {
     border-left-width: 1px;
     border-bottom-width: 1px;
     cursor: pointer;
-    z-index: 0;
+    z-index: 100;
     transition: all linear 240ms;
   }
 
