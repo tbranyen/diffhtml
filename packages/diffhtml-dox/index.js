@@ -1,3 +1,4 @@
+const http = require('http');
 const express = require('express');
 const Git = require('nodegit');
 const { join } = require('path');
@@ -31,6 +32,13 @@ dox.contextPatternMatchers.push((string, parentContext) => {
   }
 });
 
+const get = url => new Promise((resolve, reject) => {
+  http.get(url, (err, resp) => {
+    if (err) { reject(err); }
+    else { resolve(resp); }
+  });
+});
+
 const url = 'https://github.com/tbranyen/diffhtml';
 const output = process.env.REPO || join(__dirname, './.repo');
 
@@ -58,8 +66,17 @@ const openRepository = state => {
 const getReferenceNames = state => {
   console.log('Looking up all reference names (branches, tags, omit remotes)');
 
-  return state.repo.getReferenceNames(Git.Reference.TYPE.LISTALL).then(refs => {
-    state.refs = refs;
+  const getAllReferences = Promise.all([
+    // Get all references from GitHub.
+    get('https://api.github.com/repos/tbranyen/diffhtml/git/refs')
+      .then(resps => resps.map(resp => resp.ref)),
+
+    // Get all references from the local repository.
+    state.repo.getReferenceNames(Git.Reference.TYPE.LISTALL),
+  ]);
+
+  return getAllReferences.then(refs => {
+    state.refs = refs.reduce((m, c) => m.concat(c), []);
     state.refs.reverse();
     const result = state.refs.splice(state.refs.length - 1, 1)[0];
     state.refs.unshift(result);
