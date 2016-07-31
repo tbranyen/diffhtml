@@ -66,17 +66,17 @@ const openRepository = state => {
 const getReferenceNames = state => {
   console.log('Looking up all reference names (branches, tags, omit remotes)');
 
-  const getAllReferences = Promise.all([
-    // Get all references from GitHub.
-    get('https://api.github.com/repos/tbranyen/diffhtml/git/refs')
-      .then(resps => resps.map(resp => resp.ref)),
+  //const getAllReferences = Promise.all([
+  //  // Get all references from GitHub.
+  //  get('http://api.github.com/repos/tbranyen/diffhtml/git/refs')
+  //    .then(resps => resps.map(resp => resp.ref)),
 
-    // Get all references from the local repository.
-    state.repo.getReferenceNames(Git.Reference.TYPE.LISTALL),
-  ]);
+  //  // Get all references from the local repository.
+  //]);
 
-  return getAllReferences.then(refs => {
-    state.refs = refs.reduce((m, c) => m.concat(c), []);
+  //return getAllReferences.then(refs => {
+  return state.repo.getReferenceNames(Git.Reference.TYPE.LISTALL).then(refs => {
+    state.refs = refs;
     state.refs.reverse();
     const result = state.refs.splice(state.refs.length - 1, 1)[0];
     state.refs.unshift(result);
