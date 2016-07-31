@@ -315,6 +315,11 @@ section#content h5 {
   color: #A0A0A0;
 }
 
+section#content h5 {
+  margin-top: 10px;
+  padding-top: 15px;
+}
+
 section#content a.github {
   padding: 7px !important;
   border-radius: 5px;

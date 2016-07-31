@@ -432,41 +432,118 @@ middleware.unsubscribe = () => {
   <script src="/assets/highlight.min.js"></script>
   <script src="/assets/api-browser.js"></script>
   <script>
-    const setTarget = selector => {
-      const target = document.querySelector(`a[href='${selector}']`);
+    const browser = new ApiBrowser(document.querySelector('#api-browser'));
+    let sem = 0;
 
-      if (target) {
-        [...document.querySelectorAll('.target')].forEach(el => el.classList.remove('target'));
-        target.classList.add('target');
-        document.querySelector(selector).scrollIntoView();
-      }
-    };
+    browser.onRender = () => {
+      sem++;
 
-    // This is due to the lack of server-side rendering for API docs. This should
-    // be rectified.
-    setTimeout(() => setTarget(location.hash), 200);
-
-    document.querySelector('nav ul').onclick = ev => {
-      if (ev.target.parentNode.matches('a')) {
-        setTarget(ev.target.parentNode.getAttribute('href'));
-      }
-    };
-
-    document.querySelector('.open-menu').onclick = ev => {
-      ev.stopImmediatePropagation();
-
-      const body = document.querySelector('body');
-      const content = document.querySelector('section#content');
-
-      if (body.classList.contains('open')) {
-        return body.onclick();
+      if (sem !== 2) {
+        return;
       }
 
-      body.classList.add('open');
+      const setTarget = selector => {
+        const target = document.querySelector(`a[href='${selector}']`);
 
-      body.onclick = () => {
-        body.classList.remove('open');
-        body.onclick = null;
+        if (target) {
+          [...document.querySelectorAll('.target')].forEach(el => el.classList.remove('target'));
+          target.classList.add('target');
+
+          const link = document.querySelector(selector);
+
+          update();
+
+          if (link) {
+            link.scrollIntoView();
+          }
+        }
+      };
+
+      // This is due to the lack of server-side rendering for API docs. This should
+      // be rectified.
+      setTimeout(() => setTarget(location.hash), 200);
+
+      let scrollTop = document.body.scrollTop;
+
+      // Set up the anchor monitoring.
+      let timeout = null;
+
+      // Get all the headers in `section#content`.
+      let nodes =  document.querySelectorAll(`${
+        ['h1','h2','h3','h4','h5', 'a[id].header'].map(selector => `
+          section#content ${selector}
+        `).join(', ').trim()
+      }`.trim());
+
+      // Make up a table full of offsets.
+      let headerTable = [...nodes].map(el => {
+        const top = el.getBoundingClientRect().top + scrollTop;
+        const selector = `#${el.id}`;
+        const anchor = document.querySelector(`nav a[href='${selector}']`);
+        return { el, top, anchor, };
+      }).slice(1).filter(meta => meta.anchor);
+
+      const clearAll = () => {
+        headerTable.forEach(meta => meta.anchor.classList.remove('target'));
+      };
+
+      // First one.
+      if (scrollTop < headerTable[0].top) {
+        clearAll();
+        headerTable[0].anchor.classList.add('target');
+      }
+
+      const update = () => {
+        const screenHeight = window.innerHeight / 2;
+
+        scrollTop = document.body.scrollTop;
+
+        headerTable.some(meta => {
+          if (meta.top >= (scrollTop - screenHeight)) {
+            clearAll();
+            meta.anchor.classList.add('target');
+            return true;
+          }
+        });
+      };
+
+      const monitorAnchorTags = options => ev => {
+        // If the timeout exists, return early.
+        if (timeout) {
+          return;
+        }
+
+        // Set a debounce timeout.
+        timeout = setTimeout(() => {
+          timeout = null;
+          update();
+        }, 200);
+      };
+
+      document.onscroll = monitorAnchorTags();
+
+      document.querySelector('nav ul').onclick = ev => {
+        if (ev.target.parentNode.matches('a')) {
+          setTarget(ev.target.parentNode.getAttribute('href'));
+        }
+      };
+
+      document.querySelector('.open-menu').onclick = ev => {
+        ev.stopImmediatePropagation();
+
+        const body = document.querySelector('body');
+        const content = document.querySelector('section#content');
+
+        if (body.classList.contains('open')) {
+          return body.onclick();
+        }
+
+        body.classList.add('open');
+
+        body.onclick = () => {
+          body.classList.remove('open');
+          body.onclick = null;
+        };
       };
     };
   </script>
@@ -480,7 +557,6 @@ middleware.unsubscribe = () => {
 
     ga('create', 'UA-27325220-4', 'auto');
     ga('send', 'pageview');
-
   </script>
 </body>
 </html>

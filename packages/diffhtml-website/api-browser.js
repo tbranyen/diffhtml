@@ -25,6 +25,8 @@ class ApiBrowser {
   }
 
   render() {
+    setTimeout(() => this.onRender(), 10);
+
     return this.state.latestStable ? html`
       Stable is ${this.state.latestStable}
       <select onchange=${this.switchVersion.bind(this)}>
@@ -146,7 +148,7 @@ class ApiBrowser {
     }
     this.state.isFetching = false;
 
-    this.fetch(ref).then(() => {
+    this.request = this.fetch(ref).then(() => {
       if (!ref) {
         this.state.ref = this.state.refs[1];
       }
@@ -223,5 +225,3 @@ class ApiBrowser {
     //}
   }
 }
-
-const browser = new ApiBrowser(document.querySelector('#api-browser'));
