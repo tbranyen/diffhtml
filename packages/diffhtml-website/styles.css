@@ -488,6 +488,7 @@ table th,td {
     width: 100%;
     margin: 0 !important;
     padding-left: 70px !important;
+    padding-right: 15px !important;
   }
 
   section#content header {
