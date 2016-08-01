@@ -141,7 +141,7 @@
     <p>
       <ul>
       <li>Aids you with writing components and composing applications. Think of it as
-      the the View layer to reflect a Redux store.</li>
+      the View layer to reflect a Redux store.</li>
       <li>Transpiling is optional which encourages you to write valid JS.</li>
       <li>Real HTML with dynamic interpolation including inline event binding.
       Uses a loose parser and supports <code>class</code>, <code>value</code>,
@@ -149,7 +149,7 @@
       <li>A rich transitions API that animates your application and components with
       ease.</li>
       <li>Performance and memory management are core to this library. It is built with
-      object recyling to keep memory constant and reduces garbage collection during
+      object recycling to keep memory constant and reduces garbage collection during
       tight loops.</li>
       </ul>
     </p>
@@ -241,21 +241,29 @@
     <a class="header" href="#virtual-trees"><h3 id="virtual-trees">Virtual trees</h3></a>
 
     <p>
-      Fundamental to diffHTML is the notion of a Virtual DOM. In order for this
-      to work, all DOM Elements and Attributes must be "virtualized", which
-      means converted to a simple object. This virtualized object is much
-      lighter, as it contains only the very bare properties:
-      <code>rawNodeName</code>, <code>nodeName</code>, <code>nodeValue</code>,
-      <code>key</code>, <code>attributes</code>, <code>childNodes</code>. Two
-      attributes that may look odd are <code>rawNodeName</code> and
-      <code>key</code>. The first is used to reference the exact casing as
-      written, `nodeName` is always lowercased. The <code>key</code> is used
-      for sibling elements when you want to have precise control over which
-      elements are added, moved, and removed.
+      The Virtual Tree is a JSON schema for describing existing DOM Nodes and
+      Attributes found in the connected document and produced during each
+      render cycle. They are recycled and pooled since they are constantly
+      needed to represent the next tree during each render. These simple
+      objects represent the bare minimum information necessary for diffHTML to
+      properly reflect the intents.
     </p>
 
     <p>
-      You can create Virtual Elements using the API method,
+      The Virtual Element object is much lighter than it's respective DOM Node,
+      as it contains only: <code>rawNodeName</code>, <code>nodeName</code>,
+      <code>nodeValue</code>, <code>key</code>, <code>attributes</code>,
+      <code>childNodes</code>. Two attributes that may stand out to you,
+      <code>rawNodeName</code> and <code>key</code>, are necessary for making
+      optimizations and providing correctness during the synchronization stage.
+      The first is used to reference the exact casing as written, `nodeName` is
+      always lowercased.  The <code>key</code> is used for sibling elements
+      when you want to have precise control over which elements are added,
+      moved, and removed.
+    </p>
+
+    <p>
+      You can create Virtual Elements using the API method:
       <code>createElement</code>.
 
       <h5>Example markup and respective Virtual Element JSON</h5>
@@ -282,10 +290,11 @@
     </p>
 
     <p>
-      Elements aren't the only objects that are "virtualized", attributes are
-      as well, due to how frequently they are used. Every attribute has a
-      <code>name</code> and <code>value</code>, making them easy to reuse.
-      The above example's attribute would be created using the API like so:
+      As stated before, DOM Nodes aren't the only objects that are
+      "virtualized", attributes are as well, due to how frequently they are
+      used. Every attribute has a <code>name</code> and <code>value</code>,
+      making them easy to reuse.  The above example's attribute would be
+      created using the API like so:
 
       <pre><code class="javascript">diff.createAttribute('class', 'test')</code></pre>
 
@@ -312,7 +321,7 @@
     <a class="header" href="#tagged-templates"><h3 id="tagged-templates">Tagged templates</h3></a>
 
     <p>
-      JSX has shown that developers like to declartively describe their UI in
+      JSX has shown that developers like to declaratively describe their UI in
       their component's source. For instance take a look at React's <a
       href="https://facebook.github.io/react/docs/getting-started.html#separate-file">hello
       world</a>:
@@ -326,7 +335,7 @@
       isn't exactly HTML per-se, but a similar flavor that leans closer to
       strict XHTML than HTML. It also deals purely with properties and not
       attributes. This is fairly far and away from standards and to use JSX
-      effecitively you'll need to align your tooling around it.
+      effectively you'll need to align your tooling around it.
     </p>
 
     <p>
@@ -412,7 +421,15 @@ middleware.unsubscribe = () => {
     <hr>
 
     <a class="header" href="#logging"><h3 id="logging">Logging</h3></a>
-    <p>Coming soon...</p>
+
+    <p>
+      <p>
+        A useful middleware for gaining insight into your renders. Provides
+        relevant logs for the start and end of each render transaction.
+      </p>
+
+      <strong><a href="https://github.com/tbranyen/diffhtml-logger">https://github.com/tbranyen/diffhtml-logger</a></strong>
+    </p>
 
     <a class="header" href="#inline-transition-hooks"><h3 id="inline-transition-hooks">Inline transition hooks</h3></a>
     <p>Coming soon...</p>
