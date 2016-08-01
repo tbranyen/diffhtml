@@ -213,6 +213,7 @@ html, body {
   padding: 0;
   font-family: Lato, Arial, Helvetica, sans-serif;
   background-color: #F3F3F3;
+  width: 100%;
 }
 
 section#content {
@@ -452,6 +453,11 @@ table th,td {
 }
 
 @media only screen and (max-width : 1000px) {
+  html, body {
+    background-color: #FFF !important;
+    overflow-x: hidden !important;
+  }
+
   .nav-toggle { display: inline-block; }
 
   nav {
@@ -494,7 +500,6 @@ table th,td {
     display: inline-block !important;
     position: fixed;
     left: 0px;
-    transform: translate(10px, 0);
     top: 25px;
     padding: 10px;
     fill: #626262;
