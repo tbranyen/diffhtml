@@ -181,7 +181,7 @@ describe('Unit: Tree', function() {
       ]);
     });
 
-    it.only('can append elements to a parent with children', function() {
+    it('can append elements to a parent with children', function() {
       var oldTree = createTreeFromMarkup(`<ul>
         <li>Hello</li>
       </ul>`);
@@ -192,12 +192,18 @@ describe('Unit: Tree', function() {
 
       var patches = syncTree(oldTree, newTree);
 
-      assert.equal(patches.length, 1);
-      assert.equal(patches[0].__do__, MODIFY_ELEMENT);
-      assert.equal(patches[0].element.nodeName, 'ul');
-      assert.equal(patches[0].fragment.length, 2);
+      assert.equal(patches.length, 2);
+      assert.equal(patches[0].__do__, 3);
+      assert.equal(patches[0].element.nodeName, '#text');
+      assert.equal(patches[0].element.nodeValue, '\n        ');
 
-      assert.deepEqual(patches[0].fragment, [
+      assert.equal(patches[1].element.nodeName, 'ul');
+      assert.equal(patches[1].fragment.length, 2);
+      assert.equal(patches[1].__do__, MODIFY_ELEMENT);
+      assert.equal(patches[1].element.nodeName, 'ul');
+      assert.equal(patches[1].fragment.length, 2);
+
+      assert.deepEqual(patches[1].fragment, [
         createElement('li', null, 'World'),
         createElement('#text', null, '\n      '),
       ]);
@@ -219,14 +225,10 @@ describe('Unit: Tree', function() {
       assert.equal(patches[0].__do__, CHANGE_TEXT);
       assert.equal(patches[1].__do__, MODIFY_ELEMENT);
       assert.equal(patches[1].element.nodeName, 'ul');
-      assert.equal(patches[1].fragment.length, 5);
+      assert.equal(patches[1].fragment.length, 1);
 
       assert.deepEqual(patches[1].fragment, [
-        createElement('#text', null, '\n        '),
-        createElement('li', { key: 1 }, 'Hello'),
-        createElement('#text', null, '\n        '),
-        createElement('li', { key: 2 }, 'World'),
-        createElement('#text', null, '\n      '),
+        createElement('li', { key: 2 }, 'World')
       ]);
     });
 
@@ -245,14 +247,10 @@ describe('Unit: Tree', function() {
       assert.equal(patches.length, 1);
       assert.equal(patches[0].__do__, MODIFY_ELEMENT);
       assert.equal(patches[0].element.nodeName, 'ul');
-      assert.equal(patches[0].fragment.length, 5);
+      assert.equal(patches[0].fragment.length, 1);
 
       assert.deepEqual(patches[0].fragment, [
-        createElement('#text', null, '\n        '),
         createElement('li', { key: 2 }, 'World'),
-        createElement('#text', null, '\n        '),
-        createElement('li', { key: 1 }, 'Hello'),
-        createElement('#text', null, '\n      '),
       ]);
 
       assert.equal(oldTree.childNodes[3], originalLi);

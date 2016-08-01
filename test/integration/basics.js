@@ -97,7 +97,7 @@ describe('Integration: Basics', function() {
       diff.release(fragment);
     });
 
-    it('can diff a fragment into an element', function() {
+    it.only('can diff a fragment into an element', function() {
       var fragment = document.createDocumentFragment();
 
       diff.innerHTML(fragment, `
