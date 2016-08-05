@@ -11,10 +11,6 @@ import {
   releaseNode,
 } from 'diffhtml';
 
-// Expose all diffHTML properties/methods, making this a direct drop in
-// replacement.
-export * from 'diffhtml';
-
 /**
  * By calling this function your browser environment is enhanced globally. This
  * project would love to hit the standards track and allow all developers to
@@ -97,3 +93,7 @@ export function enableProllyfill() {
     });
   });
 }
+
+// Expose all diffHTML properties/methods, making this a direct drop in
+// replacement.
+export * from 'diffhtml';
