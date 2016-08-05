@@ -1,25 +1,23 @@
 diffHTML Prollyfill
 -------------------
 
-Use directly in place of [`diffhtml`](https://github.com/tbranyen/diffhtml). The term prollyfill means I'd like to see it be a standard some day, but is currently not under any consideration.
-[*Click here for the "prollyfill" origin tweet.*](https://twitter.com/slexaxton/status/257543702124306432)
+Use directly in place of [`diffhtml`](https://github.com/tbranyen/diffhtml).
+The term prollyfill means I'd like to see it be a standard some day, but is
+currently not under any consideration.  [*Click here for the "prollyfill"
+origin tweet.*](https://twitter.com/slexaxton/status/257543702124306432)
 
 
 #### Install
 
-##### For npm v2:
+Assuming you want to install the latest version of diffHTML with the
+prollyfill:
 
 ``` sh
-npm install diffhtml-prollyfill
+npm install diffhtml@latest diffhtml-prollyfill
 ```
 
-##### For npm v3:
-
-(In npm v3, `peerDependencies` are not automatically installed).
-
-``` sh
-npm install diffhtml diffhtml-prollyfill
-```
+This architecture makes it easy to swap out versions of diffHTML to use with
+the prollyfill.
 
 #### Documentation
 
