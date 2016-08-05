@@ -57,12 +57,21 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
  * Used to diff the outerHTML contents of the passed element with the markup
- * contents.  Very useful for applying a global diff on the
+ * contents. Very useful for applying a global diff on the
  * `document.documentElement`.
  *
- * @param element
- * @param markup=''
- * @param options={}
+ * @example
+ *
+ *    import { outerHTML } from 'diffhtml'
+ *
+ *    // Remove all attributes and set the children to be a single text node
+ *    // containing the text 'Hello world',
+ *    outerHTML(document.body, '<body>Hello world</body>')
+ *
+ *
+ * @param {Object} element - A DOM Node to render into
+ * @param {String|Object} markup='' - A string of markup or virtual tree
+ * @param {Object =} options={} - An object containing configuration options
  */
 function outerHTML(element) {
   var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
@@ -74,12 +83,21 @@ function outerHTML(element) {
 
 /**
  * Used to diff the innerHTML contents of the passed element with the markup
- * contents.  This is useful with libraries like Backbone that render Views
+ * contents. This is useful with libraries like Backbone that render Views
  * into element container.
  *
- * @param element
- * @param markup=''
- * @param options={}
+ * @example
+ *
+ *    import { innerHTML } from 'diffhtml'
+ *
+ *    // Sets the body children to be a single text node containing the text
+ *    // 'Hello world'.
+ *    innerHTML(document.body, 'Hello world')
+ *
+ *
+ * @param {Object} element - A DOM Node to render into
+ * @param {String|Object} markup='' - A string of markup or virtual tree
+ * @param {Object =} options={} - An object containing configuration options
  */
 function innerHTML(element) {
   var markup = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
@@ -90,13 +108,27 @@ function innerHTML(element) {
 }
 
 /**
- * Used to diff two elements.  The `inner` Boolean property can be specified in
- * the options to set innerHTML\outerHTML behavior.  By default it is
+ * Used to diff two elements. The `inner` Boolean property can be specified in
+ * the options to set innerHTML\outerHTML behavior. By default it is
  * outerHTML.
  *
- * @param element
- * @param newElement
- * @param options={}
+ * @example
+ *
+ *    // It is usually better to rename this method to something descriptive.
+ *    import { element as diffElement } from 'diffhtml'
+ *
+ *    // Create a new body tag.
+ *    const newBody = $(`<body>
+ *      <strong>Hello world!</strong>
+ *    </body>`).get();
+ *
+ *
+ *    diffElement(document.body, newBody);
+ *
+ *
+ * @param {Object} element - A DOM Node to render into
+ * @param {Object} newElement - A string of markup or virtual tree
+ * @param {Object =} options={} - An object containing configuration options
  */
 function element(element, newElement) {
   var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
@@ -105,24 +137,26 @@ function element(element, newElement) {
 }
 
 /**
- * Adds a global transition listener.  With many elements this could be an
+ * Adds a global transition listener. With many elements this could be an
  * expensive operation, so try to limit the amount of listeners added if you're
  * concerned about performance.
  *
  * Since the callback triggers with various elements, most of which you
- * probably don't care about, you'll want to filter.  A good way of filtering
- * is to use the DOM `matches` method.  It's fairly well supported
- * (http://caniuse.com/#feat=matchesselector) and may suit many projects.  If
+ * probably don't care about, you'll want to filter. A good way of filtering
+ * is to use the DOM `matches` method. It's fairly well supported
+ * (http://caniuse.com/#feat=matchesselector) and may suit many projects. If
  * you need backwards compatibility, consider using jQuery's `is`.
  *
- * You can do fun, highly specific, filters:
+ * @example
  *
- * addTransitionState('attached', function(element) {
- *   // Fade in the main container after it's added.
- *   if (element.matches('body main.container')) {
- *     $(element).stop(true, true).fadeIn();
- *   }
- * });
+ *    import { addTransitionState } from 'diffhtml'
+ *
+ *    // Fade in all elements as they are added to the DOM.
+ *    addTransitionState('attached', el => $(el).fadeIn().promise())
+ *
+ *    // Fade out all elements as they leave the DOM.
+ *    addTransitionState('detached', el => $(el).fadeOut().promise())
+ *
  *
  * @param state - String name that matches what's available in the
  * documentation above.
@@ -149,12 +183,22 @@ function addTransitionState(state, callback) {
  * Removes a global transition listener.
  *
  * When invoked with no arguments, this method will remove all transition
- * callbacks.  When invoked with the name argument it will remove all
- * transition state callbacks matching the name, and so on for the callback.
+ * callbacks. When invoked with the name argument it will remove all transition
+ * state callbacks matching the name, and so on for the callback.
  *
- * @param state - String name that matches what's available in the
- * documentation above.
- * @param callback - Function to receive the matching elements.
+ * @example
+ *
+ *    import { removeTransitionState } from 'diffhtml'
+ *
+ *    // Remove all transition state handlers.
+ *    removeTransitionState()
+ *
+ *    // Remove all `attached` state handlers.
+ *    removeTransitionState('attached')
+ *
+ * @param {String =} state - Name that matches what's available in the
+ * documentation above
+ * @param {Function =} callback - Callback to receive the matching elements
  */
 function removeTransitionState(state, callback) {
   if (!callback && state) {
@@ -175,10 +219,21 @@ function removeTransitionState(state, callback) {
 }
 
 /**
- * Registers middleware to be consumed lightly.
+ * Registers middleware functions which are called during the render
+ * transaction flow. These should be very fast and ideally asynchronous to
+ * avoid blocking the render.
+ *
+ * @example
+ *
+ *    import { use } from 'diffhtml'
+ *    import logger from 'diffhtml-logger'
+ *
+ *    // Add the diffHTML logger middleware, to console out render information.
+ *    use(logger)
+ *
  *
  * @param {Function} middleware - A function that gets passed internals
- * @return {Function} - That when invoked removes the middleware
+ * @return {Function} - When invoked removes and deactivates the middleware
  */
 function use(middleware) {
   if (typeof middleware !== 'function') {
@@ -258,11 +313,6 @@ function getFinalizeCallback(node, state) {
 
     state.isRendering = false;
 
-    // Call the remaining middleware signaling the render is complete.
-    for (var i = 0; i < remainingMiddleware.length; i++) {
-      remainingMiddleware[i]();
-    }
-
     // This is designed to handle use cases where renders are being hammered
     // or when transitions are used with Promises. If this element has a next
     // render state, trigger it first as priority.
@@ -304,8 +354,10 @@ function getFinalizeCallback(node, state) {
     // Clean out all the existing allocations.
     (0, _memory.cleanMemory)();
 
-    // Dispatch an event on the node once rendering has completed.
-    node.dispatchEvent(new CustomEvent('renderComplete'));
+    // Call the remaining middleware signaling the render is complete.
+    for (var i = 0; i < remainingMiddleware.length; i++) {
+      remainingMiddleware[i]();
+    }
   };
 }
 
@@ -325,6 +377,8 @@ var _cache = _dereq_('../util/cache');
 var _svg = _dereq_('../util/svg');
 
 var svg = _interopRequireWildcard(_svg);
+
+var _entities = _dereq_('../util/entities');
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -389,7 +443,7 @@ function make(vTree) {
     // If not a dynamic type, set as an attribute, since it's a valid
     // attribute value.
     if (attr.name && !isObject && !isFunction) {
-      node.setAttribute(attr.name, attr.value);
+      node.setAttribute(attr.name, (0, _entities.decodeEntities)(attr.value));
     } else if (attr.name && typeof attr.value !== 'string') {
       // Necessary to track the attribute/prop existence.
       node.setAttribute(attr.name, '');
@@ -411,7 +465,7 @@ function make(vTree) {
   return node;
 }
 
-},{"../util/cache":10,"../util/svg":16}],4:[function(_dereq_,module,exports){
+},{"../util/cache":10,"../util/entities":11,"../util/svg":16}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -801,7 +855,7 @@ function patchNode(node, patches) {
                       // attribute value.
                       if (!isObject && !isFunction) {
                         if (newAttr.name) {
-                          el.setAttribute(newAttr.name, newAttr.value);
+                          el.setAttribute(newAttr.name, (0, _entities.decodeEntities)(newAttr.value));
                         }
                       } else if (typeof newAttr.value !== 'string') {
                         // Necessary to track the attribute/prop existence.

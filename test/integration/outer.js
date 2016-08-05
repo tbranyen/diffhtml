@@ -186,6 +186,14 @@ describe('Integration: outerHTML', function() {
       assert.equal(this.fixture.firstChild.value, 'test');
     });
 
+    it('supports setting input value with html encoded values', function() {
+      diff.outerHTML(this.fixture, `<div>
+        <input value="&lt;b&gt;test&lt;/b&gt;">
+      </div>`);
+
+      assert.equal(this.fixture.querySelector('input').value, '<b>test</b>');
+    });
+
     it('supports toggling checked attribute', function() {
       diff.outerHTML(this.fixture, '<div><input type="checkbox"></div>');
 
