@@ -500,16 +500,20 @@ table th,td {
   .open-menu {
     display: inline-block !important;
     position: fixed;
+    color: #626262;
     left: 0px;
-    top: 25px;
+    top: 0;
     padding: 10px;
-    fill: #626262;
-    border-color: #E2E2E2;
-    border-left-width: 1px;
-    border-bottom-width: 1px;
     cursor: pointer;
     z-index: 100;
     transition: all linear 240ms;
+    background: #F0F0F0;
+    bottom: 0;
+    width: 33px;
+  }
+
+  .open-menu:hover {
+    color: #D23091;
   }
 
 	/* Force table to not be like tables anymore */
