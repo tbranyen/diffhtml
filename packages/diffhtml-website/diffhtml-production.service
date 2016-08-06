@@ -2,7 +2,7 @@
 ExecStart=/usr/bin/node /var/sites/diffhtml.org/source/server
 Restart=always
 StandardOutput=syslog
-SyslogIdentifier=www.drinkstandards.com
+SyslogIdentifier=www.diffhtml.org
 User=tim
 Group=users
 Environment=PORT=/var/sites/diffhtml.org/socket
