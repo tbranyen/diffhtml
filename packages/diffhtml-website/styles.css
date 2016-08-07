@@ -462,7 +462,7 @@ table th,td {
 
   nav {
     display: block;
-    transform: translateX(-240px);
+    transform: translate3d(-240px, 0, 0);
     width: 240px;
     transition: all linear 240ms;
   }
@@ -473,16 +473,16 @@ table th,td {
   }
 
   body.open nav {
-    transform: translateX(0px);
+    transform: translate3d(0, 0, 0);
     z-index: 101;
   }
 
   body.open .open-menu {
-    transform: translateX(299px);
+    transform: translate3d(299px, 0, 0);
   }
 
   section#content {
-    transform: translateX(0px);
+    transform: translate3d(0, 0, 0);
     left: 0 !important;
     max-width: 100% !important;
     width: 100%;
@@ -501,7 +501,7 @@ table th,td {
     display: inline-block !important;
     position: fixed;
     color: #626262;
-    left: 0px;
+    transform: translate3d(0, 0, 0);
     top: 0;
     padding: 10px;
     cursor: pointer;
@@ -510,10 +510,17 @@ table th,td {
     background: #F0F0F0;
     bottom: 0;
     width: 33px;
+    outline: 0 !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+
+  .open-menu:focus {
+    outline: 0 !important;
   }
 
   .open-menu:hover {
     color: #D23091;
+    outline: 0 !important;
   }
 
 	/* Force table to not be like tables anymore */
@@ -544,6 +551,7 @@ table th,td {
 
 .open-menu {
   display: none;
+
 }
 
 .open-menu svg {
