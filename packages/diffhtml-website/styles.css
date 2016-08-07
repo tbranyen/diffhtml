@@ -375,12 +375,12 @@ center a:hover:before {
 nav {
   background-color: #333;
   color: #FFF;
-  width: calc(50% - 360px);;
-  min-width: 300px;
+  width: 300px;
   height: 100%;
   padding: 14px;
-  position: fixed;
+  position: absolute;
   top: 0;
+  left: 0;
   margin: 0 auto;
   overflow-y: auto;
   overflow-x: hidden;
@@ -462,9 +462,6 @@ table th,td {
 
   nav {
     display: block;
-    transform: translate3d(-240px, 0, 0);
-    width: 240px;
-    transition: all linear 240ms;
   }
 
   center {
@@ -472,13 +469,8 @@ table th,td {
     text-align: left;
   }
 
-  body.open nav {
+  body.open layer {
     transform: translate3d(0, 0, 0);
-    z-index: 101;
-  }
-
-  body.open .open-menu {
-    transform: translate3d(299px, 0, 0);
   }
 
   section#content {
@@ -499,27 +491,27 @@ table th,td {
 
   .open-menu {
     display: inline-block !important;
-    position: fixed;
+    position: absolute;
     color: #626262;
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(300px, 0, 0);
     top: 0;
+    bottom: 0;
     padding: 10px;
     cursor: pointer;
     z-index: 100;
-    transition: all linear 240ms;
     background: #F0F0F0;
     bottom: 0;
     width: 33px;
+    height: 100%;
     outline: 0 !important;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   }
 
-  .open-menu:focus {
-    outline: 0 !important;
+  .open-menu.hide {
+    display: none !important;
   }
 
-  .open-menu:hover {
-    color: #D23091;
+  .open-menu:focus {
     outline: 0 !important;
   }
 
@@ -556,4 +548,17 @@ table th,td {
 
 .open-menu svg {
   width: 40px;
+}
+
+layer {
+  display: block;
+  position: fixed;
+  transform: translate3d(-300px, 0, 0);
+  will-change: transform;
+  width: 333px;
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  z-index: 10000;
+  transition: all cubic-bezier(.17,.67,.83,.67) 240ms;
 }

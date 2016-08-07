@@ -13,47 +13,51 @@
   <link rel="stylesheet" href="/assets/node_modules/font-awesome/css/font-awesome.css">
 </head>
 <body>
-  <div class="open-menu">&equiv;</div>
-  <nav>
-    <ul>
-      <li class="header"><h4>Getting started</h4></li>
+  <layer>
+    <div class="open-menu">&equiv;</div>
 
-      <a href="#about"><li>About</li></a>
-      <a href="#features"><li>Features</li></a>
-      <a href="#api"><li>API</li></a>
+    <nav>
+      <ul>
+        <li class="header"><h4>Getting started</h4></li>
 
-      {%if api%}
-      <ul class="sub">
-        {%each api.comments as comment%}
-          <a href="#{{comment.ctx.name}}"><li>{{comment.ctx.name}}</li></a>
-        {%endeach%}
+        <a href="#about"><li>About</li></a>
+        <a href="#features"><li>Features</li></a>
+        <a href="#api"><li>API</li></a>
+
+        {%if api%}
+        <ul class="sub">
+          {%each api.comments as comment%}
+            <a href="#{{comment.ctx.name}}"><li>{{comment.ctx.name}}</li></a>
+          {%endeach%}
+        </ul>
+        {%endif%}
+        <a href="#changelog"><li>Changelog</li></a>
+
+        <li class="header"><h4>Concepts</h4></li>
+
+        <a href="#virtual-trees"><li>Virtual trees</li></a>
+        <a href="#object-pooling"><li>Object pooling</li></a>
+        <a href="#render-transaction"><li>Render transactions</li></a>
+        <a href="#tagged-templates"><li>Tagged templates</li></a>
+        <a href="#transitions"><li>Transitions</li></a>
+        <a href="#middleware"><li>Middleware</li></a>
+
+        <li class="header"><h4>Middleware</h4></li>
+        <a href="#logging"><li>Logging</li></a>
+        <a href="#inline-transition-hooks"><li>Inline transition hooks</li></a>
+
+        <li class="header"><h4>External tools</h4></li>
+
+        <a href="#transpiler"><li>Babel transform</li></a>
+        <a href="#prollyfill"><li>Browser prollyfill</li></a>
+
+        <li class="header"><h4>Examples</h4></li>
+
+        <a href="https://github.com/tbranyen/todomvc"><li>TodoMVC</li></a>
       </ul>
-      {%endif%}
-      <a href="#changelog"><li>Changelog</li></a>
+    </nav>
+  </layer>
 
-      <li class="header"><h4>Concepts</h4></li>
-
-      <a href="#virtual-trees"><li>Virtual trees</li></a>
-      <a href="#object-pooling"><li>Object pooling</li></a>
-      <a href="#render-transaction"><li>Render transactions</li></a>
-      <a href="#tagged-templates"><li>Tagged templates</li></a>
-      <a href="#transitions"><li>Transitions</li></a>
-      <a href="#middleware"><li>Middleware</li></a>
-
-      <li class="header"><h4>Middleware</h4></li>
-      <a href="#logging"><li>Logging</li></a>
-      <a href="#inline-transition-hooks"><li>Inline transition hooks</li></a>
-
-      <li class="header"><h4>External tools</h4></li>
-
-      <a href="#transpiler"><li>Babel transform</li></a>
-      <a href="#prollyfill"><li>Browser prollyfill</li></a>
-
-      <li class="header"><h4>Examples</h4></li>
-
-      <a href="https://github.com/tbranyen/todomvc"><li>TodoMVC</li></a>
-    </ul>
-  </nav>
   <section id="content">
     <header>
       <h1>diffHTML |</h1> 
@@ -457,7 +461,11 @@ middleware.unsubscribe = () => {
     </p>
 
     <a class="header" href="#prollyfill"><h3 id="prollyfill">Browser prollyfill</h3></a>
-    <p>Coming soon...</p>
+
+    <p>
+      The very first version of diffHTML was a method on the Element prototype
+      `diffHTML`
+    </p>
   </section>
 
   <footer></footer>
