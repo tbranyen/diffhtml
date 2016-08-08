@@ -91,7 +91,7 @@ const getLatestStable = state => {
   state.latestStable = latest.slice('refs/tags/'.length);
   state.version = state.latestStable;
 
-  return state.repo.getReferenceCommit('refs/tags/0.9.1')
+  return state.repo.getReferenceCommit('refs/tags/0.9.2')
     .then(commit => commit.getEntry('lib/index.js'))
     .then(treeEntry => treeEntry.getBlob())
     .then(blob => {
