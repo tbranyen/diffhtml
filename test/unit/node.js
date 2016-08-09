@@ -86,6 +86,17 @@ describe('Unit: Node', function() {
 
       assert.equal(node.getAttribute('class'), 'some_Value');
     });
+
+    it('can set dynamic values', function() {
+      var obj = {};
+      var node = makeNode({
+        nodeName: 'div',
+        attributes: [{ name: 'tmp', value: obj }]
+      });
+
+      assert.equal(node.getAttribute('tmp'), '');
+      assert.equal(node.tmp, obj);
+    });
   });
 });
 

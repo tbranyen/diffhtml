@@ -67,7 +67,7 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.firstChild.innerHTML, 'this');
     });
 
-    it('will not replace a previous span', function() {
+    it('can remove attributes and will not replace a previous span', function() {
       diff.innerHTML(this.fixture, '<div><span class="test"></span></div>');
       var span = this.fixture.querySelector('.test');
       diff.innerHTML(this.fixture, '<div><span>whatever</span></div>');

@@ -1,10 +1,14 @@
-import { pools } from '../../lib/util/pools';
+import * as pools from '../../lib/util/pools';
 import { StateCache, NodeCache, MiddlewareCache } from '../../lib/util/cache';
 
 /**
  * Validates that the memory has been successfully cleaned per render.
  */
 export default function validateMemory() {
+  //console.log(JSON.stringify(
+  //  pools.elementObject.cache.protected, null, 2
+  //));
+
   assert.equal(pools.elementObject.cache.protected.size, 0,
     'Should not leave leftover protected elements');
 
