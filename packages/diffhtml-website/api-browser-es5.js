@@ -297,12 +297,6 @@ browser.onRender = function () {
     });
   };
 
-  // First one.
-  if (scrollTop < headerTable[0].top) {
-    clearAll();
-    headerTable[0].anchor.classList.add('target');
-  }
-
   var update = function update() {
     var screenHeight = window.innerHeight / 2;
 

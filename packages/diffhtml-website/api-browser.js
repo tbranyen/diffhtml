@@ -291,12 +291,6 @@ browser.onRender = () => {
     headerTable.forEach(meta => meta.anchor.classList.remove('target'));
   };
 
-  // First one.
-  if (scrollTop < headerTable[0].top) {
-    clearAll();
-    headerTable[0].anchor.classList.add('target');
-  }
-
   const update = () => {
     const screenHeight = window.innerHeight / 2;
 
