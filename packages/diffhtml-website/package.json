@@ -4,7 +4,6 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify -t babelify api-browser.js -o api-browser-es5.js",
     "start": "node server.js"
   },

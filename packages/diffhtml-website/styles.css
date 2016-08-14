@@ -1,6 +1,8 @@
 @import 'https://fonts.googleapis.com/css?family=Lato:300,400,bold';
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 pre, code {
   font-size: 18px;
@@ -495,6 +497,12 @@ layer {
     text-align: left;
   }
 
+  layer {
+    will-change: transform;
+    transform: translate3d(-300px, 0, 0);
+    text-align: center;
+  }
+
   body.open layer {
     transform: translate3d(0, 0, 0);
   }
@@ -565,8 +573,4 @@ layer {
 		padding-right: 10px; 
 		white-space: nowrap;
 	}
-
-  layer {
-    transform: translate3d(-300px, 0, 0);
-  }
 }

@@ -1,4 +1,5 @@
 import { html, innerHTML, createElement } from 'diffhtml';
+import 'proxy-polyfill/proxy.min';
 import 'whatwg-fetch';
 
 const { highlightAuto } = hljs;
