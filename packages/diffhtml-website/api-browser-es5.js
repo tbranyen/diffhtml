@@ -311,10 +311,11 @@ browser.onRender = function () {
     headerTable.some(function (meta) {
       if (meta.top >= scrollTop - screenHeight) {
         clearAll();
-        meta.anchor.classList.add('target');
-        history.replaceState('', {}, meta.anchor.href);
 
-        if (!scrollTop) {
+        if (scrollTop) {
+          meta.anchor.classList.add('target');
+          history.replaceState('', {}, meta.anchor.href);
+        } else {
           history.replaceState('', {}, '/');
         }
 
