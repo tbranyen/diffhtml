@@ -1,8 +1,7 @@
-const { html, innerHTML, createElement } = diff;
+import { html, innerHTML, createElement } from 'diffhtml';
+import 'whatwg-fetch';
+
 const { highlightAuto } = hljs;
-const initialState = {
-  url: 'https://github.com/tbranyen/diffhtml'
-};
 
 class ApiBrowser {
   trimCode(src) {
@@ -138,15 +137,26 @@ class ApiBrowser {
       debounce.timeout = setTimeout(() => innerHTML(mount, this.render()), 10);
     };
 
-    const bindState = { set(o, k, v) { o[k] = v; return !debounce(); } };
+    const bindState = { get(o, k) { return o[k]; }, set(o, k, v) { o[k] = v; return !debounce(); } };
 
-    this.state = new Proxy(initialState, bindState);
+    this.state = new Proxy({
+      url: 'https://github.com/tbranyen/diffhtml',
+      isFetching: false,
+      ref: null,
+      refs: null,
+      comments: null,
+      latestStable: null,
+      output: null,
+      repo: null,
+      version: null,
+    }, bindState);
 
     const ref = location.pathname.slice(1);
 
     if (ref) {
       this.state.ref = ref;
     }
+
     this.state.isFetching = false;
 
     this.request = this.fetch(ref).then(() => {
@@ -218,11 +228,130 @@ class ApiBrowser {
   }
 
   fetch(version) {
-    if (navigator.onLine) {
-      const request = fetch(`/api/${version ? version : ''}`);
-      const parseJSON = request.then(resp => resp.json());
+    const request = fetch(`/api/${version ? version : ''}`);
+    const parseJSON = request.then(resp => resp.json());
 
-      return parseJSON.then(state => Object.assign(this.state, state));
-    }
+    return parseJSON.then(state => { console.log(Object.keys(state)); return Object.assign(this.state, state); }).catch(ex => console.log(ex));
   }
 }
+
+const browser = new ApiBrowser(document.querySelector('#api-browser'));
+let sem = 0;
+
+browser.onRender = () => {
+  sem++;
+
+  if (sem !== 2) {
+    return;
+  }
+
+  const setTarget = selector => {
+    const target = document.querySelector(`a[href='${selector}']`);
+
+    if (target) {
+      [...document.querySelectorAll('.target')].forEach(el => el.classList.remove('target'));
+      target.classList.add('target');
+
+      const link = document.querySelector(selector);
+
+      update();
+
+      if (link) {
+        link.scrollIntoView();
+      }
+    }
+  };
+
+  // This is due to the lack of server-side rendering for API docs. This should
+  // be rectified.
+  setTimeout(() => setTarget(location.hash), 200);
+
+  let scrollTop = document.body.scrollTop;
+
+  // Set up the anchor monitoring.
+  let timeout = null;
+
+  // Get all the headers in `section#content`.
+  let nodes =  document.querySelectorAll(`${
+    ['h1','h2','h3','h4','h5', 'a[id].header'].map(selector => `
+      section#content ${selector}
+    `).join(', ').trim()
+  }`.trim());
+
+  // Make up a table full of offsets.
+  let headerTable = [...nodes].map(el => {
+    const top = el.getBoundingClientRect().top + scrollTop;
+    const selector = `#${el.id}`;
+    const anchor = document.querySelector(`nav a[href='${selector}']`);
+    return { el, top, anchor, };
+  }).slice(1).filter(meta => meta.anchor);
+
+  const clearAll = () => {
+    headerTable.forEach(meta => meta.anchor.classList.remove('target'));
+  };
+
+  // First one.
+  if (scrollTop < headerTable[0].top) {
+    clearAll();
+    headerTable[0].anchor.classList.add('target');
+  }
+
+  const update = () => {
+    const screenHeight = window.innerHeight / 2;
+
+    scrollTop = document.body.scrollTop;
+
+    headerTable.some(meta => {
+      if (meta.top >= (scrollTop - screenHeight)) {
+        clearAll();
+        meta.anchor.classList.add('target');
+        history.replaceState('', {}, meta.anchor.href);
+
+        if (!scrollTop) {
+          history.replaceState('', {}, '/');
+        }
+
+        return true;
+      }
+    });
+  };
+
+  const monitorAnchorTags = options => ev => {
+    // If the timeout exists, return early.
+    if (timeout) {
+      return;
+    }
+
+    // Set a debounce timeout.
+    timeout = setTimeout(() => {
+      timeout = null;
+      update();
+    }, 200);
+  };
+
+  document.onscroll = monitorAnchorTags();
+
+  document.querySelector('nav ul').onclick = ev => {
+    if (ev.target.parentNode.matches('a')) {
+      setTarget(ev.target.parentNode.getAttribute('href'));
+    }
+  };
+
+  document.querySelector('.open-menu').onclick = ev => {
+    ev.stopImmediatePropagation();
+
+    const body = document.querySelector('body');
+    const content = document.querySelector('section#content');
+
+    if (body.classList.contains('open')) {
+      return body.onclick();
+    }
+
+    body.classList.add('open');
+
+    body.onclick = () => {
+      body.classList.remove('open');
+      body.onclick = null;
+    };
+  };
+};

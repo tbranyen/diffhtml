@@ -5,20 +5,25 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify -g babelify api-browser.js -o api-browser-es5.js",
     "start": "node server.js"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "combyne": "^2.0.0",
     "connect-livereload": "^0.5.4",
     "diffhtml": "tbranyen/diffhtml#cac273e16bf433b3263b79009fd0c7d1466d36c4",
     "express": "^4.14.0",
     "font-awesome": "^4.6.3",
-    "serve-favicon": "^2.3.0"
+    "proxy-polyfill": "^0.1.6",
+    "serve-favicon": "^2.3.0",
+    "whatwg-fetch": "^1.0.0"
   },
   "devDependencies": {
+    "babel-polyfill": "^6.13.0",
     "nodegit": "^0.14.1",
-    "nodegit-deployer": "tbranyen/git-deploy#6ebbe0065440ad8832a91d9c7506eba64effe86e"
+    "nodegit-deployer": "tbranyen/git-deploy#6ebbe0065440ad8832a91d9c7506eba64effe86e",
+    "uglifyify": "^3.0.2"
   }
 }
