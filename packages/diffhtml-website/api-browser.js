@@ -58,7 +58,8 @@ class ApiBrowser {
 
       <section class="comments">
         ${this.state.comments.map(comment => {
-          const url = `${this.state.url}/blob/master/lib/index.js#L${comment.codeStart}`;
+          const ref = this.state.ref.split('/').slice(-1)[0];
+          const url = `${this.state.url}/blob/${ref}/lib/index.js#L${comment.codeStart}`;
           const returnValue = comment.tags.filter(tag => tag.type === 'return');
           const examples = comment.tags.filter(tag => tag.type === 'example');
           const params = comment.tags.filter(tag => tag.type === 'param');
@@ -217,11 +218,11 @@ class ApiBrowser {
   }
 
   fetch(version) {
-    //if (navigator.onLine) {
+    if (navigator.onLine) {
       const request = fetch(`/api/${version ? version : ''}`);
       const parseJSON = request.then(resp => resp.json());
 
       return parseJSON.then(state => Object.assign(this.state, state));
-    //}
+    }
   }
 }

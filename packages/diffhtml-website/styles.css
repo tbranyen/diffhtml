@@ -222,7 +222,7 @@ section#content {
   left: 120px;
   top: 0;
   width: calc(100% - 360px);
-  padding: 14px;
+  padding: 15px;
   max-width: 960px;
   line-height: 30px;
   padding-right: 50px;
@@ -296,6 +296,9 @@ section#content strong {
 
 section#content ul {
   font-size: 18px;
+  margin-left: 0px;
+}
+section#content ul.methods {
   margin-left: 20px;
 }
 
@@ -380,7 +383,7 @@ nav {
   padding: 14px;
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   margin: 0 auto;
   overflow-y: auto;
   overflow-x: hidden;
@@ -452,6 +455,28 @@ table th,td {
   border: 1px dotted #C3C3C3;
 }
 
+layer {
+  display: block;
+  position: fixed;
+  transform: translate3d(0, 0, 0);
+  width: calc(50% - 360px);
+  background-color: #333;
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  z-index: 10000;
+  transition: all cubic-bezier(.17,.67,.83,.67) 240ms;
+}
+
+.open-menu {
+  display: none;
+
+}
+
+.open-menu svg {
+  width: 40px;
+}
+
 @media only screen and (max-width : 1000px) {
   html, body {
     background-color: #FFF !important;
@@ -462,6 +487,7 @@ table th,td {
 
   nav {
     display: block;
+    right: auto;
   }
 
   center {
@@ -539,26 +565,8 @@ table th,td {
 		padding-right: 10px; 
 		white-space: nowrap;
 	}
-}
 
-.open-menu {
-  display: none;
-
-}
-
-.open-menu svg {
-  width: 40px;
-}
-
-layer {
-  display: block;
-  position: fixed;
-  transform: translate3d(-300px, 0, 0);
-  will-change: transform;
-  width: 333px;
-  height: 100%;
-  top: 0;
-  bottom: 0;
-  z-index: 10000;
-  transition: all cubic-bezier(.17,.67,.83,.67) 240ms;
+  layer {
+    transform: translate3d(-300px, 0, 0);
+  }
 }

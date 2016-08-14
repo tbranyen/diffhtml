@@ -544,6 +544,12 @@ middleware.unsubscribe = () => {
           if (meta.top >= (scrollTop - screenHeight)) {
             clearAll();
             meta.anchor.classList.add('target');
+            history.replaceState('', {}, meta.anchor.href);
+
+            if (!scrollTop) {
+              history.replaceState('', {}, '/');
+            }
+
             return true;
           }
         });
