@@ -404,6 +404,7 @@ nav ul {
   list-style: none;
   line-height: 30px;
   padding-left: 10px;
+  text-align: left;
 }
 
 nav li.sub ul {
@@ -479,7 +480,7 @@ layer {
   width: 40px;
 }
 
-@media only screen and (max-width : 1000px) {
+@media only screen and (max-width : 1400px) {
   html, body {
     background-color: #FFF !important;
     overflow-x: hidden !important;
@@ -498,6 +499,7 @@ layer {
   }
 
   layer {
+    width: auto;
     will-change: transform;
     transform: translate3d(-300px, 0, 0);
     text-align: center;

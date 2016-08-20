@@ -5,30 +5,12 @@ import 'whatwg-fetch';
 const { highlightAuto } = hljs;
 
 class ApiBrowser {
-  trimCode(src) {
-    const whitespaceRegex = /(\s+).*/;
-    const match = whitespaceRegex.exec(src);
-
-    if (match) {
-      const length = match[1].length;
-      const leading = new RegExp(Array(length).fill('').join(' '), 'g');
-      return src.replace(leading, '');
-    }
-
-    return src;
-  }
-
-  makeArgs(params) {
-    return params.map(param => {
-      return param.optional ? `[${param.name}]` : param.name;
-    }).join(', ');
-  }
-
   render() {
     setTimeout(() => this.onRender(), 10);
 
     return this.state.latestStable ? html`
       Stable is ${this.state.latestStable}
+
       <select onchange=${this.switchVersion.bind(this)}>
         ${this.state.refs.map((ref, i) => html`<option
           data-ref="${encodeURIComponent(ref)}"
@@ -168,6 +150,25 @@ class ApiBrowser {
     });
   }
 
+  trimCode(src) {
+    const whitespaceRegex = /(\s+).*/;
+    const match = whitespaceRegex.exec(src);
+
+    if (match) {
+      const length = match[1].length;
+      const leading = new RegExp(Array(length).fill('').join(' '), 'g');
+      return src.replace(leading, '');
+    }
+
+    return src;
+  }
+
+  makeArgs(params) {
+    return params.map(param => {
+      return param.optional ? `[${param.name}]` : param.name;
+    }).join(', ');
+  }
+
   switchVersion(ev) {
     const option = ev.target.children[ev.target.selectedIndex];
     this.state.ref = option.dataset.ref;
@@ -232,7 +233,7 @@ class ApiBrowser {
     const request = fetch(`/api/${version ? version : ''}`);
     const parseJSON = request.then(resp => resp.json());
 
-    return parseJSON.then(state => { console.log(Object.keys(state)); return Object.assign(this.state, state); }).catch(ex => console.log(ex));
+    return parseJSON.then(state => Object.assign(this.state, state));
   }
 }
 

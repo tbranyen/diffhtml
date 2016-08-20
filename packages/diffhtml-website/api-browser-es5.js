@@ -3,7 +3,7 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _templateObject = _taggedTemplateLiteral(['\n      Stable is ', '\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    '], ['\n      Stable is ', '\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    ']),
+var _templateObject = _taggedTemplateLiteral(['\n      Stable is ', '\n\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    '], ['\n      Stable is ', '\n\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    ']),
     _templateObject2 = _taggedTemplateLiteral(['<option\n          data-ref="', '"\n          ', '\n        >\n          ', '\n        </option>'], ['<option\n          data-ref="', '"\n          ', '\n        >\n          ', '\n        </option>']),
     _templateObject3 = _taggedTemplateLiteral(['<li>\n          <a href="#', '">', '<strong class="args">(', ')</strong></a>\n        </li>'], ['<li>\n          <a href="#', '">', '<strong class="args">(', ')</strong></a>\n        </li>']),
     _templateObject4 = _taggedTemplateLiteral(['\n            <div class="comment">\n              <a class="header" id="', '" href="#', '"><h4 class="api-method">', '<strong class="args">(', ')</strong></h4></a>\n\n              <p class="push-left">\n                <a class="methods" href="#api">&nbsp; Back to API</a> |\n                <a class="view-on-github" href="', '">\n                  <i class="fa fa-github" aria-hidden="true"></i> View source on GitHub\n                </a>\n              </p>\n\n              <div>\n                ', '\n              </div>\n\n              <h5>', '</h5>\n\n              ', '\n\n              <h5>Arguments</h5>\n\n              ', '\n\n              <h5>Return value</h5>\n\n              ', '\n\n              <div class="gap"></div>\n              <hr>\n            </div>\n          '], ['\n            <div class="comment">\n              <a class="header" id="', '" href="#', '"><h4 class="api-method">', '<strong class="args">(', ')</strong></h4></a>\n\n              <p class="push-left">\n                <a class="methods" href="#api">&nbsp; Back to API</a> |\n                <a class="view-on-github" href="', '">\n                  <i class="fa fa-github" aria-hidden="true"></i> View source on GitHub\n                </a>\n              </p>\n\n              <div>\n                ', '\n              </div>\n\n              <h5>', '</h5>\n\n              ', '\n\n              <h5>Arguments</h5>\n\n              ', '\n\n              <h5>Return value</h5>\n\n              ', '\n\n              <div class="gap"></div>\n              <hr>\n            </div>\n          ']),
@@ -31,27 +31,6 @@ var highlightAuto = _hljs.highlightAuto;
 
 var ApiBrowser = function () {
   _createClass(ApiBrowser, [{
-    key: 'trimCode',
-    value: function trimCode(src) {
-      var whitespaceRegex = /(\s+).*/;
-      var match = whitespaceRegex.exec(src);
-
-      if (match) {
-        var length = match[1].length;
-        var leading = new RegExp(Array(length).fill('').join(' '), 'g');
-        return src.replace(leading, '');
-      }
-
-      return src;
-    }
-  }, {
-    key: 'makeArgs',
-    value: function makeArgs(params) {
-      return params.map(function (param) {
-        return param.optional ? '[' + param.name + ']' : param.name;
-      }).join(', ');
-    }
-  }, {
     key: 'render',
     value: function render() {
       var _this = this;
@@ -140,6 +119,27 @@ var ApiBrowser = function () {
   }
 
   _createClass(ApiBrowser, [{
+    key: 'trimCode',
+    value: function trimCode(src) {
+      var whitespaceRegex = /(\s+).*/;
+      var match = whitespaceRegex.exec(src);
+
+      if (match) {
+        var length = match[1].length;
+        var leading = new RegExp(Array(length).fill('').join(' '), 'g');
+        return src.replace(leading, '');
+      }
+
+      return src;
+    }
+  }, {
+    key: 'makeArgs',
+    value: function makeArgs(params) {
+      return params.map(function (param) {
+        return param.optional ? '[' + param.name + ']' : param.name;
+      }).join(', ');
+    }
+  }, {
     key: 'switchVersion',
     value: function switchVersion(ev) {
       var option = ev.target.children[ev.target.selectedIndex];
@@ -226,9 +226,7 @@ var ApiBrowser = function () {
       });
 
       return parseJSON.then(function (state) {
-        console.log(Object.keys(state));return Object.assign(_this3.state, state);
-      }).catch(function (ex) {
-        return console.log(ex);
+        return Object.assign(_this3.state, state);
       });
     })
   }]);
