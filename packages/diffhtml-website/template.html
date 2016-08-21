@@ -242,25 +242,27 @@
     <a class="header" href="#virtual-trees"><h3 id="virtual-trees">Virtual trees</h3></a>
 
     <p>
-      The Virtual Tree is a JSON schema for describing existing DOM Nodes and
-      Attributes found in the connected document and produced during each
-      render cycle. They are recycled and pooled since they are constantly
-      needed to represent the next tree during each render. These simple
-      objects represent the bare minimum information necessary for diffHTML to
-      properly reflect the intents.
+      In diffHTML a Virtual Tree is a JavaScript object schema for describing
+      existing DOM Nodes and Attributes found in an HTML document. A tree is
+      generated every render cycle and compared to the previously calculated
+      tree. Objects are recycled and pooled since they are continuously built
+      up and discarded. These simple objects represent the bare amount of
+      information necessary for diffHTML to properly patch the DOM.
     </p>
 
     <p>
-      The Virtual Element object is much lighter than it's respective DOM Node,
-      as it contains only: <code>rawNodeName</code>, <code>nodeName</code>,
+      The Virtual Element object is much lighter than its respective DOM Node,
+      as it represents only: <code>rawNodeName</code>, <code>nodeName</code>,
       <code>nodeValue</code>, <code>key</code>, <code>attributes</code>,
-      <code>childNodes</code>. Two attributes that may stand out to you,
+      <code>childNodes</code>. Contrast this to the hundreds of properties and
+      methods on a real DOM Node. Also note that Virtual Trees contain no
+      circular references. Two attributes that may stand out to you,
       <code>rawNodeName</code> and <code>key</code>, are necessary for making
-      optimizations and providing correctness during the synchronization stage.
-      The first is used to reference the exact casing as written, `nodeName` is
-      always lowercased.  The <code>key</code> is used for sibling elements
-      when you want to have precise control over which elements are added,
-      moved, and removed.
+      optimizations and enforcing correctness during the synchronization stage.
+      The first is used to reference the exact casing as written, as
+      <code>nodeName</code> is always lowercased. The <code>key</code> is used
+      for sibling elements when you want to have precise control over which
+      elements are added, moved, and removed.
     </p>
 
     <p>
@@ -269,7 +271,7 @@
 
       <h5>Example markup and respective Virtual Element JSON</h5>
 
-      <pre><code class="html">&lt;div class=&quot;test&quot;&gt;Hello world&lt;/div&gt;</code></pre>
+      <pre><code class="javascript">diff.createElement('&lt;div class=&quot;test&quot;&gt;Hello world&lt;/div&gt;');</code></pre>
 
       <pre><code class="javascript">{
   "rawNodeName": "DIV",
@@ -292,8 +294,8 @@
 
     <p>
       As stated before, DOM Nodes aren't the only objects that are
-      "virtualized", attributes are as well, due to how frequently they are
-      used. Every attribute has a <code>name</code> and <code>value</code>,
+      "virtualized", attributes are as well. This is due to how frequently they
+      are used. Every attribute has a <code>name</code> and <code>value</code>,
       making them easy to reuse.  The above example's attribute would be
       created using the API like so:
 

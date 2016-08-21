@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "build": "browserify -t babelify api-browser.js -o api-browser-es5.js",
+    "watch": "watchify -t babelify api-browser.js -o api-browser-es5.js -v",
     "start": "node server.js"
   },
   "author": "",
@@ -23,6 +24,7 @@
     "babel-polyfill": "^6.13.0",
     "nodegit": "^0.14.1",
     "nodegit-deployer": "tbranyen/git-deploy#6ebbe0065440ad8832a91d9c7506eba64effe86e",
-    "uglifyify": "^3.0.2"
+    "uglifyify": "^3.0.2",
+    "watchify": "^3.7.0"
   }
 }

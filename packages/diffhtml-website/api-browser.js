@@ -256,17 +256,17 @@ browser.onRender = () => {
 
       const link = document.querySelector(selector);
 
-      update();
-
       if (link) {
-        link.scrollIntoView();
+        link.scrollIntoView(true);
       }
     }
   };
 
   // This is due to the lack of server-side rendering for API docs. This should
   // be rectified.
-  setTimeout(() => setTarget(location.hash), 200);
+  setTimeout(() => {
+    setTarget(location.hash);
+  }, 200);
 
   let scrollTop = document.body.scrollTop;
 
@@ -304,6 +304,7 @@ browser.onRender = () => {
         if (scrollTop) {
           meta.anchor.classList.add('target');
           history.replaceState('', {}, meta.anchor.href);
+          console.log(meta.anchor.href);
         }
         else {
           history.replaceState('', {}, '/');
@@ -331,7 +332,13 @@ browser.onRender = () => {
 
   document.querySelector('nav ul').onclick = ev => {
     if (ev.target.parentNode.matches('a')) {
-      setTarget(ev.target.parentNode.getAttribute('href'));
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+
+      timeout = true;
+      setTarget(ev.target.parentNode.getAttribute('href'), { update: false });
+
+      setTimeout(() => timeout = false, 200);
     }
   };
 

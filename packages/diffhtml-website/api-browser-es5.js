@@ -255,10 +255,8 @@ browser.onRender = function () {
 
       var link = document.querySelector(selector);
 
-      update();
-
       if (link) {
-        link.scrollIntoView();
+        link.scrollIntoView(true);
       }
     }
   };
@@ -266,7 +264,7 @@ browser.onRender = function () {
   // This is due to the lack of server-side rendering for API docs. This should
   // be rectified.
   setTimeout(function () {
-    return setTarget(location.hash);
+    setTarget(location.hash);
   }, 200);
 
   var scrollTop = document.body.scrollTop;
@@ -307,6 +305,7 @@ browser.onRender = function () {
         if (scrollTop) {
           meta.anchor.classList.add('target');
           history.replaceState('', {}, meta.anchor.href);
+          console.log(meta.anchor.href);
         } else {
           history.replaceState('', {}, '/');
         }
@@ -335,7 +334,15 @@ browser.onRender = function () {
 
   document.querySelector('nav ul').onclick = function (ev) {
     if (ev.target.parentNode.matches('a')) {
-      setTarget(ev.target.parentNode.getAttribute('href'));
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+
+      timeout = true;
+      setTarget(ev.target.parentNode.getAttribute('href'), { update: false });
+
+      setTimeout(function () {
+        return timeout = false;
+      }, 200);
     }
   };
 
