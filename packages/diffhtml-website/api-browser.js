@@ -304,7 +304,6 @@ browser.onRender = () => {
         if (scrollTop) {
           meta.anchor.classList.add('target');
           history.replaceState('', {}, meta.anchor.href);
-          console.log(meta.anchor.href);
         }
         else {
           history.replaceState('', {}, '/');
@@ -337,7 +336,6 @@ browser.onRender = () => {
 
       timeout = true;
       setTarget(ev.target.parentNode.getAttribute('href'), { update: false });
-
       setTimeout(() => timeout = false, 200);
     }
   };
