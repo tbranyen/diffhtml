@@ -317,15 +317,52 @@
     </p>
 
     <a class="header" href="#object-pooling"><h3 id="object-pooling">Object pooling</h3></a>
-
-    <p>
-      One of the most  
-    </p>
+    <p>Coming soon...</p>
 
     <a class="header" href="#render-transaction"><h3 id="render-transaction">Render transactions</h3></a>
     <p>Coming soon...</p>
 
     <a class="header" href="#tagged-templates"><h3 id="tagged-templates">Tagged templates</h3></a>
+
+    <p>
+      <a
+      href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_template_literals">Tagged
+      template helpers</a> are an ES-2015 compliant function that are used with
+      <a
+      href="https://developers.google.com/web/updates/2015/01/ES6-Template-Strings?hl=en">template
+      strings</a> in order to parse and manipulate a new value from declarative
+      strings and interpolated values. The helper in diffHTML is named <a
+      href="#html">html</a>, because it parses well formed HTML into a Virtual
+      Tree that is then used internally to determine changes.
+    </p>
+    <p>
+      The usage looks like this:
+
+      <pre><code class="javascript">import { html, innerHTML } from 'diffhtml';
+
+const timeComponent = ({ hours, minutes, seconds }) => html`&lt;div class="time-component"&gt;
+  &lt;span&gt;The time is: ${hours}:${minutes}:${seconds}&lt;/span&gt;
+&lt;/div&gt;`;
+
+// Update the time every second.
+setInterval(() => {
+  const now = new Date();
+
+  innerHTML(document.body, timeComponent({
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+    seconds: now.getSeconds(),
+  }));
+}, 1000);</code></pre>
+    </p>
+    <p>
+      This helper is smart too, meaning it can handle event binding, any
+      key/value on any element, composing existing DOM nodes, and can even be
+      pre-compiled directly into functions using Babel!
+    </p>
+
+    <p></p>
+    <a class="header" href="#inspiration"><h4 id="inspiration">Inspiration</h4></a>
 
     <p>
       JSX has shown that developers like to declaratively describe their UI in
@@ -342,12 +379,25 @@
       isn't exactly HTML per-se, but a similar flavor that leans closer to
       strict XHTML than HTML. It also deals purely with properties and not
       attributes. This is fairly far and away from standards and to use JSX
-      effectively you'll need to align your tooling around it.
+      effectively you'll need to align your tooling and awareness around its
+      differences. For instance, attributes like <code>class</code> will need
+      to be substituted for <code>className</code>.
     </p>
 
     <p>
-      There is another way, however, 
+      Although differences aside, JSX popularized the use of declarative inline
+      markup in components. This markup is more than just cheap template
+      compilation trickery as well. It supports dynamic interpolated values and
+      hierarchical composition. JSX had to be powerful to be useful, and any
+      alternatives must attain that requirement as well.
+    </p>
 
+    <p>
+      Lastly, while JSX is going to work perfectly fine for a majority of the
+      use cases encountered while working on small, medium, or complex
+      applications, it is not the only option for describing markup in code.
+    </p>
+    
     <a class="header" href="#transitions"><h3 id="transitions">Transitions</h3></a>
     <p>Coming soon...</p>
 
