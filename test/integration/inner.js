@@ -104,6 +104,13 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.firstChild.innerHTML, '<p style="font-size: 11px"></p>');
     });
 
+    it('can toggle boolean attributes like checked', function() {
+      diff.innerHTML(this.fixture, '<input checked>');
+      assert.equal(this.fixture.firstChild.checked, true);
+      diff.innerHTML(this.fixture, '<input>');
+      assert.equal(this.fixture.firstChild.checked, false);
+    });
+
     describe('Data', function() {
       it('has basic support', function() {
         diff.innerHTML(this.fixture, '<div><p data-test="test2"></p></div>');
