@@ -209,4 +209,33 @@ describe('Integration: Tagged template', function() {
 
     assert.equal(this.fixture.innerHTML.trim(), expected.trim());
   });
+
+  it.only('can toggle boolean attributes like checked', function() {
+    let index = 0;
+    let onTaskChange = () => {};
+    let task = { done: true };
+
+    diff.innerHTML(this.fixture, html`
+      <input
+        type="checkbox"
+        onclick="${onTaskChange}"
+        value=${index}
+        ${task.done ? 'checked': ''}
+      />
+    `);
+
+    assert.equal(this.fixture.firstChild.checked, true);
+    task.done = false;
+
+    diff.innerHTML(this.fixture, html`
+      <input
+        type="checkbox"
+        onclick="${onTaskChange}"
+        value=${index}
+        ${task.done ? 'checked': ''}
+      />
+    `);
+
+    assert.equal(this.fixture.firstChild.checked, false);
+  });
 });
