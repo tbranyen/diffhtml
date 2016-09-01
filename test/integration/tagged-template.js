@@ -210,7 +210,7 @@ describe('Integration: Tagged template', function() {
     assert.equal(this.fixture.innerHTML.trim(), expected.trim());
   });
 
-  it.only('can toggle boolean attributes like checked', function() {
+  it('can toggle boolean attributes like checked', function() {
     let index = 0;
     let onTaskChange = () => {};
     let task = { done: true };
