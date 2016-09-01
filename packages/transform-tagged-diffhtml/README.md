@@ -1,6 +1,6 @@
 # diffHTML Babel Plugin
 
-Latest stable version: 1.0.0-rc.2
+Latest stable version: 1.0.0-rc.4
 
 [![Build Status](https://travis-ci.org/tbranyen/transform-tagged-diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/transform-tagged-diffhtml)
 
@@ -15,7 +15,7 @@ not work with Babel 5.x ( *deprecated*) or older versions.**
 ### How to install
 
 ``` javascript
-npm i --save-dev transform-tagged-diffhtml
+npm i --save-dev diffhtml transform-tagged-diffhtml
 ```
 
 ### How to use
