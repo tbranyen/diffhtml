@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "browserify -s transform -g [ babelify --presets [ es2015 ] ]  src/index.js -o dist/index.js",
-    "watch": "watchify -s transform -g [ babelify --presets [ es2015 ] ] src/index.js -o dist/index.js -v",
+    "build": "browserify --im -u src/global.js -s transform -g babelify src/index.js -o dist/index.js",
+    "watch": "watchify --im -u src/global.js -s transform -g babelify src/index.js -o dist/index.js -v",
     "build-fixtures": "babel --ignore node_modules test/fixtures.js -o test/.__fixtures__.js",
     "test": "npm run build-fixtures && mocha",
     "watch-tests": "npm run build-fixtures && mocha -w"
@@ -19,11 +19,12 @@
     "babelify": "^7.3.0",
     "babylon": "^6.8.0",
     "browserify": "^13.0.1",
+    "diffhtml": "^0.9.2",
     "mocha": "^2.5.1",
     "stringdom": "jugglinmike/stringdom#f42ad65227fc4e5a1d120ae432c7ec4eaf6aa11b",
     "watchify": "^3.7.0"
   },
-  "dependencies": {
-    "diffhtml": "^0.9.0"
+  "peerDependencies": {
+    "diffhtml": ">=0.9.1"
   }
 }

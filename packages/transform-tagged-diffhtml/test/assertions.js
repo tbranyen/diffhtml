@@ -18,6 +18,11 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
       const actual = fixtures.renderTemplateLiteral();
       assert.equal(actual.trim(), '<div></div>');
     });
+
+    it.skip('warns on invalid markup', () => {
+      const actual = fixtures.warnsOnInvalidMarkup();
+      console.log(actual);
+    });
   });
 
   describe('Quasis', () => {
@@ -78,6 +83,14 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
     it('can render a real world use case', () => {
       const vTree = fixtures.renderRealWorld();
       diff.innerHTML(this.fixture, vTree);
+    });
+  });
+
+  describe('Bug Fixes', () => {
+    it('will not concat neighbor nodes', () => {
+      const vTree = fixtures.interpolatedValuesAreConcat();
+      diff.innerHTML(this.fixture, vTree);
+      assert.equal(this.fixture.textContent, '\n      Text node second\n    ');
     });
   });
 });

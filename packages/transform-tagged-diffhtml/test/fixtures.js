@@ -4,9 +4,15 @@ const setup = require('./setup');
 const diff = require('diffhtml');
 
 BASICS: {
+
   exports.renderTemplateLiteral = () => `
     <div></div>
   `;
+
+  exports.warnsOnInvalidMarkup = () => html`
+    <div></span>
+  `;
+
 }
 
 QUASIS: {
@@ -114,6 +120,18 @@ VIRTUAL_TREES: {
   exports.generateDynamicTree = () => {
     const myVar = Math.random() * Date.now();
     return html`<div>${myVar}</div>`;
+  };
+
+}
+
+BUG_FIXES: {
+
+  exports.interpolatedValuesAreConcat = () => {
+    const createSecond = () => html`<div>second</div>`;
+
+    return html`<div>
+      Text node ${createSecond()}
+    </div>`;
   };
 
 }

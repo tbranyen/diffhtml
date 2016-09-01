@@ -8020,10 +8020,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param childNodes
  * @return
  */
-var normalizeChildNodes = function normalizeChildNodes(childNodes) {
+var normalizeChildNodes = function normalizeChildNodes(_childNodes) {
   var newChildNodes = [];
+  var childNodes = Array.isArray(_childNodes) ? _childNodes : [_childNodes];
 
-  [].concat(childNodes).forEach(function (childNode) {
+  childNodes.forEach(function (childNode) {
     if ((typeof childNode === 'undefined' ? 'undefined' : _typeof(childNode)) !== 'object') {
       newChildNodes.push(createElement('#text', null, String(childNode)));
     } else if ('length' in childNode) {
@@ -8055,11 +8056,22 @@ function createElement(nodeName, attributes, childNodes) {
     return normalizeChildNodes(childNodes);
   }
 
+  if (typeof nodeName === 'function') {
+    var props = attributes;
+    props.children = childNodes;
+    return new nodeName(props).render(props);
+  } else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
+    var _props = attributes;
+    _props.children = childNodes;
+    return nodeName.render(_props);
+  }
+
   var entry = _pools.pools.elementObject.get();
   var isTextNode = nodeName === 'text' || nodeName === '#text';
 
   entry.key = '';
   entry.nodeName = nodeName.toLowerCase();
+  entry.rawNodeName = nodeName;
 
   if (!isTextNode) {
     entry.nodeType = 1;
@@ -8124,7 +8136,7 @@ var _cache = require('../util/cache');
  */
 function makeNode(node) {
   // These are the only DOM Node properties we care about.
-  var nodeName = node.nodeName;
+  var nodeName = node.nodeName.toLowerCase();
   var nodeType = node.nodeType;
   var nodeValue = node.nodeValue;
   var attributes = node.attributes || [];
@@ -8197,6 +8209,9 @@ var StateCache = exports.StateCache = new Map();
 // Associates Virtual Tree Elements with DOM Nodes.
 var NodeCache = exports.NodeCache = new Map();
 
+// Caches all middleware. You cannot unset a middleware once it has been added.
+var MiddlewareCache = exports.MiddlewareCache = new Set();
+
 },{}],115:[function(require,module,exports){
 "use strict";
 
@@ -8248,9 +8263,10 @@ var TOKEN = '__DIFFHTML__';
 var doctypeEx = /<!.*>/ig;
 var attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 var tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
+var spaceEx = /[^ ]/;
 
 // We use this Set in the node/patch module so marking it exported.
-var blockText = exports.blockText = new Set(['script', 'noscript', 'style', 'pre', 'template']);
+var blockText = exports.blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 
 var selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr']);
 
@@ -8341,9 +8357,9 @@ var TextNode = function TextNode(value) {
  * Note: this is a minimalist implementation, no complete tree structure
  * provided (no parentNode, nextSibling, previousSibling etc).
  *
- * @param {string} name     nodeName
- * @param {Object} rawAttrs attributes in string
- * @param {Object} supplemental data
+ * @param {String} nodeName - DOM Node name
+ * @param {Object} rawAttrs - DOM Node Attributes
+ * @param {Object} supplemental - Interpolated data from a tagged template
  * @return {Object} vTree
  */
 var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
@@ -8377,14 +8393,17 @@ var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
 /**
  * Parses HTML and returns a root element
  *
- * @param  {string} data      html
- * @param  {array} supplemental      data
- * @return {HTMLElement}      root element
+ * @param {String} html - String of HTML markup to parse into a Virtual Tree
+ * @param {Object} supplemental - Dynamic interpolated data values
+ * @param {Object} options - Contains options like silencing warnings
+ * @return {Object} - Parsed Virtual Tree Element
  */
 function parse(html, supplemental) {
+  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
   var root = HTMLElement('#document-fragment');
-  var currentParent = root;
   var stack = [root];
+  var currentParent = root;
   var lastTextPos = -1;
 
   // If there are no HTML elements, treat the passed in html as a single
@@ -8411,7 +8430,7 @@ function parse(html, supplemental) {
       var string = html.slice(0, matchOffset);
 
       if (string && string.trim() && !doctypeEx.exec(string)) {
-        root.childNodes.push(TextNode(string));
+        interpolateDynamicBits(currentParent, string, supplemental);
       }
     }
 
@@ -8426,8 +8445,8 @@ function parse(html, supplemental) {
       // not </ tags
       var attrs = {};
 
-      if (!match[4] && kElementsClosedByOpening[currentParent.nodeName]) {
-        if (kElementsClosedByOpening[currentParent.nodeName][match[2]]) {
+      if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
+        if (kElementsClosedByOpening[currentParent.rawNodeName][match[2]]) {
           stack.pop();
           currentParent = stack[stack.length - 1];
         }
@@ -8452,25 +8471,40 @@ function parse(html, supplemental) {
         }
 
         var newText = html.slice(match.index + match[0].length, index);
-
-        if (newText.trim()) {
-          currentParent.childNodes.push(TextNode((0, _escape2.default)(newText)));
-        }
+        interpolateDynamicBits(currentParent, newText.trim(), supplemental);
       }
     }
+
     if (match[1] || match[4] || selfClosing.has(match[2])) {
+      if (match[2] !== currentParent.rawNodeName && options.strict) {
+        var nodeName = currentParent.rawNodeName;
+
+        // Find a subset of the markup passed in to validate.
+        var markup = html.slice(tagEx.lastIndex - match[0].length).split('\n').slice(0, 3);
+
+        // Position the caret next to the first non-whitespace character.
+        var caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
+
+        // Craft the warning message and inject it into the markup.
+        markup.splice(1, 0, caret + '\nPossibly invalid markup. Saw ' + match[2] + ', expected ' + nodeName + '...\n        ');
+
+        // Throw an error message if the markup isn't what we expected.
+        throw new Error('' + markup.join('\n'));
+      }
+
       // </ or /> or <br> etc.
       while (currentParent) {
-        if (currentParent.nodeName == match[2]) {
+        if (currentParent.rawNodeName == match[2]) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
           break;
         } else {
-          var tag = kElementsClosedByClosing[currentParent.nodeName];
+          var tag = kElementsClosedByClosing[currentParent.rawNodeName];
 
           // Trying to close current tag, and move on
           if (tag) {
+
             if (tag[match[2]]) {
               stack.pop();
               currentParent = stack[stack.length - 1];
@@ -8637,6 +8671,7 @@ function initializePools(COUNT) {
 
     fill: function fill() {
       return {
+        rawNodeName: '',
         nodeName: '',
         nodeValue: '',
         nodeType: 1,
@@ -8682,6 +8717,25 @@ exports.default = function (_ref) {
 
       return memo;
     }, null);
+  };
+
+  var splitDyanmicValues = function splitDyanmicValues(value, supplemental) {
+    var expressions = value.split(symbol).reduce(function (memo, str, i, arr) {
+      var isEmpty = !Boolean(str);
+
+      if (!isEmpty) {
+        memo.push(t.stringLiteral(str));
+      }
+
+      // If not the last one.
+      if (i !== arr.length - 1) {
+        memo.push(supplemental.shift());
+      }
+
+      return memo;
+    }, []);
+
+    return t.arrayExpression(expressions);
   };
 
   // Takes in a dot-notation identifier and breaks it up into a
@@ -8737,6 +8791,15 @@ exports.default = function (_ref) {
       if (tagName !== (plugin.opts.tagName || 'html')) {
         return;
       }
+
+      var middleware = (plugin.opts.use || []).map(function (name) {
+        try {
+          var transform = _global2.default.require(name + '/transform');
+          return middleware;
+        } catch (ex) {
+          throw new Error('\n            Missing or incompatible middleware ' + name + '/transform\n          ');
+        }
+      }).filter(Boolean);
 
       var supplemental = {
         props: [],
@@ -8796,8 +8859,7 @@ exports.default = function (_ref) {
         }
       });
 
-      var state = { needsUUID: false };
-      var root = (0, _parser.parse)(HTML.join('')).childNodes;
+      var root = (0, _parser.parse)(HTML.join(''), null, { strict: false }).childNodes;
       var strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       var vTree = babylon.parse('(' + strRoot + ')');
 
@@ -8836,6 +8898,14 @@ exports.default = function (_ref) {
             return property.key.value === 'nodeName';
           })[0].value;
 
+          // The nodeName without `toLowerCase()` being called on it.
+          var rawNodeName = childNode.properties.filter(function (property) {
+            return property.key.value === 'rawNodeName';
+          })[0].value.value;
+
+          // Extract
+          var identifierIsInScope = path.scope.hasBinding(rawNodeName);
+
           var nodeType = childNode.properties.filter(function (property) {
             return property.key.value === 'nodeType';
           })[0].value.value;
@@ -8853,6 +8923,7 @@ exports.default = function (_ref) {
           })[0].value;
 
           var attributeElements = [];
+          var attributeProperties = [];
 
           // Check attributes.
           attributes.forEach(function (attribute) {
@@ -8881,10 +8952,13 @@ exports.default = function (_ref) {
             }
 
             if (name) {
+              attributeProperties.push(t.objectProperty(attrName.value, attrValue.value, true));
+
               attributeElements.push(t.callExpression(createAttribute, [attrName.value, attrValue.value]));
             }
           });
 
+          var attributeObject = t.objectExpression(attributeProperties);
           var args = [];
 
           // Real elements.
@@ -8902,7 +8976,13 @@ exports.default = function (_ref) {
               isDynamic = true;
             }
 
-            args.push(createElement, [nodeName, t.arrayExpression(attributeElements), t.arrayExpression(_expressions.map(function (expr) {
+            var _attributes = t.arrayExpression(attributeElements);
+
+            if (identifierIsInScope) {
+              _attributes = attributeObject;
+            }
+
+            args.push(createElement, [identifierIsInScope ? t.identifier(rawNodeName) : nodeName, _attributes, t.arrayExpression(_expressions.map(function (expr) {
               return expr.expression;
             }))]);
           }
@@ -8915,7 +8995,9 @@ exports.default = function (_ref) {
 
                 isDynamic = true;
               } else if (value.indexOf(symbol) > -1) {
-                args.push(createElement, [t.stringLiteral('#text'), t.nullLiteral(), makeConcatExpr(value, supplemental.children)]);
+                var values = splitDyanmicValues(value, supplemental.children);
+
+                args.push(createElement, [t.stringLiteral(''), t.nullLiteral(), values]);
 
                 isDynamic = true;
               } else {
@@ -8942,7 +9024,6 @@ exports.default = function (_ref) {
         return isDynamic;
       }
 
-      // Find all the dynamic areas and replace w/ AST.
       replaceDynamicBits([].concat(vTree.program.body));
 
       if (vTree.program.body.length > 1) {
@@ -8964,6 +9045,12 @@ var _babylon = require('babylon');
 
 var babylon = _interopRequireWildcard(_babylon);
 
+var _global = require('./global');
+
+var _global2 = _interopRequireDefault(_global);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var symbol = '__DIFFHTML_BABEL__';
@@ -8977,5 +9064,5 @@ var isPropEx = /(=|'|")/;
  */
 ;
 
-},{"babylon":92,"diffhtml/lib/util/parser":116}]},{},[118])(118)
+},{"./global":undefined,"babylon":92,"diffhtml/lib/util/parser":116}]},{},[118])(118)
 });

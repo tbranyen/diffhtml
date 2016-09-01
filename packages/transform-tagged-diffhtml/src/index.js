@@ -1,5 +1,6 @@
 import { parse } from 'diffhtml/lib/util/parser';
 import * as babylon from 'babylon';
+import Global from './global';
 
 const symbol = '__DIFFHTML_BABEL__';
 const isPropEx = /(=|'|")/;
@@ -35,6 +36,25 @@ export default function({ types: t }) {
 
       return memo;
     }, null);
+  };
+
+  const splitDyanmicValues = (value, supplemental) => {
+    const expressions = value.split(symbol).reduce((memo, str, i, arr) => {
+      const isEmpty = !Boolean(str);
+
+      if (!isEmpty) {
+        memo.push(t.stringLiteral(str));
+      }
+
+      // If not the last one.
+      if (i !== arr.length - 1) {
+        memo.push(supplemental.shift());
+      }
+
+      return memo;
+    }, []);
+
+    return t.arrayExpression(expressions);
   };
 
   // Takes in a dot-notation identifier and breaks it up into a
@@ -93,6 +113,18 @@ export default function({ types: t }) {
       }
 
       if (tagName !== (plugin.opts.tagName || 'html')) { return; }
+
+      const middleware = (plugin.opts.use || []).map(name => {
+        try {
+          const transform = Global.require(`${name}/transform`);
+          return middleware;
+        }
+        catch (ex) {
+          throw new Error(`
+            Missing or incompatible middleware ${name}/transform
+          `);
+        }
+      }).filter(Boolean);
 
       const supplemental = {
         props: [],
@@ -157,8 +189,7 @@ export default function({ types: t }) {
         }
       });
 
-      const state = { needsUUID: false };
-      const root = parse(HTML.join('')).childNodes;
+      const root = parse(HTML.join(''), null, { strict: false }).childNodes;
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');
 
@@ -195,6 +226,14 @@ export default function({ types: t }) {
             return property.key.value === 'nodeName';
           })[0].value;
 
+          // The nodeName without `toLowerCase()` being called on it.
+          const rawNodeName = childNode.properties.filter(property => {
+            return property.key.value === 'rawNodeName';
+          })[0].value.value;
+
+          // Extract
+          const identifierIsInScope = path.scope.hasBinding(rawNodeName);
+
           const nodeType = childNode.properties.filter(property => {
             return property.key.value === 'nodeType';
           })[0].value.value;
@@ -212,6 +251,7 @@ export default function({ types: t }) {
           })[0].value;
 
           const attributeElements = [];
+          const attributeProperties = [];
 
           // Check attributes.
           attributes.forEach(attribute => {
@@ -242,6 +282,10 @@ export default function({ types: t }) {
             }
 
             if (name) {
+              attributeProperties.push(
+                t.objectProperty(attrName.value, attrValue.value, true)
+              );
+
               attributeElements.push(
                 t.callExpression(createAttribute, [
                   attrName.value,
@@ -251,6 +295,7 @@ export default function({ types: t }) {
             }
           });
 
+          const attributeObject = t.objectExpression(attributeProperties);
           const args = [];
 
           // Real elements.
@@ -268,9 +313,15 @@ export default function({ types: t }) {
               isDynamic = true;
             }
 
+            let attributes = t.arrayExpression(attributeElements);
+
+            if (identifierIsInScope) {
+              attributes = attributeObject;
+            }
+
             args.push(createElement, [
-              nodeName,
-              t.arrayExpression(attributeElements),
+              identifierIsInScope ? t.identifier(rawNodeName) : nodeName,
+              attributes,
               t.arrayExpression(expressions.map(expr => expr.expression)),
             ]);
           }
@@ -288,10 +339,12 @@ export default function({ types: t }) {
               isDynamic = true;
             }
             else if (value.indexOf(symbol) > -1) {
+              const values = splitDyanmicValues(value, supplemental.children);
+
               args.push(createElement, [
-                t.stringLiteral('#text'),
+                t.stringLiteral(''),
                 t.nullLiteral(),
-                makeConcatExpr(value, supplemental.children)
+                values
               ]);
 
               isDynamic = true;
@@ -327,7 +380,6 @@ export default function({ types: t }) {
         return isDynamic;
       }
 
-      // Find all the dynamic areas and replace w/ AST.
       replaceDynamicBits([].concat(vTree.program.body));
 
       if (vTree.program.body.length > 1) {
