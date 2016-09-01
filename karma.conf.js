@@ -84,8 +84,6 @@ module.exports = function(config) {
     },
 
     browserify: {
-      debug: true,
-
       transform: [
         !process.env.SKIP_COV ? [istanbul({
           instrumenter: isparta,
@@ -117,6 +115,6 @@ module.exports = function(config) {
       // Non-evergreen mobile.
       'BS_Nexus_Android',
       'BS_iPhone_iOS',
-    ] : ['PhantomJS']
+    ] : [/*'PhantomJS'*/]
   });
 };

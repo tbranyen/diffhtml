@@ -164,6 +164,12 @@ describe('Integration: Transitions', function() {
   });
 
   describe('Removing states', function() {
+    it('will error if trying to remove an invalid state', function() {
+      assert.throws(function() {
+        diff.removeTransitionState('invalid');
+      }, 'Invalid state name: invalid');
+    });
+
     it('can remove all states', function() {
       var hit = 0;
 
@@ -351,6 +357,30 @@ describe('Integration: Transitions', function() {
   });
 
   describe('Handling Promise return values', function() {
+    it('will hold off rendering if a different diffhtml render is happening', function(done) {
+      const promise = new Promise(resolve => setTimeout(resolve, 100));
+      const div = document.createElement('div');
+
+      var promiseResolved = false;
+
+      div.innerHTML = '<div></div>';
+
+      promise.then(() => {
+        promiseResolved = true;
+        assert.equal(this.fixture.textContent, '');
+      });
+
+      diff.addTransitionState('replaced', () => promise);
+      diff.addTransitionState('textChanged', () => {
+        assert.ok(promiseResolved);
+        diff.release(div);
+        done();
+      });
+
+      diff.innerHTML(div, '<p></p>');
+      diff.innerHTML(this.fixture, '<div>Hello</div>');
+    });
+
     it('will hold off rendering until attached promise resolves', function(done) {
       var count = 0;
       var promise = new Promise(function(resolve) {
