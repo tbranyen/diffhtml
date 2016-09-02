@@ -1936,6 +1936,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var TOKEN = '__DIFFHTML__';
 
+var hasNonWhitespaceEx = /\S/;
 var doctypeEx = /<!.*>/ig;
 var attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 var tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
@@ -1981,7 +1982,7 @@ var interpolateDynamicBits = function interpolateDynamicBits(currentParent, stri
       string.split(TOKEN).forEach(function (value, index) {
         if (index === 0) {
           // We trim here to allow for newlines before and after markup starts.
-          if (value && value.trim()) {
+          if (value && hasNonWhitespaceEx.test(value)) {
             toAdd.push(TextNode(value));
           }
 
@@ -2003,7 +2004,7 @@ var interpolateDynamicBits = function interpolateDynamicBits(currentParent, stri
         }
 
         // This is a useful Text Node.
-        if (value && value.trim()) {
+        if (value && hasNonWhitespaceEx.test(value)) {
           toAdd.push(TextNode(value));
         }
       });
@@ -2105,7 +2106,7 @@ function parse(html, supplemental) {
     if (lastTextPos === -1 && matchOffset > 0) {
       var string = html.slice(0, matchOffset);
 
-      if (string && string.trim() && !doctypeEx.exec(string)) {
+      if (string && hasNonWhitespaceEx.test(string) && !doctypeEx.exec(string)) {
         interpolateDynamicBits(currentParent, string, supplemental);
       }
     }
