@@ -341,6 +341,10 @@ section#content a:not(.header):hover {
   border-bottom: 2px solid #a0a0a0;
 }
 
+section#content a.no-underline {
+  border-bottom: none !important;
+}
+
 section#content a.header {
   text-decoration: none;
   position: relative;
