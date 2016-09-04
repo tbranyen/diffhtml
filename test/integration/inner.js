@@ -101,7 +101,7 @@ describe('Integration: innerHTML', function() {
       diff.innerHTML(this.fixture,
         '<div><p style="font-size: 11px"></p></div>');
 
-      assert.equal(this.fixture.firstChild.innerHTML, '<p style="font-size: 11px"></p>');
+      assert.equal(this.fixture.firstChild.firstChild.style.fontSize, '11px');
     });
 
     it('can toggle boolean attributes like checked', function() {

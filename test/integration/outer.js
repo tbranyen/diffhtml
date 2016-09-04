@@ -176,7 +176,7 @@ describe('Integration: outerHTML', function() {
       diff.outerHTML(this.fixture,
         '<div><p style="font-size: 11px"></p></div>');
 
-      assert.equal(this.fixture.innerHTML, '<p style="font-size: 11px"></p>');
+      assert.equal(this.fixture.firstChild.style.fontSize, '11px');
     });
 
     it('supports setting input value', function() {

@@ -9,7 +9,7 @@ const browsers = {
 
   Windows: {
     os: 'Windows',
-    os_version: '10',
+    os_version: '7',
   },
 
   iOS: {
@@ -50,7 +50,7 @@ module.exports = function(config) {
       createBrowser('Safari'),
 
       // Windows Evergreen.
-      createBrowser('IE', null, 'Windows'),
+      createBrowser('IE', '10', 'Windows'),
       createBrowser('Edge', null, 'Windows'),
 
       // Non-evergreen OS X.
@@ -109,7 +109,7 @@ module.exports = function(config) {
       'BS_Edge_Windows',
 
       // Currently failing due to undocumented `renderComplete` method.
-      //'BS_IE_Windows',
+      'BS_IE_Windows',
 
       // Non-evergreen desktop.
       'BS_Opera_OSX',

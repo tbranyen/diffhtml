@@ -675,21 +675,13 @@ function patchNode(node, patches) {
             // promises were added, this will be a synchronous operation.
             if (allPromises.length) {
               Promise.all(allPromises).then(function replaceEntireElement() {
-                checkForMissingParent(oldEl, patch);
+                checkForMissingParent('replace', oldEl, patch);
                 oldEl.parentNode.replaceChild(newEl, oldEl);
               }, function (ex) {
                 return console.log(ex);
               });
             } else {
-              if (!oldEl.parentNode) {
-                (0, _memory.unprotectElement)(patch.new);
-
-                if (_cache.StateCache.has(newEl)) {
-                  _cache.StateCache.delete(newEl);
-                }
-
-                throw new Error(replaceFailMsg);
-              }
+              checkForMissingParent('replace', oldEl, patch);
 
               oldEl.parentNode.replaceChild(newEl, oldEl);
             }
