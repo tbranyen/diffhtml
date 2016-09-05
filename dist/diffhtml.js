@@ -675,21 +675,13 @@ function patchNode(node, patches) {
             // promises were added, this will be a synchronous operation.
             if (allPromises.length) {
               Promise.all(allPromises).then(function replaceEntireElement() {
-                checkForMissingParent(oldEl, patch);
+                checkForMissingParent('replace', oldEl, patch);
                 oldEl.parentNode.replaceChild(newEl, oldEl);
               }, function (ex) {
                 return console.log(ex);
               });
             } else {
-              if (!oldEl.parentNode) {
-                (0, _memory.unprotectElement)(patch.new);
-
-                if (_cache.StateCache.has(newEl)) {
-                  _cache.StateCache.delete(newEl);
-                }
-
-                throw new Error(replaceFailMsg);
-              }
+              checkForMissingParent('replace', oldEl, patch);
 
               oldEl.parentNode.replaceChild(newEl, oldEl);
             }
@@ -1936,6 +1928,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var TOKEN = '__DIFFHTML__';
 
+var hasNonWhitespaceEx = /\S/;
 var doctypeEx = /<!.*>/ig;
 var attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 var tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-][a-z0-9\-]*)\s*([^>]*?)(\/?)>/ig;
@@ -1981,7 +1974,7 @@ var interpolateDynamicBits = function interpolateDynamicBits(currentParent, stri
       string.split(TOKEN).forEach(function (value, index) {
         if (index === 0) {
           // We trim here to allow for newlines before and after markup starts.
-          if (value && value.trim()) {
+          if (value && hasNonWhitespaceEx.test(value)) {
             toAdd.push(TextNode(value));
           }
 
@@ -2003,7 +1996,7 @@ var interpolateDynamicBits = function interpolateDynamicBits(currentParent, stri
         }
 
         // This is a useful Text Node.
-        if (value && value.trim()) {
+        if (value && hasNonWhitespaceEx.test(value)) {
           toAdd.push(TextNode(value));
         }
       });
@@ -2105,7 +2098,7 @@ function parse(html, supplemental) {
     if (lastTextPos === -1 && matchOffset > 0) {
       var string = html.slice(0, matchOffset);
 
-      if (string && string.trim() && !doctypeEx.exec(string)) {
+      if (string && hasNonWhitespaceEx.test(string) && !doctypeEx.exec(string)) {
         interpolateDynamicBits(currentParent, string, supplemental);
       }
     }
@@ -2133,6 +2126,7 @@ function parse(html, supplemental) {
       stack.push(currentParent);
 
       if (blockText.has(match[2])) {
+        console.log(blockText, match[2]);
         // A little test to find next </script> or </style> ...
         var closeMarkup = '</' + match[2] + '>';
         var index = html.indexOf(closeMarkup, tagEx.lastIndex);
@@ -2153,6 +2147,8 @@ function parse(html, supplemental) {
 
     if (match[1] || match[4] || selfClosing.has(match[2])) {
       if (match[2] !== currentParent.rawNodeName && options.strict) {
+        console.log(stack);
+        console.log(match, currentParent.rawNodeName);
         var nodeName = currentParent.rawNodeName;
 
         // Find a subset of the markup passed in to validate.
@@ -2165,7 +2161,7 @@ function parse(html, supplemental) {
         markup.splice(1, 0, caret + '\nPossibly invalid markup. Saw ' + match[2] + ', expected ' + nodeName + '...\n        ');
 
         // Throw an error message if the markup isn't what we expected.
-        throw new Error('' + markup.join('\n'));
+        throw new Error('\n\n' + markup.join('\n'));
       }
 
       // </ or /> or <br> etc.
