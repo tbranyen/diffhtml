@@ -40,4 +40,24 @@ describe('Integration: element', function() {
 
     assert.equal(this.fixture.outerHTML, '<div>Hello world!</div>');
   });
+
+  it('can diff a document fragment (inner)', function() {
+    var fragment = document.createDocumentFragment();
+    fragment.appendChild(document.createElement('span'));
+
+    diff.element(this.fixture, fragment, { inner: true });
+
+    assert.equal(this.fixture.childNodes.length, 1);
+    assert.equal(this.fixture.childNodes[0].nodeName, 'SPAN');
+  });
+
+  it('can diff a document fragment (outer)', function() {
+    var fragment = document.createDocumentFragment();
+    fragment.appendChild(document.createElement('span'));
+
+    diff.element(this.fixture, fragment);
+
+    assert.equal(this.fixture.childNodes.length, 1);
+    assert.equal(this.fixture.childNodes[0].nodeName, 'SPAN');
+  });
 });

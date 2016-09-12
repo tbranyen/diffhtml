@@ -14,6 +14,11 @@ describe('Integration: innerHTML', function() {
     validateMemory();
   });
 
+  it('can remove the element children with no newTree', function() {
+    diff.innerHTML(this.fixture);
+    assert.equal(this.fixture.childNodes.length, 0);
+  });
+
   it('can recalculate the tree if contents are unexpectedly changed', function() {
     diff.innerHTML(this.fixture, '<p></p>');
     this.fixture.innerHTML = '<span></span>';

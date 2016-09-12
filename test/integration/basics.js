@@ -1,4 +1,5 @@
 import * as diff from '../../lib/index';
+import * as pools from '../../lib/util/pools';
 import validateMemory from '../util/validateMemory';
 
 describe('Integration: Basics', function() {
@@ -80,6 +81,14 @@ describe('Integration: Basics', function() {
 
       diff.release(documentElement);
       doc.close();
+    });
+
+    it('can exceed the default max element pool size', function() {
+      for (let i = 0; i < 10001; i++) {
+        diff.createElement('div');
+      }
+
+      assert.equal(pools.elementObject.cache.allocated.size, 10001);
     });
   });
 

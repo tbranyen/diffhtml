@@ -299,6 +299,33 @@ describe('Integration: Transitions', function() {
       assert.equal(newElement.parentNode, this.fixture.firstChild);
     });
 
+    it('can provide attached promises during replaced state', function(done) {
+      var oldElement = null;
+      var newElement = null;
+      var attachedElement = null;
+
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+
+      diff.addTransitionState('replaced', function() {
+        newElement = arguments[1];
+      });
+
+      diff.addTransitionState('attached', (el) => new Promise(resolve => {
+        resolve(attachedElement = el);
+      }));
+
+      const unsubscribe = diff.use(start => sync => patch => finish => {
+        assert.equal(attachedElement, newElement);
+        unsubscribe();
+        done();
+      });
+
+      var p = this.fixture.querySelector('p');
+
+      diff.innerHTML(this.fixture, '<div><span></span></div>');
+
+    });
+
     it('will provide the correct arguments to attributeChanged (added)', function() {
       var element, attributeName, oldValue, newValue;
 

@@ -492,15 +492,10 @@ var checkForMissingParent = function checkForMissingParent(verb, oldNode, patch)
     (0, _memory.unprotectElement)(patch.element);
     (0, _memory.unprotectElement)(patch.toRemove);
 
-    if (_cache.StateCache.has(patch.oldTree)) {
-      _cache.StateCache.delete(patch.oldTree);
-    }
-    if (_cache.StateCache.has(patch.newTree)) {
-      _cache.StateCache.delete(patch.newTree);
-    }
-    if (_cache.StateCache.has(patch.element)) {
-      _cache.StateCache.delete(patch.element);
-    }
+    // Empty the state caches for all existing elements.
+    _cache.StateCache.delete(patch.oldTree);
+    _cache.StateCache.delete(patch.newTree);
+    _cache.StateCache.delete(patch.element);
 
     // Throw an error to stop rendering/inform the developer.
     throw new Error(('\n      Can\'t ' + verb + ' without parent, is this the document root?\n    ').trim());
@@ -616,13 +611,18 @@ function patchNode(node, patches) {
         }).filter(isElementNode);
 
         // Turn elements into childNodes of the patch element.
-        node.parentNode.insertBefore(fragment, node);
+        node.insertBefore(fragment, oldNode);
+
+        // Protect all the new elements being added.
+        patch.fragment.forEach(_memory.protectElement);
 
         var index = patch.element.childNodes.indexOf(patch.oldTree);
 
         // Add the new virtual trees into the existing tree.
-        for (var _i2 = 0; _i2 < patch.fragment.length; _i2++) {
-          patch.element.childNodes.splice(index, 0, patch.fragment[_i2]);
+        var childNodes = patch.element.childNodes;
+
+        if (index !== -1) {
+          childNodes.splice.apply(childNodes, [index, 0].concat(patch.fragment));
         }
 
         // Trigger the attached transitions.
@@ -646,8 +646,8 @@ function patchNode(node, patches) {
         // transitions this callback will be called once the Promise resolves.
         var callback = function callback() {
           // Remove these items from the fragment and unprotect them.
-          for (var _i3 = 0; _i3 < fragment.length; _i3++) {
-            var tree = fragment[_i3];
+          for (var _i2 = 0; _i2 < fragment.length; _i2++) {
+            var tree = fragment[_i2];
             var childNode = (0, _make2.default)(tree);
 
             if (node) {
@@ -660,10 +660,7 @@ function patchNode(node, patches) {
 
             if (patch.element) {
               var _index = patch.element.childNodes.indexOf(tree);
-
-              if (_index !== -1) {
-                patch.element.childNodes.splice(_index, 1);
-              }
+              patch.element.childNodes.splice(_index, 1);
             }
           }
         };
@@ -794,10 +791,8 @@ function patchNode(node, patches) {
               // If not a dynamic type, set as an attribute, since it's a valid
               // attribute value.
               if (!isObject && !isFunction) {
-                if (newAttr.name) {
-                  node.setAttribute(newAttr.name, (0, _entities.decodeEntities)(newAttr.value));
-                }
-              } else if (typeof newAttr.value !== 'string') {
+                node.setAttribute(newAttr.name, (0, _entities.decodeEntities)(newAttr.value));
+              } else {
                 // Necessary to track the attribute/prop existence.
                 node.setAttribute(newAttr.name, '');
 
@@ -831,12 +826,10 @@ function patchNode(node, patches) {
               patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
               node.nodeValue = patch.element.nodeValue;
 
-              if (node.parentNode) {
-                var nodeName = node.parentNode.nodeName.toLowerCase();
+              var nodeName = node.parentNode.nodeName.toLowerCase();
 
-                if (_parser.blockText.has(nodeName)) {
-                  node.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.element.nodeValue);
-                }
+              if (_parser.blockText.has(nodeName)) {
+                node.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.element.nodeValue);
               }
 
               (0, _memory.unprotectElement)(patch.newTree);
@@ -985,6 +978,7 @@ var getTreeFromNewHTML = function getTreeFromNewHTML(newHTML, options, callback)
       var newTree = (0, _make2.default)(newHTML);
 
       if (newTree.nodeType === 11) {
+        options.inner = true;
         pools.elementObject.unprotect(newTree);
         return callback(newTree.childNodes);
       }
@@ -1097,7 +1091,7 @@ function createTransaction(node, newHTML, options) {
   // The callback function runs on every normalized Node to wrap childNodes
   // in the case of setting innerHTML.
   var newTree = getTreeFromNewHTML(newHTML, options, function (newTree) {
-    if (isInner) {
+    if (options.inner) {
       pools.elementObject.unprotect(newTree);
 
       var nodeName = state.oldTree.nodeName;
@@ -1146,8 +1140,6 @@ function createTransaction(node, newHTML, options) {
 
   // Synchronize the trees, use any middleware replacements, if supplied.
   var patches = (0, _sync2.default)(transactionState.oldTree, transactionState.newTree);
-
-  //console.log(JSON.stringify(patches, null, 2));
 
   // Apply the set of patches to the Node.
   var promises = (0, _patch2.default)(node, patches);
@@ -1231,18 +1223,14 @@ var normalize = function normalize(childNodes) {
     }
     // Is a NodeList or HTMLCollection or array-like.
     else if ('length' in childNode) {
-        for (var _i = 0; _i < childNode.length; _i++) {
-          newChildNodes.push(childNode[_i].ownerDocument ? (0, _make2.default)(childNode[_i]) : childNode[_i]);
+        for (var i = 0; i < childNode.length; i++) {
+          newChildNodes.push(childNode[i].ownerDocument ? (0, _make2.default)(childNode[i]) : childNode[i]);
         }
       }
-      // Is a DOM Node.
-      else if (childNode.ownerDocument) {
-          newChildNodes.push((0, _make2.default)(childNode[i]));
+      // Is a Virtual Tree Element.
+      else {
+          newChildNodes.push(childNode);
         }
-        // Is a Virtual Tree Element.
-        else {
-            newChildNodes.push(childNode);
-          }
 
     return newChildNodes;
   }, []);
@@ -1267,11 +1255,11 @@ function createElement(nodeName, attributes) {
   }
 
   if (typeof nodeName === 'function') {
-    var props = attributes;
+    var props = attributes || {};
     props.children = childNodes;
     return new nodeName(props).render(props);
   } else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
-    var _props = attributes;
+    var _props = attributes || {};
     _props.children = childNodes;
     return nodeName.render(_props);
   }
@@ -1290,8 +1278,13 @@ function createElement(nodeName, attributes) {
   entry.nodeName = nodeName.toLowerCase();
   entry.rawNodeName = nodeName;
 
-  if (!isTextNode) {
-    entry.nodeType = 1;
+  if (isTextNode) {
+    entry.nodeType = 3;
+    entry.nodeValue = (0, _escape2.default)(String(childNodes.join('')));
+    entry.attributes.length = 0;
+    entry.childNodes.length = 0;
+  } else {
+    entry.nodeType = nodeName === '#document-fragment' ? 11 : 1;
     entry.nodeValue = '';
     entry.attributes = attributes || [];
     entry.childNodes = normalize(childNodes);
@@ -1303,11 +1296,6 @@ function createElement(nodeName, attributes) {
         return true;
       }
     });
-  } else {
-    entry.nodeType = nodeName === '#document-fragment' ? 11 : 3;
-    entry.nodeValue = (0, _escape2.default)(String(childNodes.join('')));
-    entry.attributes.length = 0;
-    entry.childNodes.length = 0;
   }
 
   return entry;
@@ -1565,9 +1553,6 @@ function sync(oldTree, newTree) {
     var newKey = newChildNode && newChildNode.key;
     var keysMatch = oldKey && newKey && oldKey === newKey;
 
-    //console.log('old', JSON.stringify(oldChildNode));
-    //console.log('new', JSON.stringify(newChildNode));
-
     // First look for new children to append.
     if (!oldChildNode) {
       handleOperationChange(baton, APPEND_ELEMENT);
@@ -1579,15 +1564,16 @@ function sync(oldTree, newTree) {
       patch.fragment.push(newChildNode);
     }
     // Prepend new items that exist in between elements.
-    else if (hasOldKeys && !oldKeys.has(newKey) && oldChildNodes.length > i) {
+    else if (hasOldKeys && !oldKeys.has(newKey) && newKeys.has(oldKey) && oldChildNodes.length < newChildNodes.length) {
         handleOperationChange(baton, PREPEND_ELEMENT);
 
         var _patch = baton.patch;
 
-        var nextChildNode = newChildNodes[i + 1];
+        var nextChildNode = oldChildNodes[i];
 
-        _patch.element = oldChildNode;
+        _patch.element = oldTree;
         _patch.fragment.push(newChildNode);
+        _patch.oldTree = nextChildNode;
 
         oldIndex--;
 
@@ -1630,7 +1616,7 @@ function sync(oldTree, newTree) {
               // index.
               oldIndex--;
             }
-          } else if (oldChildNode) {
+          } else {
             sync(oldChildNode, newChildNode, patches, oldTree);
           }
 
@@ -1644,10 +1630,6 @@ function sync(oldTree, newTree) {
     for (var _i = 0; _i < fragment.length; _i++) {
       var vTree = fragment[_i];
       var nextVTree = fragment[_i + 1];
-
-      if (oldKeys && newKeys.has(vTree.key) && oldKeys.has(vTree.key)) {
-        continue;
-      }
 
       handleOperationChange(baton, REMOVE_ELEMENT);
 
@@ -1828,12 +1810,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
  * @return element
  */
 function protectElement(element) {
-  if (!element) {
-    return;
-  } else if (Array.isArray(element)) {
-    return element.forEach(protectElement);
-  }
-
   var elementObject = pools.elementObject;
   var attributeObject = pools.attributeObject;
 
@@ -1854,8 +1830,6 @@ function protectElement(element) {
 function unprotectElement(element) {
   if (!element) {
     return;
-  } else if (Array.isArray(element)) {
-    return element.forEach(unprotectElement);
   }
 
   var elementObject = pools.elementObject;
@@ -2193,11 +2167,6 @@ Object.keys(states).forEach(function (stateName) {
     // Sometimes an array-like is passed so using forEach in this manner yields
     // more consistent results.
     for (var i = 0; i < elements.length; i++) {
-      // Never pass text nodes to a state callback unless it is textChanged.
-      if (stateName !== 'textChanged' && elements[i].nodeType !== 1) {
-        continue;
-      }
-
       // Call the map function with each element.
       var newPromises = states[stateName].map(mapFn.apply(null, [elements[i]].concat(args)));
 
