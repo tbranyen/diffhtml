@@ -16,7 +16,21 @@ npm install diffhtml-logger
 ``` javascript
 import logger from 'diffhtml-logger';
 
-diff.use(logger);
+diff.use(logger());
+```
+
+##### Filtering out the type of patches
+
+If you want to debug only element patches, you can provide a filter as an
+option:
+
+``` javascript
+diff.use(logger({
+  // Log all element mutations, this excludes text and attribute changes.
+  filterPatches(patch) {
+    return patch.type.indexOf('ELEMENT') > -1;
+  }
+}));
 ```
 
 ##### Screenshot
