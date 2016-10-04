@@ -116,7 +116,7 @@ describe('Integration: outerHTML', function() {
       assert.equal(this.fixture.innerHTML.trim(), 'This works!');
     });
 
-    it('must render a top level element', function() {
+    it.only('must render a top level element', function() {
       class MainComponent {
         render() {
           return html`
@@ -127,7 +127,8 @@ describe('Integration: outerHTML', function() {
         }
       }
 
-      diff.outerHTML(this.fixture, diff.createElement(MainComponent));
+      //diff.outerHTML(this.fixture, diff.createElement(MainComponent));
+      diff.outerHTML(this.fixture, html`<${MainComponent} />`);
 
       assert.equal(this.fixture.innerHTML.trim(), 'This works!');
     });
