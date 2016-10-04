@@ -116,7 +116,7 @@ describe('Integration: outerHTML', function() {
       assert.equal(this.fixture.innerHTML.trim(), 'This works!');
     });
 
-    it.only('must render a top level element', function() {
+    it('can render components as tag names', function() {
       class MainComponent {
         render() {
           return html`
@@ -131,6 +131,99 @@ describe('Integration: outerHTML', function() {
       diff.outerHTML(this.fixture, html`<${MainComponent} />`);
 
       assert.equal(this.fixture.innerHTML.trim(), 'This works!');
+    });
+
+    it('can pass props to the component', function() {
+      class MainComponent {
+        render() {
+          return html`
+            <div>
+              ${this.props.message} - ${this.props.children}
+            </div>
+          `;
+        }
+
+        constructor(props) {
+          this.props = props;
+        }
+      }
+
+      diff.outerHTML(this.fixture, html`
+        <${MainComponent} message="Testing">This out!</${MainComponent}>
+      `);
+
+      assert.equal(this.fixture.innerHTML.trim(), 'Testing - This out!');
+    });
+
+    it('supports two dynamic components as tag names', function() {
+      class ComponentOne {
+        render() {
+          return html`
+            <div>ComponentOne ${this.props.label}</div>
+          `;
+        }
+
+        constructor(props) { this.props = props; }
+      }
+
+      class ComponentTwo {
+        render() {
+          return html`
+            <div>ComponentTwo ${this.props.label}</div>
+          `;
+        }
+
+        constructor(props) { this.props = props; }
+      }
+
+      //diff.outerHTML(this.fixture, diff.createElement(MainComponent));
+      diff.outerHTML(this.fixture, html`
+        <div>
+          <${ComponentOne} label="Testing"></${ComponentOne}>
+          <${ComponentTwo} label="Testing"></${ComponentTwo}>
+        </div>
+      `);
+
+      assert.equal(this.fixture.textContent, '\n          ComponentOne Testing\n          ComponentTwo Testing\n        ');
+    });
+
+    it('can remove a dynamic tag name', function() {
+      class ComponentOne {
+        render() {
+          return html`
+            <div>ComponentOne ${this.props.label}</div>
+          `;
+        }
+
+        constructor(props) { this.props = props; }
+      }
+
+      class ComponentTwo {
+        render() {
+          return html`
+            <div>ComponentTwo ${this.props.label}</div>
+          `;
+        }
+
+        constructor(props) { this.props = props; }
+      }
+
+      diff.outerHTML(this.fixture, html`
+        <div>
+          <${ComponentOne} label="Testing"></${ComponentOne}>
+          <${ComponentTwo} label="Testing"></${ComponentTwo}>
+        </div>
+      `);
+
+      assert.equal(this.fixture.textContent, '\n          ComponentOne Testing\n          ComponentTwo Testing\n        ');
+
+      diff.outerHTML(this.fixture, html`
+        <div>
+          <${ComponentOne} label="Testing"></${ComponentOne}>
+        </div>
+      `);
+
+      assert.equal(this.fixture.textContent, '\n          ComponentOne Testing\n        ');
     });
   });
 
