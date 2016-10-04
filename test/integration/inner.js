@@ -1,4 +1,5 @@
 import * as diff from '../../lib/index';
+import { html } from '../../lib/util/tagged-template';
 import validateMemory from '../util/validateMemory';
 
 describe('Integration: innerHTML', function() {
@@ -35,6 +36,24 @@ describe('Integration: innerHTML', function() {
       diff.innerHTML(this.fixture, '<div><p><!-- test --></p></div>');
 
       assert.equal(this.fixture.firstChild.innerHTML, '<p></p>');
+    });
+  });
+
+  describe('Components', function() {
+    it('supports a component rendering a fragment', function() {
+      class MainComponent {
+        render() {
+          return html`
+            <div>hello</div>
+            <div>world</div>
+          `;
+        }
+      }
+
+      diff.innerHTML(this.fixture, diff.createElement(MainComponent));
+
+      assert.equal(this.fixture.innerHTML.trim(), `<div>hello</div>
+            <div>world</div>`);
     });
   });
 

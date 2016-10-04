@@ -389,9 +389,15 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
  * @param nodeValue {String} - The nodeValue to set if a Text Node
  * @return {Object} - A DOM Node matching the nodeName
  */
-var createNodeFromName = function createNodeFromName(_ref) {
-  var nodeName = _ref.nodeName;
-  var nodeValue = _ref.nodeValue;
+var createNodeFromName = function createNodeFromName(vTree) {
+  var nodeName = vTree.nodeName;
+  var childNodes = vTree.childNodes;
+  var attributes = vTree.attributes;
+  var nodeValue = vTree.nodeValue;
+
+  // Shorthand the lookup method.
+
+  var lookupNode = _cache.NodeCache.get;
 
   // If we're dealing with a Text Node, we need to use the special DOM method,
   // since createElement does not understand the nodeName '#text'.
@@ -406,10 +412,59 @@ var createNodeFromName = function createNodeFromName(_ref) {
   else if (svg.elements.indexOf(nodeName) > -1) {
       return document.createElementNS(svg.namespace, nodeName);
     }
-    // If not a Text or SVG Node, then create with the standard method.
-    else {
-        return document.createElement(nodeName);
+    // Render the stateful component.
+    else if (typeof nodeName === 'function') {
+        var _ret = function () {
+          // Props are an immutable object inspired by React. They always contain
+          // a childNodes
+          var props = Object.freeze(Object.assign({}, attributes, {
+            children: childNodes.map(lookupNode)
+          }));
+
+          // Make the stateful component.
+          var instance = new nodeName(props);
+
+          // Initial render.
+          var node = instance.render(props);
+
+          // Return a single Node or multiple nodes depending on the return value.
+          instance.getDOMNode = function () {
+            return Array.isArray(node) ? node.map(lookupNode) : lookupNode(node);
+          };
+
+          return {
+            v: { domNode: createNodeFromName(node), vTree: node }
+          };
+        }();
+
+        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+      } else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
+        var _ret2 = function () {
+          // Props are an immutable object inspired by React. They always contain
+          // a childNodes
+          var props = Object.freeze(Object.assign({}, attributes, {
+            children: childNodes.map(lookupNode)
+          }));
+
+          // Initial render.
+          var node = nodeName.render(props);
+
+          // Return a single Node or multiple nodes depending on the return value.
+          nodeName.getDOMNode = function () {
+            return Array.isArray(node) ? node.map(lookupNode) : lookupNode(node);
+          };
+
+          return {
+            v: { domNode: createNodeFromName(node), vTree: node }
+          };
+        }();
+
+        if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
       }
+      // If not a Text or SVG Node, then create with the standard method.
+      else {
+          return document.createElement(nodeName);
+        }
 };
 
 /**
@@ -432,6 +487,11 @@ function make(vTree) {
   }
 
   var node = createNodeFromName(vTree);
+
+  if (node.vTree) {
+    _cache.NodeCache.set(node.vTree, node.domNode);
+    return node.domNode;
+  }
 
   // Copy all the attributes from the vTree into the newly created DOM
   // Node.
@@ -1287,20 +1347,40 @@ var normalizeChildNodes = function normalizeChildNodes(_childNodes) {
  * @param childNodes
  * @return {Object} element
  */
-function createElement(nodeName, attributes, childNodes) {
+function createElement(nodeName) {
+  for (var _len = arguments.length, childNodes = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    childNodes[_key - 2] = arguments[_key];
+  }
+
+  var attributes = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
   if (nodeName === '') {
     return normalizeChildNodes(childNodes);
   }
 
+  // A stateful component is a constructor that will be invoked with `new`.
+  // Typically described as a `class`. Must export a `render` method on the
+  // instance, this function should return a VTree representing the component.
+  //
+  // The class constructor is passed a `props` object containing the attributes
+  // converted to a flat object. A special property `children` is also attached
+  // to allow for nesting the passed children.
   if (typeof nodeName === 'function') {
-    var props = attributes;
-    props.children = childNodes;
-    return new nodeName(props).render(props);
-  } else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
-    var _props = attributes;
-    _props.children = childNodes;
-    return nodeName.render(_props);
+    return function () {
+      return { type: 'stateful', attributes: attributes, childNodes: childNodes, nodeName: nodeName };
+    };
   }
+
+  // A stateless component is a singleton object that is a singular state.
+  // This object must contain a `render` function. This function should return
+  // a VTree representing the component. It is passed a `props` object
+  // containing the attributes converted to a flat object. A special property
+  // `children` is also attached to allow for nesting the passed children.
+  else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
+      return function () {
+        return { type: 'stateless', attributes: attributes, childNodes: childNodes, nodeName: nodeName };
+      };
+    }
 
   var entry = _pools.pools.elementObject.get();
   var isTextNode = nodeName === 'text' || nodeName === '#text';
@@ -1472,9 +1552,15 @@ function sync(oldTree, newTree, patches) {
     throw new Error('Missing existing tree to sync');
   }
 
+  if (typeof oldTree === 'function' || typeof newTree === 'function') {
+    console.log('here');
+    return;
+  }
+
   var oldNodeValue = oldTree.nodeValue;
   var oldChildNodes = oldTree.childNodes;
   var oldIsTextNode = oldTree.nodeName === '#text';
+  var oldIsCtor = typeof oldTree.nodeName === 'function';
 
   // TODO Make this static...
   var oldChildNodesLength = oldChildNodes ? oldChildNodes.length : 0;
@@ -1498,6 +1584,7 @@ function sync(oldTree, newTree, patches) {
   var attributes = newTree.attributes;
   var newIsTextNode = nodeName === '#text';
   var newIsFragment = newTree.nodeName === '#document-fragment';
+  var newIsCtor = typeof newTree.nodeName === 'function';
 
   // Replace the key attributes.
   oldTree.key = newTree.key;
@@ -1517,6 +1604,10 @@ function sync(oldTree, newTree, patches) {
   else if (oldTree === newTree) {
       return patches;
     }
+    // These are stateful components and are identical, no replacement necessary.
+    else if (oldIsCtor && newIsCtor && oldTree.nodeName === newTree.nodeName) {
+        return patches;
+      }
 
   var areTextNodes = oldIsTextNode && newIsTextNode;
 

@@ -78,10 +78,10 @@ module.exports = function(config) {
 
     reporters: ['progress', 'coverage'],
 
-    coverageReporter: {
-      type: 'lcov',
-      dir: 'test/coverage'
-    },
+    //coverageReporter: {
+    //  type: 'lcov',
+    //  dir: 'test/coverage'
+    //},
 
     browserify: {
       debug: true,

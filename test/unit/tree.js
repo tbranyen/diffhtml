@@ -1,5 +1,6 @@
 import makeTree from '../../lib/tree/make';
 import syncTree from '../../lib/tree/sync';
+import { createElement } from '../../lib/tree/helpers';
 import { cleanMemory } from '../../lib/util/memory';
 import validateMemory from '../util/validateMemory';
 
@@ -89,6 +90,91 @@ describe('Unit: Tree', function() {
       assert.throws(function() {
         syncTree(null);
       });
+    });
+
+    it('will abort if both stateful components are the same', function() {
+      class Component {
+        render() {
+          return createElement('div', null, 'Hello world');
+        }
+      }
+
+      const component1 = createElement(Component);
+      const component2 = createElement(Component);
+
+      const patches = syncTree(component1, component2);
+      assert.equal(patches.length, 0);
+    });
+
+    it('will find changes if stateful components are different', function() {
+      class ComponentOne {
+        render() {
+          return createElement('div', null, 'Hello world');
+        }
+      }
+
+      class ComponentTwo {
+        render() {
+          return createElement('div', null, 'Hello world two');
+        }
+      }
+
+      const component1 = createElement(ComponentOne);
+      const component2 = createElement(ComponentTwo);
+
+      const patches = syncTree(component1, component2);
+      assert.equal(patches.length, 1);
+
+      assert.equal(patches[0].__do__, 3);
+      assert.equal(patches[0].value, 'Hello world two');
+    });
+
+    it('will abort if both components are the same', function() {
+      class Component {
+        render() {
+          return createElement('div', null, 'Hello world');
+        }
+      }
+
+      const component1 = createElement(Component);
+      const component2 = createElement(Component);
+
+      const patches = syncTree(component1, component2);
+      assert.equal(patches.length, 0);
+    });
+
+    it('will replace children if component root is the same', function() {
+      class Component {
+        render() {
+          return createElement('div', null, 'Hello world');
+        }
+      }
+
+      const div = createElement('div');
+      const component = createElement(Component);
+
+      const patches = syncTree(div, component);
+      assert.equal(patches.length, 1);
+      assert.equal(patches[0].__do__, 1);
+      assert.equal(patches[0].element, div);
+      assert.deepEqual(patches[0].fragment, [createElement('#text', null, 'Hello world')]);
+    });
+
+    it('will replace parent if component root is different', function() {
+      class Component {
+        render() {
+          return createElement('div', null, 'Hello world');
+        }
+      }
+
+      const p = createElement('p');
+      const component = createElement(Component);
+
+      const patches = syncTree(p, component);
+      assert.equal(patches.length, 1);
+      assert.equal(patches[0].__do__, 0);
+      assert.equal(patches[0].old, p);
+      assert.deepEqual(patches[0].new, createElement('div', null, 'Hello world'));
     });
   });
 });

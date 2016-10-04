@@ -99,6 +99,40 @@ describe('Integration: outerHTML', function() {
     assert.equal(this.fixture.firstChild.textContent, 'hello world');
   });
 
+  describe('Components', function() {
+    it('can render a component', function() {
+      class MainComponent {
+        render() {
+          return html`
+            <div>
+              This works!
+            </div>
+          `;
+        }
+      }
+
+      diff.outerHTML(this.fixture, diff.createElement(MainComponent));
+
+      assert.equal(this.fixture.innerHTML.trim(), 'This works!');
+    });
+
+    it('must render a top level element', function() {
+      class MainComponent {
+        render() {
+          return html`
+            <div>
+              This works!
+            </div>
+          `;
+        }
+      }
+
+      diff.outerHTML(this.fixture, diff.createElement(MainComponent));
+
+      assert.equal(this.fixture.innerHTML.trim(), 'This works!');
+    });
+  });
+
   describe('Comments', function() {
     it('ignores comments', function() {
       diff.outerHTML(this.fixture, '<div><p><!-- test --></p></div>');
