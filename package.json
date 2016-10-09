@@ -14,20 +14,18 @@
     "build-main": "browserify -t babelify -s diff lib/index.js | derequire > dist/diffhtml.js",
     "jshint": "jshint lib/**/*.js",
     "karma": "karma start",
-    "test": "npm run jshint && npm run karma -- --single-run"
+    "test": "npm run jshint && NODE_ENV=test npm run karma -- --single-run"
   },
   "devDependencies": {
     "babel-cli": "^6.14.0",
     "babel-core": "^6.14.0",
+    "babel-plugin-istanbul": "^2.0.1",
     "babel-polyfill": "^6.13.0",
     "babel-preset-es2015": "^6.14.0",
     "babelify": "^7.3.0",
     "browserify": "^13.1.0",
-    "browserify-istanbul": "^2.0.0",
     "coveralls": "^2.11.12",
     "derequire": "^2.0.3",
-    "isparta": "^4.0.0",
-    "istanbul": "^0.4.5",
     "jshint": "^2.9.3",
     "karma": "^1.2.0",
     "karma-browserify": "^5.1.0",

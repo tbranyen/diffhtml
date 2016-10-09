@@ -1,6 +1,3 @@
-var isparta = require('isparta');
-var istanbul = require('browserify-istanbul');
-
 const browsers = {
   OSX: {
     os: 'OS X',
@@ -85,20 +82,7 @@ module.exports = function(config) {
 
     browserify: {
       debug: true,
-
-      transform: [
-        !process.env.SKIP_COV ? [istanbul({
-          instrumenter: isparta,
-          instrumenterConfig: {
-            babel: {
-              presets: ['es2015']
-            }
-          }
-        })] : undefined,
-        ['babelify', {
-          presets: ['es2015']
-        }]
-      ].filter(Boolean)
+      transform: ['babelify'],
     },
 
     browsers: process.env.BROWSER_STACK ? [
