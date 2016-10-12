@@ -225,6 +225,26 @@ describe('Integration: outerHTML', function() {
 
       assert.equal(this.fixture.textContent, '\n          ComponentOne Testing\n        ');
     });
+
+    it('can get the DOM Node from a component', function() {
+      let node = null;
+
+      class ComponentOne {
+        onClick() {
+          node = this.getDOMNode();
+        }
+
+        render() {
+          return html`<div onclick=${this.onClick.bind(this)} />`;
+        }
+      }
+
+      diff.outerHTML(this.fixture, html`<${ComponentOne} />`);
+
+      this.fixture.click();
+
+      assert.equal(this.fixture, node);
+    });
   });
 
   describe('Comments', function() {

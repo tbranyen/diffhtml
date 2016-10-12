@@ -55,6 +55,46 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.innerHTML.trim(), `<div>hello</div>
             <div>world</div>`);
     });
+
+    it('can get the DOM Node from a top level component', function() {
+      let node = null;
+
+      class ComponentOne {
+        onClick() {
+          node = this.getDOMNode();
+        }
+
+        render() {
+          return html`<div onclick=${this.onClick.bind(this)} />`;
+        }
+      }
+
+      diff.innerHTML(this.fixture, html`<${ComponentOne} />`);
+
+      this.fixture.firstChild.click();
+
+      assert.equal(this.fixture.firstChild, node);
+    });
+
+    it('can get the DOM Node from a nested component', function() {
+      let node = null;
+
+      class ComponentOne {
+        onClick() {
+          node = this.getDOMNode();
+        }
+
+        render() {
+          return html`<div onclick=${this.onClick.bind(this)} />`;
+        }
+      }
+
+      diff.innerHTML(this.fixture, html`<div><${ComponentOne} /></div>`);
+
+      this.fixture.firstChild.firstChild.click();
+
+      assert.equal(this.fixture.firstChild.firstChild, node);
+    });
   });
 
   describe('Text', function() {

@@ -196,6 +196,7 @@ function addTransitionState(state, callback) {
  *    // Remove all `attached` state handlers.
  *    removeTransitionState('attached')
  *
+ *
  * @param {String =} state - Name that matches what's available in the
  * documentation above
  * @param {Function =} callback - Callback to receive the matching elements
@@ -405,66 +406,70 @@ var createNodeFromName = function createNodeFromName(vTree) {
   if (nodeName === '#text') {
     return document.createTextNode(nodeValue);
   }
-  // If the nodeName matches any of the known SVG element names, mark it as
-  // SVG. The reason for doing this over detecting if nested in an <svg>
-  // element, is that we do not currently have circular dependencies in the
-  // VTree, by avoiding parentNode, so there is no way to crawl up the parents.
-  else if (svg.elements.indexOf(nodeName) > -1) {
-      return document.createElementNS(svg.namespace, nodeName);
+  // Support dynamically creating document fragments.
+  else if (nodeName === '#document-fragment') {
+      return document.createDocumentFragment();
     }
-    // Render the stateful component.
-    else if (typeof nodeName === 'function') {
-        var _ret = function () {
-          // Props are an immutable object inspired by React. They always contain
-          // a childNodes
-          var props = Object.freeze(Object.assign({}, attributes, {
-            children: childNodes.map(lookupNode)
-          }));
-
-          // Make the stateful component.
-          var instance = new nodeName(props);
-
-          // Initial render.
-          var node = instance.render(props);
-
-          // Return a single Node or multiple nodes depending on the return value.
-          instance.getDOMNode = function () {
-            return Array.isArray(node) ? node.map(lookupNode) : lookupNode(node);
-          };
-
-          return {
-            v: { domNode: createNodeFromName(node), vTree: node }
-          };
-        }();
-
-        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
-      } else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
-        var _ret2 = function () {
-          // Props are an immutable object inspired by React. They always contain
-          // a childNodes
-          var props = Object.freeze(Object.assign({}, attributes, {
-            children: childNodes.map(lookupNode)
-          }));
-
-          // Initial render.
-          var node = nodeName.render(props);
-
-          // Return a single Node or multiple nodes depending on the return value.
-          nodeName.getDOMNode = function () {
-            return Array.isArray(node) ? node.map(lookupNode) : lookupNode(node);
-          };
-
-          return {
-            v: { domNode: createNodeFromName(node), vTree: node }
-          };
-        }();
-
-        if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
+    // If the nodeName matches any of the known SVG element names, mark it as
+    // SVG. The reason for doing this over detecting if nested in an <svg>
+    // element, is that we do not currently have circular dependencies in the
+    // VTree, by avoiding parentNode, so there is no way to crawl up the parents.
+    else if (svg.elements.indexOf(nodeName) > -1) {
+        return document.createElementNS(svg.namespace, nodeName);
       }
-      // If not a Text or SVG Node, then create with the standard method.
-      else {
-          return document.createElement(nodeName);
+      // Render the stateful component.
+      else if (typeof nodeName === 'function') {
+          var _ret = function () {
+            // Props are an immutable object inspired by React. They always contain
+            // a childNodes
+            var props = Object.freeze(Object.assign({}, attributes, {
+              children: childNodes.map(lookupNode)
+            }));
+
+            // Make the stateful component.
+            var instance = new nodeName(props);
+
+            // Initial render.
+            var node = instance.render();
+
+            // Return a single Node or multiple nodes depending on the return value.
+            instance.getDOMNode = function () {
+              return Array.isArray(node) ? node.map(lookupNode) : lookupNode(node);
+            };
+
+            return {
+              v: { domNode: createNodeFromName(node), vTree: node }
+            };
+          }();
+
+          if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+        } else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
+          var _ret2 = function () {
+            // Props are an immutable object inspired by React. They always contain
+            // a childNodes
+            var props = Object.freeze(Object.assign({}, attributes, {
+              children: childNodes.map(lookupNode)
+            }));
+
+            // Initial render.
+            var node = nodeName.render(props);
+
+            // Return a single Node or multiple nodes depending on the return value.
+            nodeName.getDOMNode = function () {
+              return Array.isArray(node) ? node.map(lookupNode) : lookupNode(node);
+            };
+
+            return {
+              v: { domNode: createNodeFromName(node), vTree: node }
+            };
+          }();
+
+          if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
         }
+        // If not a Text or SVG Node, then create with the standard method.
+        else {
+            return document.createElement(nodeName);
+          }
 };
 
 /**
@@ -1195,10 +1200,12 @@ function createTransaction(node, newHTML, options) {
   // in the case of setting innerHTML.
   var newTree = getTreeFromNewHTML(newHTML, options, function (newTree) {
     if (isInner) {
-      _pools.pools.elementObject.unprotect(newTree);
-
       var nodeName = state.oldTree.nodeName;
       var attributes = state.oldTree.attributes;
+
+      if (typeof newTree.nodeName === 'function') {
+        return (0, _helpers.createElement)(nodeName, attributes, newTree);
+      }
 
       return (0, _helpers.createElement)(nodeName, attributes, newTree);
     }
@@ -1347,12 +1354,12 @@ var normalizeChildNodes = function normalizeChildNodes(_childNodes) {
  * @param childNodes
  * @return {Object} element
  */
-function createElement(nodeName) {
+function createElement(nodeName, attributes) {
   for (var _len = arguments.length, childNodes = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
     childNodes[_key - 2] = arguments[_key];
   }
 
-  var attributes = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+  attributes = attributes || [];
 
   if (nodeName === '') {
     return normalizeChildNodes(childNodes);
@@ -1366,8 +1373,10 @@ function createElement(nodeName) {
   // converted to a flat object. A special property `children` is also attached
   // to allow for nesting the passed children.
   if (typeof nodeName === 'function') {
-    return function () {
-      return { type: 'stateful', attributes: attributes, childNodes: childNodes, nodeName: nodeName };
+    return {
+      attributes: Object.assign({}, attributes),
+      childNodes: childNodes,
+      nodeName: nodeName
     };
   }
 
@@ -1377,9 +1386,11 @@ function createElement(nodeName) {
   // containing the attributes converted to a flat object. A special property
   // `children` is also attached to allow for nesting the passed children.
   else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
-      return function () {
-        return { type: 'stateless', attributes: attributes, childNodes: childNodes, nodeName: nodeName };
-      };
+      var props = Object.freeze(Object.assign({}, attributes, {
+        children: childNodes
+      }));
+
+      return nodeName.render(props);
     }
 
   var entry = _pools.pools.elementObject.get();
@@ -1519,7 +1530,12 @@ function makeNode(node) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.CHANGE_TEXT = exports.MODIFY_ATTRIBUTE = exports.MODIFY_ELEMENT = exports.REPLACE_ENTIRE_ELEMENT = exports.REMOVE_ENTIRE_ELEMENT = exports.REMOVE_ELEMENT_CHILDREN = undefined;
 exports.default = sync;
+
+var _cache = _dereq_('../util/cache');
+
+var _helpers = _dereq_('../tree/helpers');
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -1533,6 +1549,25 @@ var REPLACE_ENTIRE_ELEMENT = exports.REPLACE_ENTIRE_ELEMENT = 0;
 var MODIFY_ELEMENT = exports.MODIFY_ELEMENT = 1;
 var MODIFY_ATTRIBUTE = exports.MODIFY_ATTRIBUTE = 2;
 var CHANGE_TEXT = exports.CHANGE_TEXT = 3;
+
+var runCtor = function runCtor(vTree, oldMount) {
+  var props = Object.freeze(Object.assign({}, vTree.attributes, {
+    children: Object.freeze(vTree.childNodes)
+  }));
+
+  var instance = new vTree.nodeName(props);
+
+  // Initial render.
+  var newMount = instance.render();
+
+  // Return a single Node or multiple nodes depending on the return value.
+  instance.getDOMNode = function () {
+    var node = oldMount || newMount;
+    return Array.isArray(node) ? node.map(_cache.NodeCache.get) : _cache.NodeCache.get(node);
+  };
+
+  return Array.isArray(newMount) ? (0, _helpers.createElement)('#document-fragment', null, newMount) : newMount;
+};
 
 /**
  * Synchronizes changes from the newTree into the oldTree.
@@ -1552,15 +1587,27 @@ function sync(oldTree, newTree, patches) {
     throw new Error('Missing existing tree to sync');
   }
 
-  if (typeof oldTree === 'function' || typeof newTree === 'function') {
-    console.log('here');
-    return;
+  var oldIsCtor = oldTree && typeof oldTree.nodeName === 'function';
+  var newIsCtor = newTree && typeof newTree.nodeName === 'function';
+
+  if (oldIsCtor || newIsCtor) {
+    if (oldTree && newTree && oldTree.nodeName === newTree.nodeName) {
+      return patches;
+    }
+
+    if (oldIsCtor) {
+      oldTree = runCtor(oldTree);
+    }
+
+    if (newIsCtor) {
+      newTree = runCtor(newTree, oldTree);
+      _cache.NodeCache.set(newTree, _cache.NodeCache.get(oldTree));
+    }
   }
 
   var oldNodeValue = oldTree.nodeValue;
   var oldChildNodes = oldTree.childNodes;
   var oldIsTextNode = oldTree.nodeName === '#text';
-  var oldIsCtor = typeof oldTree.nodeName === 'function';
 
   // TODO Make this static...
   var oldChildNodesLength = oldChildNodes ? oldChildNodes.length : 0;
@@ -1584,7 +1631,6 @@ function sync(oldTree, newTree, patches) {
   var attributes = newTree.attributes;
   var newIsTextNode = nodeName === '#text';
   var newIsFragment = newTree.nodeName === '#document-fragment';
-  var newIsCtor = typeof newTree.nodeName === 'function';
 
   // Replace the key attributes.
   oldTree.key = newTree.key;
@@ -1604,10 +1650,6 @@ function sync(oldTree, newTree, patches) {
   else if (oldTree === newTree) {
       return patches;
     }
-    // These are stateful components and are identical, no replacement necessary.
-    else if (oldIsCtor && newIsCtor && oldTree.nodeName === newTree.nodeName) {
-        return patches;
-      }
 
   var areTextNodes = oldIsTextNode && newIsTextNode;
 
@@ -1648,6 +1690,10 @@ function sync(oldTree, newTree, patches) {
     var fragment = [];
 
     for (var i = oldChildNodesLength; i < childNodesLength; i++) {
+      if (typeof childNodes[i].nodeName === 'function') {
+        childNodes[i] = runCtor(childNodes[i]);
+      }
+
       // Internally add to the tree.
       oldChildNodes.push(childNodes[i]);
 
@@ -1747,6 +1793,10 @@ function sync(oldTree, newTree, patches) {
   // Replace elements if they are different.
   if (oldChildNodesLength >= childNodesLength) {
     for (var _i = 0; _i < childNodesLength; _i++) {
+      if (typeof childNodes[_i].nodeName === 'function') {
+        childNodes[_i] = runCtor(childNodes[_i], oldChildNodes[_i]);
+      }
+
       if (oldChildNodes[_i].nodeName !== childNodes[_i].nodeName) {
         // Add to the patches.
         patches.push({
@@ -1834,7 +1884,7 @@ function sync(oldTree, newTree, patches) {
   return patches;
 }
 
-},{}],10:[function(_dereq_,module,exports){
+},{"../tree/helpers":7,"../util/cache":10}],10:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2105,7 +2155,8 @@ var _escape2 = _interopRequireDefault(_escape);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var isPropEx = /(=|"|')[\w\s]+$/;
+var isPropEx = /(=|"|')[\w\s]?$/;
+var isTagEx = /(<|\/)/;
 var TOKEN = '__DIFFHTML__';
 
 /**
@@ -2154,10 +2205,11 @@ function html(strings) {
   var retVal = '';
 
   // We filter the supplemental values by where they are used. Values are
-  // either props or children.
+  // either props, children, or tags (for components).
   var supplemental = {
     props: [],
-    children: []
+    children: [],
+    tags: []
   };
 
   // Loop over the static strings, each break correlates to an interpolated
@@ -2170,13 +2222,18 @@ function html(strings) {
     retVal += string;
 
     if (values.length) {
-      var nextString = strings[i + 1];
       var value = nextValue(values);
+      var lastSegment = string.split(' ').pop();
+      var lastCharacter = lastSegment.trim().slice(-1);
       var isProp = Boolean(retVal.match(isPropEx));
+      var isTag = Boolean(lastCharacter.match(isTagEx));
 
-      if (isProp && ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' || typeof value == 'function')) {
+      if (isProp && ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' || typeof value === 'function')) {
         supplemental.props.push(value);
         retVal += TOKEN;
+      } else if (isTag && typeof value === 'function') {
+        supplemental.tags.push(value);
+        retVal.push(TOKEN);
       } else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
         supplemental.children.push(value);
         retVal += TOKEN;
