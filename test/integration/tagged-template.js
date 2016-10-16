@@ -16,6 +16,13 @@ describe('Integration: Tagged template', function() {
   });
 
   describe('Tagged template string function', function() {
+    it('will return null if no input is provided', function() {
+      var actual = html``;
+      var expected = null;
+
+      assert.deepEqual(actual, expected);
+    });
+
     it('works?', function() {
       var actual = html`<div>hello world</div>`;
       var expected = {
