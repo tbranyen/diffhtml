@@ -2014,7 +2014,7 @@ var _escape2 = _interopRequireDefault(_escape);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var isPropEx = /(=|'|")/;
+var isPropEx = /(=|"|')[\w\s]+$/;
 var TOKEN = '__DIFFHTML__';
 
 /**
@@ -2060,7 +2060,7 @@ function html(strings) {
   }
 
   // Used to store markup and tokens.
-  var retVal = [];
+  var retVal = '';
 
   // We filter the supplemental values by where they are used. Values are
   // either props or children.
@@ -2074,30 +2074,29 @@ function html(strings) {
   // diffHTML HTML parser inline. They are passed as an additional argument
   // called supplemental. The following loop instruments the markup with tokens
   // that the parser then uses to assemble the correct tree.
-  strings.forEach(function (string) {
+  strings.forEach(function (string, i) {
     // Always add the string, we need it to parse the markup later.
-    retVal.push(string);
+    retVal += string;
 
     if (values.length) {
+      var nextString = strings[i + 1];
       var value = nextValue(values);
-      var lastSegment = string.split(' ').pop();
-      var lastCharacter = lastSegment.trim().slice(-1);
-      var isProp = Boolean(lastCharacter.match(isPropEx));
+      var isProp = Boolean(retVal.match(isPropEx));
 
-      if (isProp) {
+      if (isProp && ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' || typeof value == 'function')) {
         supplemental.props.push(value);
-        retVal.push(TOKEN);
+        retVal += TOKEN;
       } else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
         supplemental.children.push(value);
-        retVal.push(TOKEN);
+        retVal += TOKEN;
       } else {
-        retVal.push(value);
+        retVal += value;
       }
     }
   });
 
   // Parse the instrumented markup to get the Virtual Tree.
-  var childNodes = (0, _parser.parse)(retVal.join(''), supplemental).childNodes;
+  var childNodes = (0, _parser.parse)(retVal, supplemental).childNodes;
 
   // This makes it easier to work with a single element as a root, instead of
   // always return an array.
