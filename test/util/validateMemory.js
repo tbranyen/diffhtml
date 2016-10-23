@@ -1,4 +1,4 @@
-import { pools } from '../../lib/util/pools';
+import * as pools from '../../lib/util/pools';
 import { StateCache, NodeCache, MiddlewareCache } from '../../lib/util/cache';
 
 /**

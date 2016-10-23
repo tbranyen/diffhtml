@@ -16,6 +16,11 @@ describe('Integration: outerHTML', function() {
     validateMemory();
   });
 
+  it('can remove the entire element with no newTree', function() {
+    diff.outerHTML(this.fixture.firstChild);
+    assert.equal(this.fixture.childNodes.length, 0);
+  });
+
   it('can recalculate the tree if contents are unexpectedly changed', function() {
     diff.outerHTML(this.fixture, '<div><p></p></div>');
     this.fixture.innerHTML = '<span></span>';

@@ -14,6 +14,11 @@ describe('Integration: innerHTML', function() {
     validateMemory();
   });
 
+  it('can remove the element children with no newTree', function() {
+    diff.innerHTML(this.fixture);
+    assert.equal(this.fixture.childNodes.length, 0);
+  });
+
   it('can recalculate the tree if contents are unexpectedly changed', function() {
     diff.innerHTML(this.fixture, '<p></p>');
     this.fixture.innerHTML = '<span></span>';
@@ -67,7 +72,7 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.firstChild.innerHTML, 'this');
     });
 
-    it('will not replace a previous span', function() {
+    it('can remove attributes and will not replace a previous span', function() {
       diff.innerHTML(this.fixture, '<div><span class="test"></span></div>');
       var span = this.fixture.querySelector('.test');
       diff.innerHTML(this.fixture, '<div><span>whatever</span></div>');

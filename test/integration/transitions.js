@@ -164,6 +164,12 @@ describe('Integration: Transitions', function() {
   });
 
   describe('Removing states', function() {
+    it('will error if trying to remove an invalid state', function() {
+      assert.throws(function() {
+        diff.removeTransitionState('invalid');
+      }, 'Invalid state name: invalid');
+    });
+
     it('can remove all states', function() {
       var hit = 0;
 
@@ -233,14 +239,16 @@ describe('Integration: Transitions', function() {
       assert.equal(result.parentNode, null);
     });
 
-    it('will replace instead of remove if no new keys match', function() {
+    it('will replace and remove when a new key is added and old key is removed', function() {
       diff.innerHTML(this.fixture, `<div>
-        <p id="1"></p>
-        <p id="2"></p>
+        <p key="1"></p>
+        <p key="2"></p>
       </div>`);
 
+      assert.equal(this.fixture.querySelectorAll('p').length, 2);
+
       diff.innerHTML(this.fixture, `<div>
-        <p id="3"></p>
+        <p key="3"></p>
       </div>`);
 
       assert.equal(this.fixture.querySelectorAll('p').length, 1);
@@ -265,7 +273,7 @@ describe('Integration: Transitions', function() {
       </div>`);
 
       assert.equal(result.id, '2');
-      assert.equal(result, p);
+      assert.equal(result, p, 'Result does not equal: ' + p.outerHTML);
       assert.equal(result.parentNode, null);
     });
 
@@ -289,6 +297,33 @@ describe('Integration: Transitions', function() {
 
       assert.equal(newElement, this.fixture.querySelector('span'));
       assert.equal(newElement.parentNode, this.fixture.firstChild);
+    });
+
+    it('can provide attached promises during replaced state', function(done) {
+      var oldElement = null;
+      var newElement = null;
+      var attachedElement = null;
+
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+
+      diff.addTransitionState('replaced', function() {
+        newElement = arguments[1];
+      });
+
+      diff.addTransitionState('attached', (el) => new Promise(resolve => {
+        resolve(attachedElement = el);
+      }));
+
+      const unsubscribe = diff.use(start => sync => patch => finish => {
+        assert.equal(attachedElement, newElement);
+        unsubscribe();
+        done();
+      });
+
+      var p = this.fixture.querySelector('p');
+
+      diff.innerHTML(this.fixture, '<div><span></span></div>');
+
     });
 
     it('will provide the correct arguments to attributeChanged (added)', function() {
@@ -351,6 +386,30 @@ describe('Integration: Transitions', function() {
   });
 
   describe('Handling Promise return values', function() {
+    it('will hold off rendering if a different diffhtml render is happening', function(done) {
+      const promise = new Promise(resolve => setTimeout(resolve, 100));
+      const div = document.createElement('div');
+
+      var promiseResolved = false;
+
+      div.innerHTML = '<div></div>';
+
+      promise.then(() => {
+        promiseResolved = true;
+        assert.equal(this.fixture.textContent, '');
+      });
+
+      diff.addTransitionState('replaced', () => promise);
+      diff.addTransitionState('textChanged', () => {
+        assert.ok(promiseResolved);
+        diff.release(div);
+        done();
+      });
+
+      diff.innerHTML(div, '<p></p>');
+      diff.innerHTML(this.fixture, '<div>Hello</div>');
+    });
+
     it('will hold off rendering until attached promise resolves', function(done) {
       var count = 0;
       var promise = new Promise(function(resolve) {
