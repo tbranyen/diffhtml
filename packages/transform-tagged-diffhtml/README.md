@@ -84,9 +84,10 @@ Specifying the options in your `.babelrc`:
 How your source would look reflecting the options:
 
 ``` javascript
-import * as diff from 'diffhtml';
-
-const { createElement as createEl, createAttribute as createAttr } = diff;
+import {
+  createElement as createEl,
+  createAttribute as createAttr,
+} from 'diffhtml';
 
 diff.html`
   <div></div>
