@@ -1,5 +1,4 @@
 import makeTree from '../../lib/tree/make';
-import syncTree from '../../lib/tree/sync';
 import { cleanMemory } from '../../lib/util/memory';
 import validateMemory from '../util/validateMemory';
 
@@ -75,20 +74,6 @@ describe('Unit: Tree', function() {
       assert.equal(vTree.childNodes.length, 2);
       assert.equal(vTree.childNodes[0].nodeName, 'head');
       assert.equal(vTree.childNodes[1].nodeName, 'body');
-    });
-  });
-
-  describe('sync', function() {
-    it('will error if patches passed is not an array', function() {
-      assert.throws(function() {
-        syncTree(null, null, 5);
-      });
-    });
-
-    it('will error if oldTree is missing', function() {
-      assert.throws(function() {
-        syncTree(null);
-      });
     });
   });
 });
