@@ -153,7 +153,7 @@ function element(element, newElement) {
   return _transaction2.default.create(element, newElement, options).start();
 }
 
-},{"./release":4,"./transaction":5,"./transition":13,"./tree/helpers":14,"./use":18,"./util/tagged-template":26}],2:[function(_dereq_,module,exports){
+},{"./release":5,"./transaction":13,"./transition":14,"./tree/helpers":15,"./use":19,"./util/tagged-template":27}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -326,344 +326,7 @@ function makeNode(vTree) {
   return domNode;
 }
 
-},{"../util/caches":19,"../util/entities":20,"../util/svg":25}],4:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = release;
-
-var _caches = _dereq_('./util/caches');
-
-var _memory = _dereq_('./util/memory');
-
-function release(domNode) {
-  // Try and find a state object for this DOM Node.
-  var state = _caches.StateCache.get(domNode);
-
-  // If there is a Virtual Tree element, recycle all objects allocated for it.
-  if (state && state.oldTree) {
-    (0, _memory.unprotectElement)(state.oldTree);
-  }
-
-  // Remove the DOM Node's state object from the cache.
-  _caches.StateCache.delete(domNode);
-
-  // Recycle all unprotected objects.
-  (0, _memory.cleanMemory)();
-}
-
-},{"./util/caches":19,"./util/memory":22}],5:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _caches = _dereq_('./util/caches');
-
-var _memory = _dereq_('./util/memory');
-
-var _performance = _dereq_('./util/performance');
-
-var _schedule = _dereq_('./transaction/schedule');
-
-var _schedule2 = _interopRequireDefault(_schedule);
-
-var _shouldUpdate = _dereq_('./transaction/should-update');
-
-var _shouldUpdate2 = _interopRequireDefault(_shouldUpdate);
-
-var _reconcileTrees = _dereq_('./transaction/reconcile-trees');
-
-var _reconcileTrees2 = _interopRequireDefault(_reconcileTrees);
-
-var _start = _dereq_('./transaction/start');
-
-var _start2 = _interopRequireDefault(_start);
-
-var _syncTrees = _dereq_('./transaction/sync-trees');
-
-var _syncTrees2 = _interopRequireDefault(_syncTrees);
-
-var _patchNode = _dereq_('./transaction/patch-node');
-
-var _patchNode2 = _interopRequireDefault(_patchNode);
-
-var _endAsPromise = _dereq_('./transaction/end-as-promise');
-
-var _endAsPromise2 = _interopRequireDefault(_endAsPromise);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Transaction = function () {
-  _createClass(Transaction, null, [{
-    key: 'create',
-    value: function create(domNode, markup, options) {
-      return new Transaction(domNode, markup, options);
-    }
-  }, {
-    key: 'renderNext',
-    value: function renderNext(state) {
-      // We are no longer rendering the previous transaction so set the state to
-      // `false`.
-      state.isRendering = false;
-
-      // If there are no scheduled transactions here, look for a new transaction
-      // to render.
-      if (!state.nextTransaction) {
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-          for (var _iterator = _caches.StateCache.entries()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var stateCache = _step.value;
-
-            if (stateCache.nextTransaction) {
-              stateCache.nextTransaction = undefined;
-              state = stateCache;
-              break;
-            }
-          }
-
-          // Still no next transaction, so can safely return early.
-        } catch (err) {
-          _didIteratorError = true;
-          _iteratorError = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion && _iterator.return) {
-              _iterator.return();
-            }
-          } finally {
-            if (_didIteratorError) {
-              throw _iteratorError;
-            }
-          }
-        }
-
-        if (!state.nextTransaction) {
-          return;
-        }
-      }
-
-      // Create the next transaction.
-      var _state = state,
-          _state$nextTransactio = _state.nextTransaction,
-          domNode = _state$nextTransactio.domNode,
-          markup = _state$nextTransactio.markup,
-          options = _state$nextTransactio.options;
-
-      state.nextTransaction = undefined;
-      Transaction.create(domNode, markup, options).start();
-    }
-  }, {
-    key: 'flow',
-    value: function flow(transaction, tasks) {
-      // Execute each "task" serially, passing the transaction as a baton that
-      // can be used to share state across the tasks.
-      return tasks.reduce(function (retVal, task, index) {
-        // If aborted, don't execute any more tasks.
-        if (transaction.aborted) {
-          return retVal;
-        }
-
-        // Continue flow, so long as there was no return value, or it matches the
-        // transaction.
-        if (retVal === undefined || retVal === transaction) {
-          return task(transaction);
-        }
-
-        // The last `returnValue` is what gets sent to the consumer. This
-        // mechanism is crucial for the `abort`, if you want to modify the "flow"
-        // that's fine, but you must ensure that your last task provides a
-        // mechanism to know when the transaction completes. Something like
-        // callbacks or a Promise.
-        return retVal;
-      }, transaction);
-    }
-  }, {
-    key: 'assert',
-    value: function assert(transaction) {
-      if (transaction.aborted && transaction.completed) {
-        throw new Error('Transaction was previously aborted');
-      } else if (transaction.completed) {
-        throw new Error('Transaction was previously completed');
-      }
-    }
-  }, {
-    key: 'invokeMiddleware',
-    value: function invokeMiddleware(transaction) {
-      var tasks = transaction.tasks;
-
-
-      _caches.MiddlewareCache.forEach(function (fn) {
-        // Invoke all the middleware passing along this transaction as the only
-        // argument. If they return a value (must be a function) it will be added
-        // to the transaction task flow.
-        var result = fn(transaction);
-
-        if (result) {
-          tasks.push(result);
-        }
-      });
-    }
-  }]);
-
-  function Transaction(domNode, markup, options) {
-    _classCallCheck(this, Transaction);
-
-    this.domNode = domNode;
-    this.markup = markup;
-    this.options = options;
-
-    this.state = _caches.StateCache.get(domNode) || { mark: _performance.mark };
-
-    this.tasks = options.tasks || [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _start2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
-
-    // Store calls to trigger after the transaction has ended.
-    this._endedCallbacks = new Set();
-
-    _caches.StateCache.set(domNode, this.state);
-  }
-
-  _createClass(Transaction, [{
-    key: 'start',
-    value: function start() {
-      Transaction.assert(this);
-
-      var domNode = this.domNode,
-          mark = this.state.mark,
-          tasks = this.tasks;
-
-
-      var takeLastTask = tasks.pop();
-
-      // Add middleware in as tasks.
-      Transaction.invokeMiddleware(this);
-
-      // Shadow DOM rendering...
-      if (domNode.host) {
-        mark('<' + domNode.host.constructor.name + ' /> render');
-      } else {
-        mark('render');
-      }
-
-      // Push back the last task as part of ending the flow.
-      tasks.push(takeLastTask);
-
-      return Transaction.flow(this, tasks);
-    }
-
-    // This will immediately call the last flow task and terminate the flow. We
-    // call the last task to ensure that the control flow completes. This should
-    // end psuedo-synchronously. Think `Promise.resolve()`, `callback()`, and
-    // `return someValue` to provide the most accurate performance reading. This
-    // doesn't matter practically besides that.
-
-  }, {
-    key: 'abort',
-    value: function abort() {
-      Transaction.assert(this);
-
-      var state = this.state;
-
-
-      this.aborted = true;
-
-      // Grab the last task in the flow and return, this task will be responsible
-      // for calling `transaction.end`.
-      return this.tasks[this.tasks.length - 1](this);
-    }
-  }, {
-    key: 'end',
-    value: function end() {
-      Transaction.assert(this);
-
-      var state = this.state,
-          domNode = this.domNode,
-          options = this.options;
-      var inner = options.inner;
-
-
-      this.completed = true;
-
-      // Trigger all `onceEnded` callbacks, so that middleware can know the
-      // transaction has ended.
-      this._endedCallbacks.forEach(function (callback) {
-        return callback();
-      });
-      this._endedCallbacks.clear();
-
-      (0, _memory.cleanMemory)();
-
-      state.mark('finalize');
-
-      // Shadow DOM rendering...
-      if (domNode.host) {
-        (0, _performance.mark)('<' + domNode.host.constructor.name + ' /> render');
-      } else {
-        (0, _performance.mark)('render');
-      }
-
-      Transaction.renderNext(state);
-    }
-  }, {
-    key: 'onceEnded',
-    value: function onceEnded(callback) {
-      this._endedCallbacks.add(callback);
-    }
-  }]);
-
-  return Transaction;
-}();
-
-exports.default = Transaction;
-
-},{"./transaction/end-as-promise":6,"./transaction/patch-node":7,"./transaction/reconcile-trees":8,"./transaction/schedule":9,"./transaction/should-update":10,"./transaction/start":11,"./transaction/sync-trees":12,"./util/caches":19,"./util/memory":22,"./util/performance":23}],6:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = endAsPromise;
-// End flow, this terminates the transaction and returns a Promise that
-// resolves when completed. If you want to make diffHTML return streams or
-// callbacks replace this function.
-function endAsPromise(transaction) {
-  var state = transaction.state,
-      domNode = transaction.domNode,
-      inner = transaction.options.inner,
-      _transaction$promises = transaction.promises,
-      promises = _transaction$promises === undefined ? [] : _transaction$promises;
-
-  // Cache the markup and text for the DOM node to allow for short-circuiting
-  // future render transactions.
-
-  state.previousMarkup = domNode[inner ? 'innerHTML' : 'outerHTML'];
-  state.previousText = domNode.textContent;
-
-  // Operate synchronously unless opted into a Promise-chain. Doesn't matter
-  // if they are actually Promises or not, since they will all resolve
-  // eventually with `Promise.all`.
-  if (promises.length) {
-    return Promise.all(promises).then(function () {
-      return transaction.end();
-    });
-  } else {
-    // Pass off the remaining middleware to allow users to dive into the
-    // transaction completed lifecycle event.
-    return Promise.resolve(transaction.end());
-  }
-}
-
-},{}],7:[function(_dereq_,module,exports){
+},{"../util/caches":20,"../util/entities":21,"../util/svg":26}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -672,7 +335,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-exports.default = patch;
+exports.patchNode = patchNode;
 
 var _make = _dereq_('../node/make');
 
@@ -767,20 +430,7 @@ var attach = function attach(_ref) {
   return node;
 };
 
-/**
- * Processes a set of patches onto a tracked DOM Node.
- *
- * @param {Object} node - DOM Node to process patchs on
- * @param {Array} patches - Contains patch objects
- */
-function patch(transaction) {
-  var state = transaction.state,
-      domNode = transaction.domNode,
-      patches = transaction.patches;
-
-
-  state.mark('patch');
-
+function patchNode(patches, state) {
   // Apply the set of patches to the Node.
   var promises = [];
   var triggerTransition = (0, _transitions.buildTrigger)(promises);
@@ -906,6 +556,10 @@ function patch(transaction) {
                 // Turn elements into childNodes of the patch element.
                 el.appendChild(fragment);
 
+                if (!el.isConnected) {
+                  console.warn('Rendering into a disconnected DOM node');
+                }
+
                 // Trigger transitions.
                 var makeAttached = (0, _transitions.makePromises)('attached', toAttach);
                 triggerTransition('attached', makeAttached);
@@ -945,7 +599,8 @@ function patch(transaction) {
                     // Ensure we can replace the old DOM Node.
                     checkForMissingParent('replace', oldEl, patch);
 
-                    // Append the element first, before doing the replacement.
+                    // Append the element first, before doing the remove part of the
+                    // replacement, this gives us the chance to animate in-and-out.
                     if (oldEl.nextSibling) {
                       oldEl.parentNode.insertBefore(newEl, oldEl.nextSibling);
                     } else {
@@ -985,12 +640,11 @@ function patch(transaction) {
                     // promises were added, this will be a synchronous operation.
                     if (allPromises.length) {
                       Promise.all(allPromises).then(function replaceElement() {
-                        if (oldEl.parentNode) {
-                          oldEl.parentNode.replaceChild(newEl, oldEl);
-                        }
+                        checkForMissingParent('replace', oldEl, patch);
+
+                        oldEl.parentNode.replaceChild(newEl, oldEl);
 
                         (0, _memory.unprotectElement)(patch.old);
-
                         (0, _memory.protectElement)(patch.new);
                       }, function (ex) {
                         return console.log(ex);
@@ -999,6 +653,7 @@ function patch(transaction) {
                       checkForMissingParent('replace', oldEl, patch);
 
                       oldEl.parentNode.replaceChild(newEl, oldEl);
+
                       (0, _memory.unprotectElement)(patch.old);
                       (0, _memory.protectElement)(patch.new);
                     }
@@ -1104,38 +759,174 @@ function patch(transaction) {
     _loop(i);
   }
 
-  // Set the Promises that were allocated so that rendering can be blocked
-  // until they resolve.
-  transaction.patches = promises.filter(Boolean);
-
-  // Trigger any middleware after syncing and patching the element. This is
-  // mainly useful to get the Promises for something like devtools and patches
-  // for something like logging.
-  //const postPatchMiddlewares = [];
-
-  //for (let i = 0; i < prePatchMiddlewares.length; i++) {
-  //  // The DOM Node patching has finished and now we're sending the patchset
-  //  // and the promises which can also be pushed into to do some asynchronous
-  //  // behavior in a middleware.
-  //  const result = prePatchMiddlewares[i]({
-  //    patches,
-  //    promises,
-  //  });
-
-  //  if (result) {
-  //    postPatchMiddlewares.push(result);
-  //  }
-  //}
-  state.mark('patch');
+  return promises;
 }
 
-},{"../node/make":3,"../tree/sync":17,"../util/caches":19,"../util/entities":20,"../util/memory":22,"../util/parser":28,"../util/transitions":27}],8:[function(_dereq_,module,exports){
+},{"../node/make":3,"../tree/sync":18,"../util/caches":20,"../util/entities":21,"../util/memory":23,"../util/parser":29,"../util/transitions":28}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = reconileTrees;
+exports.default = release;
+
+var _caches = _dereq_('./util/caches');
+
+var _memory = _dereq_('./util/memory');
+
+function release(domNode) {
+  // Try and find a state object for this DOM Node.
+  var state = _caches.StateCache.get(domNode);
+
+  // If there is a Virtual Tree element, recycle all objects allocated for it.
+  if (state && state.oldTree) {
+    (0, _memory.unprotectElement)(state.oldTree);
+  }
+
+  // Remove the DOM Node's state object from the cache.
+  _caches.StateCache.delete(domNode);
+
+  // Recycle all unprotected objects.
+  (0, _memory.cleanMemory)();
+}
+
+},{"./util/caches":20,"./util/memory":23}],6:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = endAsPromise;
+// End flow, this terminates the transaction and returns a Promise that
+// resolves when completed. If you want to make diffHTML return streams or
+// callbacks replace this function.
+function endAsPromise(transaction) {
+  var state = transaction.state,
+      domNode = transaction.domNode,
+      inner = transaction.options.inner,
+      _transaction$promises = transaction.promises,
+      promises = _transaction$promises === undefined ? [] : _transaction$promises;
+
+  // Cache the markup and text for the DOM node to allow for short-circuiting
+  // future render transactions.
+
+  state.previousMarkup = domNode[inner ? 'innerHTML' : 'outerHTML'];
+  state.previousText = domNode.textContent;
+
+  // Operate synchronously unless opted into a Promise-chain. Doesn't matter
+  // if they are actually Promises or not, since they will all resolve
+  // eventually with `Promise.all`.
+  if (promises.length) {
+    return Promise.all(promises).then(function () {
+      return transaction.end();
+    });
+  } else {
+    // Pass off the remaining middleware to allow users to dive into the
+    // transaction completed lifecycle event.
+    return Promise.resolve(transaction.end());
+  }
+}
+
+},{}],7:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _schedule = _dereq_('./schedule');
+
+Object.defineProperty(exports, 'schedule', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_schedule).default;
+  }
+});
+
+var _shouldUpdate = _dereq_('./should-update');
+
+Object.defineProperty(exports, 'shouldUpdate', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_shouldUpdate).default;
+  }
+});
+
+var _reconcileTrees = _dereq_('./reconcile-trees');
+
+Object.defineProperty(exports, 'reconcileTrees', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_reconcileTrees).default;
+  }
+});
+
+var _syncTrees = _dereq_('./sync-trees');
+
+Object.defineProperty(exports, 'syncTrees', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_syncTrees).default;
+  }
+});
+
+var _patchNode = _dereq_('./patch-node');
+
+Object.defineProperty(exports, 'patchNode', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_patchNode).default;
+  }
+});
+
+var _endAsPromise = _dereq_('./end-as-promise');
+
+Object.defineProperty(exports, 'endAsPromise', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_endAsPromise).default;
+  }
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+},{"./end-as-promise":6,"./patch-node":8,"./reconcile-trees":9,"./schedule":10,"./should-update":11,"./sync-trees":12}],8:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = patch;
+
+var _patch = _dereq_('../node/patch');
+
+/**
+ * Processes a set of patches onto a tracked DOM Node.
+ *
+ * @param {Object} node - DOM Node to process patchs on
+ * @param {Array} patches - Contains patch objects
+ */
+function patch(transaction) {
+  var state = transaction.state,
+      patches = transaction.patches;
+
+
+  state.mark('patch');
+
+  // Set the Promises that were allocated so that rendering can be blocked
+  // until they resolve.
+  transaction.promises = (0, _patch.patchNode)(patches, state).filter(Boolean);
+
+  state.mark('patch');
+}
+
+},{"../node/patch":4}],9:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = reconcileTrees;
 
 var _memory = _dereq_('../util/memory');
 
@@ -1176,14 +967,13 @@ var getNewTreeFromMarkup = function getNewTreeFromMarkup(markup, options, callba
   return callback(markup);
 };
 
-function reconileTrees(transaction) {
+function reconcileTrees(transaction) {
   var state = transaction.state,
       domNode = transaction.domNode,
       markup = transaction.markup,
       options = transaction.options;
   var previousMarkup = state.previousMarkup,
-      previousText = state.previousText,
-      oldTree = state.oldTree;
+      previousText = state.previousText;
   var inner = options.inner;
 
 
@@ -1201,15 +991,21 @@ function reconileTrees(transaction) {
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
   if (!sameInnerHTML || !sameOuterHTML || !sameTextContent) {
-    if (oldTree) {
-      (0, _memory.unprotectElement)(oldTree);
+    if (state.oldTree) {
+      (0, _memory.unprotectElement)(state.oldTree);
     }
 
     // Set the `oldTree` in the state as-well-as the transaction. This allows
     // it to persist with the DOM Node and also be easily available to
     // middleware and transaction tasks.
-    transaction.oldTree = state.oldTree = (0, _tree.makeTree)(domNode);
+    state.oldTree = (0, _tree.makeTree)(domNode);
+
+    // We need to keep these objects around for comparisons.
+    (0, _memory.protectElement)(state.oldTree);
   }
+
+  // Associate the old tree with this brand new transaction.
+  transaction.oldTree = state.oldTree;
 
   // We need to ensure that our target to diff is a Virtual Tree Element. This
   // function takes in whatever `markup` is and normalizes to a tree object.
@@ -1226,7 +1022,7 @@ function reconileTrees(transaction) {
   state.mark('reconcile trees');
 }
 
-},{"../tree":15,"../util/memory":22,"../util/parser":28,"../util/pools":24}],9:[function(_dereq_,module,exports){
+},{"../tree":16,"../util/memory":23,"../util/parser":29,"../util/pools":25}],10:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1249,17 +1045,19 @@ function schedule(transaction) {
   // The state is a global store which is shared by all like-transactions.
   var state = transaction.state;
 
-  // Look up all existing states for any rendering, and set the next render
-  // buffer if blocked. We'll key off the `nextTransaction` value to determine
-  // if we've set a new transaction.
+  // If there is an in-flight transaction render happening, push this
+  // transaction into a queue.
 
   if (state.isRendering) {
     state.nextTransaction = transaction;
     return transaction.abort();
   }
+
+  // Indicate we are now rendering a transaction for this DOM Node.
+  state.isRendering = true;
 }
 
-},{"../util/caches":19}],10:[function(_dereq_,module,exports){
+},{"../util/caches":20}],11:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1288,27 +1086,7 @@ function shouldUpdate(transaction) {
   state.mark('shouldUpdate');
 }
 
-},{"../util/performance":23}],11:[function(_dereq_,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = start;
-function start(transaction) {
-  var state = transaction.state,
-      domNode = transaction.domNode,
-      markup = transaction.markup,
-      options = transaction.options;
-  var oldTree = state.oldTree;
-
-  // Mark the DOM Node state as rendering, this is used during the transaction
-  // scheduling stage.
-
-  state.isRendering = true;
-}
-
-},{}],12:[function(_dereq_,module,exports){
+},{"../util/performance":24}],12:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1320,8 +1098,6 @@ exports.default = sync;
 var _caches = _dereq_('../util/caches');
 
 var _tree = _dereq_('../tree');
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var _Array$prototype = Array.prototype,
     slice = _Array$prototype.slice,
@@ -1355,18 +1131,6 @@ var runCtor = function runCtor(vTree, oldMount) {
   return Array.isArray(newMount) ? (0, _tree.createElement)('#document-fragment', null, newMount) : newMount;
 };
 
-var toPropsObject = function toPropsObject() {
-  var attributes = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  if (isArray(attributes)) {
-    return attributes.reduce(function (memo, attribute) {
-      return assign(memo, _defineProperty({}, attribute.name, attribute.value));
-    }, {});
-  }
-
-  return assign({}, attributes);
-};
-
 function sync(transaction) {
   var state = transaction.state,
       newTree = transaction.newTree;
@@ -1377,7 +1141,217 @@ function sync(transaction) {
   state.mark('sync');
 }
 
-},{"../tree":15,"../util/caches":19}],13:[function(_dereq_,module,exports){
+},{"../tree":16,"../util/caches":20}],13:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _caches = _dereq_('./util/caches');
+
+var _memory = _dereq_('./util/memory');
+
+var _performance = _dereq_('./util/performance');
+
+var _tasks = _dereq_('./tasks');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Transaction = function () {
+  _createClass(Transaction, null, [{
+    key: 'create',
+    value: function create(domNode, markup, options) {
+      return new Transaction(domNode, markup, options);
+    }
+  }, {
+    key: 'renderNext',
+    value: function renderNext(state) {
+      // Still no next transaction, so can safely return early.
+      if (!state.nextTransaction) {
+        return;
+      }
+
+      // Create the next transaction.
+      var _state$nextTransactio = state.nextTransaction,
+          domNode = _state$nextTransactio.domNode,
+          markup = _state$nextTransactio.markup,
+          options = _state$nextTransactio.options;
+
+      state.nextTransaction = undefined;
+      Transaction.create(domNode, markup, options).start();
+    }
+  }, {
+    key: 'flow',
+    value: function flow(transaction, tasks) {
+      // Execute each "task" serially, passing the transaction as a baton that
+      // can be used to share state across the tasks.
+      return tasks.reduce(function (retVal, task, index) {
+        // If aborted, don't execute any more tasks.
+        if (transaction.aborted) {
+          return retVal;
+        }
+
+        // Continue flow, so long as there was no return value, or it matches the
+        // transaction.
+        if (retVal === undefined || retVal === transaction) {
+          return task(transaction);
+        }
+
+        // The last `returnValue` is what gets sent to the consumer. This
+        // mechanism is crucial for the `abort`, if you want to modify the "flow"
+        // that's fine, but you must ensure that your last task provides a
+        // mechanism to know when the transaction completes. Something like
+        // callbacks or a Promise.
+        return retVal;
+      }, transaction);
+    }
+  }, {
+    key: 'assert',
+    value: function assert(transaction) {
+      if (transaction.aborted && transaction.completed) {
+        throw new Error('Transaction was previously aborted');
+      } else if (transaction.completed) {
+        throw new Error('Transaction was previously completed');
+      }
+    }
+  }, {
+    key: 'invokeMiddleware',
+    value: function invokeMiddleware(transaction) {
+      var tasks = transaction.tasks;
+
+
+      _caches.MiddlewareCache.forEach(function (fn) {
+        // Invoke all the middleware passing along this transaction as the only
+        // argument. If they return a value (must be a function) it will be added
+        // to the transaction task flow.
+        var result = fn(transaction);
+
+        if (result) {
+          tasks.push(result);
+        }
+      });
+    }
+  }]);
+
+  function Transaction(domNode, markup, options) {
+    _classCallCheck(this, Transaction);
+
+    this.domNode = domNode;
+    this.markup = markup;
+    this.options = options;
+
+    this.state = _caches.StateCache.get(domNode) || { mark: _performance.mark };
+
+    this.tasks = options.tasks || [_tasks.schedule, _tasks.shouldUpdate, _tasks.reconcileTrees, _tasks.syncTrees, _tasks.patchNode, _tasks.endAsPromise];
+
+    // Store calls to trigger after the transaction has ended.
+    this._endedCallbacks = new Set();
+
+    _caches.StateCache.set(domNode, this.state);
+  }
+
+  _createClass(Transaction, [{
+    key: 'start',
+    value: function start() {
+      Transaction.assert(this);
+
+      var domNode = this.domNode,
+          mark = this.state.mark,
+          tasks = this.tasks;
+
+
+      var takeLastTask = tasks.pop();
+
+      // Add middleware in as tasks.
+      Transaction.invokeMiddleware(this);
+
+      // Shadow DOM rendering...
+      if (domNode && domNode.host) {
+        mark(domNode.host.constructor.name + ' render');
+      } else {
+        mark('render');
+      }
+
+      // Push back the last task as part of ending the flow.
+      tasks.push(takeLastTask);
+
+      return Transaction.flow(this, tasks);
+    }
+
+    // This will immediately call the last flow task and terminate the flow. We
+    // call the last task to ensure that the control flow completes. This should
+    // end psuedo-synchronously. Think `Promise.resolve()`, `callback()`, and
+    // `return someValue` to provide the most accurate performance reading. This
+    // doesn't matter practically besides that.
+
+  }, {
+    key: 'abort',
+    value: function abort() {
+      Transaction.assert(this);
+
+      var state = this.state;
+
+
+      this.aborted = true;
+
+      // Grab the last task in the flow and return, this task will be responsible
+      // for calling `transaction.end`.
+      return this.tasks[this.tasks.length - 1](this);
+    }
+  }, {
+    key: 'end',
+    value: function end() {
+      Transaction.assert(this);
+
+      var state = this.state,
+          domNode = this.domNode,
+          options = this.options;
+      var inner = options.inner;
+
+
+      this.completed = true;
+
+      // Trigger all `onceEnded` callbacks, so that middleware can know the
+      // transaction has ended.
+      this._endedCallbacks.forEach(function (callback) {
+        return callback();
+      });
+      this._endedCallbacks.clear();
+
+      (0, _memory.cleanMemory)();
+
+      state.mark('finalize');
+
+      // Shadow DOM rendering...
+      if (domNode && domNode.host) {
+        (0, _performance.mark)(domNode.host.constructor.name + ' render');
+      } else {
+        (0, _performance.mark)('render');
+      }
+
+      // We are no longer rendering the previous transaction so set the state to
+      // `false`.
+      state.isRendering = false;
+
+      // Try and render the next transaction if one has been saved.
+      Transaction.renderNext(state);
+    }
+  }, {
+    key: 'onceEnded',
+    value: function onceEnded(callback) {
+      this._endedCallbacks.add(callback);
+    }
+  }]);
+
+  return Transaction;
+}();
+
+exports.default = Transaction;
+
+},{"./tasks":7,"./util/caches":20,"./util/memory":23,"./util/performance":24}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1388,36 +1362,13 @@ exports.removeTransitionState = removeTransitionState;
 
 var _caches = _dereq_('./util/caches');
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+// Available transition states.
+var stateNames = ['attached', 'detached', 'replaced', 'attributeChanged', 'textChanged'];
 
 // Sets up the states up so we can add and remove events from the sets.
-_caches.TransitionCache.set('attached', new Set());
-_caches.TransitionCache.set('detached', new Set());
-_caches.TransitionCache.set('replaced', new Set());
-_caches.TransitionCache.set('attributedCached', new Set());
-_caches.TransitionCache.set('textChanged', new Set());
-
-var stateNames = [].concat(_toConsumableArray(_caches.TransitionCache.keys()));
-
-//export default class Transition {
-//  static create() {
-//
-//  }
-//
-//  constructor(stateName, childNodes) {
-//    this.states = {
-//
-//    };
-//  }
-//
-//  trigger(callback) {
-//    return this;
-//  }
-//}
-
-// Transition.create('detached', childNodes).trigger(() => {
-//
-// });
+stateNames.forEach(function (stateName) {
+  return _caches.TransitionCache.set(stateName, new Set());
+});
 
 function addTransitionState(stateName, callback) {
   if (!stateName) {
@@ -1455,7 +1406,7 @@ function removeTransitionState(stateName, callback) {
   }
 }
 
-},{"./util/caches":19}],14:[function(_dereq_,module,exports){
+},{"./util/caches":20}],15:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1588,7 +1539,7 @@ var createAttribute = exports.createAttribute = function createAttribute(name, v
   return assign(_caches.PoolCache.get('attribute').get(), { name: name, value: value });
 };
 
-},{"../tree":15,"../util/caches":19,"../util/escape":21}],15:[function(_dereq_,module,exports){
+},{"../tree":16,"../util/caches":20,"../util/escape":22}],16:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1628,7 +1579,7 @@ Object.defineProperty(exports, 'makeTree', {
   }
 });
 
-},{"./helpers":14,"./make":16,"./sync":17}],16:[function(_dereq_,module,exports){
+},{"./helpers":15,"./make":17,"./sync":18}],17:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1711,7 +1662,7 @@ function makeTree(node) {
   return vTree;
 }
 
-},{"../util/caches":19,"../util/pools":24,"./helpers":14}],17:[function(_dereq_,module,exports){
+},{"../util/caches":20,"../util/pools":25,"./helpers":15}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1802,7 +1753,7 @@ function syncTree(oldTree, newTree, patches) {
 
   // If the element we're replacing is totally different from the previous
   // replace the entire element, don't bother investigating children.
-  if (oldTree.nodeName !== newTree.nodeName) {
+  if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
     patches.push({
       __do__: REPLACE_ENTIRE_ELEMENT,
       old: oldTree,
@@ -2045,7 +1996,7 @@ function syncTree(oldTree, newTree, patches) {
   return patches;
 }
 
-},{"../node":2,"../tree":15,"../util/caches":19}],18:[function(_dereq_,module,exports){
+},{"../node":2,"../tree":16,"../util/caches":20}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2075,7 +2026,7 @@ function use(middleware) {
   };
 }
 
-},{"./util/caches":19}],19:[function(_dereq_,module,exports){
+},{"./util/caches":20}],20:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2096,7 +2047,7 @@ var PoolCache = exports.PoolCache = new Map();
 // Cache transition functions.
 var TransitionCache = exports.TransitionCache = new Map();
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2125,7 +2076,7 @@ function decodeEntities(string) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2145,7 +2096,7 @@ function escape(unescaped) {
   });
 }
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2195,6 +2146,19 @@ function unprotectElement(element) {
   elementPool.unprotect(element);
 
   element.attributes.forEach(attributePool.unprotect, attributePool);
+
+  function findLeaks(e) {
+    e.childNodes.forEach(function (el) {
+      var b = e;
+      if (el === element) {
+        debugger;
+      } else {
+        findLeaks(el);
+      }
+    });
+  }
+  findLeaks(element);
+
   element.childNodes.forEach(unprotectElement);
 
   _caches.NodeCache.delete(element);
@@ -2236,7 +2200,7 @@ function cleanMemory() {
   attributeCache.allocated.clear();
 }
 
-},{"../util/pools":24,"./caches":19}],23:[function(_dereq_,module,exports){
+},{"../util/pools":25,"./caches":20}],24:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2268,7 +2232,7 @@ function mark(name) {
   }
 }
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2343,7 +2307,7 @@ createPool('element', function () {
   };
 });
 
-},{"./caches":19}],25:[function(_dereq_,module,exports){
+},{"./caches":20}],26:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2355,7 +2319,7 @@ var namespace = exports.namespace = 'http://www.w3.org/2000/svg';
 // List of SVG elements.
 var elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2475,7 +2439,7 @@ function html(strings) {
   return childNodes.length === 1 ? childNodes[0] : childNodes;
 }
 
-},{"./escape":21,"./parser":28}],27:[function(_dereq_,module,exports){
+},{"./escape":22,"./parser":29}],28:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2648,7 +2612,7 @@ function makePromises(stateName) {
   };
 }
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 
 },{}]},{},[1])(1)
 });

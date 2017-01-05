@@ -1,0 +1,8 @@
+- Authoring a web component using diffhtml-components. Using the logger.
+  Preview of the upcoming devtools.
+
+- Understanding the internals.
+
+- Expect the limitations, opt for strict mode.
+
+- Inline styles
