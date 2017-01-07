@@ -1,8 +1,8 @@
-import { html } from '../../../lib/util/tagged-template';
-import { cleanMemory } from '../../../lib/util/memory';
-import validateMemory from '../../util/validateMemory';
+import html from '../../lib/html';
+import { cleanMemory } from '../../lib/util/memory';
+import validateMemory from '../util/validateMemory';
 
-describe('Unit: Tagged template', function() {
+describe('Unit: HTML (Tagged template)', function() {
   afterEach(function() {
     cleanMemory();
     validateMemory();

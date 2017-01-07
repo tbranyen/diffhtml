@@ -1,5 +1,5 @@
 import * as diff from '../../lib/index';
-import { html } from '../../lib/util/tagged-template';
+import html from '../../lib/html';
 import validateMemory from '../util/validateMemory';
 
 describe('Integration: outerHTML', function() {

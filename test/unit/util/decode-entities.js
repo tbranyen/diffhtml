@@ -1,4 +1,4 @@
-import { decodeEntities } from '../../../lib/util/entities';
+import decodeEntities from '../../../lib/util/decode-entities';
 
 describe('Unit: DecodeEntities', function() {
   it('can decode an unencoded string', function() {
