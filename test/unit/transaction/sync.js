@@ -1,4 +1,4 @@
-import { syncTree } from '../../../lib/transaction/sync';
+import { syncTree } from '../../../lib/tree';
 import { cleanMemory } from '../../../lib/util/memory';
 import validateMemory from '../../util/validateMemory';
 

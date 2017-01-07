@@ -4,7 +4,121 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.use = exports.createAttribute = exports.createElement = exports.release = exports.html = exports.removeTransitionState = exports.addTransitionState = undefined;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.default = html;
+
+var _util = _dereq_('./util');
+
+var isAttributeEx = /(=|"|')[\w\s]?$/;
+var isTagEx = /(<|\/)/;
+var TOKEN = '__DIFFHTML__';
+
+/**
+ * Get the next value from the list. If the next value is a string, make sure
+ * it is escaped.
+ *
+ * @param {Array} values - Values extracted from tagged template literal
+ * @return {String|*} - Escaped string, otherwise any value passed
+ */
+var nextValue = function nextValue(values) {
+  var value = values.shift();
+  return typeof value === 'string' ? (0, _util.escape)(value) : value;
+};
+
+/**
+ * Parses tagged template contents into a Virtual Tree. These tagged templates
+ * separate static strings from values, so we need to do some special token
+ * work
+ *
+ * @param {Array} strings - A list of static strings, split by value
+ * @param {Array} ...values - A list of interpolated values
+ * @return {Object|Array} - A Virtual Tree Element or array of elements
+ */
+function html(strings) {
+  for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    values[_key - 1] = arguments[_key];
+  }
+
+  // Automatically coerce a string literal to array.
+  if (typeof strings === 'string') {
+    strings = [strings];
+  }
+
+  // Do not attempt to parse empty strings.
+  if (!strings[0].length && !values.length) {
+    return null;
+  }
+
+  // Parse only the text, no dynamic bits.
+  if (strings.length === 1 && !values.length) {
+    var _childNodes = (0, _util.parse)(strings[0]).childNodes;
+    return _childNodes.length > 1 ? _childNodes : _childNodes[0];
+  }
+
+  // Used to store markup and tokens.
+  var retVal = '';
+
+  // We filter the supplemental values by where they are used. Values are
+  // either, children, or tags (for components).
+  var supplemental = {
+    attributes: [],
+    children: [],
+    tags: []
+  };
+
+  // Loop over the static strings, each break correlates to an interpolated
+  // value. Since these values can be dynamic, we cannot pass them to the
+  // diffHTML HTML parser inline. They are passed as an additional argument
+  // called supplemental. The following loop instruments the markup with tokens
+  // that the parser then uses to assemble the correct tree.
+  strings.forEach(function (string, i) {
+    // Always add the string, we need it to parse the markup later.
+    retVal += string;
+
+    if (values.length) {
+      var value = nextValue(values);
+      var lastSegment = string.split(' ').pop();
+      var lastCharacter = lastSegment.trim().slice(-1);
+      var isAttribute = Boolean(retVal.match(isAttributeEx));
+      var isTag = Boolean(lastCharacter.match(isTagEx));
+
+      // Attribute
+      if (isAttribute) {
+        supplemental.attributes.push(value);
+        retVal += TOKEN;
+      }
+      // Tag
+      else if (isTag && typeof value === 'function') {
+          supplemental.tags.push(value);
+          retVal += TOKEN;
+        }
+        // Children
+        else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
+            supplemental.children.push(createTree(value));
+            retVal += TOKEN;
+          } else if (value !== null && value !== undefined) {
+            retVal += value;
+          }
+    }
+  });
+
+  // Parse the instrumented markup to get the Virtual Tree.
+  var childNodes = (0, _util.parse)(retVal, supplemental).childNodes;
+
+  // This makes it easier to work with a single element as a root, opposed to
+  // always returning an array.
+  return childNodes.length === 1 ? childNodes[0] : childNodes;
+}
+
+},{"./util":23}],2:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.use = exports.createTree = exports.release = exports.html = exports.removeTransitionState = exports.addTransitionState = undefined;
 
 var _transition = _dereq_('./transition');
 
@@ -21,12 +135,12 @@ Object.defineProperty(exports, 'removeTransitionState', {
   }
 });
 
-var _taggedTemplate = _dereq_('./util/tagged-template');
+var _html = _dereq_('./html');
 
 Object.defineProperty(exports, 'html', {
   enumerable: true,
   get: function get() {
-    return _taggedTemplate.html;
+    return _interopRequireDefault(_html).default;
   }
 });
 
@@ -39,18 +153,12 @@ Object.defineProperty(exports, 'release', {
   }
 });
 
-var _helpers = _dereq_('./tree/helpers');
+var _create = _dereq_('./tree/create');
 
-Object.defineProperty(exports, 'createElement', {
+Object.defineProperty(exports, 'createTree', {
   enumerable: true,
   get: function get() {
-    return _helpers.createElement;
-  }
-});
-Object.defineProperty(exports, 'createAttribute', {
-  enumerable: true,
-  get: function get() {
-    return _helpers.createAttribute;
+    return _interopRequireDefault(_create).default;
   }
 });
 
@@ -153,7 +261,7 @@ function element(element, newElement) {
   return _transaction2.default.create(element, newElement, options).start();
 }
 
-},{"./release":5,"./transaction":13,"./transition":14,"./tree/helpers":15,"./use":19,"./util/tagged-template":27}],2:[function(_dereq_,module,exports){
+},{"./html":1,"./release":6,"./transaction":14,"./transition":15,"./tree/create":16,"./use":19}],3:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -169,7 +277,16 @@ Object.defineProperty(exports, 'makeNode', {
   }
 });
 
-},{"./make":3}],3:[function(_dereq_,module,exports){
+var _patch = _dereq_('./patch');
+
+Object.defineProperty(exports, 'patchNode', {
+  enumerable: true,
+  get: function get() {
+    return _patch.patchNode;
+  }
+});
+
+},{"./make":4,"./patch":5}],4:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -180,15 +297,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 exports.makeNode = makeNode;
 
-var _caches = _dereq_('../util/caches');
-
-var _svg = _dereq_('../util/svg');
-
-var svg = _interopRequireWildcard(_svg);
-
-var _entities = _dereq_('../util/entities');
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+var _util = _dereq_('../util');
 
 var assign = Object.assign,
     freeze = Object.freeze;
@@ -210,7 +319,7 @@ var createNodeFromName = function createNodeFromName(vTree) {
   // Shorthand the lookup method.
 
   var lookupNode = function lookupNode(domNode) {
-    return _caches.NodeCache.get(domNode);
+    return _util.NodeCache.get(domNode);
   };
 
   // If we're dealing with a Text Node, we need to use the special DOM method,
@@ -227,8 +336,8 @@ var createNodeFromName = function createNodeFromName(vTree) {
     // SVG. The reason for doing this over detecting if nested in an <svg>
     // element, is that we do not currently have circular dependencies in the
     // VTree, by avoiding parentNode, so there is no way to crawl up the parents.
-    else if (svg.elements.indexOf(nodeName) > -1) {
-        return document.createElementNS(svg.namespace, nodeName);
+    else if (_util.elements.indexOf(nodeName) > -1) {
+        return document.createElementNS(_util.namespace, nodeName);
       }
       // Render the stateful component.
       else if (typeof nodeName === 'function') {
@@ -288,8 +397,8 @@ function makeNode(vTree) {
   }
 
   // If the DOM Node was already created, reuse the existing node.
-  if (_caches.NodeCache.has(vTree)) {
-    return _caches.NodeCache.get(vTree);
+  if (_util.NodeCache.has(vTree)) {
+    return _util.NodeCache.get(vTree);
   }
 
   var domNode = createNodeFromName(vTree);
@@ -304,7 +413,7 @@ function makeNode(vTree) {
     // If not a dynamic type, set as an attribute, since it's a valid
     // attribute value.
     if (attr.name && !isObject && !isFunction) {
-      domNode.setAttribute(attr.name, (0, _entities.decodeEntities)(attr.value));
+      domNode.setAttribute(attr.name, (0, _util.decodeEntities)(attr.value));
     } else if (attr.name && typeof attr.value !== 'string') {
       // Necessary to track the attribute/prop existence.
       domNode.setAttribute(attr.name, '');
@@ -321,12 +430,12 @@ function makeNode(vTree) {
   }
 
   // Add to the domNodes cache.
-  _caches.NodeCache.set(vTree, domNode);
+  _util.NodeCache.set(vTree, domNode);
 
   return domNode;
 }
 
-},{"../util/caches":20,"../util/entities":21,"../util/svg":26}],4:[function(_dereq_,module,exports){
+},{"../util":23}],5:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -337,19 +446,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 exports.patchNode = patchNode;
 
-var _make = _dereq_('../node/make');
+var _node = _dereq_('../node');
 
-var _transitions = _dereq_('../util/transitions');
-
-var _parser = _dereq_('../util/parser');
-
-var _caches = _dereq_('../util/caches');
-
-var _memory = _dereq_('../util/memory');
-
-var _entities = _dereq_('../util/entities');
-
-var _sync = _dereq_('../tree/sync');
+var _util = _dereq_('../util');
 
 var isElementNode = function isElementNode(node) {
   return node.nodeType === 1;
@@ -370,8 +469,8 @@ var filter = Array.prototype.filter;
 var checkForMissingParent = function checkForMissingParent(verb, oldNode, patch) {
   if (!oldNode.parentNode) {
     // Clean up these elements to keep memory consistent.
-    (0, _memory.unprotectElement)(patch.old);
-    (0, _memory.unprotectElement)(patch.new);
+    (0, _util.unprotectElement)(patch.old);
+    (0, _util.unprotectElement)(patch.new);
 
     // Throw an error to stop rendering/inform the developer.
     throw new Error(('\n      Can\'t ' + verb + ' without parent, is this the document root?\n    ').trim());
@@ -388,23 +487,23 @@ var attach = function attach(_ref) {
 
   // This element has been attached, so it should definitely be marked as
   // protected.
-  (0, _memory.protectElement)(vTree);
+  (0, _util.protectElement)(vTree);
 
   // Create a DOM Node for this Virtual Tree element.
-  var node = (0, _make.makeNode)(vTree);
+  var node = (0, _node.makeNode)(vTree);
 
   // If the element added was a DOM text node or SVG text element, trigger
   // the textChanged transition.
   if (vTree.nodeName === '#text') {
-    var promises = (0, _transitions.makePromises)('textChanged', [node], null, vTree.nodeValue);
+    var promises = (0, _util.makePromises)('textChanged', [node], null, vTree.nodeValue);
 
-    node.nodeValue = (0, _entities.decodeEntities)(vTree.nodeValue);
+    node.nodeValue = (0, _util.decodeEntities)(vTree.nodeValue);
 
     if (parentNode) {
       var nodeName = parentNode.nodeName.toLowerCase();
 
-      if (_parser.blockText.has(nodeName)) {
-        parentNode.nodeValue = (0, _entities.decodeEntities)(vTree.nodeValue);
+      if (_util.blockText.has(nodeName)) {
+        parentNode.nodeValue = (0, _util.decodeEntities)(vTree.nodeValue);
       }
     }
 
@@ -412,7 +511,7 @@ var attach = function attach(_ref) {
   }
 
   vTree.attributes.forEach(function (attr) {
-    triggerTransition('attributeChanged', (0, _transitions.makePromises)('attributeChanged', [node], attr.name, null, attr.value));
+    triggerTransition('attributeChanged', (0, _util.makePromises)('attributeChanged', [node], attr.name, null, attr.value));
   });
 
   // Call all `childNodes` attached callbacks as well.
@@ -433,25 +532,25 @@ var attach = function attach(_ref) {
 function patchNode(patches, state) {
   // Apply the set of patches to the Node.
   var promises = [];
-  var triggerTransition = (0, _transitions.buildTrigger)(promises);
+  var triggerTransition = (0, _util.buildTrigger)(promises);
 
   // Loop through all the patches and apply them.
 
   var _loop = function _loop(i) {
     var patch = patches[i];
-    var el = (0, _make.makeNode)(patch.element);
-    var oldEl = (0, _make.makeNode)(patch.old);
-    var newEl = (0, _make.makeNode)(patch.new);
+    var el = (0, _node.makeNode)(patch.element);
+    var oldEl = (0, _node.makeNode)(patch.old);
+    var newEl = (0, _node.makeNode)(patch.new);
 
     // Empty the Node's contents. This is an optimization, since `innerHTML`
     // will be faster than iterating over every element and manually removing.
-    if (patch.__do__ === _sync.REMOVE_ELEMENT_CHILDREN) {
+    if (patch.__do__ === REMOVE_ELEMENT_CHILDREN) {
       var childNodes = filter.call(el.childNodes, isElementNode);
-      var detachPromises = (0, _transitions.makePromises)('detached', childNodes);
+      var detachPromises = (0, _util.makePromises)('detached', childNodes);
 
       triggerTransition('detached', detachPromises, function (promises) {
         var callback = function callback() {
-          (0, _memory.unprotectElement)(patch.toRemove);
+          (0, _util.unprotectElement)(patch.toRemove);
           el.innerHTML = '';
         };
 
@@ -465,15 +564,15 @@ function patchNode(patches, state) {
 
     // Remove the entire Node. Only does something if the Node has a parent
     // element.
-    else if (patch.__do__ === _sync.REMOVE_ENTIRE_ELEMENT) {
+    else if (patch.__do__ === REMOVE_ENTIRE_ELEMENT) {
         var _childNodes = [el].filter(isElementNode);
-        var _detachPromises = (0, _transitions.makePromises)('detached', _childNodes);
+        var _detachPromises = (0, _util.makePromises)('detached', _childNodes);
 
         if (el.parentNode) {
           triggerTransition('detached', _detachPromises, function (promises) {
             var callback = function callback() {
               el.parentNode.removeChild(el);
-              (0, _memory.unprotectElement)(patch.toRemove);
+              (0, _util.unprotectElement)(patch.toRemove);
             };
 
             if (promises && promises.length) {
@@ -483,20 +582,20 @@ function patchNode(patches, state) {
             }
           });
         } else {
-          (0, _memory.unprotectElement)(patch.toRemove);
+          (0, _util.unprotectElement)(patch.toRemove);
         }
       }
 
       // Replace the entire Node.
-      else if (patch.__do__ === _sync.REPLACE_ENTIRE_ELEMENT) {
+      else if (patch.__do__ === REPLACE_ENTIRE_ELEMENT) {
           (function () {
             var allPromises = [];
 
-            var attachedPromises = (0, _transitions.makePromises)('attached', [newEl].filter(isElementNode));
+            var attachedPromises = (0, _util.makePromises)('attached', [newEl].filter(isElementNode));
 
-            var detachedPromises = (0, _transitions.makePromises)('detached', [oldEl].filter(isElementNode));
+            var detachedPromises = (0, _util.makePromises)('detached', [oldEl].filter(isElementNode));
 
-            var replacedPromises = (0, _transitions.makePromises)('replaced', [oldEl], newEl);
+            var replacedPromises = (0, _util.makePromises)('replaced', [oldEl], newEl);
 
             // Add all the transition state promises into the main array, we'll use
             // them all to decide when to alter the DOM.
@@ -513,10 +612,10 @@ function patchNode(patches, state) {
               allPromises.push.apply(allPromises, promises);
             });
 
-            (0, _memory.unprotectElement)(patch.old);
+            (0, _util.unprotectElement)(patch.old);
 
             // Reset the tree cache. TODO Look into this...
-            _caches.StateCache.set(newEl, {
+            _util.StateCache.set(newEl, {
               oldTree: patch.new,
               element: newEl
             });
@@ -539,7 +638,7 @@ function patchNode(patches, state) {
         }
 
         // Node manip.
-        else if (patch.__do__ === _sync.MODIFY_ELEMENT) {
+        else if (patch.__do__ === MODIFY_ELEMENT) {
             // Add.
             if (el && patch.fragment && !oldEl) {
               (function () {
@@ -561,7 +660,7 @@ function patchNode(patches, state) {
                 }
 
                 // Trigger transitions.
-                var makeAttached = (0, _transitions.makePromises)('attached', toAttach);
+                var makeAttached = (0, _util.makePromises)('attached', toAttach);
                 triggerTransition('attached', makeAttached);
               })();
             }
@@ -571,7 +670,7 @@ function patchNode(patches, state) {
                 // Ensure we can remove the old DOM Node.
                 checkForMissingParent('remove', oldEl, patch);
 
-                var makeDetached = (0, _transitions.makePromises)('detached', [oldEl]);
+                var makeDetached = (0, _util.makePromises)('detached', [oldEl]);
 
                 triggerTransition('detached', makeDetached, function (promises) {
                   var callback = function callback() {
@@ -582,7 +681,7 @@ function patchNode(patches, state) {
                     // And then empty out the entire contents.
                     oldEl.innerHTML = '';
 
-                    (0, _memory.unprotectElement)(patch.old);
+                    (0, _util.unprotectElement)(patch.old);
                   };
 
                   if (promises && promises.length) {
@@ -610,11 +709,11 @@ function patchNode(patches, state) {
                     // Removed state for transitions API.
                     var allPromises = [];
 
-                    var attachPromises = (0, _transitions.makePromises)('attached', [newEl].filter(isElementNode));
+                    var attachPromises = (0, _util.makePromises)('attached', [newEl].filter(isElementNode));
 
-                    var detachPromises = (0, _transitions.makePromises)('detached', [oldEl].filter(isElementNode));
+                    var detachPromises = (0, _util.makePromises)('detached', [oldEl].filter(isElementNode));
 
-                    var replacePromises = (0, _transitions.makePromises)('replaced', [oldEl], newEl);
+                    var replacePromises = (0, _util.makePromises)('replaced', [oldEl], newEl);
 
                     triggerTransition('replaced', replacePromises, function (promises) {
                       if (promises && promises.length) {
@@ -644,8 +743,8 @@ function patchNode(patches, state) {
 
                         oldEl.parentNode.replaceChild(newEl, oldEl);
 
-                        (0, _memory.unprotectElement)(patch.old);
-                        (0, _memory.protectElement)(patch.new);
+                        (0, _util.unprotectElement)(patch.old);
+                        (0, _util.protectElement)(patch.new);
                       }, function (ex) {
                         return console.log(ex);
                       });
@@ -654,15 +753,15 @@ function patchNode(patches, state) {
 
                       oldEl.parentNode.replaceChild(newEl, oldEl);
 
-                      (0, _memory.unprotectElement)(patch.old);
-                      (0, _memory.protectElement)(patch.new);
+                      (0, _util.unprotectElement)(patch.old);
+                      (0, _util.protectElement)(patch.new);
                     }
                   })();
                 }
           }
 
           // Attribute manipulation.
-          else if (patch.__do__ === _sync.MODIFY_ATTRIBUTE) {
+          else if (patch.__do__ === MODIFY_ATTRIBUTE) {
               var attributes = patch.attributes;
 
               attributes.forEach(function (_ref2) {
@@ -672,13 +771,13 @@ function patchNode(patches, state) {
                 var name = newAttr ? newAttr.name : oldAttr.name;
                 var value = (oldAttr ? oldAttr.value : undefined) || null;
 
-                var attrChangePromises = (0, _transitions.makePromises)('attributeChanged', [el], name, value, newAttr ? newAttr.value : null);
+                var attrChangePromises = (0, _util.makePromises)('attributeChanged', [el], name, value, newAttr ? newAttr.value : null);
 
                 triggerTransition('attributeChanged', attrChangePromises, function (promises) {
                   var callback = function callback() {
                     // Always remove the old attribute, we never re-use it.
                     if (oldAttr) {
-                      _caches.PoolCache.get('attribute').unprotect(oldAttr);
+                      _util.PoolCache.get('attribute').unprotect(oldAttr);
 
                       // Remove the Virtual Tree Attribute from the element and memory.
                       if (!newAttr) {
@@ -696,13 +795,13 @@ function patchNode(patches, state) {
                       var isFunction = typeof newAttr.value === 'function';
 
                       // Protect the Virtual Attribute object.
-                      _caches.PoolCache.get('attribute').protect(newAttr);
+                      _util.PoolCache.get('attribute').protect(newAttr);
 
                       // If not a dynamic type, set as an attribute, since it's a valid
                       // attribute value.
                       if (!isObject && !isFunction) {
                         if (newAttr.name) {
-                          el.setAttribute(newAttr.name, (0, _entities.decodeEntities)(newAttr.value));
+                          el.setAttribute(newAttr.name, (0, _util.decodeEntities)(newAttr.value));
                         }
                       } else if (typeof newAttr.value !== 'string') {
                         // Necessary to track the attribute/prop existence.
@@ -729,19 +828,19 @@ function patchNode(patches, state) {
             }
 
             // Text node manipulation.
-            else if (patch.__do__ === _sync.CHANGE_TEXT) {
-                var textChangePromises = (0, _transitions.makePromises)('textChanged', [el], el.nodeValue, patch.value);
+            else if (patch.__do__ === CHANGE_TEXT) {
+                var textChangePromises = (0, _util.makePromises)('textChanged', [el], el.nodeValue, patch.value);
 
                 triggerTransition('textChanged', textChangePromises, function (promises) {
                   var callback = function callback() {
-                    patch.element.nodeValue = (0, _entities.decodeEntities)(patch.value);
+                    patch.element.nodeValue = (0, _util.decodeEntities)(patch.value);
                     el.nodeValue = patch.element.nodeValue;
 
                     if (el.parentNode) {
                       var nodeName = el.parentNode.nodeName.toLowerCase();
 
-                      if (_parser.blockText.has(nodeName)) {
-                        el.parentNode.nodeValue = (0, _entities.decodeEntities)(patch.element.nodeValue);
+                      if (_util.blockText.has(nodeName)) {
+                        el.parentNode.nodeValue = (0, _util.decodeEntities)(patch.element.nodeValue);
                       }
                     }
                   };
@@ -762,7 +861,7 @@ function patchNode(patches, state) {
   return promises;
 }
 
-},{"../node/make":3,"../tree/sync":18,"../util/caches":20,"../util/entities":21,"../util/memory":23,"../util/parser":29,"../util/transitions":28}],5:[function(_dereq_,module,exports){
+},{"../node":3,"../util":23}],6:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -790,7 +889,7 @@ function release(domNode) {
   (0, _memory.cleanMemory)();
 }
 
-},{"./util/caches":20,"./util/memory":23}],6:[function(_dereq_,module,exports){
+},{"./util/caches":20,"./util/memory":24}],7:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -827,7 +926,7 @@ function endAsPromise(transaction) {
   }
 }
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -890,7 +989,7 @@ Object.defineProperty(exports, 'endAsPromise', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./end-as-promise":6,"./patch-node":8,"./reconcile-trees":9,"./schedule":10,"./should-update":11,"./sync-trees":12}],8:[function(_dereq_,module,exports){
+},{"./end-as-promise":7,"./patch-node":9,"./reconcile-trees":10,"./schedule":11,"./should-update":12,"./sync-trees":13}],9:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -920,7 +1019,7 @@ function patch(transaction) {
   state.mark('patch');
 }
 
-},{"../node/patch":4}],9:[function(_dereq_,module,exports){
+},{"../node/patch":5}],10:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -932,41 +1031,9 @@ var _memory = _dereq_('../util/memory');
 
 var _parser = _dereq_('../util/parser');
 
-var _pools = _dereq_('../util/pools');
-
 var _tree = _dereq_('../tree');
 
-/**
- * Gets a Virtual Tree Element from the markup passed to a diff method.
- *
- * @param {String|Object} markup - HTML/DOM Node/Virtual Tree Element
- * @return {Object} - Virtual Tree Element
- */
-var getNewTreeFromMarkup = function getNewTreeFromMarkup(markup, options, callback) {
-  // This is HTML Markup, so we need to parse it.
-  if (typeof markup === 'string') {
-    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
-    // with outerHTML, we can only support diffing against a single element,
-    // so pick the first one.
-    return callback((0, _parser.parse)(markup, null, options).childNodes);
-  }
-  // This is a DOM Node, so we need to convert to a vTree.
-  else if (markup.ownerDocument) {
-      var newTree = (0, _tree.makeTree)(markup);
-
-      if (newTree.nodeType === 11) {
-        _pools.pools.elementObject.unprotect(newTree);
-        return callback(newTree.childNodes);
-      }
-
-      return callback(newTree);
-    }
-
-  // This is a Virtual Tree Element, or something like it, so we can just pass
-  // it along.
-  return callback(markup);
-};
-
+var isArray = Array.isArray;
 function reconcileTrees(transaction) {
   var state = transaction.state,
       domNode = transaction.domNode,
@@ -998,7 +1065,7 @@ function reconcileTrees(transaction) {
     // Set the `oldTree` in the state as-well-as the transaction. This allows
     // it to persist with the DOM Node and also be easily available to
     // middleware and transaction tasks.
-    state.oldTree = (0, _tree.makeTree)(domNode);
+    state.oldTree = (0, _tree.createTree)(domNode);
 
     // We need to keep these objects around for comparisons.
     (0, _memory.protectElement)(state.oldTree);
@@ -1011,18 +1078,31 @@ function reconcileTrees(transaction) {
   // function takes in whatever `markup` is and normalizes to a tree object.
   // The callback function runs on every normalized Node to wrap childNodes
   // in the case of setting innerHTML.
-  transaction.newTree = getNewTreeFromMarkup(markup, options, function (newTree) {
-    if (inner || Array.isArray(newTree)) {
-      return (0, _tree.createElement)('#document-fragment', null, newTree);
+
+  // This is HTML Markup, so we need to parse it.
+  if (typeof markup === 'string') {
+    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
+    // with outerHTML, we can only support diffing against a single element,
+    // so pick the first one.
+    transaction.newTree = (0, _parser.parse)(markup, null, options).childNodes;
+  }
+
+  // Only create a document fragment for inner nodes if the user didn't already
+  // pass an array. If they pass an array, `createTree` will auto convert to
+  // a fragment.
+  else if (options.inner && !isArray(newTree)) {
+      transaction.newTree = (0, _tree.createTree)('#document-fragment', null, newTree);
     }
 
-    return newTree;
-  });
+    // Everything else gets passed into `createTree` to be figured out.
+    else {
+        transaction.newTree = (0, _tree.createTree)(markup);
+      }
 
   state.mark('reconcile trees');
 }
 
-},{"../tree":16,"../util/memory":23,"../util/parser":29,"../util/pools":25}],10:[function(_dereq_,module,exports){
+},{"../tree":17,"../util/memory":24,"../util/parser":29}],11:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1057,7 +1137,7 @@ function schedule(transaction) {
   state.isRendering = true;
 }
 
-},{"../util/caches":20}],11:[function(_dereq_,module,exports){
+},{"../util/caches":20}],12:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1086,7 +1166,7 @@ function shouldUpdate(transaction) {
   state.mark('shouldUpdate');
 }
 
-},{"../util/performance":24}],12:[function(_dereq_,module,exports){
+},{"../util/performance":25}],13:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1141,7 +1221,7 @@ function sync(transaction) {
   state.mark('sync');
 }
 
-},{"../tree":16,"../util/caches":20}],13:[function(_dereq_,module,exports){
+},{"../tree":17,"../util/caches":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1351,7 +1431,7 @@ var Transaction = function () {
 
 exports.default = Transaction;
 
-},{"./tasks":7,"./util/caches":20,"./util/memory":23,"./util/performance":24}],14:[function(_dereq_,module,exports){
+},{"./tasks":8,"./util/caches":20,"./util/memory":24,"./util/performance":25}],15:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1406,119 +1486,94 @@ function removeTransitionState(stateName, callback) {
   }
 }
 
-},{"./util/caches":20}],15:[function(_dereq_,module,exports){
+},{"./util/caches":20}],16:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.createAttribute = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-exports.createElement = createElement;
+exports.default = createTree;
 
-var _caches = _dereq_('../util/caches');
+var _util = _dereq_('../util');
 
-var _escape = _dereq_('../util/escape');
-
-var _escape2 = _interopRequireDefault(_escape);
-
-var _tree = _dereq_('../tree');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var isArray = Array.isArray;
 var assign = Object.assign;
-
-
-var empty = [];
-
-/**
- * TODO Phase this out if possible, super slow iterations...
- *
- * @param childNodes
- * @return
- */
-var normalizeChildNodes = function normalizeChildNodes(_childNodes) {
-  var newChildNodes = [];
-  var childNodes = isArray(_childNodes) ? _childNodes : [_childNodes];
-
-  childNodes.forEach(function (childNode) {
-    if ((typeof childNode === 'undefined' ? 'undefined' : _typeof(childNode)) !== 'object') {
-      newChildNodes.push(createElement('#text', null, String(childNode)));
-    } else if ('length' in childNode) {
-      for (var i = 0; i < childNode.length; i++) {
-        var newChild = childNode[i];
-        var newNode = newChild.ownerDocument ? (0, _tree.makeTree)(newChild) : newChild;
-
-        newChildNodes.push(newNode);
-      }
-    }
-    // Ignore undefined/falsy values.
-    else if (childNode) {
-        var node = childNode.ownerDocument ? (0, _tree.makeTree)(childNode) : childNode;
-        newChildNodes.push(node);
-      }
-  });
-
-  return newChildNodes;
-};
-
-function createElement(nodeName, attributes, childNodes) {
+var isArray = Array.isArray;
+function createTree(input, attributes, childNodes) {
   var _arguments = arguments;
 
-  // If the first argument is an array, we assume this is a DOM fragment and
-  // the array are the childNodes.
-  if (Array.isArray(nodeName)) {
-    return createElement('#document-fragment', nodeName.map(createElement));
+  if (arguments.length === 1) {
+    // If the first argument is an array, we assume this is a DOM fragment and
+    // the array are the childNodes.
+    if (isArray(input)) {
+      return createTree('#document-fragment', input.map(function (vTree) {
+        return createTree(vTree);
+      }));
+    }
+
+    // Crawl an HTML or SVG Element for attributes and children.
+    if (typeof Element !== 'undefined' && input instanceof Element) {
+      attributes = null;
+      childNodes = null;
+
+      // When working with a text node, simply save the nodeValue as the
+      // initial value.
+      if (input.nodeType === 3) {
+        childNodes = input.nodeValue;
+      }
+      // Element types are the only kind of DOM node we care about attributes
+      // from. Shadow DOM, Document Fragments, Text, Comment nodes, etc. can
+      // ignore this.
+      else if (input.nodeType === 1 && input.attributes.length) {
+          attributes = {};
+
+          for (var i = 0; i < input.attributes.length; i++) {
+            var _input$attributes$i = input.attributes[i],
+                name = _input$attributes$i.name,
+                value = _input$attributes$i.value;
+
+
+            if (value === '' && name in input) {
+              attributes[name] = input[name];
+              continue;
+            }
+
+            attributes[name] = value;
+          }
+        }
+
+      // Get the child nodes from an Element or Fragment/Shadow Root.
+      if (input.nodeType === 1 || input.nodeType === 11) {
+        if (input.childNodes.length) {
+          childNodes = [];
+
+          for (var _i = 0; _i < input.childNodes.length; _i++) {
+            childNodes[_i] = createTree(input.childNodes[_i]);
+          }
+        }
+      }
+
+      var vTree = createTree(input.nodeName, attributes, childNodes);
+      _util.NodeCache.set(vTree, input);
+      return vTree;
+    }
+
+    // Assume any object value is a valid VTree object.
+    if ((typeof input === 'undefined' ? 'undefined' : _typeof(input)) === 'object') {
+      return input;
+    }
   }
 
-  if (typeof nodeName === 'function') {
-    return assign(_caches.PoolCache.get('element').get(), {
-      key: '',
-      nodeType: 1,
-      nodeValue: '',
-      rawNodeName: nodeName,
-      nodeName: nodeName,
-      attributes: attributes || empty
-    });
-  } else if ((typeof nodeName === 'undefined' ? 'undefined' : _typeof(nodeName)) === 'object') {
-    var props = attributes;
-    props.children = childNodes;
-
-    var instance = nodeName.render(props);
-    instance.rawNodeName = instance;
-
-    return instance;
-  }
-
-  var entry = _caches.PoolCache.get('element').get();
-  var isTextNode = nodeName === 'text' || nodeName === '#text';
+  var entry = _util.Pool.get();
+  var isTextNode = input === '#text';
 
   entry.key = '';
-  entry.nodeName = nodeName.toLowerCase();
-  entry.rawNodeName = nodeName;
+  entry.nodeName = String(input).toLowerCase();
+  entry.rawNodeName = input;
 
-  if (!isTextNode) {
-    var getChildNodes = function getChildNodes(attributes, childNodes) {
-      var nodes = _arguments.length === 2 ? attributes : childNodes;
-      return nodes ? normalizeChildNodes(nodes) : empty;
-    };
-
-    entry.nodeType = nodeName === '#document-fragment' ? 11 : 1;
-    entry.nodeValue = '';
-    entry.attributes = arguments.length === 2 ? empty : attributes || empty;
-    entry.childNodes = getChildNodes(attributes, childNodes);
-
-    // Set the key prop if passed as an attr.
-    entry.attributes.some(function (attr) {
-      if (attr.name === 'key') {
-        entry.key = attr.value;
-        return true;
-      }
-    });
-  } else {
+  if (isTextNode) {
     var getValue = function getValue(attributes, childNodes) {
       var nodes = _arguments.length === 2 ? attributes : childNodes;
       return isArray(nodes) ? nodes.join('') : nodes;
@@ -1527,37 +1582,51 @@ function createElement(nodeName, attributes, childNodes) {
     var value = getValue(attributes, childNodes);
 
     entry.nodeType = 3;
-    entry.nodeValue = (0, _escape2.default)(String(value || ''));
-    entry.attributes.length = 0;
-    entry.childNodes.length = 0;
+    entry.nodeValue = (0, _util.escape)(String(value || ''));
+    entry.attributes = null;
+    entry.childNodes = null;
+
+    return entry;
+  }
+
+  var getChildNodes = function getChildNodes(attributes, childNodes) {
+    var nodes = _arguments.length === 2 ? attributes : childNodes;
+    return nodes ? [].concat(nodes).map(function (node) {
+      if (typeof node === 'string') {
+        return createTree('#text', node);
+      }
+
+      return node;
+    }) : null;
+  };
+
+  // Support Document Fragments and Shadow Roots, everything else is Element.
+  entry.nodeType = input === '#document-fragment' ? 11 : 1;
+  entry.nodeValue = '';
+  entry.attributes = arguments.length === 2 ? null : attributes || null;
+  entry.childNodes = getChildNodes(attributes, childNodes);
+
+  // Set the key prop if passed as an attr.
+  if (entry.attributes && entry.attributes.key) {
+    entry.key = entry.attributes.key;
   }
 
   return entry;
 }
 
-var createAttribute = exports.createAttribute = function createAttribute(name, value) {
-  return assign(_caches.PoolCache.get('attribute').get(), { name: name, value: value });
-};
-
-},{"../tree":16,"../util/caches":20,"../util/escape":22}],16:[function(_dereq_,module,exports){
+},{"../util":23}],17:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _helpers = _dereq_('./helpers');
+var _create = _dereq_('./create');
 
-Object.defineProperty(exports, 'createElement', {
+Object.defineProperty(exports, 'createTree', {
   enumerable: true,
   get: function get() {
-    return _helpers.createElement;
-  }
-});
-Object.defineProperty(exports, 'createAttribute', {
-  enumerable: true,
-  get: function get() {
-    return _helpers.createAttribute;
+    return _interopRequireDefault(_create).default;
   }
 });
 
@@ -1566,437 +1635,92 @@ var _sync = _dereq_('./sync');
 Object.defineProperty(exports, 'syncTree', {
   enumerable: true,
   get: function get() {
-    return _sync.syncTree;
+    return _interopRequireDefault(_sync).default;
   }
 });
 
-var _make = _dereq_('./make');
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-Object.defineProperty(exports, 'makeTree', {
-  enumerable: true,
-  get: function get() {
-    return _make.makeTree;
-  }
-});
-
-},{"./helpers":15,"./make":17,"./sync":18}],17:[function(_dereq_,module,exports){
+},{"./create":16,"./sync":18}],18:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.makeTree = makeTree;
-
-var _helpers = _dereq_('./helpers');
-
-var _pools = _dereq_('../util/pools');
-
-var _caches = _dereq_('../util/caches');
-
-/**
- * Converts a DOM Node into a Virtual Tree Element.
- *
- * @param {Object} node - A DOM Node
- * @return {Object} - A Virtual Tree Element
- */
-function makeTree(node) {
-  // These are the only DOM Node properties we care about.
-  var nodeName = node.nodeName.toLowerCase();
-  var nodeType = node.nodeType;
-  var nodeValue = node.nodeValue;
-  var attributes = node.attributes || [];
-  var childNodes = node.childNodes || [];
-
-  // We ignore any DOM Node that isn't an: Element, Text, Document Fragment, or
-  // Shadow Root.
-  if (nodeType !== 1 && nodeType !== 3 && nodeType !== 11) {
-    return false;
-  }
-
-  // We can consider either of these DOM Nodes as Text Nodes.
-  var isTextNode = nodeName === '#text' || nodeName === 'text';
-
-  // In the case of Text Node's we can have the createElement function set
-  // the nodeValue for us.
-  var initialValue = isTextNode ? nodeValue : [];
-
-  // Creates a Virtual Tree Element based off this nodeName. We aren't going
-  // to set the attributes right away since we want to set the key on the vTree
-  // and push directly into the pre-existing array.
-  var vTree = (0, _helpers.createElement)(node.nodeName, [], initialValue);
-
-  // Creates Virtual Tree Attributes for each attribute in the DOM Node.
-  for (var i = 0; i < attributes.length; i++) {
-    var attr = (0, _helpers.createAttribute)(attributes[i].name, attributes[i].value);
-
-    // If the `key` attribute is found, set the respective value on the vTree.
-    if (attr.name === 'key') {
-      vTree.key = attr.value;
-    }
-
-    vTree.attributes.push(attr);
-  }
-
-  // Associate this newly allocated vTree with this DOM Node.
-  _caches.NodeCache.set(vTree, node);
-
-  // If the element has child nodes, convert them all to virtual nodes.
-  for (var _i = 0; _i < childNodes.length; _i++) {
-    var newNode = makeTree(childNodes[_i]);
-
-    // We may get a falsy value back if we pass in a Comment Node or other
-    // DOM Nodes that we intentionally ignore.
-    if (newNode) {
-      vTree.childNodes.push(newNode);
-    }
-  }
-
-  // Prune out whitespace/everything from between tags nested under the HTML
-  // tag, since this behavior can be observed in browsers and specification.
-  if (vTree.nodeName === 'html') {
-    vTree.childNodes = vTree.childNodes.filter(function (childNode) {
-      return childNode.nodeName === 'head' || childNode.nodeName === 'body';
-    });
-  }
-
-  return vTree;
-}
-
-},{"../util/caches":20,"../util/pools":25,"./helpers":15}],18:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.CHANGE_TEXT = exports.MODIFY_ATTRIBUTE = exports.MODIFY_ELEMENT = exports.REPLACE_ENTIRE_ELEMENT = exports.REMOVE_ENTIRE_ELEMENT = exports.REMOVE_ELEMENT_CHILDREN = undefined;
-exports.syncTree = syncTree;
-
-var _caches = _dereq_('../util/caches');
-
-var _node = _dereq_('../node');
-
-var _tree = _dereq_('../tree');
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var slice = Array.prototype.slice;
-
-// Patch actions.
-
-var REMOVE_ELEMENT_CHILDREN = exports.REMOVE_ELEMENT_CHILDREN = -2;
-var REMOVE_ENTIRE_ELEMENT = exports.REMOVE_ENTIRE_ELEMENT = -1;
-var REPLACE_ENTIRE_ELEMENT = exports.REPLACE_ENTIRE_ELEMENT = 0;
-var MODIFY_ELEMENT = exports.MODIFY_ELEMENT = 1;
-var MODIFY_ATTRIBUTE = exports.MODIFY_ATTRIBUTE = 2;
-var CHANGE_TEXT = exports.CHANGE_TEXT = 3;
-
-function syncTree(oldTree, newTree, patches) {
+exports.default = syncTree;
+function syncTree(oldTree, newTree) {
   if (!oldTree) {
-    throw new Error('Missing existing tree to sync');
+    throw new Error('Missing existing tree to sync from');
   }
-
-  var oldIsCtor = oldTree && typeof oldTree.rawNodeName === 'function';
-  var newIsCtor = newTree && typeof newTree.rawNodeName === 'function';
-
-  if (oldIsCtor || newIsCtor) {
-    if (oldTree && newTree && oldTree.nodeName === newTree.nodeName) {
-      var node = (0, _node.makeNode)(oldTree);
-
-      // Return a single Node or multiple nodes depending on the return value.
-      instance.getDOMNode = function () {
-        var node = oldMount || newMount;
-        return Array.isArray(node) ? node.map(_caches.NodeCache.get) : _caches.NodeCache.get(node);
-      };
-
-      return patches;
-    }
-
-    if (oldIsCtor) {
-      oldTree = runCtor(oldTree);
-    }
-
-    if (newIsCtor) {
-      newTree = runCtor(newTree, oldTree);
-      _caches.NodeCache.set(newTree, _caches.NodeCache.get(oldTree));
-    }
-  }
-
-  var oldNodeValue = oldTree.nodeValue;
-  var oldChildNodes = oldTree.childNodes;
-  var oldIsTextNode = oldTree.nodeName === '#text';
-
-  // TODO Make this static...
-  var oldChildNodesLength = oldChildNodes ? oldChildNodes.length : 0;
-
   if (!newTree) {
-    var removed = [oldTree].concat(oldChildNodes.splice(0, oldChildNodesLength));
-
-    patches.push({
-      __do__: REMOVE_ENTIRE_ELEMENT,
-      element: oldTree,
-      toRemove: removed
-    });
-
-    return patches;
+    throw new Error('Missing new tree to sync into');
   }
 
-  var nodeValue = newTree.nodeValue;
-  var childNodes = newTree.childNodes;
-  var childNodesLength = childNodes ? childNodes.length : 0;
-  var nodeName = newTree.nodeName;
-  var attributes = newTree.attributes;
-  var newIsTextNode = nodeName === '#text';
-  var newIsFragment = newTree.nodeName === '#document-fragment';
+  // Create new arrays for patches or use existing from a recursive call.
+  var patches = arguments[2] || {
+    ELEMENT: { INSERT: [], REMOVE: [], REPLACE: [], TEXT: [] },
+    ATTRIBUTE: { SET: [], REMOVE: [] }
+  };
 
-  // Replace the key attributes.
-  oldTree.key = newTree.key;
+  var ELEMENT = patches.ELEMENT,
+      ATTRIBUTE = patches.ATTRIBUTE;
 
   // If the element we're replacing is totally different from the previous
-  // replace the entire element, don't bother investigating children.
+  // replace the entire element, don't bother investigating children. The
+  // exception is if the `newTree` is a document fragment / shadow dom.
+
   if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
-    patches.push({
-      __do__: REPLACE_ENTIRE_ELEMENT,
-      old: oldTree,
-      new: newTree
-    });
-
+    // Shallow clone the `newTree` into the `oldTree`. We want to get the same
+    // references/values inside here.
+    Object.assign(oldTree, newTree);
+    ELEMENT.REPLACE.push([oldTree, newTree]);
     return patches;
   }
-  // This element never changes.
-  else if (oldTree === newTree) {
-      return patches;
-    }
 
-  var areTextNodes = oldIsTextNode && newIsTextNode;
+  // If these trees are identical references, abort early. This will occur
+  // when caching static VTrees.
+  if (oldTree === newTree) {
+    return patches;
+  }
 
-  // If the top level nodeValue has changed we should reflect it.
-  if (areTextNodes && oldNodeValue !== nodeValue) {
-    patches.push({
-      __do__: CHANGE_TEXT,
-      element: oldTree,
-      value: newTree.nodeValue
-    });
-
+  // If both VTrees are text nodes then copy the value over.
+  if (oldTree.nodeName === '#text' && newTree.nodeName === '#text') {
     oldTree.nodeValue = newTree.nodeValue;
-
+    ELEMENT.TEXT.push([oldTree, oldTree.nodeValue]);
     return patches;
   }
 
-  // Ensure keys exist for all the old & new elements.
-  var noOldKeys = !oldChildNodes.some(function (oldChildNode) {
-    return oldChildNode.key;
+  // Determines if any of the elements have a key attribute. If so, then we can
+  // safely assume keys are being used here for optimization/transition
+  // purposes.
+  var hasOldKeys = oldTree.childNodes.some(function (vTree) {
+    return vTree.key;
   });
-  var newKeys = null;
-  var oldKeys = null;
+  var hasNewKeys = hasOldKeys || newTree.childNodes.some(function (vTree) {
+    return vTree.key;
+  });
+  var keys = new Map();
 
-  if (!noOldKeys) {
-    newKeys = new Set(childNodes.map(function (childNode) {
-      return String(childNode.key);
-    }).filter(Boolean));
+  // Build up the key caches for each set of children.
+  if (hasOldKeys || hasNewKeys) {
+    // Put the new `childNode` VTree's into the key cache for lookup.
+    for (var i = 0; i < newTree.childNodes.length; i++) {
+      var vTree = newTree.childNodes[i];
 
-    oldKeys = new Set(oldChildNodes.map(function (childNode) {
-      return String(childNode.key);
-    }).filter(Boolean));
-  }
-
-  // Most common additive elements.
-  if (childNodesLength > oldChildNodesLength) {
-    // Store elements in a DocumentFragment to increase performance and be
-    // generally simplier to work with.
-    var fragment = [];
-
-    for (var i = oldChildNodesLength; i < childNodesLength; i++) {
-      // Internally add to the tree.
-      oldChildNodes.push(childNodes[i]);
-
-      // Add to the document fragment.
-      fragment.push(childNodes[i]);
-    }
-
-    oldChildNodesLength = oldChildNodes.length;
-
-    // Assign the fragment to the patches to be injected.
-    patches.push({
-      __do__: MODIFY_ELEMENT,
-      element: oldTree,
-      fragment: fragment
-    });
-  }
-
-  // Remove these elements.
-  if (oldChildNodesLength > childNodesLength) {
-    (function () {
-      // For now just splice out the end items.
-      var diff = oldChildNodesLength - childNodesLength;
-      var toRemove = [];
-      var shallowClone = [].concat(_toConsumableArray(oldChildNodes));
-
-      // There needs to be keys to diff, if not, there's no point in checking.
-      if (noOldKeys) {
-        toRemove = oldChildNodes.splice(oldChildNodesLength - diff, diff);
-      }
-      // This is an expensive operation so we do the above check to ensure that a
-      // key was specified.
-      else {
-          (function () {
-            var keysToRemove = new Set();
-
-            // Find the keys in the sets to remove.
-            oldKeys.forEach(function (key) {
-              if (!newKeys.has(key)) {
-                keysToRemove.add(key);
-              }
-            });
-
-            // If the original childNodes contain a key attribute, use this to
-            // compare over the naive method below.
-            shallowClone.forEach(function (oldChildNode, i) {
-              if (toRemove.length >= diff) {
-                return;
-              } else if (keysToRemove.has(oldChildNode.key)) {
-                var nextChild = oldChildNodes[i + 1];
-                var nextIsTextNode = nextChild && nextChild.nodeType === 3;
-                var count = 1;
-
-                // Always remove whitespace in between the elements.
-                if (nextIsTextNode && toRemove.length + 2 <= diff) {
-                  count = 2;
-                }
-                // All siblings must contain a key attribute if they exist.
-                else if (nextChild && nextChild.nodeType === 1 && !nextChild.key) {
-                    throw new Error('\n              All element siblings must consistently contain key attributes.\n            '.trim());
-                  }
-
-                // Find the index position from the original array.
-                var indexPos = oldChildNodes.indexOf(oldChildNode);
-
-                // Find all the items to remove.
-                toRemove.push.apply(toRemove, oldChildNodes.splice(indexPos, count));
-              }
-            });
-          })();
-        }
-
-      // Ensure we don't remove too many elements by accident;
-      toRemove.length = diff;
-
-      // Ensure our internal length check is matched.
-      oldChildNodesLength = oldChildNodes.length;
-
-      if (childNodesLength === 0) {
-        patches.push({
-          __do__: REMOVE_ELEMENT_CHILDREN,
-          element: oldTree,
-          toRemove: toRemove
-        });
-      } else {
-        // Remove the element, this happens before the splice so that we still
-        // have access to the element.
-        toRemove.forEach(function (old) {
-          return patches.push({
-            __do__: MODIFY_ELEMENT,
-            old: old
-          });
-        });
-      }
-    })();
-  }
-
-  // Replace elements if they are different.
-  if (oldChildNodesLength >= childNodesLength) {
-    for (var _i = 0; _i < childNodesLength; _i++) {
-      if (typeof childNodes[_i].nodeName === 'function') {
-        childNodes[_i] = runCtor(childNodes[_i], oldChildNodes[_i]);
-      }
-
-      if (oldChildNodes[_i].nodeName !== childNodes[_i].nodeName) {
-        // Add to the patches.
-        patches.push({
-          __do__: MODIFY_ELEMENT,
-          old: oldChildNodes[_i],
-          new: childNodes[_i]
-        });
-
-        // Replace the internal tree's point of view of this element.
-        oldChildNodes[_i] = childNodes[_i];
-      } else {
-        syncTree(oldChildNodes[_i], childNodes[_i], patches);
+      // Only add references if the key exists, otherwise ignore it. This
+      // allows someone to specify a single key and keep that element around.
+      if (vTree.key) {
+        keys.add(vTree.key, vTree);
       }
     }
   }
 
-  // Attributes are significantly easier than elements and we ignore checking
-  // them on fragments. The algorithm is the same as elements, check for
-  // additions/removals based off length, and then iterate once to make
-  // adjustments.
-  if (!newIsFragment && attributes) {
-    // Cache the lengths for performance and readability.
-    var oldLength = oldTree.attributes.length;
-    var newLength = attributes.length;
-
-    // Construct a single patch for the entire changeset.
-    var patch = {
-      __do__: MODIFY_ATTRIBUTE,
-      element: oldTree,
-      attributes: []
-    };
-
-    // Find additions.
-    if (newLength > oldLength) {
-      for (var _i2 = oldLength; _i2 < newLength; _i2++) {
-        var oldAttr = oldTree.attributes[_i2];
-        var newAttr = attributes[_i2];
-
-        patch.attributes.push({ oldAttr: oldAttr, newAttr: newAttr });
-        oldTree.attributes.push(newAttr);
-      }
-    }
-
-    // Find removals.
-    if (oldLength > newLength) {
-      for (var _i3 = newLength; _i3 < oldLength; _i3++) {
-        var _oldAttr = oldTree.attributes[_i3];
-        var _newAttr = attributes[_i3];
-
-        patch.attributes.push({ oldAttr: _oldAttr, newAttr: _newAttr });
-      }
-
-      // Reset the internal attributes to be less.
-      oldTree.attributes = slice.call(oldTree.attributes, 0, newLength);
-    }
-
-    // Find changes.
-    for (var _i4 = 0; _i4 < attributes.length; _i4++) {
-      var _oldAttr2 = oldTree.attributes[_i4];
-      var _newAttr2 = attributes[_i4];
-      var oldAttrName = _oldAttr2 ? _oldAttr2.name : undefined;
-      var oldAttrValue = _oldAttr2 ? _oldAttr2.value : undefined;
-      var newAttrName = _newAttr2 ? _newAttr2.name : undefined;
-      var newAttrValue = _newAttr2 ? _newAttr2.value : undefined;
-
-      // Only push in a change if the attribute or value changes.
-      if (oldAttrValue !== newAttrValue) {
-        // Add the attribute items to add and remove.
-        patch.attributes.push({
-          oldAttr: _oldAttr2,
-          newAttr: _newAttr2
-        });
-
-        oldTree.attributes[_i4] = _newAttr2;
-      }
-    }
-
-    // Add the attribute changes patch to the series of patches, unless there
-    // are no attributes to change.
-    if (patch.attributes.length) {
-      patches.push(patch);
-    }
-  }
+  //
 
   return patches;
 }
 
-},{"../node":2,"../tree":16,"../util/caches":20}],19:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2041,9 +1765,6 @@ var NodeCache = exports.NodeCache = new Map();
 // Caches all middleware. You cannot unset a middleware once it has been added.
 var MiddlewareCache = exports.MiddlewareCache = new Set();
 
-// Cache all the object pools. These are used for elements and attributes.
-var PoolCache = exports.PoolCache = new Map();
-
 // Cache transition functions.
 var TransitionCache = exports.TransitionCache = new Map();
 
@@ -2054,7 +1775,7 @@ var TransitionCache = exports.TransitionCache = new Map();
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.decodeEntities = decodeEntities;
+exports.default = decodeEntities;
 // Support loading diffHTML in non-browser environments.
 var element = global.document ? document.createElement('div') : null;
 
@@ -2102,16 +1823,165 @@ function escape(unescaped) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _caches = _dereq_('./caches');
+
+Object.defineProperty(exports, 'StateCache', {
+  enumerable: true,
+  get: function get() {
+    return _caches.StateCache;
+  }
+});
+Object.defineProperty(exports, 'NodeCache', {
+  enumerable: true,
+  get: function get() {
+    return _caches.NodeCache;
+  }
+});
+Object.defineProperty(exports, 'MiddlewareCache', {
+  enumerable: true,
+  get: function get() {
+    return _caches.MiddlewareCache;
+  }
+});
+Object.defineProperty(exports, 'TransitionCache', {
+  enumerable: true,
+  get: function get() {
+    return _caches.TransitionCache;
+  }
+});
+
+var _memory = _dereq_('./memory');
+
+Object.defineProperty(exports, 'protectElement', {
+  enumerable: true,
+  get: function get() {
+    return _memory.protectElement;
+  }
+});
+Object.defineProperty(exports, 'unprotectElement', {
+  enumerable: true,
+  get: function get() {
+    return _memory.unprotectElement;
+  }
+});
+Object.defineProperty(exports, 'cleanMemory', {
+  enumerable: true,
+  get: function get() {
+    return _memory.cleanMemory;
+  }
+});
+
+var _parser = _dereq_('./parser');
+
+Object.defineProperty(exports, 'blockText', {
+  enumerable: true,
+  get: function get() {
+    return _parser.blockText;
+  }
+});
+Object.defineProperty(exports, 'parse', {
+  enumerable: true,
+  get: function get() {
+    return _parser.parse;
+  }
+});
+
+var _svg = _dereq_('./svg');
+
+Object.defineProperty(exports, 'namespace', {
+  enumerable: true,
+  get: function get() {
+    return _svg.namespace;
+  }
+});
+Object.defineProperty(exports, 'elements', {
+  enumerable: true,
+  get: function get() {
+    return _svg.elements;
+  }
+});
+
+var _transitions = _dereq_('./transitions');
+
+Object.defineProperty(exports, 'states', {
+  enumerable: true,
+  get: function get() {
+    return _transitions.states;
+  }
+});
+Object.defineProperty(exports, 'buildTrigger', {
+  enumerable: true,
+  get: function get() {
+    return _transitions.buildTrigger;
+  }
+});
+Object.defineProperty(exports, 'makePromises', {
+  enumerable: true,
+  get: function get() {
+    return _transitions.makePromises;
+  }
+});
+
+var _decodeEntities = _dereq_('./decode-entities');
+
+Object.defineProperty(exports, 'decodeEntities', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_decodeEntities).default;
+  }
+});
+
+var _escape = _dereq_('./escape');
+
+Object.defineProperty(exports, 'escape', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_escape).default;
+  }
+});
+
+var _performance = _dereq_('./performance');
+
+Object.defineProperty(exports, 'measure', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_performance).default;
+  }
+});
+
+var _pool = _dereq_('./pool');
+
+Object.defineProperty(exports, 'Pool', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_pool).default;
+  }
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+},{"./caches":20,"./decode-entities":21,"./escape":22,"./memory":24,"./parser":29,"./performance":25,"./pool":26,"./svg":27,"./transitions":28}],24:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.protectElement = protectElement;
 exports.unprotectElement = unprotectElement;
 exports.cleanMemory = cleanMemory;
 
-var _pools = _dereq_('../util/pools');
+var _pool = _dereq_('./pool');
+
+var _pool2 = _interopRequireDefault(_pool);
 
 var _caches = _dereq_('./caches');
 
-var elementPool = _caches.PoolCache.get('element');
-var attributePool = _caches.PoolCache.get('attribute');
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var memory = _pool2.default.memory,
+    protect = _pool2.default.protect,
+    unprotect = _pool2.default.unprotect;
 
 /**
  * Ensures that an element is not recycled during a render cycle.
@@ -2119,16 +1989,10 @@ var attributePool = _caches.PoolCache.get('attribute');
  * @param element
  * @return element
  */
+
 function protectElement(element) {
-  if (Array.isArray(element)) {
-    return element.forEach(protectElement);
-  }
-
-  elementPool.protect(element);
-
-  element.attributes.forEach(attributePool.protect, attributePool);
+  protect(element);
   element.childNodes.forEach(protectElement);
-
   return element;
 }
 
@@ -2139,80 +2003,44 @@ function protectElement(element) {
  * @return
  */
 function unprotectElement(element) {
-  if (Array.isArray(element)) {
-    return element.forEach(unprotectElement);
-  }
-
-  elementPool.unprotect(element);
-
-  element.attributes.forEach(attributePool.unprotect, attributePool);
-
-  function findLeaks(e) {
-    e.childNodes.forEach(function (el) {
-      var b = e;
-      if (el === element) {
-        debugger;
-      } else {
-        findLeaks(el);
-      }
-    });
-  }
-  findLeaks(element);
-
+  unprotect(element);
   element.childNodes.forEach(unprotectElement);
-
   _caches.NodeCache.delete(element);
-
   return element;
 }
 
 /**
- * Recycles all unprotected allocations.
+ * Moves all unprotected allocations back into available pool. This keeps
+ * diffHTML in a consistent state after synchronizing.
  */
 function cleanMemory() {
-  var elementCache = elementPool.cache;
-  var attributeCache = attributePool.cache;
-
-  // Empty all element allocations.
-
-  elementCache.allocated.forEach(function (v) {
-    if (elementCache.free.length < _pools.size) {
-      elementCache.free.push(v);
-    }
+  memory.allocated.forEach(function (vTree) {
+    return memory.free.add(vTree);
   });
+  memory.allocated.clear();
 
-  elementCache.allocated.clear();
-
-  // Clean out unused elements.
+  // Clean out unused elements, if we have any elements cached that no longer
+  // have a backing VTree, we can safely remove it from the cache.
   _caches.NodeCache.forEach(function (node, descriptor) {
-    if (!elementCache.protected.has(descriptor)) {
+    if (!memory.protected.has(descriptor)) {
       _caches.NodeCache.delete(descriptor);
     }
   });
-
-  // Empty all attribute allocations.
-  attributeCache.allocated.forEach(function (v) {
-    if (attributeCache.free.length < _pools.size) {
-      attributeCache.free.push(v);
-    }
-  });
-
-  attributeCache.allocated.clear();
 }
 
-},{"../util/pools":25,"./caches":20}],24:[function(_dereq_,module,exports){
+},{"./caches":20,"./pool":26}],25:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.mark = mark;
+exports.default = measure;
 var marks = exports.marks = new Map();
 var prefix = exports.prefix = 'diffHTML';
 
 var wantsPerfChecks = location.search.includes('diff_perf');
 
-function mark(name) {
+function measure(name) {
   if (!wantsPerfChecks) {
     return;
   }
@@ -2232,18 +2060,14 @@ function mark(name) {
   }
 }
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.size = undefined;
-exports.createPool = createPool;
-
-var _caches = _dereq_('./caches');
-
-var size = exports.size = 10000;
+// A modest size.
+var size = 10000;
 
 /**
  * Creates a pool to query new or reused values from.
@@ -2252,62 +2076,49 @@ var size = exports.size = 10000;
  * @param opts
  * @return {Object} pool
  */
-function createPool(name, fill) {
-  var cache = {
-    free: new Set(),
-    allocated: new Set(),
-    protected: new Set()
-  };
+var memory = {
+  free: new Set(),
+  allocated: new Set(),
+  protected: new Set()
+};
 
-  // Prime the cache with n objects.
-  for (var i = 0; i < size; i++) {
-    cache.free.add(fill());
-  }
-
-  _caches.PoolCache.set(name, {
-    cache: cache,
-
-    get: function get() {
-      var value = cache.free.values().next().value || fill();
-      cache.free.delete(value);
-      cache.allocated.add(value);
-      return value;
-    },
-    protect: function protect(value) {
-      cache.allocated.delete(value);
-      cache.protected.add(value);
-    },
-    unprotect: function unprotect(value) {
-      if (cache.protected.has(value)) {
-        cache.protected.delete(value);
-        cache.free.add(value);
-      }
-    }
-  });
-}
-
-// Build the attribute pool of shared attribute objects.
-createPool('attribute', function () {
-  return {
-    name: '',
-    value: ''
-  };
-});
-
-// Build the element pool of shared element objects.
-createPool('element', function () {
-  return {
+// Prime the memory cache with n objects.
+for (var i = 0; i < size; i++) {
+  memory.free.add({
     rawNodeName: '',
     nodeName: '',
     nodeValue: '',
     nodeType: 1,
     key: '',
-    childNodes: [],
-    attributes: []
-  };
-});
+    childNodes: null,
+    attributes: null
+  });
+}
 
-},{"./caches":20}],26:[function(_dereq_,module,exports){
+// Cache VTree objects in a pool which is used to get
+exports.default = {
+  size: size,
+  memory: memory,
+
+  get: function get() {
+    var value = memory.free.values().next().value || fill();
+    memory.free.delete(value);
+    memory.allocated.add(value);
+    return value;
+  },
+  protect: function protect(value) {
+    memory.allocated.delete(value);
+    memory.protected.add(value);
+  },
+  unprotect: function unprotect(value) {
+    if (memory.protected.has(value)) {
+      memory.protected.delete(value);
+      memory.free.add(value);
+    }
+  }
+};
+
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2319,127 +2130,7 @@ var namespace = exports.namespace = 'http://www.w3.org/2000/svg';
 // List of SVG elements.
 var elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
 
-},{}],27:[function(_dereq_,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.html = html;
-
-var _parser = _dereq_('./parser');
-
-var _escape = _dereq_('./escape');
-
-var _escape2 = _interopRequireDefault(_escape);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var isAttributeEx = /(=|"|')[\w\s]?$/;
-var isTagEx = /(<|\/)/;
-var TOKEN = '__DIFFHTML__';
-
-/**
- * Get the next value from the list. If the next value is a string, make sure
- * it is escaped.
- *
- * @param {Array} values - Values extracted from tagged template literal
- * @return {String|*} - Escaped string, otherwise any value passed
- */
-var nextValue = function nextValue(values) {
-  var value = values.shift();
-  return typeof value === 'string' ? (0, _escape2.default)(value) : value;
-};
-
-/**
- * Parses tagged template contents into a Virtual Tree. These tagged templates
- * separate static strings from values, so we need to do some special token
- * work
- *
- * @param {Array} strings - A list of static strings, split by value
- * @param {Array} ...values - A list of interpolated values
- * @return {Object|Array} - A Virtual Tree Element or array of elements
- */
-function html(strings) {
-  for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    values[_key - 1] = arguments[_key];
-  }
-
-  // Automatically coerce a string literal to array.
-  if (typeof strings === 'string') {
-    strings = [strings];
-  }
-
-  // Do not attempt to parse empty strings.
-  if (!strings[0].length && !values.length) {
-    return null;
-  }
-
-  // Parse only the text, no dynamic bits.
-  if (strings.length === 1 && !values.length) {
-    var _childNodes = (0, _parser.parse)(strings[0]).childNodes;
-    return _childNodes.length > 1 ? _childNodes : _childNodes[0];
-  }
-
-  // Used to store markup and tokens.
-  var retVal = '';
-
-  // We filter the supplemental values by where they are used. Values are
-  // either, children, or tags (for components).
-  var supplemental = {
-    attributes: [],
-    children: [],
-    tags: []
-  };
-
-  // Loop over the static strings, each break correlates to an interpolated
-  // value. Since these values can be dynamic, we cannot pass them to the
-  // diffHTML HTML parser inline. They are passed as an additional argument
-  // called supplemental. The following loop instruments the markup with tokens
-  // that the parser then uses to assemble the correct tree.
-  strings.forEach(function (string, i) {
-    // Always add the string, we need it to parse the markup later.
-    retVal += string;
-
-    if (values.length) {
-      var value = nextValue(values);
-      var lastSegment = string.split(' ').pop();
-      var lastCharacter = lastSegment.trim().slice(-1);
-      var isAttribute = Boolean(retVal.match(isAttributeEx));
-      var isTag = Boolean(lastCharacter.match(isTagEx));
-
-      // Attribute
-      if (isAttribute) {
-        supplemental.attributes.push(value);
-        retVal += TOKEN;
-      }
-      // Tag
-      else if (isTag && typeof value === 'function') {
-          supplemental.tags.push(value);
-          retVal += TOKEN;
-        }
-        // Children
-        else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
-            supplemental.children.push(value);
-            retVal += TOKEN;
-          } else if (value !== null && value !== undefined) {
-            retVal += value;
-          }
-    }
-  });
-
-  // Parse the instrumented markup to get the Virtual Tree.
-  var childNodes = (0, _parser.parse)(retVal, supplemental).childNodes;
-
-  // This makes it easier to work with a single element as a root, opposed to
-  // always returning an array.
-  return childNodes.length === 1 ? childNodes[0] : childNodes;
-}
-
-},{"./escape":22,"./parser":29}],28:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2614,5 +2305,5 @@ function makePromises(stateName) {
 
 },{}],29:[function(_dereq_,module,exports){
 
-},{}]},{},[1])(1)
+},{}]},{},[2])(2)
 });
