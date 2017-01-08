@@ -9,9 +9,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 exports.default = html;
 
+var _tree = _dereq_('./tree');
+
 var _util = _dereq_('./util');
 
-var isAttributeEx = /(=|"|')[\w\s]?$/;
+var isAttributeEx = /(=|"|')[^><]*?$/;
 var isTagEx = /(<|\/)/;
 var TOKEN = '__DIFFHTML__';
 
@@ -99,12 +101,12 @@ function html(strings) {
         }
         // Injected as a child node.
         else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
-            supplemental.children.push(createTree(value));
+            supplemental.children.push((0, _tree.createTree)(value));
             retVal += TOKEN;
           }
           // Injected as something else in the markup or undefined.
           else if (value !== null && value !== undefined) {
-              retVal += value;
+              retVal += (0, _util.decodeEntities)(value);
             }
     }
   });
@@ -117,7 +119,7 @@ function html(strings) {
   return childNodes.length === 1 ? childNodes[0] : childNodes;
 }
 
-},{"./util":23}],2:[function(_dereq_,module,exports){
+},{"./tree":17,"./util":23}],2:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -322,21 +324,20 @@ function makeNode(vTree) {
     return _util.NodeCache.get(vTree);
   }
 
-  var domNode = null;
-
   var nodeName = vTree.nodeName,
-      _vTree$childNodes = vTree.childNodes,
-      childNodes = _vTree$childNodes === undefined ? [] : _vTree$childNodes,
-      _vTree$attributes = vTree.attributes,
-      attributes = _vTree$attributes === undefined ? {} : _vTree$attributes,
+      childNodes = vTree.childNodes,
+      attributes = vTree.attributes,
       nodeValue = vTree.nodeValue;
+
+  // Will vary based on the properties of the VTree.
+
+  var domNode = null;
 
   // If we're dealing with a Text Node, we need to use the special DOM method,
   // since createElement does not understand the nodeName '#text'.
   // All other nodes can be created through createElement.
-
   if (nodeName === '#text') {
-    domNode = document.createTextNode(nodeValue);
+    domNode = document.createTextNode((0, _util.decodeEntities)(nodeValue));
   }
   // Support dynamically creating document fragments.
   else if (nodeName === '#document-fragment') {
@@ -400,418 +401,97 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 exports.patchNode = patchNode;
 
 var _node = _dereq_('../node');
 
 var _util = _dereq_('../util');
 
-var isElementNode = function isElementNode(node) {
-  return node.nodeType === 1;
-};
-var filter = Array.prototype.filter;
-
-/**
- * Looks to see if an element can be replaced. It must have a parentNode to do
- * so. This will trigger an error when the element does not have a parentNode.
- * This typically happens when trying to replace a disconnected DOM Node or the
- * documentElement.
- *
- * @param {String} verb - Verb to replace in the template string
- * @param {Object} oldNode - Old DOM Node to check if able to be replaced
- * @param {Object} patch - Used to clean up vTree references
- */
-
-var checkForMissingParent = function checkForMissingParent(verb, oldNode, patch) {
-  if (!oldNode.parentNode) {
-    // Clean up these elements to keep memory consistent.
-    (0, _util.unprotectElement)(patch.old);
-    (0, _util.unprotectElement)(patch.new);
-
-    // Throw an error to stop rendering/inform the developer.
-    throw new Error(('\n      Can\'t ' + verb + ' without parent, is this the document root?\n    ').trim());
-  }
-};
-
-// Trigger the attached transition state for this element and all childNodes.
-var attach = function attach(_ref) {
-  var vTree = _ref.vTree,
-      fragment = _ref.fragment,
-      parentNode = _ref.parentNode,
-      triggerTransition = _ref.triggerTransition,
-      state = _ref.state;
-
-  // This element has been attached, so it should definitely be marked as
-  // protected.
-  (0, _util.protectElement)(vTree);
-
-  // Create a DOM Node for this Virtual Tree element.
-  var node = (0, _node.makeNode)(vTree);
-
-  // If the element added was a DOM text node or SVG text element, trigger
-  // the textChanged transition.
-  if (vTree.nodeName === '#text') {
-    var promises = (0, _util.makePromises)('textChanged', [node], null, vTree.nodeValue);
-
-    node.nodeValue = (0, _util.decodeEntities)(vTree.nodeValue);
-
-    if (parentNode) {
-      var nodeName = parentNode.nodeName.toLowerCase();
-
-      if (_util.blockText.has(nodeName)) {
-        parentNode.nodeValue = (0, _util.decodeEntities)(vTree.nodeValue);
-      }
-    }
-
-    triggerTransition('textChanged', promises);
-  }
-
-  vTree.attributes.forEach(function (attr) {
-    triggerTransition('attributeChanged', (0, _util.makePromises)('attributeChanged', [node], attr.name, null, attr.value));
-  });
-
-  // Call all `childNodes` attached callbacks as well.
-  vTree.childNodes.forEach(function (vTree) {
-    return attach({
-      vTree: vTree, parentNode: node, triggerTransition: triggerTransition, state: state
-    });
-  });
-
-  // If a Document Fragment was specified, append the DOM Node into it.
-  if (fragment) {
-    fragment.appendChild(node);
-  }
-
-  return node;
-};
-
 function patchNode(patches, state) {
   // Apply the set of patches to the Node.
   var promises = [];
-  var triggerTransition = (0, _util.buildTrigger)(promises);
 
-  // Loop through all the patches and apply them.
+  // Loop through all the patches and changesets to apply them.
+  for (var i = 0; i < patches.length; i++) {
+    var changeset = patches[i];
 
-  var _loop = function _loop(i) {
-    var patch = patches[i];
-    var el = (0, _node.makeNode)(patch.element);
-    var oldEl = (0, _node.makeNode)(patch.old);
-    var newEl = (0, _node.makeNode)(patch.new);
+    var INSERT_BEFORE = changeset[0];
+    var APPEND_CHILD = changeset[1];
+    var REMOVE_CHILD = changeset[2];
+    var REPLACE_CHILD = changeset[3];
+    var NODE_VALUE = changeset[4];
+    var SET_ATTRIBUTE = changeset[5];
+    var REMOVE_ATTRIBUTE = changeset[6];
 
-    // Empty the Node's contents. This is an optimization, since `innerHTML`
-    // will be faster than iterating over every element and manually removing.
-    if (patch.__do__ === REMOVE_ELEMENT_CHILDREN) {
-      var childNodes = filter.call(el.childNodes, isElementNode);
-      var detachPromises = (0, _util.makePromises)('detached', childNodes);
+    // Append elements.
+    for (var _i = 0; _i < APPEND_CHILD.length; _i++) {
+      var _APPEND_CHILD$_i = _slicedToArray(APPEND_CHILD[_i], 2),
+          vTree = _APPEND_CHILD$_i[0],
+          childNodes = _APPEND_CHILD$_i[1];
 
-      triggerTransition('detached', detachPromises, function (promises) {
-        var callback = function callback() {
-          (0, _util.unprotectElement)(patch.toRemove);
-          el.innerHTML = '';
-        };
+      var domNode = (0, _node.makeNode)(vTree);
+      var fragment = document.createDocumentFragment();
 
-        if (promises && promises.length) {
-          Promise.all(promises).then(callback);
-        } else {
-          callback();
-        }
-      });
-    }
-
-    // Remove the entire Node. Only does something if the Node has a parent
-    // element.
-    else if (patch.__do__ === REMOVE_ENTIRE_ELEMENT) {
-        var _childNodes = [el].filter(isElementNode);
-        var _detachPromises = (0, _util.makePromises)('detached', _childNodes);
-
-        if (el.parentNode) {
-          triggerTransition('detached', _detachPromises, function (promises) {
-            var callback = function callback() {
-              el.parentNode.removeChild(el);
-              (0, _util.unprotectElement)(patch.toRemove);
-            };
-
-            if (promises && promises.length) {
-              Promise.all(promises).then(callback);
-            } else {
-              callback();
-            }
-          });
-        } else {
-          (0, _util.unprotectElement)(patch.toRemove);
-        }
+      for (var _i2 = 0; _i2 < childNodes.length; _i2++) {
+        fragment.appendChild((0, _node.makeNode)(childNodes[_i2]));
       }
 
-      // Replace the entire Node.
-      else if (patch.__do__ === REPLACE_ENTIRE_ELEMENT) {
-          (function () {
-            var allPromises = [];
+      domNode.appendChild(fragment);
+    }
 
-            var attachedPromises = (0, _util.makePromises)('attached', [newEl].filter(isElementNode));
+    // Set attributes.
+    for (var _i3 = 0; _i3 < SET_ATTRIBUTE.length; _i3++) {
+      var _SET_ATTRIBUTE$_i = _slicedToArray(SET_ATTRIBUTE[_i3], 2),
+          vTree = _SET_ATTRIBUTE$_i[0],
+          attributes = _SET_ATTRIBUTE$_i[1];
 
-            var detachedPromises = (0, _util.makePromises)('detached', [oldEl].filter(isElementNode));
+      var _domNode = (0, _node.makeNode)(vTree);
 
-            var replacedPromises = (0, _util.makePromises)('replaced', [oldEl], newEl);
+      for (var _i4 = 0; _i4 < attributes.length; _i4++) {
+        var _attributes$_i = _slicedToArray(attributes[_i4], 2),
+            name = _attributes$_i[0],
+            value = _attributes$_i[1];
 
-            // Add all the transition state promises into the main array, we'll use
-            // them all to decide when to alter the DOM.
-            triggerTransition('detached', detachedPromises, function (promises) {
-              allPromises.push.apply(allPromises, promises);
-            });
+        var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
+        var isFunction = typeof value === 'function';
 
-            triggerTransition('attached', attachedPromises, function (promises) {
-              allPromises.push.apply(allPromises, promises);
-              attach({ vTree: patch.new, triggerTransition: triggerTransition, state: state });
-            });
+        if (!isObject && !isFunction && name) {
+          _domNode.setAttribute(name, (0, _util.decodeEntities)(value));
+        } else if (typeof value !== 'string') {
+          // Necessary to track the attribute/prop existence.
+          _domNode.setAttribute(name, '');
 
-            triggerTransition('replaced', replacedPromises, function (promises) {
-              allPromises.push.apply(allPromises, promises);
-            });
-
-            (0, _util.unprotectElement)(patch.old);
-
-            // Reset the tree cache. TODO Look into this...
-            _util.StateCache.set(newEl, {
-              oldTree: patch.new,
-              element: newEl
-            });
-
-            // Once all the promises have completed, invoke the action, if no
-            // promises were added, this will be a synchronous operation.
-            if (allPromises.length) {
-              Promise.all(allPromises).then(function replaceEntireElement() {
-                checkForMissingParent('replace', oldEl, patch);
-                oldEl.parentNode.replaceChild(newEl, oldEl);
-              }, function (ex) {
-                return console.log(ex);
-              });
-            } else {
-              checkForMissingParent('replace', oldEl, patch);
-
-              oldEl.parentNode.replaceChild(newEl, oldEl);
-            }
-          })();
+          // Since this is a property value it gets set directly on the node.
+          _domNode[name] = value;
         }
 
-        // Node manip.
-        else if (patch.__do__ === MODIFY_ELEMENT) {
-            // Add.
-            if (el && patch.fragment && !oldEl) {
-              (function () {
-                var fragment = document.createDocumentFragment();
+        // Support live updating of the `value` and `checked` attribute.
+        if (name === 'value' || name === 'checked') {
+          _domNode[name] = value;
+        }
+      }
+    }
 
-                // Loop over every element to be added and process the Virtual Tree
-                // element into the DOM Node and append into the DOM fragment.
-                var toAttach = patch.fragment.map(function (vTree) {
-                  return attach({
-                    vTree: vTree, fragment: fragment, triggerTransition: triggerTransition, state: state
-                  });
-                }).filter(isElementNode);
+    // Remove attributes.
+    for (var _i5 = 0; _i5 < REMOVE_ATTRIBUTE.length; _i5++) {
+      var _REMOVE_ATTRIBUTE$_i = _slicedToArray(REMOVE_ATTRIBUTE[_i5], 2),
+          vTree = _REMOVE_ATTRIBUTE$_i[0],
+          attributes = _REMOVE_ATTRIBUTE$_i[1];
 
-                // Turn elements into childNodes of the patch element.
-                el.appendChild(fragment);
+      var _domNode2 = (0, _node.makeNode)(vTree);
 
-                if (!el.isConnected) {
-                  console.warn('Rendering into a disconnected DOM node');
-                }
+      for (var _i6 = 0; _i6 < attributes.length; _i6++) {
+        var name = attributes[_i6];
 
-                // Trigger transitions.
-                var makeAttached = (0, _util.makePromises)('attached', toAttach);
-                triggerTransition('attached', makeAttached);
-              })();
-            }
+        _domNode2.removeAttribute(name);
 
-            // Remove.
-            else if (oldEl && !newEl) {
-                // Ensure we can remove the old DOM Node.
-                checkForMissingParent('remove', oldEl, patch);
-
-                var makeDetached = (0, _util.makePromises)('detached', [oldEl]);
-
-                triggerTransition('detached', makeDetached, function (promises) {
-                  var callback = function callback() {
-                    if (oldEl.parentNode) {
-                      oldEl.parentNode.removeChild(oldEl);
-                    }
-
-                    // And then empty out the entire contents.
-                    oldEl.innerHTML = '';
-
-                    (0, _util.unprotectElement)(patch.old);
-                  };
-
-                  if (promises && promises.length) {
-                    Promise.all(promises).then(callback);
-                  } else {
-                    callback();
-                  }
-                });
-              }
-
-              // Replace.
-              else if (oldEl && newEl) {
-                  (function () {
-                    // Ensure we can replace the old DOM Node.
-                    checkForMissingParent('replace', oldEl, patch);
-
-                    // Append the element first, before doing the remove part of the
-                    // replacement, this gives us the chance to animate in-and-out.
-                    if (oldEl.nextSibling) {
-                      oldEl.parentNode.insertBefore(newEl, oldEl.nextSibling);
-                    } else {
-                      oldEl.parentNode.appendChild(newEl);
-                    }
-
-                    // Removed state for transitions API.
-                    var allPromises = [];
-
-                    var attachPromises = (0, _util.makePromises)('attached', [newEl].filter(isElementNode));
-
-                    var detachPromises = (0, _util.makePromises)('detached', [oldEl].filter(isElementNode));
-
-                    var replacePromises = (0, _util.makePromises)('replaced', [oldEl], newEl);
-
-                    triggerTransition('replaced', replacePromises, function (promises) {
-                      if (promises && promises.length) {
-                        allPromises.push.apply(allPromises, promises);
-                      }
-                    });
-
-                    triggerTransition('detached', detachPromises, function (promises) {
-                      if (promises && promises.length) {
-                        allPromises.push.apply(allPromises, promises);
-                      }
-                    });
-
-                    triggerTransition('attached', attachPromises, function (promises) {
-                      if (promises && promises.filter(Boolean).length) {
-                        allPromises.push.apply(allPromises, promises);
-                      }
-
-                      attach({ vTree: patch.new, triggerTransition: triggerTransition, state: state });
-                    });
-
-                    // Once all the promises have completed, invoke the action, if no
-                    // promises were added, this will be a synchronous operation.
-                    if (allPromises.length) {
-                      Promise.all(allPromises).then(function replaceElement() {
-                        checkForMissingParent('replace', oldEl, patch);
-
-                        oldEl.parentNode.replaceChild(newEl, oldEl);
-
-                        (0, _util.unprotectElement)(patch.old);
-                        (0, _util.protectElement)(patch.new);
-                      }, function (ex) {
-                        return console.log(ex);
-                      });
-                    } else {
-                      checkForMissingParent('replace', oldEl, patch);
-
-                      oldEl.parentNode.replaceChild(newEl, oldEl);
-
-                      (0, _util.unprotectElement)(patch.old);
-                      (0, _util.protectElement)(patch.new);
-                    }
-                  })();
-                }
-          }
-
-          // Attribute manipulation.
-          else if (patch.__do__ === MODIFY_ATTRIBUTE) {
-              var attributes = patch.attributes;
-
-              attributes.forEach(function (_ref2) {
-                var oldAttr = _ref2.oldAttr,
-                    newAttr = _ref2.newAttr;
-
-                var name = newAttr ? newAttr.name : oldAttr.name;
-                var value = (oldAttr ? oldAttr.value : undefined) || null;
-
-                var attrChangePromises = (0, _util.makePromises)('attributeChanged', [el], name, value, newAttr ? newAttr.value : null);
-
-                triggerTransition('attributeChanged', attrChangePromises, function (promises) {
-                  var callback = function callback() {
-                    // Always remove the old attribute, we never re-use it.
-                    if (oldAttr) {
-                      _util.PoolCache.get('attribute').unprotect(oldAttr);
-
-                      // Remove the Virtual Tree Attribute from the element and memory.
-                      if (!newAttr) {
-                        el.removeAttribute(oldAttr.name);
-
-                        if (oldAttr.name in el) {
-                          el[oldAttr.name] = undefined;
-                        }
-                      }
-                    }
-
-                    // Add/Change the attribute or property.
-                    if (newAttr) {
-                      var isObject = _typeof(newAttr.value) === 'object';
-                      var isFunction = typeof newAttr.value === 'function';
-
-                      // Protect the Virtual Attribute object.
-                      _util.PoolCache.get('attribute').protect(newAttr);
-
-                      // If not a dynamic type, set as an attribute, since it's a valid
-                      // attribute value.
-                      if (!isObject && !isFunction) {
-                        if (newAttr.name) {
-                          el.setAttribute(newAttr.name, (0, _util.decodeEntities)(newAttr.value));
-                        }
-                      } else if (typeof newAttr.value !== 'string') {
-                        // Necessary to track the attribute/prop existence.
-                        el.setAttribute(newAttr.name, '');
-
-                        // Since this is a dynamic value it gets set as a property.
-                        el[newAttr.name] = newAttr.value;
-                      }
-
-                      // Support live updating of the value attribute.
-                      if (newAttr.name === 'value' || newAttr.name === 'checked') {
-                        el[newAttr.name] = newAttr.value;
-                      }
-                    }
-                  };
-
-                  if (promises && promises.length) {
-                    Promise.all(promises).then(callback, function unhandledException() {});
-                  } else {
-                    callback();
-                  }
-                });
-              });
-            }
-
-            // Text node manipulation.
-            else if (patch.__do__ === CHANGE_TEXT) {
-                var textChangePromises = (0, _util.makePromises)('textChanged', [el], el.nodeValue, patch.value);
-
-                triggerTransition('textChanged', textChangePromises, function (promises) {
-                  var callback = function callback() {
-                    patch.element.nodeValue = (0, _util.decodeEntities)(patch.value);
-                    el.nodeValue = patch.element.nodeValue;
-
-                    if (el.parentNode) {
-                      var nodeName = el.parentNode.nodeName.toLowerCase();
-
-                      if (_util.blockText.has(nodeName)) {
-                        el.parentNode.nodeValue = (0, _util.decodeEntities)(patch.element.nodeValue);
-                      }
-                    }
-                  };
-
-                  if (promises && promises.length) {
-                    Promise.all(promises).then(callback);
-                  } else {
-                    callback();
-                  }
-                });
-              }
-  };
-
-  for (var i = 0; i < patches.length; i++) {
-    _loop(i);
+        if (name in _domNode2) {
+          _domNode2[name] = undefined;
+        }
+      }
+    }
   }
 
   return promises;
@@ -1435,10 +1115,10 @@ function createTree(input, attributes, childNodes) {
       }));
     }
 
-    // Crawl an HTML or SVG Element for attributes and children.
-    if (typeof Element !== 'undefined' && input instanceof Element) {
-      attributes = null;
-      childNodes = null;
+    // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
+    if (typeof Node !== 'undefined' && input instanceof Node) {
+      attributes = {};
+      childNodes = [];
 
       // When working with a text node, simply save the nodeValue as the
       // initial value.
@@ -1506,28 +1186,45 @@ function createTree(input, attributes, childNodes) {
 
     entry.nodeType = 3;
     entry.nodeValue = (0, _util.escape)(String(value || ''));
-    entry.attributes = null;
-    entry.childNodes = null;
+    entry.attributes = {};
+    entry.childNodes = [];
 
     return entry;
   }
 
   var getChildNodes = function getChildNodes(attributes, childNodes) {
-    var nodes = _arguments.length === 2 ? attributes : childNodes;
+    var nodes = null;
+
+    if (isArray(attributes) || (typeof attributes === 'undefined' ? 'undefined' : _typeof(attributes)) !== 'object') {
+      nodes = attributes;
+    } else {
+      nodes = childNodes;
+    }
+
     return nodes ? [].concat(nodes).map(function (node) {
       if (typeof node === 'string') {
         return createTree('#text', node);
       }
 
       return node;
-    }) : null;
+    }) : [];
   };
 
-  // Support Document Fragments and Shadow Roots, everything else is Element.
-  entry.nodeType = input === '#document-fragment' ? 11 : 1;
+  if (input === '#document-fragment') {
+    entry.nodeType = 11;
+  } else if (input === '#comment') {
+    entry.nodeType = 8;
+  } else {
+    entry.nodeType = 1;
+  }
+
   entry.nodeValue = '';
-  entry.attributes = arguments.length === 2 ? null : attributes || null;
   entry.childNodes = getChildNodes(attributes, childNodes);
+  entry.attributes = {};
+
+  if (attributes && (typeof attributes === 'undefined' ? 'undefined' : _typeof(attributes)) === 'object' && !isArray(attributes)) {
+    entry.attributes = attributes;
+  }
 
   // Set the key prop if passed as an attr.
   if (entry.attributes && entry.attributes.key) {
@@ -1571,6 +1268,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = syncTree;
+var assign = Object.assign,
+    keys = Object.keys;
 function syncTree(oldTree, newTree) {
   if (!oldTree) {
     throw new Error('Missing existing tree to sync from');
@@ -1580,22 +1279,30 @@ function syncTree(oldTree, newTree) {
   }
 
   // Create new arrays for patches or use existing from a recursive call.
-  var patches = arguments[2] || {
-    ELEMENT: { INSERT: [], REMOVE: [], REPLACE: [], TEXT: [] },
-    ATTRIBUTE: { SET: [], REMOVE: [] }
-  };
+  var patches = arguments[2] || [];
 
-  var ELEMENT = patches.ELEMENT,
-      ATTRIBUTE = patches.ATTRIBUTE;
+  var changeset = Array(7).fill(null).map(function () {
+    return [];
+  });
+
+  var INSERT_BEFORE = changeset[0];
+  var APPEND_CHILD = changeset[1];
+  var REMOVE_CHILD = changeset[2];
+  var REPLACE_CHILD = changeset[3];
+  var NODE_VALUE = changeset[4];
+  var SET_ATTRIBUTE = changeset[5];
+  var REMOVE_ATTRIBUTE = changeset[6];
+
+  // Immdiately push the changeset into the patches.
+  patches.push(changeset);
 
   // If the element we're replacing is totally different from the previous
   // replace the entire element, don't bother investigating children. The
   // exception is if the `newTree` is a document fragment / shadow dom.
-
   if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
     // Shallow clone the `newTree` into the `oldTree`. We want to get the same
     // references/values inside here.
-    Object.assign(oldTree, newTree);
+    assign(oldTree, newTree);
     ELEMENT.REPLACE.push([oldTree, newTree]);
     return patches;
   }
@@ -1620,7 +1327,7 @@ function syncTree(oldTree, newTree) {
   // safely assume keys are being used here for optimization/transition
   // purposes.
 
-  var hasOldKeys = oldChildNodes && oldChildNodes.some(function (vTree) {
+  var hasOldKeys = oldChildNodes.some(function (vTree) {
     return vTree.key;
   });
   var hasNewKeys = hasOldKeys || newChildNodes.some(function (vTree) {
@@ -1629,16 +1336,74 @@ function syncTree(oldTree, newTree) {
   var keys = new Map();
 
   // Build up the key caches for each set of children.
-  if ((hasOldKeys || hasNewKeys) && newTree.childNodes) {
+  if ((hasOldKeys || hasNewKeys) && newChildNodes) {
     // Put the new `childNode` VTree's into the key cache for lookup.
-    for (var i = 0; i < newTree.childNodes.length; i++) {
-      var vTree = newTree.childNodes[i];
+    for (var i = 0; i < newChildNodes.length; i++) {
+      var vTree = newChildNodes[i];
 
       // Only add references if the key exists, otherwise ignore it. This
       // allows someone to specify a single key and keep that element around.
       if (vTree.key) {
         keys.add(vTree.key, vTree);
       }
+    }
+  }
+
+  // First check for new elements to add, this is the most common in my
+  // experience.
+  if (newChildNodes.length > oldChildNodes.length) {
+    // Store elements in a DocumentFragment to increase performance and be
+    // generally simplier to work with.
+    var fragment = [];
+
+    for (var _i = oldChildNodes.length; _i < newChildNodes.length; _i++) {
+      // Internally add to the tree.
+      oldChildNodes.push(newChildNodes[_i]);
+
+      // Add to the document fragment.
+      fragment.push(newChildNodes[_i]);
+    }
+
+    // Assign the fragment to the patches to be injected.
+    APPEND_CHILD.push([oldTree, fragment]);
+  }
+
+  // Attributes are significantly easier than elements and we ignore checking
+  // them on fragments. The algorithm is the same as elements, check for
+  // additions/removals based off length, and then iterate once to make
+  // adjustments.
+  if (newTree.nodeType === 1 && newTree.attributes.length) {
+    // Cache the lengths for performance and readability.
+    var oldNames = keys(oldTree.attributes);
+    var newNames = keys(newTree.attributes);
+    var setAttributes = [];
+    var removeAttributes = [];
+
+    for (var _i2 = 0; _i2 < newNames.length; _i2++) {
+      var name = newNames[_i2];
+      var value = newTree.attributes[name];
+
+      if (oldNames.indexOf(name) < 0 || oldTree.attributes[name] !== value) {
+        oldTree.attributes[name] = value;
+        setAttributes.push([name, value]);
+      }
+    }
+
+    for (var _i3 = 0; _i3 < oldNames.length; _i3++) {
+      var _name = oldNames[_i3];
+
+      if (newNames.indexOf(_name) < 0) {
+        delete oldTree.attributes[_name];
+        removeAttributes.push(_name);
+      }
+    }
+
+    if (setAttributes.length) {
+      SET_ATTRIBUTE.push([oldTree, setAttributes]);
+    }
+
+    if (removeAttributes.length) {
+      REMOVE_ATTRIBUTE.push([oldTree, removeAttributes]);
     }
   }
 
@@ -1917,11 +1682,7 @@ var memory = _pool2.default.memory,
 
 function protectElement(element) {
   protect(element);
-
-  if (element.childNodes) {
-    element.childNodes.forEach(protectElement);
-  }
-
+  element.childNodes.forEach(protectElement);
   return element;
 }
 
@@ -1933,11 +1694,7 @@ function protectElement(element) {
  */
 function unprotectElement(element) {
   unprotect(element);
-
-  if (element.childNodes) {
-    element.childNodes.forEach(unprotectElement);
-  }
-
+  element.childNodes.forEach(unprotectElement);
   _caches.NodeCache.delete(element);
   return element;
 }

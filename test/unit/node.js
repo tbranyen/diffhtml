@@ -2,7 +2,7 @@ import makeNode from '../../lib/node/make';
 import { cleanMemory } from '../../lib/util/memory';
 import validateMemory from '../util/validateMemory';
 
-describe('Unit: Node', function() {
+describe.skip('Unit: Node', function() {
   afterEach(function() {
     cleanMemory();
     validateMemory();

@@ -2,7 +2,7 @@ import { createTree } from '../../../lib/tree';
 import { cleanMemory } from '../../../lib/util/memory';
 import validateMemory from '../../util/validateMemory';
 
-describe.only('createTree', function() {
+describe('createTree', function() {
   afterEach(function() {
     cleanMemory();
     validateMemory();
@@ -17,8 +17,8 @@ describe.only('createTree', function() {
       nodeValue: '',
       nodeType: 1,
       key: '',
-      attributes: null,
-      childNodes: null,
+      attributes: {},
+      childNodes: [],
     });
   });
 
@@ -31,8 +31,8 @@ describe.only('createTree', function() {
       nodeValue: '',
       nodeType: 3,
       key: '',
-      attributes: null,
-      childNodes: null,
+      attributes: {},
+      childNodes: [],
     });
   });
 
@@ -45,8 +45,8 @@ describe.only('createTree', function() {
       nodeValue: 'some text',
       nodeType: 3,
       key: '',
-      attributes: null,
-      childNodes: null,
+      attributes: {},
+      childNodes: [],
     });
   });
 
@@ -59,8 +59,8 @@ describe.only('createTree', function() {
       nodeValue: 'some text chunks',
       nodeType: 3,
       key: '',
-      attributes: null,
-      childNodes: null,
+      attributes: {},
+      childNodes: [],
     });
   });
 
@@ -73,15 +73,15 @@ describe.only('createTree', function() {
       nodeValue: '',
       nodeType: 1,
       key: '',
-      attributes: null,
+      attributes: {},
       childNodes: [{
         rawNodeName: '#text',
         nodeName: '#text',
         nodeValue: 'Hello world',
         nodeType: 3,
         key: '',
-        attributes: null,
-        childNodes: null,
+        attributes: {},
+        childNodes: [],
       }],
     });
   });
@@ -98,30 +98,30 @@ describe.only('createTree', function() {
       nodeValue: '',
       nodeType: 11,
       key: '',
-      attributes: null,
+      attributes: {},
       childNodes: [{
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
         nodeType: 1,
         key: '',
-        attributes: null,
-        childNodes: null,
+        attributes: {},
+        childNodes: [],
       }, {
         rawNodeName: 'h1',
         nodeName: 'h1',
         nodeValue: '',
         nodeType: 1,
         key: '',
-        attributes: null,
+        attributes: {},
         childNodes: [{
           rawNodeName: '#text',
           nodeName: '#text',
           nodeValue: 'Hello world!',
           nodeType: 3,
           key: '',
-          attributes: null,
-          childNodes: null,
+          attributes: {},
+          childNodes: [],
         }],
       }],
     });
@@ -142,38 +142,38 @@ describe.only('createTree', function() {
       nodeValue: '',
       nodeType: 11,
       key: '',
-      attributes: null,
+      attributes: {},
       childNodes: [{
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
         nodeType: 1,
         key: '',
-        attributes: null,
-        childNodes: null,
+        attributes: {},
+        childNodes: [],
       }, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
         nodeType: 11,
         key: '',
-        attributes: null,
+        attributes: {},
         childNodes: [{
           rawNodeName: 'h1',
           nodeName: 'h1',
           nodeValue: '',
           nodeType: 1,
           key: '',
-          attributes: null,
-          childNodes: null,
+          attributes: {},
+          childNodes: [],
         }, {
           rawNodeName: 'b',
           nodeName: 'b',
           nodeValue: '',
           nodeType: 1,
           key: '',
-          attributes: null,
-          childNodes: null,
+          attributes: {},
+          childNodes: [],
         }],
       }],
     });
@@ -194,8 +194,8 @@ describe.only('createTree', function() {
       nodeValue: '',
       nodeType: 1,
       key: '',
-      attributes: null,
-      childNodes: null,
+      attributes: {},
+      childNodes: [],
     });
   });
 
@@ -209,8 +209,8 @@ describe.only('createTree', function() {
       nodeValue: 'some text',
       nodeType: 3,
       key: '',
-      attributes: null,
-      childNodes: null,
+      attributes: {},
+      childNodes: [],
     });
   });
 
@@ -226,15 +226,15 @@ describe.only('createTree', function() {
       nodeValue: '',
       nodeType: 11,
       key: '',
-      attributes: null,
+      attributes: {},
       childNodes: [{
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
         nodeType: 1,
         key: '',
-        attributes: null,
-        childNodes: null,
+        attributes: {},
+        childNodes: [],
       }],
     });
   });
@@ -249,8 +249,8 @@ describe.only('createTree', function() {
       nodeValue: '',
       nodeType: 8,
       key: '',
-      attributes: null,
-      childNodes: null,
+      attributes: {},
+      childNodes: [],
     });
   });
 
@@ -267,7 +267,7 @@ describe.only('createTree', function() {
       nodeType: 1,
       key: '',
       attributes: { class: 'test' },
-      childNodes: null,
+      childNodes: [],
     });
   });
 
@@ -285,7 +285,7 @@ describe.only('createTree', function() {
       nodeType: 1,
       key: '',
       attributes: { onclick: div.onclick },
-      childNodes: null,
+      childNodes: [],
     });
   });
 
@@ -302,7 +302,7 @@ describe.only('createTree', function() {
       nodeType: 1,
       key: '',
       attributes: { onclick: div.onclick },
-      childNodes: null,
+      childNodes: [],
     });
   });
 
@@ -319,7 +319,7 @@ describe.only('createTree', function() {
       nodeType: 1,
       key: '',
       attributes: { 'undefined': '' },
-      childNodes: null,
+      childNodes: [],
     });
   });
 });
