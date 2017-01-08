@@ -441,16 +441,36 @@ function patchNode(patches, state) {
       domNode.appendChild(fragment);
     }
 
-    // Set attributes.
-    for (var _i3 = 0; _i3 < SET_ATTRIBUTE.length; _i3++) {
-      var _SET_ATTRIBUTE$_i = _slicedToArray(SET_ATTRIBUTE[_i3], 2),
-          vTree = _SET_ATTRIBUTE$_i[0],
-          attributes = _SET_ATTRIBUTE$_i[1];
+    // Change nodeValue.
+    for (var _i3 = 0; _i3 < NODE_VALUE.length; _i3++) {
+      var _NODE_VALUE$_i = _slicedToArray(NODE_VALUE[_i3], 2),
+          vTree = _NODE_VALUE$_i[0],
+          nodeValue = _NODE_VALUE$_i[1];
 
       var _domNode = (0, _node.makeNode)(vTree);
 
-      for (var _i4 = 0; _i4 < attributes.length; _i4++) {
-        var _attributes$_i = _slicedToArray(attributes[_i4], 2),
+      _domNode.nodeValue = nodeValue;
+
+      if (_domNode.parentNode) {
+        var nodeName = _domNode.parentNode.nodeName;
+
+
+        if (_util.blockText.has(nodeName.toLowerCase())) {
+          _domNode.parentNode.nodeValue = nodeValue;
+        }
+      }
+    }
+
+    // Set attributes.
+    for (var _i4 = 0; _i4 < SET_ATTRIBUTE.length; _i4++) {
+      var _SET_ATTRIBUTE$_i = _slicedToArray(SET_ATTRIBUTE[_i4], 2),
+          vTree = _SET_ATTRIBUTE$_i[0],
+          attributes = _SET_ATTRIBUTE$_i[1];
+
+      var _domNode2 = (0, _node.makeNode)(vTree);
+
+      for (var _i5 = 0; _i5 < attributes.length; _i5++) {
+        var _attributes$_i = _slicedToArray(attributes[_i5], 2),
             name = _attributes$_i[0],
             value = _attributes$_i[1];
 
@@ -458,37 +478,37 @@ function patchNode(patches, state) {
         var isFunction = typeof value === 'function';
 
         if (!isObject && !isFunction && name) {
-          _domNode.setAttribute(name, (0, _util.decodeEntities)(value));
+          _domNode2.setAttribute(name, (0, _util.decodeEntities)(value));
         } else if (typeof value !== 'string') {
           // Necessary to track the attribute/prop existence.
-          _domNode.setAttribute(name, '');
+          _domNode2.setAttribute(name, '');
 
           // Since this is a property value it gets set directly on the node.
-          _domNode[name] = value;
+          _domNode2[name] = value;
         }
 
         // Support live updating of the `value` and `checked` attribute.
         if (name === 'value' || name === 'checked') {
-          _domNode[name] = value;
+          _domNode2[name] = value;
         }
       }
     }
 
     // Remove attributes.
-    for (var _i5 = 0; _i5 < REMOVE_ATTRIBUTE.length; _i5++) {
-      var _REMOVE_ATTRIBUTE$_i = _slicedToArray(REMOVE_ATTRIBUTE[_i5], 2),
+    for (var _i6 = 0; _i6 < REMOVE_ATTRIBUTE.length; _i6++) {
+      var _REMOVE_ATTRIBUTE$_i = _slicedToArray(REMOVE_ATTRIBUTE[_i6], 2),
           vTree = _REMOVE_ATTRIBUTE$_i[0],
           attributes = _REMOVE_ATTRIBUTE$_i[1];
 
-      var _domNode2 = (0, _node.makeNode)(vTree);
+      var _domNode3 = (0, _node.makeNode)(vTree);
 
-      for (var _i6 = 0; _i6 < attributes.length; _i6++) {
-        var name = attributes[_i6];
+      for (var _i7 = 0; _i7 < attributes.length; _i7++) {
+        var name = attributes[_i7];
 
-        _domNode2.removeAttribute(name);
+        _domNode3.removeAttribute(name);
 
-        if (name in _domNode2) {
-          _domNode2[name] = undefined;
+        if (name in _domNode3) {
+          _domNode3[name] = undefined;
         }
       }
     }
