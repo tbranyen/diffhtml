@@ -22,6 +22,48 @@ describe.only('createTree', function() {
     });
   });
 
+  it('can create an empty text node', () => {
+    const vTree = createTree('#text');
+
+    assert.deepEqual(vTree, {
+      rawNodeName: '#text',
+      nodeName: '#text',
+      nodeValue: '',
+      nodeType: 3,
+      key: '',
+      attributes: null,
+      childNodes: null,
+    });
+  });
+
+  it('can create a text node with some text', () => {
+    const vTree = createTree('#text', 'some text');
+
+    assert.deepEqual(vTree, {
+      rawNodeName: '#text',
+      nodeName: '#text',
+      nodeValue: 'some text',
+      nodeType: 3,
+      key: '',
+      attributes: null,
+      childNodes: null,
+    });
+  });
+
+  it('can create a text node with an array of text', () => {
+    const vTree = createTree('#text', ['some text', ' ', 'chunks']);
+
+    assert.deepEqual(vTree, {
+      rawNodeName: '#text',
+      nodeName: '#text',
+      nodeValue: 'some text chunks',
+      nodeType: 3,
+      key: '',
+      attributes: null,
+      childNodes: null,
+    });
+  });
+
   it('can create a div with some text', () => {
     const vTree = createTree('div', null, 'Hello world');
 
@@ -137,6 +179,11 @@ describe.only('createTree', function() {
     });
   });
 
+  it('will mirror a key attribute to the VTree', () => {
+    const vTree = createTree('div', { key: '12345' });
+    assert.equal(vTree.key, vTree.attributes.key);
+  });
+
   it('can mirror an empty div dom node', () => {
     const div = document.createElement('div');
     const vTree = createTree(div);
@@ -146,6 +193,61 @@ describe.only('createTree', function() {
       nodeName: 'div',
       nodeValue: '',
       nodeType: 1,
+      key: '',
+      attributes: null,
+      childNodes: null,
+    });
+  });
+
+  it('can mirror a text node', () => {
+    const text = document.createTextNode('some text');
+    const vTree = createTree(text);
+
+    assert.deepEqual(vTree, {
+      rawNodeName: '#text',
+      nodeName: '#text',
+      nodeValue: 'some text',
+      nodeType: 3,
+      key: '',
+      attributes: null,
+      childNodes: null,
+    });
+  });
+
+  it('can mirror a document fragment', () => {
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(document.createElement('div'));
+
+    const vTree = createTree(fragment);
+
+    assert.deepEqual(vTree, {
+      rawNodeName: '#document-fragment',
+      nodeName: '#document-fragment',
+      nodeValue: '',
+      nodeType: 11,
+      key: '',
+      attributes: null,
+      childNodes: [{
+        rawNodeName: 'DIV',
+        nodeName: 'div',
+        nodeValue: '',
+        nodeType: 1,
+        key: '',
+        attributes: null,
+        childNodes: null,
+      }],
+    });
+  });
+
+  it('can mirror a comment node', () => {
+    const comment = document.createComment('test');
+    const vTree = createTree(comment);
+
+    assert.deepEqual(vTree, {
+      rawNodeName: '#comment',
+      nodeName: '#comment',
+      nodeValue: '',
+      nodeType: 8,
       key: '',
       attributes: null,
       childNodes: null,

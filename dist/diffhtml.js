@@ -297,58 +297,11 @@ Object.defineProperty(exports, 'patchNode', {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 exports.makeNode = makeNode;
 
 var _util = _dereq_('../util');
 
-var assign = Object.assign,
-    freeze = Object.freeze;
-
-/**
- * Gets a specific type of DOM Node depending on the passed in nodeName.
- *
- * @param nodeName {String} - The nodeName to disambiguate the type
- * @param nodeValue {String} - The nodeValue to set if a Text Node
- * @return {Object} - A DOM Node matching the nodeName
- */
-
-var createNodeFromName = function createNodeFromName(vTree) {
-  var nodeName = vTree.nodeName,
-      childNodes = vTree.childNodes,
-      attributes = vTree.attributes,
-      nodeValue = vTree.nodeValue;
-
-  // Shorthand the lookup method.
-
-  var lookupNode = function lookupNode(domNode) {
-    return _util.NodeCache.get(domNode);
-  };
-
-  // If we're dealing with a Text Node, we need to use the special DOM method,
-  // since createElement does not understand the nodeName '#text'.
-  // All other nodes can be created through createElement.
-  if (nodeName === '#text') {
-    return document.createTextNode(nodeValue);
-  }
-  // Support dynamically creating document fragments.
-  else if (nodeName === '#document-fragment') {
-      return document.createDocumentFragment();
-    }
-    // If the nodeName matches any of the known SVG element names, mark it as
-    // SVG. The reason for doing this over detecting if nested in an <svg>
-    // element, is that we do not currently have circular dependencies in the
-    // VTree, by avoiding parentNode, so there is no way to crawl up the parents.
-    else if (_util.elements.indexOf(nodeName) > -1) {
-        return document.createElementNS(_util.namespace, nodeName);
-      }
-      // If not a Text or SVG Node, then create with the standard method.
-      else {
-          return document.createElement(nodeName);
-        }
-};
+var keys = Object.keys;
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
@@ -358,6 +311,7 @@ var createNodeFromName = function createNodeFromName(vTree) {
  * @param {Object} - A Virtual Tree Element or VTree-like element
  * @return {Object} - A DOM Node matching the vTree
  */
+
 function makeNode(vTree) {
   if (!vTree) {
     throw new Error('Missing VTree when trying to create DOM Node');
@@ -368,32 +322,67 @@ function makeNode(vTree) {
     return _util.NodeCache.get(vTree);
   }
 
-  var domNode = createNodeFromName(vTree);
+  var domNode = null;
+
+  var nodeName = vTree.nodeName,
+      _vTree$childNodes = vTree.childNodes,
+      childNodes = _vTree$childNodes === undefined ? [] : _vTree$childNodes,
+      _vTree$attributes = vTree.attributes,
+      attributes = _vTree$attributes === undefined ? {} : _vTree$attributes,
+      nodeValue = vTree.nodeValue;
+
+  // If we're dealing with a Text Node, we need to use the special DOM method,
+  // since createElement does not understand the nodeName '#text'.
+  // All other nodes can be created through createElement.
+
+  if (nodeName === '#text') {
+    domNode = document.createTextNode(nodeValue);
+  }
+  // Support dynamically creating document fragments.
+  else if (nodeName === '#document-fragment') {
+      domNode = document.createDocumentFragment();
+    }
+    // If the nodeName matches any of the known SVG element names, mark it as
+    // SVG. The reason for doing this over detecting if nested in an <svg>
+    // element, is that we do not currently have circular dependencies in the
+    // VTree, by avoiding parentNode, so there is no way to crawl up the parents.
+    else if (_util.elements.indexOf(nodeName) > -1) {
+        domNode = document.createElementNS(_util.namespace, nodeName);
+      }
+      // If not a Text or SVG Node, then create with the standard method.
+      else {
+          domNode = document.createElement(nodeName);
+        }
+
+  // Get an array of all the attribute names.
+  var attributeNames = keys(attributes);
 
   // Copy all the attributes from the vTree into the newly created DOM
   // Node.
-  for (var i = 0; i < (vTree.attributes || []).length; i++) {
-    var attr = vTree.attributes[i];
-    var isObject = _typeof(attr.value) === 'object';
-    var isFunction = typeof attr.value === 'function';
+  for (var i = 0; i < attributeNames.length; i++) {
+    var name = attributeNames[i];
+    var value = attributes[name];
+    var isString = typeof value === 'string';
+    var isBoolean = typeof value === 'boolean';
+    var isNumber = typeof value === 'number';
 
     // If not a dynamic type, set as an attribute, since it's a valid
     // attribute value.
-    if (attr.name && !isObject && !isFunction) {
-      domNode.setAttribute(attr.name, (0, _util.decodeEntities)(attr.value));
-    } else if (attr.name && typeof attr.value !== 'string') {
+    if (name && (isString || isBoolean || isNumber)) {
+      domNode.setAttribute(name, (0, _util.decodeEntities)(value));
+    } else if (name) {
       // Necessary to track the attribute/prop existence.
-      domNode.setAttribute(attr.name, '');
+      domNode.setAttribute(name, '');
 
       // Since this is a dynamic value it gets set as a property.
-      domNode[attr.name] = attr.value;
+      domNode[name] = value;
     }
   }
 
   // Append all the children into the domNode, making sure to run them
   // through this `make` function as well.
-  for (var _i = 0; _i < (vTree.childNodes || []).length; _i++) {
-    domNode.appendChild(makeNode(vTree.childNodes[_i]));
+  for (var _i = 0; _i < childNodes.length; _i++) {
+    domNode.appendChild(makeNode(childNodes[_i]));
   }
 
   // Add to the domNodes cache.
@@ -1928,7 +1917,11 @@ var memory = _pool2.default.memory,
 
 function protectElement(element) {
   protect(element);
-  element.childNodes && element.childNodes.forEach(protectElement);
+
+  if (element.childNodes) {
+    element.childNodes.forEach(protectElement);
+  }
+
   return element;
 }
 
@@ -1940,7 +1933,11 @@ function protectElement(element) {
  */
 function unprotectElement(element) {
   unprotect(element);
-  element.childNodes && element.childNodes.forEach(unprotectElement);
+
+  if (element.childNodes) {
+    element.childNodes.forEach(unprotectElement);
+  }
+
   _caches.NodeCache.delete(element);
   return element;
 }
@@ -2040,7 +2037,6 @@ var interpolateValues = function interpolateValues(currentParent, string, supple
         // discard. This mimicks how the browser works and is generally easier
         // to work with (when using tagged template tags).
         if (value && hasNonWhitespaceEx.test(value)) {
-          console.log('fear');
           childNodes.push((0, _tree.createTree)('#text', value));
         }
 
