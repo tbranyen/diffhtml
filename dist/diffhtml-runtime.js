@@ -179,7 +179,6 @@ Object.defineProperty(exports, 'use', {
 });
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
-exports.element = element;
 
 var _transaction = _dereq_('./transaction');
 
@@ -194,11 +193,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *
  * @example
  *
- *    import { outerHTML } from 'diffhtml'
+ *    import { outerHTML } from 'diffhtml';
  *
  *    // Remove all attributes and set the children to be a single text node
  *    // containing the text 'Hello world',
- *    outerHTML(document.body, '<body>Hello world</body>')
+ *    outerHTML(document.body, '<body>Hello world</body>');
  *
  *
  * @param {Object} element - A DOM Node to render into
@@ -220,11 +219,11 @@ function outerHTML(element) {
  *
  * @example
  *
- *    import { innerHTML } from 'diffhtml'
+ *    import { innerHTML } from 'diffhtml';
  *
  *    // Sets the body children to be a single text node containing the text
  *    // 'Hello world'.
- *    innerHTML(document.body, 'Hello world')
+ *    innerHTML(document.body, 'Hello world');
  *
  *
  * @param {Object} element - A DOM Node to render into
@@ -237,35 +236,6 @@ function innerHTML(element) {
 
   options.inner = true;
   return _transaction2.default.create(element, markup, options).start();
-}
-
-/**
- * Used to diff two DOM Nodes. The `inner` Boolean property can be specified in
- * the options to set `innerHTML`\`outerHTML` behavior. By default it is
- * `outerHTML`.
- *
- * @example
- *
- *    // It is usually better to rename this method to something descriptive.
- *    import { element as diffElement } from 'diffhtml'
- *
- *    // Create a new body tag.
- *    const newBody = $(`<body>
- *      <strong>Hello world!</strong>
- *    </body>`).get();
- *
- *
- *    diffElement(document.body, newBody);
- *
- *
- * @param {Object} element - A DOM Node to render into
- * @param {Object} newElement - A string of markup or virtual tree
- * @param {Object =} options={} - An object containing configuration options
- */
-function element(element, newElement) {
-  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  return _transaction2.default.create(element, newElement, options).start();
 }
 
 },{"./html":1,"./release":6,"./transaction":14,"./transition":15,"./tree/create":16,"./use":19}],3:[function(_dereq_,module,exports){
@@ -435,22 +405,72 @@ function patchNode(patches, state) {
       var fragment = document.createDocumentFragment();
 
       for (var _i2 = 0; _i2 < childNodes.length; _i2++) {
-        fragment.appendChild((0, _node.makeNode)(childNodes[_i2]));
+        var _vTree = (0, _node.makeNode)(childNodes[_i2]);
+        (0, _util.protectElement)(_vTree);
+        fragment.appendChild(_vTree);
       }
 
       domNode.appendChild(fragment);
     }
 
-    // Set attributes.
-    for (var _i3 = 0; _i3 < SET_ATTRIBUTE.length; _i3++) {
-      var _SET_ATTRIBUTE$_i = _slicedToArray(SET_ATTRIBUTE[_i3], 2),
-          vTree = _SET_ATTRIBUTE$_i[0],
-          attributes = _SET_ATTRIBUTE$_i[1];
+    // Remove elements.
+    for (var _i3 = 0; _i3 < REMOVE_CHILD.length; _i3++) {
+      var _REMOVE_CHILD$_i = _slicedToArray(REMOVE_CHILD[_i3], 2),
+          vTree = _REMOVE_CHILD$_i[0],
+          childNode = _REMOVE_CHILD$_i[1];
 
       var _domNode = (0, _node.makeNode)(vTree);
 
-      for (var _i4 = 0; _i4 < attributes.length; _i4++) {
-        var _attributes$_i = _slicedToArray(attributes[_i4], 2),
+      _domNode.removeChild((0, _node.makeNode)(childNode));
+      (0, _util.unprotectElement)(childNode);
+    }
+
+    // Replace elements.
+    for (var _i4 = 0; _i4 < REPLACE_CHILD.length; _i4++) {
+      var _REPLACE_CHILD$_i = _slicedToArray(REPLACE_CHILD[_i4], 3),
+          vTree = _REPLACE_CHILD$_i[0],
+          newChildNode = _REPLACE_CHILD$_i[1],
+          oldChildNode = _REPLACE_CHILD$_i[2];
+
+      var _domNode2 = (0, _node.makeNode)(vTree);
+
+      _domNode2.replaceChild((0, _node.makeNode)(newChildNode), (0, _node.makeNode)(oldChildNode));
+      (0, _util.unprotectElement)(oldChildNode);
+      (0, _util.protectElement)(newChildNode);
+    }
+
+    // Change nodeValue.
+    for (var _i5 = 0; _i5 < NODE_VALUE.length; _i5++) {
+      var _NODE_VALUE$_i = _slicedToArray(NODE_VALUE[_i5], 2),
+          vTree = _NODE_VALUE$_i[0],
+          nodeValue = _NODE_VALUE$_i[1];
+
+      var _domNode3 = (0, _node.makeNode)(vTree);
+      var parentNode = _domNode3.parentNode;
+
+
+      _domNode3.nodeValue = nodeValue;
+
+      if (parentNode) {
+        var nodeName = parentNode.nodeName;
+
+
+        if (_util.blockText.has(nodeName.toLowerCase())) {
+          parentNode.nodeValue = nodeValue;
+        }
+      }
+    }
+
+    // Set attributes.
+    for (var _i6 = 0; _i6 < SET_ATTRIBUTE.length; _i6++) {
+      var _SET_ATTRIBUTE$_i = _slicedToArray(SET_ATTRIBUTE[_i6], 2),
+          vTree = _SET_ATTRIBUTE$_i[0],
+          attributes = _SET_ATTRIBUTE$_i[1];
+
+      var _domNode4 = (0, _node.makeNode)(vTree);
+
+      for (var _i7 = 0; _i7 < attributes.length; _i7++) {
+        var _attributes$_i = _slicedToArray(attributes[_i7], 2),
             name = _attributes$_i[0],
             value = _attributes$_i[1];
 
@@ -458,37 +478,37 @@ function patchNode(patches, state) {
         var isFunction = typeof value === 'function';
 
         if (!isObject && !isFunction && name) {
-          _domNode.setAttribute(name, (0, _util.decodeEntities)(value));
+          _domNode4.setAttribute(name, (0, _util.decodeEntities)(value));
         } else if (typeof value !== 'string') {
           // Necessary to track the attribute/prop existence.
-          _domNode.setAttribute(name, '');
+          _domNode4.setAttribute(name, '');
 
           // Since this is a property value it gets set directly on the node.
-          _domNode[name] = value;
+          _domNode4[name] = value;
         }
 
         // Support live updating of the `value` and `checked` attribute.
         if (name === 'value' || name === 'checked') {
-          _domNode[name] = value;
+          _domNode4[name] = value;
         }
       }
     }
 
     // Remove attributes.
-    for (var _i5 = 0; _i5 < REMOVE_ATTRIBUTE.length; _i5++) {
-      var _REMOVE_ATTRIBUTE$_i = _slicedToArray(REMOVE_ATTRIBUTE[_i5], 2),
+    for (var _i8 = 0; _i8 < REMOVE_ATTRIBUTE.length; _i8++) {
+      var _REMOVE_ATTRIBUTE$_i = _slicedToArray(REMOVE_ATTRIBUTE[_i8], 2),
           vTree = _REMOVE_ATTRIBUTE$_i[0],
           attributes = _REMOVE_ATTRIBUTE$_i[1];
 
-      var _domNode2 = (0, _node.makeNode)(vTree);
+      var _domNode5 = (0, _node.makeNode)(vTree);
 
-      for (var _i6 = 0; _i6 < attributes.length; _i6++) {
-        var name = attributes[_i6];
+      for (var _i9 = 0; _i9 < attributes.length; _i9++) {
+        var name = attributes[_i9];
 
-        _domNode2.removeAttribute(name);
+        _domNode5.removeAttribute(name);
 
-        if (name in _domNode2) {
-          _domNode2[name] = undefined;
+        if (name in _domNode5) {
+          _domNode5[name] = undefined;
         }
       }
     }
@@ -1268,6 +1288,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = syncTree;
+
+var _util = _dereq_('../util');
+
 var assign = Object.assign,
     keys = Object.keys;
 function syncTree(oldTree, newTree) {
@@ -1303,7 +1326,7 @@ function syncTree(oldTree, newTree) {
     // Shallow clone the `newTree` into the `oldTree`. We want to get the same
     // references/values inside here.
     assign(oldTree, newTree);
-    ELEMENT.REPLACE.push([oldTree, newTree]);
+    REPLACE_ELEMENT.push([oldTree, newTree]);
     return patches;
   }
 
@@ -1316,7 +1339,7 @@ function syncTree(oldTree, newTree) {
   // If both VTrees are text nodes then copy the value over.
   if (oldTree.nodeName === '#text' && newTree.nodeName === '#text') {
     oldTree.nodeValue = newTree.nodeValue;
-    ELEMENT.TEXT.push([oldTree, oldTree.nodeValue]);
+    NODE_VALUE.push([oldTree, (0, _util.decodeEntities)(oldTree.nodeValue)]);
     return patches;
   }
 
@@ -1330,21 +1353,33 @@ function syncTree(oldTree, newTree) {
   var hasOldKeys = oldChildNodes.some(function (vTree) {
     return vTree.key;
   });
-  var hasNewKeys = hasOldKeys || newChildNodes.some(function (vTree) {
+  var hasNewKeys = newChildNodes.some(function (vTree) {
     return vTree.key;
   });
-  var keys = new Map();
+  var oldKeys = new Map();
+  var newKeys = new Map();
 
   // Build up the key caches for each set of children.
-  if ((hasOldKeys || hasNewKeys) && newChildNodes) {
-    // Put the new `childNode` VTree's into the key cache for lookup.
-    for (var i = 0; i < newChildNodes.length; i++) {
-      var vTree = newChildNodes[i];
+  if (hasOldKeys && hasNewKeys) {
+    // Put the old `childNode` VTree's into the key cache for lookup.
+    for (var i = 0; i < oldChildNodes.length; i++) {
+      var vTree = oldChildNodes[i];
 
       // Only add references if the key exists, otherwise ignore it. This
       // allows someone to specify a single key and keep that element around.
       if (vTree.key) {
-        keys.add(vTree.key, vTree);
+        oldKeys.set(vTree.key, vTree);
+      }
+    }
+
+    // Put the new `childNode` VTree's into the key cache for lookup.
+    for (var _i = 0; _i < newChildNodes.length; _i++) {
+      var _vTree = newChildNodes[_i];
+
+      // Only add references if the key exists, otherwise ignore it. This
+      // allows someone to specify a single key and keep that element around.
+      if (_vTree.key) {
+        newKeys.set(_vTree.key, _vTree);
       }
     }
   }
@@ -1356,17 +1391,82 @@ function syncTree(oldTree, newTree) {
     // generally simplier to work with.
     var fragment = [];
 
-    for (var _i = oldChildNodes.length; _i < newChildNodes.length; _i++) {
+    for (var _i2 = oldChildNodes.length; _i2 < newChildNodes.length; _i2++) {
       // Internally add to the tree.
-      oldChildNodes.push(newChildNodes[_i]);
+      oldChildNodes.push(newChildNodes[_i2]);
 
       // Add to the document fragment.
-      fragment.push(newChildNodes[_i]);
+      fragment.push(newChildNodes[_i2]);
     }
 
     // Assign the fragment to the patches to be injected.
     APPEND_CHILD.push([oldTree, fragment]);
   }
+
+  // Find elements to replace and remove.
+  for (var _i3 = 0; _i3 < oldChildNodes.length; _i3++) {
+    var oldChildNode = oldChildNodes[_i3];
+    var newChildNode = newChildNodes[_i3];
+
+    // If there was no new child to compare to, remove from the childNodes.
+    if (!newChildNode) {
+      REMOVE_CHILD.push([oldTree, oldChildNode]);
+      oldTree.childNodes.splice(oldTree.childNodes.indexOf(oldChildNode), 1);
+      break;
+    }
+
+    var isOldInNewSet = newKeys.has(oldChildNode.key);
+    var isNewInOldSet = oldKeys.has(newChildNode.key);
+    var keyedNewChildNode = isOldInNewSet && newKeys.get(oldChildNode.key);
+    var keyedOldChildNode = isNewInOldSet && oldKeys.get(newChildNode.key);
+
+    // If these elements are already in place, continue to the next.
+    if (oldChildNode === newChildNode) {
+      continue;
+    }
+    // If using `keys` and this node exists in the new set, and is located at
+    // the same index.
+    else if (newChildNodes.indexOf(keyedNewChildNode) === _i3) {
+        syncTree(oldChildNode, newChildNode, patches);
+      }
+      // If not using `keys` but the nodeName.
+      else if (oldChildNode.nodeName === newChildNode.nodeName) {
+          syncTree(oldChildNode, newChildNode, patches);
+        }
+        // Replace the remaining elements, do not traverse further.
+        else {
+            // If we're using keys and we found a matching new node using the old key
+            // we can do a direct replacement.
+            if (keyedNewChildNode) {
+              var newIndex = newChildNodes.indexOf(keyedNewChildNode);
+              var prevTree = oldChildNodes[newIndex];
+
+              oldChildNodes[_i3] = prevTree;
+              oldChildNodes[newIndex] = oldChildNode;
+
+              REPLACE_CHILD.push([oldTree, oldChildNode, prevTree]);
+            }
+
+            // If we're using keys and found a matching old node using the new key
+            // we can do a direct replacement.
+            if (keyedOldChildNode) {
+              // Remove from old position.
+              oldChildNodes.splice(oldChildNodes.indexOf(keyedOldChildNode), 1);
+
+              // Assign to the new position.
+              oldChildNodes[_i3] = keyedOldChildNode;
+
+              REPLACE_CHILD.push([oldTree, oldChild]);
+            }
+
+            if (!hasOldKeys && !hasNewKeys && oldChildNode.nodeName !== newChildNode.nodeName) {
+              REPLACE_CHILD.push([oldTree, newChildNode, oldChildNode]);
+              oldTree.childNodes[_i3] = newChildNode;
+            }
+          }
+  }
+
+  // Find elements to remove.
 
   // Attributes are significantly easier than elements and we ignore checking
   // them on fragments. The algorithm is the same as elements, check for
@@ -1379,8 +1479,8 @@ function syncTree(oldTree, newTree) {
     var setAttributes = [];
     var removeAttributes = [];
 
-    for (var _i2 = 0; _i2 < newNames.length; _i2++) {
-      var name = newNames[_i2];
+    for (var _i4 = 0; _i4 < newNames.length; _i4++) {
+      var name = newNames[_i4];
       var value = newTree.attributes[name];
 
       if (oldNames.indexOf(name) < 0 || oldTree.attributes[name] !== value) {
@@ -1389,8 +1489,8 @@ function syncTree(oldTree, newTree) {
       }
     }
 
-    for (var _i3 = 0; _i3 < oldNames.length; _i3++) {
-      var _name = oldNames[_i3];
+    for (var _i5 = 0; _i5 < oldNames.length; _i5++) {
+      var _name = oldNames[_i5];
 
       if (newNames.indexOf(_name) < 0) {
         delete oldTree.attributes[_name];
@@ -1410,7 +1510,7 @@ function syncTree(oldTree, newTree) {
   return patches;
 }
 
-},{}],19:[function(_dereq_,module,exports){
+},{"../util":23}],19:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
