@@ -179,7 +179,6 @@ Object.defineProperty(exports, 'use', {
 });
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
-exports.element = element;
 
 var _transaction = _dereq_('./transaction');
 
@@ -194,11 +193,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *
  * @example
  *
- *    import { outerHTML } from 'diffhtml'
+ *    import { outerHTML } from 'diffhtml';
  *
  *    // Remove all attributes and set the children to be a single text node
  *    // containing the text 'Hello world',
- *    outerHTML(document.body, '<body>Hello world</body>')
+ *    outerHTML(document.body, '<body>Hello world</body>');
  *
  *
  * @param {Object} element - A DOM Node to render into
@@ -220,11 +219,11 @@ function outerHTML(element) {
  *
  * @example
  *
- *    import { innerHTML } from 'diffhtml'
+ *    import { innerHTML } from 'diffhtml';
  *
  *    // Sets the body children to be a single text node containing the text
  *    // 'Hello world'.
- *    innerHTML(document.body, 'Hello world')
+ *    innerHTML(document.body, 'Hello world');
  *
  *
  * @param {Object} element - A DOM Node to render into
@@ -237,35 +236,6 @@ function innerHTML(element) {
 
   options.inner = true;
   return _transaction2.default.create(element, markup, options).start();
-}
-
-/**
- * Used to diff two DOM Nodes. The `inner` Boolean property can be specified in
- * the options to set `innerHTML`\`outerHTML` behavior. By default it is
- * `outerHTML`.
- *
- * @example
- *
- *    // It is usually better to rename this method to something descriptive.
- *    import { element as diffElement } from 'diffhtml'
- *
- *    // Create a new body tag.
- *    const newBody = $(`<body>
- *      <strong>Hello world!</strong>
- *    </body>`).get();
- *
- *
- *    diffElement(document.body, newBody);
- *
- *
- * @param {Object} element - A DOM Node to render into
- * @param {Object} newElement - A string of markup or virtual tree
- * @param {Object =} options={} - An object containing configuration options
- */
-function element(element, newElement) {
-  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  return _transaction2.default.create(element, newElement, options).start();
 }
 
 },{"./html":1,"./release":6,"./transaction":14,"./transition":15,"./tree/create":16,"./use":19}],3:[function(_dereq_,module,exports){
