@@ -1,8 +1,9 @@
 import { createTree, syncTree } from '../../../lib/tree';
+import { patchNode } from '../../../lib/node';
 import { cleanMemory } from '../../../lib/util/memory';
 import validateMemory from '../../util/validateMemory';
 
-describe('syncTree', function() {
+describe('patchNode', function() {
   afterEach(function() {
     cleanMemory();
     validateMemory();
@@ -20,6 +21,6 @@ describe('syncTree', function() {
   describe.skip('Element replacements');
   describe.skip('Element text changes');
 
-  describe.skip('Attribute changes');
-  describe.skip('Attribute removals');
+  describe.skip('Attribute set');
+  describe.skip('Attribute remove');
 });
