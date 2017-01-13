@@ -1,9 +1,10 @@
 diffHTML Logger
 ---------------
 
-Stable Version: 1.0.0
+Stable Version: 2.0.0
 
-Use with diffHTML to log out patch operations.
+Use with diffHTML to log out [render transaction](https://diffhtml.org/#transaction) operations. This will nest sub-component renders if they happen during a
+parent render.
 
 ##### Installation
 
@@ -25,8 +26,8 @@ If you want to debug only element patches, you can provide a filter as an
 option:
 
 ``` javascript
+// Log all element mutations, this excludes text and attribute changes.
 diff.use(logger({
-  // Log all element mutations, this excludes text and attribute changes.
   filterPatches(patch) {
     return patch.type.indexOf('ELEMENT') > -1;
   }
