@@ -853,7 +853,7 @@ function reconcileTrees(transaction) {
         transaction.newTree = (0, _tree.createTree)(markup);
       }
 
-  // Hacky shit to test **Components**.
+  // FIXME: Huge Hack at the moment to make it easier to work with components.
   reconcileComponents(state.oldTree, transaction.newTree);
 
   measure('reconcile trees');
