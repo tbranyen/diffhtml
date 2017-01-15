@@ -1319,7 +1319,7 @@ function createTree(input, attributes, childNodes) {
     }
     // Else assume it is text.
     else {
-        return createTree('#text', input);
+        return createTree('#text', String(input));
       }
   }
 
@@ -1565,55 +1565,51 @@ function syncTree(oldTree, newTree) {
       continue;
     }
 
-    // If these elements are already in place, continue to the next.
-    if (oldChildNode === newChildNode) {
-      continue;
-    }
     // If using `keys` and this node exists in the new set, and is located at
     // the same index.
-    else if (newChildNodes.indexOf(keyedNewChildNode) === _i3) {
+    if (newChildNodes.indexOf(keyedNewChildNode) === _i3) {
+      syncTree(oldChildNode, newChildNode, patches);
+    }
+    // If not using `keys` but the nodeNames match, sync the trees.
+    else if (oldChildNode.nodeName === newChildNode.nodeName) {
+        // Do not synchronize text nodes.
         syncTree(oldChildNode, newChildNode, patches);
       }
-      // If not using `keys` but the nodeNames match, sync the trees.
-      else if (oldChildNode.nodeName === newChildNode.nodeName) {
-          // Do not synchronize text nodes.
-          syncTree(oldChildNode, newChildNode, patches);
-        }
-        // Replace the remaining elements, do not traverse further.
-        else {
-            // If we're using keys and we found a matching new node using the old key
-            // we can do a direct replacement.
-            if (keyedNewChildNode) {
-              var newIndex = newChildNodes.indexOf(keyedNewChildNode);
-              var prevTree = oldChildNodes[newIndex];
+      // Replace the remaining elements, do not traverse further.
+      else {
+          // If we're using keys and we found a matching new node using the old key
+          // we can do a direct replacement.
+          if (keyedNewChildNode) {
+            var newIndex = newChildNodes.indexOf(keyedNewChildNode);
+            var prevTree = oldChildNodes[newIndex];
 
-              oldChildNodes[_i3] = prevTree;
-              oldChildNodes[newIndex] = oldChildNode;
+            oldChildNodes[_i3] = prevTree;
+            oldChildNodes[newIndex] = oldChildNode;
 
-              REPLACE_CHILD.push([oldTree, oldChildNode, prevTree]);
-              continue;
-            }
-
-            // If we're using keys and found a matching old node using the new key
-            // we can do a direct replacement.
-            if (keyedOldChildNode) {
-              // Remove from old position.
-              oldChildNodes.splice(oldChildNodes.indexOf(keyedOldChildNode), 1);
-
-              var _oldChildNode = oldChildNodes[_i3];
-
-              // Assign to the new position.
-              oldChildNodes[_i3] = keyedOldChildNode;
-
-              REPLACE_CHILD.push([oldTree, keyedOldChildNode, _oldChildNode]);
-            }
-
-            if (!hasOldKeys && !hasNewKeys && oldChildNode.nodeName !== newChildNode.nodeName) {
-              REPLACE_CHILD.push([oldTree, newChildNode, oldChildNode]);
-              oldTree.childNodes[_i3] = newChildNode;
-              newChildNodes.splice(newChildNodes.indexOf(newChildNode), 1);
-            }
+            REPLACE_CHILD.push([oldTree, oldChildNode, prevTree]);
+            continue;
           }
+
+          // If we're using keys and found a matching old node using the new key
+          // we can do a direct replacement.
+          if (keyedOldChildNode) {
+            // Remove from old position.
+            oldChildNodes.splice(oldChildNodes.indexOf(keyedOldChildNode), 1);
+
+            var _oldChildNode = oldChildNodes[_i3];
+
+            // Assign to the new position.
+            oldChildNodes[_i3] = keyedOldChildNode;
+
+            REPLACE_CHILD.push([oldTree, keyedOldChildNode, _oldChildNode]);
+          }
+
+          if (!hasOldKeys && !hasNewKeys && oldChildNode.nodeName !== newChildNode.nodeName) {
+            REPLACE_CHILD.push([oldTree, newChildNode, oldChildNode]);
+            oldTree.childNodes[_i3] = newChildNode;
+            newChildNodes.splice(newChildNodes.indexOf(newChildNode), 1);
+          }
+        }
   }
 
   // If both VTrees are text nodes then copy the value over.
