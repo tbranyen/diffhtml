@@ -6,6 +6,6 @@ export const sourceMap = false;
 export const moduleName = 'diff';
 export const targets = [{ dest: 'dist/diffhtml.js', format: 'umd' }];
 export const plugins = [
-  buble({ include: ['lib/**'], target: { node: '4' } }),
+  buble({ include: ['lib/**'], target: { node: '0.12' } }),
   nodeResolve({ jsnext: true }),
 ];
