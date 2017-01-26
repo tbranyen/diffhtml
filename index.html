@@ -23,12 +23,8 @@
         padding-top: 30px;
         font-weight: bold;
         text-shadow: 2px 2px 1px #333;
+        background-color: lightblue;
       }
-
-      [key="1"] { background: red; }
-      [key="2"] { background: blue; }
-      [key="3"] { background: green; }
-      [key="4"] { background: purple; }
     </style>
   </head>
 
@@ -43,17 +39,21 @@
 
       <div class="column">
         <button onclick="window.render()">Reorder</button>
+        <button onclick="window.add()">Add</button>
+        <button onclick="window.remove()">Remove</button>
       </div>
     </main>
 
+    <script src="diffhtml-logger/dist/logger.js"></script>
+    <script src="diffhtml-verify-state/dist/verify-state.js"></script>
     <script src="dist/diffhtml.js"></script>
 
     <script>
       const items = [
-        { key: '1', label: 'One' },
-        { key: '2', label: 'Two' },
-        { key: '3', label: 'Three' },
-        { key: '4', label: 'Four' },
+        { key: '0', label: '0' },
+        { key: '1', label: '1' },
+        { key: '2', label: '2' },
+        { key: '3', label: '3' },
       ];
 
       const shuffle = array => {
@@ -70,18 +70,34 @@
         return array;
       }
 
-      const { innerHTML, html } = diff;
+      const { innerHTML, html, use } = diff;
+
+      use(logger());
+      //use(.verifyState({ debug: location.search.includes('debug') }));
+
+      window.add = () => {
+        items.push({ key: items.length, label: items.length });
+        render();
+      };
+
+      window.remove = () => {
+        items.splice(items.length - 1, 1);
+        render();
+      };
 
       window.render = () => {
         innerHTML(document.querySelector('main'), html`
           <div class="column">
             ${shuffle(items).map(({ key, label }) => html`
               <div class="row" key="${key}">${label}</div>
+              <hr />
             `)}
           </div>
 
           <div class="column">
             <button onclick=${render}>Reorder</button>
+            <button onclick=${add}>Add</button>
+            <button onclick=${remove}>Remove</button>
           </div>
         `);
       };

@@ -117,7 +117,6 @@ function unprotectVTree(vTree) {
     unprotectVTree(vTree.childNodes[i]);
   }
 
-  NodeCache.delete(vTree);
   return vTree;
 }
 
@@ -380,7 +379,7 @@ const element = g.document ? document.createElement('div') : null;
  */
 function decodeEntities(string) {
   // If there are no HTML entities, we can safely pass the string through.
-  if (!element || !string || !string.indexOf || string.indexOf('&') === -1) {
+  if (!element || !string || !string.indexOf || !string.includes('&')) {
     return string;
   }
 
@@ -515,8 +514,8 @@ function createTree(input, attributes, childNodes) {
       return input;
     }
 
-    // Assume it is text.
-    return createTree('#text', String(input));
+    // Assume it is a DOM Node.
+    return createTree(String(input), null, null);
   }
 
   // Support JSX-style children being passed.
@@ -546,7 +545,7 @@ function createTree(input, attributes, childNodes) {
     const nodeValue = isArray(nodes) ? nodes.join('') : nodes;
 
     entry.nodeType = 3;
-    entry.nodeValue = escape(String(nodeValue || ''));
+    entry.nodeValue = String(nodeValue || '');
 
     return entry;
   }
@@ -567,7 +566,12 @@ function createTree(input, attributes, childNodes) {
 
   if (nodes && nodeArray.length) {
     for (let i = 0; i < nodeArray.length; i++) {
-      entry.childNodes[i] = createTree(nodeArray[i]);
+      if (typeof nodeArray[i] === 'object') {
+        entry.childNodes[i] = createTree(nodeArray[i]);
+      }
+      else {
+        entry.childNodes[i] = createTree('#text', nodeArray[i]);
+      }
     }
   }
 
@@ -584,31 +588,38 @@ function createTree(input, attributes, childNodes) {
 }
 
 const empty = null;
+
+// Reuse these maps, it's more performant to clear them than recreate.
 const oldKeys = new Map();
 const newKeys = new Map();
+
+const propToAttrMap = {
+  className: 'class',
+  htmlFor: 'for',
+};
 
 function syncTree(oldTree, newTree) {
   if (!oldTree) { throw new Error('Missing existing tree to sync from'); }
   if (!newTree) { throw new Error('Missing new tree to sync into'); }
 
-  // If the element we're replacing is totally different from the previous
-  // replace the entire element, don't bother investigating children. The
-  // exception is if the `newTree` is a document fragment / shadow dom.
-  if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
-    // Shallow clone the `newTree` into the `oldTree`. We want to get the same
-    // references/values inside here.
-    throw new Error('Unable to replace top level elements');
+  var oldTreeName = oldTree.nodeName;
+  var newTreeName = newTree.nodeName;
+
+  if (oldTreeName !== newTreeName) {
+    throw new Error(
+      `Sync failure, cannot compare ${newTreeName} with ${oldTreeName}`
+    );
   }
 
   // Create new arrays for patches or use existing from a recursive call.
   const patches = arguments[2] || {
-    TREE_OPERATIONS: [],
+    TREE_OPS: [],
     NODE_VALUE: [],
     SET_ATTRIBUTE: [],
     REMOVE_ATTRIBUTE: [],
   };
 
-  var TREE_OPERATIONS = patches.TREE_OPERATIONS;
+  var TREE_OPS = patches.TREE_OPS;
   var NODE_VALUE = patches.NODE_VALUE;
   var SET_ATTRIBUTE = patches.SET_ATTRIBUTE;
   var REMOVE_ATTRIBUTE = patches.REMOVE_ATTRIBUTE;
@@ -623,152 +634,155 @@ function syncTree(oldTree, newTree) {
   var oldChildNodes = oldTree.childNodes;
   var newChildNodes = newTree.childNodes;
 
-  debugger;
-
   // Determines if any of the elements have a key attribute. If so, then we can
   // safely assume keys are being used here for optimization/transition
   // purposes.
   const hasOldKeys = oldChildNodes.some(vTree => vTree.key);
   const hasNewKeys = newChildNodes.some(vTree => vTree.key);
 
-  // Build up the key caches for each set of children.
-  if (hasOldKeys && hasNewKeys) {
+  // If we are working with keys, we can follow an optimized path.
+  if (hasOldKeys || hasNewKeys) {
     oldKeys.clear();
     newKeys.clear();
 
     // Put the old `childNode` VTree's into the key cache for lookup.
-    if (oldChildNodes.length) {
-      for (let i = 0; i < oldChildNodes.length; i++) {
-        const vTree = oldChildNodes[i];
+    for (let i = 0; i < oldChildNodes.length; i++) {
+      const vTree = oldChildNodes[i];
 
-        // Only add references if the key exists, otherwise ignore it. This
-        // allows someone to specify a single key and keep that element around.
-        if (vTree.key) {
-          oldKeys.set(vTree.key, vTree);
-        }
+      // Only add references if the key exists, otherwise ignore it. This
+      // allows someone to specify a single key and keep that element around.
+      if (vTree.key) {
+        oldKeys.set(vTree.key, vTree);
       }
     }
 
     // Put the new `childNode` VTree's into the key cache for lookup.
-    if (newChildNodes.length) {
-      for (let i = 0; i < newChildNodes.length; i++) {
-        const vTree = newChildNodes[i];
+    for (let i = 0; i < newChildNodes.length; i++) {
+      const vTree = newChildNodes[i];
 
-        // Only add references if the key exists, otherwise ignore it. This
-        // allows someone to specify a single key and keep that element around.
-        if (vTree.key) {
-          newKeys.set(vTree.key, vTree);
+      // Only add references if the key exists, otherwise ignore it. This
+      // allows someone to specify a single key and keep that element around.
+      if (vTree.key) {
+        newKeys.set(vTree.key, vTree);
+      }
+    }
+
+    // Do a single pass over the new child nodes.
+    for (let i = 0; i < newChildNodes.length; i++) {
+      const oldChildNode = oldChildNodes[i];
+      const newChildNode = newChildNodes[i];
+
+      var key = newChildNode.key;
+
+      // If there is no old element to compare to, this is a simple addition.
+      if (!oldChildNode) {
+        // Prefer an existing match to a brand new element.
+        let newElement = null;
+
+        // Prefer existing to new and remove from old position.
+        if (oldKeys.has(key)) {
+          newElement = oldKeys.get(key);
+          oldChildNodes.splice(oldChildNodes.indexOf(newElement), 1);
         }
-      }
-    }
-  }
+        else {
+          newElement = newKeys.get(key);
+        }
 
-  // First check for new elements to add, this is the most common in my
-  // experience.
-  if (newChildNodes.length > oldChildNodes.length) {
-    // Store elements in a DocumentFragment to increase performance and be
-    // generally simplier to work with.
-    const fragment = [];
-
-    if (newChildNodes.length) {
-      for (let i = oldChildNodes.length; i < newChildNodes.length; i++) {
-        // Internally add to the tree.
-        oldChildNodes.push(newChildNodes[i]);
-
-        // Add to the document fragment.
-        fragment.push(newChildNodes[i]);
-      }
-    }
-
-    if (patchset.INSERT_BEFORE === empty) { patchset.INSERT_BEFORE = []; }
-
-    // Assign the fragment to the patches to be injected.
-    patchset.INSERT_BEFORE.push([oldTree, fragment]);
-  }
-
-  // Find elements to replace and remove.
-  for (let i = 0; i < oldChildNodes.length; i++) {
-    const oldChildNode = oldChildNodes[i];
-    const newChildNode = newChildNodes[i];
-
-    // If there was no new child to compare to, remove from the childNodes.
-    if (!newChildNode) {
-      if (patchset.REMOVE_CHILD === empty) { patchset.REMOVE_CHILD = []; }
-      patchset.REMOVE_CHILD.push([oldTree, oldChildNode]);
-      oldTree.childNodes.splice(i, 1);
-      i--;
-      continue;
-    }
-
-    const isOldInNewSet = newKeys.has(oldChildNode.key);
-    const isNewInOldSet = oldKeys.has(newChildNode.key);
-    const keyedNewChildNode = isOldInNewSet && newKeys.get(oldChildNode.key);
-    const keyedOldChildNode = isNewInOldSet && oldKeys.get(newChildNode.key);
-    const hasNoKeys = !hasOldKeys && !hasNewKeys;
-
-    if (hasNoKeys && oldChildNode.nodeName !== newChildNode.nodeName) {
-      if (patchset.REPLACE_CHILD === empty) { patchset.REPLACE_CHILD = []; }
-      patchset.REPLACE_CHILD.push([oldTree, newChildNode, oldChildNode]);
-      oldTree.childNodes.splice(i, 1, newChildNode);
-      continue;
-    }
-
-    // If using `keys` and this node exists in the new set, and is located at
-    // the same index.
-    if (!hasNoKeys && newChildNodes.indexOf(keyedNewChildNode) === i) {
-      syncTree(oldChildNode, newChildNode, patches);
-    }
-    // If not using `keys` but the nodeNames match, sync the trees.
-    else if (oldChildNode.nodeName === newChildNode.nodeName) {
-      // Do not synchronize text nodes.
-      syncTree(oldChildNode, newChildNode, patches);
-    }
-    // Replace the remaining elements, do not traverse further.
-    else {
-      // If we're using keys and we found a matching new node using the old key
-      // we can do a direct replacement.
-      if (keyedNewChildNode) {
-        const newIndex = newChildNodes.indexOf(keyedNewChildNode);
-        const prevTree = oldChildNodes[newIndex];
-
-        oldChildNodes[i] = prevTree;
-        oldChildNodes[newIndex] = oldChildNode;
-
-        if (patchset.REPLACE_CHILD === empty) { patchset.REPLACE_CHILD = []; }
-        patchset.REPLACE_CHILD.push([oldTree, oldChildNode, prevTree]);
+        if (patchset.INSERT_BEFORE === empty) { patchset.INSERT_BEFORE = []; }
+        patchset.INSERT_BEFORE.push([oldTree, newElement]);
+        oldChildNodes.push(newElement);
         continue;
       }
 
-      // If we're using keys and found a matching old node using the new key
-      // we can do a direct replacement.
-      if (keyedOldChildNode) {
-        // Remove from old position.
-        oldChildNodes.splice(oldChildNodes.indexOf(keyedOldChildNode), 1);
+      // If there is a key set for this new element, use that to figure out
+      // which element to use.
+      if (key !== oldChildNode.key) {
+        let newElement = newChildNode;
 
-        const oldChildNode = oldChildNodes[i];
+        // Prefer existing to new and remove from old position.
+        if (key && oldKeys.has(key)) {
+          newElement = oldKeys.get(key);
+          oldChildNodes.splice(oldChildNodes.indexOf(newElement), 1);
+        }
+        else if (key) {
+          newElement = newKeys.get(key);
+        }
 
-        // Assign to the new position.
-        oldChildNodes[i] = keyedOldChildNode;
-
-        if (patchset.REPLACE_CHILD === empty) { patchset.REPLACE_CHILD = []; }
-        patchset.REPLACE_CHILD.push([oldTree, keyedOldChildNode, oldChildNode]);
+        if (patchset.INSERT_BEFORE === empty) { patchset.INSERT_BEFORE = []; }
+        patchset.INSERT_BEFORE.push([oldTree, newElement, oldChildNode]);
+        oldChildNodes.splice(i, 0, newElement);
+        continue;
       }
 
-      if (!hasOldKeys && !hasNewKeys && oldChildNode.nodeName !== newChildNode.nodeName) {
+      // If the element we're replacing is totally different from the previous
+      // replace the entire element, don't bother investigating children.
+      if (oldChildNode.nodeName !== newChildNode.nodeName) {
         if (patchset.REPLACE_CHILD === empty) { patchset.REPLACE_CHILD = []; }
-        patchset.REPLACE_CHILD.push([oldTree, newChildNode, oldChildNode]);
+        patchset.REPLACE_CHILD.push([newChildNode, oldChildNode]);
         oldTree.childNodes[i] = newChildNode;
-        newChildNodes.splice(newChildNodes.indexOf(newChildNode), 1);
+        continue;
       }
+
+      syncTree(oldChildNode, newChildNode, patches);
     }
   }
 
-  // If both VTrees are text nodes then copy the value over.
+  // No keys used on this level, so we will do easier transformations.
+  else {
+    // Do a single pass over the new child nodes.
+    for (let i = 0; i < newChildNodes.length; i++) {
+      const oldChildNode = oldChildNodes[i];
+      const newChildNode = newChildNodes[i];
+
+      // If there is no old element to compare to, this is a simple addition.
+      if (!oldChildNode) {
+        if (patchset.INSERT_BEFORE === empty) { patchset.INSERT_BEFORE = []; }
+        patchset.INSERT_BEFORE.push([oldTree, newChildNode]);
+        oldChildNodes.push(newChildNode);
+        continue;
+      }
+
+      // If the element we're replacing is totally different from the previous
+      // replace the entire element, don't bother investigating children.
+      if (oldChildNode.nodeName !== newChildNode.nodeName) {
+        if (patchset.REPLACE_CHILD === empty) { patchset.REPLACE_CHILD = []; }
+        patchset.REPLACE_CHILD.push([newChildNode, oldChildNode]);
+        oldTree.childNodes[i] = newChildNode;
+        continue;
+      }
+
+      syncTree(oldChildNode, newChildNode, patches);
+    }
+  }
+
+  // We've reconciled new changes, so we can remove any old nodes and adjust
+  // lengths to be equal.
+  if (oldChildNodes.length !== newChildNodes.length) {
+    for (let i = newChildNodes.length; i < oldChildNodes.length; i++) {
+      if (patchset.REMOVE_CHILD === empty) { patchset.REMOVE_CHILD = []; }
+      patchset.REMOVE_CHILD.push(oldChildNodes[i]);
+    }
+
+    oldChildNodes.length = newChildNodes.length;
+  }
+
+  // If both VTrees are text nodes and the values are different, change the
+  // NODE_VALUE.
   if (oldTree.nodeName === '#text' && newTree.nodeName === '#text') {
     if (oldTree.nodeValue !== newTree.nodeValue) {
       oldTree.nodeValue = newTree.nodeValue;
-      NODE_VALUE.push([oldTree, decodeEntities(oldTree.nodeValue)]);
-      TREE_OPERATIONS.push(patchset);
+      NODE_VALUE.push(oldTree, oldTree.nodeValue);
+
+      var INSERT_BEFORE = patchset.INSERT_BEFORE;
+      var REMOVE_CHILD = patchset.REMOVE_CHILD;
+      var REPLACE_CHILD = patchset.REPLACE_CHILD;
+
+      // We want to look if anything has changed, if nothing has we won't add
+      // it to the patchset.
+      if (INSERT_BEFORE || REMOVE_CHILD || REPLACE_CHILD) {
+        TREE_OPS.push(patchset);
+      }
+
       return patches;
     }
   }
@@ -792,34 +806,32 @@ function syncTree(oldTree, newTree) {
       }
 
       oldTree.attributes[key] = value;
-      setAttributes.push([key, value]);
+
+      // Alias prop names to attr names for patching purposes.
+      if (key in propToAttrMap) {
+        key = propToAttrMap[key];
+      }
+
+      SET_ATTRIBUTE.push(oldTree, key, value);
     }
 
     // Search for removals.
     for (let key in oldAttributes) {
       if (key in newAttributes) { continue; }
-      removeAttributes.push(key);
+      REMOVE_ATTRIBUTE.push(oldTree, key);
       delete oldAttributes[key];
-    }
-
-    if (setAttributes.length) {
-      SET_ATTRIBUTE.push([oldTree, setAttributes]);
-    }
-
-    if (removeAttributes.length) {
-      REMOVE_ATTRIBUTE.push([oldTree, removeAttributes]);
     }
   }
 
-  // We want to look if anything has changed, if nothing has we'll splice out
-  // the array to clean up the aptches array.
   var INSERT_BEFORE = patchset.INSERT_BEFORE;
   var REMOVE_CHILD = patchset.REMOVE_CHILD;
   var REPLACE_CHILD = patchset.REPLACE_CHILD;
-  const treeHasChanged = INSERT_BEFORE || REMOVE_CHILD || REPLACE_CHILD;
 
-  // Remove the patch set if nothing changed.
-  if (treeHasChanged) { TREE_OPERATIONS.push(patchset); }
+  // We want to look if anything has changed, if nothing has we won't add it to
+  // the patchset.
+  if (INSERT_BEFORE || REMOVE_CHILD || REPLACE_CHILD) {
+    TREE_OPS.push(patchset);
+  }
 
   return patches;
 }
@@ -864,6 +876,25 @@ const kElementsClosedByClosing = {
   th: { tr: true, table: true },
 };
 
+const flattenFragments = childNodes => {
+  for (let i = 0; i < childNodes.length; i++) {
+    const childNode = childNodes[i];
+
+    if (childNode && childNode.nodeType === 11) {
+      childNodes.splice.apply(childNodes, [ i, 1 ].concat( childNode.childNodes ));
+
+      // Reset the loop.
+      i = 0;
+    }
+    else if (childNode) {
+      flattenFragments(childNode.childNodes);
+    }
+    else {
+      childNodes.splice(i, 1);
+    }
+  }
+};
+
 /**
  * Interpolate dynamic supplemental values from the tagged template into the
  * tree.
@@ -873,7 +904,7 @@ const kElementsClosedByClosing = {
  * @param supplemental
  */
 const interpolateValues = (currentParent, string, supplemental) => {
-  if (string && string.indexOf(TOKEN) > -1) {
+  if (string && string.includes(TOKEN)) {
     const childNodes = [];
 
     // Break up the incoming string into dynamic parts that are then pushed
@@ -887,15 +918,16 @@ const interpolateValues = (currentParent, string, supplemental) => {
       }
 
       // If we are in the second iteration, this means the whitespace has been
-      // trimmed and we can pull out dynamic interpolated values. We do not
-      // want to grab a childNode by accident for the last one.
-      if (index !== array.length - 1) {
-        childNodes.push(supplemental.children.shift());
-      }
+      // trimmed and we can pull out dynamic interpolated values. Flatten all
+      // fragments found in the tree. They are used as containers and are not
+      // reflected in the DOM Tree.
+      childNodes.push(supplemental.children.shift());
+      flattenFragments(childNodes);
     });
 
     currentParent.childNodes.push.apply(currentParent.childNodes, childNodes);
   }
+  // If this is text and not a doctype, add as a text node.
   else if (string && string.length && !doctypeEx.exec(string)) {
     currentParent.childNodes.push(createTree('#text', string));
   }
@@ -993,11 +1025,7 @@ function parse(html, supplemental, options) {
   for (let match, text; match = tagEx.exec(html); ) {
     if (lastTextPos > -1) {
       if (lastTextPos + match[0].length < tagEx.lastIndex) {
-        // if has content
-        text = html.slice(
-          lastTextPos, tagEx.lastIndex - match[0].length
-        );
-
+        text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
         interpolateValues(currentParent, text, supplemental);
       }
     }
@@ -1411,7 +1439,17 @@ function syncTrees(transaction) {
   var newTree = transaction.newTree;
 
   measure('sync trees');
-  transaction.patches = syncTree(oldTree, newTree);
+
+  // Do a global replace of the element, unable to do this at a lower level.
+  if (oldTree.nodeName !== newTree.nodeName) {
+    transaction.patches = { TREE_OPS: [{ REPLACE_CHILD: [newTree, oldTree] }] };
+    transaction.oldTree = transaction.state.oldTree = newTree;
+  }
+  // Otherwise only diff the children.
+  else {
+    transaction.patches = syncTree(oldTree, newTree);
+  }
+
   measure('sync trees');
 }
 
@@ -1429,6 +1467,7 @@ function makeNode(vTree) {
   if (!vTree) {
     throw new Error('Missing VTree when trying to create DOM Node');
   }
+  //console.log(`Making ${vTree.nodeName}${JSON.stringify(vTree.attributes)}`);
 
   // If the DOM Node was already created, reuse the existing node.
   if (NodeCache.has(vTree)) {
@@ -1516,26 +1555,99 @@ const blockText$1 = new Set(['script', 'noscript', 'style', 'code', 'template'])
 
 function patchNode$$1(patches, state) {
   const promises = [];
+  var TREE_OPS = patches.TREE_OPS;
   var NODE_VALUE = patches.NODE_VALUE;
   var SET_ATTRIBUTE = patches.SET_ATTRIBUTE;
   var REMOVE_ATTRIBUTE = patches.REMOVE_ATTRIBUTE;
-  var TREE_OPERATIONS = patches.TREE_OPERATIONS;
+
+  // First do all DOM tree operations, and then do attribute and node value.
+  for (let i = 0; i < TREE_OPS.length; i++) {
+    var ref = TREE_OPS[i];
+    var INSERT_BEFORE = ref.INSERT_BEFORE;
+    var REMOVE_CHILD = ref.REMOVE_CHILD;
+    var REPLACE_CHILD = ref.REPLACE_CHILD;
+
+    // Insert/append elements.
+    if (INSERT_BEFORE && INSERT_BEFORE.length) {
+      for (let i = 0; i < INSERT_BEFORE.length; i++) {
+        var ref$1 = INSERT_BEFORE[i];
+        var vTree = ref$1[0];
+        var childNodes = ref$1[1];
+        var referenceNode = ref$1[2];
+        const domNode = NodeCache.get(vTree);
+        const refNode = referenceNode ? makeNode(referenceNode) : null;
+        let fragment = null;
+
+        if (referenceNode) {
+          protectVTree(referenceNode);
+        }
+
+        if (childNodes.length) {
+          fragment = document.createDocumentFragment();
+
+          for (let i = 0; i < childNodes.length; i++) {
+            fragment.appendChild(makeNode(childNodes[i]));
+            protectVTree(childNodes[i]);
+          }
+        }
+        else {
+          fragment = makeNode(childNodes);
+          protectVTree(childNodes);
+        }
+
+        domNode.insertBefore(fragment, refNode);
+      }
+    }
+
+    // Remove elements.
+    if (REMOVE_CHILD && REMOVE_CHILD.length) {
+      for (let i = 0; i < REMOVE_CHILD.length; i++) {
+        const childNode = REMOVE_CHILD[i];
+        const domNode = NodeCache.get(childNode);
+
+        if (ComponentCache.has(childNode)) {
+          ComponentCache.get(childNode).componentWillUnmount();
+        }
+
+        domNode.parentNode.removeChild(domNode);
+        unprotectVTree(childNode);
+      }
+    }
+
+    // Replace elements.
+    if (REPLACE_CHILD && REPLACE_CHILD.length) {
+      for (let i = 0; i < REPLACE_CHILD.length; i++) {
+        var ref$2 = REPLACE_CHILD[i];
+        var newChildNode = ref$2[0];
+        var oldChildNode = ref$2[1];
+        const oldDomNode = NodeCache.get(oldChildNode);
+        const newDomNode = makeNode(newChildNode);
+
+        oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+        protectVTree(newChildNode);
+        unprotectVTree(oldChildNode);
+      }
+    }
+  }
 
   // Change all nodeValues.
   if (NODE_VALUE.length) {
-    for (let i = 0; i < NODE_VALUE.length; i++) {
-      var ref = NODE_VALUE[i];
-      var vTree = ref[0];
-      var nodeValue = ref[1];
+    for (let i = 0; i < NODE_VALUE.length; i += 2) {
+      const vTree = NODE_VALUE[i];
+      const nodeValue = NODE_VALUE[i + 1];
+
       const domNode = NodeCache.get(vTree);
       var parentNode = domNode.parentNode;
 
-      domNode.nodeValue = nodeValue;
+      if (nodeValue.includes('&')) {
+        domNode.nodeValue = decodeEntities(nodeValue);
+      }
+      else {
+        domNode.nodeValue = nodeValue;
+      }
 
       if (parentNode) {
-        var nodeName = parentNode.nodeName;
-
-        if (blockText$1.has(nodeName.toLowerCase())) {
+        if (blockText$1.has(parentNode.nodeName.toLowerCase())) {
           parentNode.nodeValue = nodeValue;
         }
       }
@@ -1544,51 +1656,47 @@ function patchNode$$1(patches, state) {
 
   // Set attributes.
   if (SET_ATTRIBUTE.length) {
-    for (let i = 0; i < SET_ATTRIBUTE.length; i++) {
-      var ref$1 = SET_ATTRIBUTE[i];
-      var vTree = ref$1[0];
-      var attributes = ref$1[1];
+    for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
+      const vTree = SET_ATTRIBUTE[i];
+      const name = SET_ATTRIBUTE[i + 1];
+      const value = SET_ATTRIBUTE[i + 2];
+
       const domNode = NodeCache.get(vTree);
+      const isObject = typeof value === 'object';
+      const isFunction = typeof value === 'function';
 
-      for (let i = 0; i < attributes.length; i++) {
-        var ref$2 = attributes[i];
-        var name = ref$2[0];
-        var value = ref$2[1];
-        const isObject = typeof value === 'object';
-        const isFunction = typeof value === 'function';
+      // Support patching an object representation of the style object.
+      if (!isObject && !isFunction && name) {
+        domNode.setAttribute(name, value);
+      }
+      else if (isObject && name === 'style') {
+        const keys = Object.keys(value);
 
-        if (isObject && name === 'style') {
-          const keys = Object.keys(value);
-
-          for (let i = 0; i < keys.length; i++) {
-            domNode.style[keys[i]] = value[keys[i]];
-          }
+        for (let i = 0; i < keys.length; i++) {
+          domNode.style[keys[i]] = value[keys[i]];
         }
-        else if (!isObject && !isFunction && name) {
-          domNode.setAttribute(name, decodeEntities(value));
-        }
-        else if (typeof value !== 'string') {
-          // Necessary to track the attribute/prop existence.
-          domNode.setAttribute(name, '');
+      }
+      else if (typeof value !== 'string') {
+        // Necessary to track the attribute/prop existence.
+        domNode.setAttribute(name, '');
 
-          // Since this is a property value it gets set directly on the node.
-          domNode[name] = value;
-        }
+        // Since this is a property value it gets set directly on the node.
+        domNode[name] = value;
+      }
 
-        // Support live updating of the `value` and `checked` attribute.
-        if (name === 'value' || name === 'checked') {
-          domNode[name] = value;
-        }
+      // Support live updating of the `value` and `checked` attribute.
+      if (name === 'value' || name === 'checked') {
+        domNode[name] = value;
       }
     }
   }
 
   // Remove attributes.
   if (REMOVE_ATTRIBUTE.length) {
-    for (let i = 0; i < REMOVE_ATTRIBUTE.length; i++) {
-      var ref$3 = REMOVE_ATTRIBUTE[i];
-      var vTree = ref$3[0];
-      var attributes = ref$3[1];
+    for (let i = 0; i < REMOVE_ATTRIBUTE.length; i += 2) {
+      const vTree = REMOVE_ATTRIBUTE[i];
+      const attributes = REMOVE_ATTRIBUTE[i + 1];
+
       const domNode = NodeCache.get(vTree);
 
       for (let i = 0; i < attributes.length; i++) {
@@ -1599,67 +1707,6 @@ function patchNode$$1(patches, state) {
         if (name in domNode) {
           domNode[name] = undefined;
         }
-      }
-    }
-  }
-
-  // First do all DOM tree operations, and then do attribute and node value.
-  for (let i = 0; i < TREE_OPERATIONS.length; i++) {
-    var ref$4 = TREE_OPERATIONS[i];
-    var INSERT_BEFORE = ref$4.INSERT_BEFORE;
-    var REMOVE_CHILD = ref$4.REMOVE_CHILD;
-    var REPLACE_CHILD = ref$4.REPLACE_CHILD;
-
-    // Insert/append elements.
-    if (INSERT_BEFORE && INSERT_BEFORE.length) {
-      for (let i = 0; i < INSERT_BEFORE.length; i++) {
-        var ref$5 = INSERT_BEFORE[i];
-        var vTree = ref$5[0];
-        var childNodes = ref$5[1];
-        var referenceNode = ref$5[2];
-        const domNode = NodeCache.get(vTree);
-        const fragment = document.createDocumentFragment();
-
-        for (let i = 0; i < childNodes.length; i++) {
-          fragment.appendChild(makeNode(childNodes[i]));
-        }
-
-        protectVTree(vTree);
-        domNode.insertBefore(fragment, referenceNode);
-      }
-    }
-
-    // Remove elements.
-    if (REMOVE_CHILD && REMOVE_CHILD.length) {
-      for (let i = 0; i < REMOVE_CHILD.length; i++) {
-        var ref$6 = REMOVE_CHILD[i];
-        var vTree = ref$6[0];
-        var childNode = ref$6[1];
-        const domNode = NodeCache.get(vTree);
-
-        if (ComponentCache.has(childNode)) {
-          ComponentCache.get(childNode).componentWillUnmount();
-        }
-
-        domNode.removeChild(NodeCache.get(childNode));
-        unprotectVTree(childNode);
-      }
-    }
-
-    // Replace elements.
-    if (REPLACE_CHILD && REPLACE_CHILD.length) {
-      for (let i = 0; i < REPLACE_CHILD.length; i++) {
-        var ref$7 = REPLACE_CHILD[i];
-        var vTree = ref$7[0];
-        var newChildNode = ref$7[1];
-        var oldChildNode = ref$7[2];
-        const domNode = NodeCache.get(vTree);
-        const oldDomNode = NodeCache.get(oldChildNode);
-        const newDomNode = makeNode(newChildNode);
-
-        domNode.replaceChild(newDomNode, oldDomNode);
-        protectVTree(newChildNode);
-        unprotectVTree(oldChildNode);
       }
     }
   }
@@ -1687,7 +1734,7 @@ function patch(transaction) {
 // resolves when completed. If you want to make diffHTML return streams or
 // callbacks replace this function.
 function endAsPromise(transaction) {
-  var promises = transaction.promises;
+  var promises = transaction.promises; if ( promises === void 0 ) promises = [];
 
   // Operate synchronously unless opted into a Promise-chain. Doesn't matter
   // if they are actually Promises or not, since they will all resolve
@@ -1723,27 +1770,28 @@ class Transaction {
   }
 
   static flow(transaction, tasks) {
+    let retVal = transaction;
+
     // Execute each "task" serially, passing the transaction as a baton that
     // can be used to share state across the tasks.
-    return tasks.reduce((retVal, task, index) => {
+    for (let i = 0; i < tasks.length; i++) {
       // If aborted, don't execute any more tasks.
       if (transaction.aborted) {
         return retVal;
       }
 
-      // Continue flow, so long as there was no return value, or it matches the
-      // transaction.
-      if (retVal === undefined || retVal === transaction) {
-        return task(transaction);
-      }
+      // Run the task.
+      retVal = tasks[i](transaction);
 
       // The last `returnValue` is what gets sent to the consumer. This
       // mechanism is crucial for the `abort`, if you want to modify the "flow"
       // that's fine, but you must ensure that your last task provides a
       // mechanism to know when the transaction completes. Something like
       // callbacks or a Promise.
-      return retVal;
-    }, transaction);
+      if (retVal !== undefined && retVal !== transaction) {
+        return retVal;
+      }
+    }
   }
 
   static assert(transaction) {
@@ -1799,7 +1847,6 @@ class Transaction {
     var domNode = ref.domNode;
     var measure$$1 = ref.state.measure;
     var tasks = ref.tasks;
-
     const takeLastTask = tasks.pop();
 
     // Add middleware in as tasks.

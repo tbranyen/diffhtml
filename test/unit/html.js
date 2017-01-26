@@ -92,10 +92,10 @@ describe('Unit: HTML (Tagged template)', function() {
     const fixture = [createTree('#text', 'foo'), createTree('#text', 'bar')];
     const span = html`<span>${fixture}</span>`;
 
-    assert.deepEqual(span.childNodes[0], {
-      rawNodeName: '#document-fragment',
-      nodeName: '#document-fragment',
-      nodeType: 11,
+    assert.deepEqual(span, {
+      rawNodeName: 'span',
+      nodeName: 'span',
+      nodeType: 1,
       nodeValue: '',
       key: '',
       attributes: {},
