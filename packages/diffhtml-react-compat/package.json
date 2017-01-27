@@ -1,0 +1,25 @@
+{
+  "name": "diffhtml-react-compat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/diffhtml-react-compat.js",
+  "scripts": {
+    "build": "browserify -t babelify -s React index.js | derequire > dist/diffhtml-react-compat.js",
+    "watch": "watchify -t babelify -s React index.js -o 'derequire > dist/diffhtml-react-compat.js' -v"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "diffhtml": "1.0.0",
+    "diffhtml-components": "1.0.0",
+    "proptypes": "^0.14.3"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "^6.18.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.3.0",
+    "derequire": "^2.0.6",
+    "watchify": "^3.8.0"
+  }
+}
