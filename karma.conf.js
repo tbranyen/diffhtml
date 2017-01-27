@@ -75,7 +75,7 @@ module.exports = config => config.set({
     'test/integration/**/*.js': ['browserify'],
   },
 
-  reporters: ['progress', 'coverage'],
+  reporters: ['mocha', 'coverage'],
 
   coverageReporter: {
     type: 'lcov',

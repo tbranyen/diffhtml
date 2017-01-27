@@ -30,15 +30,15 @@
 
   <body>
     <main>
-      <div class="column">
-        <div class="row" key="1">One</div>
-        <div class="row" key="2">Two</div>
-        <div class="row" key="3">Three</div>
-        <div class="row" key="4">Four</div>
+      <div class="column" key="left">
+        <div class="row" key="0">0</div>
+        <div class="row" key="1">1</div>
+        <div class="row" key="2">2</div>
+        <div class="row" key="3">3</div>
       </div>
 
-      <div class="column">
-        <button onclick="window.render()">Reorder</button>
+      <div class="column" key="right">
+        <button onclick="window.shuffle()">Reorder</button>
         <button onclick="window.add()">Add</button>
         <button onclick="window.remove()">Remove</button>
       </div>
@@ -49,7 +49,7 @@
     <script src="dist/diffhtml.js"></script>
 
     <script>
-      const items = [
+      let items = [
         { key: '0', label: '0' },
         { key: '1', label: '1' },
         { key: '2', label: '2' },
@@ -73,7 +73,12 @@
       const { innerHTML, html, use } = diff;
 
       use(logger());
-      //use(.verifyState({ debug: location.search.includes('debug') }));
+      use(verifyState.default({ debug: location.search.includes('debug') }));
+
+      window.shuffle = () => {
+        items = shuffle(items);
+        render();
+      };
 
       window.add = () => {
         items.push({ key: items.length, label: items.length });
@@ -85,17 +90,17 @@
         render();
       };
 
-      window.render = () => {
+      const render = () => {
         innerHTML(document.querySelector('main'), html`
-          <div class="column">
-            ${shuffle(items).map(({ key, label }) => html`
+          <div class="column" key="left">
+            ${items.map(({ key, label }) => html`
               <div class="row" key="${key}">${label}</div>
               <hr />
             `)}
           </div>
 
-          <div class="column">
-            <button onclick=${render}>Reorder</button>
+          <div class="column" key="right">
+            <button onclick=${shuffle}>Reorder</button>
             <button onclick=${add}>Add</button>
             <button onclick=${remove}>Remove</button>
           </div>
