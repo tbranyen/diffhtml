@@ -312,14 +312,9 @@ Object.defineProperty(exports, 'patchNode', {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 exports.makeNode = makeNode;
 
 var _util = _dereq_('../util');
-
-var keys = Object.keys;
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
@@ -329,16 +324,16 @@ var keys = Object.keys;
  * @param {Object} - A Virtual Tree Element or VTree-like element
  * @return {Object} - A DOM Node matching the vTree
  */
-
 function makeNode(vTree) {
   if (!vTree) {
     throw new Error('Missing VTree when trying to create DOM Node');
   }
-  //console.log(`Making ${vTree.nodeName}${JSON.stringify(vTree.attributes)}`);
+
+  var existingNode = _util.NodeCache.get(vTree);
 
   // If the DOM Node was already created, reuse the existing node.
-  if (_util.NodeCache.has(vTree)) {
-    return _util.NodeCache.get(vTree);
+  if (existingNode) {
+    return existingNode;
   }
 
   var nodeName = vTree.nodeName,
@@ -372,49 +367,8 @@ function makeNode(vTree) {
           domNode = document.createElement(nodeName);
         }
 
-  // Get an array of all the attribute names.
-  var attributeNames = keys(attributes);
-
-  // Copy all the attributes from the vTree into the newly created DOM
-  // Node.
-
-  var _loop = function _loop(i) {
-    var name = attributeNames[i];
-    var value = attributes[name];
-
-    var isString = typeof value === 'string';
-    var isBoolean = typeof value === 'boolean';
-    var isNumber = typeof value === 'number';
-    var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
-
-    if (isObject && name === 'style') {
-      Object.keys(value).forEach(function (name) {
-        return domNode.style[name] = value[name];
-      });
-    }
-    // If not a dynamic type, set as an attribute, since it's a valid
-    // attribute value.
-    else if (name && (isString || isBoolean || isNumber)) {
-        domNode.setAttribute(name, (0, _util.decodeEntities)(value));
-      } else if (name) {
-        // Necessary to track the attribute/prop existence.
-        domNode.setAttribute(name, '');
-
-        // Since this is a dynamic value it gets set as a property.
-        domNode[name] = value;
-      }
-  };
-
-  for (var i = 0; i < attributeNames.length; i++) {
-    _loop(i);
-  }
-
   // Add to the domNodes cache.
   _util.NodeCache.set(vTree, domNode);
-
-  if (_util.ComponentCache.has(vTree)) {
-    _util.ComponentCache.get(vTree).domNode = domNode;
-  }
 
   // Append all the children into the domNode, making sure to run them
   // through this `make` function as well.
@@ -432,9 +386,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.patchNode = patchNode;
 
@@ -451,24 +405,79 @@ function patchNode(patches, state) {
       SET_ATTRIBUTE = patches.SET_ATTRIBUTE,
       REMOVE_ATTRIBUTE = patches.REMOVE_ATTRIBUTE;
 
-  // First do all DOM tree operations, and then do attribute and node value.
+  // Set attributes.
 
-  for (var i = 0; i < TREE_OPS.length; i++) {
-    var _TREE_OPS$i = TREE_OPS[i],
-        INSERT_BEFORE = _TREE_OPS$i.INSERT_BEFORE,
-        REMOVE_CHILD = _TREE_OPS$i.REMOVE_CHILD,
-        REPLACE_CHILD = _TREE_OPS$i.REPLACE_CHILD;
+  if (SET_ATTRIBUTE.length) {
+    for (var i = 0; i < SET_ATTRIBUTE.length; i += 3) {
+      var vTree = SET_ATTRIBUTE[i];
+      var name = SET_ATTRIBUTE[i + 1];
+      var value = SET_ATTRIBUTE[i + 2];
+
+      var domNode = (0, _node.makeNode)(vTree);
+      var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
+      var isFunction = typeof value === 'function';
+
+      // Support patching an object representation of the style object.
+      if (!isObject && !isFunction && name) {
+        domNode.setAttribute(name, value);
+      } else if (isObject && name === 'style') {
+        var keys = Object.keys(value);
+
+        for (var _i = 0; _i < keys.length; _i++) {
+          domNode.style[keys[_i]] = value[keys[_i]];
+        }
+      } else if (typeof value !== 'string') {
+        // Necessary to track the attribute/prop existence.
+        if (domNode.hasAttribute(name)) {
+          domNode.removeAttribute(name, '');
+        }
+
+        domNode.setAttribute(name, '');
+
+        // Since this is a property value it gets set directly on the node.
+        domNode[name] = value;
+      }
+
+      // Support live updating of the `value` and `checked` attribute.
+      if (name === 'value' || name === 'checked') {
+        domNode[name] = value;
+      }
+    }
+  }
+
+  // Remove attributes.
+  if (REMOVE_ATTRIBUTE.length) {
+    for (var _i2 = 0; _i2 < REMOVE_ATTRIBUTE.length; _i2 += 2) {
+      var _vTree = REMOVE_ATTRIBUTE[_i2];
+      var _name = REMOVE_ATTRIBUTE[_i2 + 1];
+
+      var _domNode = (0, _node.makeNode)(_vTree);
+
+      _domNode.removeAttribute(_name);
+
+      if (_name in _domNode) {
+        _domNode[_name] = undefined;
+      }
+    }
+  }
+
+  // First do all DOM tree operations, and then do attribute and node value.
+  for (var _i3 = 0; _i3 < TREE_OPS.length; _i3++) {
+    var _TREE_OPS$_i = TREE_OPS[_i3],
+        INSERT_BEFORE = _TREE_OPS$_i.INSERT_BEFORE,
+        REMOVE_CHILD = _TREE_OPS$_i.REMOVE_CHILD,
+        REPLACE_CHILD = _TREE_OPS$_i.REPLACE_CHILD;
 
     // Insert/append elements.
 
     if (INSERT_BEFORE && INSERT_BEFORE.length) {
-      for (var _i = 0; _i < INSERT_BEFORE.length; _i++) {
-        var _INSERT_BEFORE$_i = _slicedToArray(INSERT_BEFORE[_i], 3),
-            vTree = _INSERT_BEFORE$_i[0],
+      for (var _i4 = 0; _i4 < INSERT_BEFORE.length; _i4++) {
+        var _INSERT_BEFORE$_i = _slicedToArray(INSERT_BEFORE[_i4], 3),
+            _vTree2 = _INSERT_BEFORE$_i[0],
             childNodes = _INSERT_BEFORE$_i[1],
             referenceNode = _INSERT_BEFORE$_i[2];
 
-        var domNode = _util.NodeCache.get(vTree);
+        var _domNode2 = _util.NodeCache.get(_vTree2);
         var refNode = referenceNode ? (0, _node.makeNode)(referenceNode) : null;
         var fragment = null;
 
@@ -479,38 +488,38 @@ function patchNode(patches, state) {
         if (childNodes.length) {
           fragment = document.createDocumentFragment();
 
-          for (var _i2 = 0; _i2 < childNodes.length; _i2++) {
-            fragment.appendChild((0, _node.makeNode)(childNodes[_i2]));
-            (0, _util.protectVTree)(childNodes[_i2]);
+          for (var _i5 = 0; _i5 < childNodes.length; _i5++) {
+            fragment.appendChild((0, _node.makeNode)(childNodes[_i5]));
+            (0, _util.protectVTree)(childNodes[_i5]);
           }
         } else {
           fragment = (0, _node.makeNode)(childNodes);
           (0, _util.protectVTree)(childNodes);
         }
 
-        domNode.insertBefore(fragment, refNode);
+        _domNode2.insertBefore(fragment, refNode);
       }
     }
 
     // Remove elements.
     if (REMOVE_CHILD && REMOVE_CHILD.length) {
-      for (var _i3 = 0; _i3 < REMOVE_CHILD.length; _i3++) {
-        var childNode = REMOVE_CHILD[_i3];
-        var _domNode = _util.NodeCache.get(childNode);
+      for (var _i6 = 0; _i6 < REMOVE_CHILD.length; _i6++) {
+        var childNode = REMOVE_CHILD[_i6];
+        var _domNode3 = _util.NodeCache.get(childNode);
 
         if (_util.ComponentCache.has(childNode)) {
           _util.ComponentCache.get(childNode).componentWillUnmount();
         }
 
-        _domNode.parentNode.removeChild(_domNode);
+        _domNode3.parentNode.removeChild(_domNode3);
         (0, _util.unprotectVTree)(childNode);
       }
     }
 
     // Replace elements.
     if (REPLACE_CHILD && REPLACE_CHILD.length) {
-      for (var _i4 = 0; _i4 < REPLACE_CHILD.length; _i4++) {
-        var _REPLACE_CHILD$_i = _slicedToArray(REPLACE_CHILD[_i4], 2),
+      for (var _i7 = 0; _i7 < REPLACE_CHILD.length; _i7++) {
+        var _REPLACE_CHILD$_i = _slicedToArray(REPLACE_CHILD[_i7], 2),
             newChildNode = _REPLACE_CHILD$_i[0],
             oldChildNode = _REPLACE_CHILD$_i[1];
 
@@ -526,75 +535,24 @@ function patchNode(patches, state) {
 
   // Change all nodeValues.
   if (NODE_VALUE.length) {
-    for (var _i5 = 0; _i5 < NODE_VALUE.length; _i5 += 2) {
-      var vTree = NODE_VALUE[_i5];
-      var nodeValue = NODE_VALUE[_i5 + 1];
+    for (var _i8 = 0; _i8 < NODE_VALUE.length; _i8 += 2) {
+      var _vTree3 = NODE_VALUE[_i8];
+      var nodeValue = NODE_VALUE[_i8 + 1];
 
-      var _domNode2 = _util.NodeCache.get(vTree);
-      var parentNode = _domNode2.parentNode;
+      var _domNode4 = _util.NodeCache.get(_vTree3);
+      var parentNode = _domNode4.parentNode;
 
 
       if (nodeValue.includes('&')) {
-        _domNode2.nodeValue = (0, _util.decodeEntities)((0, _util.escape)(nodeValue));
+        _domNode4.nodeValue = (0, _util.decodeEntities)((0, _util.escape)(nodeValue));
       } else {
-        _domNode2.nodeValue = (0, _util.escape)(nodeValue);
+        _domNode4.nodeValue = (0, _util.escape)(nodeValue);
       }
 
       if (parentNode) {
         if (blockText.has(parentNode.nodeName.toLowerCase())) {
           parentNode.nodeValue = (0, _util.escape)(nodeValue);
         }
-      }
-    }
-  }
-
-  // Set attributes.
-  if (SET_ATTRIBUTE.length) {
-    for (var _i6 = 0; _i6 < SET_ATTRIBUTE.length; _i6 += 3) {
-      var _vTree = SET_ATTRIBUTE[_i6];
-      var name = SET_ATTRIBUTE[_i6 + 1];
-      var value = SET_ATTRIBUTE[_i6 + 2];
-
-      var _domNode3 = _util.NodeCache.get(_vTree);
-      var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
-      var isFunction = typeof value === 'function';
-
-      // Support patching an object representation of the style object.
-      if (!isObject && !isFunction && name) {
-        _domNode3.setAttribute(name, value);
-      } else if (isObject && name === 'style') {
-        var keys = Object.keys(value);
-
-        for (var _i7 = 0; _i7 < keys.length; _i7++) {
-          _domNode3.style[keys[_i7]] = value[keys[_i7]];
-        }
-      } else if (typeof value !== 'string') {
-        // Necessary to track the attribute/prop existence.
-        _domNode3.setAttribute(name, '');
-
-        // Since this is a property value it gets set directly on the node.
-        _domNode3[name] = value;
-      }
-
-      // Support live updating of the `value` and `checked` attribute.
-      if (name === 'value' || name === 'checked') {
-        _domNode3[name] = value;
-      }
-    }
-  }
-
-  // Remove attributes.
-  if (REMOVE_ATTRIBUTE.length) {
-    for (var _i8 = 0; _i8 < REMOVE_ATTRIBUTE.length; _i8 += 2) {
-      var _vTree2 = REMOVE_ATTRIBUTE[_i8];
-      var _name = REMOVE_ATTRIBUTE[_i8 + 1];
-
-      var _domNode4 = _util.NodeCache.get(_vTree2);
-
-      _domNode4.removeAttribute(_name);
-
-      if (_name in _domNode4) {
-        _domNode4[_name] = undefined;
       }
     }
   }
@@ -1108,6 +1066,8 @@ var Transaction = function () {
 
       var takeLastTask = tasks.pop();
 
+      this.aborted = false;
+
       // Add middleware in as tasks.
       Transaction.invokeMiddleware(this);
 
@@ -1472,19 +1432,8 @@ var propToAttrMap = {
 };
 
 function syncTree(oldTree, newTree, patches) {
-  if (!oldTree) {
-    throw new Error('Missing existing tree to sync from');
-  }
   if (!newTree) {
     throw new Error('Missing new tree to sync into');
-  }
-
-  var oldTreeName = oldTree.nodeName;
-  var newTreeName = newTree.nodeName;
-
-
-  if (oldTreeName !== newTreeName) {
-    throw new Error('Sync failure, cannot compare ' + newTreeName + ' with ' + oldTreeName);
   }
 
   // Create new arrays for patches or use existing from a recursive call.
@@ -1509,6 +1458,59 @@ function syncTree(oldTree, newTree, patches) {
     REPLACE_CHILD: empty
   };
 
+  // We recurse into all Nodes
+  if (newTree.nodeType === 1) {
+    var setAttributes = [];
+    var removeAttributes = [];
+    var oldAttributes = oldTree ? oldTree.attributes : {};
+    var newAttributes = newTree.attributes;
+
+    // Search for sets and changes.
+
+    for (var key in newAttributes) {
+      var value = newAttributes[key];
+
+      if (key in oldAttributes && oldAttributes[key] === newAttributes[key]) {
+        continue;
+      }
+
+      oldAttributes[key] = value;
+
+      // Alias prop names to attr names for patching purposes.
+      if (key in propToAttrMap) {
+        key = propToAttrMap[key];
+      }
+
+      SET_ATTRIBUTE.push(oldTree || newTree, key, value);
+    }
+
+    // Search for removals.
+    for (var _key in oldAttributes) {
+      if (_key in newAttributes) {
+        continue;
+      }
+      REMOVE_ATTRIBUTE.push(oldTree || newTree, _key);
+      delete oldAttributes[_key];
+    }
+  }
+
+  if (!oldTree) {
+    // Dig into all nested children.
+    for (var i = 0; i < newTree.childNodes.length; i++) {
+      syncTree(null, newTree.childNodes[i], patches);
+    }
+
+    return patches;
+  }
+
+  var oldTreeName = oldTree.nodeName;
+  var newTreeName = newTree.nodeName;
+
+
+  if (oldTreeName !== newTreeName) {
+    throw new Error('Sync failure, cannot compare ' + newTreeName + ' with ' + oldTreeName);
+  }
+
   var oldChildNodes = oldTree.childNodes;
   var newChildNodes = newTree.childNodes;
 
@@ -1529,8 +1531,8 @@ function syncTree(oldTree, newTree, patches) {
     newKeys.clear();
 
     // Put the old `childNode` VTree's into the key cache for lookup.
-    for (var i = 0; i < oldChildNodes.length; i++) {
-      var vTree = oldChildNodes[i];
+    for (var _i = 0; _i < oldChildNodes.length; _i++) {
+      var vTree = oldChildNodes[_i];
 
       // Only add references if the key exists, otherwise ignore it. This
       // allows someone to specify a single key and keep that element around.
@@ -1540,8 +1542,8 @@ function syncTree(oldTree, newTree, patches) {
     }
 
     // Put the new `childNode` VTree's into the key cache for lookup.
-    for (var _i = 0; _i < newChildNodes.length; _i++) {
-      var _vTree = newChildNodes[_i];
+    for (var _i2 = 0; _i2 < newChildNodes.length; _i2++) {
+      var _vTree = newChildNodes[_i2];
 
       // Only add references if the key exists, otherwise ignore it. This
       // allows someone to specify a single key and keep that element around.
@@ -1551,52 +1553,54 @@ function syncTree(oldTree, newTree, patches) {
     }
 
     // Do a single pass over the new child nodes.
-    for (var _i2 = 0; _i2 < newChildNodes.length; _i2++) {
-      var oldChildNode = oldChildNodes[_i2];
-      var newChildNode = newChildNodes[_i2];
+    for (var _i3 = 0; _i3 < newChildNodes.length; _i3++) {
+      var oldChildNode = oldChildNodes[_i3];
+      var newChildNode = newChildNodes[_i3];
 
-      var key = newChildNode.key;
+      var _key2 = newChildNode.key;
 
       // If there is no old element to compare to, this is a simple addition.
 
       if (!oldChildNode) {
         // Prefer an existing match to a brand new element.
-        var newElement = null;
+        var optimalNewNode = null;
 
         // Prefer existing to new and remove from old position.
-        if (oldKeys.has(key)) {
-          newElement = oldKeys.get(key);
-          oldChildNodes.splice(oldChildNodes.indexOf(newElement), 1);
+        if (oldKeys.has(_key2)) {
+          optimalNewNode = oldKeys.get(_key2);
+          oldChildNodes.splice(oldChildNodes.indexOf(optimalNewNode), 1);
         } else {
-          newElement = newKeys.get(key) || newChildNode;
+          optimalNewNode = newKeys.get(_key2) || newChildNode;
         }
 
         if (patchset.INSERT_BEFORE === empty) {
           patchset.INSERT_BEFORE = [];
         }
-        patchset.INSERT_BEFORE.push([oldTree, newElement]);
-        oldChildNodes.push(newElement);
+        patchset.INSERT_BEFORE.push([oldTree, optimalNewNode]);
+        oldChildNodes.push(optimalNewNode);
+        syncTree(null, optimalNewNode, patches);
         continue;
       }
 
       // If there is a key set for this new element, use that to figure out
       // which element to use.
-      if (key !== oldChildNode.key) {
-        var _newElement = newChildNode;
+      if (_key2 !== oldChildNode.key) {
+        var _optimalNewNode = newChildNode;
 
         // Prefer existing to new and remove from old position.
-        if (key && oldKeys.has(key)) {
-          _newElement = oldKeys.get(key);
-          oldChildNodes.splice(oldChildNodes.indexOf(_newElement), 1);
-        } else if (key) {
-          _newElement = newKeys.get(key);
+        if (_key2 && oldKeys.has(_key2)) {
+          _optimalNewNode = oldKeys.get(_key2);
+          oldChildNodes.splice(oldChildNodes.indexOf(_optimalNewNode), 1);
+        } else if (_key2) {
+          _optimalNewNode = newKeys.get(_key2);
         }
 
         if (patchset.INSERT_BEFORE === empty) {
           patchset.INSERT_BEFORE = [];
         }
-        patchset.INSERT_BEFORE.push([oldTree, _newElement, oldChildNode]);
-        oldChildNodes.splice(_i2, 0, _newElement);
+        patchset.INSERT_BEFORE.push([oldTree, _optimalNewNode, oldChildNode]);
+        oldChildNodes.splice(_i3, 0, _optimalNewNode);
+        syncTree(null, _optimalNewNode, patches);
         continue;
       }
 
@@ -1607,7 +1611,8 @@ function syncTree(oldTree, newTree, patches) {
           patchset.REPLACE_CHILD = [];
         }
         patchset.REPLACE_CHILD.push([newChildNode, oldChildNode]);
-        oldTree.childNodes[_i2] = newChildNode;
+        oldTree.childNodes[_i3] = newChildNode;
+        syncTree(null, newChildNode, patches);
         continue;
       }
 
@@ -1618,9 +1623,9 @@ function syncTree(oldTree, newTree, patches) {
   // No keys used on this level, so we will do easier transformations.
   else {
       // Do a single pass over the new child nodes.
-      for (var _i3 = 0; _i3 < newChildNodes.length; _i3++) {
-        var _oldChildNode = oldChildNodes[_i3];
-        var _newChildNode = newChildNodes[_i3];
+      for (var _i4 = 0; _i4 < newChildNodes.length; _i4++) {
+        var _oldChildNode = oldChildNodes[_i4];
+        var _newChildNode = newChildNodes[_i4];
 
         // If there is no old element to compare to, this is a simple addition.
         if (!_oldChildNode) {
@@ -1629,6 +1634,7 @@ function syncTree(oldTree, newTree, patches) {
           }
           patchset.INSERT_BEFORE.push([oldTree, _newChildNode]);
           oldChildNodes.push(_newChildNode);
+          syncTree(null, _newChildNode, patches);
           continue;
         }
 
@@ -1639,7 +1645,8 @@ function syncTree(oldTree, newTree, patches) {
             patchset.REPLACE_CHILD = [];
           }
           patchset.REPLACE_CHILD.push([_newChildNode, _oldChildNode]);
-          oldTree.childNodes[_i3] = _newChildNode;
+          oldTree.childNodes[_i4] = _newChildNode;
+          syncTree(null, _newChildNode, patches);
           continue;
         }
 
@@ -1650,14 +1657,25 @@ function syncTree(oldTree, newTree, patches) {
   // We've reconciled new changes, so we can remove any old nodes and adjust
   // lengths to be equal.
   if (oldChildNodes.length !== newChildNodes.length) {
-    for (var _i4 = newChildNodes.length; _i4 < oldChildNodes.length; _i4++) {
+    for (var _i5 = newChildNodes.length; _i5 < oldChildNodes.length; _i5++) {
       if (patchset.REMOVE_CHILD === empty) {
         patchset.REMOVE_CHILD = [];
       }
-      patchset.REMOVE_CHILD.push(oldChildNodes[_i4]);
+      patchset.REMOVE_CHILD.push(oldChildNodes[_i5]);
     }
 
     oldChildNodes.length = newChildNodes.length;
+  }
+
+  var INSERT_BEFORE = patchset.INSERT_BEFORE,
+      REMOVE_CHILD = patchset.REMOVE_CHILD,
+      REPLACE_CHILD = patchset.REPLACE_CHILD;
+
+  // We want to look if anything has changed, if nothing has we won't add it to
+  // the patchset.
+
+  if (INSERT_BEFORE || REMOVE_CHILD || REPLACE_CHILD) {
+    TREE_OPS.push(patchset);
   }
 
   // If both VTrees are text nodes and the values are different, change the
@@ -1680,56 +1698,6 @@ function syncTree(oldTree, newTree, patches) {
 
       return patches;
     }
-  }
-
-  // Attributes are significantly easier than elements and we ignore checking
-  // them on fragments. The algorithm is the same as elements, check for
-  // additions/removals based off length, and then iterate once to make
-  // adjustments.
-  if (newTree.nodeType === 1) {
-    var setAttributes = [];
-    var removeAttributes = [];
-    var oldAttributes = oldTree.attributes;
-    var newAttributes = newTree.attributes;
-
-    // Search for sets and changes.
-
-    for (var key in newAttributes) {
-      var value = newAttributes[key];
-
-      if (key in oldAttributes && oldAttributes[key] === newAttributes[key]) {
-        continue;
-      }
-
-      oldTree.attributes[key] = value;
-
-      // Alias prop names to attr names for patching purposes.
-      if (key in propToAttrMap) {
-        key = propToAttrMap[key];
-      }
-
-      SET_ATTRIBUTE.push(oldTree, key, value);
-    }
-
-    // Search for removals.
-    for (var _key in oldAttributes) {
-      if (_key in newAttributes) {
-        continue;
-      }
-      REMOVE_ATTRIBUTE.push(oldTree, _key);
-      delete oldAttributes[_key];
-    }
-  }
-
-  var INSERT_BEFORE = patchset.INSERT_BEFORE,
-      REMOVE_CHILD = patchset.REMOVE_CHILD,
-      REPLACE_CHILD = patchset.REPLACE_CHILD;
-
-  // We want to look if anything has changed, if nothing has we won't add it to
-  // the patchset.
-
-  if (INSERT_BEFORE || REMOVE_CHILD || REPLACE_CHILD) {
-    TREE_OPS.push(patchset);
   }
 
   return patches;

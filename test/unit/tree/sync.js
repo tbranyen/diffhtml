@@ -75,52 +75,6 @@ describe('syncTree', function() {
     });
   });
 
-  describe.only('Elements (keyed)', () => {
-    it('can add a single new element', () => {
-      const oldTree = createTree('div');
-      const newTree = createTree('div', null, createTree('div', { key: 1 }));
-
-      const patches = syncTree(oldTree, newTree);
-
-      assert.deepEqual(patches, {
-        TREE_OPS: [{
-          INSERT_BEFORE: [
-            [oldTree, newTree.childNodes[0]],
-          ],
-          REMOVE_CHILD: null,
-          REPLACE_CHILD: null,
-        }],
-        NODE_VALUE: [],
-        SET_ATTRIBUTE: [],
-        REMOVE_ATTRIBUTE: [],
-      });
-    });
-
-    it('can add a multiple new elements', () => {
-      const oldTree = createTree('div');
-      const newTree = createTree('div', null, [
-        createTree('div', { key: 1 }),
-        createTree('div', { key: 2 }),
-      ]);
-
-      const patches = syncTree(oldTree, newTree);
-
-      assert.deepEqual(patches, {
-        TREE_OPS: [{
-          INSERT_BEFORE: [
-            [oldTree, newTree.childNodes[0]],
-            [oldTree, newTree.childNodes[1]],
-          ],
-          REMOVE_CHILD: null,
-          REPLACE_CHILD: null,
-        }],
-        NODE_VALUE: [],
-        SET_ATTRIBUTE: [],
-        REMOVE_ATTRIBUTE: [],
-      });
-    });
-  });
-
   describe('Text', () => {
     it('can detect node value change', () => {
       const oldTree = createTree('#text', 'test-test');
@@ -130,7 +84,7 @@ describe('syncTree', function() {
 
       assert.deepEqual(patches, {
         TREE_OPS: [],
-        NODE_VALUE: [[oldTree, 'test-text-two']],
+        NODE_VALUE: [oldTree, 'test-text-two'],
         SET_ATTRIBUTE: [],
         REMOVE_ATTRIBUTE: [],
       });
@@ -144,7 +98,7 @@ describe('syncTree', function() {
 
       assert.deepEqual(patches, {
         TREE_OPS: [],
-        NODE_VALUE: [[oldTree, '&gla;']],
+        NODE_VALUE: [oldTree, '&gla;'],
         SET_ATTRIBUTE: [],
         REMOVE_ATTRIBUTE: [],
       });
