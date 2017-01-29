@@ -36,20 +36,24 @@
         <li class="header"><h4>Concepts</h4></li>
 
         <a href="#virtual-trees"><li>Virtual trees</li></a>
+        <a href="#tagged-templates"><li>Tagged templates</li></a>
         <a href="#object-pooling"><li>Object pooling</li></a>
         <a href="#render-transaction"><li>Render transactions</li></a>
-        <a href="#tagged-templates"><li>Tagged templates</li></a>
         <a href="#transitions"><li>Transitions</li></a>
         <a href="#middleware"><li>Middleware</li></a>
 
         <li class="header"><h4>Middleware</h4></li>
         <a href="#logging"><li>Logging</li></a>
-        <a href="#inline-transition-hooks"><li>Inline transition hooks</li></a>
+        <a href="#devtools"><li>Chrome DevTools</li></a>
+        <a href="#synthetic-events"><li>Synthetic Events (Delegation)</li></a>
+        <a href="#inline-transitions"><li>Inline transitions</li></a>
+        <a href="#verify-state"><li>Verify State (Debugging)</li></a>
 
         <li class="header"><h4>External tools</h4></li>
 
-        <a href="#transpiler"><li>Babel transform</li></a>
+        <a href="#transpiler"><li>Babel transforms</li></a>
         <a href="#prollyfill"><li>Browser prollyfill</li></a>
+        <a href="#components"><li>Web and Vanilla Components (React-Inspired)</li></a>
 
         <li class="header"><h4>Examples</h4></li>
 
@@ -316,27 +320,70 @@
       efficient.
     </p>
 
-    <a class="header" href="#object-pooling"><h3 id="object-pooling">Object pooling</h3></a>
-    <p>Coming soon...</p>
-
-    <a class="header" href="#render-transaction"><h3 id="render-transaction">Render transactions</h3></a>
-    <p>Coming soon...</p>
-
     <a class="header" href="#tagged-templates"><h3 id="tagged-templates">Tagged templates</h3></a>
 
     <p>
-      <a
+      With the release of ES-2015, <a
       href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_template_literals">Tagged
-      template helpers</a> are an ES-2015 compliant function that are used with
-      <a
-      href="https://developers.google.com/web/updates/2015/01/ES6-Template-Strings?hl=en">template
-      strings</a> in order to parse and manipulate a new value from declarative
-      strings and interpolated values. The helper in diffHTML is named <a
-      href="#html">html</a>, because it parses well formed HTML into a Virtual
-      Tree that is then used internally to determine changes.
+      template helpers</a> were introduced as a way to transform strings and
+      data. This feature makes it easy to write multiline strings required for
+      use cases like: inline HTML, CSS, and JSON. diffHTML utilizes them for
+      parsing HTML into <a href="#virtual-trees">Virtual Trees</a>.
     </p>
+
     <p>
-      The usage looks like this:
+      <strong>Native JSON parsing example:</strong>
+
+      <pre><code class="javascript">const obj = JSON.parse`{
+  "nodeName": "div",
+  "attributes": [
+    { "id": "main" }
+  ]
+}`;
+
+console.log(obj.attributes.id); // "main"</code></pre>
+    </p>
+
+    <p>
+      The helper in diffHTML is named <a href="#html">html</a>, because it
+      parses well formed HTML into a Virtual Tree which is then used internally
+      to reconcile changes. This helper can be used for simple HTML strings,
+      complex stateful components, nested DOM nodes, event handlers, form
+      inputs, and passing of complex data to custom elements.
+    </p>
+
+    <p>
+      <strong>Importing the HTML helper:</strong>
+
+      <pre><code class="javascript">import { html } from 'diffhtml';</code></pre>
+    </p>
+
+    <p>
+      <strong>HTML parsing example:</strong>
+
+      <pre><code class="javascript">const vTree = html`&lt;div&gt;Hello world!&lt;/div&gt;`;</code></pre>
+    </p>
+
+    <p>
+      <strong>Nesting Virtual Trees:</strong>
+
+      <pre><code class="javascript">import { html } from 'diffhtml';
+
+const vTree = html`&lt;div&gt;${html`&lt;span&gt;Hello world&lt;/span&gt;`}&lt;/div&gt;`;</code></pre>
+    </p>
+
+    <p>
+      <strong>Markup is escaped by default:</strong>
+
+      <pre><code class="javascript">import { html } from 'diffhtml';
+
+const vTree = html`${
+  "&lt;script&gt;window.alert('This will not work');&lt;/script&gt;"
+}`</code></pre>
+    </p>
+
+    <p>
+      <strong>Stateless component example:</strong>
 
       <pre><code class="javascript">import { html, innerHTML } from 'diffhtml';
 
@@ -362,6 +409,7 @@ setInterval(() => {
     </p>
 
     <p></p>
+
     <a class="header" href="#inspiration"><h4 id="inspiration">Inspiration</h4></a>
 
     <p>
@@ -399,6 +447,13 @@ setInterval(() => {
     </p>
     
     <a class="header" href="#transitions"><h3 id="transitions">Transitions</h3></a>
+    <p>Coming soon...</p>
+
+
+    <a class="header" href="#object-pooling"><h3 id="object-pooling">Object pooling</h3></a>
+    <p>Coming soon...</p>
+
+    <a class="header" href="#render-transaction"><h3 id="render-transaction">Render transactions</h3></a>
     <p>Coming soon...</p>
 
     <a class="header" href="#middleware"><h3 id="middleware">Middleware</h3></a>

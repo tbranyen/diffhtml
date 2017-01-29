@@ -294,12 +294,13 @@ browser.onRender = function () {
   };
 
   var update = function update() {
-    var screenHeight = window.innerHeight / 2;
+    // Bring back some of the padding, so we can see the section title...
+    scrollTop = document.body.scrollTop + 60;
 
-    scrollTop = document.body.scrollTop;
-
-    headerTable.some(function (meta) {
-      if (meta.top >= scrollTop - screenHeight) {
+    headerTable.sort(function (a, b) {
+      return b.top - a.top;
+    }).some(function (meta) {
+      if (scrollTop > meta.top) {
         clearAll();
 
         if (scrollTop) {

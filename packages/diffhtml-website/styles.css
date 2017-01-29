@@ -580,3 +580,7 @@ layer {
 		white-space: nowrap;
 	}
 }
+
+.hljs-string .hljs-subst {
+  color: #d405a7;
+}
