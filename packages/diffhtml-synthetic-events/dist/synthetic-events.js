@@ -106,8 +106,12 @@ var bindEventsTo = function bindEventsTo(domNode) {
       }
 
       var syntheticEvent = cloneEvent(ev, {
-        stopPropagation: function stopPropagation() {},
-        preventDefault: function preventDefault() {},
+        stopPropagation: function stopPropagation() {
+          ev.stopPropagation();
+        },
+        preventDefault: function preventDefault() {
+          ev.preventDefault();
+        },
 
         nativeEvent: ev
       });

@@ -96,8 +96,8 @@ const bindEventsTo = domNode => {
     }
 
     const syntheticEvent = cloneEvent(ev, {
-      stopPropagation() {},
-      preventDefault() {},
+      stopPropagation() { ev.stopPropagation(); },
+      preventDefault() { ev.preventDefault(); },
       nativeEvent: ev
     });
     eventHandler && eventHandler(syntheticEvent);
