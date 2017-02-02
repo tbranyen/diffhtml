@@ -7,10 +7,15 @@
     "build": "browserify -t babelify -s verifyState index.js | derequire > dist/verify-state.js",
     "watch": "watchify -t babelify -s verifyState index.js -o 'derequire > dist/verify-state.js' -v"
   },
-  "keywords": ["diffhtml", "middleware", "verify state"],
+  "keywords": [
+    "diffhtml",
+    "middleware",
+    "verify state"
+  ],
   "author": "Tim Branyen",
   "license": "MIT",
   "devDependencies": {
+    "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-es2015": "^6.18.0",
     "babelify": "^7.3.0",
     "browserify": "^13.3.0",

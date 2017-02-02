@@ -8,11 +8,11 @@ Object.defineProperty(exports, "__esModule", {
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-var getValue = function getValue(vTree, i) {
+var getValue = function getValue(vTree, keyName) {
   if (vTree instanceof Node && vTree.attributes) {
-    return vTree.attributes[i].value || vTree[vTree.attributes[i].name];
+    return vTree.attributes[keyName].value || vTree[keyName];
   } else {
-    return vTree.attributes[Object.keys(vTree.attributes)[i]];
+    return vTree.attributes[keyName];
   }
 };
 
@@ -77,8 +77,8 @@ var compareTrees = exports.compareTrees = function compareTrees(options, transac
 
   var debug = setupDebugger(options);
 
-  var oldAttrKeys = Object.keys(oldTree.attributes || {});
-  var newAttrKeys = Object.keys(newTree.attributes || {});
+  var oldAttrKeys = Object.keys(oldTree.attributes || {}).sort();
+  var newAttrKeys = Object.keys(newTree.attributes || {}).sort();
 
   var oldTreeIsNode = oldTree instanceof Node;
   var oldLabel = oldTreeIsNode ? 'ON DOM NODE' : 'OLD';
@@ -90,11 +90,11 @@ var compareTrees = exports.compareTrees = function compareTrees(options, transac
   var oldValue = decodeEntities(oldTree.nodeValue || '').replace(/\r?\n|\r/g, '');
   var newValue = decodeEntities(newTree.nodeValue || '').replace(/\r?\n|\r/g, '');
 
-  if (oldTree.nodeName.toLowerCase() !== newTree.nodeName.toLowerCase()) {
+  if (oldTree.nodeName.toLowerCase() !== newTree.nodeName.toLowerCase() && newTree.nodeType !== 11) {
     debug('[Mismatched nodeName] ' + oldLabel + ': ' + oldTree.nodeName + ' NEW TREE: ' + newTree.nodeName);
   } else if (oldTree.nodeValue && newTree.nodeValue && oldValue !== newValue) {
     debug('[Mismatched nodeValue] ' + oldLabel + ': ' + oldValue + ' NEW TREE: ' + newValue);
-  } else if (oldTree.nodeType !== newTree.nodeType) {
+  } else if (oldTree.nodeType !== newTree.nodeType && newTree.nodeType !== 11) {
     debug('[Mismatched nodeType] ' + oldLabel + ': ' + oldTree.nodeType + ' NEW TREE: ' + newTree.nodeType);
   } else if (oldTree.childNodes.length !== newTree.childNodes.length) {
     debug('[Mismatched childNodes length] ' + oldLabel + ': ' + oldTree.childNodes.length + ' NEW TREE: ' + newTree.childNodes.length);
@@ -103,7 +103,7 @@ var compareTrees = exports.compareTrees = function compareTrees(options, transac
   if (oldTreeIsNode && oldTree.attributes) {
     oldAttrKeys = [].concat(_toConsumableArray(oldTree.attributes)).map(function (s) {
       return String(s.name);
-    });
+    }).sort();
   }
 
   if (!oldTreeIsNode && !NodeCache.has(oldTree)) {
@@ -111,34 +111,36 @@ var compareTrees = exports.compareTrees = function compareTrees(options, transac
   }
 
   // Look for attribute differences.
-  for (var i = 0; i < oldAttrKeys.length; i++) {
-    var _oldValue = getValue(oldTree, i);
-    var _newValue = getValue(newTree, i);
+  if (newTree.nodeType !== 11) {
+    for (var i = 0; i < oldAttrKeys.length; i++) {
+      var _oldValue = getValue(oldTree, oldAttrKeys[i]) || '';
+      var _newValue = getValue(newTree, newAttrKeys[i]) || '';
 
-    // If names are different report it out.
-    if (oldAttrKeys[i] !== newAttrKeys[i]) {
-      if (!newAttrKeys[i]) {
-        debug('[Unexpected attribute] ' + oldLabel + ': ' + oldAttrKeys[i] + '="' + _oldValue + '"');
-      } else if (!oldAttrKeys[i]) {
-        debug('[Unexpected attribute] IN NEW TREE: ' + newAttrKeys[i] + '="' + _newValue + '"');
-      } else {
-        debug('[Unexpected attribute] ' + oldLabel + ': ' + oldAttrKeys[i] + '="' + _oldValue + '" IN NEW TREE: ' + newAttrKeys[i] + '="' + _newValue + '"');
+      // If names are different report it out.
+      if (oldAttrKeys[i].toLowerCase() !== newAttrKeys[i].toLowerCase()) {
+        if (!newAttrKeys[i]) {
+          debug('[Unexpected attribute] ' + oldLabel + ': ' + oldAttrKeys[i] + '="' + _oldValue + '"');
+        } else if (!oldAttrKeys[i]) {
+          debug('[Unexpected attribute] IN NEW TREE: ' + newAttrKeys[i] + '="' + _newValue + '"');
+        } else {
+          debug('[Unexpected attribute] ' + oldLabel + ': ' + oldAttrKeys[i] + '="' + _oldValue + '" IN NEW TREE: ' + newAttrKeys[i] + '="' + _newValue + '"');
+        }
       }
+      // If values are different
+      else if (!oldTreeIsNode && _oldValue !== _newValue) {
+          debug('[Unexpected attribute] ' + oldLabel + ': ' + oldAttrKeys[i] + '="' + _oldValue + '" IN NEW TREE: ' + newAttrKeys[i] + '="' + _newValue + '"');
+        }
     }
-    // If values are different
-    else if (!oldTreeIsNode && _oldValue !== _newValue) {
-        debug('[Unexpected attribute] ' + oldLabel + ': ' + oldAttrKeys[i] + '="' + _oldValue + '" IN NEW TREE: ' + newAttrKeys[i] + '="' + _newValue + '"');
-      }
-  }
 
-  for (var _i = 0; _i < oldTree.childNodes.length; _i++) {
-    if (oldTree.childNodes[_i] && newTree.childNodes[_i]) {
-      compareTrees(options, transaction, oldTree.childNodes[_i], newTree.childNodes[_i]);
+    for (var _i = 0; _i < oldTree.childNodes.length; _i++) {
+      if (oldTree.childNodes[_i] && newTree.childNodes[_i]) {
+        compareTrees(options, transaction, oldTree.childNodes[_i], newTree.childNodes[_i]);
+      }
     }
   }
 };
 
-var verifyState = exports.verifyState = function verifyState() {
+exports.default = function () {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return function () {
     return function (transaction) {

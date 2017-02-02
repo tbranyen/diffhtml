@@ -1,9 +1,9 @@
-const getValue = (vTree, i) => {
+const getValue = (vTree, keyName) => {
   if (vTree instanceof Node && vTree.attributes) {
-    return vTree.attributes[i].value || vTree[vTree.attributes[i].name];
+    return vTree.attributes[keyName].value || vTree[keyName];
   }
   else {
-    return vTree.attributes[Object.keys(vTree.attributes)[i]];
+    return vTree.attributes[keyName];
   }
 };
 
@@ -60,8 +60,8 @@ export const compareTrees = (options, transaction, oldTree, newTree) => {
   const { state: { internals: { NodeCache } } } = transaction;
   const debug = setupDebugger(options);
 
-  let oldAttrKeys = Object.keys(oldTree.attributes || {});
-  let newAttrKeys = Object.keys(newTree.attributes || {});
+  let oldAttrKeys = Object.keys(oldTree.attributes || {}).sort();
+  let newAttrKeys = Object.keys(newTree.attributes || {}).sort();
 
   const oldTreeIsNode = oldTree instanceof Node;
   const oldLabel = oldTreeIsNode ? 'ON DOM NODE' : 'OLD';
@@ -73,13 +73,13 @@ export const compareTrees = (options, transaction, oldTree, newTree) => {
   const oldValue = decodeEntities(oldTree.nodeValue || '').replace(/\r?\n|\r/g, '');
   const newValue = decodeEntities(newTree.nodeValue || '').replace(/\r?\n|\r/g, '');
 
-  if (oldTree.nodeName.toLowerCase() !== newTree.nodeName.toLowerCase()) {
+  if (oldTree.nodeName.toLowerCase() !== newTree.nodeName.toLowerCase() && newTree.nodeType !== 11) {
     debug(`[Mismatched nodeName] ${oldLabel}: ${oldTree.nodeName} NEW TREE: ${newTree.nodeName}`);
   }
   else if (oldTree.nodeValue && newTree.nodeValue && oldValue !== newValue) {
     debug(`[Mismatched nodeValue] ${oldLabel}: ${oldValue} NEW TREE: ${newValue}`);
   }
-  else if (oldTree.nodeType !== newTree.nodeType) {
+  else if (oldTree.nodeType !== newTree.nodeType && newTree.nodeType !== 11) {
     debug(`[Mismatched nodeType] ${oldLabel}: ${oldTree.nodeType} NEW TREE: ${newTree.nodeType}`);
   }
   else if (oldTree.childNodes.length !== newTree.childNodes.length) {
@@ -87,7 +87,7 @@ export const compareTrees = (options, transaction, oldTree, newTree) => {
   }
 
   if (oldTreeIsNode && oldTree.attributes) {
-    oldAttrKeys = [...oldTree.attributes].map(s => String(s.name));
+    oldAttrKeys = [...oldTree.attributes].map(s => String(s.name)).sort();
   }
 
   if (!oldTreeIsNode && !NodeCache.has(oldTree)) {
@@ -95,36 +95,38 @@ export const compareTrees = (options, transaction, oldTree, newTree) => {
   }
 
   // Look for attribute differences.
-  for (let i = 0; i < oldAttrKeys.length; i++) {
-    const oldValue = getValue(oldTree, i);
-    const newValue = getValue(newTree, i);
+  if (newTree.nodeType !== 11) {
+    for (let i = 0; i < oldAttrKeys.length; i++) {
+      const oldValue = getValue(oldTree, oldAttrKeys[i]) || '';
+      const newValue = getValue(newTree, newAttrKeys[i]) || '';
 
-    // If names are different report it out.
-    if (oldAttrKeys[i] !== newAttrKeys[i]) {
-      if (!newAttrKeys[i]) {
-        debug(`[Unexpected attribute] ${oldLabel}: ${oldAttrKeys[i]}="${oldValue}"`);
+      // If names are different report it out.
+      if (oldAttrKeys[i].toLowerCase() !== newAttrKeys[i].toLowerCase()) {
+        if (!newAttrKeys[i]) {
+          debug(`[Unexpected attribute] ${oldLabel}: ${oldAttrKeys[i]}="${oldValue}"`);
+        }
+        else if (!oldAttrKeys[i]) {
+          debug(`[Unexpected attribute] IN NEW TREE: ${newAttrKeys[i]}="${newValue}"`);
+        }
+        else {
+          debug(`[Unexpected attribute] ${oldLabel}: ${oldAttrKeys[i]}="${oldValue}" IN NEW TREE: ${newAttrKeys[i]}="${newValue}"`);
+        }
       }
-      else if (!oldAttrKeys[i]) {
-        debug(`[Unexpected attribute] IN NEW TREE: ${newAttrKeys[i]}="${newValue}"`);
-      }
-      else {
+      // If values are different
+      else if (!oldTreeIsNode && oldValue !== newValue) {
         debug(`[Unexpected attribute] ${oldLabel}: ${oldAttrKeys[i]}="${oldValue}" IN NEW TREE: ${newAttrKeys[i]}="${newValue}"`);
       }
     }
-    // If values are different
-    else if (!oldTreeIsNode && oldValue !== newValue) {
-      debug(`[Unexpected attribute] ${oldLabel}: ${oldAttrKeys[i]}="${oldValue}" IN NEW TREE: ${newAttrKeys[i]}="${newValue}"`);
-    }
-  }
 
-  for (let i = 0; i < oldTree.childNodes.length; i++) {
-    if (oldTree.childNodes[i] && newTree.childNodes[i]) {
-      compareTrees(options, transaction, oldTree.childNodes[i], newTree.childNodes[i]);
+    for (let i = 0; i < oldTree.childNodes.length; i++) {
+      if (oldTree.childNodes[i] && newTree.childNodes[i]) {
+        compareTrees(options, transaction, oldTree.childNodes[i], newTree.childNodes[i]);
+      }
     }
   }
 };
 
-export const verifyState = (options={}) => () => transaction => {
+export default (options={}) => () => transaction => {
   const { domNode, state } = transaction;
   const oldTree = transaction.oldTree || state.oldTree;
   const newTree = transaction.newTree;
