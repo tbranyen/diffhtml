@@ -239,7 +239,7 @@ describe('createTree', function() {
     });
   });
 
-  it('can mirror a comment node', () => {
+  it('can represent a comment node', () => {
     const comment = document.createComment('test');
     const vTree = createTree(comment);
 
@@ -321,5 +321,15 @@ describe('createTree', function() {
       attributes: { 'undefined': '' },
       childNodes: [],
     });
+  });
+
+  it('can nest child elements', () => {
+    const fixture = document.createElement('div');
+    fixture.appendChild(document.createElement('p'));
+
+    const vTree = createTree(fixture);
+
+    assert.equal(vTree.childNodes.length, 1);
+    assert.equal(vTree.childNodes[0].nodeName, 'p');
   });
 });

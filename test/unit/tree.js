@@ -9,28 +9,6 @@
 //  });
 //
 //  describe('make', function() {
-//    it('can create an empty div', function() {
-//      var vTree = makeTree(document.createElement('div'));
-//
-//      assert.equal(vTree.nodeName, 'div');
-//      assert.equal(vTree.childNodes.length, 0);
-//      assert.equal(vTree.attributes.length, 0);
-//    });
-//
-//    it('can create a text node', function() {
-//      var vTree = makeTree(document.createTextNode('test'));
-//
-//      assert.equal(vTree.nodeName, '#text');
-//      assert.equal(vTree.nodeValue, 'test');
-//      assert.equal(vTree.childNodes.length, 0);
-//      assert.equal(vTree.attributes.length, 0);
-//    });
-//
-//    it('will ignore comments', function() {
-//      var vTree = makeTree(document.createComment('test'));
-//      assert.equal(vTree, false);
-//    });
-//
 //    it('can crawl over attributes', function() {
 //      var fixture = document.createElement('div');
 //      var multiline = `

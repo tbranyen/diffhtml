@@ -355,7 +355,7 @@ function createTree(input, attributes, childNodes) {
       }
       // Cover generate cases where a user has indicated they do not want a
       // node from appearing.
-      else if (typeof newNode !== 'null' && typeof newNode !== 'undefined') {
+      else if (newNode !== null && newNode !== undefined) {
           if (newNode !== false) {
             entry.childNodes[_i2] = createTree('#text', newNode);
           }
@@ -1433,7 +1433,8 @@ function patchNode$$1(patches, state) {
 
         // Support patching an object representation of the style object.
         if (!isObject && !isFunction && name) {
-          domNode.setAttribute(name, value == null ? '' : value);
+          var noValue = value === null || value === undefined;
+          domNode.setAttribute(name, noValue ? '' : value);
 
           // Allow the user to find the real value in the DOM Node as a
           // property.
@@ -2234,7 +2235,9 @@ var diff = {
 };
 
 // Ensure the `diff` property is nonenumerable so it doesn't show up in logs.
-Object.defineProperty(use, 'diff', { value: diff, enumerable: false });
+if (!use.diff) {
+  Object.defineProperty(use, 'diff', { value: diff, enumerable: false });
+}
 
 exports.__VERSION__ = VERSION;
 exports.addTransitionState = addTransitionState;

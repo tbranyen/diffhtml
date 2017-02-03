@@ -17,7 +17,7 @@
     "build-runtime-min": "uglifyjs dist/diffhtml-runtime.js -o dist/diffhtml-runtime.min.js",
     "jshint": "jshint lib/**/*.js",
     "karma": "karma start",
-    "test": "npm run jshint && npm run karma -- --single-run"
+    "test": "npm run jshint && NODE_ENV=test npm run karma -- --single-run"
   },
   "devDependencies": {
     "babel-cli": "^6.22.2",
@@ -25,9 +25,11 @@
     "babel-plugin-istanbul": "^3.1.2",
     "babel-plugin-version-inline": "^1.0.0",
     "babel-preset-es2015": "^6.22.0",
+    "babelify": "^7.3.0",
     "coveralls": "^2.11.15",
     "jshint": "^2.9.4",
     "karma": "^1.4.0",
+    "karma-browserify": "^5.1.1",
     "karma-browserstack-launcher": "^1.1.1",
     "karma-coverage": "^1.1.1",
     "karma-mocha": "^1.3.0",

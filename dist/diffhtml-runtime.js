@@ -1059,7 +1059,7 @@ function createTree(input, attributes, childNodes) {
       }
       // Cover generate cases where a user has indicated they do not want a
       // node from appearing.
-      else if (typeof newNode !== 'null' && typeof newNode !== 'undefined') {
+      else if (newNode !== null && newNode !== undefined) {
           if (newNode !== false) {
             entry.childNodes[_i2] = createTree('#text', newNode);
           }
@@ -1449,7 +1449,8 @@ function patchNode$$1(patches, state) {
 
         // Support patching an object representation of the style object.
         if (!isObject && !isFunction && name) {
-          domNode.setAttribute(name, value == null ? '' : value);
+          var noValue = value === null || value === undefined;
+          domNode.setAttribute(name, noValue ? '' : value);
 
           // Allow the user to find the real value in the DOM Node as a
           // property.
@@ -2058,6 +2059,8 @@ function use(middleware) {
   };
 }
 
+var VERSION = '1.0.0-beta' + '-runtime';
+
 function outerHTML(element) {
   var markup = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
@@ -2080,7 +2083,7 @@ function html() {
 
 // Public API. Passed to subscribed middleware.
 var diff = {
-  VERSION: '1.0.0-beta',
+  VERSION: VERSION,
   addTransitionState: addTransitionState,
   removeTransitionState: removeTransitionState,
   release: release,
@@ -2092,7 +2095,9 @@ var diff = {
 };
 
 // Ensure the `diff` property is nonenumerable so it doesn't show up in logs.
-Object.defineProperty(use, 'diff', { value: diff, enumerable: false });
+if (!use.diff) {
+  Object.defineProperty(use, 'diff', { value: diff, enumerable: false });
+}
 
 exports.__VERSION__ = VERSION;
 exports.addTransitionState = addTransitionState;
