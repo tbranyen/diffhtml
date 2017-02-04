@@ -1985,26 +1985,29 @@ function handleTaggedTemplate(options, strings) {
       var lastCharacter = lastSegment.trim().slice(-1);
       var isAttribute = Boolean(retVal.match(isAttributeEx));
       var isTag = Boolean(lastCharacter.match(isTagEx));
+      var isString = typeof value === 'string';
+      var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof$4(value)) === 'object';
+      var isArray = Array.isArray(value);
 
       // Injected as attribute.
       if (isAttribute) {
         supplemental.attributes.push(value);
         retVal += TOKEN$1;
       }
-      // Injected as tag.
-      else if (isTag && typeof value !== 'string') {
+      // Injected as component tag.
+      else if (isTag && !isString) {
           supplemental.tags.push(value);
           retVal += TOKEN$1;
         }
         // Injected as a child node.
-        else if (Array.isArray(value) || (typeof value === 'undefined' ? 'undefined' : _typeof$4(value)) === 'object') {
+        else if (isArray || isObject) {
             supplemental.children.push(createTree(value));
             retVal += TOKEN$1;
           }
           // Injected as something else in the markup or undefined, ignore
           // obviously falsy values used with boolean operators.
           else if (value !== null && value !== undefined && value !== false) {
-              retVal += value;
+              retVal += isString ? decodeEntities(value) : value;
             }
     }
   });
