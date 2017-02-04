@@ -156,7 +156,7 @@ const log = (message, method, color, date, transaction, completed) => {
   }
 
   if (patches) {
-    console.log('%cpatches %O', 'font-weight: bold; color: #333', format(patches));
+    console.log('%cpatches %O', 'font-weight: bold; color: #333', patches);
   }
 
   // Don't clutter the output if there aren't any promises.
@@ -168,7 +168,7 @@ const log = (message, method, color, date, transaction, completed) => {
 };
 
 //
-export default opts => transaction => {
+export default opts => function loggerTask(transaction) {
   const start = new Date();
 
   log(
