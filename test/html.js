@@ -51,6 +51,23 @@ describe('HTML (Tagged template)', function() {
     equal(multipleValues.attributes.class, 'foo [object Object]');
   });
 
+  it('will interpolate attribute values with text', () => {
+    const icon = 'some-icon';
+    const vTree = html`<i class="${icon} icon" />`
+
+    deepEqual(vTree, {
+      rawNodeName: 'i',
+      nodeName: 'i',
+      nodeValue: '',
+      nodeType: 1,
+      key: '',
+      childNodes: [],
+      attributes: {
+        class: 'some-icon icon'
+      },
+    });
+  })
+
   it('will return a fragment with multiple top level elements w/o values', () => {
     const vTree = html`<span class="has-class" /><span />`;
 
@@ -116,7 +133,7 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('will space attributes on new lines', function() {
+  it('will support aligning attributes on new lines', function() {
     const multipleValues = html`
       <span class="
         ${'foo'}
@@ -125,6 +142,20 @@ describe('HTML (Tagged template)', function() {
     `;
 
     equal(multipleValues.attributes.class.trim(), 'foo\n        bar');
+  });
+
+  it('will support empty string attributes', () => {
+    const span = html`<span href="" />`;
+
+    deepEqual(span, {
+      rawNodeName: 'span',
+      nodeName: 'span',
+      nodeType: 1,
+      nodeValue: '',
+      key: '',
+      attributes: { href: '' },
+      childNodes: [],
+    });
   });
 
   it('will interpolate a string child', function() {

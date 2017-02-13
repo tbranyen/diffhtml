@@ -179,16 +179,18 @@ function escape(unescaped) {
 
 var marks = new Map();
 var prefix = 'diffHTML';
-var token = 'diff_perf';
+var DIFF_PERF = 'diff_perf';
 
-var hasSearch = typeof location !== 'undefined' && location.search;
+var hasSearch = typeof location !== 'undefined';
 var hasArguments = typeof process !== 'undefined' && process.argv;
-var wantsSearch = hasSearch && location.search.includes(token);
-var wantsArguments = hasArguments && process.argv.includes(token);
-var wantsPerfChecks = wantsSearch || wantsArguments;
 var nop = function nop() {};
 
-var measure = (function (domNode, vTree) {
+var makeMeasure = (function (domNode, vTree) {
+  // Check for these changes on every check.
+  var wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
+  var wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
+  var wantsPerfChecks = wantsSearch || wantsArguments;
+
   // If the user has not requested they want perf checks, return a nop
   // function.
   if (!wantsPerfChecks) {
@@ -200,7 +202,7 @@ var measure = (function (domNode, vTree) {
     if (domNode && domNode.host) {
       name = domNode.host.constructor.name + ' ' + name;
     } else if (typeof vTree.rawNodeName === 'function') {
-      name = vTreevTree.name + ' ' + name;
+      name = vTree.rawNodeName.name + ' ' + name;
     }
 
     var endName = name + '-end';
@@ -673,7 +675,6 @@ var spaceEx = /[^ ]/;
 var tokenEx = /__DIFFHTML__([^_]*)__/g;
 
 var blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
-
 var selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr']);
 
 var kElementsClosedByOpening = {
@@ -701,10 +702,9 @@ var kElementsClosedByClosing = {
  * @param string
  * @param supplemental
  */
-var interpolateValues = function interpolateValues(currentParent) {
+var interpolateValues = function interpolateValues(currentParent, string) {
   var _currentParent$childN;
 
-  var string = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
   var supplemental = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
   // If this is text and not a doctype, add as a text node.
@@ -772,14 +772,18 @@ var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
     var value = _match[6] || _match[5] || _match[4] || _match[1];
     var tokenMatch = value.match(tokenEx);
 
+    tokenEx.lastIndex = 0;
+
     // If we have multiple interpolated values in an attribute, we must
     // flatten to a string. There are no other valid options.
-    if (tokenMatch && tokenMatch.length > 1) {
-      attributes[name] = '';
-
+    if (tokenMatch && tokenMatch.length) {
       var parts = value.split(tokenEx);
       var length = parts.length;
 
+
+      tokenEx.lastIndex = 0;
+      var hasToken = tokenEx.exec(name);
+      var newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
 
       for (var i = 0; i < parts.length; i++) {
         var _value = parts[i];
@@ -792,26 +796,30 @@ var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
         // replace the token's position. So all we do is ensure that we're on
         // an odd index and then we can source the correct value.
         if (i % 2 === 1) {
-          attributes[name] += supplemental.attributes[_value];
+          if (attributes[newName]) {
+            attributes[newName] += supplemental.attributes[_value];
+          } else {
+            attributes[newName] = supplemental.attributes[_value];
+          }
         } else {
-          attributes[name] += _value;
+          if (attributes[newName]) {
+            attributes[newName] += _value;
+          } else {
+            attributes[newName] = _value;
+          }
         }
       }
     } else if (tokenMatch = tokenEx.exec(name)) {
       var nameAndValue = supplemental.attributes[tokenMatch[1]];
 
-      if (nameAndValue) {
-        attributes[nameAndValue] = nameAndValue;
-      }
-    } else if (tokenMatch = tokenEx.exec(value)) {
-      attributes[name] = supplemental.attributes[tokenMatch[1]];
-    } else {
-      attributes[name] = value;
-    }
+      tokenEx.lastIndex = 0;
 
-    // Look for empty attributes.
-    if (_match[6] === '""') {
-      attributes[name] = '';
+      var _hasToken = tokenEx.exec(value);
+      var getValue = _hasToken ? supplemental.attributes[_hasToken[1]] : value;
+
+      attributes[nameAndValue] = value === '""' ? '' : getValue;
+    } else {
+      attributes[name] = value === '""' ? '' : value;
     }
   }
 
@@ -1088,7 +1096,7 @@ var internals = Object.freeze({
 	elements: elements,
 	decodeEntities: decodeEntities,
 	escape: escape,
-	measure: measure,
+	makeMeasure: makeMeasure,
 	Pool: Pool,
 	parse: parse
 });
@@ -1140,7 +1148,7 @@ function shouldUpdate(transaction) {
 
 function reconcileTrees(transaction) {
   var state = transaction.state,
-      measure$$1 = transaction.state.measure,
+      measure = transaction.state.measure,
       domNode = transaction.domNode,
       markup = transaction.markup,
       options = transaction.options;
@@ -1149,7 +1157,7 @@ function reconcileTrees(transaction) {
   var inner = options.inner;
 
 
-  measure$$1('reconcile trees');
+  measure('reconcile trees');
 
   // This looks for changes in the DOM from what we'd expect. This means we
   // need to rebuild the old Virtual Tree. This allows for keeping our tree
@@ -1208,7 +1216,7 @@ function reconcileTrees(transaction) {
         transaction.newTree = createTree(markup);
       }
 
-  measure$$1('reconcile trees');
+  measure('reconcile trees');
 }
 
 function syncTrees(transaction) {
@@ -1770,7 +1778,7 @@ var Transaction = function () {
     this.options = options;
 
     this.state = StateCache.get(domNode) || {
-      measure: measure(domNode, markup),
+      measure: makeMeasure(domNode, markup),
       internals: internals
     };
 
@@ -1788,7 +1796,7 @@ var Transaction = function () {
       Transaction.assert(this);
 
       var domNode = this.domNode,
-          measure$$1 = this.state.measure,
+          measure = this.state.measure,
           tasks = this.tasks;
 
       var takeLastTask = tasks.pop();
@@ -1799,7 +1807,7 @@ var Transaction = function () {
       Transaction.invokeMiddleware(this);
 
       // Measure the render flow if the user wants to track performance.
-      measure$$1('render');
+      measure('render');
 
       // Push back the last task as part of ending the flow.
       tasks.push(takeLastTask);
@@ -1833,7 +1841,7 @@ var Transaction = function () {
       var state = this.state,
           domNode = this.domNode,
           options = this.options;
-      var measure$$1 = state.measure;
+      var measure = state.measure;
       var inner = options.inner;
 
 
@@ -1853,8 +1861,8 @@ var Transaction = function () {
       }
 
       // Mark the end to rendering.
-      measure$$1('finalize');
-      measure$$1('render');
+      measure('finalize');
+      measure('render');
 
       // Cache the markup and text for the DOM node to allow for short-circuiting
       // future render transactions.

@@ -12,7 +12,7 @@
     "build": "npm run build-main && npm run build-runtime",
     "min": "npm run build && npm run build-main-min && npm run build-runtime-min",
     "build-main": "NODE_ENV=production rollup -c rollup.main.config.js",
-    "build-runtime": "rollup -c rollup.runtime.config.js",
+    "build-runtime": "NODE_ENV=production rollup -c rollup.runtime.config.js",
     "build-main-min": "uglifyjs dist/diffhtml.js -o dist/diffhtml.min.js",
     "build-runtime-min": "uglifyjs dist/diffhtml-runtime.js -o dist/diffhtml-runtime.min.js",
     "jshint": "jshint lib/**/*.js",
