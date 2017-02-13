@@ -3,7 +3,7 @@ import { patchNode } from '../../../lib/node';
 import { cleanMemory } from '../../../lib/util/memory';
 import validateMemory from '../../util/validateMemory';
 
-describe('patchNode', function() {
+describe.skip('patchNode', function() {
   afterEach(function() {
     cleanMemory();
     validateMemory();

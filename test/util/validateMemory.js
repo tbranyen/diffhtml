@@ -1,15 +1,13 @@
-import {
-  StateCache,
-  NodeCache,
-  MiddlewareCache,
-  Pool,
-} from '../../lib/util';
+import assert from 'assert';
+import { NodeCache, MiddlewareCache, Pool, cleanMemory } from '../../lib/util';
+
+const { memory } = Pool;
 
 /**
  * Validates that the memory has been successfully cleaned per render.
  */
 export default function validateMemory() {
-  const { memory } = Pool;
+  cleanMemory();
 
   assert.equal(memory.protected.size, 0,
     'Should not leave leftover protected elements in memory');

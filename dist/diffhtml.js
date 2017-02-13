@@ -223,84 +223,87 @@ var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symb
 
 var isArray = Array.isArray;
 
-var fragment = '#document-fragment';
+var fragmentName = '#document-fragment';
 
 function createTree(input, attributes, childNodes) {
   for (var _len = arguments.length, rest = Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
     rest[_key - 3] = arguments[_key];
   }
 
-  var isNode = input && (typeof input === 'undefined' ? 'undefined' : _typeof$1(input)) === 'object' && 'parentNode' in input;
+  // If no input was provided then we return an indication as such.
+  if (!input) {
+    return null;
+  }
 
-  if (arguments.length === 1) {
-    if (!input) {
-      return null;
-    }
+  // If the first argument is an array, we assume this is a DOM fragment and
+  // the array are the childNodes.
+  if (isArray(input)) {
+    childNodes = [];
 
-    // If the first argument is an array, we assume this is a DOM fragment and
-    // the array are the childNodes.
-    if (isArray(input)) {
-      return createTree(fragment, input.map(function (vTree) {
-        return createTree(vTree);
-      }));
-    }
+    for (var i = 0; i < input.length; i++) {
+      var newTree = createTree(input[i]);
 
-    // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
-    if (isNode) {
-      attributes = {};
-      childNodes = [];
-
-      // When working with a text node, simply save the nodeValue as the
-      // initial value.
-      if (input.nodeType === 3) {
-        childNodes = input.nodeValue;
+      if (newTree) {
+        childNodes.push(newTree);
       }
-      // Element types are the only kind of DOM node we care about attributes
-      // from. Shadow DOM, Document Fragments, Text, Comment nodes, etc. can
-      // ignore this.
-      else if (input.nodeType === 1 && input.attributes.length) {
-          attributes = {};
+    }
 
-          for (var i = 0; i < input.attributes.length; i++) {
-            var _input$attributes$i = input.attributes[i],
-                name = _input$attributes$i.name,
-                value = _input$attributes$i.value;
+    return createTree(fragmentName, null, childNodes);
+  }
 
+  var isObject = (typeof input === 'undefined' ? 'undefined' : _typeof$1(input)) === 'object';
 
-            if (value === '' && name in input) {
-              attributes[name] = input[name];
-              continue;
-            }
+  // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
+  if (input && isObject && 'parentNode' in input) {
+    attributes = {};
+    childNodes = [];
 
-            attributes[name] = value;
+    // When working with a text node, simply save the nodeValue as the
+    // initial value.
+    if (input.nodeType === 3) {
+      childNodes = input.nodeValue;
+    }
+    // Element types are the only kind of DOM node we care about attributes
+    // from. Shadow DOM, Document Fragments, Text, Comment nodes, etc. can
+    // ignore this.
+    else if (input.nodeType === 1 && input.attributes.length) {
+        attributes = {};
+
+        for (var _i = 0; _i < input.attributes.length; _i++) {
+          var _input$attributes$_i = input.attributes[_i],
+              name = _input$attributes$_i.name,
+              value = _input$attributes$_i.value;
+
+          // If the attribute's value is empty, seek out the property instead.
+
+          if (value === '' && name in input) {
+            attributes[name] = input[name];
+            continue;
           }
-        }
 
-      // Get the child nodes from an Element or Fragment/Shadow Root.
-      if (input.nodeType === 1 || input.nodeType === 11) {
-        if (input.childNodes.length) {
-          childNodes = [];
-
-          for (var _i = 0; _i < input.childNodes.length; _i++) {
-            if (input.childNodes[_i]) {
-              childNodes[_i] = createTree(input.childNodes[_i]);
-            }
-          }
+          attributes[name] = value;
         }
       }
 
-      var vTree = createTree(input.nodeName, attributes, childNodes);
-      NodeCache.set(vTree, input);
-      return vTree;
+    // Get the child nodes from an Element or Fragment/Shadow Root.
+    if (input.nodeType === 1 || input.nodeType === 11) {
+      if (input.childNodes.length) {
+        childNodes = [];
+
+        for (var _i2 = 0; _i2 < input.childNodes.length; _i2++) {
+          childNodes.push(createTree(input.childNodes[_i2]));
+        }
+      }
     }
 
-    // Assume any object value is a valid VTree object.
-    if ((typeof input === 'undefined' ? 'undefined' : _typeof$1(input)) === 'object') {
-      return input;
-    }
+    var vTree = createTree(input.nodeName, attributes, childNodes);
+    NodeCache.set(vTree, input);
+    return vTree;
+  }
 
-    // Assume it is a DOM Node.
-    return createTree(String(input), null, null);
+  // Assume any object value is a valid VTree object.
+  if (isObject) {
+    return input;
   }
 
   // Support JSX-style children being passed.
@@ -311,18 +314,14 @@ function createTree(input, attributes, childNodes) {
   // Allocate a new VTree from the pool.
   var entry = Pool.get();
   var isTextNode = input === '#text';
+  var isString = typeof input === 'string';
 
   entry.key = '';
   entry.rawNodeName = input;
+  entry.nodeName = isString ? input.toLowerCase() : '#document-fragment';
   entry.childNodes.length = 0;
   entry.nodeValue = '';
   entry.attributes = {};
-
-  if (typeof input === 'string') {
-    entry.nodeName = input.toLowerCase();
-  } else {
-    entry.nodeName = fragment;
-  }
 
   if (isTextNode) {
     var _nodes = arguments.length === 2 ? attributes : childNodes;
@@ -334,7 +333,7 @@ function createTree(input, attributes, childNodes) {
     return entry;
   }
 
-  if (input === fragment) {
+  if (input === fragmentName || typeof input !== 'string') {
     entry.nodeType = 11;
   } else if (input === '#comment') {
     entry.nodeType = 8;
@@ -347,18 +346,17 @@ function createTree(input, attributes, childNodes) {
   var nodeArray = isArray(nodes) ? nodes : [nodes];
 
   if (nodes && nodeArray.length) {
-    for (var _i2 = 0; _i2 < nodeArray.length; _i2++) {
-      var newNode = nodeArray[_i2];
+    for (var _i3 = 0; _i3 < nodeArray.length; _i3++) {
+      var newNode = nodeArray[_i3];
 
+      // Assume objects are vTrees.
       if ((typeof newNode === 'undefined' ? 'undefined' : _typeof$1(newNode)) === 'object') {
-        entry.childNodes[_i2] = createTree(newNode);
+        entry.childNodes.push(newNode);
       }
       // Cover generate cases where a user has indicated they do not want a
       // node from appearing.
-      else if (newNode !== null && newNode !== undefined) {
-          if (newNode !== false) {
-            entry.childNodes[_i2] = createTree('#text', newNode);
-          }
+      else if (newNode) {
+          entry.childNodes.push(createTree('#text', null, newNode));
         }
     }
   }
@@ -372,7 +370,7 @@ function createTree(input, attributes, childNodes) {
     entry.key = String(entry.attributes.src);
   }
 
-  // Set the key prop if passed as an attr.
+  // Set the `key` prop if passed as an attr, overrides `script[src]`.
   if (entry.attributes && entry.attributes.key) {
     entry.key = String(entry.attributes.key);
   }
@@ -418,7 +416,7 @@ function syncTree(oldTree, newTree, patches) {
     REPLACE_CHILD: empty
   };
 
-  // We recurse into all Nodes
+  // Seek out attribute changes first, but only from element Nodes.
   if (newTree.nodeType === 1) {
     var setAttributes = [];
     var removeAttributes = [];
@@ -665,17 +663,14 @@ function syncTree(oldTree, newTree, patches) {
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-// Code based off of:
+// Adapted implementation from:
 // https://github.com/ashi009/node-fast-html-parser
-
-// This is a very special word in the diffHTML parser. It is the only way it
-// can gain access to dynamic content.
-var TOKEN = '__DIFFHTML__';
 
 var hasNonWhitespaceEx = /\S/;
 var doctypeEx = /<!.*>/ig;
 var attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 var spaceEx = /[^ ]/;
+var tokenEx = /__DIFFHTML__([^_]*)__/g;
 
 var blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 
@@ -698,23 +693,6 @@ var kElementsClosedByClosing = {
   th: { tr: true, table: true }
 };
 
-var flattenFragments = function flattenFragments(childNodes) {
-  for (var i = 0; i < childNodes.length; i++) {
-    var childNode = childNodes[i];
-
-    if (childNode && childNode.nodeType === 11) {
-      childNodes.splice.apply(childNodes, [i, 1].concat(_toConsumableArray(childNode.childNodes)));
-
-      // Reset the loop.
-      i = 0;
-    } else if (childNode) {
-      flattenFragments(childNode.childNodes);
-    } else {
-      childNodes.splice(i, 1);
-    }
-  }
-};
-
 /**
  * Interpolate dynamic supplemental values from the tagged template into the
  * tree.
@@ -723,41 +701,48 @@ var flattenFragments = function flattenFragments(childNodes) {
  * @param string
  * @param supplemental
  */
-var interpolateValues = function interpolateValues(currentParent, string, supplemental) {
-  if (string && string.includes(TOKEN)) {
-    var childNodes = [];
-    var parts = string.split(TOKEN);
-    var length = parts.length;
+var interpolateValues = function interpolateValues(currentParent) {
+  var _currentParent$childN;
+
+  var string = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+  var supplemental = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  // If this is text and not a doctype, add as a text node.
+  if (string && !string.match(doctypeEx) && !tokenEx.test(string)) {
+    return currentParent.childNodes.push(createTree('#text', string));
+  }
+
+  var childNodes = [];
+  var parts = string.split(tokenEx);
+  var length = parts.length;
 
 
-    for (var i = 0; i < parts.length; i++) {
-      var value = parts[i];
+  for (var i = 0; i < parts.length; i++) {
+    var value = parts[i];
 
-      if (i === 0 || value) {
-        // If the first text node has relevant text, put it in, otherwise
-        // discard. This mimicks how the browser works and is generally easier
-        // to work with (when using tagged template tags).
-        if (hasNonWhitespaceEx.test(value)) {
-          childNodes.push(createTree('#text', value));
-        }
+    if (!value) {
+      continue;
+    }
 
-        // If we are in the second iteration, this means the whitespace has
-        // been trimmed and we can pull out dynamic interpolated values.
-        // Flatten all fragments found in the tree. They are used as containers
-        // and are not reflected in the DOM Tree.
-        if (--length > 0) {
-          childNodes.push(supplemental.children.shift());
-          flattenFragments(childNodes);
+    // When we split on the token expression, the capture group will replace
+    // the token's position. So all we do is ensure that we're on an odd
+    // index and then we can source the correct value.
+    if (i % 2 === 1) {
+      var innerTree = supplemental.children[value];
+
+      if (innerTree) {
+        if (innerTree.nodeType === 11) {
+          childNodes.push.apply(childNodes, _toConsumableArray(innerTree.childNodes));
+        } else {
+          childNodes.push(innerTree);
         }
       }
+    } else if (!doctypeEx.test(value)) {
+      childNodes.push(createTree('#text', value));
     }
-
-    currentParent.childNodes.push.apply(currentParent.childNodes, childNodes);
   }
-  // If this is text and not a doctype, add as a text node.
-  else if (string && string.length && !doctypeEx.exec(string)) {
-      currentParent.childNodes.push(createTree('#text', string));
-    }
+
+  (_currentParent$childN = currentParent.childNodes).push.apply(_currentParent$childN, childNodes);
 };
 
 /**
@@ -772,53 +757,62 @@ var interpolateValues = function interpolateValues(currentParent, string, supple
  * @return {Object} vTree
  */
 var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
+  var match = null;
+
   // Support dynamic tag names like: `<${MyComponent} />`.
-  if (nodeName === TOKEN) {
-    return HTMLElement(supplemental.tags.shift(), rawAttrs, supplemental);
+  if (match = tokenEx.exec(nodeName)) {
+    return HTMLElement(supplemental.tags[match[1]], rawAttrs, supplemental);
   }
 
   var attributes = {};
 
   // Migrate raw attributes into the attributes object used by the VTree.
-
-  var _loop = function _loop(match) {
-    var name = match[1];
-    var value = match[6] || match[5] || match[4] || match[1];
+  for (var _match; _match = attrEx.exec(rawAttrs || '');) {
+    var name = _match[1];
+    var value = _match[6] || _match[5] || _match[4] || _match[1];
+    var tokenMatch = value.match(tokenEx);
 
     // If we have multiple interpolated values in an attribute, we must
     // flatten to a string. There are no other valid options.
-    if (value.indexOf(TOKEN) > -1 && value !== TOKEN) {
+    if (tokenMatch && tokenMatch.length > 1) {
       attributes[name] = '';
 
-      // Break the attribute down and replace each dynamic interpolation.
-      value.split(TOKEN).forEach(function (part, index, array) {
-        attributes[name] += part;
+      var parts = value.split(tokenEx);
+      var length = parts.length;
 
-        // Only interpolate up to the last element.
-        if (index !== array.length - 1) {
-          attributes[name] += supplemental.attributes.shift();
+
+      for (var i = 0; i < parts.length; i++) {
+        var _value = parts[i];
+
+        if (!_value) {
+          continue;
         }
-      });
-    } else if (name === TOKEN) {
-      var nameAndValue = supplemental.attributes.shift();
+
+        // When we split on the token expression, the capture group will
+        // replace the token's position. So all we do is ensure that we're on
+        // an odd index and then we can source the correct value.
+        if (i % 2 === 1) {
+          attributes[name] += supplemental.attributes[_value];
+        } else {
+          attributes[name] += _value;
+        }
+      }
+    } else if (tokenMatch = tokenEx.exec(name)) {
+      var nameAndValue = supplemental.attributes[tokenMatch[1]];
 
       if (nameAndValue) {
         attributes[nameAndValue] = nameAndValue;
       }
-    } else if (value === TOKEN) {
-      attributes[name] = supplemental.attributes.shift();
+    } else if (tokenMatch = tokenEx.exec(value)) {
+      attributes[name] = supplemental.attributes[tokenMatch[1]];
     } else {
       attributes[name] = value;
     }
 
     // Look for empty attributes.
-    if (match[6] === '""') {
+    if (_match[6] === '""') {
       attributes[name] = '';
     }
-  };
-
-  for (var match; match = attrEx.exec(rawAttrs || '');) {
-    _loop(match);
   }
 
   return createTree(nodeName, attributes, []);
@@ -835,10 +829,18 @@ var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
 function parse(html, supplemental) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
+  // Reset regular expression positions per parse.
+  hasNonWhitespaceEx.lastIndex = 0;
+  doctypeEx.lastIndex = 0;
+  attrEx.lastIndex = 0;
+  spaceEx.lastIndex = 0;
+  tokenEx.lastIndex = 0;
+
   var root = createTree('#document-fragment', null, []);
   var stack = [root];
   var currentParent = root;
   var lastTextPos = -1;
+  var preLastTextPos = -1;
 
   // If there are no HTML elements, treat the passed in html as a single
   // text node.
@@ -854,7 +856,11 @@ function parse(html, supplemental) {
     if (lastTextPos > -1) {
       if (lastTextPos + match[0].length < tagEx.lastIndex) {
         text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
-        interpolateValues(currentParent, text, supplemental);
+
+        // Do not process leading whitespace in a tagged template.
+        if (preLastTextPos === -1 ? hasNonWhitespaceEx.test(text) : text) {
+          interpolateValues(currentParent, text, supplemental);
+        }
       }
     }
 
@@ -868,9 +874,10 @@ function parse(html, supplemental) {
       }
     }
 
+    preLastTextPos = lastTextPos;
     lastTextPos = tagEx.lastIndex;
 
-    // This is a comment.
+    // This is a comment (TODO support these).
     if (match[0][1] === '!') {
       continue;
     }
@@ -951,20 +958,22 @@ function parse(html, supplemental) {
         throw new Error('\n\n' + markup.join('\n'));
       }
 
+      var tokenMatch = tokenEx.exec(match[2]);
+
       // </ or /> or <br> etc.
       while (currentParent) {
         // Self closing dynamic nodeName.
-        if (match[2] === TOKEN && match[4] === '/') {
+        if (match[4] === '/' && tokenMatch) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
           break;
         }
         // Not self-closing, so seek out the next match.
-        else if (match[2] === TOKEN) {
-            var _value = supplemental.tags.shift();
+        else if (tokenMatch) {
+            var value = supplemental.tags[tokenMatch[1]];
 
-            if (currentParent.nodeName === _value) {
+            if (currentParent.nodeName === value) {
               stack.pop();
               currentParent = stack[stack.length - 1];
 
@@ -1129,48 +1138,6 @@ function shouldUpdate(transaction) {
   measure('should update');
 }
 
-//function reconcileComponents(oldTree, newTree) {
-//  // Stateful components have a very limited API, designed to be fully
-//  // implemented by a higher-level abstraction. The only method ever called
-//  // is `render`. It is up to a higher level abstraction on how to handle the
-//  // changes.
-//  for (let i = 0; i < newTree.childNodes.length; i++) {
-//    const oldChild = oldTree && oldTree.childNodes[i];
-//    const newChild = newTree.childNodes[i];
-//
-//    // If incoming tree is a component, flatten down to tree for now.
-//    if (newChild && typeof newChild.rawNodeName === 'function') {
-//      const oldCtor = oldChild && oldChild.rawNodeName;
-//      const newCtor = newChild.rawNodeName;
-//      const children = newChild.childNodes;
-//      const props = assign({}, newChild.attributes, { children });
-//      const canNew = newCtor.prototype && newCtor.prototype.render;
-//
-//      // If the component has already been initialized, we can reuse it.
-//      const oldInstance = oldCtor === newCtor && ComponentCache.get(oldChild);
-//      const newInstance = !oldInstance && canNew && new newCtor(props);
-//      const instance = oldInstance || newInstance;
-//      const renderTree = createTree(
-//        instance ? instance.render(props) : newCtor(props)
-//      );
-//
-//      // Build a new tree from the render, and use this as the current tree.
-//      newTree.childNodes[i] = renderTree;
-//
-//      // Cache this new current tree.
-//      if (instance) {
-//        ComponentCache.set(renderTree, instance);
-//      }
-//
-//      // Recursively update trees.
-//      reconcileComponents(oldChild, renderTree);
-//    }
-//    else {
-//      reconcileComponents(oldChild, newChild);
-//    }
-//  }
-//}
-
 function reconcileTrees(transaction) {
   var state = transaction.state,
       measure$$1 = transaction.state.measure,
@@ -1241,9 +1208,6 @@ function reconcileTrees(transaction) {
         transaction.newTree = createTree(markup);
       }
 
-  // FIXME: Huge Hack at the moment to make it easier to work with components.
-  //reconcileComponents(state.oldTree, transaction.newTree);
-
   measure$$1('reconcile trees');
 }
 
@@ -1278,7 +1242,7 @@ function syncTrees(transaction) {
  * @param {Object} - Document to create Nodes in
  * @return {Object} - A DOM Node matching the vTree
  */
-function makeNode(vTree) {
+function createNode(vTree) {
   var doc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
 
   if (!vTree) {
@@ -1293,8 +1257,8 @@ function makeNode(vTree) {
   }
 
   var nodeName = vTree.nodeName,
-      childNodes = vTree.childNodes,
-      attributes = vTree.attributes,
+      _vTree$childNodes = vTree.childNodes,
+      childNodes = _vTree$childNodes === undefined ? [] : _vTree$childNodes,
       nodeValue = vTree.nodeValue;
 
   // Will vary based on the properties of the VTree.
@@ -1327,9 +1291,9 @@ function makeNode(vTree) {
   NodeCache.set(vTree, domNode);
 
   // Append all the children into the domNode, making sure to run them
-  // through this `make` function as well.
+  // through this `createNode` function as well.
   for (var i = 0; i < childNodes.length; i++) {
-    domNode.appendChild(makeNode(childNodes[i]));
+    domNode.appendChild(createNode(childNodes[i]));
   }
 
   return domNode;
@@ -1431,34 +1395,43 @@ function patchNode$$1(patches, state) {
         var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof$2(value)) === 'object';
         var isFunction = typeof value === 'function';
 
-        // Support patching an object representation of the style object.
+        // FIXME Figure out why this is camel case sometimes.
+        name = name.indexOf('on') === 0 ? name.toLowerCase() : name;
+
+        // Normal attribute value.
         if (!isObject && !isFunction && name) {
           var noValue = value === null || value === undefined;
           domNode.setAttribute(name, noValue ? '' : value);
 
           // Allow the user to find the real value in the DOM Node as a
           // property.
-          domNode[name] = value;
-        } else if (isObject && name === 'style') {
-          var keys = Object.keys(value);
-
-          for (var i = 0; i < keys.length; i++) {
-            domNode.style[keys[i]] = value[keys[i]];
-          }
-        } else if (typeof value !== 'string') {
-          // We remove and re-add the attribute to trigger a change in a web
-          // component or mutation observer. Although you could use a setter or
-          // proxy, this is more natural.
-          if (domNode.hasAttribute(name) && domNode[name] !== value) {
-            domNode.removeAttribute(name, '');
-          }
-
-          // Necessary to track the attribute/prop existence.
-          domNode.setAttribute(name, '');
-
-          // Since this is a property value it gets set directly on the node.
-          domNode[name] = value;
+          try {
+            domNode[name] = value;
+          } catch (unhandledException) {}
         }
+        // Support patching an object representation of the style object.
+        else if (isObject && name === 'style') {
+            var keys = Object.keys(value);
+
+            for (var i = 0; i < keys.length; i++) {
+              domNode.style[keys[i]] = value[keys[i]];
+            }
+          } else if (typeof value !== 'string') {
+            // We remove and re-add the attribute to trigger a change in a web
+            // component or mutation observer. Although you could use a setter or
+            // proxy, this is more natural.
+            if (domNode.hasAttribute(name) && domNode[name] !== value) {
+              domNode.removeAttribute(name, '');
+            }
+
+            // Necessary to track the attribute/prop existence.
+            domNode.setAttribute(name, '');
+
+            // Since this is a property value it gets set directly on the node.
+            try {
+              domNode[name] = value;
+            } catch (unhandledException) {}
+          }
       };
 
       var _loop = function _loop(i) {
@@ -1466,7 +1439,7 @@ function patchNode$$1(patches, state) {
         var name = SET_ATTRIBUTE[i + 1];
         var value = SET_ATTRIBUTE[i + 2];
 
-        var domNode = makeNode(vTree);
+        var domNode = createNode(vTree);
 
         var attributeChanged = TransitionCache.get('attributeChanged');
 
@@ -1499,7 +1472,7 @@ function patchNode$$1(patches, state) {
       var vTree = REMOVE_ATTRIBUTE[i];
       var _name = REMOVE_ATTRIBUTE[i + 1];
 
-      var _domNode = makeNode(vTree);
+      var _domNode = createNode(vTree);
 
       _domNode.removeAttribute(_name);
 
@@ -1550,7 +1523,7 @@ function patchNode$$1(patches, state) {
             referenceNode = _INSERT_BEFORE$_i[2];
 
         var _domNode3 = NodeCache.get(_vTree2);
-        var refNode = referenceNode ? makeNode(referenceNode) : null;
+        var refNode = referenceNode ? createNode(referenceNode) : null;
         var fragment = null;
 
         var attached = TransitionCache.get('attached');
@@ -1563,12 +1536,12 @@ function patchNode$$1(patches, state) {
           fragment = document.createDocumentFragment();
 
           for (var _i4 = 0; _i4 < childNodes.length; _i4++) {
-            var newNode = makeNode(childNodes[_i4]);
+            var newNode = createNode(childNodes[_i4]);
             fragment.appendChild(newNode);
             protectVTree(childNodes[_i4]);
           }
         } else {
-          fragment = makeNode(childNodes);
+          fragment = createNode(childNodes);
           protectVTree(childNodes);
         }
 
@@ -1618,7 +1591,7 @@ function patchNode$$1(patches, state) {
             oldChildNode = _REPLACE_CHILD$_i[1];
 
         var oldDomNode = NodeCache.get(oldChildNode);
-        var newDomNode = makeNode(newChildNode);
+        var newDomNode = createNode(newChildNode);
 
         var attached = TransitionCache.get('attached');
         var detached = TransitionCache.get('detached');
@@ -1696,6 +1669,17 @@ function endAsPromise(transaction) {
     return Promise.resolve(transaction.end());
   }
 }
+
+
+
+var tasks = Object.freeze({
+	schedule: schedule,
+	shouldUpdate: shouldUpdate,
+	reconcileTrees: reconcileTrees,
+	syncTrees: syncTrees,
+	patchNode: patch,
+	endAsPromise: endAsPromise
+});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -1801,6 +1785,8 @@ var Transaction = function () {
   _createClass(Transaction, [{
     key: 'start',
     value: function start() {
+      Transaction.assert(this);
+
       var domNode = this.domNode,
           measure$$1 = this.state.measure,
           tasks = this.tasks;
@@ -1905,8 +1891,7 @@ var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symb
 
 var isAttributeEx = /(=|"|')[^><]*?$/;
 var isTagEx = /(<|\/)/;
-var TOKEN$1 = '__DIFFHTML__';
-
+var TOKEN = '__DIFFHTML__';
 /**
  * Get the next value from the list. If the next value is a string, make sure
  * it is escaped.
@@ -1916,7 +1901,7 @@ var TOKEN$1 = '__DIFFHTML__';
  */
 var nextValue = function nextValue(values) {
   var value = values.shift();
-  return typeof value === 'string' ? escape(value) : value;
+  return typeof value === 'string' ? decodeEntities(value) : value;
 };
 
 function handleTaggedTemplate(options, strings) {
@@ -1930,14 +1915,14 @@ function handleTaggedTemplate(options, strings) {
   }
 
   // Do not attempt to parse empty strings.
-  if (!strings[0].length && !values.length) {
+  if (!strings || !strings[0].length) {
     return null;
   }
 
   // Parse only the text, no dynamic bits.
   if (strings.length === 1 && !values.length) {
     var _childNodes = parse(strings[0]).childNodes;
-    return _childNodes.length > 1 ? _childNodes : _childNodes[0];
+    return _childNodes.length > 1 ? createTree(_childNodes) : _childNodes[0];
   }
 
   // Used to store markup and tokens.
@@ -1946,9 +1931,9 @@ function handleTaggedTemplate(options, strings) {
   // We filter the supplemental values by where they are used. Values are
   // either, children, or tags (for components).
   var supplemental = {
-    attributes: [],
-    children: [],
-    tags: []
+    attributes: {},
+    children: {},
+    tags: {}
   };
 
   // Loop over the static strings, each break correlates to an interpolated
@@ -1972,26 +1957,27 @@ function handleTaggedTemplate(options, strings) {
       var isString = typeof value === 'string';
       var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof$4(value)) === 'object';
       var isArray = Array.isArray(value);
+      var token = TOKEN + i + '__';
 
       // Injected as attribute.
       if (isAttribute) {
-        supplemental.attributes.push(value);
-        retVal += TOKEN$1;
+        supplemental.attributes[i] = value;
+        retVal += token;
       }
-      // Injected as component tag.
+      // Injected as a tag.
       else if (isTag && !isString) {
-          supplemental.tags.push(value);
-          retVal += TOKEN$1;
+          supplemental.tags[i] = value;
+          retVal += token;
         }
         // Injected as a child node.
         else if (isArray || isObject) {
-            supplemental.children.push(createTree(value));
-            retVal += TOKEN$1;
+            supplemental.children[i] = createTree(value);
+            retVal += token;
           }
           // Injected as something else in the markup or undefined, ignore
           // obviously falsy values used with boolean operators.
           else if (value !== null && value !== undefined && value !== false) {
-              retVal += isString ? decodeEntities(value) : value;
+              retVal += value;
             }
     }
   });
@@ -2001,7 +1987,7 @@ function handleTaggedTemplate(options, strings) {
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
-  return childNodes.length === 1 ? childNodes[0] : childNodes;
+  return childNodes.length > 1 ? createTree(childNodes) : childNodes[0];
 }
 
 // Loose mode (default)
@@ -2234,7 +2220,8 @@ var diff = {
   outerHTML: outerHTML,
   innerHTML: innerHTML,
   html: html,
-  internals: internals
+  internals: internals,
+  tasks: tasks
 };
 
 // Ensure the `diff` property is nonenumerable so it doesn't show up in logs.

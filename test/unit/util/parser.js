@@ -1,7 +1,6 @@
 import * as parser from '../../../lib/util/parser';
 import { cleanMemory } from '../../../lib/util/memory';
 import validateMemory from '../../util/validateMemory';
-import { innerHTML, release } from '../../../lib/index';
 
 describe('Unit: Parser', function() {
   afterEach(function() {

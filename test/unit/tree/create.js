@@ -1,8 +1,8 @@
-import { createTree } from '../../../lib/tree';
+import createTree from '../../../lib/tree/create';
 import { cleanMemory } from '../../../lib/util/memory';
 import validateMemory from '../../util/validateMemory';
 
-describe('createTree', function() {
+describe.only('createTree', function() {
   afterEach(function() {
     cleanMemory();
     validateMemory();

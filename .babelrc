@@ -1,14 +1,18 @@
 {
-  "presets": [
-    ["es2015", { "modules": false }]
-  ],
-  "plugins": ["version-inline"],
   "env": {
-    "test": {
+    "production": {
       "presets": [
-        ["es2015"]
+        ["es2015", { "modules": false }]
       ],
-      "plugins": ["istanbul"]
+      "plugins": ["version-inline"]
+    },
+    "test": {
+      "presets": ["es2015"],
+      "plugins": [
+        "version-inline",
+        ["istanbul", { "useInlineSourceMaps": false }]
+      ],
+      "retainLines": true
     }
   }
 }
