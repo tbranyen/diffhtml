@@ -129,7 +129,7 @@ function cleanMemory() {
 const namespace = 'http://www.w3.org/2000/svg';
 
 // List of SVG elements.
-const elements = [];
+const elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
 
 // Support loading diffHTML in non-browser environments.
 const g = typeof global === 'object' ? global : window;
@@ -160,7 +160,7 @@ function decodeEntities(string) {
  * @return {String} - An HTML-safe string
  */
 function escape(unescaped) {
-  return unescaped.replace(/["&'<>`]/g, match => `&#${match.charCodeAt(0)};`);
+  return unescaped.replace(/[&<>]/g, match => `&#${match.charCodeAt(0)};`);
 }
 
 const marks = new Map();
@@ -245,7 +245,9 @@ function createTree(input, attributes, childNodes, ...rest) {
     for (let i = 0; i < input.length; i++) {
       const newTree = createTree(input[i]);
 
-      if (newTree) {
+      if (newTree && newTree.nodeType === 11) {
+        childNodes.push(...newTree.childNodes);
+      } else if (newTree) {
         childNodes.push(newTree);
       }
     }
@@ -409,7 +411,22 @@ function schedule(transaction) {
   // If there is an in-flight transaction render happening, push this
   // transaction into a queue.
   if (state.isRendering) {
+    // Resolve an existing transaction that we're going to pave over in the
+    // next statement.
+    if (state.nextTransaction) {
+      state.nextTransaction.promises[0].resolve(state.nextTransaction);
+    }
+
+    // Set a pointer to this current transaction to render immediatately after
+    // the current transaction completes.
     state.nextTransaction = transaction;
+
+    const deferred = {};
+    const resolver = new Promise(resolve => deferred.resolve = resolve);
+
+    resolver.resolve = deferred.resolve;
+    transaction.promises = [resolver];
+
     return transaction.abort();
   }
 
@@ -512,6 +529,23 @@ function syncTree(oldTree, newTree, patches) {
     }
   }
 
+  // If both VTrees are text nodes and the values are different, change the
+  // NODE_VALUE.
+  if (newTree.nodeName === '#text') {
+    if (oldTree && oldTree.nodeName === '#text') {
+      if (oldTree.nodeValue !== newTree.nodeName) {
+        NODE_VALUE.push(oldTree, newTree.nodeValue, oldTree.nodeValue);
+        oldTree.nodeValue = newTree.nodeValue;
+        addTreeOperations(TREE_OPS, patchset);
+        return patches;
+      }
+    } else {
+      NODE_VALUE.push(newTree, newTree.nodeValue, null);
+      addTreeOperations(TREE_OPS, patchset);
+      return patches;
+    }
+  }
+
   // If there was no oldTree specified, this is a new element so scan for
   // attributes.
   if (!oldTree) {
@@ -597,6 +631,7 @@ function syncTree(oldTree, newTree, patches) {
         if (patchset.REPLACE_CHILD === null) {
           patchset.REPLACE_CHILD = [];
         }
+        //if (newChildNode.nodeType === 11) { debugger; }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
         continue;
@@ -639,6 +674,7 @@ function syncTree(oldTree, newTree, patches) {
         if (patchset.REPLACE_CHILD === null) {
           patchset.REPLACE_CHILD = [];
         }
+        //if (newChildNode.nodeType === 11) { debugger; }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldTree.childNodes[i] = newChildNode;
         syncTree(null, newChildNode, patches);
@@ -674,6 +710,7 @@ function syncTree(oldTree, newTree, patches) {
             patchset.REPLACE_CHILD = [];
           }
           patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
+          //if (newChildNode.nodeType === 11) { debugger; }
           oldTree.childNodes[i] = newChildNode;
           syncTree(null, newChildNode, patches);
           continue;
@@ -697,18 +734,6 @@ function syncTree(oldTree, newTree, patches) {
   }
 
   addTreeOperations(TREE_OPS, patchset);
-
-  // If both VTrees are text nodes and the values are different, change the
-  // NODE_VALUE.
-  if (oldTree.nodeName === '#text' && newTree.nodeName === '#text') {
-    if (oldTree.nodeValue !== newTree.nodeValue) {
-      oldTree.nodeValue = newTree.nodeValue;
-      NODE_VALUE.push(oldTree, oldTree.nodeValue);
-      addTreeOperations(TREE_OPS, patchset);
-
-      return patches;
-    }
-  }
 
   return patches;
 }
@@ -755,10 +780,12 @@ function reconcileTrees(transaction) {
 
   // This is HTML Markup, so we need to parse it.
   if (typeof markup === 'string') {
+    const { childNodes } = parse(markup, null, options);
+
     // If we are dealing with innerHTML, use all the Nodes. If we're dealing
     // with outerHTML, we can only support diffing against a single element,
     // so pick the first one.
-    transaction.newTree = createTree(parse(markup, null, options).childNodes);
+    transaction.newTree = createTree(!inner && childNodes.length === 1 ? childNodes[0] : childNodes);
   }
 
   // Only create a document fragment for inner nodes if the user didn't already
@@ -784,31 +811,6 @@ function reconcileTrees(transaction) {
   measure('reconcile trees');
 }
 
-function syncTrees(transaction) {
-  const { state: { measure, oldTree }, newTree } = transaction;
-
-  measure('sync trees');
-
-  // Do a global replace of the element, unable to do this at a lower level.
-  // Ignore this for document fragments, they don't appear in the DOM and we
-  // treat them as transparent containers.
-  if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
-    transaction.patches = {
-      TREE_OPS: [{ REPLACE_CHILD: [newTree, oldTree] }],
-      SET_ATTRIBUTE: [],
-      REMOVE_ATTRIBUTE: [],
-      NODE_VALUE: []
-    };
-    transaction.oldTree = transaction.state.oldTree = newTree;
-  }
-  // Otherwise only diff the children.
-  else {
-      transaction.patches = syncTree(oldTree, newTree);
-    }
-
-  measure('sync trees');
-}
-
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
  * Sets the node into the Node cache. If this VTree already has an
@@ -830,16 +832,15 @@ function createNode(vTree, doc = document) {
     return existingNode;
   }
 
-  const { nodeName, childNodes = [], nodeValue } = vTree;
+  const { nodeName, childNodes = [] } = vTree;
 
   // Will vary based on the properties of the VTree.
   let domNode = null;
 
-  // If we're dealing with a Text Node, we need to use the special DOM method,
-  // since createElement does not understand the nodeName '#text'.
-  // All other nodes can be created through createElement.
+  // Create empty text elements. They will get filled in during the patch
+  // process.
   if (nodeName === '#text') {
-    domNode = doc.createTextNode(decodeEntities(nodeValue));
+    domNode = doc.createTextNode(vTree.nodeValue);
   }
   // Support dynamically creating document fragments.
   else if (nodeName === '#document-fragment') {
@@ -909,30 +910,51 @@ function removeTransitionState(stateName, callback) {
     }
     // Remove all callbacks.
     else {
-        for (let stateName in stateNames) {
-          TransitionCache.get(stateName).clear();
+        for (let i = 0; i < stateNames.length; i++) {
+          TransitionCache.get(stateNames[i]).clear();
         }
       }
 }
 
-function runTransitions(set, ...args) {
+function runTransitions(setName, ...args) {
+  const set = TransitionCache.get(setName);
   const promises = [];
 
-  set.forEach(callback => {
-    if (typeof callback === 'function') {
-      const retVal = callback(...args);
+  // Ignore text nodes.
+  if (setName !== 'textChanged' && args[0].nodeType === 3) {
+    return promises;
+  }
 
-      // Is a `thennable` object or Native Promise.
-      if (typeof retVal === 'object' && retVal.then) {
-        promises.push(retVal);
-      }
+  // Run each transition callback, if on the attached/detached.
+  set.forEach(callback => {
+    const retVal = callback(...args);
+
+    // Is a `thennable` object or Native Promise.
+    if (typeof retVal === 'object' && retVal.then) {
+      promises.push(retVal);
     }
   });
+
+  if (setName === 'attached' || setName === 'detached') {
+    const element = args[0];
+
+    element.childNodes.forEach(childNode => {
+      promises.push(...runTransitions(setName, childNode, ...args.slice(1)));
+    });
+  }
 
   return promises;
 }
 
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
+
+const removeAttribute = (domNode, name) => {
+  domNode.removeAttribute(name);
+
+  if (name in domNode) {
+    domNode[name] = undefined;
+  }
+};
 
 function patchNode$$1(patches, state) {
   const promises = [];
@@ -956,7 +978,9 @@ function patchNode$$1(patches, state) {
 
         // Allow the user to find the real value in the DOM Node as a
         // property.
-        domNode[name] = value;
+        try {
+          domNode[name] = value;
+        } catch (unhandledException) {}
       }
       // Support patching an object representation of the style object.
       else if (isObject && name === 'style') {
@@ -977,7 +1001,9 @@ function patchNode$$1(patches, state) {
           domNode.setAttribute(name, '');
 
           // Since this is a property value it gets set directly on the node.
-          domNode[name] = value;
+          try {
+            domNode[name] = value;
+          } catch (unhandledException) {}
         }
     };
 
@@ -988,14 +1014,16 @@ function patchNode$$1(patches, state) {
       const domNode = createNode(vTree);
       const attributeChanged = TransitionCache.get('attributeChanged');
       const oldValue = domNode.getAttribute(name);
-      const newPromises = runTransitions(attributeChanged, domNode, name, oldValue, value);
+      const newPromises = runTransitions('attributeChanged', domNode, name, oldValue, value);
 
       if (newPromises.length) {
         Promise.all(newPromises).then(() => {
-          mutationCallback(domNode, name, value);
+          mutationCallback(domNode, name, decodeEntities(value));
         });
+
+        promises.push(...newPromises);
       } else {
-        mutationCallback(domNode, name, value);
+        mutationCallback(domNode, name, decodeEntities(value));
       }
     }
   }
@@ -1006,33 +1034,15 @@ function patchNode$$1(patches, state) {
       const vTree = REMOVE_ATTRIBUTE[i];
       const name = REMOVE_ATTRIBUTE[i + 1];
       const domNode = NodeCache.get(vTree);
+      const attributeChanged = TransitionCache.get('attributeChanged');
+      const oldValue = domNode.getAttribute(name);
+      const newPromises = runTransitions('attributeChanged', domNode, name, oldValue, null);
 
-      domNode.removeAttribute(name);
-
-      if (name in domNode) {
-        domNode[name] = undefined;
-      }
-    }
-  }
-
-  // Change all nodeValues.
-  if (NODE_VALUE.length) {
-    for (let i = 0; i < NODE_VALUE.length; i += 2) {
-      const vTree = NODE_VALUE[i];
-      const nodeValue = NODE_VALUE[i + 1];
-      const domNode = NodeCache.get(vTree);
-      const { parentNode } = domNode;
-
-      if (nodeValue.includes('&')) {
-        domNode.nodeValue = decodeEntities(escape(nodeValue));
+      if (newPromises.length) {
+        Promise.all(newPromises).then(() => removeAttribute(domNode, name));
+        promises.push(...newPromises);
       } else {
-        domNode.nodeValue = escape(nodeValue);
-      }
-
-      if (parentNode) {
-        if (blockText.has(parentNode.nodeName.toLowerCase())) {
-          parentNode.nodeValue = escape(nodeValue);
-        }
+        removeAttribute(domNode, name);
       }
     }
   }
@@ -1061,7 +1071,7 @@ function patchNode$$1(patches, state) {
         // If refNode is `null` then it will simply append like `appendChild`.
         domNode.insertBefore(newNode, refNode);
 
-        const attachedPromises = runTransitions(attached, newNode);
+        const attachedPromises = runTransitions('attached', newNode);
 
         if (attachedPromises.length) {
           promises.push(...attachedPromises);
@@ -1075,7 +1085,7 @@ function patchNode$$1(patches, state) {
         const childNode = REMOVE_CHILD[i];
         const domNode = NodeCache.get(childNode);
         const detached = TransitionCache.get('detached');
-        const detachedPromises = runTransitions(detached, domNode);
+        const detachedPromises = runTransitions('detached', domNode);
 
         if (detachedPromises.length) {
           Promise.all(detachedPromises).then(() => {
@@ -1101,22 +1111,20 @@ function patchNode$$1(patches, state) {
         const attached = TransitionCache.get('attached');
         const detached = TransitionCache.get('detached');
         const replaced = TransitionCache.get('replaced');
-        const attachedPromises = runTransitions(attached, newDomNode);
-        const detachedPromises = runTransitions(detached, oldDomNode);
-        const replacedPromises = runTransitions(replaced, oldDomNode, newDomNode);
-        const newPromises = [...attachedPromises, ...detachedPromises, ...replacedPromises];
+        const attachedPromises = runTransitions('attached', newDomNode);
+        const detachedPromises = runTransitions('detached', oldDomNode);
+        const replacedPromises = runTransitions('replaced', oldDomNode, newDomNode);
+        const allPromises = [...attachedPromises, ...detachedPromises, ...replacedPromises];
 
         // Always insert before to allow the element to transition.
         oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
 
-        if (newPromises.length) {
-          Promise.all(newPromises).then(() => {
+        if (allPromises.length) {
+          promises.push(Promise.all(allPromises).then(() => {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
             protectVTree(newTree);
             unprotectVTree(oldTree);
-          });
-
-          promises.push(...newPromises);
+          }));
         } else {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
           protectVTree(newTree);
@@ -1126,7 +1134,65 @@ function patchNode$$1(patches, state) {
     }
   }
 
+  // Change all nodeValues.
+  if (NODE_VALUE.length) {
+    for (let i = 0; i < NODE_VALUE.length; i += 3) {
+      const vTree = NODE_VALUE[i];
+      const nodeValue = NODE_VALUE[i + 1];
+      const oldValue = NODE_VALUE[i + 2];
+      const domNode = NodeCache.get(vTree);
+      const textChanged = TransitionCache.get('textChanged');
+      const textChangedPromises = runTransitions('textChanged', domNode, oldValue, nodeValue);
+
+      const { parentNode } = domNode;
+
+      if (nodeValue.includes('&')) {
+        domNode.nodeValue = decodeEntities(nodeValue);
+      } else {
+        domNode.nodeValue = nodeValue;
+      }
+
+      if (parentNode && blockText.has(parentNode.nodeName.toLowerCase())) {
+        parentNode.nodeValue = escape(nodeValue);
+      }
+
+      if (textChangedPromises.length) {
+        promises.push(...textChangedPromises);
+      }
+    }
+  }
+
   return promises;
+}
+
+function syncTrees(transaction) {
+  const { state: { measure, oldTree }, newTree, domNode } = transaction;
+
+  measure('sync trees');
+
+  // Do a global replace of the element, unable to do this at a lower level.
+  // Ignore this for document fragments, they don't appear in the DOM and we
+  // treat them as transparent containers.
+  if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
+    transaction.patches = {
+      TREE_OPS: [{ REPLACE_CHILD: [newTree, oldTree] }],
+      SET_ATTRIBUTE: [],
+      REMOVE_ATTRIBUTE: [],
+      NODE_VALUE: []
+    };
+
+    unprotectVTree(transaction.oldTree);
+    transaction.oldTree = transaction.state.oldTree = newTree;
+
+    // Update the StateCache since we are changing the top level element.
+    StateCache.set(createNode(newTree), transaction.state);
+  }
+  // Otherwise only diff the children.
+  else {
+      transaction.patches = syncTree(oldTree, newTree);
+    }
+
+  measure('sync trees');
 }
 
 /**
@@ -1137,10 +1203,13 @@ function patchNode$$1(patches, state) {
  */
 function patch(transaction) {
   const { domNode, state, state: { measure }, patches } = transaction;
+  const { promises = [] } = transaction;
 
   measure('patch node');
-  transaction.promises = patchNode$$1(patches, state).filter(Boolean);
+  promises.push(...patchNode$$1(patches, state));
   measure('patch node');
+
+  transaction.promises = promises;
 }
 
 // End flow, this terminates the transaction and returns a Promise that
@@ -1184,9 +1253,29 @@ class Transaction {
     }
 
     // Create the next transaction.
-    const { nextTransaction: { domNode, markup, options } } = state;
+    const { nextTransaction, nextTransaction: { promises } } = state;
     state.nextTransaction = undefined;
-    Transaction.create(domNode, markup, options).start();
+
+    // Pull out the resolver deferred.
+    const resolver = promises && promises[0];
+
+    // Remove the aborted status.
+    nextTransaction.aborted = false;
+
+    // Remove the last task, this has already been executed (via abort).
+    nextTransaction.tasks.pop();
+
+    // Reflow this transaction, sans the terminator, since we have already
+    // executed it.
+    Transaction.flow(nextTransaction, nextTransaction.tasks);
+
+    // Wait for the promises to complete if they exist, otherwise resolve
+    // immediately.
+    if (promises && promises.length > 1) {
+      Promise.all(promises.slice(1)).then(() => resolver.resolve());
+    } else if (resolver) {
+      resolver.resolve();
+    }
   }
 
   static flow(transaction, tasks) {
@@ -1215,6 +1304,9 @@ class Transaction {
   }
 
   static assert(transaction) {
+    if (typeof transaction.domNode !== 'object') {
+      throw new Error('Transaction requires a DOM Node mount point');
+    }
     if (transaction.aborted && transaction.completed) {
       throw new Error('Transaction was previously aborted');
     } else if (transaction.completed) {

@@ -66,7 +66,85 @@ describe('HTML (Tagged template)', function() {
         class: 'some-icon icon'
       },
     });
-  })
+  });
+
+  it('will flatten nested fragments', () => {
+    const array = [1];
+    const vTree = html`
+      <div>
+        ${array.map(i => html`
+          <p>Some label</p>
+          <span>${i}</span>
+        `)}
+      </div>
+    `;
+
+    deepEqual(vTree, {
+      rawNodeName: 'div',
+      nodeName: "div",
+      nodeValue: "",
+      nodeType: 1,
+      key: "",
+      childNodes: [{
+        rawNodeName: "#text",
+        nodeName: "#text",
+        nodeValue: "\n        ",
+        nodeType: 3,
+        key: "",
+        childNodes: [],
+        attributes: {},
+      }, {
+        rawNodeName: "p",
+        nodeName: "p",
+        nodeValue: "",
+        nodeType: 1,
+        key: "",
+        childNodes: [{
+          rawNodeName: "#text",
+          nodeName: "#text",
+          nodeValue: "Some label",
+          nodeType: 3,
+          key: "",
+          childNodes: [],
+          attributes: {},
+        }],
+        attributes: {},
+      }, {
+        rawNodeName: "#text",
+        nodeName: "#text",
+        nodeValue: "\n          ",
+        nodeType: 3,
+        key: "",
+        childNodes: [],
+        attributes: {},
+      }, {
+        rawNodeName: "span",
+        nodeName: "span",
+        nodeValue: "",
+        nodeType: 1,
+        key: "",
+        childNodes: [{
+          rawNodeName: "#text",
+          nodeName: "#text",
+          nodeValue: "1",
+          nodeType: 3,
+          key: "",
+          childNodes: [],
+          attributes: {},
+        }],
+        attributes: {},
+      }, {
+        rawNodeName: "#text",
+        nodeName: "#text",
+        nodeValue: "\n      ",
+        nodeType: 3,
+        key: "",
+        childNodes: [],
+        attributes: {},
+      }],
+      attributes: {},
+    });
+  });
 
   it('will return a fragment with multiple top level elements w/o values', () => {
     const vTree = html`<span class="has-class" /><span />`;

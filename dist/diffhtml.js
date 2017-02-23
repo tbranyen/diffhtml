@@ -224,7 +224,9 @@ function createTree(input, attributes, childNodes, ...rest) {
     for (let i = 0; i < input.length; i++) {
       const newTree = createTree(input[i]);
 
-      if (newTree) {
+      if (newTree && newTree.nodeType === 11) {
+        childNodes.push(...newTree.childNodes);
+      } else if (newTree) {
         childNodes.push(newTree);
       }
     }
@@ -647,7 +649,7 @@ function syncTree(oldTree, newTree, patches) {
 // https://github.com/ashi009/node-fast-html-parser
 
 const hasNonWhitespaceEx = /\S/;
-const doctypeEx = /<!.*>/ig;
+const doctypeEx = /<!.*>/i;
 const attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 const spaceEx = /[^ ]/;
 const tokenEx = /__DIFFHTML__([^_]*)__/;
@@ -682,16 +684,8 @@ const kElementsClosedByClosing = {
  * @param supplemental
  */
 const interpolateValues = (currentParent, string, supplemental = {}) => {
-  tokenEx.lastIndex = 0;
-
   // If this is text and not a doctype, add as a text node.
-  if (string && !string.match(doctypeEx) && !tokenEx.test(string)) {
-    return currentParent.childNodes.push(createTree('#text', string));
-  }
-
-  tokenEx.lastIndex = 0;
-
-  if (typeof string === 'string' && !tokenEx.test(string)) {
+  if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
     return currentParent.childNodes.push(createTree('#text', string));
   }
 
@@ -719,7 +713,7 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
       } else {
         childNodes.push(innerTree);
       }
-    } else if (!doctypeEx.test(value) && i !== parts.length - 1) {
+    } else if (!doctypeEx.test(value)) {
       childNodes.push(createTree('#text', value));
     }
   }
@@ -754,15 +748,12 @@ const HTMLElement = (nodeName, rawAttrs, supplemental) => {
     const value = match[6] || match[5] || match[4] || match[1];
     let tokenMatch = value.match(tokenEx);
 
-    tokenEx.lastIndex = 0;
-
     // If we have multiple interpolated values in an attribute, we must
     // flatten to a string. There are no other valid options.
     if (tokenMatch && tokenMatch.length) {
       const parts = value.split(tokenEx);
       let { length } = parts;
 
-      tokenEx.lastIndex = 0;
       const hasToken = tokenEx.exec(name);
       const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
 
@@ -792,9 +783,6 @@ const HTMLElement = (nodeName, rawAttrs, supplemental) => {
       }
     } else if (tokenMatch = tokenEx.exec(name)) {
       const nameAndValue = supplemental.attributes[tokenMatch[1]];
-
-      tokenEx.lastIndex = 0;
-
       const hasToken = tokenEx.exec(value);
       const getValue = hasToken ? supplemental.attributes[hasToken[1]] : value;
 
@@ -817,8 +805,6 @@ const HTMLElement = (nodeName, rawAttrs, supplemental) => {
  */
 function parse(html, supplemental, options = {}) {
   // Reset regular expression positions per parse.
-  hasNonWhitespaceEx.lastIndex = 0;
-  doctypeEx.lastIndex = 0;
   attrEx.lastIndex = 0;
   tagEx.lastIndex = 0;
 
@@ -1078,6 +1064,15 @@ var internals = Object.freeze({
 	parse: parse
 });
 
+/**
+ * If diffHTML is rendering anywhere asynchronously, we need to wait until it
+ * completes before this render can be executed. This sets up the next
+ * buffer, if necessary, which serves as a Boolean determination later to
+ * `bufferSet`.
+ *
+ * @param {Object} nextTransaction - The Transaction instance to schedule
+ * @return {Boolean} - Value used to terminate a transaction render flow
+ */
 function schedule(transaction) {
   // The state is a global store which is shared by all like-transactions.
   const { state } = transaction;
@@ -1085,6 +1080,14 @@ function schedule(transaction) {
   // If there is an in-flight transaction render happening, push this
   // transaction into a queue.
   if (state.isRendering) {
+    // Resolve an existing transaction that we're going to pave over in the
+    // next statement.
+    if (state.nextTransaction) {
+      state.nextTransaction.promises[0].resolve(state.nextTransaction);
+    }
+
+    // Set a pointer to this current transaction to render immediatately after
+    // the current transaction completes.
     state.nextTransaction = transaction;
 
     const deferred = {};
@@ -1190,6 +1193,15 @@ function reconcileTrees(transaction) {
   measure('reconcile trees');
 }
 
+/**
+ * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
+ * Sets the node into the Node cache. If this VTree already has an
+ * associated node, it will reuse that.
+ *
+ * @param {Object} - A Virtual Tree Element or VTree-like element
+ * @param {Object} - Document to create Nodes in
+ * @return {Object} - A DOM Node matching the vTree
+ */
 function createNode(vTree, doc = document) {
   if (!vTree) {
     throw new Error('Missing VTree when trying to create DOM Node');
@@ -1210,7 +1222,7 @@ function createNode(vTree, doc = document) {
   // Create empty text elements. They will get filled in during the patch
   // process.
   if (nodeName === '#text') {
-    domNode = doc.createTextNode('');
+    domNode = doc.createTextNode(vTree.nodeValue);
   }
   // Support dynamically creating document fragments.
   else if (nodeName === '#document-fragment') {
@@ -1240,6 +1252,7 @@ function createNode(vTree, doc = document) {
   return domNode;
 }
 
+// Available transition states.
 const stateNames = ['attached', 'detached', 'replaced', 'attributeChanged', 'textChanged'];
 
 // Sets up the states up so we can add and remove events from the sets.
@@ -1387,10 +1400,12 @@ function patchNode$$1(patches, state) {
 
       if (newPromises.length) {
         Promise.all(newPromises).then(() => {
-          mutationCallback(domNode, name, value);
+          mutationCallback(domNode, name, decodeEntities(value));
         });
+
+        promises.push(...newPromises);
       } else {
-        mutationCallback(domNode, name, value);
+        mutationCallback(domNode, name, decodeEntities(value));
       }
     }
   }
@@ -1407,6 +1422,7 @@ function patchNode$$1(patches, state) {
 
       if (newPromises.length) {
         Promise.all(newPromises).then(() => removeAttribute(domNode, name));
+        promises.push(...newPromises);
       } else {
         removeAttribute(domNode, name);
       }
@@ -1513,15 +1529,13 @@ function patchNode$$1(patches, state) {
       const { parentNode } = domNode;
 
       if (nodeValue.includes('&')) {
-        domNode.nodeValue = decodeEntities(escape(nodeValue));
+        domNode.nodeValue = decodeEntities(nodeValue);
       } else {
-        domNode.nodeValue = escape(nodeValue);
+        domNode.nodeValue = nodeValue;
       }
 
-      if (parentNode) {
-        if (blockText$1.has(parentNode.nodeName.toLowerCase())) {
-          parentNode.nodeValue = escape(nodeValue);
-        }
+      if (parentNode && blockText$1.has(parentNode.nodeName.toLowerCase())) {
+        parentNode.nodeValue = escape(nodeValue);
       }
 
       if (textChangedPromises.length) {
@@ -1563,6 +1577,12 @@ function syncTrees(transaction) {
   measure('sync trees');
 }
 
+/**
+ * Processes a set of patches onto a tracked DOM Node.
+ *
+ * @param {Object} node - DOM Node to process patchs on
+ * @param {Array} patches - Contains patch objects
+ */
 function patch(transaction) {
   const { domNode, state, state: { measure }, patches } = transaction;
   const { promises = [] } = transaction;
@@ -1615,16 +1635,16 @@ class Transaction {
     }
 
     // Create the next transaction.
-    const { nextTransaction } = state;
+    const { nextTransaction, nextTransaction: { promises } } = state;
     state.nextTransaction = undefined;
 
     // Pull out the resolver deferred.
-    const resolver = nextTransaction.promises.shift();
+    const resolver = promises && promises[0];
 
     // Remove the aborted status.
     nextTransaction.aborted = false;
 
-    // Remove the last task, this has already been executed.
+    // Remove the last task, this has already been executed (via abort).
     nextTransaction.tasks.pop();
 
     // Reflow this transaction, sans the terminator, since we have already
@@ -1633,9 +1653,9 @@ class Transaction {
 
     // Wait for the promises to complete if they exist, otherwise resolve
     // immediately.
-    if (nextTransaction.promises.length) {
-      Promise.all(nextTransaction.promises).then(() => resolver.resolve());
-    } else {
+    if (promises && promises.length > 1) {
+      Promise.all(promises.slice(1)).then(() => resolver.resolve());
+    } else if (resolver) {
       resolver.resolve();
     }
   }
@@ -1666,6 +1686,9 @@ class Transaction {
   }
 
   static assert(transaction) {
+    if (typeof transaction.domNode !== 'object') {
+      throw new Error('Transaction requires a DOM Node mount point');
+    }
     if (transaction.aborted && transaction.completed) {
       throw new Error('Transaction was previously aborted');
     } else if (transaction.completed) {
@@ -1793,9 +1816,16 @@ class Transaction {
 const isAttributeEx = /(=|"|')[^><]*?$/;
 const isTagEx = /(<|\/)/;
 const TOKEN = '__DIFFHTML__';
+/**
+ * Get the next value from the list. If the next value is a string, make sure
+ * it is escaped.
+ *
+ * @param {Array} values - Values extracted from tagged template literal
+ * @return {String|*} - Escaped string, otherwise any value passed
+ */
 const nextValue = values => {
   const value = values.shift();
-  return typeof value === 'string' ? decodeEntities(value) : value;
+  return typeof value === 'string' ? escape(decodeEntities(value)) : value;
 };
 
 function handleTaggedTemplate(options, strings, ...values) {
@@ -1805,7 +1835,7 @@ function handleTaggedTemplate(options, strings, ...values) {
   }
 
   // Do not attempt to parse empty strings.
-  if (!strings || !strings[0].length) {
+  if (!strings) {
     return null;
   }
 
@@ -1926,6 +1956,113 @@ function use(middleware) {
   };
 }
 
+/**
+ * A convenient helper to create Virtual Tree elements. This can be used in
+ * place of HTML parsing and is what the Babel transform will compile down to.
+ *
+ * @example
+ *
+ *    import { createTree } from 'diffhtml';
+ *
+ *    // Creates a div with the test class and a nested text node.
+ *    const vTree = createTree('div', { 'class': 'test' }, 'Hello world');
+ *
+ *    // Creates an empty div.
+ *    const vTree = createTree('div');
+ *
+ *    // Creates a VTree and associates it with a DOM Node.
+ *    const div = document.createElement('div');
+ *    const vTree = createTree(div);
+ *
+ *    // Create a fragment of Nodes (is wrapped by a #document-fragment).
+ *    const vTree = createTree([createTree('div'), createTree('h1')]);
+ *    console.log(vTree.nodeName === '#document-fragment'); // true
+ *
+ *    // Any other object passed to `createTree` will be returned and assumed
+ *    // to be an object that is shaped like a VTree.
+ *    const vTree = createTree({
+ *      nodeName: 'div',
+ *      attributes: { 'class': 'on' },
+ *    });
+ *
+ *
+ * @param {Array|Object|Node} nodeName - Value used to infer making the DOM Node
+ * @param {Object =} attributes - Attributes to assign
+ * @param {Array|Object|String|Node =} childNodes - Children to assign
+ * @return {Object} A VTree object
+ */
+/**
+ * Parses HTML strings into Virtual Tree elements. This can be a single static
+ * string, like that produced by a template engine, or a complex tagged
+ * template string.
+ *
+ * @example
+ *
+ *    import { html } from 'diffhtml';
+ *
+ *    // Parses HTML directly from a string, useful for consuming template
+ *    // engine output and inlining markup.
+ *    const fromString = html('<center>Markup</center>');
+ *
+ *    // Parses a tagged template string. This can contain interpolated
+ *    // values in between the `${...}` symbols. The values are typically
+ *    // going to be strings, but you can pass any value to any property or
+ *    // attribute.
+ *    const fromTaggedTemplate = html`<center>${'Markup'}</center>`;
+ *
+ *    // You can pass functions to event handlers and basically any value to
+ *    // property or attribute. If diffHTML encounters a value that is not a
+ *    // string it will still create an attribute, but the value will be an
+ *    // empty string. This is necessary for tracking changes.
+ *    const dynamicValues = html`<center onclick=${
+ *      ev => console.log('Clicked the center tag')
+ *    }>Markup</center>`;
+ *
+ *
+ * @param {String} markup - A string or tagged template string containing HTML
+ * @return {Object|Array} - A single instance or array of Virtual Tree elements
+ */
+/**
+ * Recycles internal memory, removes state, and cancels all scheduled render
+ * transactions. This is mainly going to be used in unit tests and not
+ * typically in production. The reason for this is that components are usually
+ * going to live the lifetime of the page, with a refresh cleaning slate.
+ *
+ * @example
+ *
+ *    import { innerHTML, release } from 'diffhtml';
+ *
+ *    // Associate state and reuse pre-allocated memory.
+ *    innerHTML(document.body, 'Hello world');
+ *
+ *    // Free all association to `document.body`.
+ *    release(document.body);
+ *
+ *
+ * @param {Object} node - A DOM Node that is being tracked by diffHTML
+ */
+/**
+ * Registers middleware functions which are called during the render
+ * transaction flow. These should be very fast and ideally asynchronous to
+ * avoid blocking the render.
+ *
+ * @example
+ *
+ *    import { use } from 'diffhtml';
+ *    import logger from 'diffhtml-logger';
+ *    import devTools from 'diffhtml-devtools';
+ *
+ *    use(logger());
+ *    use(devTools());
+ *
+ *
+ * @param {Function} middleware - A function that gets passed internals
+ * @return Function - When invoked removes and deactivates the middleware
+ */
+/**
+ * Export the version based on the package.json version field value, is inlined
+ * with babel.
+ */
 const VERSION = '1.0.0-beta';
 
 /**
