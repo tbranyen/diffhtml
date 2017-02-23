@@ -1,3 +1,4 @@
+import assert from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validateMemory';
 

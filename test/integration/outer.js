@@ -1,5 +1,6 @@
+import assert from 'assert';
 import * as diff from '../../lib/index';
-import { html } from '../../lib/util/tagged-template';
+import html from '../../lib/html';
 import validateMemory from '../util/validateMemory';
 
 describe('Integration: outerHTML', function() {
@@ -63,7 +64,6 @@ describe('Integration: outerHTML', function() {
 
   it('can replace an element with a parent', function() {
     diff.outerHTML(this.fixture.firstChild, '<p></p>');
-
     assert.equal(this.fixture.firstChild.tagName, 'P');
   });
 
@@ -72,12 +72,12 @@ describe('Integration: outerHTML', function() {
       nodeName: 'div',
       nodeType: 1,
       nodeValue: '',
-      attributes: [{ name: 'id', value: 'test' }],
+      attributes: { id: 'test' },
       childNodes: [{
         nodeName: '#text',
         nodeValue: 'hello world',
         nodeType: 3,
-        attributes: [],
+        attributes: {},
         childNodes: []
       }]
     });
@@ -144,7 +144,7 @@ describe('Integration: outerHTML', function() {
       `);
 
       assert.equal(this.fixture.querySelector('p'), null);
-      assert.equal(this.fixture.childNodes[1].firstChild.textContent.trim(), `
+      assert.equal(this.fixture.childNodes[0].innerHTML.trim(), `
          var test = \"<p></p>\";
       `.trim());
     });

@@ -1,5 +1,6 @@
+import assert from 'assert';
 import * as diff from '../../lib/index';
-import { html } from '../../lib/util/tagged-template';
+import html from '../../lib/html';
 import validateMemory from '../util/validateMemory';
 
 describe('Integration: Tagged template', function() {
@@ -24,14 +25,14 @@ describe('Integration: Tagged template', function() {
         rawNodeName: 'div',
         nodeType: 1,
         nodeValue: '',
-        attributes: [],
+        attributes: {},
         childNodes: [{
           key: '',
           nodeName: '#text',
           rawNodeName: '#text',
           nodeType: 3,
           nodeValue: 'hello world',
-          attributes: [],
+          attributes: {},
           childNodes: [],
         }],
       };
@@ -51,21 +52,29 @@ describe('Integration: Tagged template', function() {
         rawNodeName: 'ul',
         nodeType: 1,
         nodeValue: '',
-        attributes: [],
+        attributes: {},
         childNodes: [{
+          attributes: {},
+          childNodes: [],
+          key: '',
+          nodeName: '#text',
+          nodeType: 3,
+          nodeValue: '\n        ',
+          rawNodeName: '#text',
+        }, {
           key: '',
           nodeName: 'li',
           rawNodeName: 'li',
           nodeType: 1,
           nodeValue: '',
-          attributes: [],
+          attributes: {},
           childNodes: [{
             key: '',
             nodeName: '#text',
             rawNodeName: '#text',
             nodeValue: '1',
             childNodes: [],
-            attributes: [],
+            attributes: {},
             nodeType: 3
           }],
         }, {
@@ -74,14 +83,14 @@ describe('Integration: Tagged template', function() {
           rawNodeName: 'li',
           nodeType: 1,
           nodeValue: '',
-          attributes: [],
+          attributes: {},
           childNodes: [{
             key: '',
             nodeName: '#text',
             rawNodeName: '#text',
             nodeValue: '2',
             childNodes: [],
-            attributes: [],
+            attributes: {},
             nodeType: 3
           }],
         }, {
@@ -90,16 +99,24 @@ describe('Integration: Tagged template', function() {
           rawNodeName: 'li',
           nodeType: 1,
           nodeValue: '',
-          attributes: [],
+          attributes: {},
           childNodes: [{
             key: '',
             nodeName: '#text',
             rawNodeName: '#text',
             nodeValue: '3',
             childNodes: [],
-            attributes: [],
+            attributes: {},
             nodeType: 3
           }],
+        }, {
+          attributes: {},
+          childNodes: [],
+          key: '',
+          nodeName: '#text',
+          nodeType: 3,
+          nodeValue: '\n      ',
+          rawNodeName: '#text',
         }],
       };
 
@@ -116,7 +133,7 @@ describe('Integration: Tagged template', function() {
           rawNodeName: 'div',
           nodeType: 1,
           nodeValue: '',
-          attributes: [],
+          attributes: {},
 
           childNodes: [{
             key: '',
@@ -124,14 +141,14 @@ describe('Integration: Tagged template', function() {
             rawNodeName: 'p',
             nodeType: 1,
             nodeValue: '',
-            attributes: [],
+            attributes: {},
 
             childNodes: [{
               key: '',
               nodeName: '#text',
               rawNodeName: '#text',
               nodeValue: text,
-              attributes: [],
+              attributes: {},
               nodeType: 3,
 
               childNodes: [],
@@ -204,7 +221,7 @@ describe('Integration: Tagged template', function() {
     `);
 
     var expected = `
-      Foo <table></table><div class="something"><table></table></div>
+      Foo <table></table> <div class="something"><table></table></div>
     `;
 
     assert.equal(this.fixture.innerHTML.trim(), expected.trim());

@@ -2,6 +2,7 @@ sudo: false
 language: node_js
 
 node_js:
+  - 6.8.0
   - stable
 
-script: npm test && cat test/coverage/*/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+script: NODE_ENV=test npm run test-cov && cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js

@@ -1,18 +1,19 @@
-import { pools } from '../../lib/util/pools';
-import { StateCache, NodeCache, MiddlewareCache } from '../../lib/util/cache';
+import assert from 'assert';
+import { NodeCache, MiddlewareCache, Pool, cleanMemory } from '../../lib/util';
+
+const { memory } = Pool;
 
 /**
  * Validates that the memory has been successfully cleaned per render.
  */
 export default function validateMemory() {
-  assert.equal(pools.elementObject.cache.protected.size, 0,
-    'Should not leave leftover protected elements');
+  cleanMemory();
 
-  assert.equal(pools.elementObject.cache.allocated.size, 0,
-    'Should not leave leftover element allocations');
+  assert.equal(memory.protected.size, 0,
+    'Should not leave leftover protected elements in memory');
 
-  assert.equal(pools.attributeObject.cache.allocated.size, 0,
-    'Should not leave leftover attribute allocations');
+  assert.equal(memory.allocated.size, 0,
+    'Should not leave leftover element allocations in memory');
 
   assert.equal(NodeCache.size, 0, 'The node cache should be empty');
   assert.equal(MiddlewareCache.size, 0, 'The middleware cache should be empty');

@@ -1,0 +1,10 @@
+verbose: false
+instrumentation:
+  root: lib
+  include-all-sources: true
+reporting:
+  print: summary
+  reports:
+    - lcov
+    - cobertura
+  dir: ./test/coverage/unit

@@ -1,5 +1,8 @@
+import assert from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validateMemory';
+
+const { html } = diff;
 
 describe('Integration: innerHTML', function() {
   beforeEach(function() {

@@ -1,3 +1,27 @@
 {
-  "presets": ["es2015"]
+  "env": {
+    "min": {
+      "presets": ["babili"]
+    },
+    "production": {
+      "plugins": ["version-inline"]
+    },
+    "cjs": {
+      "presets": ["es2015"],
+      "plugins": ["version-inline", "add-module-exports"]
+    },
+    "test": {
+      "presets": ["es2015"],
+      "plugins": ["version-inline"],
+      "retainLines": true
+    },
+    "test+cov": {
+      "presets": ["es2015"],
+      "plugins": [
+        "version-inline",
+        ["istanbul", { "useInlineSourceMaps": false }]
+      ],
+      "retainLines": true
+    }
+  }
 }
