@@ -467,8 +467,8 @@ describe('Integration: Transitions', function() {
           ok(fixture.querySelector('p'));
           equal(fixture.querySelector('p').className, '');
         },
-        () => equal(fixture.querySelector('p').className, ''),
         () => equal(fixture.querySelector('p').className, 'test'),
+        () => equal(fixture.querySelector('p').className, 'test2'),
       ];
 
       const unsubscribe = use(transaction => {
@@ -477,11 +477,11 @@ describe('Integration: Transitions', function() {
 
       addTransitionState('attributeChanged', () => promise);
 
-      const first = () => innerHTML(fixture, '<div><p></p></div>');
-      const second = () => innerHTML(fixture, '<div><p class="test"></p></div>');
-      const third = () => innerHTML(fixture, '<div><p class="test2"></p></div>');
+      const first = innerHTML(fixture, '<div><p></p></div>');
+      const second = innerHTML(fixture, '<div><p class="test"></p></div>');
+      const third = innerHTML(fixture, '<div><p class="test2"></p></div>');
 
-      return first().then(second).then(third).then(unsubscribe).then(() => {
+      return Promise.all([first, second, third]).then(unsubscribe).then(() => {
         equal(fixture.querySelector('p').className, 'test2');
         equal(assertions.length, 0);
       });

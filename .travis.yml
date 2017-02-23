@@ -3,5 +3,6 @@ language: node_js
 
 node_js:
   - 6.8.0
+  - 7.6.0
 
 script: NODE_ENV=test npm run test-cov && cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
