@@ -1,6 +1,7 @@
-import assert from 'assert';
+import { ok, deepEqual, equal, doesNotThrow, throws } from 'assert';
 import { spy, stub } from 'sinon';
 import Transaction from '../lib/transaction';
+import { schedule, endAsPromise }from '../lib/tasks';
 
 describe('Transaction', function() {
   beforeEach(() => {
@@ -16,7 +17,7 @@ describe('Transaction', function() {
       const { domNode, markup, options } = this;
       const transaction = new Transaction(domNode, markup, options);
 
-      assert.ok(transaction instanceof Transaction);
+      ok(transaction instanceof Transaction);
     });
 
     it('will attach relevant properties to the transaction instance', () => {
@@ -24,7 +25,7 @@ describe('Transaction', function() {
       const transaction = new Transaction(domNode, markup, options);
       const { tasks, state, endedCallbacks } = transaction;
 
-      assert.deepEqual(transaction, {
+      deepEqual(transaction, {
         domNode, markup, options, tasks, state, endedCallbacks
       });
     });
@@ -38,39 +39,111 @@ describe('Transaction', function() {
     it('will render the next transaction in the queue', () => {
       const { domNode, markup, options } = this;
       const newMarkup = '<div>Next test</div>';
-      const nextTransaction = { domNode, markup: newMarkup, options: {
-        tasks: [spy()]
-      }};
+      const nextTransaction = Transaction.create(domNode, newMarkup, {
+        tasks: [spy(), endAsPromise],
+      });
 
       const transaction = Transaction.create(domNode, markup, options);
       transaction.state.nextTransaction = nextTransaction;
       transaction.start();
 
-      assert.ok(transaction instanceof Transaction);
-      assert.ok(transaction.tasks[0].calledOnce);
+      ok(transaction instanceof Transaction);
+      ok(transaction.tasks[0].calledOnce);
 
       transaction.end();
 
-      assert.equal(nextTransaction.options.tasks[0].calledOnce, true);
+      equal(nextTransaction.options.tasks[0].calledOnce, true);
     });
 
-    it.skip('will schedule a transaction if a previous transaction is active', () => {
+    it('will schedule a transaction if a previous transaction is active', () => {
       const { domNode, markup, options } = this;
       const newMarkup = '<div>Next test</div>';
-      const nextTransaction = { domNode, markup: newMarkup, options: {
-        tasks: [spy()]
-      }};
+      const nextTransaction = Transaction.create(domNode, newMarkup, {
+        tasks: [schedule, spy(), endAsPromise]
+      });
 
       const transaction = Transaction.create(domNode, markup, options);
       transaction.state.nextTransaction = nextTransaction;
       transaction.start();
 
-      assert.ok(transaction instanceof Transaction);
-      assert.ok(transaction.tasks[0].calledOnce);
+      ok(transaction instanceof Transaction);
+      ok(transaction.tasks[0].calledOnce);
+      equal(nextTransaction.options.tasks[1].calledOnce, false);
 
       transaction.end();
 
-      assert.equal(nextTransaction.options.tasks[0].calledOnce, true);
+      equal(nextTransaction.options.tasks[1].calledOnce, true);
+    });
+
+    it('will schedule a transaction if a previous transaction is active', () => {
+      const { domNode, markup, options } = this;
+      const newMarkup = '<div>Next test</div>';
+
+      const transaction = Transaction.create(domNode, markup, {
+        tasks: [schedule, spy()]
+      });
+
+      transaction.start();
+
+      const nextTransaction = Transaction.create(domNode, newMarkup, {
+        tasks: [schedule, spy(), endAsPromise]
+      });
+
+      ok(transaction.state.isRendering);
+
+      const promise = nextTransaction.start();
+
+      ok(transaction.tasks[1].calledOnce);
+      equal(nextTransaction.tasks[1].called, false);
+
+      transaction.end();
+
+      equal(nextTransaction.tasks[1].calledOnce, true);
+      equal(nextTransaction.completed, undefined);
+
+      return promise.then(() => {
+        equal(nextTransaction.completed, true);
+      });
+    });
+
+    it('will only schedule a single transaction at a time', () => {
+      const { domNode, markup, options } = this;
+      const newMarkup = '<div>Next test</div>';
+
+      const transaction = Transaction.create(domNode, markup, {
+        tasks: [schedule, spy()]
+      });
+
+      transaction.start();
+
+      const skipTransaction = Transaction.create(domNode, newMarkup, {
+        tasks: [schedule, spy(), endAsPromise]
+      });
+
+      const nextTransaction = Transaction.create(domNode, newMarkup, {
+        tasks: [schedule, spy(), endAsPromise]
+      });
+
+      ok(transaction.state.isRendering);
+
+      const skipPromise = skipTransaction.start();
+      const nextPromise = nextTransaction.start();
+
+      equal(skipTransaction.tasks[1].called, false);
+      equal(nextTransaction.tasks[1].called, false);
+
+      transaction.end();
+
+      equal(skipTransaction.tasks[1].calledOnce, false);
+      equal(nextTransaction.tasks[1].calledOnce, true);
+
+      equal(skipTransaction.completed, undefined);
+      equal(nextTransaction.completed, undefined);
+
+      return Promise.all([skipPromise, nextPromise]).then(() => {
+        equal(skipTransaction.completed, true);
+        equal(nextTransaction.completed, true);
+      });
     });
   });
 
@@ -85,7 +158,7 @@ describe('Transaction', function() {
       const transaction = Transaction.create(domNode, markup, { tasks });
       transaction.aborted = false;
       transaction.completed = false;
-      assert.doesNotThrow(() => transaction.start());
+      doesNotThrow(() => transaction.start());
       transaction.end();
     });
 
@@ -99,7 +172,7 @@ describe('Transaction', function() {
       const transaction = Transaction.create(domNode, markup, { tasks });
       transaction.aborted = true;
       transaction.completed = true;
-      assert.throws(() => transaction.start());
+      throws(() => transaction.start());
     });
 
     it('will error if a transaction has been completed', () => {
@@ -112,7 +185,7 @@ describe('Transaction', function() {
       const transaction = Transaction.create(domNode, markup, { tasks });
       transaction.aborted = false;
       transaction.completed = true;
-      assert.throws(() => transaction.start());
+      throws(() => transaction.start());
     });
   });
 
@@ -122,8 +195,8 @@ describe('Transaction', function() {
 
       Transaction.flow(this, [testFn]);
 
-      assert.equal(testFn.calledOnce, true);
-      assert.equal(testFn.calledWith(this), true);
+      equal(testFn.calledOnce, true);
+      equal(testFn.calledWith(this), true);
     });
 
     it('will set up multiple functions to run', () => {
@@ -132,8 +205,8 @@ describe('Transaction', function() {
 
       Transaction.flow(this, [testFn, testFnTwo]);
 
-      assert.equal(testFn.calledOnce, true);
-      assert.equal(testFnTwo.calledOnce, true);
+      equal(testFn.calledOnce, true);
+      equal(testFnTwo.calledOnce, true);
     });
 
     it('will abort a flow when a function returns a value', () => {
@@ -143,16 +216,16 @@ describe('Transaction', function() {
 
       Transaction.flow(this, [testFn, testFnTwo, testFnThree]);
 
-      assert.equal(testFn.calledOnce, true);
-      assert.equal(testFnTwo.calledOnce, true);
-      assert.equal(testFnThree.calledOnce, false);
+      equal(testFn.calledOnce, true);
+      equal(testFnTwo.calledOnce, true);
+      equal(testFnThree.calledOnce, false);
     });
 
     it('will throw an exception if any values are not functions', () => {
       const testFn = spy();
       const testFnTwo = undefined;
 
-      assert.throws(() => Transaction.flow(testFn, testFnTwo)());
+      throws(() => Transaction.flow(testFn, testFnTwo)());
     });
 
     it('will pass initial value as arguments to all functions', () => {
@@ -163,11 +236,11 @@ describe('Transaction', function() {
 
       Transaction.flow(this, [testFnOne, testFnTwo]);
 
-      assert.equal(testFnOne.calledOnce, true);
-      assert.equal(testFnOne.calledWith(this), true);
+      equal(testFnOne.calledOnce, true);
+      equal(testFnOne.calledWith(this), true);
 
-      assert.equal(testFnTwo.calledOnce, true);
-      assert.equal(testFnTwo.calledWith(this), true);
+      equal(testFnTwo.calledOnce, true);
+      equal(testFnTwo.calledWith(this), true);
     });
 
     it('will abort the flow', () => {
@@ -181,9 +254,9 @@ describe('Transaction', function() {
 
       transaction.start();
 
-      assert.equal(testFnTwo.called, false);
-      assert.equal(testFnThree.calledOnce, true);
-      assert.equal(testFnThree.calledWith(transaction), true);
+      equal(testFnTwo.called, false);
+      equal(testFnThree.calledOnce, true);
+      equal(testFnThree.calledWith(transaction), true);
     });
   });
 

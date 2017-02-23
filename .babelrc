@@ -1,12 +1,21 @@
 {
   "env": {
+    "min": {
+      "presets": ["babili"]
+    },
     "production": {
-      "presets": [
-        ["es2015", { "modules": false }]
-      ],
       "plugins": ["version-inline"]
     },
+    "cjs": {
+      "presets": ["es2015"],
+      "plugins": ["version-inline", "add-module-exports"]
+    },
     "test": {
+      "presets": ["es2015"],
+      "plugins": ["version-inline"],
+      "retainLines": true
+    },
+    "test+cov": {
       "presets": ["es2015"],
       "plugins": [
         "version-inline",

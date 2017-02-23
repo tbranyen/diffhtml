@@ -1,3 +1,4 @@
+import assert from 'assert';
 import * as diff from '../../lib/index.js';
 import validateMemory from '../util/validateMemory';
 

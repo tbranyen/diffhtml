@@ -1,4 +1,4 @@
-import { ok, equal } from 'assert';
+import { ok, equal, throws } from 'assert';
 import { createNode } from '../lib/node';
 import validateMemory from './util/validateMemory';
 
@@ -6,6 +6,14 @@ describe('Node', function() {
   afterEach(() => validateMemory());
 
   describe('create', () => {
+    it('will throw an error if called without a vTree', () => {
+      throws(() => createNode());
+      throws(() => createNode(null));
+      throws(() => createNode(undefined));
+      throws(() => createNode(false));
+      throws(() => createNode(''));
+    });
+
     it('will create a DOM Node from a vTree', () => {
       const domNode = createNode({
         nodeName: 'div',
@@ -82,6 +90,17 @@ describe('Node', function() {
       });
 
       equal(domNode.getAttribute('class'), null);
+    });
+
+    it('will create document fragments', () => {
+      const domNode = createNode({
+        nodeName: '#document-fragment',
+        childNodes: [{ nodeName: '#text', nodeValue: 'test' }],
+      });
+
+      equal(domNode.nodeName, '#document-fragment');
+      equal(domNode.childNodes[0].nodeName, '#text');
+      equal(domNode.childNodes[0].nodeValue, 'test');
     });
   });
 });

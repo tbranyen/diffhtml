@@ -1,3 +1,4 @@
+import assert from 'assert';
 import * as diff from '../../lib/index';
 import html from '../../lib/html';
 import validateMemory from '../util/validateMemory';
@@ -63,7 +64,6 @@ describe('Integration: outerHTML', function() {
 
   it('can replace an element with a parent', function() {
     diff.outerHTML(this.fixture.firstChild, '<p></p>');
-
     assert.equal(this.fixture.firstChild.tagName, 'P');
   });
 
@@ -72,12 +72,12 @@ describe('Integration: outerHTML', function() {
       nodeName: 'div',
       nodeType: 1,
       nodeValue: '',
-      attributes: [{ name: 'id', value: 'test' }],
+      attributes: { id: 'test' },
       childNodes: [{
         nodeName: '#text',
         nodeValue: 'hello world',
         nodeType: 3,
-        attributes: [],
+        attributes: {},
         childNodes: []
       }]
     });
@@ -97,154 +97,6 @@ describe('Integration: outerHTML', function() {
     assert.equal(this.fixture.firstChild.getAttribute('id'), 'test');
     assert.equal(this.fixture.firstChild.id, 'test');
     assert.equal(this.fixture.firstChild.textContent, 'hello world');
-  });
-
-  describe('Components', function() {
-    it('can render a component', function() {
-      class MainComponent {
-        render() {
-          return html`
-            <div>
-              This works!
-            </div>
-          `;
-        }
-      }
-
-      diff.outerHTML(this.fixture, diff.createElement(MainComponent));
-
-      assert.equal(this.fixture.innerHTML.trim(), 'This works!');
-    });
-
-    it('can render components as tag names', function() {
-      class MainComponent {
-        render() {
-          return html`
-            <div>
-              This works!
-            </div>
-          `;
-        }
-      }
-
-      //diff.outerHTML(this.fixture, diff.createElement(MainComponent));
-      diff.outerHTML(this.fixture, html`<${MainComponent} />`);
-
-      assert.equal(this.fixture.innerHTML.trim(), 'This works!');
-    });
-
-    it('can pass props to the component', function() {
-      class MainComponent {
-        render() {
-          return html`
-            <div>
-              ${this.props.message} - ${this.props.children}
-            </div>
-          `;
-        }
-
-        constructor(props) {
-          this.props = props;
-        }
-      }
-
-      diff.outerHTML(this.fixture, html`
-        <${MainComponent} message="Testing">This out!</${MainComponent}>
-      `);
-
-      assert.equal(this.fixture.innerHTML.trim(), 'Testing - This out!');
-    });
-
-    it('supports two dynamic components as tag names', function() {
-      class ComponentOne {
-        render() {
-          return html`
-            <div>ComponentOne ${this.props.label}</div>
-          `;
-        }
-
-        constructor(props) { this.props = props; }
-      }
-
-      class ComponentTwo {
-        render() {
-          return html`
-            <div>ComponentTwo ${this.props.label}</div>
-          `;
-        }
-
-        constructor(props) { this.props = props; }
-      }
-
-      //diff.outerHTML(this.fixture, diff.createElement(MainComponent));
-      diff.outerHTML(this.fixture, html`
-        <div>
-          <${ComponentOne} label="Testing"></${ComponentOne}>
-          <${ComponentTwo} label="Testing"></${ComponentTwo}>
-        </div>
-      `);
-
-      assert.equal(this.fixture.textContent, '\n          ComponentOne Testing\n          ComponentTwo Testing\n        ');
-    });
-
-    it('can remove a dynamic tag name', function() {
-      class ComponentOne {
-        render() {
-          return html`
-            <div>ComponentOne ${this.props.label}</div>
-          `;
-        }
-
-        constructor(props) { this.props = props; }
-      }
-
-      class ComponentTwo {
-        render() {
-          return html`
-            <div>ComponentTwo ${this.props.label}</div>
-          `;
-        }
-
-        constructor(props) { this.props = props; }
-      }
-
-      diff.outerHTML(this.fixture, html`
-        <div>
-          <${ComponentOne} label="Testing"></${ComponentOne}>
-          <${ComponentTwo} label="Testing"></${ComponentTwo}>
-        </div>
-      `);
-
-      assert.equal(this.fixture.textContent, '\n          ComponentOne Testing\n          ComponentTwo Testing\n        ');
-
-      diff.outerHTML(this.fixture, html`
-        <div>
-          <${ComponentOne} label="Testing"></${ComponentOne}>
-        </div>
-      `);
-
-      assert.equal(this.fixture.textContent, '\n          ComponentOne Testing\n        ');
-    });
-
-    it('can get the DOM Node from a component', function() {
-      let node = null;
-
-      class ComponentOne {
-        onClick() {
-          node = this.getDOMNode();
-        }
-
-        render() {
-          return html`<div onclick=${this.onClick.bind(this)} />`;
-        }
-      }
-
-      diff.outerHTML(this.fixture, html`<${ComponentOne} />`);
-
-      this.fixture.click();
-
-      assert.equal(this.fixture, node);
-    });
   });
 
   describe('Comments', function() {
@@ -292,7 +144,7 @@ describe('Integration: outerHTML', function() {
       `);
 
       assert.equal(this.fixture.querySelector('p'), null);
-      assert.equal(this.fixture.childNodes[1].firstChild.textContent.trim(), `
+      assert.equal(this.fixture.childNodes[0].innerHTML.trim(), `
          var test = \"<p></p>\";
       `.trim());
     });
