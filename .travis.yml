@@ -5,4 +5,4 @@ node_js:
   - 6.8.0
   - stable
 
-script: NODE_ENV=test npm run test-cov && cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+script: NODE_ENV=test npm run test-cov && cat packages/diffhtml/coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js

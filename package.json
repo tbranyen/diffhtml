@@ -4,7 +4,8 @@
   "version": "1.0.0-beta",
   "description": "Build web user interfaces with JavaScript",
   "scripts": {
-    "test": "NODE_ENV=test lerna run test"
+    "test": "NODE_ENV=test lerna run test",
+    "test-cov": "NODE_ENV=test lerna run test-cov"
   },
   "repository": {
     "type": "git",
