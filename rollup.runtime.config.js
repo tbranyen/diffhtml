@@ -38,7 +38,10 @@ export const plugins = [
       `,
       './lib/util/parser.js': `
         export default () => console.log('Runtime is not built with parsing');
-      `
+      `,
+      './lib/util/performance.js': `
+        export default () => () => {};
+      `,
     }
   }),
   NODE_ENV === 'production' && Visualizer({ filename: './dist/diffhtml-runtime-build-size.html' }),

@@ -365,4 +365,38 @@ describe('HTML (Tagged template)', function() {
       childNodes: [],
     });
   });
+
+  it('supports mixing custom elements and react components', () => {
+    const React = () => {};
+    const vTree = html`
+      <${React} />
+      <web-component />
+    `;
+
+    deepEqual(vTree, {
+      rawNodeName: '#document-fragment',
+      nodeName: '#document-fragment',
+      nodeValue: '',
+      nodeType: 11,
+      key: '',
+      childNodes: [{
+        rawNodeName: React,
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [],
+        attributes: {},
+      }, {
+        rawNodeName: 'web-component',
+        nodeName: 'web-component',
+        nodeValue: '',
+        nodeType: 1,
+        key: '',
+        childNodes: [],
+        attributes: {},
+      }],
+      attributes: {},
+    });
+  });
 });

@@ -223,8 +223,12 @@ function createTree(input, attributes, childNodes, ...rest) {
 
     for (let i = 0; i < input.length; i++) {
       const newTree = createTree(input[i]);
+      if (!newTree) {
+        continue;
+      }
+      const isFragment = newTree.nodeType === 11;
 
-      if (newTree && newTree.nodeType === 11) {
+      if (typeof newTree.rawNodeName === 'string' && isFragment) {
         childNodes.push(...newTree.childNodes);
       } else if (newTree) {
         childNodes.push(newTree);
@@ -705,10 +709,12 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
     // index and then we can source the correct value.
     if (i % 2 === 1) {
       const innerTree = supplemental.children[value];
-
       if (!innerTree) {
         continue;
-      } else if (innerTree.nodeType === 11) {
+      }
+      const isFragment = innerTree.nodeType === 11;
+
+      if (typeof innerTree.rawNodeName === 'string' && isFragment) {
         childNodes.push(...innerTree.childNodes);
       } else {
         childNodes.push(innerTree);
@@ -1175,13 +1181,14 @@ function reconcileTrees(transaction) {
   // a fragment.
   else if (options.inner) {
       const { nodeName, attributes } = transaction.oldTree;
-      const newChildNodes = createTree(markup);
+      const newTree = createTree(markup);
+      const isFragment = newTree.nodeType === 11;
 
-      transaction.newTree = createTree(nodeName, attributes, newChildNodes);
+      transaction.newTree = createTree(nodeName, attributes, newTree);
 
       // Flatten the fragment.
-      if (newChildNodes.nodeType === 11) {
-        transaction.newTree.childNodes = newChildNodes.childNodes;
+      if (typeof newTree.rawNodeName === 'string' && isFragment) {
+        transaction.newTree.childNodes = newTree.childNodes;
       }
     }
 
@@ -1535,7 +1542,7 @@ function patchNode$$1(patches, state) {
       }
 
       if (parentNode && blockText$1.has(parentNode.nodeName.toLowerCase())) {
-        parentNode.nodeValue = escape(nodeValue);
+        parentNode.nodeValue = escape(decodeEntities(nodeValue));
       }
 
       if (textChangedPromises.length) {
@@ -2084,6 +2091,9 @@ const VERSION = '1.0.0-beta';
  * @param {Object =} options={} - An object containing configuration options
  */
 function outerHTML(element, markup = '', options = {}) {
+  if (window.devTools) {
+    use(devTools.default());delete window.devTools;
+  }
   options.inner = false;
   return Transaction.create(element, markup, options).start();
 }
@@ -2107,11 +2117,17 @@ function outerHTML(element, markup = '', options = {}) {
  * @param {Object =} options={} - An object containing configuration options
  */
 function innerHTML(element, markup = '', options = {}) {
+  if (window.devTools) {
+    use(devTools.default());delete window.devTools;
+  }
   options.inner = true;
   return Transaction.create(element, markup, options).start();
 }
 
 function element(element, markup = '', options = {}) {
+  if (window.devTools) {
+    use(devTools.default());delete window.devTools;
+  }
   return Transaction.create(element, markup, options).start();
 }
 

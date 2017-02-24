@@ -163,49 +163,7 @@ function escape(unescaped) {
   return unescaped.replace(/[&<>]/g, match => `&#${match.charCodeAt(0)};`);
 }
 
-const marks = new Map();
-const prefix = 'diffHTML';
-const DIFF_PERF = 'diff_perf';
-
-const hasSearch = typeof location !== 'undefined';
-const hasArguments = typeof process !== 'undefined' && process.argv;
-const nop = () => {};
-
-var makeMeasure = ((domNode, vTree) => {
-  // Check for these changes on every check.
-  const wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
-  const wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
-  const wantsPerfChecks = wantsSearch || wantsArguments;
-
-  // If the user has not requested they want perf checks, return a nop
-  // function.
-  if (!wantsPerfChecks) {
-    return nop;
-  }
-
-  return name => {
-    // Use the Web Component name if it's available.
-    if (domNode && domNode.host) {
-      name = `${domNode.host.constructor.name} ${name}`;
-    } else if (typeof vTree.rawNodeName === 'function') {
-      name = `${vTree.rawNodeName.name} ${name}`;
-    }
-
-    const endName = `${name}-end`;
-
-    if (!marks.has(name)) {
-      marks.set(name, performance.now());
-      performance.mark(name);
-    } else {
-      const totalMs = (performance.now() - marks.get(name)).toFixed(3);
-
-      marks.delete(name);
-
-      performance.mark(endName);
-      performance.measure(`${prefix} ${name} (${totalMs}ms)`, name, endName);
-    }
-  };
-});
+var makeMeasure = (() => () => {});
 
 var parse = (() => console.log('Runtime is not built with parsing'));
 
@@ -244,8 +202,12 @@ function createTree(input, attributes, childNodes, ...rest) {
 
     for (let i = 0; i < input.length; i++) {
       const newTree = createTree(input[i]);
+      if (!newTree) {
+        continue;
+      }
+      const isFragment = newTree.nodeType === 11;
 
-      if (newTree && newTree.nodeType === 11) {
+      if (typeof newTree.rawNodeName === 'string' && isFragment) {
         childNodes.push(...newTree.childNodes);
       } else if (newTree) {
         childNodes.push(newTree);
@@ -793,13 +755,14 @@ function reconcileTrees(transaction) {
   // a fragment.
   else if (options.inner) {
       const { nodeName, attributes } = transaction.oldTree;
-      const newChildNodes = createTree(markup);
+      const newTree = createTree(markup);
+      const isFragment = newTree.nodeType === 11;
 
-      transaction.newTree = createTree(nodeName, attributes, newChildNodes);
+      transaction.newTree = createTree(nodeName, attributes, newTree);
 
       // Flatten the fragment.
-      if (newChildNodes.nodeType === 11) {
-        transaction.newTree.childNodes = newChildNodes.childNodes;
+      if (typeof newTree.rawNodeName === 'string' && isFragment) {
+        transaction.newTree.childNodes = newTree.childNodes;
       }
     }
 
@@ -1153,7 +1116,7 @@ function patchNode$$1(patches, state) {
       }
 
       if (parentNode && blockText.has(parentNode.nodeName.toLowerCase())) {
-        parentNode.nodeValue = escape(nodeValue);
+        parentNode.nodeValue = escape(decodeEntities(nodeValue));
       }
 
       if (textChangedPromises.length) {
