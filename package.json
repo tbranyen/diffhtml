@@ -5,7 +5,8 @@
   "description": "Build web user interfaces with JavaScript",
   "scripts": {
     "test": "NODE_ENV=test lerna run test",
-    "test-cov": "NODE_ENV=test lerna run test-cov"
+    "test-cov": "NODE_ENV=test lerna run test-cov",
+    "postinstall": "lerna bootstrap"
   },
   "repository": {
     "type": "git",

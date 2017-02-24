@@ -21,7 +21,7 @@
     "browserify": "^13.0.1",
     "coveralls": "^2.11.9",
     "derequire": "^2.0.3",
-    "diffhtml": "^0.9.0",
+    "diffhtml": "1.0.0-beta",
     "istanbul": "^1.0.0-alpha.2",
     "mocha": "^2.5.3",
     "stringdom": "jugglinmike/stringdom#f42ad65227fc4e5a1d120ae432c7ec4eaf6aa11b"
