@@ -26,3 +26,11 @@ level or any specific nested package level.
 * **[diffhtml](/packages/diffhtml)**
 
   **The core library for creating user interfaces.**
+
+* **[diffhtml-logger](/packages/diffhtml-logger)**
+
+  **Logs out information at the start and end of every render transaction.**
+
+* **[diffhtml-verify-state](/packages/diffhtml-verify-state)**
+
+  **Asserts that a render properly updated the old Virtual Tree and the DOM.**
