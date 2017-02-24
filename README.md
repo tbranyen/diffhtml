@@ -9,8 +9,7 @@ Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&ser
 
 diffHTML is a library that assists with creating user interfaces using
 JavaScript. These interfaces can be: applications, games, data visualizations,
-or anything else that you may want to render in a web browser. This library is
-different from existing solutions 
+or anything else that you may want to render in a web browser.
 
 This repository is a mono-repo structured with the [Lerna](https://lernajs.io/)
 CLI tool. This makes it easier to support continuous integration, consistent
