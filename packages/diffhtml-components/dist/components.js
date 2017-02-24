@@ -586,6 +586,11 @@ const WebComponent$$1 = wrap(WebComponent$1);
 
 exports.Component = Component$$1;
 exports.WebComponent = WebComponent$$1;
+exports.html = diffhtml.html;
+exports.innerHTML = diffhtml.innerHTML;
+exports.outerHTML = diffhtml.outerHTML;
+exports.use = diffhtml.use;
+exports.createTree = diffhtml.createTree;
 exports.PropTypes = index;
 
 Object.defineProperty(exports, '__esModule', { value: true });
