@@ -18,7 +18,7 @@ const setupDebugger = options => message => {
 
 export const cloneTree = tree => tree ? assign({}, tree, {
   attributes: assign({}, tree.attributes),
-  childNodes: tree.childNodes.map(vTree => cloneTree(vTree))
+  childNodes: tree.childNodes.map(vTree => cloneTree(vTree)),
 }) : null;
 
 // Support loading diffHTML in non-browser environments.
@@ -57,7 +57,8 @@ const flattenFragments = vTree => {
 };
 
 export const compareTrees = (options, transaction, oldTree, newTree) => {
-  const { state: { internals: { NodeCache } } } = transaction;
+  const { promises, state: { internals: { NodeCache } } } = transaction;
+
   const debug = setupDebugger(options);
 
   let oldAttrKeys = Object.keys(oldTree.attributes || {}).sort();
@@ -126,14 +127,18 @@ export const compareTrees = (options, transaction, oldTree, newTree) => {
   }
 };
 
-export default (options={}) => () => transaction => {
-  const { domNode, state } = transaction;
-  const oldTree = transaction.oldTree || state.oldTree;
-  const newTree = transaction.newTree;
+export default (options={}) => function verifyStateTask() {
+  return transaction => {
+    const { domNode, state } = transaction;
+    const oldTree = transaction.oldTree || state.oldTree;
+    const newTree = transaction.newTree;
 
-  if (oldTree && newTree) {
-    compareTrees(options, transaction, oldTree, newTree);
-  }
+    if (oldTree && newTree) {
+      compareTrees(options, transaction, oldTree, newTree);
+    }
 
-  transaction.onceEnded(() => compareTrees(options, transaction, domNode, newTree));
+    transaction.onceEnded(() => {
+      compareTrees(options, transaction, domNode, newTree);
+    });
+  };
 };

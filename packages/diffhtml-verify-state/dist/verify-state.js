@@ -73,7 +73,9 @@ var flattenFragments = function flattenFragments(vTree) {
 };
 
 var compareTrees = exports.compareTrees = function compareTrees(options, transaction, oldTree, newTree) {
-  var NodeCache = transaction.state.internals.NodeCache;
+  var promises = transaction.promises,
+      NodeCache = transaction.state.internals.NodeCache;
+
 
   var debug = setupDebugger(options);
 
@@ -142,7 +144,7 @@ var compareTrees = exports.compareTrees = function compareTrees(options, transac
 
 exports.default = function () {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  return function () {
+  return function verifyStateTask() {
     return function (transaction) {
       var domNode = transaction.domNode,
           state = transaction.state;
@@ -155,7 +157,7 @@ exports.default = function () {
       }
 
       transaction.onceEnded(function () {
-        return compareTrees(options, transaction, domNode, newTree);
+        compareTrees(options, transaction, domNode, newTree);
       });
     };
   };
