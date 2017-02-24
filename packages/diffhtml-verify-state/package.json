@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-verify-state",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "description": "",
   "main": "dist/verify-state.js",
   "scripts": {

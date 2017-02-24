@@ -53,7 +53,9 @@ export default function syncTree(oldTree, newTree, patches) {
         continue;
       }
 
-      oldTree && (oldAttributes[key] = value);
+      if (oldTree) {
+        oldAttributes[key] = value;
+      }
 
       // Alias prop names to attr names for patching purposes.
       if (key in propToAttrMap) {
@@ -131,7 +133,9 @@ export default function syncTree(oldTree, newTree, patches) {
 
       // Only add references if the key exists, otherwise ignore it. This
       // allows someone to specify a single key and keep that element around.
-      vTree.key && oldKeys.set(vTree.key, vTree);
+      if (vTree.key) {
+        oldKeys.set(vTree.key, vTree);
+      }
     }
 
     // Put the new `childNode` VTree's into the key cache for lookup.
@@ -140,7 +144,9 @@ export default function syncTree(oldTree, newTree, patches) {
 
       // Only add references if the key exists, otherwise ignore it. This
       // allows someone to specify a single key and keep that element around.
-      vTree.key && newKeys.set(vTree.key, vTree);
+      if (vTree.key) {
+        newKeys.set(vTree.key, vTree);
+      }
     }
 
     // Do a single pass over the new child nodes.
