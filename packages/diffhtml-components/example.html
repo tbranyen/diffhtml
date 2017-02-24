@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Components Proof of Concept</title>
+</head>
+<body>
+  <main></main>
+
+  <script src="node_modules/diffhtml/dist/diffhtml.js"></script>
+  <script src="dist/components.js"></script>
+  <script>
+    const { html, innerHTML, use } = diff;
+    const { Component, WebComponent, PropTypes } = components;
+
+    class MyReactComponent extends Component {
+      render() {
+        return html`
+          <div>
+            <h1>Current time:</h1>
+            <h3>${Math.floor(this.state.time)}</h3>
+          </div>
+        `;
+      }
+
+      constructor() {
+        super();
+
+        this.state = { time: Date.now() };
+
+        setInterval(() => {
+          this.setState({ time: Date.now() });
+        }, 2000);
+      }
+    }
+
+    class MyWebComponent extends WebComponent {
+      render() {
+        return html`
+          <span>${this.state.message}</span>
+          <hr>
+        `;
+      }
+
+      constructor(props) {
+        super(props);
+        this.state = { message: '' };
+      }
+
+      componentDidMount() {
+        let i = 0;
+
+        setInterval(() => {
+          ++i;
+          this.setState({ message: this.props.messages[i % 4] });
+        }, 2000);
+      }
+    }
+
+    MyWebComponent.propTypes = {
+      messages: PropTypes.string,
+    };
+
+    customElements.define('my-webcomponent', MyWebComponent);
+
+    const messages = [
+      'Woah coal',
+      'no way',
+      'good job',
+      'right on',
+    ];
+
+    innerHTML(document.querySelector('main'), html`
+      <my-webcomponent messages=${messages} />
+      <${MyReactComponent} />
+    `);
+  </script>
+</body>
+</html>

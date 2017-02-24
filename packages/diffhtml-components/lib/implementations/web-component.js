@@ -11,7 +11,7 @@ const createProps = domNode => {
   const observedAttributes = getObserved(domNode.constructor);
 
   return freeze(observedAttributes.reduce((props, attr) => assign(props, {
-    [attr]: attr in domNode ? domNode[attr] : domNode.getAttribute(attr),
+    [attr]: attr in domNode ? domNode[attr] : domNode.getAttribute(attr) || undefined,
   }), {}));
 };
 
@@ -20,18 +20,18 @@ const createState = (domNode, newState) => {
   return freeze(assign({}, domNode.state, newState));
 };
 
-// Facilities a component re-render.
-const rerenderComponent = domNode => {
-  const nextProps = createProps(domNode);
-
-  domNode.props = nextProps;
-  innerHTML(domNode.shadowRoot, domNode.render());
-  domNode.componentDidUpdate();
-};
-
 export default class WebComponent extends HTMLElement {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
+  }
+
+  // Facilities a component re-render.
+  static rerenderComponent(domNode) {
+    const nextProps = createProps(domNode);
+
+    domNode.props = nextProps;
+    innerHTML(domNode.shadowRoot, domNode.render());
+    domNode.componentDidUpdate();
   }
 
   constructor() {
@@ -42,22 +42,9 @@ export default class WebComponent extends HTMLElement {
     this.componentWillMount();
   }
 
-  setState(newState) {
-    this.state = assign({}, this.state, newState);
-
-    if (!Debounce.has(this) && this.shouldComponentUpdate()) {
-      rerenderComponent(this);
-
-      Debounce.set(this, setTimeout(() => {
-        Debounce.delete(this);
-        rerenderComponent(this);
-      }));
-    }
-  }
-
   connectedCallback() {
     this.attachShadow({ mode: 'open' });
-    rerenderComponent(this);
+    WebComponent.rerenderComponent(this);
     this.componentDidMount();
   }
 
@@ -76,20 +63,12 @@ export default class WebComponent extends HTMLElement {
     if (this.shadowRoot && !Debounce.has(this)) {
       const nextProps = createProps(this);
       this.componentWillReceiveProps(nextProps);
-      rerenderComponent(this);
+      WebComponent.rerenderComponent(this);
 
       Debounce.set(this, setTimeout(() => {
         Debounce.delete(this);
-        rerenderComponent(this);
+        WebComponent.rerenderComponent(this);
       }));
     }
   }
-
-  shouldComponentUpdate() { return true; }
-  componentWillReceiveProps() {}
-  componentWillMount() {}
-  componentDidMount() {}
-  componentDidUpdate() {}
-  componentWillUnmount() {}
-  componentDidUnmount() {}
 };

@@ -1,4 +1,6 @@
-export { default as WebComponent } from './webcomponent';
-export { default as PropTypes } from 'proptypes';
+import wrap from './shared/wrap';
+import * as implementations from './implementations/index';
 
-//export { default as Component } from './component';
+export { default as PropTypes } from 'proptypes';
+export const Component = wrap(implementations.Component);
+export const WebComponent = wrap(implementations.WebComponent);

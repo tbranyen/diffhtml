@@ -1,21 +1,24 @@
 {
   "name": "diffhtml-components",
-  "main": "dist/cjs/index.js",
+  "main": "dist/components.js",
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-es2015-classes": "^6.23.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.22.0",
-    "babel-preset-es2015": "^6.18.0",
-    "babelify": "^7.3.0",
-    "browserify": "^13.3.0",
-    "derequire": "^2.0.6",
-    "watchify": "^3.8.0"
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-register": "^6.23.0",
+    "mocha": "^3.2.0",
+    "rollup": "^0.41.4",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-commonjs": "^7.0.0",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-watch": "^3.2.2"
   },
   "scripts": {
-    "cjs": "babel lib -d dist/cjs",
-    "build": "browserify -t babelify -s components lib/index.js | derequire > dist/components.js",
-    "watch": "watchify -t babelify -s components lib/index.js -o 'derequire > dist/components.js' -v"
+    "build": "rollup -c rollup.config.js",
+    "watch": "rollup -c rollup.config.js -w"
   },
   "dependencies": {
-    "proptypes": "^0.14.3"
+    "proptypes": "^0.14.4"
   }
 }
