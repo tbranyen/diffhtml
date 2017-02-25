@@ -1,30 +1,13 @@
-const Document = require('stringdom');
+import { jsdom } from 'jsdom';
 
-// Set up a pretend DOM for the tests.
-global.document = new Document();
-global.document.body = document.createElement('body');
-global.document.createComment = function() {
-  return document.createElement('noscript');
-};
+const instance = jsdom();
+const { defaultView } = instance;
 
-// Get access to the Node prototype.
-const Node = Object.getPrototypeOf(global.document.body);
+Object.assign(global, {
+  document: defaultView.document,
+  Element: defaultView.Element,
+  location: defaultView.location,
+  window: defaultView,
+});
 
-// No-op the event functions.
-global.CustomEvent = function() {};
-Node.dispatchEvent = () => {};
-
-// Copied from a project by Jonathan Neal.
-Node.contains = function(node) {
-  if (!(0 in arguments)) {
-    throw new TypeError('1 argument is required');
-  }
-
-  do {
-    if (this === node) {
-      return true;
-    }
-  } while (node = node && node.parentNode);
-
-  return false;
-};
+console.json = (...a) => a.forEach(o => console.log(JSON.stringify(o, null, 2)));
