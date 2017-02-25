@@ -123,7 +123,7 @@ class ApiBrowser {
     const bindState = { get(o, k) { return o[k]; }, set(o, k, v) { o[k] = v; return !debounce(); } };
 
     this.state = new Proxy({
-      url: 'https://github.com/tbranyen/diffhtml',
+      url: 'http://github.com/tbranyen/diffhtml',
       isFetching: false,
       ref: null,
       refs: null,
@@ -262,11 +262,11 @@ browser.onRender = () => {
     }
   };
 
+  const hash = location.hash;
+
   // This is due to the lack of server-side rendering for API docs. This should
   // be rectified.
-  setTimeout(() => {
-    setTarget(location.hash);
-  }, 200);
+  setTimeout(() => setTarget(hash), 100);
 
   let scrollTop = document.body.scrollTop;
 
@@ -313,7 +313,16 @@ browser.onRender = () => {
     });
   };
 
+  let delay = true;
+
+  // Initial page delay.
+  setTimeout(() => { delay = false; }, 100);
+
   const monitorAnchorTags = options => ev => {
+    if (delay) {
+      return;
+    }
+
     // If the timeout exists, return early.
     if (timeout) {
       return;

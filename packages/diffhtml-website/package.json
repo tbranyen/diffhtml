@@ -1,5 +1,6 @@
 {
   "name": "diffhtml-website",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "babel-polyfill": "^6.13.0",
+    "babelify": "^7.3.0",
     "nodegit": "^0.14.1",
     "nodegit-deployer": "tbranyen/git-deploy#6ebbe0065440ad8832a91d9c7506eba64effe86e",
     "uglifyify": "^3.0.2",

@@ -584,3 +584,12 @@ layer {
 .hljs-string .hljs-subst {
   color: #d405a7;
 }
+
+svg.transactions {
+  width: 720px;
+  height: 300px;
+  border-radius: 5px;
+  border: 1px solid #e2e2e2;
+  padding: 0.5em;
+  background: #F0F0F0;
+}
