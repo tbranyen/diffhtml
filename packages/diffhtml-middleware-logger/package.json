@@ -23,7 +23,9 @@
     "derequire": "^2.0.3",
     "diffhtml": "1.0.0-beta",
     "istanbul": "^1.0.0-alpha.2",
-    "mocha": "^2.5.3",
-    "stringdom": "jugglinmike/stringdom#f42ad65227fc4e5a1d120ae432c7ec4eaf6aa11b"
+    "mocha": "^2.5.3"
+  },
+  "peerDependencies": {
+    "diffhtml": ">=1.0.0-beta"
   }
 }

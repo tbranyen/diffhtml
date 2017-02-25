@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "diffhtml": "^0.9.1",
+    "diffhtml": "^1.0.0-beta",
     "dox": "^0.8.1",
     "express": "^4.14.0",
     "nodegit": "^0.14.1"

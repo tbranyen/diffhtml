@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-inline-transitions",
-  "version": "1.2.0",
+  "version": "1.0.0-beta",
   "description": "Monitors inline attributes and assigns transition hooks",
   "main": "dist/inline-transitions.js",
   "scripts": {
@@ -24,10 +24,13 @@
     "browserify": "^14.0.0",
     "coveralls": "^2.11.15",
     "derequire": "^2.0.6",
-    "diffhtml": "1.0.0-beta",
+    "diffhtml": "^1.0.0-beta",
     "istanbul": "^1.1.0-alpha.1",
     "jsdom": "^9.11.0",
     "mocha": "^3.2.0",
     "watchify": "^3.9.0"
+  },
+  "peerDependencies": {
+    "diffhtml": ">=1.0.0-beta"
   }
 }

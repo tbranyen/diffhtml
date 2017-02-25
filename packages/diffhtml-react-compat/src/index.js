@@ -1,5 +1,6 @@
 import { createTree, innerHTML, outerHTML, use, html } = require('diffhtml');
-const syntheticEvents = require('diffhtml-synthetic-events');
+import syntheticEvents from 'diffhtml-synthetic-events';
+
 const { assign, freeze, keys } = Object;
 
 let NodeCache = null;

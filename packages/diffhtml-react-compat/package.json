@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-react-compat",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "description": "",
   "main": "dist/diffhtml-react-compat.js",
   "scripts": {
@@ -11,8 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "diffhtml": "1.0.0",
-    "diffhtml-components": "1.0.0",
+    "diffhtml": "1.0.0-beta",
+    "diffhtml-components": "1.0.0-beta",
     "proptypes": "^0.14.3"
   },
   "devDependencies": {
@@ -27,5 +27,8 @@
     "rollup-plugin-replace": "^1.1.1",
     "rollup-watch": "^3.2.2",
     "watchify": "^3.8.0"
+  },
+  "peerDependencies": {
+    "diffhtml": ">=1.0.0-beta"
   }
 }
