@@ -1,4 +1,4 @@
-const http = require('http');
+const https = require('https');
 const express = require('express');
 const Git = require('nodegit');
 const { join } = require('path');
@@ -33,7 +33,7 @@ dox.contextPatternMatchers.push((string, parentContext) => {
 });
 
 const get = url => new Promise((resolve, reject) => {
-  http.get(url, (err, resp) => {
+  https.get(url, (err, resp) => {
     if (err) { reject(err); }
     else { resolve(resp); }
   });
@@ -66,17 +66,17 @@ const openRepository = state => {
 const getReferenceNames = state => {
   console.log('Looking up all reference names (branches, tags, omit remotes)');
 
-  //const getAllReferences = Promise.all([
-  //  // Get all references from GitHub.
-  //  get('http://api.github.com/repos/tbranyen/diffhtml/git/refs')
-  //    .then(resps => resps.map(resp => resp.ref)),
+  const getAllReferences = Promise.all([
+    // Get all references from GitHub.
+    get('https://api.github.com/repos/tbranyen/diffhtml/git/refs')
+      .then(resps => resps.map(resp => resp.ref)).catch(() => {}),
 
-  //  // Get all references from the local repository.
-  //]);
+    // Get all references from the local repository.
+    state.repo.getReferenceNames(Git.Reference.TYPE.LISTALL),
+  ]);
 
-  //return getAllReferences.then(refs => {
-  return state.repo.getReferenceNames(Git.Reference.TYPE.LISTALL).then(refs => {
-    state.refs = refs;
+  return getAllReferences.then(([_, refs]) => {
+    state.refs = refs.reduce((m, c) => m.concat(c), []);
     state.refs.reverse();
     const result = state.refs.splice(state.refs.length - 1, 1)[0];
     state.refs.unshift(result);
@@ -91,8 +91,12 @@ const getLatestStable = state => {
   state.latestStable = latest.slice('refs/tags/'.length);
   state.version = state.latestStable;
 
-  return state.repo.getReferenceCommit('refs/tags/0.9.2')
-    .then(commit => commit.getEntry('lib/index.js'))
+  return state.repo.getReferenceCommit('refs/tags/0.9.1')
+    .then(commit => {
+      return commit.getEntry('lib/index.js').catch(() => {
+        return commit.getEntry('packages/diffhtml/lib/index.js');
+      });
+    })
     .then(treeEntry => treeEntry.getBlob())
     .then(blob => {
       const contents = String(blob);
@@ -108,7 +112,11 @@ const getByReference = ref => state => {
   state.version = ref.split('/')[2];
 
   return state.repo.getReferenceCommit(ref)
-    .then(commit => commit.getEntry('lib/index.js'))
+    .then(commit => {
+      return commit.getEntry('lib/index.js').catch(() => {
+        return commit.getEntry('packages/diffhtml/lib/index.js');
+      });
+    })
     .then(treeEntry => treeEntry.getBlob())
     .then(blob => {
       const contents = String(blob);
@@ -126,34 +134,28 @@ const getByReference = ref => state => {
 console.log('Booting up API middleware');
 
 const router = express.Router();
+const state = { url, output };
+const getRepository = cloneRepository(state)
+  .catch(openRepository)
+  .then(getReferenceNames);
 
 const getApiState = exports.getApiState = version => {
-  const state = { url, output };
-
-  let promiseChain = cloneRepository(state)
-    .catch(openRepository)
-    .then(getReferenceNames);
-
   if (version) {
-    promiseChain = promiseChain
+    return getRepository
       .then(getLatestStable)
       .then(getByReference(version));
   }
-  else {
-    promiseChain = promiseChain.then(getLatestStable);
-  }
 
-  return promiseChain.catch(ex => {
-    console.log(ex);
-  });
+  return getRepository.then(getLatestStable);
 };
 
 router.get('/', (req, res, next) => {
-  getApiState().then(state => res.json(state));
+  console.log(req.url);
+  getApiState().then(resp => res.json(resp));
 });
 
 router.get('/:version', (req, res, next) => {
-  getApiState(req.params.version).then(state => res.json(state));
+  getApiState(req.params.version).then(resp => res.json(resp)).catch(console.log);
 });
 
 exports.router = router;
