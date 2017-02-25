@@ -24,7 +24,6 @@
   },
   "homepage": "https://diffhtml.org/",
   "devDependencies": {
-    "coveralls": "2.11.16",
     "lerna": "2.0.0-beta.37"
   }
 }

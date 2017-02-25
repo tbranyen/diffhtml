@@ -229,7 +229,7 @@ isexe@^1.1.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-1.1.2.tgz#36f3e22e60750920f5e7241a476a8c6a42275ad0"
 
-lerna@^2.0.0-beta.37:
+lerna@2.0.0-beta.37:
   version "2.0.0-beta.37"
   resolved "https://registry.yarnpkg.com/lerna/-/lerna-2.0.0-beta.37.tgz#d8e1d25a75102658b12565e4aa12e0423e969aad"
   dependencies:

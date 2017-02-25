@@ -18,6 +18,7 @@
     "watch-runtime": "NODE_ENV=production rollup -c rollup.runtime.main.config.js -w",
     "jshint": "jshint lib/**/*.js",
     "test": "NODE_ENV=test mocha test/_setup test test/integration/*.js",
+    "test:ci": "npm run test-cov && cat coverage/lcov.info | coveralls",
     "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test test/integration/*.js",
     "test-watch": "NODE_ENV=test mocha test/_setup test test/integration/*.js -w",
     "test-debug": "NODE_ENV=test mocha --inspect --debug-brk test/_setup test test/integration/*.js"
@@ -30,6 +31,7 @@
     "babel-preset-babili": "^0.0.11",
     "babel-preset-es2015": "^6.22.0",
     "babel-register": "^6.23.0",
+    "coveralls": "^2.11.16",
     "jsdom": "^9.10.0",
     "jshint": "^2.9.4",
     "mocha": "^3.2.0",
