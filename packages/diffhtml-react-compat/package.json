@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/diffhtml-react-compat.js",
   "scripts": {
-    "build": "browserify -t babelify -s React index.js | derequire > dist/diffhtml-react-compat.js",
-    "watch": "watchify -t babelify -s React index.js -o 'derequire > dist/diffhtml-react-compat.js' -v"
+    "build": "rollup -c rollup.config.js",
+    "watch": "rollup -c rollup.config.js -w"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +20,12 @@
     "babelify": "^7.3.0",
     "browserify": "^13.3.0",
     "derequire": "^2.0.6",
+    "rollup": "^0.41.4",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-memory": "^2.0.0",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-replace": "^1.1.1",
+    "rollup-watch": "^3.2.2",
     "watchify": "^3.8.0"
   }
 }
