@@ -107,6 +107,7 @@ var bindEventsTo = function bindEventsTo(domNode) {
 
       var syntheticEvent = cloneEvent(ev, {
         stopPropagation: function stopPropagation() {
+          ev.stopImmediatePropagation();
           ev.stopPropagation();
         },
         preventDefault: function preventDefault() {
@@ -122,7 +123,8 @@ var bindEventsTo = function bindEventsTo(domNode) {
 
 var syntheticEvents = function syntheticEvents() {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  return function () {
+
+  function syntheticEventsTask() {
     return function (_ref) {
       var state = _ref.state,
           patches = _ref.patches;
@@ -142,7 +144,7 @@ var syntheticEvents = function syntheticEvents() {
 
           // Remove inline event binding from element and add to handlers.
           if (eventNames.includes(eventName)) {
-            var handler = domNode[_name];
+            var handler = value;
             domNode[eventName] = undefined;
 
             var newHandlers = handlers.get(domNode) || {};
@@ -185,7 +187,13 @@ var syntheticEvents = function syntheticEvents() {
         }
       }
     };
-  };
+  }
+
+  var subscribe = function subscribe() {};
+
+  var unsubscribe = function unsubscribe() {};
+
+  return Object.assign(syntheticEventsTask, { subscribe: subscribe, unsubscribe: unsubscribe });
 };
 
 exports.default = syntheticEvents;

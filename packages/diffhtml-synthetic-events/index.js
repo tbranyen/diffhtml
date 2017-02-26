@@ -96,71 +96,88 @@ const bindEventsTo = domNode => {
     }
 
     const syntheticEvent = cloneEvent(ev, {
-      stopPropagation() { ev.stopPropagation(); },
+      stopPropagation() {
+        ev.stopImmediatePropagation();
+        ev.stopPropagation();
+      },
       preventDefault() { ev.preventDefault(); },
-      nativeEvent: ev
+      nativeEvent: ev,
     });
     eventHandler && eventHandler(syntheticEvent);
   }, useCapture.includes(eventName) ? true : false));
 }
 
-const syntheticEvents = (options = {}) => () => ({ state, patches }) => {
-  const { internals: { NodeCache } } = state;
-  const { SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
+const syntheticEvents = (options = {}) => {
+  function syntheticEventsTask() {
+    return ({ state, patches }) => {
+      const { internals: { NodeCache } } = state;
+      const { SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
 
-  if (SET_ATTRIBUTE.length) {
-    for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
-      const vTree = SET_ATTRIBUTE[i];
-      const name = SET_ATTRIBUTE[i + 1];
-      const value = SET_ATTRIBUTE[i + 2];
+      if (SET_ATTRIBUTE.length) {
+        for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
+          const vTree = SET_ATTRIBUTE[i];
+          const name = SET_ATTRIBUTE[i + 1];
+          const value = SET_ATTRIBUTE[i + 2];
 
-      const domNode = NodeCache.get(vTree);
-      const eventName = name.toLowerCase();
+          const domNode = NodeCache.get(vTree);
+          const eventName = name.toLowerCase();
 
-      // Remove inline event binding from element and add to handlers.
-      if (eventNames.includes(eventName)) {
-        const handler = domNode[name];
-        domNode[eventName] = undefined;
+          // Remove inline event binding from element and add to handlers.
+          if (eventNames.includes(eventName)) {
+            const handler = value;
+            domNode[eventName] = undefined;
 
-        const newHandlers = handlers.get(domNode) || {};
+            const newHandlers = handlers.get(domNode) || {};
 
-        // If the value passed is a function, that's what we're looking for.
-        if (typeof handler === 'function') {
-          newHandlers[eventName] = handler;
+            // If the value passed is a function, that's what we're looking for.
+            if (typeof handler === 'function') {
+              newHandlers[eventName] = handler;
+            }
+            // If the value passed is a string name for a global function, use
+            // that.
+            else if (typeof window[handler] === 'function') {
+              newHandlers[eventName] = window[handler];
+            }
+            // Remove the event association if the value passed was not a
+            // function.
+            else {
+              delete newHandlers[eventName];
+            }
+
+            handlers.set(domNode, newHandlers);
+            bindEventsTo(domNode);
+          }
         }
-        // If the value passed is a string name for a global function, use
-        // that.
-        else if (typeof window[handler] === 'function') {
-          newHandlers[eventName] = window[handler];
-        }
-        // Remove the event association if the value passed was not a
-        // function.
-        else {
-          delete newHandlers[eventName];
-        }
+      }
 
-        handlers.set(domNode, newHandlers);
-        bindEventsTo(domNode);
+      if (REMOVE_ATTRIBUTE.length) {
+        for (let i = 0; i < REMOVE_ATTRIBUTE.length; i += 2) {
+          const vTree = REMOVE_ATTRIBUTE[i];
+          const name = REMOVE_ATTRIBUTE[i + 1];
+
+          const domNode = NodeCache.get(vTree);
+          const eventName = name.toLowerCase();
+
+          // Remove event binding from element and instead add to handlers.
+          if (eventNames.includes(eventName)) {
+            const newHandlers = handlers.get(domNode) || {};
+            delete newHandlers[eventName];
+            handlers.set(domNode, newHandlers);
+          }
+        }
       }
     }
   }
 
-  if (REMOVE_ATTRIBUTE.length) {
-    for (let i = 0; i < REMOVE_ATTRIBUTE.length; i += 2) {
-      const vTree = REMOVE_ATTRIBUTE[i];
-      const name = REMOVE_ATTRIBUTE[i + 1];
+  const subscribe = () => {
 
-      const domNode = NodeCache.get(vTree);
-      const eventName = name.toLowerCase();
+  };
 
-      // Remove event binding from element and instead add to handlers.
-      if (eventNames.includes(eventName)) {
-        const newHandlers = handlers.get(domNode) || {};
-        delete newHandlers[eventName];
-        handlers.set(domNode, newHandlers);
-      }
-    }
-  }
+  const unsubscribe = () => {
+
+  };
+
+  return Object.assign(syntheticEventsTask, { subscribe, unsubscribe });
 };
 
 export default syntheticEvents;
