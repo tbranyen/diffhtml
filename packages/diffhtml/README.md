@@ -1,13 +1,3 @@
-diffHTML: A JavaScript View Layer
----------------------------------
-
-Latest stable version: 0.9.2
-
-[![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
-[![Coverage
-Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master) 
-[![Join the chat at https://gitter.im/tbranyen/diffhtml](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/tbranyen/diffhtml)
-
 Inspired by React and motivated by the Web, this is a lowish-level tool which
 aims to help web developers write components for the web. By focusing on the
 markup representing how your application state should look, diffHTML will
@@ -21,16 +11,6 @@ element (and attribute) objects are pooled to provide consistent memory
 management and garbage collection. diffHTML maintains a single VTree root that
 mirrors a mounted element in the DOM, it reconciles all future renders into
 this tree and the DOM.
-
-#### Features
-
-- Helps you build components using HTML and JavaScript
-- [Provides a tagged template
-  function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_template_literals) to inline your markup with dynamic interpolation into your component code
-- Your markup is compiled to a *VTree* and patched efficiently to the DOM
-- Transitions API to hook into element and attribute state changes
-- Object pooling to avoid GC thrashing and expensive childNode/attribute/uuid
-  generation
 
 ### Install
 

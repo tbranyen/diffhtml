@@ -1,6 +1,7 @@
-# diffHTML
+diffHTML: A JavaScript View Layer
+---------------------------------
 
-Latest stable version: 0.9.2
+Stable version: 0.9.2
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Coverage
@@ -16,6 +17,15 @@ CLI tool. This makes it easier to support continuous integration, consistent
 versioning, and working on the various diffHTML tools.
 
 [**Click here to go directly to the diffHTML library source**](/packages/diffhtml/)
+
+## Features
+
+- Parses real **HTML** and supports **JSX** and **Tagged Templates**.
+- Efficient minimal rendering that utilizes **object pooling**.
+- **Web** and **React**-compatible stateful components.
+- View and debug your code using the **Chrome DevTools extension**.
+- **Transition hooks** monitor DOM changes an are similar to mutation events.
+- Powerful **middleware** extends diffHTML with additional features.
 
 ## Packages
 
@@ -35,25 +45,21 @@ level or any specific nested package level.
   the full React API, refer to the
   [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
 
+* **[diffhtml-middleware-logger](/packages/diffhtml-middleware-logger)**
+
+  Logs out information at the start and end of every render transaction.
+
+* **[diffhtml-middleware-synthetic-events](/packages/diffhtml-middleware-synthetic-events)**
+
+  By default diffHTML uses inline event handlers like `onclick = fn`, this
+  middleware uses `addEventListener` hooks to the `body` element and captures
+  events using delegation.
+
 * **[diffhtml-middleware-inline-transitions](/packages/diffhtml-middleware-inline-transitions)**
 
   By default diffHTML provides transition hooks at a global level. This
   middleware turns them into scoped, performant, event hooks.
 
-  Without this middleware:
-
-  ``` js
-  import { addTransitionState, innerHTML } from 'diffhtml';
-
-  function render() {
-    
-  }
-
-* **[diffhtml-middleware-logger](/packages/diffhtml-middleware-logger)**
-
-  Logs out information at the start and end of every render transaction.
-
 * **[diffhtml-middleware-verify-state](/packages/diffhtml-middleware-verify-state)**
 
   Asserts that a render properly updated the old Virtual Tree and the DOM.
-
