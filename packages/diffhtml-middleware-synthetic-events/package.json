@@ -1,6 +1,6 @@
 {
-  "name": "diffhtml-synthetic-events",
-  "version": "1.0.0",
+  "name": "diffhtml-middleware-synthetic-events",
+  "version": "1.0.0-beta",
   "description": "Global event delegation middleware, avoids inline events",
   "main": "dist/synthetic-events.js",
   "scripts": {

@@ -1,8 +1,10 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('diffhtml'), require('diffhtml-middleware-synthetic-events')) :
+	typeof define === 'function' && define.amd ? define(['diffhtml', 'diffhtml-middleware-synthetic-events'], factory) :
+	(factory(global.diffhtml,global.syntheticEvents));
+}(this, (function (diffhtml,syntheticEvents) {
+
+syntheticEvents = 'default' in syntheticEvents ? syntheticEvents['default'] : syntheticEvents;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -10,14 +12,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _require = require('diffhtml');
-var createTree = _require.createTree;
-var innerHTML = _require.innerHTML;
-var outerHTML = _require.outerHTML;
-var use = _require.use;
-var html = _require.html;
-
-var syntheticEvents = require('diffhtml-synthetic-events');
 var assign = Object.assign;
 var freeze = Object.freeze;
 var keys = Object.keys;
@@ -60,7 +54,7 @@ var reconcileComponents = function reconcileComponents(oldTree, newTree) {
       // See if we should update.
       var shouldUpdate = instance && instance.shouldComponentUpdate(instance.props, instance.state);
 
-      var renderTree = createTree(instance ? shouldUpdate ? instance.render(props, instance.state) : ComponentCache.get(instance) : newCtor(props));
+      var renderTree = diffhtml.createTree(instance ? shouldUpdate ? instance.render(props, instance.state) : ComponentCache.get(instance) : newCtor(props));
 
       console.log(renderTree && renderTree.nodeName);
 
@@ -127,11 +121,11 @@ function reactCompatibility() {
   return assign(reactCompatibilityTask, { subscribe: subscribe });
 }
 
-use(reactCompatibility());
-use(syntheticEvents());
+diffhtml.use(reactCompatibility());
+diffhtml.use(syntheticEvents());
 
 exports.createElement = function () {
-  var tree = createTree.apply(undefined, arguments);
+  var tree = diffhtml.createTree.apply(undefined, arguments);
 
   tree.$$typeof = Symbol.for('react.element');
 
@@ -181,7 +175,7 @@ exports.Component = function () {
       this.state = freeze(assign({}, this.state, newState));
 
       if (this.shouldComponentUpdate()) {
-        outerHTML(NodeCache.get(ComponentCache.get(this)), this.render(this.props, this.state), {
+        diffhtml.outerHTML(NodeCache.get(ComponentCache.get(this)), this.render(this.props, this.state), {
           flow: reactFlow
         });
       }
@@ -215,9 +209,9 @@ exports.Component = function () {
 }();
 
 exports.PropTypes = require('proptypes');
-exports.html = html;
+exports.html = diffhtml.html;
 exports.render = function (component, mount) {
-  return innerHTML(mount, component);
+  return diffhtml.innerHTML(mount, component);
 };
 exports.isValidElement = function (object) {
   return (typeof object === 'undefined' ? 'undefined' : _typeof(object)) === 'object' && object !== null && object.$$typeof === Symbol.for('react.element');
