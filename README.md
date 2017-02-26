@@ -25,12 +25,35 @@ level or any specific nested package level.
 
 * **[diffhtml](/packages/diffhtml)**
 
-  **The core library for creating user interfaces.**
+  The core library for creating user interfaces. Contains a full build and
+  smaller runtime build (which excludes HTML parser, tagged templates, and
+  performance metrics).
 
-* **[diffhtml-logger](/packages/diffhtml-logger)**
+* **[diffhtml-components](/packages/diffhtml-components)**
 
-  **Logs out information at the start and end of every render transaction.**
+  Provides a React Like and identical Web Component API. If you're looking for
+  the full React API, refer to the
+  [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
 
-* **[diffhtml-verify-state](/packages/diffhtml-verify-state)**
+* **[diffhtml-middleware-inline-transitions](/packages/diffhtml-middleware-inline-transitions)**
 
-  **Asserts that a render properly updated the old Virtual Tree and the DOM.**
+  By default diffHTML provides transition hooks at a global level. This
+  middleware turns them into scoped, performant, event hooks.
+
+  Without this middleware:
+
+  ``` js
+  import { addTransitionState, innerHTML } from 'diffhtml';
+
+  function render() {
+    
+  }
+
+* **[diffhtml-middleware-logger](/packages/diffhtml-middleware-logger)**
+
+  Logs out information at the start and end of every render transaction.
+
+* **[diffhtml-middleware-verify-state](/packages/diffhtml-middleware-verify-state)**
+
+  Asserts that a render properly updated the old Virtual Tree and the DOM.
+

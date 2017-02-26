@@ -1,7 +1,7 @@
 {
   "name": "diffhtml-website",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "description": "",
   "main": "server.js",
   "scripts": {
@@ -14,7 +14,7 @@
   "dependencies": {
     "combyne": "^2.0.0",
     "connect-livereload": "^0.5.4",
-    "diffhtml": "tbranyen/diffhtml#cac273e16bf433b3263b79009fd0c7d1466d36c4",
+    "diffhtml": "^1.0.0-beta",
     "express": "^4.14.0",
     "font-awesome": "^4.6.3",
     "proxy-polyfill": "^0.1.6",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "babel-polyfill": "^6.13.0",
+    "babel-preset-es2015": "^6.22.0",
     "babelify": "^7.3.0",
     "nodegit": "^0.14.1",
     "nodegit-deployer": "tbranyen/git-deploy#6ebbe0065440ad8832a91d9c7506eba64effe86e",

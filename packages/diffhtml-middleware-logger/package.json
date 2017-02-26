@@ -1,6 +1,6 @@
 {
-  "name": "diffhtml-logger",
-  "version": "2.0.0",
+  "name": "diffhtml-middleware-logger",
+  "version": "1.0.0-beta",
   "description": "",
   "main": "dist/logger.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "browserify": "^13.0.1",
     "coveralls": "^2.11.9",
     "derequire": "^2.0.3",
-    "diffhtml": "1.0.0-beta",
+    "diffhtml": "^1.0.0-beta",
     "istanbul": "^1.0.0-alpha.2",
     "mocha": "^2.5.3"
   },

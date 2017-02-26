@@ -173,10 +173,6 @@ const HTMLElement = (nodeName, rawAttrs, supplemental) => {
  * @return {Object} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
-  // Reset regular expression positions per parse.
-  attrEx.lastIndex = 0;
-  tagEx.lastIndex = 0;
-
   const root = createTree('#document-fragment', null, []);
   const stack = [root];
   let currentParent = root;
@@ -422,6 +418,10 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
       existing.push.apply(existing, body.after);
     }
   }
+
+  // Reset regular expression positions per parse.
+  attrEx.lastIndex = 0;
+  tagEx.lastIndex = 0;
 
   return root;
 }

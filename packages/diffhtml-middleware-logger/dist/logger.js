@@ -54,8 +54,8 @@ var format = function format(patches) {
     }
   };
 
-  var ELEMENT = newPatches.ELEMENT;
-  var ATTRIBUTE = newPatches.ATTRIBUTE;
+  var ELEMENT = newPatches.ELEMENT,
+      ATTRIBUTE = newPatches.ATTRIBUTE;
 
 
   patches.forEach(function (changeset) {
@@ -67,47 +67,42 @@ var format = function format(patches) {
     var REMOVE_ATTRIBUTE = changeset[5];
 
     INSERT_BEFORE.forEach(function (patch) {
-      var _patch = _slicedToArray(patch, 3);
-
-      var vTree = _patch[0];
-      var fragment = _patch[1];
-      var referenceNode = _patch[2];
+      var _patch = _slicedToArray(patch, 3),
+          vTree = _patch[0],
+          fragment = _patch[1],
+          referenceNode = _patch[2];
 
       ELEMENT.INSERT_BEFORE.push({ vTree: vTree, fragment: fragment, referenceNode: referenceNode });
     });
 
     REMOVE_CHILD.forEach(function (patch) {
-      var _patch2 = _slicedToArray(patch, 2);
-
-      var vTree = _patch2[0];
-      var childNode = _patch2[1];
+      var _patch2 = _slicedToArray(patch, 2),
+          vTree = _patch2[0],
+          childNode = _patch2[1];
 
       ELEMENT.REMOVE_CHILD.push({ vTree: vTree, childNode: childNode });
     });
 
     REPLACE_CHILD.forEach(function (patch) {
-      var _patch3 = _slicedToArray(patch, 3);
-
-      var vTree = _patch3[0];
-      var newChildNode = _patch3[1];
-      var oldChildNode = _patch3[2];
+      var _patch3 = _slicedToArray(patch, 3),
+          vTree = _patch3[0],
+          newChildNode = _patch3[1],
+          oldChildNode = _patch3[2];
 
       ELEMENT.REPLACE_CHILD.push({ vTree: vTree, newChildNode: newChildNode, oldChildNode: oldChildNode });
     });
 
     SET_ATTRIBUTE.forEach(function (patch) {
-      var _patch4 = _slicedToArray(patch, 2);
-
-      var vTree = _patch4[0];
-      var attributesList = _patch4[1];
+      var _patch4 = _slicedToArray(patch, 2),
+          vTree = _patch4[0],
+          attributesList = _patch4[1];
 
       var attributes = {};
 
       for (var i = 0; i < attributesList.length; i++) {
-        var _attributesList$i = _slicedToArray(attributesList[i], 2);
-
-        var name = _attributesList$i[0];
-        var value = _attributesList$i[1];
+        var _attributesList$i = _slicedToArray(attributesList[i], 2),
+            name = _attributesList$i[0],
+            value = _attributesList$i[1];
 
         attributes[name] = value;
       }
@@ -116,10 +111,9 @@ var format = function format(patches) {
     });
 
     REMOVE_ATTRIBUTE.forEach(function (patch) {
-      var _patch5 = _slicedToArray(patch, 2);
-
-      var vTree = _patch5[0];
-      var attributesList = _patch5[1];
+      var _patch5 = _slicedToArray(patch, 2),
+          vTree = _patch5[0],
+          attributesList = _patch5[1];
 
       var attributes = {};
 
@@ -149,14 +143,14 @@ var format = function format(patches) {
  * @param options - Middleware options
  */
 var log = function log(message, method, color, date, transaction, completed) {
-  var domNode = transaction.domNode;
-  var oldTree = transaction.oldTree;
-  var newTree = transaction.newTree;
-  var patches = transaction.patches;
-  var promises = transaction.promises;
-  var options = transaction.options;
-  var markup = transaction.markup;
-  var state = transaction.state;
+  var domNode = transaction.domNode,
+      oldTree = transaction.oldTree,
+      newTree = transaction.newTree,
+      patches = transaction.patches,
+      promises = transaction.promises,
+      options = transaction.options,
+      markup = transaction.markup,
+      state = transaction.state;
 
   // Shadow DOM rendering...
 

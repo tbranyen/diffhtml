@@ -4,9 +4,6 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 exports.default = inlineTransitions;
 // Store maps of elements to handlers that are associated to transitions.
 var transitionsMap = {
@@ -76,29 +73,23 @@ function inlineTransitions() {
         // valid handlers and if they return Promises return them into a
         // `Promise.all`.
         else {
-            var _ret = function () {
-              var retVal = [];
+            var retVal = [];
 
-              // Last resort check for child.
-              map.forEach(function (fn, element) {
-                if (element.contains(child)) {
-                  retVal.push(fn.apply(child, [element].concat(child, rest)));
-                }
-              });
-
-              var hasPromise = retVal.some(function (ret) {
-                return Boolean(ret && ret.then);
-              });
-
-              // This is the only time the return value matters.
-              if (hasPromise) {
-                return {
-                  v: Promise.all(retVal)
-                };
+            // Last resort check for child.
+            map.forEach(function (fn, element) {
+              if (element.contains(child)) {
+                retVal.push(fn.apply(child, [element].concat(child, rest)));
               }
-            }();
+            });
 
-            if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+            var hasPromise = retVal.some(function (ret) {
+              return Boolean(ret && ret.then);
+            });
+
+            // This is the only time the return value matters.
+            if (hasPromise) {
+              return Promise.all(retVal);
+            }
           }
       };
 

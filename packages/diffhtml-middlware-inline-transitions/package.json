@@ -1,5 +1,5 @@
 {
-  "name": "diffhtml-inline-transitions",
+  "name": "diffhtml-middleware-inline-transitions",
   "version": "1.0.0-beta",
   "description": "Monitors inline attributes and assigns transition hooks",
   "main": "dist/inline-transitions.js",
@@ -11,8 +11,7 @@
   },
   "keywords": [
     "diffhtml",
-    "transitions",
-    "tagged template"
+    "transitions"
   ],
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",

@@ -187,10 +187,25 @@ exports.Component = function () {
       }
     }
   }, {
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps() {}
+  }, {
     key: 'shouldComponentUpdate',
     value: function shouldComponentUpdate() {
       return true;
     }
+  }, {
+    key: 'componentWillUpdate',
+    value: function componentWillUpdate() {}
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate() {}
+  }, {
+    key: 'componentWillMount',
+    value: function componentWillMount() {}
+  }, {
+    key: 'componentDidMount',
+    value: function componentDidMount() {}
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {}
