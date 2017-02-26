@@ -13,6 +13,6 @@
     "diffhtml": "^1.0.0-beta",
     "dox": "^0.8.1",
     "express": "^4.14.0",
-    "nodegit": "^0.14.1"
+    "nodegit": "^0.17.0"
   }
 }
