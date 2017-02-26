@@ -20,7 +20,7 @@ versioning, and working on the various diffHTML tools.
 
 ## Features
 
-- Parses real **HTML** and supports **JSX** and **Tagged Templates**.
+- Parses real **HTML** and supports **JSX & Tagged Templates**.
 - Efficient minimal rendering that utilizes **object pooling**.
 - **Web** and **React**-compatible stateful components.
 - View and debug your code using the **Chrome DevTools extension**.
