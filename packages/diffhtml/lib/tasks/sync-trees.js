@@ -1,6 +1,6 @@
 import * as Tree from '../tree';
 import { createNode } from '../node';
-import { StateCache, unprotectVTree } from '../util';
+import { StateCache, protectVTree, unprotectVTree } from '../util';
 
 export default function syncTrees(transaction) {
   const { state: { measure, oldTree }, newTree, domNode } = transaction;
@@ -20,6 +20,7 @@ export default function syncTrees(transaction) {
 
     unprotectVTree(transaction.oldTree);
     transaction.oldTree = transaction.state.oldTree = newTree;
+    protectVTree(transaction.oldTree);
 
     // Update the StateCache since we are changing the top level element.
     StateCache.set(createNode(newTree), transaction.state);

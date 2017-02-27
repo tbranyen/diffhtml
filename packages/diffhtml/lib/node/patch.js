@@ -19,7 +19,7 @@ const removeAttribute = (domNode, name) => {
   }
 };
 
-export default function patchNode(patches, state) {
+export default function patchNode(patches) {
   const promises = [];
   const { TREE_OPS, NODE_VALUE, SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
 
@@ -125,21 +125,21 @@ export default function patchNode(patches, state) {
     if (INSERT_BEFORE && INSERT_BEFORE.length) {
       for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
         const vTree = INSERT_BEFORE[i];
-        const childNode = INSERT_BEFORE[i + 1];
-        const referenceNode = INSERT_BEFORE[i + 2];
+        const newTree = INSERT_BEFORE[i + 1];
+        const referenceTree = INSERT_BEFORE[i + 2];
         const domNode = NodeCache.get(vTree);
-        const refNode = referenceNode && createNode(referenceNode);
+        const referenceNode = referenceTree && createNode(referenceTree);
         const attached = TransitionCache.get('attached');
 
-        if (referenceNode) {
-          protectVTree(referenceNode);
+        if (referenceTree) {
+          protectVTree(referenceTree);
         }
 
-        const newNode = createNode(childNode);
-        protectVTree(childNode);
+        const newNode = createNode(newTree);
+        protectVTree(newTree);
 
         // If refNode is `null` then it will simply append like `appendChild`.
-        domNode.insertBefore(newNode, refNode);
+        domNode.insertBefore(newNode, referenceNode);
 
         const attachedPromises = runTransitions('attached', newNode);
 
@@ -152,22 +152,22 @@ export default function patchNode(patches, state) {
     // Remove elements.
     if (REMOVE_CHILD && REMOVE_CHILD.length) {
       for (let i = 0; i < REMOVE_CHILD.length; i++) {
-        const childNode = REMOVE_CHILD[i];
-        const domNode = NodeCache.get(childNode);
+        const vTree = REMOVE_CHILD[i];
+        const domNode = NodeCache.get(vTree);
         const detached = TransitionCache.get('detached');
         const detachedPromises = runTransitions('detached', domNode);
 
         if (detachedPromises.length) {
           Promise.all(detachedPromises).then(() => {
             domNode.parentNode.removeChild(domNode);
-            unprotectVTree(childNode);
+            unprotectVTree(vTree);
           });
 
           promises.push(...detachedPromises);
         }
         else {
           domNode.parentNode.removeChild(domNode);
-          unprotectVTree(childNode);
+          unprotectVTree(vTree);
         }
       }
     }

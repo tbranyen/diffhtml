@@ -1,4 +1,4 @@
-import { protectVTree, unprotectVTree, parse } from '../util';
+import { Pool, protectVTree, unprotectVTree, parse } from '../util';
 import { createTree } from '../tree';
 
 const { assign, keys } = Object;

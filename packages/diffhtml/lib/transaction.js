@@ -164,6 +164,8 @@ export default class Transaction {
     const { measure } = state;
     const { inner } = options;
 
+    measure('finalize');
+
     this.completed = true;
 
     let renderScheduled = false;

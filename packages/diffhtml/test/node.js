@@ -1,5 +1,6 @@
 import { ok, equal, throws } from 'assert';
-import { createNode } from '../lib/node';
+import { createNode, patchNode } from '../lib/node';
+import html from '../lib/html';
 import validateMemory from './util/validateMemory';
 
 describe('Node', function() {
@@ -101,6 +102,25 @@ describe('Node', function() {
       equal(domNode.nodeName, '#document-fragment');
       equal(domNode.childNodes[0].nodeName, '#text');
       equal(domNode.childNodes[0].nodeValue, 'test');
+    });
+  });
+
+  describe('patch', () => {
+    it('will set attributes with no string values', () => {
+      const vTree = html`<div />`;
+      const domNode = createNode(vTree);
+
+      const patches = {
+        TREE_OPS: [],
+        NODE_VALUE: [],
+        SET_ATTRIBUTE: [vTree, 'autofocus', ''],
+        REMOVE_ATTRIBUTE: [],
+      };
+
+      patchNode(patches);
+
+      equal(domNode.hasAttribute('autofocus'), true);
+      equal(domNode.getAttribute('autofocus'), '');
     });
   });
 });

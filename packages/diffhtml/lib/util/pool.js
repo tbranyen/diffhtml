@@ -14,13 +14,7 @@ const shape = () => ({
   attributes: {},
 });
 
-/**
- * Creates a pool to query new or reused values from.
- *
- * @param name
- * @param opts
- * @return {Object} pool
- */
+// Creates a pool to query new or reused values from.
 const memory = { free, allocated: allocate, protected: protect };
 
 // Prime the free memory pool with VTrees.

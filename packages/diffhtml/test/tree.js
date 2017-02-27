@@ -655,6 +655,19 @@ describe('Tree', function() {
         equal(oldTree.attributes.hasOwnProperty('id'), false);
       });
 
+      it('will detect attributes with empty string values', () => {
+        const oldTree = createTree('div', {});
+        const newTree = createTree('div', { autofocus: '' });
+        const patches = syncTree(oldTree, newTree);
+
+        deepEqual(patches, {
+          TREE_OPS: [],
+          NODE_VALUE: [],
+          SET_ATTRIBUTE: [oldTree, 'autofocus', ''],
+          REMOVE_ATTRIBUTE: [],
+        });
+      });
+
       describe('Attribute & Property Differences', () => {
         it('will convert className to class', () => {
           const oldTree = createTree('div');

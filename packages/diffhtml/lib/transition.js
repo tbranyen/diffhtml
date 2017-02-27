@@ -56,6 +56,10 @@ export function runTransitions(setName, ...args) {
   const set = TransitionCache.get(setName);
   const promises = [];
 
+  if (!set.size) {
+    return promises;
+  }
+
   // Ignore text nodes.
   if (setName !== 'textChanged' && args[0].nodeType === 3) { return promises; }
 
