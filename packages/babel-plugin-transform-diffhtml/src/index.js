@@ -1,4 +1,4 @@
-import { parse } from 'diffhtml/lib/util/parser';
+import parse from 'diffhtml/dist/cjs/util/parser';
 import * as babylon from 'babylon';
 import Global from './global';
 
@@ -274,22 +274,25 @@ export default function({ types: t }) {
             let value = nodeValue.value || '';
 
             if (value.trim() === symbol) {
-              args.push(createTree, [
-                t.stringLiteral(''),
-                t.nullLiteral(),
-                supplemental.children.shift()
-              ]);
+              const childNodes = supplemental.children.shift();
+
+              args.push(createTree, [childNodes]);
 
               isDynamic = true;
             }
             else if (value.indexOf(symbol) > -1) {
               const values = splitDyanmicValues(value, supplemental.children);
 
-              args.push(createTree, [
-                t.stringLiteral(''),
-                t.nullLiteral(),
-                values
-              ]);
+              if (values.elements.length === 1) {
+                args.push(values.elements[0]);
+              }
+              else {
+                args.push(createTree, [
+                  t.stringLiteral('#document-fragment'),
+                  t.nullLiteral(),
+                  values.length === 1 ? values[0] : values,
+                ]);
+              }
 
               isDynamic = true;
             }

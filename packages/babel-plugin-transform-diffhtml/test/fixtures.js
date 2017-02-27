@@ -1,6 +1,5 @@
 'use strict';
 
-const setup = require('./setup');
 const diff = require('diffhtml');
 
 BASICS: {
