@@ -6,7 +6,7 @@ const symbol = '__DIFFHTML_BABEL__';
 const isPropEx = /(=|'|")/;
 
 /**
- * Transpiles a matching tagged template literal to createElement calls, the
+ * Transpiles a matching tagged template literal to createTree calls, the
  * end goal avoids HTML parsing at runtime.
  *
  * @return {Object} containing the visitor handler.
@@ -59,7 +59,7 @@ export default function({ types: t }) {
 
   // Takes in a dot-notation identifier and breaks it up into a
   // MemberExpression. Useful for configuration overrides specifying the
-  // tagged template function name and createElement calls.
+  // tagged template function name and createTree calls.
   const identifierToMemberExpression = (identifier) => {
     const identifiers = identifier.split('.');
 
@@ -193,13 +193,9 @@ export default function({ types: t }) {
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');
 
-      const createElement = plugin.opts.createElement ?
-        identifierToMemberExpression(plugin.opts.createElement) :
-        identifierToMemberExpression('diff.createElement');
-
-      const createAttribute = plugin.opts.createAttribute ?
-        identifierToMemberExpression(plugin.opts.createAttribute) :
-        identifierToMemberExpression('diff.createAttribute');
+      const createTree = plugin.opts.createTree ?
+        identifierToMemberExpression(plugin.opts.createTree) :
+        identifierToMemberExpression('diff.createTree');
 
       /**
        * Replace the dynamic parts of the AST with the actual quasi
@@ -244,58 +240,12 @@ export default function({ types: t }) {
 
           const attributes = childNode.properties.filter(property => {
             return property.key.value === 'attributes';
-          })[0].value.elements;
+          })[0].value;
 
           const childNodes = childNode.properties.filter(property => {
             return property.key.value === 'childNodes';
           })[0].value;
 
-          const attributeElements = [];
-          const attributeProperties = [];
-
-          // Check attributes.
-          attributes.forEach(attribute => {
-            const attrName = attribute.properties[0];
-            const attrValue = attribute.properties[1];
-
-            // Literal attribute value.
-            const name = attrName.value.value;
-            const value = attrValue.value.value;
-
-            if (value === symbol) {
-              attrValue.value = supplemental.props.shift();
-
-              isDynamic = true;
-
-              if (name === symbol) {
-                attrName.value = attrValue.value;
-              }
-            }
-            else if (value.indexOf(symbol) > -1) {
-              let expr = makeConcatExpr(value, supplemental.props);
-              attrValue.value = expr;
-
-              isDynamic = true;
-            }
-            else {
-              attrValue.value = t.stringLiteral(value);
-            }
-
-            if (name) {
-              attributeProperties.push(
-                t.objectProperty(attrName.value, attrValue.value, true)
-              );
-
-              attributeElements.push(
-                t.callExpression(createAttribute, [
-                  attrName.value,
-                  attrValue.value,
-                ])
-              );
-            }
-          });
-
-          const attributeObject = t.objectExpression(attributeProperties);
           const args = [];
 
           // Real elements.
@@ -313,13 +263,7 @@ export default function({ types: t }) {
               isDynamic = true;
             }
 
-            let attributes = t.arrayExpression(attributeElements);
-
-            if (identifierIsInScope) {
-              attributes = attributeObject;
-            }
-
-            args.push(createElement, [
+            args.push(createTree, [
               identifierIsInScope ? t.identifier(rawNodeName) : nodeName,
               attributes,
               t.arrayExpression(expressions.map(expr => expr.expression)),
@@ -330,7 +274,7 @@ export default function({ types: t }) {
             let value = nodeValue.value || '';
 
             if (value.trim() === symbol) {
-              args.push(createElement, [
+              args.push(createTree, [
                 t.stringLiteral(''),
                 t.nullLiteral(),
                 supplemental.children.shift()
@@ -341,7 +285,7 @@ export default function({ types: t }) {
             else if (value.indexOf(symbol) > -1) {
               const values = splitDyanmicValues(value, supplemental.children);
 
-              args.push(createElement, [
+              args.push(createTree, [
                 t.stringLiteral(''),
                 t.nullLiteral(),
                 values
@@ -350,7 +294,7 @@ export default function({ types: t }) {
               isDynamic = true;
             }
             else {
-              args.push(createElement, [
+              args.push(createTree, [
                 t.stringLiteral('#text'),
                 t.nullLiteral(),
                 nodeValue
@@ -366,7 +310,7 @@ export default function({ types: t }) {
           // in which case it cannot be hoisted.
           const isTopLevelStatic = false;
 
-          // Is a static node and never changes, so hoist createElement call.
+          // Is a static node and never changes, so hoist createTree call.
           if (!isDynamic && isTopLevelStatic) {
             let id = path.scope.generateUidIdentifier('vtree');
             path.scope.parent.push({ id, init: callExpr });
