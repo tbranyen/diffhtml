@@ -5,7 +5,7 @@ Stable version: 0.9.2
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Coverage
-Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master) 
+  Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master) 
 [![Join the chat at https://gitter.im/tbranyen/diffhtml](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/tbranyen/diffhtml)
 
 diffHTML is a library that assists with creating user interfaces using
@@ -35,31 +35,57 @@ level or any specific nested package level.
 
 * **[diffhtml](/packages/diffhtml)**
 
+  ``` sh
+  npm install diffhtml
+  ```
+
   The core library for creating user interfaces. Contains a full build and
   smaller runtime build (which excludes HTML parser, tagged templates, and
   performance metrics).
 
-* **[diffhtml-components](/packages/diffhtml-components)**
+* [diffhtml-components](/packages/diffhtml-components)
 
-  Provides a React Like and identical Web Component API. If you're looking for
-  the full React API, refer to the
+  ``` sh
+  npm install diffhtml-components
+  ```
+
+  Provides stateful React-like and Web Component classes with a consistent API.
+  If you're looking for better React parity, refer to the
   [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
 
-* **[diffhtml-middleware-logger](/packages/diffhtml-middleware-logger)**
+* [diffhtml-middleware-logger](/packages/diffhtml-middleware-logger)
 
-  Logs out information at the start and end of every render transaction.
+  ``` sh
+  npm install diffhtml-middleware-logger
+  ```
 
-* **[diffhtml-middleware-synthetic-events](/packages/diffhtml-middleware-synthetic-events)**
+  Logs out diffHTML state from the start and end of every render transaction.
 
-  By default diffHTML uses inline event handlers like `onclick = fn`, this
-  middleware uses `addEventListener` hooks to the `body` element and captures
-  events using delegation.
+* [diffhtml-middleware-synthetic-events](/packages/diffhtml-middleware-synthetic-events)
 
-* **[diffhtml-middleware-inline-transitions](/packages/diffhtml-middleware-inline-transitions)**
+  ``` sh
+  npm install diffhtml-middleware-synthetic-events
+  ```
+
+  Changes the event binding from inline event handlers like `onclick = fn` to
+  use `addEventListener`. Hooks are attached to the `body` element and
+  coordinates events using delegation.
+
+* [diffhtml-middleware-inline-transitions](/packages/diffhtml-middleware-inline-transitions)
+
+  ``` sh
+  npm install diffhtml-middleware-inline-transitions
+  ```
 
   By default diffHTML provides transition hooks at a global level. This
   middleware turns them into scoped, performant, event hooks.
 
-* **[diffhtml-middleware-verify-state](/packages/diffhtml-middleware-verify-state)**
+* [diffhtml-middleware-verify-state](/packages/diffhtml-middleware-verify-state)
 
-  Asserts that a render properly updated the old Virtual Tree and the DOM.
+  ``` sh
+  npm install diffhtml-middleware-verify-state
+  ```
+
+  Asserts that a render properly updated the old Virtual Tree and the DOM. Will
+  recursively search for inconsistencies, displays warnings unless debugging is
+  enabled, then it throws errors instead.
