@@ -49,7 +49,7 @@ SimpleClock.propTypes = {
 };
 
 // Render to the `<body />` element.
-innerHTML(document.body, html`<simple-clock />`);
+innerHTML(document.body, html`<${SimpleClock} />`);
 ```
 
 
