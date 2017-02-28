@@ -3,7 +3,7 @@ diffHTML Middleware Logger
 
 Stable Version: 1.0.0-beta
 
-Use with diffHTML to log out [render
+Use with diffHTML to `console.log` out [render
 transaction](https://diffhtml.org/#transaction) operations. This will nest
 sub-component renders if they happen during a parent render.
 
@@ -18,6 +18,7 @@ npm install diffhtml-middleware-logger
 ##### Example
 
 ``` javascript
+import { use } from 'diffhtml';
 import logger from 'diffhtml-middleware-logger';
 
 diff.use(logger());
