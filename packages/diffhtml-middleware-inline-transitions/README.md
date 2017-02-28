@@ -36,7 +36,7 @@ innerHTML(document.body, html`<body onattached=${fadeIn}>
 Full events and args list:
 
 | Event Name           | Args
-| -------------------- | -----------------------------------------------------------
+| :------------------- | :----------------------------------------------------------
 | `onattached`         | `(eventTarget, domNode)`
 | `ondetached`         | `(eventTarget, domNode)`
 | `onreplaced`         | `(eventTarget, oldNode, newNode)`
