@@ -2,7 +2,7 @@ import parse from 'diffhtml/dist/cjs/util/parser';
 import * as babylon from 'babylon';
 import Global from './global';
 
-const symbol = '__DIFFHTML_BABEL__';
+const TOKEN = '__DIFFHTML__';
 const isPropEx = /(=|'|")/;
 
 /**
@@ -60,7 +60,7 @@ export default function({ types: t }) {
   // Takes in a dot-notation identifier and breaks it up into a
   // MemberExpression. Useful for configuration overrides specifying the
   // tagged template function name and createTree calls.
-  const identifierToMemberExpression = (identifier) => {
+  const identifierToMemberExpression = identifier => {
     const identifiers = identifier.split('.');
 
     if (identifiers.length === 0) {
@@ -127,8 +127,9 @@ export default function({ types: t }) {
       }).filter(Boolean);
 
       const supplemental = {
-        props: [],
-        children: [],
+        attributes: {},
+        children: {},
+        tags: {},
       };
 
       const quasis = path.node.quasi.quasis;
@@ -148,7 +149,7 @@ export default function({ types: t }) {
       const HTML = [];
       const dynamicBits = [];
 
-      quasis.forEach(quasi => {
+      quasis.forEach((quasi, i) => {
         HTML.push(quasi.value.raw);
 
         if (expressions.length) {
@@ -177,13 +178,15 @@ export default function({ types: t }) {
               isProp = true;
             }
 
-            HTML.push(symbol);
+            const token = TOKEN + i + '__';
+
+            HTML.push(token);
 
             if (isProp) {
-              supplemental.props.push(expression);
+              supplemental.props[i] = expression;
             }
             else {
-              supplemental.children.push(expression);
+              supplemental.children[i] = expression;
             }
           }
         }
