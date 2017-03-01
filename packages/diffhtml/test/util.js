@@ -805,6 +805,28 @@ describe('Util', function() {
     });
   });
 
+  describe('Pool', () => {
+    it('will create additional shapes if the pool is exceeded', () => {
+      let shape = null;
+
+      for (let i = 0; i < Pool.size + 1; i++) {
+        shape = createTree('div');
+      }
+
+      equal(Pool.memory.free.size, 0);
+      equal(Pool.memory.allocated.size, Pool.size + 1);
+
+      cleanMemory();
+
+      equal(Pool.memory.free.size, Pool.size + 1);
+      equal(Pool.memory.allocated.size, 0);
+
+      Pool.memory.free.delete(shape);
+
+      equal(Pool.memory.free.size, Pool.size);
+    });
+  });
+
   describe('Memory', () => {
     it('will protect and unprotect a VTree through garbage collection', () => {
       const vTree = createTree('div');

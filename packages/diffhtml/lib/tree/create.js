@@ -21,7 +21,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       if (typeof newTree.rawNodeName === 'string' && isFragment) {
         childNodes.push(...newTree.childNodes);
       }
-      else if (newTree) {
+      else {
         childNodes.push(newTree);
       }
     }

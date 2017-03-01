@@ -22,8 +22,9 @@ for (let i = 0; i < size; i++) {
   free.add(shape());
 }
 
-// Cache the values object, this is a live reference.
-const freeValues = free.values();
+// Cache the values object, we'll refer to this iterator which is faster
+// than calling it every single time. It gets replaced once exhausted.
+let freeValues = free.values();
 
 // Cache VTree objects in a pool which is used to get
 export default {
@@ -31,7 +32,14 @@ export default {
   memory,
 
   get() {
-    const value = freeValues.next().value || shape();
+    const { value = shape(), done } = freeValues.next();
+
+    // This extra bit of work allows us to avoid calling `free.values()` every
+    // single time an object is needed.
+    if (done) {
+      freeValues = free.values();
+    }
+
     free.delete(value);
     allocate.add(value);
     return value;

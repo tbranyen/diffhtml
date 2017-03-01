@@ -1,6 +1,7 @@
 import { ok, deepEqual, equal, doesNotThrow, throws } from 'assert';
 import { spy, stub } from 'sinon';
 import Transaction from '../lib/transaction';
+import use from '../lib/use';
 import { schedule, endAsPromise }from '../lib/tasks';
 
 describe('Transaction', function() {
@@ -32,7 +33,32 @@ describe('Transaction', function() {
   });
 
   describe('invokeMiddleware', () => {
-    it.skip('will');
+    it('will not modify the task flow if not provided a function', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
+
+      const middleware = spy();
+      const unsubscribe = use(middleware);
+
+      Transaction.invokeMiddleware(transaction);
+
+      equal(transaction.tasks.length, 1);
+      unsubscribe();
+    });
+
+    it('will modify the task flow if provided a function', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
+
+      const task = spy();
+      const middleware = () => task;
+      const unsubscribe = use(middleware);
+
+      Transaction.invokeMiddleware(transaction);
+
+      equal(transaction.tasks.length, 2);
+      unsubscribe();
+    });
   });
 
   describe('renderNext', () => {

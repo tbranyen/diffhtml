@@ -40,8 +40,9 @@ for (let i = 0; i < size; i++) {
   free.add(shape());
 }
 
-// Cache the values object, this is a live reference.
-const freeValues = free.values();
+// Cache the values object, we'll refer to this iterator which is faster
+// than calling it every single time. It gets replaced once exhausted.
+let freeValues = free.values();
 
 // Cache VTree objects in a pool which is used to get
 var Pool = {
@@ -49,7 +50,14 @@ var Pool = {
   memory: memory$1,
 
   get() {
-    const value = freeValues.next().value || shape();
+    const { value = shape(), done } = freeValues.next();
+
+    // This extra bit of work allows us to avoid calling `free.values()` every
+    // single time an object is needed.
+    if (done) {
+      freeValues = free.values();
+    }
+
     free.delete(value);
     allocate.add(value);
     return value;
@@ -203,7 +211,7 @@ function createTree(input, attributes, childNodes, ...rest) {
 
       if (typeof newTree.rawNodeName === 'string' && isFragment) {
         childNodes.push(...newTree.childNodes);
-      } else if (newTree) {
+      } else {
         childNodes.push(newTree);
       }
     }
@@ -567,15 +575,7 @@ function syncTree(oldTree, newTree, patches) {
       // If there is no old element to compare to, this is a simple addition.
       if (!oldChildNode) {
         // Prefer an existing match to a brand new element.
-        let optimalNewNode = null;
-
-        // Prefer existing to new and remove from old position.
-        if (oldKeys.has(newKey)) {
-          optimalNewNode = oldKeys.get(newKey);
-          oldChildNodes.splice(oldChildNodes.indexOf(optimalNewNode), 1);
-        } else {
-          optimalNewNode = newChildNode;
-        }
+        let optimalNewNode = newChildNode;
 
         if (patchset.INSERT_BEFORE === null) {
           patchset.INSERT_BEFORE = [];
@@ -593,7 +593,6 @@ function syncTree(oldTree, newTree, patches) {
         if (patchset.REPLACE_CHILD === null) {
           patchset.REPLACE_CHILD = [];
         }
-        //if (newChildNode.nodeType === 11) { debugger; }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
         continue;
@@ -636,7 +635,6 @@ function syncTree(oldTree, newTree, patches) {
         if (patchset.REPLACE_CHILD === null) {
           patchset.REPLACE_CHILD = [];
         }
-        //if (newChildNode.nodeType === 11) { debugger; }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldTree.childNodes[i] = newChildNode;
         syncTree(null, newChildNode, patches);
@@ -672,7 +670,6 @@ function syncTree(oldTree, newTree, patches) {
             patchset.REPLACE_CHILD = [];
           }
           patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
-          //if (newChildNode.nodeType === 11) { debugger; }
           oldTree.childNodes[i] = newChildNode;
           syncTree(null, newChildNode, patches);
           continue;
@@ -840,26 +837,21 @@ const stateNames = ['attached', 'detached', 'replaced', 'attributeChanged', 'tex
 stateNames.forEach(stateName => TransitionCache.set(stateName, new Set()));
 
 function addTransitionState(stateName, callback) {
-  if (!stateName) {
-    throw new Error('Missing transition state name');
+  if (!stateName || !stateNames.includes(stateName)) {
+    throw new Error(`Invalid state name '${stateName}'`);
   }
 
   if (!callback) {
     throw new Error('Missing transition state callback');
   }
 
-  // Not a valid state name.
-  if (stateNames.indexOf(stateName) === -1) {
-    throw new Error(`Invalid state name: ${stateName}`);
-  }
-
   TransitionCache.get(stateName).add(callback);
 }
 
 function removeTransitionState(stateName, callback) {
-  // Not a valid state name.
+  // Only validate the stateName if the caller provides one.
   if (stateName && !stateNames.includes(stateName)) {
-    throw new Error(`Invalid state name ${stateName}`);
+    throw new Error(`Invalid state name '${stateName}'`);
   }
 
   // Remove all transition callbacks from state.
@@ -929,14 +921,22 @@ function patchNode$$1(patches) {
 
   // Set attributes.
   if (SET_ATTRIBUTE.length) {
-    // Triggered either synchronously or asynchronously depending on if a
-    // transition was invoked.
-    const mutationCallback = (domNode, name, value) => {
+    for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
+      const vTree = SET_ATTRIBUTE[i];
+      const _name = SET_ATTRIBUTE[i + 1];
+      const value = decodeEntities(SET_ATTRIBUTE[i + 2]);
+      const domNode = createNode(vTree);
+      const attributeChanged = TransitionCache.get('attributeChanged');
+      const oldValue = domNode.getAttribute(_name);
+      const newPromises = runTransitions('attributeChanged', domNode, _name, oldValue, value);
+
+      // Triggered either synchronously or asynchronously depending on if a
+      // transition was invoked.
       const isObject = typeof value === 'object';
       const isFunction = typeof value === 'function';
 
       // Events must be lowercased otherwise they will not be set correctly.
-      name = name.indexOf('on') === 0 ? name.toLowerCase() : name;
+      const name = _name.indexOf('on') === 0 ? _name.toLowerCase() : _name;
 
       // Normal attribute value.
       if (!isObject && !isFunction && name) {
@@ -972,25 +972,9 @@ function patchNode$$1(patches) {
             domNode[name] = value;
           } catch (unhandledException) {}
         }
-    };
-
-    for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
-      const vTree = SET_ATTRIBUTE[i];
-      const name = SET_ATTRIBUTE[i + 1];
-      const value = SET_ATTRIBUTE[i + 2];
-      const domNode = createNode(vTree);
-      const attributeChanged = TransitionCache.get('attributeChanged');
-      const oldValue = domNode.getAttribute(name);
-      const newPromises = runTransitions('attributeChanged', domNode, name, oldValue, value);
 
       if (newPromises.length) {
-        Promise.all(newPromises).then(() => {
-          mutationCallback(domNode, name, decodeEntities(value));
-        });
-
         promises.push(...newPromises);
-      } else {
-        mutationCallback(domNode, name, decodeEntities(value));
       }
     }
   }

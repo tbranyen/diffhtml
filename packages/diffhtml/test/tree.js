@@ -470,6 +470,31 @@ describe('Tree', function() {
       equal(vTree.childNodes.length, 1);
       equal(vTree.childNodes[0].nodeName, 'p');
     });
+
+    it('will ignore undefined array elements', () => {
+      const vTree = createTree([
+        null,
+        'div'
+      ]);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeType: 11,
+        nodeValue: '',
+        key: '',
+        attributes: {},
+        childNodes: [{
+          rawNodeName: 'div',
+          nodeName: 'div',
+          nodeType: 1,
+          nodeValue: '',
+          key: '',
+          attributes: {},
+          childNodes: [],
+        }],
+      });
+    });
   });
 
   describe('sync', () => {
@@ -807,6 +832,26 @@ describe('Tree', function() {
             }],
             NODE_VALUE: [],
             SET_ATTRIBUTE: [],
+            REMOVE_ATTRIBUTE: [],
+          });
+        });
+
+        it('will replace elements if they are of different types', () => {
+          const a = createTree('div', { key: 'a' });
+          const b = createTree('span', { key: 'a' });
+          const oldTree = createTree('div', null, a);
+          const newTree = createTree('div', null, b);
+
+          const patches = syncTree(oldTree, newTree);
+
+          deepEqual(patches, {
+            TREE_OPS: [{
+              INSERT_BEFORE: null,
+              REMOVE_CHILD: null,
+              REPLACE_CHILD: [b, a],
+            }],
+            NODE_VALUE: [],
+            SET_ATTRIBUTE: [b, 'key', 'a'],
             REMOVE_ATTRIBUTE: [],
           });
         });

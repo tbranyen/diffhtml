@@ -13,26 +13,21 @@ const stateNames = [
 stateNames.forEach(stateName => TransitionCache.set(stateName, new Set()));
 
 export function addTransitionState(stateName, callback) {
-  if (!stateName) {
-    throw new Error('Missing transition state name');
+  if (!stateName || !stateNames.includes(stateName)) {
+    throw new Error(`Invalid state name '${stateName}'`);
   }
 
   if (!callback) {
     throw new Error('Missing transition state callback');
   }
 
-  // Not a valid state name.
-  if (stateNames.indexOf(stateName) === -1) {
-    throw new Error(`Invalid state name: ${stateName}`);
-  }
-
   TransitionCache.get(stateName).add(callback);
 }
 
 export function removeTransitionState(stateName, callback) {
-  // Not a valid state name.
+  // Only validate the stateName if the caller provides one.
   if (stateName && !stateNames.includes(stateName)) {
-    throw new Error(`Invalid state name ${stateName}`);
+    throw new Error(`Invalid state name '${stateName}'`);
   }
 
   // Remove all transition callbacks from state.

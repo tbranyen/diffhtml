@@ -158,16 +158,7 @@ export default function syncTree(oldTree, newTree, patches) {
       // If there is no old element to compare to, this is a simple addition.
       if (!oldChildNode) {
         // Prefer an existing match to a brand new element.
-        let optimalNewNode = null;
-
-        // Prefer existing to new and remove from old position.
-        if (oldKeys.has(newKey)) {
-          optimalNewNode = oldKeys.get(newKey);
-          oldChildNodes.splice(oldChildNodes.indexOf(optimalNewNode), 1);
-        }
-        else {
-          optimalNewNode = newChildNode;
-        }
+        let optimalNewNode = newChildNode;
 
         if (patchset.INSERT_BEFORE === null) { patchset.INSERT_BEFORE = []; }
         patchset.INSERT_BEFORE.push(oldTree, optimalNewNode, null);
