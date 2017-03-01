@@ -472,7 +472,7 @@ describe('Tree', function() {
     });
   });
 
-  describe('sync', function() {
+  describe('sync', () => {
     it('will throw an error if top level elements are different', () => {
       const oldTree = createTree('div');
       const newTree = createTree('h1');
@@ -492,6 +492,13 @@ describe('Tree', function() {
         SET_ATTRIBUTE: [],
         REMOVE_ATTRIBUTE: [],
       });
+    });
+
+    it('will error if missing a new tree to sync into', () => {
+      const oldTree = createTree('div');
+      const newTree = undefined;
+
+      throws(() =>  syncTree(oldTree, newTree));
     });
 
     it('will error if the new tree is not the same type', () => {

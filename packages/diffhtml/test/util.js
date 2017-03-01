@@ -322,6 +322,39 @@ describe('Util', function() {
       });
     });
 
+    it('will allow dynamic components to be closed', () => {
+      const Component = () => {};
+      const vTree = parse('<__DIFFHTML__0__>Hello world</__DIFFHTML__1__>', {
+        tags: { 0: Component, 1: Component },
+      });
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: Component,
+          nodeName: '#document-fragment',
+          nodeValue: '',
+          nodeType: 11,
+          key: '',
+          childNodes: [{
+            rawNodeName: '#text',
+            nodeName: '#text',
+            nodeValue: 'Hello world',
+            nodeType: 3,
+            key: '',
+            childNodes: [],
+            attributes: {},
+          }],
+          attributes: {},
+        }],
+        attributes: {},
+      });
+    });
+
     it('will support interpolating children', () => {
       const text = createTree('#text', 'Hello world');
       const vTree = parse(`
@@ -432,6 +465,38 @@ describe('Util', function() {
             nodeName: '#text',
             nodeType: 3,
             nodeValue: 'world',
+            rawNodeName: '#text',
+          }],
+          attributes: {},
+        }],
+        attributes: {},
+      });
+    });
+
+    it('will ignore empty children', () => {
+      const vTree = parse(`
+        <div>Hello __DIFFHTML__0__</div>
+      `, { children: { 0: undefined } });
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: 'div',
+          nodeName: 'div',
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [{
+            attributes: {},
+            childNodes: [],
+            key: '',
+            nodeName: '#text',
+            nodeType: 3,
+            nodeValue: 'Hello ',
             rawNodeName: '#text',
           }],
           attributes: {},
@@ -644,6 +709,85 @@ describe('Util', function() {
             attributes: {},
           }],
           attributes: {},
+        }],
+        attributes: {},
+      });
+    });
+
+    it('will support malformed markup just like DOMParser', () => {
+      const vTree = parse(`
+        <li>Hello</ol>
+        <li>World</ol>
+      `);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: 'li',
+          nodeName: 'li',
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [{
+            rawNodeName: '#text',
+            nodeName: '#text',
+            nodeValue: 'Hello',
+            nodeType: 3,
+            key: '',
+            childNodes: [],
+            attributes: {}
+          }],
+          attributes: {}
+        }, {
+          rawNodeName: '#text',
+          nodeName: '#text',
+          nodeValue: '\n        ',
+          nodeType: 3,
+          key: '',
+          childNodes: [],
+          attributes: {},
+        }, {
+          rawNodeName: 'li',
+          nodeName: 'li',
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [{
+            rawNodeName: '#text',
+            nodeName: '#text',
+            nodeValue: 'World',
+            nodeType: 3,
+            key: '',
+            childNodes: [],
+            attributes: {}
+          }],
+          attributes: {}
+        }],
+        attributes: {}
+      });
+    });
+
+    it('will support parsing malformed markup with not closing', () => {
+      const vTree = parse(`<script>`);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: 'script',
+          nodeName: 'script',
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [],
+          attributes: {}
         }],
         attributes: {},
       });

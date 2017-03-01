@@ -181,7 +181,6 @@ export default function syncTree(oldTree, newTree, patches) {
       // Remove the old Node and insert the new node (aka replace).
       if (!newKeys.has(oldKey) && !oldKeys.has(newKey)) {
         if (patchset.REPLACE_CHILD === null) { patchset.REPLACE_CHILD = []; }
-        //if (newChildNode.nodeType === 11) { debugger; }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
         continue;
@@ -219,7 +218,6 @@ export default function syncTree(oldTree, newTree, patches) {
       // replace the entire element, don't bother investigating children.
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
         if (patchset.REPLACE_CHILD === null) { patchset.REPLACE_CHILD = []; }
-        //if (newChildNode.nodeType === 11) { debugger; }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldTree.childNodes[i] = newChildNode;
         syncTree(null, newChildNode, patches);
@@ -251,7 +249,6 @@ export default function syncTree(oldTree, newTree, patches) {
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
         if (patchset.REPLACE_CHILD === null) { patchset.REPLACE_CHILD = []; }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
-        //if (newChildNode.nodeType === 11) { debugger; }
         oldTree.childNodes[i] = newChildNode;
         syncTree(null, newChildNode, patches);
         continue;

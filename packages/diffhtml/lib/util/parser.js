@@ -236,6 +236,7 @@ export default function parse(html, supplemental, options = {}) {
 
       stack.push(currentParent);
 
+
       if (blockText.has(match[2])) {
         // A little test to find next </script> or </style> ...
         const closeMarkup = '</' + match[2] + '>';
@@ -252,30 +253,6 @@ export default function parse(html, supplemental, options = {}) {
         }
 
         const newText = html.slice(match.index + match[0].length, index);
-
-        // TODO Determine if a closing tag is present.
-        //if (options.strict) {
-        //  const nodeName = currentParent.rawNodeName;
-
-        //  // Find a subset of the markup passed in to validate.
-        //  const markup = markup.slice(
-        //    tagEx.lastIndex - match[0].length
-        //  ).split('\n').slice(0, 3);
-
-        //  console.log(markup);
-
-        //  // Position the caret next to the first non-whitespace character.
-        //  const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
-
-        //  // Craft the warning message and inject it into the markup.
-        //  markup.splice(1, 0, `${caret}
-  //Invali markup. Saw ${match[2]}, expected ${nodeName}
-        //  `);
-
-        //  // Throw an error message if the markup isn't what we expected.
-        //  throw new Error(`\n\n${markup.join('\n')}`);
-        //}
-
         interpolateValues(currentParent, newText.trim(), supplemental);
       }
     }
@@ -316,7 +293,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
         else if (tokenMatch) {
           const value = supplemental.tags[tokenMatch[1]];
 
-          if (currentParent.nodeName === value) {
+          if (currentParent.rawNodeName === value) {
             stack.pop();
             currentParent = stack[stack.length - 1];
 
@@ -324,7 +301,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
           }
         }
 
-        if (currentParent.rawNodeName == match[2]) {
+        if (currentParent.rawNodeName === match[2]) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
@@ -335,7 +312,6 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
 
           // Trying to close current tag, and move on
           if (tag) {
-
             if (tag[match[2]]) {
               stack.pop();
               currentParent = stack[stack.length - 1];

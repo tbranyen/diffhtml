@@ -100,10 +100,4 @@ function handleTaggedTemplate(options, strings, ...values) {
   return childNodes.length === 1 ? childNodes[0] : createTree(childNodes);
 }
 
-// Loose mode (default)
-const html = (...args) => handleTaggedTemplate({}, ...args);
-
-// Strict mode (optional enforcing closing tags)
-html.strict = (...args) => handleTaggedTemplate({ strict: true }, ...args);
-
-export default html;
+export default (...args) => handleTaggedTemplate({}, ...args);

@@ -25,14 +25,24 @@ export default function patchNode(patches) {
 
   // Set attributes.
   if (SET_ATTRIBUTE.length) {
-    // Triggered either synchronously or asynchronously depending on if a
-    // transition was invoked.
-    const mutationCallback = (domNode, name, value) => {
+    for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
+      const vTree = SET_ATTRIBUTE[i];
+      const _name = SET_ATTRIBUTE[i + 1];
+      const value = decodeEntities(SET_ATTRIBUTE[i + 2]);
+      const domNode = createNode(vTree);
+      const attributeChanged = TransitionCache.get('attributeChanged');
+      const oldValue = domNode.getAttribute(_name);
+      const newPromises = runTransitions(
+        'attributeChanged', domNode, _name, oldValue, value
+      );
+
+      // Triggered either synchronously or asynchronously depending on if a
+      // transition was invoked.
       const isObject = typeof value === 'object';
       const isFunction = typeof value === 'function';
 
       // Events must be lowercased otherwise they will not be set correctly.
-      name = name.indexOf('on') === 0 ? name.toLowerCase() : name;
+      const name = _name.indexOf('on') === 0 ? _name.toLowerCase() : _name;
 
       // Normal attribute value.
       if (!isObject && !isFunction && name) {
@@ -69,28 +79,9 @@ export default function patchNode(patches) {
           domNode[name] = value;
         } catch (unhandledException) {}
       }
-    };
-
-    for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
-      const vTree = SET_ATTRIBUTE[i];
-      const name = SET_ATTRIBUTE[i + 1];
-      const value = SET_ATTRIBUTE[i + 2];
-      const domNode = createNode(vTree);
-      const attributeChanged = TransitionCache.get('attributeChanged');
-      const oldValue = domNode.getAttribute(name);
-      const newPromises = runTransitions(
-        'attributeChanged', domNode, name, oldValue, value
-      );
 
       if (newPromises.length) {
-        Promise.all(newPromises).then(() => {
-          mutationCallback(domNode, name, decodeEntities(value));
-        });
-
         promises.push(...newPromises);
-      }
-      else {
-        mutationCallback(domNode, name, decodeEntities(value));
       }
     }
   }

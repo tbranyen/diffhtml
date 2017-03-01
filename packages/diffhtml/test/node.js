@@ -106,6 +106,23 @@ describe('Node', function() {
   });
 
   describe('patch', () => {
+    it('will set style properties from an object', () => {
+      const styles = { fontWeight: 'bold' };
+      const vTree = html`<div />`;
+      const domNode = createNode(vTree);
+
+      const patches = {
+        TREE_OPS: [],
+        NODE_VALUE: [],
+        SET_ATTRIBUTE: [vTree, 'style', styles],
+        REMOVE_ATTRIBUTE: [],
+      };
+
+      patchNode(patches);
+
+      equal(domNode.style.fontWeight, 'bold');
+    });
+
     it('will set attributes with no string values', () => {
       const vTree = html`<div />`;
       const domNode = createNode(vTree);
