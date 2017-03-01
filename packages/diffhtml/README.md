@@ -1,33 +1,149 @@
-Inspired by React and motivated by the Web, this is a lowish-level tool which
-aims to help web developers write components for the web. By focusing on the
-markup representing how your application state should look, diffHTML will
-figure out how to modify the page with a minimal amount of operations. This
-tool is designed and optimized around HTML and standards features within
-JavaScript.
+# <div style="background-color: #FFF; display: inline-block; padding: 10px 0px; color: #333;"><±/> diffHTML</div>
 
-It works by parsing your HTML markup into a lightweight JSON-serializable
-Virtual DOM heirarchy. I refer to these as Virtual Trees or *VTree*. These
-element (and attribute) objects are pooled to provide consistent memory
-management and garbage collection. diffHTML maintains a single VTree root that
-mirrors a mounted element in the DOM, it reconciles all future renders into
-this tree and the DOM.
+*A powerful JavaScript library for building user interfaces.*
 
-### Install
+Stable version: 1.0.0-beta
 
-The latest built version is available for quick download from the [master
+Inspired by React and motivated by the Web, this library is designed to help
+web developers write components and applications for the web. By focusing on
+the markup representing how your state should look, diffHTML will figure out
+how to modify the page with a minimal amount of operations.
+
+## Quick Jump
+
+- [Features](#features)
+  - [File size](#file-size)
+  - [Browser compatibility](#browser-compatibility)
+- [How to install](#how-to-install)
+  - [Module format locations](#module-format-locations)
+- [Quick start](#quick-start)
+  - [Rendering HTML to an Element](#rendering-html-to-an-element)
+  - [Writing a component](#writing-a-component)
+- [Documentation](#documentation)
+  - [Lifecycle overview](#lifecycle-overview)
+  - [Virtual Tree Abstraction](#virtual-tree-abstraction)
+  - [Write & Consume Middleware](#middleware)
+- [API](#API)
+  - **[html\`tagged template helper\`](#user-content-html)**
+  - [createTree(nodeName, attributes, children)](#user-content-create-tree)
+  - **[outerHTML(element, markup, options)](#user-content-diff-an-element-with-markup)**
+  - **[innerHTML(element, markup, options)](#user-content-diff-an-elements-children-with-markup)**
+  - [release(element)](#user-content-release-element)
+  - [addTransitionState(name, callback)](#user-content-add-a-transition-state-callback)
+  - [removeTransitionState(name, callback)](#user-content-remove-a-transition-state-callback)
+  - [use(middleware)](#use)
+
+## Features
+
+[Back to quick jump...](#quick-jump)
+
+- Aids you with writing components and composing applications. Think of it as
+  the the View layer to reflect a Redux store.
+- Code looks identical with or without a transpile step, making it completely
+  optional, unlike JSX/HyperX based libraries.
+- Real HTML with declarative inline event binding. Uses a loose parser and
+  supports `class`, `value`, and `data-*` attributes without issue.
+- A rich transitions API that animates your application and components with
+  ease.
+- Performance and memory management are core to this library. It is built with
+  object recyling to keep memory constant and reduces garbage collection during
+  tight loops.
+
+#### File size
+
+[Back to quick jump...](#quick-jump)
+
+Pretty darn tiny once compressed at **9.9kb** minified + GZip. You can omit the
+parser by requiring `diffhtml/runtime` instead, bringing the size down to
+**8.5kb**!
+
+  ``` shell
+  # Full build  
+   81K Jun 23 23:27 diffhtml.js
+   43K Jun 23 23:28 diffhtml.min.js
+  9.9K Jun 23 23:27 diffhtml.min.js.gz
+
+  # Without the parser
+   71K Jun 23 23:28 diffhtml-runtime.js
+   38K Jun 23 23:28 diffhtml-runtime.min.js
+  8.5K Jun 23 23:27 diffhtml-runtime.min.js.gz
+  ```
+
+#### Browser compatibility
+
+[Back to quick jump...](#quick-jump)
+
+<table>
+  <thead>
+    <tr style="font-weight: bold; text-align: center;">
+      <th style="background-color: #FFF2CC;">IE (9/10/11)</th>
+      <th style="background-color: #FFF2CC;">Edge (13)</th>
+      <th style="background-color: #FFF2CC;">Firefox (47)</th>
+      <th style="background-color: #FFF2CC;">Chrome (51)</th>
+      <th style="background-color: #FFF2CC;">Safari (9.1)</th>
+      <th style="background-color: #FFF2CC;">Opera (38)</th>
+      <th style="background-color: #FFF2CC;">iOS iPhone Safari (9.3)</th>
+      <th style="background-color: #FFF2CC;">Android Chrome (50)</th>
+    </tr>
+  <tbody>
+    <tr style="font-weight: bold; text-align: center;">
+      <td style="background-color: #CEE2DC;">✓</td>
+      <td style="background-color: #CEE2DC;">✓</td>
+      <td style="background-color: #CEE2DC;">✓</td>
+      <td style="background-color: #CEE2DC;">✓</td>
+      <td style="background-color: #CEE2DC;">✓</td>
+      <td style="background-color: #CEE2DC;">✓</td>
+      <td style="background-color: #CEE2DC;">✓</td>
+      <td style="background-color: #CEE2DC;">✓</td>
+    </tr>
+</table>
+
+##### Supporting legacy browsers
+
+diffHTML uses many modern browser features, such as
+[Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set),
+which are not available in [all
+browsers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#Browser_compatibility).
+
+If you wish to use diffHTML in older browsers, make sure you have the [Babel
+polyfill](https://babeljs.io/docs/usage/polyfill/) loaded first.
+
+## How to install
+
+[Back to quick jump...](#quick-jump)
+
+The latest built version (but not necessarily the latest stable) is available
+for quick download from the [master
 branch](https://raw.githubusercontent.com/tbranyen/diffhtml/master/dist/diffhtml.js).
+Use this to test the bleeding edge.
 
 Or you can use npm:
 
 ``` sh
-npm install diffhtml
+npm install diffhtml --save
 ```
 
 The module can be required via Node or browser environments. It is exported as
-a global named `diff` unless loaded as a module.
+a global named `diff` unless loaded as a module, in which case you determine
+the name.
 
-You can import only what you need if you're using ES6 modules with a
-transpiler:
+In the browser:
+
+``` html
+<script src="node_modules/diffhtml/dist/diffhtml.js"></script>
+
+<script>diff.innerHTML(document.body, 'Hello world!');</script>
+```
+
+With CommonJS you can import the entire module:
+
+``` javascript
+const diff = require('diffhtml');
+
+diff.innerHTML(document.body, 'Hello world!');
+```
+
+You can import only what you need if you're using ES Modules:
 
 ``` javascript
 import { innerHTML } from 'diffhtml';
@@ -35,88 +151,159 @@ import { innerHTML } from 'diffhtml';
 innerHTML(document.body, 'Hello world!');
 ```
 
-##### Polyfills
+#### Module format locations
 
-diffHTML is authored using many modern browser features, such as
-[Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set),
-which are not available in [all
-browsers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#Browser_compatibility).
+[Back to quick jump...](#quick-jump)
 
-If you wish to use diffHTML in older browsers, make sure you have the Babel
-polyfill loaded first:
+This library is authored in vanilla ES2015 with no experimental syntax enabled, the syntax is ES Modules and is transpiled to CJS with Babel. The UMD build is generated by browserify.
 
-https://babeljs.io/docs/usage/polyfill/
+| Format                   | Location
+| ------------------------ | ---------------------------
+| UMD (AMD/CJS/Browser)    | `diffhtml/dist/diffhtml.js`
+| CJS                      | `diffhtml/dist/cjs/*`
+| ES6                      | `diffhtml/lib/*`
 
-##### Module format locations
+## Quick start
 
-The codebase is authored with JavaScript (ES6 enhancements) and transpiled into
-ES5 (CJS) into the `dist/cjs` folder on every NPM publish. If you want
-to reference the ES5 files, point your entry to `diffhtml/dist/cjs`. If you
-want ES6, point to `diffhtml/lib`. If you want the UMD build you can simply
-point to `diffhtml` as it is the default or reference `dist/diffhtml.js` in
-your browser.
+[Back to quick jump](#quick-jump)
 
-### Quick start
+### Rendering HTML to an element
 
-Before diving into all the API details, the easiest way to understand using
-diffHTML is to replace the usage of `innerHTML`.
+The primary purpose of diffHTML is to render markup to the DOM. The most
+basic way to apply this concept is by using simple strings.
 
-For example, the following example destroys and recreates the span every time
-the render method is called:
+``` js
+import { innerHTML } from 'diffhtml';
 
-Assume the following markup:
-
-``` html
-<body>
-  <span></span>
-</body>
+innerHTML(document.body, '<strong>Hello world</strong>');
 ```
 
-The following code:
+Multi-line strings can be achieved using the ES6 language feature tagged
+template strings. These are only useful if you interpolate primative JavaScript
+types. If you try and pass an object or function it will be serialized to a
+string, which is generally not desirable.
 
-``` javascript
-function render(string) {
-  document.querySelector('span').innerHTML = string;
+``` js
+import { html, innerHTML } from 'diffhtml';
+
+innerHTML(document.body, html`
+  <strong>Hello world</strong>
+`);
+```
+
+### Writing a component
+
+[Back to quick jump](#quick-jump)
+
+Components are provided by an optional package **diffhtml-components** which
+contains a Web Component and React Like interface. Both are designed to
+maintain as much cross-compatibility as possible.
+
+The React-like API supports all major browsers, you can import and render a
+component like so:
+
+``` js
+import { html, innerHTML } from 'diffhtml';
+import { Component } from 'diffhtml-components';
+
+class HelloWorld extends Component {
+  render() {
+    return html`
+      <strong>Hello world</strong>
+    `;
+  }
 }
 
-render('Hello world!');
-render('Foo bar baz!');
+innerHTML(document.body, html`<${HelloWorld} />`);
 ```
 
-We could rewrite this with diffHTML to leverage the Virtual DOM like this:
+For more information about this, [check out the docs for diffhtml-components](/packages/diffhtml-components)
 
-``` javascript
-function render(string) {
-  diff.innerHTML(document.querySelector('span'), string);
-}
-```
+## Documentation
 
-### API
+[Back to quick jump...](#quick-jump)
 
-The exposed API provides the following methods:
+### Lifecycle overview
 
-- [outerHTML(element, markup, options)](#user-content-diff-an-element-with-markup)
-- [innerHTML(element, markup, options)](#user-content-diff-an-elements-children-with-markup)
-- [element(oldElement, newElement, options)](#user-content-diff-an-element-to-another-element)
-- [release(element)](#user-content-release-element)
-- [addTransitionState(name, callback)](#user-content-add-a-transition-state-callback)
-- [removeTransitionState(name, callback)](#user-content-remove-a-transition-state-callback)
-- [html\`markup\`](#user-content-html)
-- [enableProllyfill()](#user-content-prollyfill)
+[Back to quick jump...](#quick-jump)
+
+#### Virtual Tree Abstraction
+
+[Back to quick jump...](#quick-jump)
+
+#### Middleware
+
+[Back to quick jump...](#quick-jump)
+
+##### Writing
+
+[Back to quick jump...](#quick-jump)
+
+##### Consuming
+
+[Back to quick jump...](#quick-jump)
+
+#### Coming from React
+
+[Back to quick jump...](#quick-jump)
+
+#### Building the input Virtual Tree
+
+[Back to quick jump...](#quick-jump)
+
+#### Invoking Middleware
+
+[Back to quick jump...](#quick-jump)
+
+#### Synchronizing the input tree into the original tree
+
+[Back to quick jump...](#quick-jump)
+
+#### Patching the DOM Node
+
+[Back to quick jump...](#quick-jump)
+
+#### Asynchronous transitions
+
+[Back to quick jump...](#quick-jump)
+
+#### Completing the render transaction
+
+[Back to quick jump...](#quick-jump)
+
+### Virtual Tree Abstraction
+
+[Back to quick jump...](#quick-jump)
+
+### Writing Middleware
+
+[Back to quick jump...](#quick-jump)
+
+### Coming from React
+
+[Back to quick jump...](#quick-jump)
+
+## API
+
+[Back to quick jump...](#quick-jump)
 
 The follow error types are exposed so you can test exceptions:
 
 - TransitionStateError - Happens when errors occur during transitions.
 - DOMException - Happens whenever a DOM manipulation fails.
 
-##### Options
+#### Options
+
+[Back to quick jump...](#quick-jump)
 
 This is an optional argument that can be passed to any diff method. The `inner`
 property can only be used with the element method.
 
 - `inner` - Boolean that determines if `innerHTML` is used.
 
-##### Diff an element with markup
+### Diff an element with markup
+
+[Back to quick jump...](#quick-jump)
 
 This method will take in a string of markup that matches the element root you
 are diffing against.  This allows you to change attributes and text on the
@@ -129,7 +316,9 @@ You cannot override the `inner` options property here.
 diff.outerHTML(document.body, '<body class="test"><h1>Hello world!</h1></body>');
 ```
 
-##### Diff an element's children with markup
+### Diff an element's children with markup
+
+[Back to quick jump...](#quick-jump)
 
 This method also takes in a string of markup, but unlike `outerHTML` this is
 children-only markup that will be nested inside the element passed.
@@ -141,7 +330,9 @@ You cannot override the `inner` options property here.
 diff.innerHTML(document.body, '<h1>Hello world!</h1>');
 ```
 
-##### Diff an element to another element
+### Diff an element to another element
+
+[Back to quick jump...](#quick-jump)
 
 Unlike the previous two methods, this will take in two elements and diff them
 together.
@@ -168,7 +359,7 @@ h1.innerHTML = 'Hello world!';
 diff.element(document.body, h1, { inner: true });
 ```
 
-##### Release element
+### Release element
 
 Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
@@ -183,7 +374,7 @@ diff.element(document.body, h1, { inner: true });
 diff.release(document.body);
 ```
 
-##### Add a transition state callback
+### Add a transition state callback
 
 Adds a global transition listener.  With many elements this could be an
 expensive operation, so try to limit the amount of listeners added if you're
@@ -225,7 +416,7 @@ Format is: `name[callbackArgs]`
 - `textChanged[element, oldValue, newValue]`
   For when text has changed in either TextNodes or SVG text elements.
 
-##### A note about detached/replaced element accuracy
+### A note about detached/replaced element accuracy
 
 When rendering Nodes that contain lists of identical elements, you may not
 receive the elements you expect in the detached and replaced transition state
@@ -287,7 +478,7 @@ Now the transformative operations are:
 
 1. Remove the second element
 
-##### Remove a transition state callback
+### Remove a transition state callback
 
 Removes a global transition listener.
 
@@ -306,7 +497,7 @@ diff.removeTransitionState('attached');
 diff.removeTransitionState('attached', callbackReference);
 ```
 
-#### HTML
+### HTML
 
 You can use the `diff.html` tagged template helper to build up dynamic trees in
 a way that looks very similar to JSX.
@@ -365,7 +556,7 @@ diff.outerHtml(fixture, html`
 `);
 ```
 
-#### [Prollyfill](https://twitter.com/slexaxton/status/257543702124306432)
+### [Prollyfill](https://twitter.com/slexaxton/status/257543702124306432)
 
 *Click above to learn what prollyfill "means".*
 
@@ -390,7 +581,7 @@ Scans for changes in attributes and text on the parent, and all child nodes.
 document.querySelector('main').diffOuterHTML = '<new markup to diff/>';
 ```
 
-##### `Element.prototype.diffInnerHTML`
+### `Element.prototype.diffInnerHTML`
 
 Only scans for changes in child nodes.
 
@@ -398,7 +589,7 @@ Only scans for changes in child nodes.
 document.querySelector('main').diffInnerHTML = '<new child markup to diff/>';
 ```
 
-##### `Element.prototype.diffElement`
+### `Element.prototype.diffElement`
 
 Compares the two elements for changes like `outerHTML`, if you pass `{ inner:
 true }` as the second argument it will act like `innerHTML`.
@@ -410,7 +601,7 @@ newElement.innerHTML = '<div></div>';
 document.querySelector('main').diffElement(newElement);
 ```
 
-##### `Element.prototype.diffRelease`
+### `Element.prototype.diffRelease`
 
 Cleans up after diffHTML and removes the associated worker.
 
@@ -420,5 +611,9 @@ newElement.innerHTML = '<div></div>';
 
 document.querySelector('main').diffRelease(newElement);
 ```
+
+## Middleware
+
+[Back to quick jump...](#quick-jump)
 
 [More information and a demo are available on http://www.diffhtml.org/](http://www.diffhtml.org/)
