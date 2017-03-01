@@ -243,10 +243,6 @@ For more information about this, [check out the docs for diffhtml-components](/p
 
 [Back to quick jump...](#quick-jump)
 
-#### Coming from React
-
-[Back to quick jump...](#quick-jump)
-
 #### Building the input Virtual Tree
 
 [Back to quick jump...](#quick-jump)
@@ -268,18 +264,6 @@ For more information about this, [check out the docs for diffhtml-components](/p
 [Back to quick jump...](#quick-jump)
 
 #### Completing the render transaction
-
-[Back to quick jump...](#quick-jump)
-
-### Virtual Tree Abstraction
-
-[Back to quick jump...](#quick-jump)
-
-### Writing Middleware
-
-[Back to quick jump...](#quick-jump)
-
-### Coming from React
 
 [Back to quick jump...](#quick-jump)
 
@@ -554,62 +538,6 @@ diff.outerHtml(fixture, html`
     ${listItems.map(item => html`<li>${item.text}</li>`)}
   </ul>
 `);
-```
-
-### [Prollyfill](https://twitter.com/slexaxton/status/257543702124306432)
-
-*Click above to learn what prollyfill "means".*
-
-I'd love to see this project become a browser standard in the future.  To
-enable how I'd envision it working, simply invoke the following method on the
-diff object:
-
-``` javascript
-diff.enableProllyfill();
-```
-
-*Disclaimer: By calling this method, you are agreeing that it's okay for
-diffHTML to modify your browser's `HTMLElement` constructor,
-`Element.prototype`, the `document` object, and run some logic on your page
-load event.*
-
-##### `Element.prototype.diffOuterHTML`
-
-Scans for changes in attributes and text on the parent, and all child nodes.
-
-``` javascript
-document.querySelector('main').diffOuterHTML = '<new markup to diff/>';
-```
-
-### `Element.prototype.diffInnerHTML`
-
-Only scans for changes in child nodes.
-
-``` javascript
-document.querySelector('main').diffInnerHTML = '<new child markup to diff/>';
-```
-
-### `Element.prototype.diffElement`
-
-Compares the two elements for changes like `outerHTML`, if you pass `{ inner:
-true }` as the second argument it will act like `innerHTML`.
-
-``` javascript
-var newElement = document.createElement('main');
-newElement.innerHTML = '<div></div>';
-
-document.querySelector('main').diffElement(newElement);
-```
-
-### `Element.prototype.diffRelease`
-
-Cleans up after diffHTML and removes the associated worker.
-
-``` javascript
-var newElement = document.createElement('main');
-newElement.innerHTML = '<div></div>';
-
-document.querySelector('main').diffRelease(newElement);
 ```
 
 ## Middleware
