@@ -4,6 +4,7 @@
       "presets": ["babili"]
     },
     "production": {
+      "presets": [["es2015", { "modules": false }]],
       "plugins": ["version-inline"]
     },
     "cjs": {

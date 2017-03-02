@@ -71,7 +71,7 @@ export function runTransitions(setName, ...args) {
   if (setName === 'attached' || setName === 'detached') {
     const element = args[0];
 
-    element.childNodes.forEach(childNode => {
+    [...element.childNodes].forEach(childNode => {
       promises.push(...runTransitions(setName, childNode, ...args.slice(1)));
     });
   }

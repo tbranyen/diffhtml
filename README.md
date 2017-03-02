@@ -43,6 +43,16 @@ level or any specific nested package level.
   smaller runtime build (which excludes HTML parser, tagged templates, and
   performance metrics).
 
+* [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
+
+  ``` sh
+  npm install babel-plugin-transform-diffhtml
+  ```
+
+  Converts HTML found in tagged template strings to `createTree` calls and
+  allows you to shave bytes off your builds by switching to the
+  diffhtml-runtime.
+
 * [diffhtml-components](/packages/diffhtml-components)
 
   ``` sh
