@@ -13,7 +13,15 @@ const tagEx =
     /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
 
 const { assign } = Object;
-const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
+
+const blockText = new Set([
+  'script',
+  'noscript',
+  'style',
+  'code',
+  'template',
+]);
+
 const selfClosing = new Set([
   'meta',
   'img',
@@ -22,6 +30,21 @@ const selfClosing = new Set([
   'area',
   'br',
   'hr',
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'keygen',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
 ]);
 
 const kElementsClosedByOpening = {

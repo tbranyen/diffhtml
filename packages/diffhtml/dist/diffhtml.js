@@ -704,7 +704,8 @@ var tokenEx = /__DIFFHTML__([^_]*)__/;
 var tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
 
 var blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
-var selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr']);
+
+var selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr', 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 
 var kElementsClosedByOpening = {
   li: { li: true },
