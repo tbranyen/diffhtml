@@ -31,6 +31,20 @@ describe('renderToString', function() {
     equal(actual, expected);
   });
 
+  it('can render top level document fragments', () => {
+    const actual = renderToString(html`<div/><p/>`);
+    const expected = `<div/><p/>`;
+
+    equal(actual, expected);
+  });
+
+  it('can render nested document fragments', () => {
+    const actual = renderToString(html`<div>${html`<div/><p/>`}</div>`);
+    const expected = `<div><div/><p/></div>`;
+
+    equal(actual, expected);
+  });
+
   it('can render components', () => {
     class Component {
       render() {
