@@ -43,7 +43,7 @@ level or any specific nested package level.
   smaller runtime build (which excludes HTML parser, tagged templates, and
   performance metrics).
 
-* [diffhtml-render-to-string](/packages/diffhtml-render-to-string)
+* **[diffhtml-render-to-string](/packages/diffhtml-render-to-string)**
 
   ``` sh
   npm install diffhtml-render-to-string
@@ -52,7 +52,7 @@ level or any specific nested package level.
   Use with diffHTML to render your Virtual Trees to strings. This is useful for
   server-side rendering and testing.
 
-* [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
+* **[babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)**
 
   ``` sh
   npm install babel-plugin-transform-diffhtml
@@ -62,7 +62,7 @@ level or any specific nested package level.
   allows you to shave bytes off your builds by switching to the
   diffhtml-runtime.
 
-* [diffhtml-components](/packages/diffhtml-components)
+* **[diffhtml-components](/packages/diffhtml-components)**
 
   ``` sh
   npm install diffhtml-components
@@ -108,3 +108,32 @@ level or any specific nested package level.
   Asserts that a render properly updated the old Virtual Tree and the DOM. Will
   recursively search for inconsistencies, displays warnings unless debugging is
   enabled, then it throws errors instead.
+
+* [diffhtml-prollyfill](/packages/diffhtml-prollyfill)
+
+  ```
+  npm install diffhtml-prollyfill
+  ```
+
+  Use directly in place of [`diffhtml`](https://github.com/tbranyen/diffhtml).
+  The term prollyfill means I'd like to see it be a standard some day, but is
+  currently not under any consideration. [*Click here for the "prollyfill"
+  origin tweet.*](https://twitter.com/slexaxton/status/257543702124306432)
+
+* [diffhtml-react-compat](/packages/diffhtml-react-compat)
+
+  ```
+  npm install diffhtml-react-compat
+  ```
+
+  This is a compatibility package meant to be a drop-in replacement for the
+  modules: `react` and `react-dom`. It wraps the [diffHTML
+  Components](/packages/diffhtml-components) package as the base for the
+  component constructors. It then layers additional React-specific APIs.
+
+* [diffhtml-website](/packages/diffhtml-website)
+
+  **[https://www.diffhtml.org/](https://ww.diffhtml.org/)**
+
+  The source for the [www.diffhtml.org](https://www.diffhtml.org) website,
+  powered by: [Node](https://nodejs.com/) and [NodeGit](http://nodegit.org).
