@@ -43,6 +43,15 @@ level or any specific nested package level.
   smaller runtime build (which excludes HTML parser, tagged templates, and
   performance metrics).
 
+* [diffhtml-render-to-string](/packages/diffhtml-render-to-string)
+
+  ``` sh
+  npm install diffhtml-render-to-string
+  ```
+
+  Use with diffHTML to render your Virtual Trees to strings. This is useful for
+  server-side rendering and testing.
+
 * [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
 
   ``` sh
