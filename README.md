@@ -133,7 +133,5 @@ level or any specific nested package level.
 
 * [diffhtml-website](/packages/diffhtml-website)
 
-  **[https://www.diffhtml.org/](https://ww.diffhtml.org/)**
-
   The source for the [www.diffhtml.org](https://www.diffhtml.org) website,
   powered by: [Node](https://nodejs.com/) and [NodeGit](http://nodegit.org).
