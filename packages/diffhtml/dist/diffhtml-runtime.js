@@ -636,15 +636,12 @@ function syncTree(oldTree, newTree, patches) {
       // If there is no old element to compare to, this is a simple addition.
 
       if (!oldChildNode) {
-        // Prefer an existing match to a brand new element.
-        var optimalNewNode = newChildNode;
-
         if (patchset.INSERT_BEFORE === null) {
           patchset.INSERT_BEFORE = [];
         }
-        patchset.INSERT_BEFORE.push(oldTree, optimalNewNode, null);
-        oldChildNodes.push(optimalNewNode);
-        syncTree(null, optimalNewNode, patches);
+        patchset.INSERT_BEFORE.push(oldTree, newChildNode, null);
+        oldChildNodes.push(newChildNode);
+        syncTree(null, newChildNode, patches);
         continue;
       }
 
@@ -658,6 +655,7 @@ function syncTree(oldTree, newTree, patches) {
         }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
+        syncTree(null, newChildNode, patches);
         continue;
       }
       // Remove the old node instead of replacing.
@@ -674,21 +672,24 @@ function syncTree(oldTree, newTree, patches) {
       // If there is a key set for this new element, use that to figure out
       // which element to use.
       if (newKey !== oldKey) {
-        var _optimalNewNode = newChildNode;
+        var optimalNewNode = newChildNode;
 
         // Prefer existing to new and remove from old position.
         if (newKey && oldKeys.has(newKey)) {
-          _optimalNewNode = oldKeys.get(newKey);
-          oldChildNodes.splice(oldChildNodes.indexOf(_optimalNewNode), 1);
+          optimalNewNode = oldKeys.get(newKey);
+          oldChildNodes.splice(oldChildNodes.indexOf(optimalNewNode), 1);
         } else if (newKey) {
-          _optimalNewNode = newChildNode;
+          optimalNewNode = newChildNode;
+
+          // Find attribute changes for this Node.
+          syncTree(null, newChildNode, patches);
         }
 
         if (patchset.INSERT_BEFORE === null) {
           patchset.INSERT_BEFORE = [];
         }
-        patchset.INSERT_BEFORE.push(oldTree, _optimalNewNode, oldChildNode);
-        oldChildNodes.splice(_i3, 0, _optimalNewNode);
+        patchset.INSERT_BEFORE.push(oldTree, optimalNewNode, oldChildNode);
+        oldChildNodes.splice(_i3, 0, optimalNewNode);
         continue;
       }
 
@@ -1039,13 +1040,16 @@ function patchNode$$1(patches) {
       // Normal attribute value.
       if (!isObject && !isFunction && name) {
         var noValue = value === null || value === undefined;
-        domNode.setAttribute(name, noValue ? '' : value);
 
         // Allow the user to find the real value in the DOM Node as a
         // property.
         try {
           domNode[name] = value;
         } catch (unhandledException) {}
+
+        // Set the actual attribute, this will ensure attributes like
+        // `autofocus` aren't reset by the property call above.
+        domNode.setAttribute(name, noValue ? '' : value);
       }
       // Support patching an object representation of the style object.
       else if (isObject && name === 'style') {
@@ -1174,23 +1178,23 @@ function patchNode$$1(patches) {
         var attached = TransitionCache.get('attached');
         var detached = TransitionCache.get('detached');
         var replaced = TransitionCache.get('replaced');
+
+        // Always insert before to allow the element to transition.
+        oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
+        protectVTree(newTree);
+
         var attachedPromises = runTransitions('attached', newDomNode);
         var detachedPromises = runTransitions('detached', oldDomNode);
         var replacedPromises = runTransitions('replaced', oldDomNode, newDomNode);
         var allPromises = [].concat(_toConsumableArray$1(attachedPromises), _toConsumableArray$1(detachedPromises), _toConsumableArray$1(replacedPromises));
 
-        // Always insert before to allow the element to transition.
-        oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
-
         if (allPromises.length) {
           promises.push(Promise.all(allPromises).then(function () {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-            protectVTree(newTree);
             unprotectVTree(oldTree);
           }));
         } else {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-          protectVTree(newTree);
           unprotectVTree(oldTree);
         }
       };
@@ -1623,6 +1627,12 @@ var diff = {
 // Ensure the `diff` property is nonenumerable so it doesn't show up in logs.
 if (!use.diff) {
   Object.defineProperty(use, 'diff', { value: diff, enumerable: false });
+}
+
+// Automatically hook up to DevTools if they are present.
+if (typeof devTools === 'function') {
+  use(devTools());
+  console.info('diffHTML DevTools Found and Activated...');
 }
 
 exports.__VERSION__ = VERSION;

@@ -157,13 +157,10 @@ export default function syncTree(oldTree, newTree, patches) {
 
       // If there is no old element to compare to, this is a simple addition.
       if (!oldChildNode) {
-        // Prefer an existing match to a brand new element.
-        let optimalNewNode = newChildNode;
-
         if (patchset.INSERT_BEFORE === null) { patchset.INSERT_BEFORE = []; }
-        patchset.INSERT_BEFORE.push(oldTree, optimalNewNode, null);
-        oldChildNodes.push(optimalNewNode);
-        syncTree(null, optimalNewNode, patches);
+        patchset.INSERT_BEFORE.push(oldTree, newChildNode, null);
+        oldChildNodes.push(newChildNode);
+        syncTree(null, newChildNode, patches);
         continue;
       }
 
@@ -174,6 +171,7 @@ export default function syncTree(oldTree, newTree, patches) {
         if (patchset.REPLACE_CHILD === null) { patchset.REPLACE_CHILD = []; }
         patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
+        syncTree(null, newChildNode, patches);
         continue;
       }
       // Remove the old node instead of replacing.
@@ -197,6 +195,9 @@ export default function syncTree(oldTree, newTree, patches) {
         }
         else if (newKey) {
           optimalNewNode = newChildNode;
+
+          // Find attribute changes for this Node.
+          syncTree(null, newChildNode, patches);
         }
 
         if (patchset.INSERT_BEFORE === null) { patchset.INSERT_BEFORE = []; }
