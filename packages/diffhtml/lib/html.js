@@ -86,7 +86,7 @@ function handleTaggedTemplate(options, strings, ...values) {
       }
       // Injected as something else in the markup or undefined, ignore
       // obviously falsy values used with boolean operators.
-      else if (value !== null && value !== undefined && value !== false) {
+      else if (value) {
         retVal += value;
       }
     }

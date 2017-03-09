@@ -257,4 +257,10 @@ export {
   html,
 };
 
+// Automatically hook up to DevTools if they are present.
+if (typeof devTools === 'function') {
+  use(devTools());
+  console.info('diffHTML DevTools Found and Activated...');
+}
+
 export default diff;

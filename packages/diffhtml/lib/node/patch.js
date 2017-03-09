@@ -47,13 +47,16 @@ export default function patchNode(patches) {
       // Normal attribute value.
       if (!isObject && !isFunction && name) {
         const noValue = value === null || value === undefined;
-        domNode.setAttribute(name, noValue ? '' : value);
 
         // Allow the user to find the real value in the DOM Node as a
         // property.
         try {
           domNode[name] = value;
         } catch (unhandledException) {}
+
+        // Set the actual attribute, this will ensure attributes like
+        // `autofocus` aren't reset by the property call above.
+        domNode.setAttribute(name, noValue ? '' : value);
       }
       // Support patching an object representation of the style object.
       else if (isObject && name === 'style') {
@@ -173,6 +176,11 @@ export default function patchNode(patches) {
         const attached = TransitionCache.get('attached');
         const detached = TransitionCache.get('detached');
         const replaced = TransitionCache.get('replaced');
+
+        // Always insert before to allow the element to transition.
+        oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
+        protectVTree(newTree);
+
         const attachedPromises = runTransitions('attached', newDomNode);
         const detachedPromises = runTransitions('detached', oldDomNode);
         const replacedPromises = runTransitions(
@@ -184,21 +192,16 @@ export default function patchNode(patches) {
           ...replacedPromises,
         ];
 
-        // Always insert before to allow the element to transition.
-        oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
-
         if (allPromises.length) {
           promises.push(
             Promise.all(allPromises).then(() => {
               oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-              protectVTree(newTree);
               unprotectVTree(oldTree);
             })
           );
         }
         else {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-          protectVTree(newTree);
           unprotectVTree(oldTree);
         }
       }

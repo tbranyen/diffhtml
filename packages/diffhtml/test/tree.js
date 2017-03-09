@@ -756,7 +756,9 @@ describe('Tree', function() {
               REPLACE_CHILD: null,
             }],
             NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
+            SET_ATTRIBUTE: [
+              newTree.childNodes[0], 'key', '1',
+            ],
             REMOVE_ATTRIBUTE: [],
           });
         });
@@ -782,7 +784,63 @@ describe('Tree', function() {
               REPLACE_CHILD: null,
             }],
             NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
+            SET_ATTRIBUTE: [
+              newTree.childNodes[0], 'key', '1',
+              newTree.childNodes[1], 'key', '2',
+            ],
+            REMOVE_ATTRIBUTE: [],
+          });
+        });
+
+        it('will append an element if no reference node is available', () => {
+          const oldTree = createTree('div', null, []);
+          const newTree = createTree('div', null, [
+            createTree('div', { key: '0' }),
+          ]);
+
+          const patches = syncTree(oldTree, newTree);
+
+          deepEqual(patches, {
+            TREE_OPS: [{
+              INSERT_BEFORE: [
+                oldTree, newTree.childNodes[0], null,
+              ],
+              REMOVE_CHILD: null,
+              REPLACE_CHILD: null,
+            }],
+            NODE_VALUE: [],
+            SET_ATTRIBUTE: [
+              newTree.childNodes[0], 'key', '0',
+            ],
+            REMOVE_ATTRIBUTE: [],
+          });
+        });
+
+        it('will prepend and append elements', () => {
+          const referenceNode = createTree('div', { key: 1 });
+          const oldTree = createTree('div', null, [referenceNode]);
+          const newTree = createTree('div', null, [
+            createTree('div', { key: 0 }),
+            createTree('div', { key: 1 }),
+            createTree('div', { key: 2 }),
+          ]);
+
+          const patches = syncTree(oldTree, newTree);
+
+          deepEqual(patches, {
+            TREE_OPS: [{
+              INSERT_BEFORE: [
+                oldTree, newTree.childNodes[0], referenceNode,
+                oldTree, newTree.childNodes[2], null,
+              ],
+              REMOVE_CHILD: null,
+              REPLACE_CHILD: null,
+            }],
+            NODE_VALUE: [],
+            SET_ATTRIBUTE: [
+              newTree.childNodes[0], 'key', '0',
+              newTree.childNodes[2], 'key', '2',
+            ],
             REMOVE_ATTRIBUTE: [],
           });
         });
@@ -806,7 +864,9 @@ describe('Tree', function() {
               ],
             }],
             NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
+            SET_ATTRIBUTE: [
+              b, 'key', 'b'
+            ],
             REMOVE_ATTRIBUTE: [],
           });
         });
@@ -831,7 +891,10 @@ describe('Tree', function() {
               ],
             }],
             NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
+            SET_ATTRIBUTE: [
+              c, 'key', 'c',
+              d, 'key', 'd',
+            ],
             REMOVE_ATTRIBUTE: [],
           });
         });
