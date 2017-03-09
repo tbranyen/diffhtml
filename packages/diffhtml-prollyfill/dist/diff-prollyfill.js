@@ -47,14 +47,6 @@ function enableProllyfill() {
     }
   });
 
-  // Allows a developer to create Virtual Tree Attributes.
-  Object.defineProperty(document, 'createTreeAttribute', {
-    configurable: true,
-    value: function value(name, _value) {
-      return (0, _diffhtml.createAttribute)(name, _value);
-    }
-  });
-
   // Allows a developer to add transition state callbacks.
   Object.defineProperty(document, 'addTransitionState', {
     configurable: true,

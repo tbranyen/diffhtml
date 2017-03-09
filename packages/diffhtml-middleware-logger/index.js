@@ -181,6 +181,20 @@ export default opts => function loggerTask(transaction) {
 
   const { state: { oldTree } } = transaction;
 
+  if (transaction.state.isRendering) {
+    console.groupEnd();
+
+    log(
+      '%cdiffHTML...render transaction aborted  ',
+      'group',
+      'color: #FF78B2',
+      new Date(),
+      transaction
+    );
+
+    console.groupEnd();
+  }
+
   transaction._cloneOldTree = oldTree && cloneTree(oldTree);
 
   /**

@@ -61,8 +61,8 @@ export const compareTrees = (options, transaction, oldTree, newTree) => {
 
   const debug = setupDebugger(options);
 
-  let oldAttrKeys = Object.keys(oldTree.attributes || {}).sort();
-  let newAttrKeys = Object.keys(newTree.attributes || {}).sort();
+  let oldAttrKeys = Object.keys(oldTree.attributes || {}).sort().filter(Boolean);
+  let newAttrKeys = Object.keys(newTree.attributes || {}).sort().filter(Boolean);
 
   const oldTreeIsNode = oldTree instanceof Node;
   const oldLabel = oldTreeIsNode ? 'ON DOM NODE' : 'OLD';

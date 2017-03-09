@@ -9,7 +9,7 @@
     "watch": "watchify -t babelify api-browser.js -o api-browser-es5.js -v",
     "start": "node server.js"
   },
-  "author": "",
+  "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "dependencies": {
     "combyne": "^2.0.0",

@@ -79,8 +79,8 @@ var compareTrees = exports.compareTrees = function compareTrees(options, transac
 
   var debug = setupDebugger(options);
 
-  var oldAttrKeys = Object.keys(oldTree.attributes || {}).sort();
-  var newAttrKeys = Object.keys(newTree.attributes || {}).sort();
+  var oldAttrKeys = Object.keys(oldTree.attributes || {}).sort().filter(Boolean);
+  var newAttrKeys = Object.keys(newTree.attributes || {}).sort().filter(Boolean);
 
   var oldTreeIsNode = oldTree instanceof Node;
   var oldLabel = oldTreeIsNode ? 'ON DOM NODE' : 'OLD';

@@ -200,6 +200,14 @@ exports.default = function (opts) {
     var oldTree = transaction.state.oldTree;
 
 
+    if (transaction.state.isRendering) {
+      console.groupEnd();
+
+      log('%cdiffHTML...render transaction aborted  ', 'group', 'color: #FF78B2', new Date(), transaction);
+
+      console.groupEnd();
+    }
+
     transaction._cloneOldTree = oldTree && cloneTree(oldTree);
 
     /**

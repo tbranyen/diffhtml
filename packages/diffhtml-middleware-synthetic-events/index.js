@@ -28,7 +28,9 @@ const cloneEvent = (ev, ov = {}) => {
   for (let key in ev) {
     const desc = Object.getOwnPropertyDescriptor(ev, key);
 
-    if (desc && (desc.get || desc.set)) {
+    if (key === 'isTrusted') { continue; }
+
+    if (desc && desc.get) {
       Object.defineProperty(newEvent, key, desc);
     }
     else {
@@ -40,8 +42,6 @@ const cloneEvent = (ev, ov = {}) => {
   for (let key in ov) {
     newEvent[key] = ov[key];
   }
-
-  Object.setPrototypeOf(newEvent, ev);
 
   return newEvent;
 }

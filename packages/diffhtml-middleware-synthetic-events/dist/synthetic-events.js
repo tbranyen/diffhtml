@@ -37,7 +37,11 @@ var cloneEvent = function cloneEvent(ev) {
   for (var key in ev) {
     var desc = Object.getOwnPropertyDescriptor(ev, key);
 
-    if (desc && (desc.get || desc.set)) {
+    if (key === 'isTrusted') {
+      continue;
+    }
+
+    if (desc && desc.get) {
       Object.defineProperty(newEvent, key, desc);
     } else {
       newEvent[key] = ev[key];
@@ -48,8 +52,6 @@ var cloneEvent = function cloneEvent(ev) {
   for (var _key in ov) {
     newEvent[_key] = ov[_key];
   }
-
-  Object.setPrototypeOf(newEvent, ev);
 
   return newEvent;
 };
