@@ -26,6 +26,16 @@ export default function createNode(vTree, doc = document) {
   // Will vary based on the properties of the VTree.
   let domNode = null;
 
+  CreateNodeHookCache.forEach(fn => {
+    // Invoke all the `createNodeHook` functions passing along the vTree as the
+    // only argument. These functions must return a valid DOM Node value.
+    domNode = fn(vTree);
+  });
+
+  if (domNode) {
+    return domNode;
+  }
+
   // Create empty text elements. They will get filled in during the patch
   // process.
   if (nodeName === '#text') {

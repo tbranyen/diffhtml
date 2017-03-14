@@ -1,4 +1,4 @@
-import { NodeCache, Pool } from '../util';
+import { NodeCache, CreateTreeHookCache, Pool } from '../util';
 
 const { assign } = Object;
 const { isArray } = Array;
@@ -152,5 +152,13 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     entry.key = String(entry.attributes.key);
   }
 
-  return entry;
+  let vTree = entry;
+
+  CreateTreeHookCache.forEach(fn => {
+    // Invoke all the `createNodeHook` functions passing along this transaction
+    // as the only argument. These functions must return valid vTree values.
+    vTree = fn(vTree);
+  });
+
+  return vTree;
 }
