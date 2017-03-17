@@ -9,6 +9,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-register": "^6.23.0",
     "diffhtml": "^1.0.0-beta",
+    "jsdom": "^9.10.0",
     "mocha": "^3.2.0",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
@@ -18,7 +19,8 @@
   },
   "scripts": {
     "build": "rollup -c rollup.config.js",
-    "watch": "rollup -c rollup.config.js -w"
+    "watch": "rollup -c rollup.config.js -w",
+    "test": "mocha test/_setup test"
   },
   "dependencies": {
     "proptypes": "^0.14.4"

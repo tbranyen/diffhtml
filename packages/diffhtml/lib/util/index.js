@@ -5,6 +5,7 @@ export {
   TransitionCache,
   CreateTreeHookCache,
   CreateNodeHookCache,
+  SyncTreeHookCache,
 } from './caches';
 
 export { protectVTree, unprotectVTree, cleanMemory } from './memory';

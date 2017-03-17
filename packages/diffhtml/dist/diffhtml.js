@@ -10,11 +10,16 @@ var StateCache = new Map();
 // Associates Virtual Tree Elements with DOM Nodes.
 var NodeCache = new Map();
 
+// Cache transition functions.
+var TransitionCache = new Map();
+
 // Caches all middleware. You cannot unset a middleware once it has been added.
 var MiddlewareCache = new Set();
 
-// Cache transition functions.
-var TransitionCache = new Map();
+// Very specific caches used by middleware.
+var CreateTreeHookCache = new Set();
+var CreateNodeHookCache = new Set();
+var SyncTreeHookCache = new Set();
 
 // A modest size.
 var size = 10000;
@@ -310,9 +315,9 @@ function createTree(input, attributes, childNodes) {
       }
     }
 
-    var vTree = createTree(input.nodeName, attributes, childNodes);
-    NodeCache.set(vTree, input);
-    return vTree;
+    var _vTree = createTree(input.nodeName, attributes, childNodes);
+    NodeCache.set(_vTree, input);
+    return _vTree;
   }
 
   // Assume any object value is a valid VTree object.
@@ -389,7 +394,15 @@ function createTree(input, attributes, childNodes) {
     entry.key = String(entry.attributes.key);
   }
 
-  return entry;
+  var vTree = entry;
+
+  CreateTreeHookCache.forEach(function (fn) {
+    // Invoke all the `createNodeHook` functions passing along this transaction
+    // as the only argument. These functions must return valid vTree values.
+    vTree = fn(vTree);
+  });
+
+  return vTree;
 }
 
 var empty = {};
@@ -421,6 +434,16 @@ function syncTree(oldTree, newTree, patches) {
     throw new Error('Missing new tree to sync into');
   }
 
+  SyncTreeHookCache.forEach(function (fn) {
+    // Invoke all the `syncTreeHook` functions passing along the old and new
+    // VTrees. These functions must return valid vTree values.
+    var retVal = fn(oldTree, newTree);
+
+    if (retVal) {
+      newTree = retVal;
+    }
+  });
+
   // Create new arrays for patches or use existing from a recursive call.
   patches = patches || {
     TREE_OPS: [],
@@ -446,7 +469,8 @@ function syncTree(oldTree, newTree, patches) {
   // Seek out attribute changes first, but only from element Nodes.
   if (newTree.nodeType === 1) {
     var oldAttributes = oldTree ? oldTree.attributes : empty;
-    var newAttributes = newTree.attributes;
+    var _newTree = newTree,
+        newAttributes = _newTree.attributes;
 
     // Search for sets and changes.
 
@@ -510,7 +534,8 @@ function syncTree(oldTree, newTree, patches) {
   }
 
   var oldNodeName = oldTree.nodeName;
-  var newNodeName = newTree.nodeName;
+  var _newTree2 = newTree,
+      newNodeName = _newTree2.nodeName;
 
 
   if (oldNodeName !== newNodeName && newTree.nodeType !== 11) {
@@ -518,7 +543,8 @@ function syncTree(oldTree, newTree, patches) {
   }
 
   var oldChildNodes = oldTree.childNodes;
-  var newChildNodes = newTree.childNodes;
+  var _newTree3 = newTree,
+      newChildNodes = _newTree3.childNodes;
 
   // Determines if any of the elements have a key attribute. If so, then we can
   // safely assume keys are being used here for optimization/transition
@@ -1088,6 +1114,9 @@ var internals = Object.freeze({
 	NodeCache: NodeCache,
 	MiddlewareCache: MiddlewareCache,
 	TransitionCache: TransitionCache,
+	CreateTreeHookCache: CreateTreeHookCache,
+	CreateNodeHookCache: CreateNodeHookCache,
+	SyncTreeHookCache: SyncTreeHookCache,
 	protectVTree: protectVTree,
 	unprotectVTree: unprotectVTree,
 	cleanMemory: cleanMemory,
@@ -1286,6 +1315,16 @@ function createNode(vTree) {
   // Will vary based on the properties of the VTree.
 
   var domNode = null;
+
+  CreateNodeHookCache.forEach(function (fn) {
+    // Invoke all the `createNodeHook` functions passing along the vTree as the
+    // only argument. These functions must return a valid DOM Node value.
+    domNode = fn(vTree);
+  });
+
+  if (domNode) {
+    return domNode;
+  }
 
   // Create empty text elements. They will get filled in during the patch
   // process.
@@ -2104,12 +2143,24 @@ function use(middleware) {
     throw new Error('Middleware must be a function');
   }
 
+  var subscribe = middleware.subscribe,
+      unsubscribe = middleware.unsubscribe,
+      createTreeHook = middleware.createTreeHook,
+      createNodeHook = middleware.createNodeHook,
+      syncTreeHook = middleware.syncTreeHook;
+
   // Add the function to the set of middlewares.
+
   MiddlewareCache.add(middleware);
 
   // Call the subscribe method if it was defined, passing in the full public
   // API we have access to at this point.
-  middleware.subscribe && middleware.subscribe(use.diff);
+  subscribe && middleware.subscribe(use.diff);
+
+  // Add the hyper-specific create hooks.
+  createTreeHook && CreateTreeHookCache.add(createTreeHook);
+  createNodeHook && CreateNodeHookCache.add(createNodeHook);
+  syncTreeHook && SyncTreeHookCache.add(syncTreeHook);
 
   // The unsubscribe method for the middleware.
   return function () {
@@ -2119,7 +2170,12 @@ function use(middleware) {
 
     // Call the unsubscribe method if defined in the middleware (allows them
     // to cleanup).
-    middleware.unsubscribe && middleware.unsubscribe(use.diff);
+    unsubscribe && unsubscribe(use.diff);
+
+    // Cleanup the specific fns from their Cache.
+    CreateTreeHookCache.delete(createTreeHook);
+    CreateNodeHookCache.delete(createNodeHook);
+    SyncTreeHookCache.delete(syncTreeHook);
   };
 }
 

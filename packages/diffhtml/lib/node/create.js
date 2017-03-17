@@ -1,4 +1,4 @@
-import { NodeCache, elements, namespace } from '../util';
+import { NodeCache, CreateNodeHookCache, elements, namespace } from '../util';
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.

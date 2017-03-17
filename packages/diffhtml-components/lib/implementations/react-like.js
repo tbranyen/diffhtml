@@ -4,10 +4,18 @@ const ComponentCache = new Map();
 const Debounce = new WeakMap();
 const { assign } = Object;
 
-function _reconcileComponents(oldTree, newTree) {
+let NodeCache = null;
+
+function reactLikeComponentTask() {}
+
+reactLikeComponentTask.subscribe = ({ internals, tasks }) => {
+  NodeCache = internals.NodeCache;
+};
+
+reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
   // Stateful components have a very limited API, designed to be fully
-  // implemented by a higher-level abstraction. The only method ever called
-  // is `render`. It is up to a higher level abstraction on how to handle the
+  // implemented by a higher-level abstraction. The only method ever called is
+  // `render`. It is up to a higher level abstraction on how to handle the
   // changes.
   for (let i = 0; i < newTree.childNodes.length; i++) {
     const oldChild = oldTree && oldTree.childNodes[i];
@@ -47,40 +55,15 @@ function _reconcileComponents(oldTree, newTree) {
       }
 
       // Recursively update trees.
-      _reconcileComponents(oldChild, renderTree);
-    }
-    else {
-      _reconcileComponents(oldChild, newChild);
+      return renderTree;
     }
   }
-}
-
-let reconcileTrees = null;
-let NodeCache = null;
-
-function reactLikeComponentTask(transaction) {
-  const index = transaction.tasks.indexOf(reconcileTrees);
-
-  if (index === -1) {
-    throw new Error('Missing required reconcileTrees task');
-  }
-
-  // Reconcile trees.
-  transaction.tasks.splice(index + 1, 0, function reconcileComponents() {
-    _reconcileComponents(transaction.oldTree, transaction.newTree);
-  });
-}
-
-reactLikeComponentTask.subscribe = ({ internals, tasks }) => {
-  reconcileTrees = tasks.reconcileTrees;
-  NodeCache = internals.NodeCache;
 };
 
 use(reactLikeComponentTask);
 
 // Creates the `component.state` object.
 const createState = (instance, state) => assign({}, instance.state, state);
-
 
 export default class Component {
   // Facilities a component re-render.

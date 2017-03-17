@@ -3,6 +3,7 @@ import {
   MiddlewareCache,
   CreateTreeHookCache,
   CreateNodeHookCache,
+  SyncTreeHookCache,
 } from './util';
 
 export default function use(middleware) {
@@ -10,7 +11,13 @@ export default function use(middleware) {
     throw new Error('Middleware must be a function');
   }
 
-  const { subscribe, unsubscribe, createTreeHook, createNodeHook } = middleware;
+  const {
+    subscribe,
+    unsubscribe,
+    createTreeHook,
+    createNodeHook,
+    syncTreeHook,
+  } = middleware;
 
   // Add the function to the set of middlewares.
   MiddlewareCache.add(middleware);
@@ -22,6 +29,7 @@ export default function use(middleware) {
   // Add the hyper-specific create hooks.
   createTreeHook && CreateTreeHookCache.add(createTreeHook);
   createNodeHook && CreateNodeHookCache.add(createNodeHook);
+  syncTreeHook && SyncTreeHookCache.add(syncTreeHook);
 
   // The unsubscribe method for the middleware.
   return () => {
@@ -36,5 +44,6 @@ export default function use(middleware) {
     // Cleanup the specific fns from their Cache.
     CreateTreeHookCache.delete(createTreeHook);
     CreateNodeHookCache.delete(createNodeHook);
+    SyncTreeHookCache.delete(syncTreeHook);
   };
 }

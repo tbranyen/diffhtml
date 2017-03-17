@@ -1,3 +1,5 @@
+import { SyncTreeHookCache } from '../util/caches';
+
 const { assign, keys } = Object;
 const empty = {};
 
@@ -22,6 +24,16 @@ const addTreeOperations = (TREE_OPS, patchset) => {
 
 export default function syncTree(oldTree, newTree, patches) {
   if (!newTree) { throw new Error('Missing new tree to sync into'); }
+
+  SyncTreeHookCache.forEach(fn => {
+    // Invoke all the `syncTreeHook` functions passing along the old and new
+    // VTrees. These functions must return valid vTree values.
+    const retVal = fn(oldTree, newTree);
+
+    if (retVal) {
+      newTree = retVal;
+    }
+  });
 
   // Create new arrays for patches or use existing from a recursive call.
   patches = patches || {
