@@ -7,6 +7,7 @@ import {
   unprotectVTree,
   decodeEntities,
   escape,
+  tryCatcher
 } from '../util';
 
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
@@ -50,9 +51,7 @@ export default function patchNode(patches) {
 
         // Allow the user to find the real value in the DOM Node as a
         // property.
-        try {
-          domNode[name] = value;
-        } catch (unhandledException) {}
+        tryCatcher(() => domNode[name] = value);
 
         // Set the actual attribute, this will ensure attributes like
         // `autofocus` aren't reset by the property call above.
@@ -78,9 +77,7 @@ export default function patchNode(patches) {
         domNode.setAttribute(name, '');
 
         // Since this is a property value it gets set directly on the node.
-        try {
-          domNode[name] = value;
-        } catch (unhandledException) {}
+        tryCatcher(() => domNode[name] = value);
       }
 
       if (newPromises.length) {
