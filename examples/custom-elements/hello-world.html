@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Hello World Example</title>
+</head>
+<body>
+  <hello-world></hello-world> 
+
+  <script src="../../dist/diffhtml.js"></script>
+  <script>
+
+    diff.registerElement('hello-world', {
+      attachedCallback() {
+        this.innerHTML = 'Hello world!';
+      }
+    });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Hello World with Prollyfill Example</title>
+</head>
+<body>
+  <hello-world></hello-world> 
+
+  <script src="../../dist/diffhtml.js"></script>
+  <script>
+  (function() {
+
+    'use strict';
+
+    diff.enableProllyfill();
+
+    class HelloWorldElement extends HTMLElement {
+      attachedCallback() {
+        this.innerHTML = 'Hello world!';
+      }
+    }
+
+    document.registerElement('hello-world', HelloWorldElement);
+
+  })();
+  </script>
+</body>
+</html>
