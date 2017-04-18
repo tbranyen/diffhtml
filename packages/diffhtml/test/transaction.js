@@ -32,35 +32,6 @@ describe('Transaction', function() {
     });
   });
 
-  describe('invokeMiddleware', () => {
-    it('will not modify the task flow if not provided a function', () => {
-      const { domNode, markup, options } = this;
-      const transaction = Transaction.create(domNode, markup, options);
-
-      const middleware = spy();
-      const unsubscribe = use(middleware);
-
-      Transaction.invokeMiddleware(transaction);
-
-      equal(transaction.tasks.length, 1);
-      unsubscribe();
-    });
-
-    it('will modify the task flow if provided a function', () => {
-      const { domNode, markup, options } = this;
-      const transaction = Transaction.create(domNode, markup, options);
-
-      const task = spy();
-      const middleware = () => task;
-      const unsubscribe = use(middleware);
-
-      Transaction.invokeMiddleware(transaction);
-
-      equal(transaction.tasks.length, 2);
-      unsubscribe();
-    });
-  });
-
   describe('renderNext', () => {
     it('will render the next transaction in the queue', () => {
       const { domNode, markup, options } = this;
@@ -173,48 +144,6 @@ describe('Transaction', function() {
     });
   });
 
-  describe('assert', () => {
-    it('will not error if not aborted or completd', () => {
-      const { domNode, markup } = this;
-      const tasks = [
-        transaction => transaction.abort(),
-        spy(),
-      ];
-
-      const transaction = Transaction.create(domNode, markup, { tasks });
-      transaction.aborted = false;
-      transaction.completed = false;
-      doesNotThrow(() => transaction.start());
-      transaction.end();
-    });
-
-    it('will error if a transaction has been aborted', () => {
-      const { domNode, markup } = this;
-      const tasks = [
-        transaction => transaction.abort(),
-        spy(),
-      ];
-
-      const transaction = Transaction.create(domNode, markup, { tasks });
-      transaction.aborted = true;
-      transaction.completed = true;
-      throws(() => transaction.start());
-    });
-
-    it('will error if a transaction has been completed', () => {
-      const { domNode, markup } = this;
-      const tasks = [
-        transaction => transaction.abort(),
-        spy(),
-      ];
-
-      const transaction = Transaction.create(domNode, markup, { tasks });
-      transaction.aborted = false;
-      transaction.completed = true;
-      throws(() => transaction.start());
-    });
-  });
-
   describe('flow', () => {
     it('will set up a single function to flow', () => {
       const testFn = spy();
@@ -286,6 +215,77 @@ describe('Transaction', function() {
     });
   });
 
+  describe('assert', () => {
+    it('will not error if not aborted or completd', () => {
+      const { domNode, markup } = this;
+      const tasks = [
+        transaction => transaction.abort(),
+        spy(),
+      ];
+
+      const transaction = Transaction.create(domNode, markup, { tasks });
+      transaction.aborted = false;
+      transaction.completed = false;
+      doesNotThrow(() => transaction.start());
+      transaction.end();
+    });
+
+    it('will error if a transaction has been aborted', () => {
+      const { domNode, markup } = this;
+      const tasks = [
+        transaction => transaction.abort(),
+        spy(),
+      ];
+
+      const transaction = Transaction.create(domNode, markup, { tasks });
+      transaction.aborted = true;
+      transaction.completed = true;
+      throws(() => transaction.start());
+    });
+
+    it('will error if a transaction has been completed', () => {
+      const { domNode, markup } = this;
+      const tasks = [
+        transaction => transaction.abort(),
+        spy(),
+      ];
+
+      const transaction = Transaction.create(domNode, markup, { tasks });
+      transaction.aborted = false;
+      transaction.completed = true;
+      throws(() => transaction.start());
+    });
+  });
+
+  describe('invokeMiddleware', () => {
+    it('will not modify the task flow if not provided a function', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
+
+      const middleware = spy();
+      const unsubscribe = use(middleware);
+
+      Transaction.invokeMiddleware(transaction);
+
+      equal(transaction.tasks.length, 1);
+      unsubscribe();
+    });
+
+    it('will modify the task flow if provided a function', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
+
+      const task = spy();
+      const middleware = () => task;
+      const unsubscribe = use(middleware);
+
+      Transaction.invokeMiddleware(transaction);
+
+      equal(transaction.tasks.length, 2);
+      unsubscribe();
+    });
+  });
+
   describe('start', () => {
     it.skip('will start', () => {});
 
@@ -310,7 +310,9 @@ describe('Transaction', function() {
     //}
   });
 
-  describe.skip('abort', () => {
+  describe('abort', () => {
+    it.skip('will abort', () => {});
+
     //const { state } = this;
 
     //this.aborted = true;
@@ -320,7 +322,9 @@ describe('Transaction', function() {
     //return this.tasks[this.tasks.length - 1](this);
   });
 
-  describe.skip('end', () => {
+  describe('end', () => {
+    it.skip('will end', () => {});
+
     //const { state, domNode, options } = this;
     //const { measure } = state;
     //const { inner } = options;
@@ -364,7 +368,8 @@ describe('Transaction', function() {
     //return this;
   });
 
-  describe.skip('onceEnded', () => {
+  describe('onceEnded', () => {
+    it.skip('will trigger onceEnded callbacks', () => {});
     //this.endedCallbacks.add(callback);
   });
 });

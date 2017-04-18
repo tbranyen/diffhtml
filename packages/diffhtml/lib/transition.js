@@ -13,21 +13,25 @@ const stateNames = [
 stateNames.forEach(stateName => TransitionCache.set(stateName, new Set()));
 
 export function addTransitionState(stateName, callback) {
-  if (!stateName || !stateNames.includes(stateName)) {
-    throw new Error(`Invalid state name '${stateName}'`);
-  }
+  if (process.env.NODE_ENV !== 'production') {
+    if (!stateName || !stateNames.includes(stateName)) {
+      throw new Error(`Invalid state name '${stateName}'`);
+    }
 
-  if (!callback) {
-    throw new Error('Missing transition state callback');
+    if (!callback) {
+      throw new Error('Missing transition state callback');
+    }
   }
 
   TransitionCache.get(stateName).add(callback);
 }
 
 export function removeTransitionState(stateName, callback) {
-  // Only validate the stateName if the caller provides one.
-  if (stateName && !stateNames.includes(stateName)) {
-    throw new Error(`Invalid state name '${stateName}'`);
+  if (process.env.NODE_ENV !== 'production') {
+    // Only validate the stateName if the caller provides one.
+    if (stateName && !stateNames.includes(stateName)) {
+      throw new Error(`Invalid state name '${stateName}'`);
+    }
   }
 
   // Remove all transition callbacks from state.

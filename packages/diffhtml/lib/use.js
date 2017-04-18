@@ -1,14 +1,17 @@
 import html from './html';
-import {
-  MiddlewareCache,
+import { MiddlewareCache } from './util';
+
+const {
   CreateTreeHookCache,
   CreateNodeHookCache,
   SyncTreeHookCache,
-} from './util';
+} = MiddlewareCache;
 
 export default function use(middleware) {
-  if (typeof middleware !== 'function') {
-    throw new Error('Middleware must be a function');
+  if (process.env.NODE_ENV !== 'production') {
+    if (typeof middleware !== 'function') {
+      throw new Error('Middleware must be a function');
+    }
   }
 
   const {

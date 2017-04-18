@@ -1,5 +1,5 @@
 import Pool from './pool';
-import { NodeCache } from './caches';
+import { NodeCache, StateCache } from './caches';
 
 const { memory, protect, unprotect } = Pool;
 
@@ -39,7 +39,13 @@ export function unprotectVTree(vTree) {
  * Moves all unprotected allocations back into available pool. This keeps
  * diffHTML in a consistent state after synchronizing.
  */
-export function cleanMemory() {
+export function cleanMemory(isBusy = false) {
+  StateCache.forEach(state => (isBusy = state.isRendering || isBusy));
+
+  if (isBusy) {
+    //return;
+  }
+
   memory.allocated.forEach(vTree => memory.free.add(vTree));
   memory.allocated.clear();
 

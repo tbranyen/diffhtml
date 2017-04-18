@@ -1,13 +1,4 @@
-export {
-  StateCache,
-  NodeCache,
-  MiddlewareCache,
-  TransitionCache,
-  CreateTreeHookCache,
-  CreateNodeHookCache,
-  SyncTreeHookCache,
-} from './caches';
-
+export { StateCache, NodeCache, MiddlewareCache, TransitionCache } from './caches';
 export { protectVTree, unprotectVTree, cleanMemory } from './memory';
 export { namespace, elements } from './svg';
 export { default as decodeEntities } from './decode-entities';

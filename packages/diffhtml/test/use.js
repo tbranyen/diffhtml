@@ -5,7 +5,18 @@ import validateMemory from './util/validateMemory';
 const { assign } = Object;
 
 describe('Use (Middleware)', function() {
-  afterEach(() => validateMemory());
+  beforeEach(() => {
+    this.unsubscribe = use(assign(() => {}, {
+      syncTreeHook: (oldTree, newTree) => {
+        if (this.syncTreeHook) this.syncTreeHook.apply(this, arguments);
+      }
+    }));
+  });
+
+  afterEach(() => {
+    this.unsubscribe();
+    validateMemory();
+  });
 
   it('will error if a value is passed that is not a function', () => {
     throws(() => use());
@@ -22,17 +33,15 @@ describe('Use (Middleware)', function() {
     const oldTree = document.createElement('div');
     const newTree = html`<div class="test" />`;
 
-    const unsubscribe = use(assign(() => {}, {
-      syncTreeHook(oldTree, newTree) {
-        newTree.attributes['data-track'] = 'some-new-value';
-      }
-    }));
+
+    this.syncTreeHook = () => {
+      newTree.attributes['data-track'] = 'some-new-value';
+    };
 
     innerHTML(oldTree, newTree);
 
     equal(oldTree.outerHTML, `<div><div class="test" data-track="some-new-value"></div></div>`);
 
     release(oldTree);
-    unsubscribe();
   });
 });

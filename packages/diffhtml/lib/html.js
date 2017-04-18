@@ -4,21 +4,15 @@ import { parse, escape, decodeEntities } from './util';
 const isAttributeEx = /(=|"|')[^><]*?$/;
 const isTagEx = /(<|\/)/;
 const TOKEN = '__DIFFHTML__';
-let i = 0;
 
-/**
- * Get the next value from the list. If the next value is a string, make sure
- * it is escaped.
- *
- * @param {Array} values - Values extracted from tagged template literal
- * @return {String|*} - Escaped string, otherwise any value passed
- */
+// Get the next value from the list. If the next value is a string, make sure
+// it is escaped.
 const nextValue = values => {
   const value = values.shift();
   return typeof value === 'string' ? escape(decodeEntities(value)) : value;
 };
 
-function handleTaggedTemplate(options, strings, ...values) {
+export default function handleTaggedTemplate(strings, ...values) {
   // Automatically coerce a string literal to array.
   if (typeof strings === 'string') {
     strings = [strings];
@@ -93,11 +87,9 @@ function handleTaggedTemplate(options, strings, ...values) {
   });
 
   // Parse the instrumented markup to get the Virtual Tree.
-  const childNodes = parse(retVal, supplemental, options).childNodes;
+  const childNodes = parse(retVal, supplemental).childNodes;
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
   return childNodes.length === 1 ? childNodes[0] : createTree(childNodes);
 }
-
-export default (...args) => handleTaggedTemplate({}, ...args);
