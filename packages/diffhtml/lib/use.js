@@ -1,17 +1,38 @@
 import html from './html';
 import { MiddlewareCache } from './util';
 
+const {
+  CreateTreeHookCache,
+  CreateNodeHookCache,
+  SyncTreeHookCache,
+} = MiddlewareCache;
+
 export default function use(middleware) {
-  if (typeof middleware !== 'function') {
-    throw new Error('Middleware must be a function');
+  if (process.env.NODE_ENV !== 'production') {
+    if (typeof middleware !== 'function') {
+      throw new Error('Middleware must be a function');
+    }
   }
+
+  const {
+    subscribe,
+    unsubscribe,
+    createTreeHook,
+    createNodeHook,
+    syncTreeHook,
+  } = middleware;
 
   // Add the function to the set of middlewares.
   MiddlewareCache.add(middleware);
 
   // Call the subscribe method if it was defined, passing in the full public
   // API we have access to at this point.
-  middleware.subscribe && middleware.subscribe(use.diff);
+  subscribe && middleware.subscribe(use.diff);
+
+  // Add the hyper-specific create hooks.
+  createTreeHook && CreateTreeHookCache.add(createTreeHook);
+  createNodeHook && CreateNodeHookCache.add(createNodeHook);
+  syncTreeHook && SyncTreeHookCache.add(syncTreeHook);
 
   // The unsubscribe method for the middleware.
   return () => {
@@ -21,6 +42,11 @@ export default function use(middleware) {
 
     // Call the unsubscribe method if defined in the middleware (allows them
     // to cleanup).
-    middleware.unsubscribe && middleware.unsubscribe(use.diff);
+    unsubscribe && unsubscribe(use.diff);
+
+    // Cleanup the specific fns from their Cache.
+    CreateTreeHookCache.delete(createTreeHook);
+    CreateNodeHookCache.delete(createNodeHook);
+    SyncTreeHookCache.delete(syncTreeHook);
   };
 }

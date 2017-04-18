@@ -29,6 +29,7 @@ export default function patchNode(patches) {
       const vTree = SET_ATTRIBUTE[i];
       const _name = SET_ATTRIBUTE[i + 1];
       const value = decodeEntities(SET_ATTRIBUTE[i + 2]);
+
       const domNode = createNode(vTree);
       const attributeChanged = TransitionCache.get('attributeChanged');
       const oldValue = domNode.getAttribute(_name);
@@ -94,6 +95,7 @@ export default function patchNode(patches) {
     for (let i = 0; i < REMOVE_ATTRIBUTE.length; i += 2) {
       const vTree = REMOVE_ATTRIBUTE[i];
       const name = REMOVE_ATTRIBUTE[i + 1];
+
       const domNode = NodeCache.get(vTree);
       const attributeChanged = TransitionCache.get('attributeChanged');
       const oldValue = domNode.getAttribute(name);
@@ -111,7 +113,8 @@ export default function patchNode(patches) {
     }
   }
 
-  // First do all DOM tree operations, and then do attribute and node value.
+  // Once attributes have been synchronized into the DOM Nodes, assemble the
+  // DOM Tree.
   for (let i = 0; i < TREE_OPS.length; i++) {
     const { INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD } = TREE_OPS[i];
 
@@ -121,6 +124,7 @@ export default function patchNode(patches) {
         const vTree = INSERT_BEFORE[i];
         const newTree = INSERT_BEFORE[i + 1];
         const referenceTree = INSERT_BEFORE[i + 2];
+
         const domNode = NodeCache.get(vTree);
         const referenceNode = referenceTree && createNode(referenceTree);
         const attached = TransitionCache.get('attached');
@@ -137,9 +141,7 @@ export default function patchNode(patches) {
 
         const attachedPromises = runTransitions('attached', newNode);
 
-        if (attachedPromises.length) {
-          promises.push(...attachedPromises);
-        }
+        promises.push(...attachedPromises);
       }
     }
 
@@ -171,6 +173,7 @@ export default function patchNode(patches) {
       for (let i = 0; i < REPLACE_CHILD.length; i += 2) {
         const newTree = REPLACE_CHILD[i];
         const oldTree = REPLACE_CHILD[i + 1];
+
         const oldDomNode = NodeCache.get(oldTree);
         const newDomNode = createNode(newTree);
         const attached = TransitionCache.get('attached');
@@ -193,12 +196,12 @@ export default function patchNode(patches) {
         ];
 
         if (allPromises.length) {
-          promises.push(
-            Promise.all(allPromises).then(() => {
-              oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-              unprotectVTree(oldTree);
-            })
-          );
+          Promise.all(allPromises).then(() => {
+            oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+            unprotectVTree(oldTree);
+          })
+
+          promises.push(...allPromises);
         }
         else {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);

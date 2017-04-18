@@ -15,26 +15,21 @@ export default class Transaction {
   }
 
   static renderNext(state) {
-    // Still no next transaction, so can safely return early.
     if (!state.nextTransaction) {
       return;
     }
 
     // Create the next transaction.
     const { nextTransaction, nextTransaction: { promises } } = state;
-    state.nextTransaction = undefined;
-
-    // Pull out the resolver deferred.
     const resolver = promises && promises[0];
 
-    // Remove the aborted status.
+    state.nextTransaction = undefined;
     nextTransaction.aborted = false;
 
     // Remove the last task, this has already been executed (via abort).
     nextTransaction.tasks.pop();
 
-    // Reflow this transaction, sans the terminator, since we have already
-    // executed it.
+    // Reflow this transaction.
     Transaction.flow(nextTransaction, nextTransaction.tasks);
 
     // Wait for the promises to complete if they exist, otherwise resolve
@@ -73,14 +68,18 @@ export default class Transaction {
   }
 
   static assert(transaction) {
-    if (typeof transaction.domNode !== 'object') {
-      throw new Error('Transaction requires a DOM Node mount point');
-    }
-    if (transaction.aborted && transaction.completed) {
-      throw new Error('Transaction was previously aborted');
-    }
-    else if (transaction.completed) {
-      throw new Error('Transaction was previously completed');
+    if (process.env.NODE_ENV !== 'production') {
+      if (typeof transaction.domNode !== 'object') {
+        throw new Error('Transaction requires a DOM Node mount point');
+      }
+
+      if (transaction.aborted && transaction.completed) {
+        throw new Error('Transaction was previously aborted');
+      }
+
+      if (transaction.completed) {
+        throw new Error('Transaction was previously completed');
+      }
     }
   }
 
@@ -125,7 +124,9 @@ export default class Transaction {
   }
 
   start() {
-    Transaction.assert(this);
+    if (process.env.NODE_ENV !== 'production') {
+      Transaction.assert(this);
+    }
 
     const { domNode, state: { measure }, tasks } = this;
     const takeLastTask = tasks.pop();
@@ -168,36 +169,24 @@ export default class Transaction {
 
     this.completed = true;
 
-    let renderScheduled = false;
-
-    StateCache.forEach(cachedState => {
-      if (cachedState.isRendering && cachedState !== state) {
-        renderScheduled = true;
-      }
-    });
-
-    // Don't attempt to clean memory if in the middle of another render.
-    if (!renderScheduled) {
-      cleanMemory();
-    }
-
     // Mark the end to rendering.
     measure('finalize');
     measure('render');
-
-    // Cache the markup and text for the DOM node to allow for short-circuiting
-    // future render transactions.
-    state.previousMarkup = domNode[inner ? 'innerHTML' : 'outerHTML'];
-    state.previousText = domNode.textContent;
 
     // Trigger all `onceEnded` callbacks, so that middleware can know the
     // transaction has ended.
     this.endedCallbacks.forEach(callback => callback(this));
     this.endedCallbacks.clear();
 
-    // We are no longer rendering the previous transaction so set the state to
-    // `false`.
+    // Cache the markup and text for the DOM node to allow for short-circuiting
+    // future render transactions.
+    state.previousMarkup = domNode.outerHTML;
     state.isRendering = false;
+
+    // Clean up memory before rendering the next transaction, however if
+    // another transaction is running concurrently this will be delayed until
+    // the last render completes.
+    cleanMemory();
 
     // Try and render the next transaction if one has been saved.
     Transaction.renderNext(state);

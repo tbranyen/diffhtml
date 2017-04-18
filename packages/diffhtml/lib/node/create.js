@@ -1,4 +1,6 @@
-import { NodeCache, elements, namespace } from '../util';
+import { NodeCache, MiddlewareCache, elements, namespace } from '../util';
+
+const { CreateNodeHookCache } = MiddlewareCache;
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
@@ -9,9 +11,11 @@ import { NodeCache, elements, namespace } from '../util';
  * @param {Object} - Document to create Nodes in
  * @return {Object} - A DOM Node matching the vTree
  */
-export default function createNode(vTree, doc = document) {
-  if (!vTree) {
-    throw new Error('Missing VTree when trying to create DOM Node');
+export default function createNode(vTree, ownerDocument = document) {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!vTree) {
+      throw new Error('Missing VTree when trying to create DOM Node');
+    }
   }
 
   const existingNode = NodeCache.get(vTree);
@@ -26,25 +30,36 @@ export default function createNode(vTree, doc = document) {
   // Will vary based on the properties of the VTree.
   let domNode = null;
 
-  // Create empty text elements. They will get filled in during the patch
-  // process.
-  if (nodeName === '#text') {
-    domNode = doc.createTextNode(vTree.nodeValue);
-  }
-  // Support dynamically creating document fragments.
-  else if (nodeName === '#document-fragment') {
-    domNode = doc.createDocumentFragment();
-  }
-  // If the nodeName matches any of the known SVG element names, mark it as
-  // SVG. The reason for doing this over detecting if nested in an <svg>
-  // element, is that we do not currently have circular dependencies in the
-  // VTree, by avoiding parentNode, so there is no way to crawl up the parents.
-  else if (elements.indexOf(nodeName) > -1) {
-    domNode = doc.createElementNS(namespace, nodeName);
-  }
-  // If not a Text or SVG Node, then create with the standard method.
-  else {
-    domNode = doc.createElement(nodeName);
+  CreateNodeHookCache.forEach((fn, retVal) => {
+    // Invoke all the `createNodeHook` functions passing along the vTree as the
+    // only argument. These functions must return a valid DOM Node value.
+    if (retVal = fn(vTree)) {
+      domNode = retVal;
+    }
+  });
+
+  if (!domNode) {
+    // Create empty text elements. They will get filled in during the patch
+    // process.
+    if (nodeName === '#text') {
+      domNode = ownerDocument.createTextNode(vTree.nodeValue);
+    }
+    // Support dynamically creating document fragments.
+    else if (nodeName === '#document-fragment') {
+      domNode = ownerDocument.createDocumentFragment();
+    }
+    // If the nodeName matches any of the known SVG element names, mark it as
+    // SVG. The reason for doing this over detecting if nested in an <svg>
+    // element, is that we do not currently have circular dependencies in the
+    // VTree, by avoiding parentNode, so there is no way to crawl up the
+    // parents.
+    else if (elements.indexOf(nodeName) > -1) {
+      domNode = ownerDocument.createElementNS(namespace, nodeName);
+    }
+    // If not a Text or SVG Node, then create with the standard method.
+    else {
+      domNode = ownerDocument.createElement(nodeName);
+    }
   }
 
   // Add to the domNodes cache.
@@ -53,7 +68,7 @@ export default function createNode(vTree, doc = document) {
   // Append all the children into the domNode, making sure to run them
   // through this `createNode` function as well.
   for (let i = 0; i < childNodes.length; i++) {
-    domNode.appendChild(createNode(childNodes[i], doc));
+    domNode.appendChild(createNode(childNodes[i], ownerDocument));
   }
 
   return domNode;

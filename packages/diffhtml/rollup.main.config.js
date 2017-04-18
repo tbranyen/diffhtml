@@ -22,7 +22,6 @@ export const sourceMap = false;
 export const moduleName = 'diff';
 export const targets = [{ dest: dests[NODE_ENV], format: NODE_ENV === 'production' ? 'umd' : 'es' }];
 export const plugins = [
-  replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   babel(),
   nodeResolve({ jsnext: true }),
   NODE_ENV === 'production' && Visualizer({ filename: './dist/diffhtml-build-size.html' }),

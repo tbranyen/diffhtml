@@ -1,5 +1,6 @@
-import { NodeCache, Pool } from '../util';
+import { NodeCache, MiddlewareCache, Pool } from '../util';
 
+const { CreateTreeHookCache } = MiddlewareCache;
 const { assign } = Object;
 const { isArray } = Array;
 const fragmentName = '#document-fragment';
@@ -152,5 +153,15 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     entry.key = String(entry.attributes.key);
   }
 
-  return entry;
+  let vTree = entry;
+
+  CreateTreeHookCache.forEach((fn, retVal) => {
+    // Invoke all the `createNodeHook` functions passing along this transaction
+    // as the only argument. These functions must return valid vTree values.
+    if (retVal = fn(vTree)) {
+      vTree = retVal;
+    }
+  });
+
+  return vTree;
 }

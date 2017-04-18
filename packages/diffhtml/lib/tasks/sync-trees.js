@@ -1,9 +1,9 @@
-import * as Tree from '../tree';
+import { syncTree } from '../tree';
 import { createNode } from '../node';
 import { StateCache, protectVTree, unprotectVTree } from '../util';
 
 export default function syncTrees(transaction) {
-  const { state: { measure, oldTree }, newTree, domNode } = transaction;
+  const { state: { measure }, oldTree, newTree, domNode } = transaction;
 
   measure('sync trees');
 
@@ -27,7 +27,7 @@ export default function syncTrees(transaction) {
   }
   // Otherwise only diff the children.
   else {
-    transaction.patches = Tree.syncTree(oldTree, newTree);
+    transaction.patches = syncTree(oldTree, newTree);
   }
 
   measure('sync trees');
