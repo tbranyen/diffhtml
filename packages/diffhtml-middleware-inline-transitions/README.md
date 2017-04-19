@@ -11,6 +11,15 @@ Tiny module to support binding/unbinding declarative diffHTML transition hooks.
 npm install diffhtml-middleware-inline-transitions
 ```
 
+##### Use
+
+``` js
+import { use } from 'diffhtml';
+import inlineTransitions from 'diffhtml-middleware-inline-transitions';
+
+use(inlineTransitions());
+```
+
 ##### Example
 
 Apply to an element by passing the function to the associated state name:
@@ -41,4 +50,4 @@ Full events and args list:
 | `ondetached`         | `(eventTarget, domNode)`
 | `onreplaced`         | `(eventTarget, oldNode, newNode)`
 | `onattributechanged` | `(eventTarget, oldNode, attributeName, oldValue, newValue)`
-| `onTextChanged`      | `(eventTarget, oldNode, oldValue, newValue)`
+| `ontextchanged`      | `(eventTarget, oldNode, oldValue, newValue)`
