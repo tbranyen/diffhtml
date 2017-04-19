@@ -1,16 +1,21 @@
+const { assign, keys } = Object;
+
+const eventsToTransitionName = {
+  attributechanged: 'attributeChanged',
+  textchanged: 'textChanged',
+};
+
 // Store maps of elements to handlers that are associated to transitions.
 const transitionsMap = {
   attached: new Map(),
   detached: new Map(),
   replaced: new Map(),
-  attributeChanged: new Map(),
-  textChanged: new Map(),
+  attributechanged: new Map(),
+  textchanged: new Map(),
 };
 
 // Internal global transition state handlers, allows us to bind once and match.
 const boundHandlers = [];
-
-const { assign, keys } = Object;
 
 /**
  * Binds inline transitions to the parent element and triggers for any matching
@@ -20,6 +25,16 @@ export default function inlineTransitions(options = {}) {
   // Monitors whenever an element changes an attribute, if the attribute is a
   // valid state name, add this element into the related Set.
   const attributeChanged = function(domNode, name, oldVal, newVal) {
+    const prefix = name.toLowerCase().slice(0, 2);
+
+    // Don't bother with non-events.
+    if (prefix !== 'on') {
+      return;
+    }
+
+    // Normalize the event name to
+    name = name.toLowerCase().slice(2);
+
     const map = transitionsMap[name];
     const isFunction = typeof newVal === 'function';
 
@@ -39,6 +54,7 @@ export default function inlineTransitions(options = {}) {
     // Add a transition for every type.
     keys(transitionsMap).forEach(name => {
       const map = transitionsMap[name];
+      const transitionName = eventsToTransitionName[name] || name;
 
       const handler = function(child, ...rest) {
         // If there are no elements to match here, abort.
@@ -78,7 +94,7 @@ export default function inlineTransitions(options = {}) {
       boundHandlers.push(handler);
 
       // Add the state handler.
-      addTransitionState(name, handler);
+      addTransitionState(transitionName, handler);
     });
   };
 
@@ -90,9 +106,10 @@ export default function inlineTransitions(options = {}) {
     // Remove all elements from the internal cache.
     keys(transitionsMap).forEach(name => {
       const map = transitionsMap[name];
+      const transitionName = eventsToTransitionName[name] || name;
 
       // Unbind the associated global handler.
-      removeTransitionState(name, boundHandlers.shift());
+      removeTransitionState(transitionName, boundHandlers.shift());
 
       // Empty the associated element set.
       map.clear();

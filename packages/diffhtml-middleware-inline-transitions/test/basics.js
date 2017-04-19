@@ -1,13 +1,11 @@
 const assert = require('assert');
-const diff = require('diffhtml');
+const { use, html, innerHTML } = require('diffhtml');
 const inlineTransitions = require('../index');
-
-const { innerHTML, html } = diff;
 
 describe('Basics', function() {
   beforeEach(() => {
     this.fixture = document.createElement('div');
-    this.unsubscribeInlineTransitions = inlineTransitions(diff);
+    this.unsubscribeInlineTransitions = use(inlineTransitions());
   });
 
   afterEach(() => {
@@ -20,7 +18,7 @@ describe('Basics', function() {
       done();
     };
 
-    innerHTML(this.fixture, html`<div attached=${attached}></div>`);
+    innerHTML(this.fixture, html`<div onattached=${attached}></div>`);
   });
 
   it('can stop listening for hooks', () => {
@@ -31,33 +29,33 @@ describe('Basics', function() {
       count++;
     };
 
-    innerHTML(this.fixture, html`<div attached=${attached}></div>`);
+    innerHTML(this.fixture, html`<div onattached=${attached}></div>`);
 
     this.unsubscribeInlineTransitions();
 
-    innerHTML(this.fixture, html`<div attached=${attached}>
+    innerHTML(this.fixture, html`<div onattached=${attached}>
       <div></div>
     </div>`);
 
     assert.equal(count, 1);
   });
 
-  it('will pass through types to a hook', () => {
+  it('will set literal values directly on the element', () => {
     const attached = true;
-    innerHTML(this.fixture, html`<div attached=${attached}></div>`);
-    assert.equal(this.fixture.firstChild.getAttribute('attached'), true);
+    innerHTML(this.fixture, html`<div onattached=${attached}></div>`);
+    assert.equal(this.fixture.firstChild.getAttribute('onattached'), 'true');
   });
 
   it('can halt on a promise', (done) => {
-    const detached = el => {
-      return new Promise(resolve => setTimeout(resolve, 0));
-    };
+    const ondetached = el => new Promise(resolve => setTimeout(resolve, 0));
 
-    innerHTML(this.fixture, html`<div detached=${detached}>
-      <p></p>
-    </div>`);
+    innerHTML(this.fixture, html`
+      <div ondetached=${ondetached}>
+        <p></p>
+      </div>
+    `);
 
-    innerHTML(this.fixture, html`<div detached=${detached}></div>`);
+    innerHTML(this.fixture, html`<div ondetached=${ondetached}></div>`);
 
     assert.ok(this.fixture.querySelector('p'));
 
@@ -68,12 +66,12 @@ describe('Basics', function() {
   });
 
   it('supports detached transitions on the root element', (done) => {
-    const detached = el => {
-      assert.equal(el.nodeName, 'p')
+    const ondetached = el => {
+      assert.equal(el.nodeName.toLowerCase(), 'p')
       done();
     };
 
-    innerHTML(this.fixture, html`<div><p detached=${detached}/></div>`);
-    innerHTML(this.fixture, html`<div></div>`);
+    innerHTML(this.fixture, html`<p ondetached=${ondetached}/>`);
+    innerHTML(this.fixture, html``);
   });
 });

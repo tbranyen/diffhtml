@@ -1,13 +1,11 @@
 const assert = require('assert');
-const diff = require('diffhtml');
+const { use, html, innerHTML } = require('diffhtml');
 const inlineTransitions = require('../index');
-
-const { innerHTML, html } = diff;
 
 describe('Regressions', function() {
   beforeEach(() => {
     this.fixture = document.createElement('div');
-    this.unsubscribeInlineTransitions = inlineTransitions(diff);
+    this.unsubscribeInlineTransitions = use(inlineTransitions());
   });
 
   afterEach(() => {
@@ -17,14 +15,16 @@ describe('Regressions', function() {
   it('does not error when non-Promises are returned', () => {
     var count = 0;
 
-    const attached = el => {
+    const onattached = el => {
       count++;
       return undefined;
     };
 
-    innerHTML(this.fixture, html`<div attached=${attached}>
-      <div></div>
-    </div>`);
+    innerHTML(this.fixture, html`
+      <div onattached=${onattached}>
+        <div></div>
+      </div>
+    `);
 
     assert.equal(count, 2);
   });
