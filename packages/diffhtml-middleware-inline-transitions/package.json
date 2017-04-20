@@ -7,7 +7,8 @@
     "build": "browserify -t babelify -s inlineTransitions index.js -o dist/inline-transitions.js",
     "watch": "watchify -t babelify -s inlineTransitions index.js -o dist/inline-transitions.js -v",
     "mocha": "mocha test/_setup test/*.js",
-    "test": "istanbul cover _mocha -- -- test/_setup test/*.js"
+    "test": "istanbul cover _mocha -- -- test/_setup test/*.js",
+    "test:ci": "npm run test"
   },
   "keywords": [
     "diffhtml",

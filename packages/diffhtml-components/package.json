@@ -20,7 +20,8 @@
   "scripts": {
     "build": "rollup -c rollup.config.js",
     "watch": "rollup -c rollup.config.js -w",
-    "test": "mocha test/_setup test"
+    "test": "mocha test/_setup test",
+    "test:ci": "npm run test"
   },
   "dependencies": {
     "proptypes": "^0.14.4"
