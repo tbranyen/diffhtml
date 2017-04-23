@@ -7,6 +7,8 @@ const TOKEN = '__DIFFHTML_BABEL__';
 const doctypeEx = /<!.*>/i;
 const tokenEx = /__DIFFHTML_BABEL__([^_]*)__/;
 const isPropEx = /(=|'|")/;
+const isAttributeEx = /(=|"|')[^><]*?$/;
+const isTagEx = /(<|\/)/;
 
 /**
  * Transpiles a matching tagged template literal to createTree calls, the
@@ -42,7 +44,12 @@ export default function({ types: t }) {
           childNodes.push(...innerTree.childNodes);
         }
         else {
-          childNodes.push(t.callExpression(createTree, [innerTree]));
+          if (innerTree.type === 'StringLiteral') {
+            childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.nullLiteral(), innerTree]));
+          }
+          else {
+            childNodes.push(t.callExpression(createTree, [innerTree]));
+          }
         }
       }
       else if (!doctypeEx.test(value) && hasNonWhitespaceEx.test(value) || (i !== 0 && i !== length -1)) {
@@ -50,7 +57,7 @@ export default function({ types: t }) {
       }
     }
 
-    return [childNodes.length === 1 ? childNodes[0] : t.arrayExpression(childNodes)];
+    return t.arrayExpression(childNodes);
   };
 
   // Takes in a dot-notation identifier and breaks it up into a
@@ -142,27 +149,47 @@ export default function({ types: t }) {
         return;
       }
 
-      const HTML = [];
+      // Used to store markup and tokens.
+      let HTML = '';
       const dynamicBits = [];
 
+      // Nearly identical logic to the diffHTML parser, as we have the static
+      // vs dynamic parts pre-separated for us and we simply need to fuse them
+      // together.
       quasis.forEach((quasi, i) => {
-        HTML.push(quasi.value.raw);
+        HTML += quasi.value.raw;
 
         if (expressions.length) {
-          let expression = expressions.shift();
+          const expression = expressions.shift();
+          const lastSegment = HTML.split(' ').pop();
+          const lastCharacter = lastSegment.trim().slice(-1);
+          const isAttribute = Boolean(HTML.match(isAttributeEx));
+          const isTag = Boolean(lastCharacter.match(isTagEx));
+          const isString = expression.type === 'StringLiteral';
+          const isObject = expression.type === 'ObjectExpression';
+          const isArray = expression.type === 'ArrayExpression';
+          const isIdentifier = expression.type === 'Identifier';
+          const token = TOKEN + i + '__';
 
-          if (expression.type === 'StringLiteral') {
-            HTML.push(expression.value);
+          // Injected as attribute.
+          if (isAttribute) {
+            supplemental.attributes[i] = expression;
+            HTML += token;
           }
-          else {
+          // Injected as a tag.
+          else if (isTag && !isString) {
+            supplemental.tags[i] = expression;
+            HTML += token;
+          }
+          // Injected as a child node.
+          else if (expression) {
             let string = HTML[HTML.length - 1] || '';
             let lastSegment = string.split(' ').pop();
             let lastCharacter = lastSegment.trim().slice(-1);
             let isProp = Boolean(lastCharacter.match(isPropEx));
 
-            let wholeHTML = HTML.join('');
-            let lastStart = wholeHTML.lastIndexOf('<');
-            let lastEnd = wholeHTML.lastIndexOf('>');
+            let lastStart = HTML.lastIndexOf('<');
+            let lastEnd = HTML.lastIndexOf('>');
 
             if (lastEnd === -1 && lastStart !== -1) {
               isProp = true;
@@ -176,7 +203,7 @@ export default function({ types: t }) {
 
             const token = TOKEN + i + '__';
 
-            HTML.push(token);
+            HTML += token;
 
             if (isProp) {
               supplemental.attributes[i] = expression;
@@ -188,7 +215,7 @@ export default function({ types: t }) {
         }
       });
 
-      const root = parse(HTML.join(''), null, { strict: false }).childNodes;
+      const root = parse(HTML, null, { strict: false }).childNodes;
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');
 
@@ -247,6 +274,15 @@ export default function({ types: t }) {
 
           const args = [];
 
+          // Replace attribute values.
+          attributes.properties.forEach(property => {
+            const token = property.value.value.match(tokenEx);
+
+            if (token) {
+              property.value = supplemental.attributes[token[1]];
+            }
+          });
+
           // Real elements.
           if (nodeType === 1) {
             // Check childNodes.
@@ -273,7 +309,16 @@ export default function({ types: t }) {
             let value = nodeValue.value || '';
 
             if (value.match(tokenEx)) {
-              args.push(createTree, interpolateValues(value, supplemental, createTree));
+              const values = interpolateValues(value, supplemental, createTree);
+
+              if (values.elements.length === 1) {
+                args.replacement = values.elements[0];
+              }
+              else {
+                args.push(createTree, [t.stringLiteral('#document-fragment'), t.nullLiteral(), values]);
+              }
+
+              isDynamic = true;
             }
             else {
               args.push(createTree, [

@@ -23,7 +23,7 @@
     "test": "NODE_ENV=test mocha --colors test/_setup test test/integration/*.js",
     "test:ci": "npm run test-cov && cat coverage/lcov.info | coveralls",
     "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test test/integration/*.js",
-    "test-watch": "NODE_ENV=test mocha test/_setup test test/integration/*.js -w",
+    "test-watch": "NODE_ENV=test mocha --color test/_setup test test/integration/*.js -w",
     "test-debug": "NODE_ENV=test mocha --inspect --debug-brk test/_setup test test/integration/*.js"
   },
   "devDependencies": {

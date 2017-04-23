@@ -7206,14 +7206,18 @@ exports.default = function (_ref) {
         if (typeof innerTree.rawNodeName === 'string' && isFragment) {
           childNodes.push.apply(childNodes, _toConsumableArray(innerTree.childNodes));
         } else {
-          childNodes.push(t.callExpression(createTree, [innerTree]));
+          if (innerTree.type === 'StringLiteral') {
+            childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.nullLiteral(), innerTree]));
+          } else {
+            childNodes.push(t.callExpression(createTree, [innerTree]));
+          }
         }
       } else if (!doctypeEx.test(value) && hasNonWhitespaceEx.test(value) || i !== 0 && i !== length - 1) {
         childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.stringLiteral(value)]));
       }
     }
 
-    return [childNodes.length === 1 ? childNodes[0] : t.arrayExpression(childNodes)];
+    return t.arrayExpression(childNodes);
   };
 
   // Takes in a dot-notation identifier and breaks it up into a
@@ -7298,49 +7302,70 @@ exports.default = function (_ref) {
         return;
       }
 
-      var HTML = [];
+      // Used to store markup and tokens.
+      var HTML = '';
       var dynamicBits = [];
 
+      // Nearly identical logic to the diffHTML parser, as we have the static
+      // vs dynamic parts pre-separated for us and we simply need to fuse them
+      // together.
       quasis.forEach(function (quasi, i) {
-        HTML.push(quasi.value.raw);
+        HTML += quasi.value.raw;
 
         if (expressions.length) {
           var expression = expressions.shift();
+          var lastSegment = HTML.split(' ').pop();
+          var lastCharacter = lastSegment.trim().slice(-1);
+          var isAttribute = Boolean(HTML.match(isAttributeEx));
+          var isTag = Boolean(lastCharacter.match(isTagEx));
+          var isString = expression.type === 'StringLiteral';
+          var isObject = expression.type === 'ObjectExpression';
+          var isArray = expression.type === 'ArrayExpression';
+          var isIdentifier = expression.type === 'Identifier';
+          var token = TOKEN + i + '__';
 
-          if (expression.type === 'StringLiteral') {
-            HTML.push(expression.value);
-          } else {
-            var string = HTML[HTML.length - 1] || '';
-            var lastSegment = string.split(' ').pop();
-            var lastCharacter = lastSegment.trim().slice(-1);
-            var isProp = Boolean(lastCharacter.match(isPropEx));
-
-            var wholeHTML = HTML.join('');
-            var lastStart = wholeHTML.lastIndexOf('<');
-            var lastEnd = wholeHTML.lastIndexOf('>');
-
-            if (lastEnd === -1 && lastStart !== -1) {
-              isProp = true;
-            } else if (lastEnd > lastStart) {
-              isProp = false;
-            } else if (lastEnd < lastStart) {
-              isProp = true;
-            }
-
-            var token = TOKEN + i + '__';
-
-            HTML.push(token);
-
-            if (isProp) {
-              supplemental.attributes[i] = expression;
-            } else {
-              supplemental.children[i] = expression;
-            }
+          // Injected as attribute.
+          if (isAttribute) {
+            supplemental.attributes[i] = expression;
+            HTML += token;
           }
+          // Injected as a tag.
+          else if (isTag && !isString) {
+              supplemental.tags[i] = expression;
+              HTML += token;
+            }
+            // Injected as a child node.
+            else if (expression) {
+                var string = HTML[HTML.length - 1] || '';
+                var _lastSegment = string.split(' ').pop();
+                var _lastCharacter = _lastSegment.trim().slice(-1);
+                var isProp = Boolean(_lastCharacter.match(isPropEx));
+
+                var lastStart = HTML.lastIndexOf('<');
+                var lastEnd = HTML.lastIndexOf('>');
+
+                if (lastEnd === -1 && lastStart !== -1) {
+                  isProp = true;
+                } else if (lastEnd > lastStart) {
+                  isProp = false;
+                } else if (lastEnd < lastStart) {
+                  isProp = true;
+                }
+
+                var _token = TOKEN + i + '__';
+
+                HTML += _token;
+
+                if (isProp) {
+                  supplemental.attributes[i] = expression;
+                } else {
+                  supplemental.children[i] = expression;
+                }
+              }
         }
       });
 
-      var root = (0, _parser2.default)(HTML.join(''), null, { strict: false }).childNodes;
+      var root = (0, _parser2.default)(HTML, null, { strict: false }).childNodes;
       var strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       var vTree = babylon.parse('(' + strRoot + ')');
 
@@ -7403,6 +7428,15 @@ exports.default = function (_ref) {
 
           var args = [];
 
+          // Replace attribute values.
+          attributes.properties.forEach(function (property) {
+            var token = property.value.value.match(tokenEx);
+
+            if (token) {
+              property.value = supplemental.attributes[token[1]];
+            }
+          });
+
           // Real elements.
           if (nodeType === 1) {
             // Check childNodes.
@@ -7427,7 +7461,15 @@ exports.default = function (_ref) {
               var value = nodeValue.value || '';
 
               if (value.match(tokenEx)) {
-                args.push(createTree, interpolateValues(value, supplemental, createTree));
+                var values = interpolateValues(value, supplemental, createTree);
+
+                if (values.elements.length === 1) {
+                  args.replacement = values.elements[0];
+                } else {
+                  args.push(createTree, [t.stringLiteral('#document-fragment'), t.nullLiteral(), values]);
+                }
+
+                isDynamic = true;
               } else {
                 args.push(createTree, [t.stringLiteral('#text'), t.nullLiteral(), nodeValue]);
               }
@@ -7490,6 +7532,8 @@ var TOKEN = '__DIFFHTML_BABEL__';
 var doctypeEx = /<!.*>/i;
 var tokenEx = /__DIFFHTML_BABEL__([^_]*)__/;
 var isPropEx = /(=|'|")/;
+var isAttributeEx = /(=|"|')[^><]*?$/;
+var isTagEx = /(<|\/)/;
 
 /**
  * Transpiles a matching tagged template literal to createTree calls, the

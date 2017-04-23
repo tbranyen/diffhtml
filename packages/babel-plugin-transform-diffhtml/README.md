@@ -1,21 +1,28 @@
-diffHTML Transform Babel Plugin
+diffHTML Babel Transform Plugin
 -------------------------------
 
 Stable Version: 1.0.0-beta
 
 This plugin transforms tagged template strings in your projects to
-[diffHTML](https://github.com/tbranyen/diffhtml) Virtual Trees. 
+[diffHTML](https://github.com/tbranyen/diffhtml) `createTree` calls. 
+
+More specifically this plugin transforms tagged template strings
+(`html\`<div></div>\``) in your JavaScript files to flat strings that get
+parsed by the diffHTML HTML Parser, from there they are pieced back together
+using the AST into a valid JSX/HyperScript-like `h(tagName, props,
+...childNodes)`. This is both a runtime performance optimization as well as a
+build time since you can exclude more of diffHTML from your build.
 
 **Note!* This plugin has been built for use in Babel 6.x environments, and will
 not work with Babel 5.x ( *deprecated*) or older versions.**
 
-### How to install
+##### Installation
 
 ``` javascript
 npm i --save-dev babel-plugin-transform-diffhtml
 ```
 
-### How to use
+##### How to use
 
 Add the plugin to your `package.json` and update the plugin section in your
 `.babelrc` file. Or if your Babel settings are located inside the
@@ -37,15 +44,17 @@ Example on a `.babelrc` file that will work with diffHTML:
 Write a View `view.js`:
 
 ``` javascript
+const { html, innerHTML } = require('diffhtml/runtime');
+
 // Render a div with dynamic children and onclick
-function renderComponent(time) {
-  diff.innerHTML(document.body, html`
-    <button onclick=${e => renderComponent(new Date())}>Get time</button>
+function renderTime(time) {
+  innerHTML(document.body, html`
+    <button onclick=${e => renderTime(new Date())}>Get time</button>
     <output>${time}</output>
   `);
 }
 
-renderComponent(new Date());
+renderTime(new Date());
 ```
 
 Then compile it:
@@ -54,14 +63,25 @@ Then compile it:
 babel view.js -o view.es5.js
 ```
 
-### Specifying options
+The output will be:
+
+``` js
+const { html, innerHTML } = require('diffhtml/runtime');
+
+// Render a div with dynamic children and onclick
+function renderTime(time) {
+  innerHTML(document.body, [diff.createTree("button", { "onclick": e => renderTime(new Date()) }, [diff.createTree('#text', null, "Get time")]), diff.createTree('#text', null, "\n    "), diff.createTree("output", {}, [diff.createTree(time)])]);
+}
+
+renderTime(new Date());
+```
+
+##### Specifying options
 
 You can override three identifiers that are used within the transform:
 
 - **tagName** - The tagged template function name default is `html`.
-- **createElement** - The create element function default is `diff.createElement`
-- **createAttribute** - The create attribute function default is `diff.createAttribute`
-
+- **createTree** - The create tree function default is `diff.createTree`
 
 Specifying the options in your `.babelrc`:
 
@@ -69,9 +89,8 @@ Specifying the options in your `.babelrc`:
 {
   plugins: [
     ["transform-tagged-diffhtml", {
-      "tagName": "diff.html",
-      "createElement": "createEl",
-      "createAttribute": "createAttr"
+      "tagName": "html",
+      "createTree": "createTree",
     }]
   ]
 }
@@ -80,12 +99,25 @@ Specifying the options in your `.babelrc`:
 How your source would look reflecting the options:
 
 ``` javascript
-import {
-  createElement as createEl,
-  createAttribute as createAttr,
-} from 'diffhtml';
+import { innerHTML, html, createTree } from 'diffhtml';
 
-diff.html`
-  <div></div>
-`;
+function render() {
+  return html`
+    <div>Hello World</div>
+  `;
+}
+
+innerHTML(document.body, render());
+```
+
+The output would look like:
+
+``` js
+const { innerHTML, html, createTree } = require('diffhtml/runtime');
+
+function render() {
+  return createTree("div", null, "Hello world");
+}
+
+innerHTML(document.body, render());
 ```

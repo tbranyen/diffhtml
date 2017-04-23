@@ -1,0 +1,16 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "babel tagged-template-input.js -o create-tree-output.js"
+  },
+  "keywords": [],
+  "author": "Tim Branyen (@tbranyen)",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-plugin-transform-diffhtml": "file:../",
+    "babel-cli": "^6.24.1"
+  }
+}
