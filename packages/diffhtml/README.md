@@ -144,9 +144,11 @@ innerHTML(document.body, '<strong>Hello world</strong>');
 
 [Back to quick jump](#quick-jump)
 
-Multi-line strings can be achieved using the ES6 language feature tagged
-template strings. These are only useful if you interpolate primative JavaScript
-types.
+Multi-line strings can be achieved using the ES6 language feature template
+literal strings. These utilize the back-tick and may be spread over multiple
+lines. These are only useful if you interpolate primative JavaScript types.
+diffHTML is smart enough to recongize the following example as a single
+`<strong>` instead of parsing as two text nodes and a span:
 
 ``` js
 import { innerHTML } from 'diffhtml';
