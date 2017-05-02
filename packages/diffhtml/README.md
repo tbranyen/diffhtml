@@ -146,8 +146,8 @@ innerHTML(document.body, '<strong>Hello world</strong>');
 
 Multi-line strings can be achieved using the ES6 language feature template
 literal strings. These utilize the back-tick and may be spread over multiple
-lines. These are only useful if you interpolate primative JavaScript types.
-diffHTML is smart enough to recongize the following example as a single
+lines. These are only useful if you interpolate primitive JavaScript types.
+diffHTML is smart enough to recognize the following example as a single
 `<strong>` instead of parsing as two text nodes and a span:
 
 ``` js
@@ -253,7 +253,7 @@ follow occur after something triggers an `innerHTML` or `outerHTML` call.
 
 #### Schedule
 
-The first task that runs is scheduling or defering the transaction that was
+The first task that runs is scheduling or deferring the transaction that was
 created by the `innerHTML` or `outerHTML` call. diffHTML is a shared namespace
 and will only allow one render at a time.  If a render is happening during this
 time, then the transaction will be deferred by scheduling it for later
