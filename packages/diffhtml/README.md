@@ -36,7 +36,7 @@ how to modify the page with a minimal amount of operations.
 
 The latest built version (but not necessarily the latest stable) is available
 for quick download from the [master
-branch](https://raw.githubusercontent.com/tbranyen/diffhtml/master/dist/diffhtml.js).
+branch](https://raw.githubusercontent.com/tbranyen/diffhtml/master/packages/diffhtml/dist/diffhtml.js).
 Use this to test the bleeding edge.
 
 Or you can use npm:
@@ -45,35 +45,70 @@ Or you can use npm:
 npm install diffhtml --save
 ```
 
-The module can be required via Node or browser environments. It is exported as
-a global named `diff` unless loaded as a module, in which case you determine
-the name.
+or using yarn:
 
-In the browser:
+``` sh
+yarn add diffhtml
+```
+
+The module can be included natively in Node or browser environments. It is
+exported as a global named `diff` unless loaded as a module, in which case you
+determine the name diffHTML will be assigned to.
+
+### Include in HTML (browser)
+
+[Back to quick jump...](#quick-jump)
+
+The path of least resistance to trying out diffHTML. Simply drop a script
+into your markup and `diff` will be available for your code to start utilizing
+its benefits.
 
 ``` html
 <script src="node_modules/diffhtml/dist/diffhtml.js"></script>
 
-<script>diff.innerHTML(document.body, 'Hello world!');</script>
+<script>
+  // Use a block to keep variables out of the global scope.
+  {
+    const { innerHTML } = diff;
+
+    innerHTML(document.body, '<span>Hello world!</span>');
+  }
+</script>
 ```
 
-With CommonJS you can import the entire module:
+### Require with CommonJS (Node)
+
+[Back to quick jump...](#quick-jump)
+
+Node is built using the CommonJS pattern as this predates ES Modules by years,
+if you are consuming diffHTML inside Node, it is recommended to use this method
+of importing.
 
 ``` javascript
-const diff = require('diffhtml');
+const { innerHTML } = require('diffhtml');
 
-diff.innerHTML(document.body, 'Hello world!');
+innerHTML(document.body, '<span>Hello world!</span>');
 ```
 
 You can import only what you need if you're using ES Modules:
 
+
+### Import using ES Modules syntax (advanced usage)
+
+[Back to quick jump...](#quick-jump)
+
+Useful for those who are building applications using the next-generation syntax
+for defining modules. diffHTML is fully compatible with ES Modules and will
+continue to improve supporting techniques benefiting from this format, such as
+tree shaking.
+
 ``` javascript
 import { innerHTML } from 'diffhtml';
 
-innerHTML(document.body, 'Hello world!');
+innerHTML(document.body, '<span>Hello world!</span>');
 ```
 
-#### Module format locations
+### Module format locations
 
 [Back to quick jump...](#quick-jump)
 
