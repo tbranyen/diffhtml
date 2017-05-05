@@ -1,5 +1,7 @@
-import { createTree } from './tree';
-import { parse, escape, decodeEntities } from './util';
+import createTree from './tree/create';
+import parse from './util/parser';
+import escape from './util/escape';
+import decodeEntities from './util/decode-entities';
 
 const isAttributeEx = /(=|"|')[^><]*?$/;
 const isTagEx = /(<|\/)/;

@@ -1,7 +1,7 @@
 // Adapted implementation from:
 // https://github.com/ashi009/node-fast-html-parser
 
-import { createTree } from '../tree';
+import createTree from '../tree/create';
 import Pool from './pool';
 
 const hasNonWhitespaceEx = /\S/;
