@@ -443,6 +443,55 @@ function shouldUpdate(transaction) {
   measure('should update');
 }
 
+function reconcileTrees(transaction) {
+  const { state, domNode, markup, options } = transaction;
+  const { previousMarkup, measure } = state;
+  const { inner } = options;
+
+  measure('reconcile trees');
+
+  // We rebuild the tree whenever the DOM Node changes, including the first
+  // time we patch a DOM Node.
+  if (previousMarkup !== domNode.outerHTML || !state.oldTree) {
+    if (state.oldTree) {
+      unprotectVTree(state.oldTree);
+    }
+
+    state.oldTree = createTree(domNode);
+    NodeCache.set(state.oldTree, domNode);
+    protectVTree(state.oldTree);
+  }
+
+  // Associate the old tree with this brand new transaction.
+  transaction.oldTree = state.oldTree;
+
+  // This is HTML Markup, so we need to parse it.
+  if (typeof markup === 'string') {
+    const { childNodes } = parse(markup, null, options);
+
+    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
+    // with outerHTML, we can only support diffing against a single element,
+    // so pick the first one, if there are none, just pass the entire root.
+    transaction.newTree = createTree(inner ? childNodes : childNodes[0] || childNodes);
+  }
+  // Otherwise the value passed is a Virtual Tree or an Array.
+  else {
+      const { rawNodeName, nodeName, attributes } = transaction.oldTree;
+      const newTree = createTree(markup);
+      const isFragment = newTree.nodeType === 11;
+      const isUnknown = typeof newTree.rawNodeName !== 'string';
+
+      transaction.newTree = newTree;
+
+      if (inner) {
+        const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
+        transaction.newTree = createTree(nodeName, attributes, children);
+      }
+    }
+
+  measure('reconcile trees');
+}
+
 const { SyncTreeHookCache } = MiddlewareCache;
 const empty = {};
 const keyNames = ['old', 'new'];
@@ -715,55 +764,6 @@ function syncTree(oldTree, newTree, patches) {
   return patches;
 }
 
-function reconcileTrees(transaction) {
-  const { state, domNode, markup, options } = transaction;
-  const { previousMarkup, measure } = state;
-  const { inner } = options;
-
-  measure('reconcile trees');
-
-  // We rebuild the tree whenever the DOM Node changes, including the first
-  // time we patch a DOM Node.
-  if (previousMarkup !== domNode.outerHTML || !state.oldTree) {
-    if (state.oldTree) {
-      unprotectVTree(state.oldTree);
-    }
-
-    state.oldTree = createTree(domNode);
-    NodeCache.set(state.oldTree, domNode);
-    protectVTree(state.oldTree);
-  }
-
-  // Associate the old tree with this brand new transaction.
-  transaction.oldTree = state.oldTree;
-
-  // This is HTML Markup, so we need to parse it.
-  if (typeof markup === 'string') {
-    const { childNodes } = parse(markup, null, options);
-
-    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
-    // with outerHTML, we can only support diffing against a single element,
-    // so pick the first one, if there are none, just pass the entire root.
-    transaction.newTree = createTree(inner ? childNodes : childNodes[0] || childNodes);
-  }
-  // Otherwise the value passed is a Virtual Tree or an Array.
-  else {
-      const { rawNodeName, nodeName, attributes } = transaction.oldTree;
-      const newTree = createTree(markup);
-      const isFragment = newTree.nodeType === 11;
-      const isUnknown = typeof newTree.rawNodeName !== 'string';
-
-      transaction.newTree = newTree;
-
-      if (inner) {
-        const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
-        transaction.newTree = createTree(nodeName, attributes, children);
-      }
-    }
-
-  measure('reconcile trees');
-}
-
 const { CreateNodeHookCache } = MiddlewareCache;
 
 /**
@@ -830,6 +830,37 @@ function createNode(vTree, ownerDocument = document) {
   }
 
   return domNode;
+}
+
+function syncTrees(transaction) {
+  const { state: { measure }, oldTree, newTree, domNode } = transaction;
+
+  measure('sync trees');
+
+  // Do a global replace of the element, unable to do this at a lower level.
+  // Ignore this for document fragments, they don't appear in the DOM and we
+  // treat them as transparent containers.
+  if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
+    transaction.patches = {
+      TREE_OPS: [{ REPLACE_CHILD: [newTree, oldTree] }],
+      SET_ATTRIBUTE: [],
+      REMOVE_ATTRIBUTE: [],
+      NODE_VALUE: []
+    };
+
+    unprotectVTree(transaction.oldTree);
+    transaction.oldTree = transaction.state.oldTree = newTree;
+    protectVTree(transaction.oldTree);
+
+    // Update the StateCache since we are changing the top level element.
+    StateCache.set(createNode(newTree), transaction.state);
+  }
+  // Otherwise only diff the children.
+  else {
+      transaction.patches = syncTree(oldTree, newTree);
+    }
+
+  measure('sync trees');
 }
 
 // Available transition states.
@@ -1110,37 +1141,6 @@ function patchNode$$1(patches) {
   }
 
   return promises;
-}
-
-function syncTrees(transaction) {
-  const { state: { measure }, oldTree, newTree, domNode } = transaction;
-
-  measure('sync trees');
-
-  // Do a global replace of the element, unable to do this at a lower level.
-  // Ignore this for document fragments, they don't appear in the DOM and we
-  // treat them as transparent containers.
-  if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
-    transaction.patches = {
-      TREE_OPS: [{ REPLACE_CHILD: [newTree, oldTree] }],
-      SET_ATTRIBUTE: [],
-      REMOVE_ATTRIBUTE: [],
-      NODE_VALUE: []
-    };
-
-    unprotectVTree(transaction.oldTree);
-    transaction.oldTree = transaction.state.oldTree = newTree;
-    protectVTree(transaction.oldTree);
-
-    // Update the StateCache since we are changing the top level element.
-    StateCache.set(createNode(newTree), transaction.state);
-  }
-  // Otherwise only diff the children.
-  else {
-      transaction.patches = syncTree(oldTree, newTree);
-    }
-
-  measure('sync trees');
 }
 
 /**

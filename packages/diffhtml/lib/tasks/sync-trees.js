@@ -1,6 +1,7 @@
-import { syncTree } from '../tree';
-import { createNode } from '../node';
-import { StateCache, protectVTree, unprotectVTree } from '../util';
+import syncTree from '../tree/sync';
+import createNode from '../node/create';
+import { StateCache } from '../util/caches';
+import { protectVTree, unprotectVTree } from '../util/memory';
 
 export default function syncTrees(transaction) {
   const { state: { measure }, oldTree, newTree, domNode } = transaction;

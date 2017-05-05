@@ -1,5 +1,8 @@
-import { NodeCache, Pool, protectVTree, unprotectVTree, parse } from '../util';
-import { createTree } from '../tree';
+import { NodeCache } from '../util/caches';
+import Pool from '../util/pool';
+import { protectVTree, unprotectVTree } from '../util/memory';
+import parse from '../util/parser';
+import createTree from '../tree/create';
 
 export default function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
