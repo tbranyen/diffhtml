@@ -1,4 +1,6 @@
-import { NodeCache, MiddlewareCache, elements, namespace } from '../util';
+import { NodeCache, MiddlewareCache } from '../util/caches';
+import { elements, namespace } from '../util/svg';
+import process from '../util/process';
 
 const { CreateNodeHookCache } = MiddlewareCache;
 

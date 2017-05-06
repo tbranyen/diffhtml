@@ -3,19 +3,86 @@ import release from './release';
 import Transaction from './transaction';
 import { addTransitionState, removeTransitionState } from './transition';
 import use from './use';
-import html from './html';
-import * as internals from './util';
-import * as tasks from './tasks';
 
-const VERSION = `${__VERSION__}-runtime`;
+import {
+  StateCache,
+  TreePointerCache,
+  NodeCache,
+  TransitionCache,
+  MiddlewareCache,
+} from './util/caches';
+import { protectVTree, unprotectVTree, cleanMemory } from './util/memory';
+import { namespace, elements } from './util/svg';
+import decodeEntities from './util/decode-entities';
+import escape from './util/escape';
+import makeMeasure from './util/performance';
+import Pool from './util/pool';
+import process from './util/process';
+
+import schedule from './tasks/schedule';
+import shouldUpdate from './tasks/should-update';
+import syncTrees from './tasks/sync-trees';
+import patchNode from './tasks/patch-node';
+import endAsPromise from './tasks/end-as-promise';
+
+function reconcileTrees(transaction) {
+  const { state, domNode, markup, options } = transaction;
+  const { previousMarkup, measure } = state;
+  const { inner } = options;
+
+  measure('reconcile trees');
+
+  // We rebuild the tree whenever the DOM Node changes, including the first
+  // time we patch a DOM Node.
+  if (previousMarkup !== domNode.outerHTML || !state.oldTree) {
+    if (state.oldTree) {
+      unprotectVTree(state.oldTree);
+    }
+
+    state.oldTree = createTree(domNode);
+    NodeCache.set(state.oldTree, domNode);
+    protectVTree(state.oldTree);
+  }
+
+  // Associate the old tree with this brand new transaction.
+  transaction.oldTree = state.oldTree;
+
+  const { rawNodeName, nodeName, attributes } = transaction.oldTree;
+  const newTree = createTree(markup);
+  const isFragment = newTree.nodeType === 11;
+  const isUnknown = typeof newTree.rawNodeName !== 'string';
+
+  transaction.newTree = newTree;
+
+  if (inner) {
+    const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
+    transaction.newTree = createTree(nodeName, attributes, children);
+  }
+
+  measure('reconcile trees');
+}
+
+const internals = {
+  StateCache, TreePointerCache, NodeCache, TransitionCache, MiddlewareCache,
+  protectVTree, unprotectVTree, cleanMemory, namespace, elements,
+  decodeEntities, escape, makeMeasure, Pool,
+};
+
+const tasks = [
+  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
+];
+
+const VERSION = `1.0.0-beta-runtime`;
 
 function outerHTML(element, markup='', options={}) {
   options.inner = false;
+  options.tasks = options.tasks || tasks;
   return Transaction.create(element, markup, options).start();
 }
 
 function innerHTML(element, markup='', options={}) {
   options.inner = true;
+  options.tasks = options.tasks || tasks;
   return Transaction.create(element, markup, options).start();
 }
 
@@ -29,7 +96,7 @@ const diff = {
   use,
   outerHTML,
   innerHTML,
-  html,
+  html: createTree,
   internals,
   tasks,
 };
@@ -46,7 +113,7 @@ if (typeof devTools === 'function') {
 }
 
 export {
-  VERSION as __VERSION__,
+  VERSION,
   addTransitionState,
   removeTransitionState,
   release,
@@ -54,7 +121,7 @@ export {
   use,
   outerHTML,
   innerHTML,
-  html,
+  createTree as html,
 };
 
 export default diff;

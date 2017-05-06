@@ -164,14 +164,22 @@ import {
  */
 import use from './use';
 
-import * as internals from './util';
-import * as tasks from './tasks';
+import schedule from './tasks/schedule';
+import shouldUpdate from './tasks/should-update';
+import reconcileTrees from './tasks/reconcile-trees';
+import syncTrees from './tasks/sync-trees';
+import patchNode from './tasks/patch-node';
+import endAsPromise from './tasks/end-as-promise';
+
+const tasks = [
+  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise
+];
 
 /**
- * Export the version based on the package.json version field value, is inlined
- * with babel.
+ * Export the version based on the package.json version field value, no longer
+ * inlined with babel, due to ES Modules support.
  */
-const VERSION = __VERSION__;
+const VERSION = '1.0.0-beta';
 
 /**
  * Used to diff the outerHTML contents of the passed element with the markup
@@ -193,6 +201,7 @@ const VERSION = __VERSION__;
  */
 function outerHTML(element, markup='', options={}) {
   options.inner = false;
+  options.tasks = options.tasks || tasks;
   return Transaction.create(element, markup, options).start();
 }
 
@@ -216,16 +225,13 @@ function outerHTML(element, markup='', options={}) {
  */
 function innerHTML(element, markup='', options={}) {
   options.inner = true;
-  return Transaction.create(element, markup, options).start();
-}
-
-function element(element, markup='', options={}) {
+  options.tasks = options.tasks || tasks;
   return Transaction.create(element, markup, options).start();
 }
 
 // Public API. Passed to subscribed middleware.
 const diff = {
-  VERSION: __VERSION__,
+  VERSION,
   addTransitionState,
   removeTransitionState,
   release,
@@ -234,7 +240,6 @@ const diff = {
   outerHTML,
   innerHTML,
   html,
-  internals,
   tasks,
 };
 
@@ -243,8 +248,14 @@ if (!use.diff) {
   Object.defineProperty(use, 'diff', { value: diff, enumerable: false });
 }
 
+// Automatically hook up to DevTools if they are present.
+if (typeof devTools === 'function') {
+  use(devTools());
+  console.info('diffHTML DevTools Found and Activated...');
+}
+
 export {
-  VERSION as __VERSION__,
+  VERSION,
   addTransitionState,
   removeTransitionState,
   release,
@@ -253,14 +264,7 @@ export {
   use,
   outerHTML,
   innerHTML,
-  element,
   html,
 };
-
-// Automatically hook up to DevTools if they are present.
-if (typeof devTools === 'function') {
-  use(devTools());
-  console.info('diffHTML DevTools Found and Activated...');
-}
 
 export default diff;

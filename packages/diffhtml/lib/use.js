@@ -1,5 +1,5 @@
-import html from './html';
-import { MiddlewareCache } from './util';
+import { MiddlewareCache } from './util/caches';
+import process from './util/process';
 
 const {
   CreateTreeHookCache,

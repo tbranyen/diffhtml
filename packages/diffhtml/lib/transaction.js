@@ -1,13 +1,7 @@
-import { MiddlewareCache, StateCache, cleanMemory, makeMeasure } from './util';
-import * as internals from './util';
-import {
-  schedule,
-  shouldUpdate,
-  reconcileTrees,
-  syncTrees,
-  patchNode,
-  endAsPromise,
-} from './tasks';
+import { StateCache, MiddlewareCache } from './util/caches';
+import { cleanMemory } from './util/memory';
+import makeMeasure from './util/performance';
+import process from './util/process';
 
 export default class Transaction {
   static create(domNode, markup, options) {
@@ -105,7 +99,6 @@ export default class Transaction {
 
     this.state = StateCache.get(domNode) || {
       measure: makeMeasure(domNode, markup),
-      internals,
     };
 
     this.tasks = options.tasks || [

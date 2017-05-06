@@ -1,4 +1,5 @@
-import { TransitionCache } from './util';
+import { TransitionCache } from './util/caches';
+import process from './util/process';
 
 // Available transition states.
 const stateNames = [

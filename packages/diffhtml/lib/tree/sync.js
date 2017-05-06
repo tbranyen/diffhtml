@@ -1,4 +1,5 @@
 import { TreePointerCache, MiddlewareCache } from '../util/caches';
+import process from '../util/process';
 
 const { SyncTreeHookCache } = MiddlewareCache;
 const { assign, keys } = Object;
@@ -69,6 +70,9 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`
   SyncTreeHookCache.forEach((fn, retVal) => {
     if (retVal = fn(oldTree, newTree, null)) {
       newTree = retVal;
+
+      // Find attributes.
+      syncTree(null, retVal, patches);
     }
 
     for (let i = 0; i < newTree.childNodes.length; i++) {
@@ -150,17 +154,10 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`
     }
   }
 
-  // If there was no `oldTree` provided, we have sync'd all the attributes and
-  // the node value of the `newTree` so we can early abort and not worry about
-  // tree operations.
-  if (isEmpty) {
-    return patches;
-  }
-
   // If we somehow end up comparing two totally different kinds of elements,
   // we'll want to raise an error to let the user know something is wrong.
   if (process.env.NODE_ENV !== 'production') {
-    if (oldNodeName !== newNodeName && !isFragment) {
+    if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
       throw new Error(
         `Sync failure, cannot compare ${newNodeName} with ${oldNodeName}`
       );
@@ -246,13 +243,17 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`
   else {
     // Do a single pass over the new child nodes.
     for (let i = 0; i < newChildNodes.length; i++) {
-      const oldChildNode = oldChildNodes[i];
+      const oldChildNode = oldChildNodes && oldChildNodes[i];
       const newChildNode = newChildNodes[i];
 
       // If there is no old element to compare to, this is a simple addition.
       if (!oldChildNode) {
         INSERT_BEFORE.push(oldTree, newChildNode, null);
-        oldChildNodes.push(newChildNode);
+
+        if (oldChildNodes) {
+          oldChildNodes.push(newChildNode);
+        }
+
         syncTree(null, newChildNode, patches);
         continue;
       }
@@ -268,6 +269,13 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`
 
       syncTree(oldChildNode, newChildNode, patches);
     }
+  }
+
+  // If there was no `oldTree` provided, we have sync'd all the attributes and
+  // the node value of the `newTree` so we can early abort and not worry about
+  // tree operations.
+  if (isEmpty) {
+    return patches;
   }
 
   // We've reconciled new changes, so we can remove any old nodes and adjust
