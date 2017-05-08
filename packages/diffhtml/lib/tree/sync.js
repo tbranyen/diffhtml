@@ -1,4 +1,4 @@
-import { TreePointerCache, MiddlewareCache } from '../util/caches';
+import { MiddlewareCache } from '../util/caches';
 import process from '../util/process';
 
 const { SyncTreeHookCache } = MiddlewareCache;
@@ -9,11 +9,6 @@ const keyNames = ['old', 'new'];
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
 export default function syncTree(oldTree, newTree, patches) {
-  // Allow a pointer to be set to a different render tree.
-  if (TreePointerCache.has(oldTree)) {
-    oldTree = TreePointerCache.get(oldTree);
-  }
-
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 

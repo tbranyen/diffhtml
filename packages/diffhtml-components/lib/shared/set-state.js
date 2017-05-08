@@ -9,9 +9,13 @@ export default function setState(newState) {
   if (!Debounce.has(this) && this.shouldComponentUpdate()) {
     rerenderComponent(this);
 
-    Debounce.set(this, setTimeout(() => {
-      Debounce.delete(this);
-      rerenderComponent(this);
-    }));
+    // To be continued...
+    //Debounce.set(this, setTimeout(() => {
+    //  Debounce.delete(this);
+
+    //  if (this.shouldComponentUpdate()) {
+    //    rerenderComponent(this);
+    //  }
+    //}));
   }
 }

@@ -1,11 +1,41 @@
-import { use, innerHTML, createTree } from '../../../diffhtml';
+import { use, innerHTML, outerHTML, createTree } from '../../../diffhtml';
 import { NodeCache } from '../../../diffhtml/lib/util/caches';
+import process from '../../../diffhtml/lib/util/process';
 
-const ComponentCache = new Map();
+const ComponentTreeCache = new WeakMap();
+const InstanceCache = new WeakMap();
 const Debounce = new WeakMap();
 const { assign } = Object;
 
-function reactLikeComponentTask() {}
+function reactLikeComponentTask(transaction) {
+  return transaction.onceEnded(() => {
+    const { patches } = transaction;
+
+    if (patches.TREE_OPS && patches.TREE_OPS.length) {
+      patches.TREE_OPS.forEach(({ INSERT_BEFORE, REPLACE_CHILD }) => {
+        if (INSERT_BEFORE) {
+          for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
+            const newTree = INSERT_BEFORE[i + 1];
+
+            if (InstanceCache.has(newTree)) {
+              InstanceCache.get(newTree).componentDidMount();
+            }
+          }
+        }
+
+        if (REPLACE_CHILD) {
+          for (let i = 0; i < REPLACE_CHILD.length; i += 3) {
+            const newTree = REPLACE_CHILD[i + 1];
+
+            if (InstanceCache.has(newTree)) {
+              InstanceCache.get(newTree).componentDidMount();
+            }
+          }
+        }
+      });
+    }
+  });
+}
 
 reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
   // Stateful components have a very limited API, designed to be fully
@@ -25,12 +55,10 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
       const canNew = newCtor.prototype;
 
       // If the component has already been initialized, we can reuse it.
-      const oldInstance = oldCtor === newCtor && ComponentCache.get(oldChild);
+      const oldInstance = oldCtor === newCtor && InstanceCache.get(oldChild);
       const newInstance = !oldInstance && canNew && new newCtor(props);
       const instance = oldInstance || newInstance;
-      const renderTree = createTree(
-        instance ? instance.render(props) : newCtor(props)
-      );
+      const renderTree = createTree(instance ? instance.render(props) : newCtor(props));
 
       if (!renderTree) {
         continue;
@@ -45,8 +73,8 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
 
       // Cache this new current tree.
       if (instance) {
-        ComponentCache.set(renderTree, instance);
-        ComponentCache.set(instance, renderTree);
+        ComponentTreeCache.set(instance, renderTree);
+        InstanceCache.set(renderTree, instance);
       }
 
       // Recursively update trees.
@@ -63,8 +91,11 @@ const createState = (instance, state) => assign({}, instance.state, state);
 export default class Component {
   // Facilities a component re-render.
   static rerenderComponent(instance) {
-    const domNode = NodeCache.get(ComponentCache.get(instance));
-    innerHTML(domNode, instance.render());
+    const vTree = ComponentTreeCache.get(instance);
+    const domNode = NodeCache.get(vTree);
+    const renderTree = instance.render();
+
+    outerHTML(domNode, renderTree);
     instance.componentDidUpdate();
   }
 
@@ -83,7 +114,7 @@ export default class Component {
 
     if (process.env.NODE_ENV !== 'production') {
       Object.keys(propTypes).forEach(prop => {
-        const err = propTypes[prop](this.props, prop, constructor.name, 'prop');
+        const err = propTypes[prop](this.props, prop, this.constructor.name, 'prop');
         if (err) { throw err; }
       });
     }
