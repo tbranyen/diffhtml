@@ -1,6 +1,6 @@
 import { equal, deepEqual } from 'assert';
 import html from '../lib/html';
-import { createTree } from '../lib/tree';
+import createTree from '../lib/tree/create';
 import validateMemory from './util/validateMemory';
 
 describe('HTML (Tagged template)', function() {

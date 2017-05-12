@@ -1,20 +1,15 @@
 import { changeURL } from 'jsdom';
 import { ok, equal, deepEqual, throws, doesNotThrow } from 'assert';
 import { spy } from 'sinon';
-import { createTree } from '../lib/tree';
-import {
-  NodeCache,
-  decodeEntities,
-  escape,
-  parse,
-  namespace,
-  elements,
-  protectVTree,
-  unprotectVTree,
-  cleanMemory,
-  makeMeasure,
-  Pool,
-} from '../lib/util';
+import createTree from '../lib/tree/create';
+import { NodeCache } from '../lib/util/caches';
+import decodeEntities from '../lib/util/decode-entities';
+import escape from '../lib/util/escape';
+import parse from '../lib/util/parser';
+import { namespace, elements } from '../lib/util/svg';
+import { protectVTree, unprotectVTree, cleanMemory } from '../lib/util/memory';
+import makeMeasure from '../lib/util/make-measure';
+import Pool from '../lib/util/pool';
 import validateMemory from './util/validateMemory';
 
 describe('Util', function() {

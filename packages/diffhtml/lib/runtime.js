@@ -4,18 +4,12 @@ import Transaction from './transaction';
 import { addTransitionState, removeTransitionState } from './transition';
 import use from './use';
 
-import {
-  StateCache,
-  TreePointerCache,
-  NodeCache,
-  TransitionCache,
-  MiddlewareCache,
-} from './util/caches';
+import { StateCache, NodeCache, TransitionCache, MiddlewareCache } from './util/caches';
 import { protectVTree, unprotectVTree, cleanMemory } from './util/memory';
 import { namespace, elements } from './util/svg';
 import decodeEntities from './util/decode-entities';
 import escape from './util/escape';
-import makeMeasure from './util/performance';
+import makeMeasure from './util/make-measure';
 import Pool from './util/pool';
 import process from './util/process';
 
@@ -63,7 +57,7 @@ function reconcileTrees(transaction) {
 }
 
 const internals = {
-  StateCache, TreePointerCache, NodeCache, TransitionCache, MiddlewareCache,
+  StateCache, NodeCache, TransitionCache, MiddlewareCache,
   protectVTree, unprotectVTree, cleanMemory, namespace, elements,
   decodeEntities, escape, makeMeasure, Pool,
 };

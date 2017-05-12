@@ -1,5 +1,7 @@
 import assert from 'assert';
-import { NodeCache, MiddlewareCache, Pool, cleanMemory } from '../../lib/util';
+import { NodeCache, MiddlewareCache } from '../../lib/util/caches';
+import Pool from '../../lib/util/pool';
+import { cleanMemory } from '../../lib/util/memory';
 
 const { memory } = Pool;
 

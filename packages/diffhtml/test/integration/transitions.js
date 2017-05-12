@@ -522,7 +522,7 @@ describe('Integration: Transitions', function() {
       });
     });
 
-    it('will not hold off rendering until textChanged (replaced) promise resolves', () => {
+    it('will hold off rendering until textChanged (replaced) promise resolves', () => {
       const promise = Promise.resolve();
       const { use, innerHTML, addTransitionState } = diff;
       const { fixture } = this;
@@ -530,12 +530,13 @@ describe('Integration: Transitions', function() {
       addTransitionState('textChanged', () => promise);
 
       innerHTML(fixture, '<div><p>test</p></div>');
-      innerHTML(fixture, '<div><p>test2</p></div>');
 
-      equal(fixture.querySelector('p').textContent, 'test2');
+      return innerHTML(fixture, '<div><p>test2</p></div>').then(() => {
+        equal(fixture.querySelector('p').textContent, 'test2')
 
-      return innerHTML(fixture, '<div><p>test3</p></div>').then(() => {
-        equal(fixture.querySelector('p').textContent, 'test3');
+        return innerHTML(fixture, '<div><p>test3</p></div>').then(() => {
+          equal(fixture.querySelector('p').textContent, 'test3');
+        });
       });
     });
   });

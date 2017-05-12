@@ -88,7 +88,9 @@ describe('Integration: Basics', function() {
       diff.release(fragment);
     });
 
-    it('can diff a fragment into an element', function() {
+    // Temporarily removed this function, saving this test until a suitable
+    // replacement is created. This test will be migrated then.
+    it.skip('can diff a fragment into an element', function() {
       var fragment = document.createDocumentFragment();
 
       diff.innerHTML(fragment, `

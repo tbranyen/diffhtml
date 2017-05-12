@@ -41,7 +41,6 @@ export function removeTransitionState(stateName, callback) {
   }
   // Remove a specific transition callback.
   else if (stateName && callback) {
-
     TransitionCache.get(stateName).delete(callback);
   }
   // Remove all callbacks.

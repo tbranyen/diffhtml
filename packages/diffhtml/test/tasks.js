@@ -2,7 +2,8 @@ import { equal, deepEqual, throws } from 'assert';
 import html from '../lib/html';
 import release from '../lib/release';
 import Transaction from '../lib/transaction';
-import { reconcileTrees, syncTrees } from '../lib/tasks';
+import reconcileTrees from '../lib/tasks/reconcile-trees';
+import syncTrees from '../lib/tasks/sync-trees';
 import validateMemory from './util/validateMemory';
 
 describe('Tasks', function() {

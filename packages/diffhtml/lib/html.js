@@ -32,7 +32,7 @@ export default function handleTaggedTemplate(strings, ...values) {
   }
 
   // Used to store markup and tokens.
-  let retVal = '';
+  let HTML = '';
 
   // We filter the supplemental values by where they are used. Values are
   // either, children, or tags (for components).
@@ -49,7 +49,7 @@ export default function handleTaggedTemplate(strings, ...values) {
   // that the parser then uses to assemble the correct tree.
   strings.forEach((string, i) => {
     // Always add the string, we need it to parse the markup later.
-    retVal += string;
+    HTML += string;
 
     // If there are values, figure out where in the markup they were injected.
     // This is most likely incomplete code, and will need to be improved in the
@@ -58,7 +58,7 @@ export default function handleTaggedTemplate(strings, ...values) {
       const value = nextValue(values);
       const lastSegment = string.split(' ').pop();
       const lastCharacter = lastSegment.trim().slice(-1);
-      const isAttribute = Boolean(retVal.match(isAttributeEx));
+      const isAttribute = Boolean(HTML.match(isAttributeEx));
       const isTag = Boolean(lastCharacter.match(isTagEx));
       const isString = typeof value === 'string';
       const isObject = typeof value === 'object';
@@ -68,28 +68,28 @@ export default function handleTaggedTemplate(strings, ...values) {
       // Injected as attribute.
       if (isAttribute) {
         supplemental.attributes[i] = value;
-        retVal += token;
+        HTML += token;
       }
       // Injected as a tag.
       else if (isTag && !isString) {
         supplemental.tags[i] = value;
-        retVal += token;
+        HTML += token;
       }
       // Injected as a child node.
       else if (isArray || isObject) {
         supplemental.children[i] = createTree(value);
-        retVal += token;
+        HTML += token;
       }
       // Injected as something else in the markup or undefined, ignore
       // obviously falsy values used with boolean operators.
       else if (value) {
-        retVal += value;
+        HTML += value;
       }
     }
   });
 
   // Parse the instrumented markup to get the Virtual Tree.
-  const childNodes = parse(retVal, supplemental).childNodes;
+  const childNodes = parse(HTML, supplemental).childNodes;
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
