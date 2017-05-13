@@ -6,3 +6,4 @@ export { default as escape } from './escape';
 export { default as makeMeasure } from './performance';
 export { default as Pool } from './pool';
 export { default as parse } from './parser';
+export { default as tryCatcher } from './try-catcher';
