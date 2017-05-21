@@ -4,13 +4,16 @@
   "main": "dist/components.js",
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-plugin-transform-es2015-classes": "^6.23.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-register": "^6.23.0",
     "diffhtml": "^1.0.0-beta",
+    "document-register-element": "^1.4.1",
     "jsdom": "^9.10.0",
     "mocha": "^3.2.0",
+    "prop-types": "^15.5.10",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^7.0.0",
@@ -18,15 +21,17 @@
     "rollup-watch": "^3.2.2"
   },
   "scripts": {
-    "build": "rollup -c rollup.config.js",
+    "build": "NODE_ENV=build rollup -c rollup.config.js",
+    "build-test": "browserify -t babelify test.js -o test-out.js",
     "watch": "rollup -c rollup.config.js -w",
-    "test": "mocha test/_setup test",
+    "test": "NODE_ENV=test mocha test/_setup test",
+    "test-watch": "NODE_ENV=test mocha -w test/_setup test",
     "test:ci": "npm run test"
-  },
-  "dependencies": {
-    "proptypes": "^0.14.4"
   },
   "peerDependencies": {
     "diffhtml": ">=1.0.0-beta"
+  },
+  "optionalDependencies": {
+    "prop-types": "^15.5.10"
   }
 }

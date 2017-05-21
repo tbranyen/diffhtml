@@ -1,0 +1,21 @@
+{
+  "name": "diffhtml-shared-internals",
+  "version": "1.0.0-beta",
+  "description": "Access the diffHTML core internals",
+  "main": "dist/shared-internals",
+  "dir": "dist/",
+  "author": "Tim Branyen (@tbranyen)",
+  "repository": "https://github.com/tbranyen/diffhtml",
+  "license": "MIT",
+  "scripts": {
+    "build-cjs": "babel lib -d dist/cjs",
+    "build": "rollup -c rollup.umd.js"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-module-resolver": "^2.7.0",
+    "babel-plugin-module-rewrite": "^0.1.2",
+    "babel-plugin-rewrite-require": "^1.9.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1"
+  }
+}

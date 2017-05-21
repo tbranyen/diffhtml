@@ -3,14 +3,20 @@ diffHTML Components
 
 Stable Version: 1.0.0-beta
 
-Stateful ES (JavaScript ES6) classes for rendering either Web Components or
-React-Like (lightweight representation).
+JavaScript classes for rendering components using either Web Component or
+React-inspired implementations.
 
 ##### Installation
 
 ``` sh
 npm install diffhtml-components
 ```
+
+##### Getting started
+
+Before you can use this module, you will need to have diffHTML loaded first.
+This component simply provides the `Component` and `WebComponent` classes that
+help you create Virtual Trees.
 
 ##### Examples
 
@@ -22,7 +28,7 @@ some components.
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
-import { Component, PropTypes } from 'diffhtml-components';
+import Component from 'diffhtml-components/component';
 
 class SimpleClock extends Component {
   render() {

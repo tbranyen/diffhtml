@@ -1,0 +1,12 @@
+{
+  "plugins": [
+    ["module-resolver", [{
+      "root": ["./lib", "./node_modules"],
+      "alias": {
+        "diffhtml": "not-diffhtml"
+      }
+    }]],
+    "transform-es2015-modules-commonjs",
+  ]
+}
+
