@@ -21,62 +21,6 @@ MiddlewareCache.CreateTreeHookCache = new Set();
 MiddlewareCache.CreateNodeHookCache = new Set();
 MiddlewareCache.SyncTreeHookCache = new Set();
 
-/**
- * If diffHTML is rendering anywhere asynchronously, we need to wait until it
- * completes before this render can be executed. This sets up the next
- * buffer, if necessary, which serves as a Boolean determination later to
- * `bufferSet`.
- *
- * @param {Object} nextTransaction - The Transaction instance to schedule
- * @return {Boolean} - Value used to terminate a transaction render flow
- */
-function schedule(transaction) {
-  // The state is a global store which is shared by all like-transactions.
-  const { state } = transaction;
-
-  // If there is an in-flight transaction render happening, push this
-  // transaction into a queue.
-  if (state.isRendering) {
-    // Resolve an existing transaction that we're going to pave over in the
-    // next statement.
-    if (state.nextTransaction) {
-      state.nextTransaction.promises[0].resolve(state.nextTransaction);
-    }
-
-    // Set a pointer to this current transaction to render immediatately after
-    // the current transaction completes.
-    state.nextTransaction = transaction;
-
-    const deferred = {};
-    const resolver = new Promise(resolve => deferred.resolve = resolve);
-
-    resolver.resolve = deferred.resolve;
-    transaction.promises = [resolver];
-
-    return transaction.abort();
-  }
-
-  // Indicate we are now rendering a transaction for this DOM Node.
-  state.isRendering = true;
-}
-
-function shouldUpdate(transaction) {
-  const { markup, state, state: { measure } } = transaction;
-
-  measure('should update');
-
-  // If the contents haven't changed, abort the flow. Only support this if
-  // the new markup is a string, otherwise it's possible for our object
-  // recycling to match twice.
-  if (typeof markup === 'string' && state.markup === markup) {
-    return transaction.abort();
-  } else if (typeof markup === 'string') {
-    state.markup = markup;
-  }
-
-  measure('should update');
-}
-
 // A modest size.
 const size = 10000;
 
@@ -136,63 +80,6 @@ var Pool = {
     }
   }
 };
-
-const { memory: memory$1, protect: protect$1, unprotect } = Pool;
-
-/**
- * Ensures that an vTree is not recycled during a render cycle.
- *
- * @param vTree
- * @return vTree
- */
-function protectVTree(vTree) {
-  protect$1(vTree);
-
-  for (let i = 0; i < vTree.childNodes.length; i++) {
-    protectVTree(vTree.childNodes[i]);
-  }
-
-  return vTree;
-}
-
-/**
- * Allows an vTree to be recycled during a render cycle.
- *
- * @param vTree
- * @return
- */
-function unprotectVTree(vTree) {
-  unprotect(vTree);
-
-  for (let i = 0; i < vTree.childNodes.length; i++) {
-    unprotectVTree(vTree.childNodes[i]);
-  }
-
-  return vTree;
-}
-
-/**
- * Moves all unprotected allocations back into available pool. This keeps
- * diffHTML in a consistent state after synchronizing.
- */
-function cleanMemory(isBusy = false) {
-  StateCache.forEach(state => isBusy = state.isRendering || isBusy);
-
-  if (isBusy) {
-    //return;
-  }
-
-  memory$1.allocated.forEach(vTree => memory$1.free.add(vTree));
-  memory$1.allocated.clear();
-
-  // Clean out unused elements, if we have any elements cached that no longer
-  // have a backing VTree, we can safely remove them from the cache.
-  NodeCache.forEach((node, descriptor) => {
-    if (!memory$1.protected.has(descriptor)) {
-      NodeCache.delete(descriptor);
-    }
-  });
-}
 
 const { CreateTreeHookCache } = MiddlewareCache;
 const { isArray } = Array;
@@ -358,6 +245,119 @@ function createTree(input, attributes, childNodes, ...rest) {
   });
 
   return vTree;
+}
+
+/**
+ * If diffHTML is rendering anywhere asynchronously, we need to wait until it
+ * completes before this render can be executed. This sets up the next
+ * buffer, if necessary, which serves as a Boolean determination later to
+ * `bufferSet`.
+ *
+ * @param {Object} nextTransaction - The Transaction instance to schedule
+ * @return {Boolean} - Value used to terminate a transaction render flow
+ */
+function schedule(transaction) {
+  // The state is a global store which is shared by all like-transactions.
+  const { state } = transaction;
+
+  // If there is an in-flight transaction render happening, push this
+  // transaction into a queue.
+  if (state.isRendering) {
+    // Resolve an existing transaction that we're going to pave over in the
+    // next statement.
+    if (state.nextTransaction) {
+      state.nextTransaction.promises[0].resolve(state.nextTransaction);
+    }
+
+    // Set a pointer to this current transaction to render immediatately after
+    // the current transaction completes.
+    state.nextTransaction = transaction;
+
+    const deferred = {};
+    const resolver = new Promise(resolve => deferred.resolve = resolve);
+
+    resolver.resolve = deferred.resolve;
+    transaction.promises = [resolver];
+
+    return transaction.abort();
+  }
+
+  // Indicate we are now rendering a transaction for this DOM Node.
+  state.isRendering = true;
+}
+
+function shouldUpdate(transaction) {
+  const { markup, state, state: { measure } } = transaction;
+
+  measure('should update');
+
+  // If the contents haven't changed, abort the flow. Only support this if
+  // the new markup is a string, otherwise it's possible for our object
+  // recycling to match twice.
+  if (typeof markup === 'string' && state.markup === markup) {
+    return transaction.abort();
+  } else if (typeof markup === 'string') {
+    state.markup = markup;
+  }
+
+  measure('should update');
+}
+
+const { memory: memory$1, protect: protect$1, unprotect } = Pool;
+
+/**
+ * Ensures that an vTree is not recycled during a render cycle.
+ *
+ * @param vTree
+ * @return vTree
+ */
+function protectVTree(vTree) {
+  protect$1(vTree);
+
+  for (let i = 0; i < vTree.childNodes.length; i++) {
+    protectVTree(vTree.childNodes[i]);
+  }
+
+  return vTree;
+}
+
+/**
+ * Allows an vTree to be recycled during a render cycle.
+ *
+ * @param vTree
+ * @return
+ */
+function unprotectVTree(vTree) {
+  unprotect(vTree);
+
+  for (let i = 0; i < vTree.childNodes.length; i++) {
+    unprotectVTree(vTree.childNodes[i]);
+  }
+
+  return vTree;
+}
+
+/**
+ * Moves all unprotected allocations back into available pool. This keeps
+ * diffHTML in a consistent state after synchronizing.
+ */
+function cleanMemory(isBusy = false) {
+  StateCache.forEach(state => isBusy = state.isRendering || isBusy);
+
+  if (isBusy) {
+    //return;
+  }
+
+  memory$1.allocated.forEach(vTree => memory$1.free.add(vTree));
+  memory$1.allocated.clear();
+
+  // Clean out unused elements, if we have any elements cached that no longer
+  // have a backing VTree, we can safely remove them from the cache.
+  NodeCache.forEach((node, descriptor) => {
+    if (!memory$1.protected.has(descriptor)) {
+      NodeCache.delete(descriptor);
+    }
+  });
 }
 
 // Adapted implementation from:
@@ -1795,6 +1795,18 @@ class Transaction {
   }
 }
 
+var bindInnerHTML = (tasks => function innerHTML(element, markup = '', options = {}) {
+  options.inner = true;
+  options.tasks = options.tasks || tasks;
+  return Transaction.create(element, markup, options).start();
+});
+
+var bindOuterHTML = (tasks => function outerHTML(element, markup = '', options = {}) {
+  options.inner = false;
+  options.tasks = options.tasks || tasks;
+  return Transaction.create(element, markup, options).start();
+});
+
 const isAttributeEx = /(=|"|')[^><]*?$/;
 const isTagEx = /(<|\/)/;
 const TOKEN = '__DIFFHTML__';
@@ -1954,164 +1966,14 @@ function use(middleware) {
   };
 }
 
-/**
- * A convenient helper to create Virtual Tree elements. This can be used in
- * place of HTML parsing and is what the Babel transform will compile down to.
- *
- * @example
- *
- *    import { createTree } from 'diffhtml';
- *
- *    // Creates a div with the test class and a nested text node.
- *    const vTree = createTree('div', { 'class': 'test' }, 'Hello world');
- *
- *    // Creates an empty div.
- *    const vTree = createTree('div');
- *
- *    // Creates a VTree and associates it with a DOM Node.
- *    const div = document.createElement('div');
- *    const vTree = createTree(div);
- *
- *    // Create a fragment of Nodes (is wrapped by a #document-fragment).
- *    const vTree = createTree([createTree('div'), createTree('h1')]);
- *    console.log(vTree.nodeName === '#document-fragment'); // true
- *
- *    // Any other object passed to `createTree` will be returned and assumed
- *    // to be an object that is shaped like a VTree.
- *    const vTree = createTree({
- *      nodeName: 'div',
- *      attributes: { 'class': 'on' },
- *    });
- *
- *
- * @param {Array|Object|Node} nodeName - Value used to infer making the DOM Node
- * @param {Object =} attributes - Attributes to assign
- * @param {Array|Object|String|Node =} childNodes - Children to assign
- * @return {Object} A VTree object
- */
-/**
- * Parses HTML strings into Virtual Tree elements. This can be a single static
- * string, like that produced by a template engine, or a complex tagged
- * template string.
- *
- * @example
- *
- *    import { html } from 'diffhtml';
- *
- *    // Parses HTML directly from a string, useful for consuming template
- *    // engine output and inlining markup.
- *    const fromString = html('<center>Markup</center>');
- *
- *    // Parses a tagged template string. This can contain interpolated
- *    // values in between the `${...}` symbols. The values are typically
- *    // going to be strings, but you can pass any value to any property or
- *    // attribute.
- *    const fromTaggedTemplate = html`<center>${'Markup'}</center>`;
- *
- *    // You can pass functions to event handlers and basically any value to
- *    // property or attribute. If diffHTML encounters a value that is not a
- *    // string it will still create an attribute, but the value will be an
- *    // empty string. This is necessary for tracking changes.
- *    const dynamicValues = html`<center onclick=${
- *      ev => console.log('Clicked the center tag')
- *    }>Markup</center>`;
- *
- *
- * @param {String} markup - A string or tagged template string containing HTML
- * @return {Object|Array} - A single instance or array of Virtual Tree elements
- */
-/**
- * Recycles internal memory, removes state, and cancels all scheduled render
- * transactions. This is mainly going to be used in unit tests and not
- * typically in production. The reason for this is that components are usually
- * going to live the lifetime of the page, with a refresh cleaning slate.
- *
- * @example
- *
- *    import { innerHTML, release } from 'diffhtml';
- *
- *    // Associate state and reuse pre-allocated memory.
- *    innerHTML(document.body, 'Hello world');
- *
- *    // Free all association to `document.body`.
- *    release(document.body);
- *
- *
- * @param {Object} node - A DOM Node that is being tracked by diffHTML
- */
-/**
- * Registers middleware functions which are called during the render
- * transaction flow. These should be very fast and ideally asynchronous to
- * avoid blocking the render.
- *
- * @example
- *
- *    import { use } from 'diffhtml';
- *    import logger from 'diffhtml-logger';
- *    import devTools from 'diffhtml-devtools';
- *
- *    use(logger());
- *    use(devTools());
- *
- *
- * @param {Function} middleware - A function that gets passed internals
- * @return Function - When invoked removes and deactivates the middleware
- */
+const __VERSION__ = '1.0.0-beta';
+
 const tasks = [schedule, shouldUpdate, reconcileTrees, syncTrees, patch, endAsPromise];
 
-/**
- * Export the version based on the package.json version field value, no longer
- * inlined with babel, due to ES Modules support.
- */
-const VERSION = '1.0.0-beta';
+const innerHTML = bindInnerHTML(tasks);
+const outerHTML = bindOuterHTML(tasks);
 
-/**
- * Used to diff the outerHTML contents of the passed element with the markup
- * contents. Very useful for applying a global diff on the
- * `document.documentElement`.
- *
- * @example
- *
- *    import { outerHTML } from 'diffhtml';
- *
- *    // Remove all attributes and set the children to be a single text node
- *    // containing the text 'Hello world',
- *    outerHTML(document.body, '<body>Hello world</body>');
- *
- *
- * @param {Object} element - A DOM Node to render into
- * @param {String|Object} markup='' - A string of markup or virtual tree
- * @param {Object =} options={} - An object containing configuration options
- */
-function outerHTML(domNode, markup = '', options = {}) {
-  options.inner = false;
-  //options.tasks = options.tasks || tasks;
-  return Transaction.create(domNode, markup, options).start();
-}
-
-/**
- * Used to diff the innerHTML contents of the passed element with the markup
- * contents. This is useful with libraries like Backbone that render Views
- * into element container.
- *
- * @example
- *
- *    import { innerHTML } from 'diffhtml';
- *
- *    // Sets the body children to be a single text node containing the text
- *    // 'Hello world'.
- *    innerHTML(document.body, 'Hello world');
- *
- *
- * @param {Object} domNode - A DOM Node to render into
- * @param {String|Object} markup='' - A string of markup or virtual tree
- * @param {Object =} options={} - An object containing configuration options
- */
-function innerHTML(domNode, markup = '', options = {}) {
-  options.inner = true;
-  //options.tasks = options.tasks || tasks;
-  return Transaction.create(domNode, markup, options).start();
-}
+const VERSION = __VERSION__;
 
 // Public API. Passed to subscribed middleware.
 const diff = {
@@ -2123,8 +1985,7 @@ const diff = {
   use,
   outerHTML,
   innerHTML,
-  html: handleTaggedTemplate,
-  tasks
+  html: handleTaggedTemplate
 };
 
 // Ensure the `diff` property is nonenumerable so it doesn't show up in logs.

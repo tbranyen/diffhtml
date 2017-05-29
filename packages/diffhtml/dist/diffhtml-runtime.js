@@ -8,7 +8,7 @@
 const StateCache = new Map();
 
 // Associates Virtual Tree Elements with DOM Nodes.
-const NodeCache = new Map();
+const NodeCache$1 = new Map();
 
 // Cache transition functions.
 const TransitionCache = new Map();
@@ -156,7 +156,7 @@ function createTree(input, attributes, childNodes, ...rest) {
     }
 
     const vTree = createTree(input.nodeName, attributes, childNodes);
-    NodeCache.set(vTree, input);
+    NodeCache$1.set(vTree, input);
     return vTree;
   }
 
@@ -247,79 +247,6 @@ function createTree(input, attributes, childNodes, ...rest) {
   return vTree;
 }
 
-const { memory: memory$1, protect: protect$1, unprotect } = Pool;
-
-/**
- * Ensures that an vTree is not recycled during a render cycle.
- *
- * @param vTree
- * @return vTree
- */
-function protectVTree(vTree) {
-  protect$1(vTree);
-
-  for (let i = 0; i < vTree.childNodes.length; i++) {
-    protectVTree(vTree.childNodes[i]);
-  }
-
-  return vTree;
-}
-
-/**
- * Allows an vTree to be recycled during a render cycle.
- *
- * @param vTree
- * @return
- */
-function unprotectVTree(vTree) {
-  unprotect(vTree);
-
-  for (let i = 0; i < vTree.childNodes.length; i++) {
-    unprotectVTree(vTree.childNodes[i]);
-  }
-
-  return vTree;
-}
-
-/**
- * Moves all unprotected allocations back into available pool. This keeps
- * diffHTML in a consistent state after synchronizing.
- */
-function cleanMemory(isBusy = false) {
-  StateCache.forEach(state => isBusy = state.isRendering || isBusy);
-
-  if (isBusy) {
-    //return;
-  }
-
-  memory$1.allocated.forEach(vTree => memory$1.free.add(vTree));
-  memory$1.allocated.clear();
-
-  // Clean out unused elements, if we have any elements cached that no longer
-  // have a backing VTree, we can safely remove them from the cache.
-  NodeCache.forEach((node, descriptor) => {
-    if (!memory$1.protected.has(descriptor)) {
-      NodeCache.delete(descriptor);
-    }
-  });
-}
-
-function release(domNode) {
-  // Try and find a state object for this DOM Node.
-  const state = StateCache.get(domNode);
-
-  // If there is a Virtual Tree element, recycle all objects allocated for it.
-  if (state && state.oldTree) {
-    unprotectVTree(state.oldTree);
-  }
-
-  // Remove the DOM Node's state object from the cache.
-  StateCache.delete(domNode);
-
-  // Recycle all unprotected objects.
-  cleanMemory();
-}
-
 /**
  * If diffHTML is rendering anywhere asynchronously, we need to wait until it
  * completes before this render can be executed. This sets up the next
@@ -374,57 +301,6 @@ function shouldUpdate(transaction) {
   }
 
   measure('should update');
-}
-
-var parse = (() => console.log('Runtime is not built with parsing'));
-
-function reconcileTrees$1(transaction) {
-  const { state, domNode, markup, options } = transaction;
-  const { previousMarkup, measure } = state;
-  const { inner } = options;
-
-  measure('reconcile trees');
-
-  // We rebuild the tree whenever the DOM Node changes, including the first
-  // time we patch a DOM Node.
-  if (previousMarkup !== domNode.outerHTML || !state.oldTree) {
-    if (state.oldTree) {
-      unprotectVTree(state.oldTree);
-    }
-
-    state.oldTree = createTree(domNode);
-    NodeCache.set(state.oldTree, domNode);
-    protectVTree(state.oldTree);
-  }
-
-  // Associate the old tree with this brand new transaction.
-  transaction.oldTree = state.oldTree;
-
-  // This is HTML Markup, so we need to parse it.
-  if (typeof markup === 'string') {
-    const { childNodes } = parse(markup, null, options);
-
-    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
-    // with outerHTML, we can only support diffing against a single element,
-    // so pick the first one, if there are none, just pass the entire root.
-    transaction.newTree = createTree(inner ? childNodes : childNodes[0] || childNodes);
-  }
-  // Otherwise the value passed is a Virtual Tree or an Array.
-  else {
-      const { rawNodeName, nodeName, attributes } = transaction.oldTree;
-      const newTree = createTree(markup);
-      const isFragment = newTree.nodeType === 11;
-      const isUnknown = typeof newTree.rawNodeName !== 'string';
-
-      transaction.newTree = newTree;
-
-      if (inner) {
-        const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
-        transaction.newTree = createTree(nodeName, attributes, children);
-      }
-    }
-
-  measure('reconcile trees');
 }
 
 const normalize = typeof process !== 'undefined' ? process : {
@@ -732,7 +608,7 @@ const { CreateNodeHookCache } = MiddlewareCache;
  * @return {Object} - A DOM Node matching the vTree
  */
 function createNode(vTree, ownerDocument = document) {
-  const existingNode = NodeCache.get(vTree);
+  const existingNode = NodeCache$1.get(vTree);
 
   // If the DOM Node was already created, reuse the existing node.
   if (existingNode) {
@@ -777,7 +653,7 @@ function createNode(vTree, ownerDocument = document) {
   }
 
   // Add to the domNodes cache.
-  NodeCache.set(vTree, domNode);
+  NodeCache$1.set(vTree, domNode);
 
   // Append all the children into the domNode, making sure to run them
   // through this `createNode` function as well.
@@ -786,6 +662,63 @@ function createNode(vTree, ownerDocument = document) {
   }
 
   return domNode;
+}
+
+const { memory: memory$1, protect: protect$1, unprotect } = Pool;
+
+/**
+ * Ensures that an vTree is not recycled during a render cycle.
+ *
+ * @param vTree
+ * @return vTree
+ */
+function protectVTree$1(vTree) {
+  protect$1(vTree);
+
+  for (let i = 0; i < vTree.childNodes.length; i++) {
+    protectVTree$1(vTree.childNodes[i]);
+  }
+
+  return vTree;
+}
+
+/**
+ * Allows an vTree to be recycled during a render cycle.
+ *
+ * @param vTree
+ * @return
+ */
+function unprotectVTree$1(vTree) {
+  unprotect(vTree);
+
+  for (let i = 0; i < vTree.childNodes.length; i++) {
+    unprotectVTree$1(vTree.childNodes[i]);
+  }
+
+  return vTree;
+}
+
+/**
+ * Moves all unprotected allocations back into available pool. This keeps
+ * diffHTML in a consistent state after synchronizing.
+ */
+function cleanMemory(isBusy = false) {
+  StateCache.forEach(state => isBusy = state.isRendering || isBusy);
+
+  if (isBusy) {
+    //return;
+  }
+
+  memory$1.allocated.forEach(vTree => memory$1.free.add(vTree));
+  memory$1.allocated.clear();
+
+  // Clean out unused elements, if we have any elements cached that no longer
+  // have a backing VTree, we can safely remove them from the cache.
+  NodeCache$1.forEach((node, descriptor) => {
+    if (!memory$1.protected.has(descriptor)) {
+      NodeCache$1.delete(descriptor);
+    }
+  });
 }
 
 function syncTrees(transaction) {
@@ -804,9 +737,9 @@ function syncTrees(transaction) {
       NODE_VALUE: []
     };
 
-    unprotectVTree(transaction.oldTree);
+    unprotectVTree$1(transaction.oldTree);
     transaction.oldTree = transaction.state.oldTree = newTree;
-    protectVTree(transaction.oldTree);
+    protectVTree$1(transaction.oldTree);
 
     // Update the StateCache since we are changing the top level element.
     StateCache.set(createNode(newTree), transaction.state);
@@ -995,7 +928,7 @@ function patchNode(patches) {
       const vTree = REMOVE_ATTRIBUTE[i];
       const name = REMOVE_ATTRIBUTE[i + 1];
 
-      const domNode = NodeCache.get(vTree);
+      const domNode = NodeCache$1.get(vTree);
       const attributeChanged = TransitionCache.get('attributeChanged');
       const oldValue = domNode.getAttribute(name);
       const newPromises = runTransitions('attributeChanged', domNode, name, oldValue, null);
@@ -1021,16 +954,16 @@ function patchNode(patches) {
         const newTree = INSERT_BEFORE[i + 1];
         const referenceTree = INSERT_BEFORE[i + 2];
 
-        const domNode = NodeCache.get(vTree);
+        const domNode = NodeCache$1.get(vTree);
         const referenceNode = referenceTree && createNode(referenceTree);
         const attached = TransitionCache.get('attached');
 
         if (referenceTree) {
-          protectVTree(referenceTree);
+          protectVTree$1(referenceTree);
         }
 
         const newNode = createNode(newTree);
-        protectVTree(newTree);
+        protectVTree$1(newTree);
 
         // If refNode is `null` then it will simply append like `appendChild`.
         domNode.insertBefore(newNode, referenceNode);
@@ -1045,20 +978,20 @@ function patchNode(patches) {
     if (REMOVE_CHILD && REMOVE_CHILD.length) {
       for (let i = 0; i < REMOVE_CHILD.length; i++) {
         const vTree = REMOVE_CHILD[i];
-        const domNode = NodeCache.get(vTree);
+        const domNode = NodeCache$1.get(vTree);
         const detached = TransitionCache.get('detached');
         const detachedPromises = runTransitions('detached', domNode);
 
         if (detachedPromises.length) {
           Promise.all(detachedPromises).then(() => {
             domNode.parentNode.removeChild(domNode);
-            unprotectVTree(vTree);
+            unprotectVTree$1(vTree);
           });
 
           promises.push(...detachedPromises);
         } else {
           domNode.parentNode.removeChild(domNode);
-          unprotectVTree(vTree);
+          unprotectVTree$1(vTree);
         }
       }
     }
@@ -1069,7 +1002,7 @@ function patchNode(patches) {
         const newTree = REPLACE_CHILD[i];
         const oldTree = REPLACE_CHILD[i + 1];
 
-        const oldDomNode = NodeCache.get(oldTree);
+        const oldDomNode = NodeCache$1.get(oldTree);
         const newDomNode = createNode(newTree);
         const attached = TransitionCache.get('attached');
         const detached = TransitionCache.get('detached');
@@ -1077,7 +1010,7 @@ function patchNode(patches) {
 
         // Always insert before to allow the element to transition.
         oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
-        protectVTree(newTree);
+        protectVTree$1(newTree);
 
         const attachedPromises = runTransitions('attached', newDomNode);
         const detachedPromises = runTransitions('detached', oldDomNode);
@@ -1087,13 +1020,13 @@ function patchNode(patches) {
         if (allPromises.length) {
           Promise.all(allPromises).then(() => {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-            unprotectVTree(oldTree);
+            unprotectVTree$1(oldTree);
           });
 
           promises.push(...allPromises);
         } else {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-          unprotectVTree(oldTree);
+          unprotectVTree$1(oldTree);
         }
       }
     }
@@ -1105,7 +1038,7 @@ function patchNode(patches) {
       const vTree = NODE_VALUE[i];
       const nodeValue = NODE_VALUE[i + 1];
       const oldValue = NODE_VALUE[i + 2];
-      const domNode = NodeCache.get(vTree);
+      const domNode = NodeCache$1.get(vTree);
       const textChanged = TransitionCache.get('textChanged');
       const textChangedPromises = runTransitions('textChanged', domNode, oldValue, nodeValue);
 
@@ -1163,6 +1096,57 @@ function endAsPromise(transaction) {
     // transaction completed lifecycle event.
     return Promise.resolve(transaction.end());
   }
+}
+
+var parse = (() => console.log('Runtime is not built with parsing'));
+
+function reconcileTrees$1(transaction) {
+  const { state, domNode, markup, options } = transaction;
+  const { previousMarkup, measure } = state;
+  const { inner } = options;
+
+  measure('reconcile trees');
+
+  // We rebuild the tree whenever the DOM Node changes, including the first
+  // time we patch a DOM Node.
+  if (previousMarkup !== domNode.outerHTML || !state.oldTree) {
+    if (state.oldTree) {
+      unprotectVTree$1(state.oldTree);
+    }
+
+    state.oldTree = createTree(domNode);
+    NodeCache$1.set(state.oldTree, domNode);
+    protectVTree$1(state.oldTree);
+  }
+
+  // Associate the old tree with this brand new transaction.
+  transaction.oldTree = state.oldTree;
+
+  // This is HTML Markup, so we need to parse it.
+  if (typeof markup === 'string') {
+    const { childNodes } = parse(markup, null, options);
+
+    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
+    // with outerHTML, we can only support diffing against a single element,
+    // so pick the first one, if there are none, just pass the entire root.
+    transaction.newTree = createTree(inner ? childNodes : childNodes[0] || childNodes);
+  }
+  // Otherwise the value passed is a Virtual Tree or an Array.
+  else {
+      const { rawNodeName, nodeName, attributes } = transaction.oldTree;
+      const newTree = createTree(markup);
+      const isFragment = newTree.nodeType === 11;
+      const isUnknown = typeof newTree.rawNodeName !== 'string';
+
+      transaction.newTree = newTree;
+
+      if (inner) {
+        const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
+        transaction.newTree = createTree(nodeName, attributes, children);
+      }
+    }
+
+  measure('reconcile trees');
 }
 
 const marks = new Map();
@@ -1374,6 +1358,34 @@ class Transaction {
   }
 }
 
+var bindInnerHTML = (tasks => function innerHTML(element, markup = '', options = {}) {
+  options.inner = true;
+  options.tasks = options.tasks || tasks;
+  return Transaction.create(element, markup, options).start();
+});
+
+var bindOuterHTML = (tasks => function outerHTML(element, markup = '', options = {}) {
+  options.inner = false;
+  options.tasks = options.tasks || tasks;
+  return Transaction.create(element, markup, options).start();
+});
+
+function release(domNode) {
+  // Try and find a state object for this DOM Node.
+  const state = StateCache.get(domNode);
+
+  // If there is a Virtual Tree element, recycle all objects allocated for it.
+  if (state && state.oldTree) {
+    unprotectVTree$1(state.oldTree);
+  }
+
+  // Remove the DOM Node's state object from the cache.
+  StateCache.delete(domNode);
+
+  // Recycle all unprotected objects.
+  cleanMemory();
+}
+
 const {
   CreateTreeHookCache: CreateTreeHookCache$1,
   CreateNodeHookCache: CreateNodeHookCache$1,
@@ -1418,6 +1430,8 @@ function use(middleware) {
   };
 }
 
+const __VERSION__ = '1.0.0-beta';
+
 function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
   const { previousMarkup, measure } = state;
@@ -1455,27 +1469,12 @@ function reconcileTrees(transaction) {
   measure('reconcile trees');
 }
 
-const internals = {
-  StateCache, NodeCache, TransitionCache, MiddlewareCache,
-  protectVTree, unprotectVTree, cleanMemory, namespace, elements,
-  decodeEntities, escape, makeMeasure, Pool
-};
-
 const tasks = [schedule, shouldUpdate, reconcileTrees, syncTrees, patch, endAsPromise];
 
-const VERSION = `1.0.0-beta-runtime`;
+const innerHTML = bindInnerHTML(tasks);
+const outerHTML = bindOuterHTML(tasks);
 
-function outerHTML(element, markup = '', options = {}) {
-  options.inner = false;
-  options.tasks = options.tasks || tasks;
-  return Transaction.create(element, markup, options).start();
-}
-
-function innerHTML(element, markup = '', options = {}) {
-  options.inner = true;
-  options.tasks = options.tasks || tasks;
-  return Transaction.create(element, markup, options).start();
-}
+const VERSION = `${__VERSION__}-runtime`;
 
 // Public API. Passed to subscribed middleware.
 const diff = {
@@ -1488,7 +1487,6 @@ const diff = {
   outerHTML,
   innerHTML,
   html: createTree,
-  internals,
   tasks
 };
 

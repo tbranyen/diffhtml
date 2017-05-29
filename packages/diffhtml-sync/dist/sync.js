@@ -4633,7 +4633,7 @@ function handleTaggedTemplate(strings, ...values) {
   // always returning an array.
   return childNodes.length === 1 ? childNodes[0] : (0, _create2.default)(childNodes);
 }
-},{"./tree/create":47,"./util/decode-entities":51,"./util/escape":52,"./util/parser":55}],35:[function(require,module,exports){
+},{"./tree/create":49,"./util/decode-entities":53,"./util/escape":54,"./util/parser":57}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4641,27 +4641,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.html = exports.innerHTML = exports.outerHTML = exports.use = exports.createElement = exports.createTree = exports.release = exports.removeTransitionState = exports.addTransitionState = exports.VERSION = undefined;
 
-var _transaction = require('./transaction');
-
-var _transaction2 = _interopRequireDefault(_transaction);
-
 var _create = require('./tree/create');
 
 var _create2 = _interopRequireDefault(_create);
-
-var _html = require('./html');
-
-var _html2 = _interopRequireDefault(_html);
-
-var _release = require('./release');
-
-var _release2 = _interopRequireDefault(_release);
-
-var _transition = require('./transition');
-
-var _use = require('./use');
-
-var _use2 = _interopRequireDefault(_use);
 
 var _schedule = require('./tasks/schedule');
 
@@ -4687,172 +4669,38 @@ var _endAsPromise = require('./tasks/end-as-promise');
 
 var _endAsPromise2 = _interopRequireDefault(_endAsPromise);
 
+var _innerHtml = require('./inner-html');
+
+var _innerHtml2 = _interopRequireDefault(_innerHtml);
+
+var _outerHtml = require('./outer-html');
+
+var _outerHtml2 = _interopRequireDefault(_outerHtml);
+
+var _html = require('./html');
+
+var _html2 = _interopRequireDefault(_html);
+
+var _release = require('./release');
+
+var _release2 = _interopRequireDefault(_release);
+
+var _use = require('./use');
+
+var _use2 = _interopRequireDefault(_use);
+
+var _transition = require('./transition');
+
+var _version = require('./version');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Parses HTML strings into Virtual Tree elements. This can be a single static
- * string, like that produced by a template engine, or a complex tagged
- * template string.
- *
- * @example
- *
- *    import { html } from 'diffhtml';
- *
- *    // Parses HTML directly from a string, useful for consuming template
- *    // engine output and inlining markup.
- *    const fromString = html('<center>Markup</center>');
- *
- *    // Parses a tagged template string. This can contain interpolated
- *    // values in between the `${...}` symbols. The values are typically
- *    // going to be strings, but you can pass any value to any property or
- *    // attribute.
- *    const fromTaggedTemplate = html`<center>${'Markup'}</center>`;
- *
- *    // You can pass functions to event handlers and basically any value to
- *    // property or attribute. If diffHTML encounters a value that is not a
- *    // string it will still create an attribute, but the value will be an
- *    // empty string. This is necessary for tracking changes.
- *    const dynamicValues = html`<center onclick=${
- *      ev => console.log('Clicked the center tag')
- *    }>Markup</center>`;
- *
- *
- * @param {String} markup - A string or tagged template string containing HTML
- * @return {Object|Array} - A single instance or array of Virtual Tree elements
- */
 const tasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
 
-/**
- * Export the version based on the package.json version field value, no longer
- * inlined with babel, due to ES Modules support.
- */
+const innerHTML = (0, _innerHtml2.default)(tasks);
+const outerHTML = (0, _outerHtml2.default)(tasks);
 
-
-/**
- * Registers middleware functions which are called during the render
- * transaction flow. These should be very fast and ideally asynchronous to
- * avoid blocking the render.
- *
- * @example
- *
- *    import { use } from 'diffhtml';
- *    import logger from 'diffhtml-logger';
- *    import devTools from 'diffhtml-devtools';
- *
- *    use(logger());
- *    use(devTools());
- *
- *
- * @param {Function} middleware - A function that gets passed internals
- * @return Function - When invoked removes and deactivates the middleware
- */
-
-
-/**
- * Recycles internal memory, removes state, and cancels all scheduled render
- * transactions. This is mainly going to be used in unit tests and not
- * typically in production. The reason for this is that components are usually
- * going to live the lifetime of the page, with a refresh cleaning slate.
- *
- * @example
- *
- *    import { innerHTML, release } from 'diffhtml';
- *
- *    // Associate state and reuse pre-allocated memory.
- *    innerHTML(document.body, 'Hello world');
- *
- *    // Free all association to `document.body`.
- *    release(document.body);
- *
- *
- * @param {Object} node - A DOM Node that is being tracked by diffHTML
- */
-
-
-/**
- * A convenient helper to create Virtual Tree elements. This can be used in
- * place of HTML parsing and is what the Babel transform will compile down to.
- *
- * @example
- *
- *    import { createTree } from 'diffhtml';
- *
- *    // Creates a div with the test class and a nested text node.
- *    const vTree = createTree('div', { 'class': 'test' }, 'Hello world');
- *
- *    // Creates an empty div.
- *    const vTree = createTree('div');
- *
- *    // Creates a VTree and associates it with a DOM Node.
- *    const div = document.createElement('div');
- *    const vTree = createTree(div);
- *
- *    // Create a fragment of Nodes (is wrapped by a #document-fragment).
- *    const vTree = createTree([createTree('div'), createTree('h1')]);
- *    console.log(vTree.nodeName === '#document-fragment'); // true
- *
- *    // Any other object passed to `createTree` will be returned and assumed
- *    // to be an object that is shaped like a VTree.
- *    const vTree = createTree({
- *      nodeName: 'div',
- *      attributes: { 'class': 'on' },
- *    });
- *
- *
- * @param {Array|Object|Node} nodeName - Value used to infer making the DOM Node
- * @param {Object =} attributes - Attributes to assign
- * @param {Array|Object|String|Node =} childNodes - Children to assign
- * @return {Object} A VTree object
- */
-const VERSION = '1.0.0-beta';
-
-/**
- * Used to diff the outerHTML contents of the passed element with the markup
- * contents. Very useful for applying a global diff on the
- * `document.documentElement`.
- *
- * @example
- *
- *    import { outerHTML } from 'diffhtml';
- *
- *    // Remove all attributes and set the children to be a single text node
- *    // containing the text 'Hello world',
- *    outerHTML(document.body, '<body>Hello world</body>');
- *
- *
- * @param {Object} element - A DOM Node to render into
- * @param {String|Object} markup='' - A string of markup or virtual tree
- * @param {Object =} options={} - An object containing configuration options
- */
-function outerHTML(domNode, markup = '', options = {}) {
-  options.inner = false;
-  //options.tasks = options.tasks || tasks;
-  return _transaction2.default.create(domNode, markup, options).start();
-}
-
-/**
- * Used to diff the innerHTML contents of the passed element with the markup
- * contents. This is useful with libraries like Backbone that render Views
- * into element container.
- *
- * @example
- *
- *    import { innerHTML } from 'diffhtml';
- *
- *    // Sets the body children to be a single text node containing the text
- *    // 'Hello world'.
- *    innerHTML(document.body, 'Hello world');
- *
- *
- * @param {Object} domNode - A DOM Node to render into
- * @param {String|Object} markup='' - A string of markup or virtual tree
- * @param {Object =} options={} - An object containing configuration options
- */
-function innerHTML(domNode, markup = '', options = {}) {
-  options.inner = true;
-  //options.tasks = options.tasks || tasks;
-  return _transaction2.default.create(domNode, markup, options).start();
-}
+const VERSION = _version.__VERSION__;
 
 // Public API. Passed to subscribed middleware.
 const diff = {
@@ -4864,8 +4712,7 @@ const diff = {
   use: _use2.default,
   outerHTML,
   innerHTML,
-  html: _html2.default,
-  tasks
+  html: _html2.default
 };
 
 // Ensure the `diff` property is nonenumerable so it doesn't show up in logs.
@@ -4890,7 +4737,25 @@ exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.html = _html2.default;
 exports.default = diff;
-},{"./html":34,"./release":38,"./tasks/end-as-promise":39,"./tasks/patch-node":40,"./tasks/reconcile-trees":41,"./tasks/schedule":42,"./tasks/should-update":43,"./tasks/sync-trees":44,"./transaction":45,"./transition":46,"./tree/create":47,"./use":49}],36:[function(require,module,exports){
+},{"./html":34,"./inner-html":36,"./outer-html":39,"./release":40,"./tasks/end-as-promise":41,"./tasks/patch-node":42,"./tasks/reconcile-trees":43,"./tasks/schedule":44,"./tasks/should-update":45,"./tasks/sync-trees":46,"./transition":48,"./tree/create":49,"./use":51,"./version":61}],36:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _transaction = require('./transaction');
+
+var _transaction2 = _interopRequireDefault(_transaction);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = tasks => function innerHTML(element, markup = '', options = {}) {
+  options.inner = true;
+  options.tasks = options.tasks || tasks;
+  return _transaction2.default.create(element, markup, options).start();
+};
+},{"./transaction":47}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4981,7 +4846,7 @@ function createNode(vTree, ownerDocument = document) {
 
   return domNode;
 }
-},{"../util/caches":50,"../util/process":57,"../util/svg":58}],37:[function(require,module,exports){
+},{"../util/caches":52,"../util/process":59,"../util/svg":60}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5227,7 +5092,25 @@ function patchNode(patches) {
 
   return promises;
 }
-},{"../transition":46,"../util/caches":50,"../util/decode-entities":51,"../util/escape":52,"../util/memory":54,"./create":36}],38:[function(require,module,exports){
+},{"../transition":48,"../util/caches":52,"../util/decode-entities":53,"../util/escape":54,"../util/memory":56,"./create":37}],39:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _transaction = require('./transaction');
+
+var _transaction2 = _interopRequireDefault(_transaction);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = tasks => function outerHTML(element, markup = '', options = {}) {
+  options.inner = false;
+  options.tasks = options.tasks || tasks;
+  return _transaction2.default.create(element, markup, options).start();
+};
+},{"./transaction":47}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5254,7 +5137,7 @@ function release(domNode) {
   // Recycle all unprotected objects.
   (0, _memory.cleanMemory)();
 }
-},{"./util/caches":50,"./util/memory":54}],39:[function(require,module,exports){
+},{"./util/caches":52,"./util/memory":56}],41:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5278,7 +5161,7 @@ function endAsPromise(transaction) {
     return Promise.resolve(transaction.end());
   }
 }
-},{}],40:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5308,7 +5191,7 @@ function patch(transaction) {
 
   transaction.promises = promises;
 }
-},{"../node/patch":37}],41:[function(require,module,exports){
+},{"../node/patch":38}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5382,7 +5265,7 @@ function reconcileTrees(transaction) {
 
   measure('reconcile trees');
 }
-},{"../tree/create":47,"../util/caches":50,"../util/memory":54,"../util/parser":55,"../util/pool":56}],42:[function(require,module,exports){
+},{"../tree/create":49,"../util/caches":52,"../util/memory":56,"../util/parser":57,"../util/pool":58}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5430,7 +5313,7 @@ function schedule(transaction) {
   // Indicate we are now rendering a transaction for this DOM Node.
   state.isRendering = true;
 }
-},{"../util/caches":50}],43:[function(require,module,exports){
+},{"../util/caches":52}],45:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5453,7 +5336,7 @@ function shouldUpdate(transaction) {
 
   measure('should update');
 }
-},{}],44:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5505,7 +5388,7 @@ function syncTrees(transaction) {
 
   measure('sync trees');
 }
-},{"../node/create":36,"../tree/sync":48,"../util/caches":50,"../util/memory":54}],45:[function(require,module,exports){
+},{"../node/create":37,"../tree/sync":50,"../util/caches":52,"../util/memory":56}],47:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5731,7 +5614,7 @@ class Transaction {
   }
 }
 exports.default = Transaction;
-},{"./tasks/end-as-promise":39,"./tasks/patch-node":40,"./tasks/reconcile-trees":41,"./tasks/schedule":42,"./tasks/should-update":43,"./tasks/sync-trees":44,"./util/caches":50,"./util/make-measure":53,"./util/memory":54,"./util/process":57}],46:[function(require,module,exports){
+},{"./tasks/end-as-promise":41,"./tasks/patch-node":42,"./tasks/reconcile-trees":43,"./tasks/schedule":44,"./tasks/should-update":45,"./tasks/sync-trees":46,"./util/caches":52,"./util/make-measure":55,"./util/memory":56,"./util/process":59}],48:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5826,7 +5709,7 @@ function runTransitions(setName, ...args) {
 
   return promises;
 }
-},{"./util/caches":50,"./util/process":57}],47:[function(require,module,exports){
+},{"./util/caches":52,"./util/process":59}],49:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6008,7 +5891,7 @@ function createTree(input, attributes, childNodes, ...rest) {
 
   return vTree;
 }
-},{"../util/caches":50,"../util/pool":56}],48:[function(require,module,exports){
+},{"../util/caches":52,"../util/pool":58}],50:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6323,7 +6206,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
 
   return patches;
 }
-},{"../util/caches":50,"../util/process":57}],49:[function(require,module,exports){
+},{"../util/caches":52,"../util/process":59}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6388,7 +6271,7 @@ function use(middleware) {
     SyncTreeHookCache.delete(syncTreeHook);
   };
 }
-},{"./util/caches":50,"./util/process":57}],50:[function(require,module,exports){
+},{"./util/caches":52,"./util/process":59}],52:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6410,7 +6293,7 @@ const MiddlewareCache = exports.MiddlewareCache = new Set();
 MiddlewareCache.CreateTreeHookCache = new Set();
 MiddlewareCache.CreateNodeHookCache = new Set();
 MiddlewareCache.SyncTreeHookCache = new Set();
-},{}],51:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -6439,7 +6322,7 @@ function decodeEntities(string) {
   return element.textContent;
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],52:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6456,7 +6339,7 @@ exports.default = escape;
 function escape(unescaped) {
   return unescaped.replace(/[&<>]/g, match => `&#${match.charCodeAt(0)};`);
 }
-},{}],53:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -6507,7 +6390,7 @@ exports.default = (domNode, vTree) => {
   };
 };
 }).call(this,require('_process'))
-},{"_process":30}],54:[function(require,module,exports){
+},{"_process":30}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6581,7 +6464,7 @@ function cleanMemory(isBusy = false) {
     }
   });
 }
-},{"./caches":50,"./pool":56}],55:[function(require,module,exports){
+},{"./caches":52,"./pool":58}],57:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6978,7 +6861,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
 
   return root;
 }
-},{"../tree/create":47,"./pool":56}],56:[function(require,module,exports){
+},{"../tree/create":49,"./pool":58}],58:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7043,7 +6926,7 @@ exports.default = {
     }
   }
 };
-},{}],57:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -7059,7 +6942,7 @@ exports.default = Object.defineProperty({}, 'env', {
   get: () => normalize.env
 });
 }).call(this,require('_process'))
-},{"_process":30}],58:[function(require,module,exports){
+},{"_process":30}],60:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7070,4 +6953,11 @@ const namespace = exports.namespace = 'http://www.w3.org/2000/svg';
 
 // List of SVG elements.
 const elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
+},{}],61:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+const __VERSION__ = exports.__VERSION__ = '1.0.0-beta';
 },{}]},{},[33]);

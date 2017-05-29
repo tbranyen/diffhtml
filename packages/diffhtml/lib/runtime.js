@@ -1,23 +1,15 @@
 import createTree from './tree/create';
-import release from './release';
-import Transaction from './transaction';
-import { addTransitionState, removeTransitionState } from './transition';
-import use from './use';
-
-import { StateCache, NodeCache, TransitionCache, MiddlewareCache } from './util/caches';
-import { protectVTree, unprotectVTree, cleanMemory } from './util/memory';
-import { namespace, elements } from './util/svg';
-import decodeEntities from './util/decode-entities';
-import escape from './util/escape';
-import makeMeasure from './util/make-measure';
-import Pool from './util/pool';
-import process from './util/process';
-
 import schedule from './tasks/schedule';
 import shouldUpdate from './tasks/should-update';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
+import bindInnerHTML from './inner-html';
+import bindOuterHTML from './outer-html';
+import release from './release';
+import use from './use';
+import { addTransitionState, removeTransitionState } from './transition';
+import { __VERSION__ } from './version';
 
 function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
@@ -56,29 +48,14 @@ function reconcileTrees(transaction) {
   measure('reconcile trees');
 }
 
-const internals = {
-  StateCache, NodeCache, TransitionCache, MiddlewareCache,
-  protectVTree, unprotectVTree, cleanMemory, namespace, elements,
-  decodeEntities, escape, makeMeasure, Pool,
-};
-
 const tasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
 ];
 
-const VERSION = `1.0.0-beta-runtime`;
+const innerHTML = bindInnerHTML(tasks);
+const outerHTML = bindOuterHTML(tasks);
 
-function outerHTML(element, markup='', options={}) {
-  options.inner = false;
-  options.tasks = options.tasks || tasks;
-  return Transaction.create(element, markup, options).start();
-}
-
-function innerHTML(element, markup='', options={}) {
-  options.inner = true;
-  options.tasks = options.tasks || tasks;
-  return Transaction.create(element, markup, options).start();
-}
+const VERSION = `${__VERSION__}-runtime`;
 
 // Public API. Passed to subscribed middleware.
 const diff = {
@@ -91,7 +68,6 @@ const diff = {
   outerHTML,
   innerHTML,
   html: createTree,
-  internals,
   tasks,
 };
 
