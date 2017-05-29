@@ -1,4 +1,5 @@
-import { StateCache, cleanMemory, unprotectVTree } from './util';
+import { StateCache } from './util/caches';
+import { cleanMemory, unprotectVTree } from './util/memory';
 
 export default function release(domNode) {
   // Try and find a state object for this DOM Node.

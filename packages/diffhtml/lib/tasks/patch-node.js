@@ -1,4 +1,4 @@
-import * as Node from '../node';
+import patchNode from '../node/patch';
 
 /**
  * Processes a set of patches onto a tracked DOM Node.
@@ -11,7 +11,7 @@ export default function patch(transaction) {
   const { promises = [] } = transaction;
 
   measure('patch node');
-  promises.push(...Node.patchNode(patches, state));
+  promises.push(...patchNode(patches, state));
   measure('patch node');
 
   transaction.promises = promises;

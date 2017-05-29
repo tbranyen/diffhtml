@@ -2,7 +2,7 @@ import assert from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validateMemory';
 
-describe('Integration: element', function() {
+describe.skip('Integration: element', function() {
   beforeEach(function() {
     this.fixture = document.createElement('div');
     this.fixture.innerHTML = '<div></div>';

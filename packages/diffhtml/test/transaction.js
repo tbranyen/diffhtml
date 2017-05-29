@@ -2,7 +2,8 @@ import { ok, deepEqual, equal, doesNotThrow, throws } from 'assert';
 import { spy, stub } from 'sinon';
 import Transaction from '../lib/transaction';
 import use from '../lib/use';
-import { schedule, endAsPromise }from '../lib/tasks';
+import schedule from '../lib/tasks/schedule';
+import endAsPromise from '../lib/tasks/end-as-promise';
 
 describe('Transaction', function() {
   beforeEach(() => {

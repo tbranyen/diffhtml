@@ -45,19 +45,19 @@ EXPRESSIONS: {
   `;
 
   exports.renderInterpolatedMixedExpression = () => {
-    const text = () => 'world';
+    const text = () => html`world`;
     return html`Hello ${text()}!`;
   };
 
   exports.renderNestedInterpolatedMixedExpression = () => {
-    const text = () => 'world';
+    const text = () => html`world`;
     return html`<div>
       <div>Hello ${text()}!</div>
     </div>`;
   };
 
   exports.renderNestedTemplateInterpolatedMixedExpression = () => {
-    const text = () => 'world';
+    const text = () => html`world`;
     return html`<div>
       ${html`
         <div>Hello ${text()}!</div>
@@ -66,7 +66,7 @@ EXPRESSIONS: {
   };
 
   exports.renderTrailingExpression = () => {
-    const text = () => 'Hello world';
+    const text = () => html`Hello world`;
     return html`<div><div></div> ${text()}</div>`;
   };
 

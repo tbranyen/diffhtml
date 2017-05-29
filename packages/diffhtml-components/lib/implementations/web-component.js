@@ -1,4 +1,4 @@
-import { innerHTML } from 'diffhtml';
+import { innerHTML } from '../../../diffhtml';
 
 const Debounce = new WeakMap();
 const { setPrototypeOf, freeze, assign, keys } = Object;

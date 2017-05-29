@@ -93,11 +93,11 @@ import release from './release';
 
 import {
   /**
-   * Adds a global transition listener. With many elements this could be an
+   * Adds a global transition listener. With many DOM Nodes this could be an
    * expensive operation, so try to limit the amount of listeners added if
    * you're concerned about performance.
    *
-   * Since the callback triggers with various elements, most of which you
+   * Since the callback triggers with various DOM Nodes, most of which you
    * probably don't care about, you'll want to filter. A good way of filtering
    * is to use the DOM `matches` method. It's fairly well supported
    * (http://caniuse.com/#feat=matchesselector) and may suit many projects. If
@@ -107,16 +107,16 @@ import {
    *
    *    import { addTransitionState } from 'diffhtml';
    *
-   *    // Fade in all elements as they are added to the DOM.
+   *    // Fade in all Nodes as they are added to the DOM.
    *    addTransitionState('attached', el => $(el).fadeIn().promise());
    *
-   *    // Fade out all elements as they leave the DOM.
+   *    // Fade out all Nodes as they leave the DOM.
    *    addTransitionState('detached', el => $(el).fadeOut().promise());
    *
    *
    * @param state - String name that matches what's available in the
    * documentation above.
-   * @param callback - Function to receive the matching elements.
+   * @param callback - Function to receive the matching DOM Nodes.
    */
   addTransitionState,
 
@@ -164,14 +164,22 @@ import {
  */
 import use from './use';
 
-import * as internals from './util';
-import * as tasks from './tasks';
+import schedule from './tasks/schedule';
+import shouldUpdate from './tasks/should-update';
+import reconcileTrees from './tasks/reconcile-trees';
+import syncTrees from './tasks/sync-trees';
+import patchNode from './tasks/patch-node';
+import endAsPromise from './tasks/end-as-promise';
+
+const tasks = [
+  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise
+];
 
 /**
- * Export the version based on the package.json version field value, is inlined
- * with babel.
+ * Export the version based on the package.json version field value, no longer
+ * inlined with babel, due to ES Modules support.
  */
-const VERSION = __VERSION__;
+const VERSION = '1.0.0-beta';
 
 /**
  * Used to diff the outerHTML contents of the passed element with the markup
@@ -191,9 +199,10 @@ const VERSION = __VERSION__;
  * @param {String|Object} markup='' - A string of markup or virtual tree
  * @param {Object =} options={} - An object containing configuration options
  */
-function outerHTML(element, markup='', options={}) {
+function outerHTML(domNode, markup='', options={}) {
   options.inner = false;
-  return Transaction.create(element, markup, options).start();
+  //options.tasks = options.tasks || tasks;
+  return Transaction.create(domNode, markup, options).start();
 }
 
 /**
@@ -210,22 +219,19 @@ function outerHTML(element, markup='', options={}) {
  *    innerHTML(document.body, 'Hello world');
  *
  *
- * @param {Object} element - A DOM Node to render into
+ * @param {Object} domNode - A DOM Node to render into
  * @param {String|Object} markup='' - A string of markup or virtual tree
  * @param {Object =} options={} - An object containing configuration options
  */
-function innerHTML(element, markup='', options={}) {
+function innerHTML(domNode, markup='', options={}) {
   options.inner = true;
-  return Transaction.create(element, markup, options).start();
-}
-
-function element(element, markup='', options={}) {
-  return Transaction.create(element, markup, options).start();
+  //options.tasks = options.tasks || tasks;
+  return Transaction.create(domNode, markup, options).start();
 }
 
 // Public API. Passed to subscribed middleware.
 const diff = {
-  VERSION: __VERSION__,
+  VERSION,
   addTransitionState,
   removeTransitionState,
   release,
@@ -234,7 +240,6 @@ const diff = {
   outerHTML,
   innerHTML,
   html,
-  internals,
   tasks,
 };
 
@@ -243,8 +248,14 @@ if (!use.diff) {
   Object.defineProperty(use, 'diff', { value: diff, enumerable: false });
 }
 
+// Automatically hook up to DevTools if they are present.
+if (typeof devTools === 'function') {
+  use(devTools());
+  console.info('diffHTML DevTools Found and Activated...');
+}
+
 export {
-  VERSION as __VERSION__,
+  VERSION,
   addTransitionState,
   removeTransitionState,
   release,
@@ -253,14 +264,7 @@ export {
   use,
   outerHTML,
   innerHTML,
-  element,
   html,
 };
-
-// Automatically hook up to DevTools if they are present.
-if (typeof devTools === 'function') {
-  use(devTools());
-  console.info('diffHTML DevTools Found and Activated...');
-}
 
 export default diff;

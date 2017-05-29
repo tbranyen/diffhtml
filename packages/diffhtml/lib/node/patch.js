@@ -1,13 +1,9 @@
-import { createNode } from '../node';
+import createNode from './create';
 import { runTransitions } from '../transition';
-import {
-  NodeCache,
-  TransitionCache,
-  protectVTree,
-  unprotectVTree,
-  decodeEntities,
-  escape,
-} from '../util';
+import { NodeCache, TransitionCache } from '../util/caches';
+import { protectVTree, unprotectVTree } from '../util/memory';
+import decodeEntities from '../util/decode-entities';
+import escape from '../util/escape';
 
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 

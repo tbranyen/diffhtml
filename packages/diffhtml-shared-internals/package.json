@@ -1,0 +1,19 @@
+{
+  "name": "diffhtml-shared-internals",
+  "version": "1.0.0-beta",
+  "description": "Access the diffHTML core internals",
+  "main": "dist/cjs/index",
+  "esnext:main": "dist/es/index",
+  "author": "Tim Branyen (@tbranyen)",
+  "repository": "https://github.com/tbranyen/diffhtml",
+  "license": "MIT",
+  "scripts": {
+    "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs",
+    "build-es": "NODE_ENV=es babel lib -d dist/es",
+    "build": "npm run build-cjs && npm run build-es",
+    "test:ci": "echo No diffhtml-shared-internals tests"
+  },
+  "devDependencies": {
+    "diffhtml": "1.0.0-beta"
+  }
+}

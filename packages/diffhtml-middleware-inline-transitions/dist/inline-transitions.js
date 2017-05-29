@@ -5,32 +5,47 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = inlineTransitions;
+var assign = Object.assign,
+    keys = Object.keys;
+
+
+var eventsToTransitionName = {
+  attributechanged: 'attributeChanged',
+  textchanged: 'textChanged'
+};
+
 // Store maps of elements to handlers that are associated to transitions.
 var transitionsMap = {
   attached: new Map(),
   detached: new Map(),
   replaced: new Map(),
-  attributeChanged: new Map(),
-  textChanged: new Map()
+  attributechanged: new Map(),
+  textchanged: new Map()
 };
 
 // Internal global transition state handlers, allows us to bind once and match.
 var boundHandlers = [];
 
-var assign = Object.assign,
-    keys = Object.keys;
-
 /**
  * Binds inline transitions to the parent element and triggers for any matching
  * nested children.
  */
-
 function inlineTransitions() {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   // Monitors whenever an element changes an attribute, if the attribute is a
   // valid state name, add this element into the related Set.
   var attributeChanged = function attributeChanged(domNode, name, oldVal, newVal) {
+    var prefix = name.toLowerCase().slice(0, 2);
+
+    // Don't bother with non-events.
+    if (prefix !== 'on') {
+      return;
+    }
+
+    // Normalize the event name to
+    name = name.toLowerCase().slice(2);
+
     var map = transitionsMap[name];
     var isFunction = typeof newVal === 'function';
 
@@ -52,6 +67,7 @@ function inlineTransitions() {
     // Add a transition for every type.
     keys(transitionsMap).forEach(function (name) {
       var map = transitionsMap[name];
+      var transitionName = eventsToTransitionName[name] || name;
 
       var handler = function handler(child) {
         for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -97,7 +113,7 @@ function inlineTransitions() {
       boundHandlers.push(handler);
 
       // Add the state handler.
-      addTransitionState(name, handler);
+      addTransitionState(transitionName, handler);
     });
   };
 
@@ -111,9 +127,10 @@ function inlineTransitions() {
     // Remove all elements from the internal cache.
     keys(transitionsMap).forEach(function (name) {
       var map = transitionsMap[name];
+      var transitionName = eventsToTransitionName[name] || name;
 
       // Unbind the associated global handler.
-      removeTransitionState(name, boundHandlers.shift());
+      removeTransitionState(transitionName, boundHandlers.shift());
 
       // Empty the associated element set.
       map.clear();

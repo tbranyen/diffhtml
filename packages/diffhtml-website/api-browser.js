@@ -1,13 +1,13 @@
-import { html, innerHTML, createElement } from 'diffhtml';
+import { use, html, innerHTML, createElement } from 'diffhtml';
+import Component from 'diffhtml-components/lib/component';
 import 'proxy-polyfill/proxy.min';
 import 'whatwg-fetch';
 
 const { highlightAuto } = hljs;
+const $$render = Symbol.for('diff.render');
 
-class ApiBrowser {
+class ApiBrowser extends Component {
   render() {
-    setTimeout(() => this.onRender(), 10);
-
     return this.state.latestStable ? html`
       Stable is ${this.state.latestStable}
 
@@ -112,12 +112,12 @@ class ApiBrowser {
     `;
   }
 
-  constructor(mount) {
-    this.mount = mount;
+  constructor() {
+    super();
 
     const debounce = () => {
       clearTimeout(debounce.timeout);
-      debounce.timeout = setTimeout(() => innerHTML(mount, this.render()), 10);
+      debounce.timeout = setTimeout(() => this[$$render](), 10);
     };
 
     const bindState = { get(o, k) { return o[k]; }, set(o, k, v) { o[k] = v; return !debounce(); } };
@@ -237,10 +237,11 @@ class ApiBrowser {
   }
 }
 
-const browser = new ApiBrowser(document.querySelector('#api-browser'));
+const browser = new ApiBrowser();
 let sem = 0;
 
-browser.onRender = () => {
+use(() => () => {
+  console.log('afterRender');
   sem++;
 
   if (sem !== 2) {
@@ -365,4 +366,8 @@ browser.onRender = () => {
       body.onclick = null;
     };
   };
-};
+});
+
+const mount = document.querySelector('#api-browser');
+console.log(mount);
+innerHTML(mount, html`<${ApiBrowser} />`);

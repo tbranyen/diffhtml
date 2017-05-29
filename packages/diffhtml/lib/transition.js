@@ -1,4 +1,5 @@
-import { TransitionCache } from './util';
+import { TransitionCache } from './util/caches';
+import process from './util/process';
 
 // Available transition states.
 const stateNames = [
@@ -40,7 +41,6 @@ export function removeTransitionState(stateName, callback) {
   }
   // Remove a specific transition callback.
   else if (stateName && callback) {
-
     TransitionCache.get(stateName).delete(callback);
   }
   // Remove all callbacks.

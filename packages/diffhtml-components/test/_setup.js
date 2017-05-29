@@ -1,14 +1,15 @@
-import { jsdom } from 'jsdom';
+const { JSDOM } = require('jsdom-wc');
 
-const instance = jsdom();
-const { defaultView } = instance;
+global.newJSDOMSandbox = () => {
+  const instance = new JSDOM(`<!DOCTYPE html>`);
+  const { window } = instance;
 
-Object.assign(global, {
-  document: defaultView.document,
-  Element: defaultView.Element,
-  HTMLElement: defaultView.HTMLElement,
-  location: defaultView.location,
-  window: defaultView,
-});
+  Object.assign(global, {
+    document: window.document,
+    HTMLElement: window.HTMLElement,
+    customElements: window.customElements,
+    window,
+  });
+}
 
-console.json = (...a) => a.forEach(o => console.log(JSON.stringify(o, null, 2)));
+newJSDOMSandbox();

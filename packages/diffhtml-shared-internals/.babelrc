@@ -1,0 +1,18 @@
+{
+  "env": {
+    "cjs": {
+      "plugins": [
+        "transform-es2015-modules-commonjs",
+        ["module-rewrite", { "replaceFunc": "../../utils/replace-cjs.js" }]
+      ]
+    },
+
+    "es": {
+      "plugins": [
+        "transform-es2015-modules-commonjs",
+        ["module-rewrite", { "replaceFunc": "../../utils/replace-es.js" }]
+      ]
+    }
+  }
+}
+

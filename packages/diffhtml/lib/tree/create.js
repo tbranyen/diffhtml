@@ -1,4 +1,5 @@
-import { NodeCache, MiddlewareCache, Pool } from '../util';
+import { NodeCache, MiddlewareCache } from '../util/caches';
+import Pool from '../util/pool';
 
 const { CreateTreeHookCache } = MiddlewareCache;
 const { assign } = Object;

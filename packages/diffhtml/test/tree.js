@@ -6,7 +6,8 @@ import {
   throws,
   doesNotThrow,
 } from 'assert';
-import { createTree, syncTree } from '../lib/tree';
+import createTree from '../lib/tree/create';
+import syncTree from '../lib/tree/sync';
 import validateMemory from './util/validateMemory';
 
 describe('Tree', function() {

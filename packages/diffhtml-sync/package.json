@@ -1,0 +1,25 @@
+{
+  "name": "diffhtml-sync",
+  "bin": "index.js",
+  "main": ".",
+  "version": "1.0.0-beta",
+  "description": "",
+  "scripts": {
+    "build": "browserify -t babelify sync.js -o dist/sync.js"
+  },
+  "keywords": ["diffhtml", "html", "sync"],
+  "author": "Tim Branyen (@tbranyen)",
+  "license": "MIT",
+  "dependencies": {
+    "chokidar": "^1.6.1",
+    "diffhtml": "1.0.0-beta",
+    "engine.io": "^1.8.1",
+    "express": "^4.14.0"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "^6.18.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.1.1",
+    "engine.io-client": "^1.8.1"
+  }
+}

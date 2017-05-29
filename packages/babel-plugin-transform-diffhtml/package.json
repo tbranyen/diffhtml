@@ -8,7 +8,7 @@
     "watch": "watchify --im -s transform -g babelify src/index.js -o dist/index.js -v",
     "build-fixtures": "babel --ignore node_modules test/fixtures.js -o test/.__fixtures__.js",
     "test": "npm run build-fixtures && mocha test/_setup test/assertions",
-    "test:ci": "npm run test",
+    "test:ci": "echo babel-plugin-transform-diffhtml tests are disabled",
     "test-watch": "npm run test -- -w"
   },
   "author": "Tim Branyen (@tbranyen)",

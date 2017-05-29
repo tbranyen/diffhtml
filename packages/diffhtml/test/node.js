@@ -1,5 +1,6 @@
 import { ok, equal, throws } from 'assert';
-import { createNode, patchNode } from '../lib/node';
+import createNode from '../lib/node/create';
+import patchNode from '../lib/node/patch';
 import html from '../lib/html';
 import validateMemory from './util/validateMemory';
 

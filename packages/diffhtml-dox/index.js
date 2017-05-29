@@ -91,7 +91,7 @@ const getLatestStable = state => {
   state.latestStable = latest.slice('refs/tags/'.length);
   state.version = state.latestStable;
 
-  return state.repo.getReferenceCommit('refs/tags/0.9.1')
+  return state.repo.getReferenceCommit('refs/heads/master')
     .then(commit => {
       return commit.getEntry('lib/index.js').catch(() => {
         return commit.getEntry('packages/diffhtml/lib/index.js');

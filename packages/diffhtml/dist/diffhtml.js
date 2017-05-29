@@ -7,12 +7,6 @@
 // Associates DOM Nodes with state objects.
 const StateCache = new Map();
 
-// Allows VTree's to "point" to other Nodes. Useful for multiple nested mount
-// points (allowing VTrees to be reused). This is also used by Components and
-// potentially other use cases. Must be built into diffHTML for the most
-// seamless integration.
-const TreePointerCache = new Map();
-
 // Associates Virtual Tree Elements with DOM Nodes.
 const NodeCache = new Map();
 
@@ -27,12 +21,68 @@ MiddlewareCache.CreateTreeHookCache = new Set();
 MiddlewareCache.CreateNodeHookCache = new Set();
 MiddlewareCache.SyncTreeHookCache = new Set();
 
+/**
+ * If diffHTML is rendering anywhere asynchronously, we need to wait until it
+ * completes before this render can be executed. This sets up the next
+ * buffer, if necessary, which serves as a Boolean determination later to
+ * `bufferSet`.
+ *
+ * @param {Object} nextTransaction - The Transaction instance to schedule
+ * @return {Boolean} - Value used to terminate a transaction render flow
+ */
+function schedule(transaction) {
+  // The state is a global store which is shared by all like-transactions.
+  const { state } = transaction;
+
+  // If there is an in-flight transaction render happening, push this
+  // transaction into a queue.
+  if (state.isRendering) {
+    // Resolve an existing transaction that we're going to pave over in the
+    // next statement.
+    if (state.nextTransaction) {
+      state.nextTransaction.promises[0].resolve(state.nextTransaction);
+    }
+
+    // Set a pointer to this current transaction to render immediatately after
+    // the current transaction completes.
+    state.nextTransaction = transaction;
+
+    const deferred = {};
+    const resolver = new Promise(resolve => deferred.resolve = resolve);
+
+    resolver.resolve = deferred.resolve;
+    transaction.promises = [resolver];
+
+    return transaction.abort();
+  }
+
+  // Indicate we are now rendering a transaction for this DOM Node.
+  state.isRendering = true;
+}
+
+function shouldUpdate(transaction) {
+  const { markup, state, state: { measure } } = transaction;
+
+  measure('should update');
+
+  // If the contents haven't changed, abort the flow. Only support this if
+  // the new markup is a string, otherwise it's possible for our object
+  // recycling to match twice.
+  if (typeof markup === 'string' && state.markup === markup) {
+    return transaction.abort();
+  } else if (typeof markup === 'string') {
+    state.markup = markup;
+  }
+
+  measure('should update');
+}
+
 // A modest size.
 const size = 10000;
 
 const free = new Set();
 const allocate = new Set();
-const protect$1 = new Set();
+const protect = new Set();
 const shape = () => ({
   rawNodeName: '',
   nodeName: '',
@@ -44,7 +94,7 @@ const shape = () => ({
 });
 
 // Creates a pool to query new or reused values from.
-const memory$1 = { free, allocated: allocate, protected: protect$1 };
+const memory = { free, allocated: allocate, protected: protect };
 
 // Prime the free memory pool with VTrees.
 for (let i = 0; i < size; i++) {
@@ -58,7 +108,7 @@ let freeValues = free.values();
 // Cache VTree objects in a pool which is used to get
 var Pool = {
   size,
-  memory: memory$1,
+  memory,
 
   get() {
     const { value = shape(), done } = freeValues.next();
@@ -76,18 +126,18 @@ var Pool = {
 
   protect(value) {
     allocate.delete(value);
-    protect$1.add(value);
+    protect.add(value);
   },
 
   unprotect(value) {
-    if (protect$1.has(value)) {
-      protect$1.delete(value);
+    if (protect.has(value)) {
+      protect.delete(value);
       free.add(value);
     }
   }
 };
 
-const { memory, protect, unprotect } = Pool;
+const { memory: memory$1, protect: protect$1, unprotect } = Pool;
 
 /**
  * Ensures that an vTree is not recycled during a render cycle.
@@ -96,7 +146,7 @@ const { memory, protect, unprotect } = Pool;
  * @return vTree
  */
 function protectVTree(vTree) {
-  protect(vTree);
+  protect$1(vTree);
 
   for (let i = 0; i < vTree.childNodes.length; i++) {
     protectVTree(vTree.childNodes[i]);
@@ -132,99 +182,17 @@ function cleanMemory(isBusy = false) {
     //return;
   }
 
-  memory.allocated.forEach(vTree => memory.free.add(vTree));
-  memory.allocated.clear();
+  memory$1.allocated.forEach(vTree => memory$1.free.add(vTree));
+  memory$1.allocated.clear();
 
   // Clean out unused elements, if we have any elements cached that no longer
   // have a backing VTree, we can safely remove them from the cache.
   NodeCache.forEach((node, descriptor) => {
-    if (!memory.protected.has(descriptor)) {
+    if (!memory$1.protected.has(descriptor)) {
       NodeCache.delete(descriptor);
     }
   });
 }
-
-// Namespace.
-const namespace = 'http://www.w3.org/2000/svg';
-
-// List of SVG elements.
-const elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
-
-// Support loading diffHTML in non-browser environments.
-const g = typeof global === 'object' ? global : window;
-const element$1 = g.document ? document.createElement('div') : null;
-
-/**
- * Decodes HTML strings.
- *
- * @see http://stackoverflow.com/a/5796718
- * @param string
- * @return unescaped HTML
- */
-function decodeEntities(string) {
-  // If there are no HTML entities, we can safely pass the string through.
-  if (!element$1 || !string || !string.indexOf || !string.includes('&')) {
-    return string;
-  }
-
-  element$1.innerHTML = string;
-  return element$1.textContent;
-}
-
-/**
- * Tiny HTML escaping function, useful to protect against things like XSS and
- * unintentionally breaking attributes with quotes.
- *
- * @param {String} unescaped - An HTML value, unescaped
- * @return {String} - An HTML-safe string
- */
-function escape(unescaped) {
-  return unescaped.replace(/[&<>]/g, match => `&#${match.charCodeAt(0)};`);
-}
-
-const marks = new Map();
-const prefix = 'diffHTML';
-const DIFF_PERF = 'diff_perf';
-
-const hasSearch = typeof location !== 'undefined';
-const hasArguments = typeof process !== 'undefined' && process.argv;
-const nop = () => {};
-
-var makeMeasure = ((domNode, vTree) => {
-  // Check for these changes on every check.
-  const wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
-  const wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
-  const wantsPerfChecks = wantsSearch || wantsArguments;
-
-  // If the user has not requested they want perf checks, return a nop
-  // function.
-  if (!wantsPerfChecks) {
-    return nop;
-  }
-
-  return name => {
-    // Use the Web Component name if it's available.
-    if (domNode && domNode.host) {
-      name = `${domNode.host.constructor.name} ${name}`;
-    } else if (typeof vTree.rawNodeName === 'function') {
-      name = `${vTree.rawNodeName.name} ${name}`;
-    }
-
-    const endName = `${name}-end`;
-
-    if (!marks.has(name)) {
-      marks.set(name, performance.now());
-      performance.mark(name);
-    } else {
-      const totalMs = (performance.now() - marks.get(name)).toFixed(3);
-
-      marks.delete(name);
-
-      performance.mark(endName);
-      performance.measure(`${prefix} ${name} (${totalMs}ms)`, name, endName);
-    }
-  };
-});
 
 const { CreateTreeHookCache } = MiddlewareCache;
 const { isArray } = Array;
@@ -770,81 +738,6 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
   return root;
 }
 
-
-
-var internals = Object.freeze({
-	StateCache: StateCache,
-	NodeCache: NodeCache,
-	MiddlewareCache: MiddlewareCache,
-	TransitionCache: TransitionCache,
-	protectVTree: protectVTree,
-	unprotectVTree: unprotectVTree,
-	cleanMemory: cleanMemory,
-	namespace: namespace,
-	elements: elements,
-	decodeEntities: decodeEntities,
-	escape: escape,
-	makeMeasure: makeMeasure,
-	Pool: Pool,
-	parse: parse
-});
-
-/**
- * If diffHTML is rendering anywhere asynchronously, we need to wait until it
- * completes before this render can be executed. This sets up the next
- * buffer, if necessary, which serves as a Boolean determination later to
- * `bufferSet`.
- *
- * @param {Object} nextTransaction - The Transaction instance to schedule
- * @return {Boolean} - Value used to terminate a transaction render flow
- */
-function schedule(transaction) {
-  // The state is a global store which is shared by all like-transactions.
-  const { state } = transaction;
-
-  // If there is an in-flight transaction render happening, push this
-  // transaction into a queue.
-  if (state.isRendering) {
-    // Resolve an existing transaction that we're going to pave over in the
-    // next statement.
-    if (state.nextTransaction) {
-      state.nextTransaction.promises[0].resolve(state.nextTransaction);
-    }
-
-    // Set a pointer to this current transaction to render immediatately after
-    // the current transaction completes.
-    state.nextTransaction = transaction;
-
-    const deferred = {};
-    const resolver = new Promise(resolve => deferred.resolve = resolve);
-
-    resolver.resolve = deferred.resolve;
-    transaction.promises = [resolver];
-
-    return transaction.abort();
-  }
-
-  // Indicate we are now rendering a transaction for this DOM Node.
-  state.isRendering = true;
-}
-
-function shouldUpdate(transaction) {
-  const { markup, state, state: { measure } } = transaction;
-
-  measure('should update');
-
-  // If the contents haven't changed, abort the flow. Only support this if
-  // the new markup is a string, otherwise it's possible for our object
-  // recycling to match twice.
-  if (typeof markup === 'string' && state.markup === markup) {
-    return transaction.abort();
-  } else if (typeof markup === 'string') {
-    state.markup = markup;
-  }
-
-  measure('should update');
-}
-
 function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
   const { previousMarkup, measure } = state;
@@ -894,6 +787,15 @@ function reconcileTrees(transaction) {
   measure('reconcile trees');
 }
 
+const normalize = typeof process !== 'undefined' ? process : {
+  env: { NODE_ENV: 'development' }
+};
+
+var process$1 = Object.defineProperty({}, 'env', {
+  enumerable: true,
+  get: () => normalize.env
+});
+
 const { SyncTreeHookCache } = MiddlewareCache;
 const empty = {};
 const keyNames = ['old', 'new'];
@@ -901,11 +803,6 @@ const keyNames = ['old', 'new'];
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
 function syncTree(oldTree, newTree, patches) {
-  // Allow a pointer to be set to a different render tree.
-  if (TreePointerCache.has(oldTree)) {
-    oldTree = TreePointerCache.get(oldTree);
-  }
-
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 
@@ -917,7 +814,7 @@ function syncTree(oldTree, newTree, patches) {
   // Reuse these maps, it's more efficient to clear them than to re-create.
   const keysLookup = { old: new Map(), new: new Map() };
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (process$1.env.NODE_ENV !== 'production') {
     if (newTree === empty) {
       throw new Error('Missing new Virtual Tree to sync changes from');
     }
@@ -941,7 +838,7 @@ function syncTree(oldTree, newTree, patches) {
         if (vTree.key) {
           map.set(vTree.key, vTree);
         } else if (map.size && vTree.nodeType === 1) {
-          if (process.env.NODE_ENV !== 'production') {
+          if (process$1.env.NODE_ENV !== 'production') {
             throw new Error(`Missing \`key\` all siblings must supply this attribute.
 
 Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
@@ -957,6 +854,9 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
   SyncTreeHookCache.forEach((fn, retVal) => {
     if (retVal = fn(oldTree, newTree, null)) {
       newTree = retVal;
+
+      // Find attributes.
+      syncTree(null, retVal, patches);
     }
 
     for (let i = 0; i < newTree.childNodes.length; i++) {
@@ -1040,19 +940,16 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
     }
   }
 
-  // If there was no `oldTree` provided, we have sync'd all the attributes and
-  // the node value of the `newTree` so we can early abort and not worry about
-  // tree operations.
-  if (isEmpty) {
-    return patches;
-  }
-
   // If we somehow end up comparing two totally different kinds of elements,
   // we'll want to raise an error to let the user know something is wrong.
-  if (process.env.NODE_ENV !== 'production') {
-    if (oldNodeName !== newNodeName && !isFragment) {
+  if (process$1.env.NODE_ENV !== 'production') {
+    if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
       throw new Error(`Sync failure, cannot compare ${newNodeName} with ${oldNodeName}`);
     }
+  }
+
+  if (isEmpty) {
+    return patches;
   }
 
   const oldChildNodes = oldTree.childNodes;
@@ -1133,13 +1030,17 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
   else {
       // Do a single pass over the new child nodes.
       for (let i = 0; i < newChildNodes.length; i++) {
-        const oldChildNode = oldChildNodes[i];
+        const oldChildNode = oldChildNodes && oldChildNodes[i];
         const newChildNode = newChildNodes[i];
 
         // If there is no old element to compare to, this is a simple addition.
         if (!oldChildNode) {
           INSERT_BEFORE.push(oldTree, newChildNode, null);
-          oldChildNodes.push(newChildNode);
+
+          if (oldChildNodes) {
+            oldChildNodes.push(newChildNode);
+          }
+
           syncTree(null, newChildNode, patches);
           continue;
         }
@@ -1156,6 +1057,13 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
         syncTree(oldChildNode, newChildNode, patches);
       }
     }
+
+  // If there was no `oldTree` provided, we have sync'd all the attributes and
+  // the node value of the `newTree` so we can early abort and not worry about
+  // tree operations.
+  if (isEmpty) {
+    return patches;
+  }
 
   // We've reconciled new changes, so we can remove any old nodes and adjust
   // lengths to be equal.
@@ -1187,6 +1095,12 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
   return patches;
 }
 
+// Namespace.
+const namespace = 'http://www.w3.org/2000/svg';
+
+// List of SVG elements.
+const elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
+
 const { CreateNodeHookCache } = MiddlewareCache;
 
 /**
@@ -1199,7 +1113,7 @@ const { CreateNodeHookCache } = MiddlewareCache;
  * @return {Object} - A DOM Node matching the vTree
  */
 function createNode(vTree, ownerDocument = document) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process$1.env.NODE_ENV !== 'production') {
     if (!vTree) {
       throw new Error('Missing VTree when trying to create DOM Node');
     }
@@ -1299,7 +1213,7 @@ const stateNames = ['attached', 'detached', 'replaced', 'attributeChanged', 'tex
 stateNames.forEach(stateName => TransitionCache.set(stateName, new Set()));
 
 function addTransitionState(stateName, callback) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process$1.env.NODE_ENV !== 'production') {
     if (!stateName || !stateNames.includes(stateName)) {
       throw new Error(`Invalid state name '${stateName}'`);
     }
@@ -1313,7 +1227,7 @@ function addTransitionState(stateName, callback) {
 }
 
 function removeTransitionState(stateName, callback) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process$1.env.NODE_ENV !== 'production') {
     // Only validate the stateName if the caller provides one.
     if (stateName && !stateNames.includes(stateName)) {
       throw new Error(`Invalid state name '${stateName}'`);
@@ -1326,7 +1240,6 @@ function removeTransitionState(stateName, callback) {
   }
   // Remove a specific transition callback.
   else if (stateName && callback) {
-
       TransitionCache.get(stateName).delete(callback);
     }
     // Remove all callbacks.
@@ -1371,6 +1284,38 @@ function runTransitions(setName, ...args) {
   return promises;
 }
 
+// Support loading diffHTML in non-browser environments.
+const g = typeof global === 'object' ? global : window;
+const element = g.document ? document.createElement('div') : null;
+
+/**
+ * Decodes HTML strings.
+ *
+ * @see http://stackoverflow.com/a/5796718
+ * @param string
+ * @return unescaped HTML
+ */
+function decodeEntities(string) {
+  // If there are no HTML entities, we can safely pass the string through.
+  if (!element || !string || !string.indexOf || !string.includes('&')) {
+    return string;
+  }
+
+  element.innerHTML = string;
+  return element.textContent;
+}
+
+/**
+ * Tiny HTML escaping function, useful to protect against things like XSS and
+ * unintentionally breaking attributes with quotes.
+ *
+ * @param {String} unescaped - An HTML value, unescaped
+ * @return {String} - An HTML-safe string
+ */
+function escape(unescaped) {
+  return unescaped.replace(/[&<>]/g, match => `&#${match.charCodeAt(0)};`);
+}
+
 const blockText$1 = new Set(['script', 'noscript', 'style', 'code', 'template']);
 
 const removeAttribute = (domNode, name) => {
@@ -1381,7 +1326,7 @@ const removeAttribute = (domNode, name) => {
   }
 };
 
-function patchNode$$1(patches) {
+function patchNode(patches) {
   const promises = [];
   const { TREE_OPS, NODE_VALUE, SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
 
@@ -1601,7 +1546,7 @@ function patch(transaction) {
   const { promises = [] } = transaction;
 
   measure('patch node');
-  promises.push(...patchNode$$1(patches, state));
+  promises.push(...patchNode(patches, state));
   measure('patch node');
 
   transaction.promises = promises;
@@ -1625,15 +1570,48 @@ function endAsPromise(transaction) {
   }
 }
 
+const marks = new Map();
+const prefix = 'diffHTML';
+const DIFF_PERF = 'diff_perf';
 
+const hasSearch = typeof location !== 'undefined';
+const hasArguments = typeof process !== 'undefined' && process.argv;
+const nop = () => {};
 
-var tasks = Object.freeze({
-	schedule: schedule,
-	shouldUpdate: shouldUpdate,
-	reconcileTrees: reconcileTrees,
-	syncTrees: syncTrees,
-	patchNode: patch,
-	endAsPromise: endAsPromise
+var makeMeasure = ((domNode, vTree) => {
+  // Check for these changes on every check.
+  const wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
+  const wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
+  const wantsPerfChecks = wantsSearch || wantsArguments;
+
+  // If the user has not requested they want perf checks, return a nop
+  // function.
+  if (!wantsPerfChecks) {
+    return nop;
+  }
+
+  return name => {
+    // Use the Web Component name if it's available.
+    if (domNode && domNode.host) {
+      name = `${domNode.host.constructor.name} ${name}`;
+    } else if (typeof vTree.rawNodeName === 'function') {
+      name = `${vTree.rawNodeName.name} ${name}`;
+    }
+
+    const endName = `${name}-end`;
+
+    if (!marks.has(name)) {
+      marks.set(name, performance.now());
+      performance.mark(name);
+    } else {
+      const totalMs = (performance.now() - marks.get(name)).toFixed(3);
+
+      marks.delete(name);
+
+      performance.mark(endName);
+      performance.measure(`${prefix} ${name} (${totalMs}ms)`, name, endName);
+    }
+  };
 });
 
 class Transaction {
@@ -1694,7 +1672,7 @@ class Transaction {
   }
 
   static assert(transaction) {
-    if (process.env.NODE_ENV !== 'production') {
+    if (process$1.env.NODE_ENV !== 'production') {
       if (typeof transaction.domNode !== 'object') {
         throw new Error('Transaction requires a DOM Node mount point');
       }
@@ -1730,8 +1708,7 @@ class Transaction {
     this.options = options;
 
     this.state = StateCache.get(domNode) || {
-      measure: makeMeasure(domNode, markup),
-      internals
+      measure: makeMeasure(domNode, markup)
     };
 
     this.tasks = options.tasks || [schedule, shouldUpdate, reconcileTrees, syncTrees, patch, endAsPromise];
@@ -1743,7 +1720,7 @@ class Transaction {
   }
 
   start() {
-    if (process.env.NODE_ENV !== 'production') {
+    if (process$1.env.NODE_ENV !== 'production') {
       Transaction.assert(this);
     }
 
@@ -1847,7 +1824,7 @@ function handleTaggedTemplate(strings, ...values) {
   }
 
   // Used to store markup and tokens.
-  let retVal = '';
+  let HTML = '';
 
   // We filter the supplemental values by where they are used. Values are
   // either, children, or tags (for components).
@@ -1864,7 +1841,7 @@ function handleTaggedTemplate(strings, ...values) {
   // that the parser then uses to assemble the correct tree.
   strings.forEach((string, i) => {
     // Always add the string, we need it to parse the markup later.
-    retVal += string;
+    HTML += string;
 
     // If there are values, figure out where in the markup they were injected.
     // This is most likely incomplete code, and will need to be improved in the
@@ -1873,7 +1850,7 @@ function handleTaggedTemplate(strings, ...values) {
       const value = nextValue(values);
       const lastSegment = string.split(' ').pop();
       const lastCharacter = lastSegment.trim().slice(-1);
-      const isAttribute = Boolean(retVal.match(isAttributeEx));
+      const isAttribute = Boolean(HTML.match(isAttributeEx));
       const isTag = Boolean(lastCharacter.match(isTagEx));
       const isString = typeof value === 'string';
       const isObject = typeof value === 'object';
@@ -1883,28 +1860,28 @@ function handleTaggedTemplate(strings, ...values) {
       // Injected as attribute.
       if (isAttribute) {
         supplemental.attributes[i] = value;
-        retVal += token;
+        HTML += token;
       }
       // Injected as a tag.
       else if (isTag && !isString) {
           supplemental.tags[i] = value;
-          retVal += token;
+          HTML += token;
         }
         // Injected as a child node.
         else if (isArray || isObject) {
             supplemental.children[i] = createTree(value);
-            retVal += token;
+            HTML += token;
           }
           // Injected as something else in the markup or undefined, ignore
           // obviously falsy values used with boolean operators.
           else if (value) {
-              retVal += value;
+              HTML += value;
             }
     }
   });
 
   // Parse the instrumented markup to get the Virtual Tree.
-  const childNodes = parse(retVal, supplemental).childNodes;
+  const childNodes = parse(HTML, supplemental).childNodes;
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
@@ -1934,7 +1911,7 @@ const {
 } = MiddlewareCache;
 
 function use(middleware) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process$1.env.NODE_ENV !== 'production') {
     if (typeof middleware !== 'function') {
       throw new Error('Middleware must be a function');
     }
@@ -2080,9 +2057,11 @@ function use(middleware) {
  * @param {Function} middleware - A function that gets passed internals
  * @return Function - When invoked removes and deactivates the middleware
  */
+const tasks = [schedule, shouldUpdate, reconcileTrees, syncTrees, patch, endAsPromise];
+
 /**
- * Export the version based on the package.json version field value, is inlined
- * with babel.
+ * Export the version based on the package.json version field value, no longer
+ * inlined with babel, due to ES Modules support.
  */
 const VERSION = '1.0.0-beta';
 
@@ -2104,9 +2083,10 @@ const VERSION = '1.0.0-beta';
  * @param {String|Object} markup='' - A string of markup or virtual tree
  * @param {Object =} options={} - An object containing configuration options
  */
-function outerHTML(element, markup = '', options = {}) {
+function outerHTML(domNode, markup = '', options = {}) {
   options.inner = false;
-  return Transaction.create(element, markup, options).start();
+  //options.tasks = options.tasks || tasks;
+  return Transaction.create(domNode, markup, options).start();
 }
 
 /**
@@ -2123,22 +2103,19 @@ function outerHTML(element, markup = '', options = {}) {
  *    innerHTML(document.body, 'Hello world');
  *
  *
- * @param {Object} element - A DOM Node to render into
+ * @param {Object} domNode - A DOM Node to render into
  * @param {String|Object} markup='' - A string of markup or virtual tree
  * @param {Object =} options={} - An object containing configuration options
  */
-function innerHTML(element, markup = '', options = {}) {
+function innerHTML(domNode, markup = '', options = {}) {
   options.inner = true;
-  return Transaction.create(element, markup, options).start();
-}
-
-function element(element, markup = '', options = {}) {
-  return Transaction.create(element, markup, options).start();
+  //options.tasks = options.tasks || tasks;
+  return Transaction.create(domNode, markup, options).start();
 }
 
 // Public API. Passed to subscribed middleware.
 const diff = {
-  VERSION: '1.0.0-beta',
+  VERSION,
   addTransitionState,
   removeTransitionState,
   release,
@@ -2147,7 +2124,6 @@ const diff = {
   outerHTML,
   innerHTML,
   html: handleTaggedTemplate,
-  internals,
   tasks
 };
 
@@ -2162,7 +2138,7 @@ if (typeof devTools === 'function') {
   console.info('diffHTML DevTools Found and Activated...');
 }
 
-exports.__VERSION__ = VERSION;
+exports.VERSION = VERSION;
 exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
 exports.release = release;
@@ -2171,7 +2147,6 @@ exports.createElement = createTree;
 exports.use = use;
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
-exports.element = element;
 exports.html = handleTaggedTemplate;
 exports['default'] = diff;
 

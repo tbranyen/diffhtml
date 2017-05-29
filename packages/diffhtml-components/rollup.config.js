@@ -8,7 +8,7 @@ export const entry = 'lib/index.js';
 export const sourceMap = false;
 export const moduleName = 'components';
 export const targets = [{ dest: 'dist/components.js', format: 'umd' }];
-export const globals = { diffhtml: 'diff', proptypes: 'PropTypes' };
+export const globals = { diffhtml: 'diff' };
 export const external = 'diffhtml';
 export const plugins = [
   babel(),
