@@ -19,7 +19,6 @@
     },
     "test": {
       "presets": ["es2015"],
-      "plugins": ["version-inline"],
       "retainLines": true
     },
     "test+cov": {
