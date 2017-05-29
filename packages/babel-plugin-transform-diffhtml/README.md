@@ -1,13 +1,10 @@
-# diffHTML Babel Plugin
+diffHTML Transform Babel Plugin
+-------------------------------
 
-Latest stable version: 1.0.0-rc.4
-
-[![Build Status](https://travis-ci.org/tbranyen/transform-tagged-diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/transform-tagged-diffhtml)
-
-> Plugin for babel 6.x to enable tagged template compilation for diffHTML
+Stable Version: 1.0.0-beta
 
 This plugin transforms tagged template strings in your projects to
-[diffHTML](https://github.com/tbranyen/diffhtml) Virtual Tree's. 
+[diffHTML](https://github.com/tbranyen/diffhtml) Virtual Trees. 
 
 **Note!* This plugin has been built for use in Babel 6.x environments, and will
 not work with Babel 5.x ( *deprecated*) or older versions.**
@@ -15,7 +12,7 @@ not work with Babel 5.x ( *deprecated*) or older versions.**
 ### How to install
 
 ``` javascript
-npm i --save-dev diffhtml transform-tagged-diffhtml
+npm i --save-dev babel-plugin-transform-diffhtml
 ```
 
 ### How to use
@@ -33,7 +30,7 @@ Example on a `.babelrc` file that will work with diffHTML:
 
 ``` javascript
 {   
-  "plugins": ["transform-tagged-diffhtml"]
+  "plugins": ["transform-diffhtml"]
 }
 ```
 
@@ -56,7 +53,6 @@ Then compile it:
 ``` sh
 babel view.js -o view.es5.js
 ```
-
 
 ### Specifying options
 
