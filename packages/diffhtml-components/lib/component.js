@@ -1,4 +1,5 @@
 import { use, innerHTML, outerHTML } from 'diffhtml';
+import checkPropTypes from 'prop-types/checkPropTypes';
 import { NodeCache } from 'diffhtml-shared-internals/lib/caches';
 import process from 'diffhtml-shared-internals/lib/process';
 import reactLikeComponentTask from './tasks/react-like-component';
@@ -44,10 +45,8 @@ export default upgradeSharedClass(class Component {
     });
 
     if (process.env.NODE_ENV !== 'production') {
-      keys(propTypes).forEach(prop => {
-        const err = propTypes[prop](props, prop, name, 'prop');
-        if (err) { throw err; }
-      });
+      const err = checkPropTypes(propTypes, props, 'prop', name);
+      if (err) { throw err; }
     }
 
     keys(childContextTypes).forEach(prop => {

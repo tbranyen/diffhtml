@@ -1,13 +1,7 @@
-import { jsdom } from 'jsdom';
-
-const instance = jsdom();
-const { defaultView } = instance;
+const { JSDOM } = require('jsdom-wc');
+const { window } = new JSDOM('<!doctype html>');
 
 Object.assign(global, {
-  document: defaultView.document,
-  Element: defaultView.Element,
-  location: defaultView.location,
-  window: defaultView,
+  document: window.document,
+  window,
 });
-
-console.json = (...a) => a.forEach(o => console.log(JSON.stringify(o, null, 2)));

@@ -13,7 +13,7 @@ Assuming you want to install the latest version of diffHTML with the
 prollyfill:
 
 ``` sh
-npm install diffhtml@latest diffhtml-prollyfill
+npm install diffhtml diffhtml-prollyfill
 ```
 
 This architecture makes it easy to swap out versions of diffHTML to use with

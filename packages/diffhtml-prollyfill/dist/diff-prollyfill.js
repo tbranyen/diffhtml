@@ -25,6 +25,8 @@ Object.keys(_diffhtml).forEach(function (key) {
  * benefit from the performance gains of DOM diffing.
  */
 function enableProllyfill() {
+  var _this = this;
+
   // Exposes the `html` tagged template helper globally so that developers
   // can trivially craft VDOMs.
   Object.defineProperty(window, 'diffHTML', {
@@ -43,7 +45,7 @@ function enableProllyfill() {
   Object.defineProperty(document, 'createTreeElement', {
     configurable: true,
     value: function value(nodeName, attributes, childNodes) {
-      return (0, _diffhtml.createElement)(nodeName, attributes, childNodes);
+      return createElement(nodeName, attributes, childNodes);
     }
   });
 
@@ -51,7 +53,7 @@ function enableProllyfill() {
   Object.defineProperty(document, 'addTransitionState', {
     configurable: true,
     value: function value(state, callback) {
-      (0, _diffhtml.addTransitionState)(state, callback);
+      return (0, _diffhtml.addTransitionState)(state, callback);
     }
   });
 
@@ -59,7 +61,7 @@ function enableProllyfill() {
   Object.defineProperty(document, 'removeTransitionState', {
     configurable: true,
     value: function value(state, callback) {
-      (0, _diffhtml.removeTransitionState)(state, callback);
+      return (0, _diffhtml.removeTransitionState)(state, callback);
     }
   });
 
@@ -73,7 +75,7 @@ function enableProllyfill() {
     Object.defineProperty(Ctor.prototype, 'diffInnerHTML', {
       configurable: true,
       set: function set(newHTML) {
-        (0, _diffhtml.innerHTML)(this, newHTML);
+        return (0, _diffhtml.innerHTML)(_this, newHTML);
       }
     });
 
@@ -81,15 +83,7 @@ function enableProllyfill() {
     Object.defineProperty(Ctor.prototype, 'diffOuterHTML', {
       configurable: true,
       set: function set(newHTML) {
-        (0, _diffhtml.outerHTML)(this, newHTML);
-      }
-    });
-
-    // Allows a developer to diff the current element with a new element.
-    Object.defineProperty(Ctor.prototype, 'diffElement', {
-      configurable: true,
-      value: function value(newElement, options) {
-        (0, _diffhtml.element)(this, newElement, options);
+        return (0, _diffhtml.outerHTML)(_this, newHTML);
       }
     });
 
@@ -97,7 +91,7 @@ function enableProllyfill() {
     Object.defineProperty(Ctor.prototype, 'diffRelease', {
       configurable: true,
       value: function value() {
-        (0, _diffhtml.releaseNode)(this);
+        return (0, _diffhtml.release)(_this);
       }
     });
   });

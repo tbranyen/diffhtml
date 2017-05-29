@@ -1,4 +1,4 @@
-import parse from 'diffhtml/dist/cjs/util/parser';
+import parse from 'diffhtml/lib/util/parser';
 import * as babylon from 'babylon';
 import Global from './global';
 

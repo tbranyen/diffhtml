@@ -4639,7 +4639,7 @@ function handleTaggedTemplate(strings, ...values) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.html = exports.innerHTML = exports.outerHTML = exports.use = exports.createElement = exports.createTree = exports.release = exports.removeTransitionState = exports.addTransitionState = exports.VERSION = undefined;
+exports.html = exports.innerHTML = exports.outerHTML = exports.use = exports.createTree = exports.release = exports.removeTransitionState = exports.addTransitionState = exports.VERSION = undefined;
 
 var _create = require('./tree/create');
 
@@ -4731,7 +4731,6 @@ exports.addTransitionState = _transition.addTransitionState;
 exports.removeTransitionState = _transition.removeTransitionState;
 exports.release = _release2.default;
 exports.createTree = _create2.default;
-exports.createElement = _create2.default;
 exports.use = _use2.default;
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
@@ -4752,7 +4751,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = tasks => function innerHTML(element, markup = '', options = {}) {
   options.inner = true;
-  options.tasks = options.tasks || tasks;
+  options.tasks = [].concat(options.tasks || tasks);
   return _transaction2.default.create(element, markup, options).start();
 };
 },{"./transaction":47}],37:[function(require,module,exports){
@@ -5107,7 +5106,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = tasks => function outerHTML(element, markup = '', options = {}) {
   options.inner = false;
-  options.tasks = options.tasks || tasks;
+  options.tasks = options.tasks || [...tasks];
   return _transaction2.default.create(element, markup, options).start();
 };
 },{"./transaction":47}],40:[function(require,module,exports){

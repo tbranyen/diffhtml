@@ -3,12 +3,10 @@ import {
   use,
   addTransitionState,
   removeTransitionState,
-  createElement,
-  createAttribute,
+  createTree,
   innerHTML,
   outerHTML,
-  element,
-  releaseNode,
+  release,
 } from 'diffhtml';
 
 /**
@@ -21,14 +19,14 @@ export function enableProllyfill() {
   // can trivially craft VDOMs.
   Object.defineProperty(window, 'diffHTML', {
     configurable: true,
-    value: html
+    value: html,
   });
 
   // Exposes the `html` tagged template helper globally so that developers
   // can trivially craft VDOMs.
   Object.defineProperty(window, 'diffUse', {
     configurable: true,
-    value: use
+    value: use,
   });
 
   // Allows a developer to create Virtual Tree Elements.
@@ -42,13 +40,13 @@ export function enableProllyfill() {
   // Allows a developer to add transition state callbacks.
   Object.defineProperty(document, 'addTransitionState', {
     configurable: true,
-    value(state, callback) { addTransitionState(state, callback); }
+    value: (state, callback) => addTransitionState(state, callback),
   });
 
   // Allows a developer to remove transition state callbacks.
   Object.defineProperty(document, 'removeTransitionState', {
     configurable: true,
-    value(state, callback) { removeTransitionState(state, callback); }
+    value: (state, callback) => removeTransitionState(state, callback),
   });
 
   // Look for the following constructors and filter down to as many valid as
@@ -65,25 +63,19 @@ export function enableProllyfill() {
   constructors.forEach(Ctor => {
     Object.defineProperty(Ctor.prototype, 'diffInnerHTML', {
       configurable: true,
-      set(newHTML) { innerHTML(this, newHTML); }
+      set: newHTML => innerHTML(this, newHTML),
     });
 
     // Allows a developer to set the `outerHTML` of an element.
     Object.defineProperty(Ctor.prototype, 'diffOuterHTML', {
       configurable: true,
-      set(newHTML) { outerHTML(this, newHTML); }
-    });
-
-    // Allows a developer to diff the current element with a new element.
-    Object.defineProperty(Ctor.prototype, 'diffElement', {
-      configurable: true,
-      value(newElement, options) { element(this, newElement, options); }
+      set: newHTML => outerHTML(this, newHTML),
     });
 
     // Releases the retained memory.
     Object.defineProperty(Ctor.prototype, 'diffRelease', {
       configurable: true,
-      value() { releaseNode(this); }
+      value: () => release(this),
     });
   });
 }

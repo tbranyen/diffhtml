@@ -1797,13 +1797,13 @@ class Transaction {
 
 var bindInnerHTML = (tasks => function innerHTML(element, markup = '', options = {}) {
   options.inner = true;
-  options.tasks = options.tasks || tasks;
+  options.tasks = [].concat(options.tasks || tasks);
   return Transaction.create(element, markup, options).start();
 });
 
 var bindOuterHTML = (tasks => function outerHTML(element, markup = '', options = {}) {
   options.inner = false;
-  options.tasks = options.tasks || tasks;
+  options.tasks = options.tasks || [...tasks];
   return Transaction.create(element, markup, options).start();
 });
 
@@ -2004,7 +2004,6 @@ exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
 exports.release = release;
 exports.createTree = createTree;
-exports.createElement = createTree;
 exports.use = use;
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;

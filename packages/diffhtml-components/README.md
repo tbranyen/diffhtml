@@ -18,6 +18,12 @@ Before you can use this module, you will need to have diffHTML loaded first.
 This component simply provides the `Component` and `WebComponent` classes that
 help you create Virtual Trees.
 
+##### PropTypes
+
+The PropTypes package has been extracted out of React and Preact into separate
+standalone bundles. Preact: (`npm i proptypes`) and React (`npm i prop-types`).
+Both are compatible with these components.
+
 ##### Examples
 
 **React Like**
@@ -29,7 +35,7 @@ some components.
 ``` js
 import { html, innerHTML } from 'diffhtml';
 import Component from 'diffhtml-components/lib/component';
-import PropTypes from 'proptypes';
+import PropTypes from 'prop-types';
 
 class SimpleClock extends Component {
   render() {
@@ -67,7 +73,7 @@ Will only work in browsers that support v1 Web Components spec:
 ``` js
 import { html, innerHTML } from 'diffhtml';
 import WebComponent from 'diffhtml-components/lib/web-component';
-import PropTypes from 'proptypes';
+import PropTypes from 'prop-types';
 
 class SimpleClock extends WebComponent {
   render() {

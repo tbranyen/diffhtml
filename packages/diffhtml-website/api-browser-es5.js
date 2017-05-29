@@ -8,6 +8,10 @@ Object.defineProperty(exports, "__esModule", {
 
 var _diffhtml = require('diffhtml');
 
+var _checkPropTypes = require('prop-types/checkPropTypes');
+
+var _checkPropTypes2 = _interopRequireDefault(_checkPropTypes);
+
 var _caches = require('diffhtml-shared-internals/dist/cjs/caches');
 
 var _process = require('diffhtml-shared-internals/dist/cjs/process');
@@ -66,12 +70,10 @@ exports.default = (0, _upgradeSharedClass2.default)(class Component {
     });
 
     if (_process2.default.env.NODE_ENV !== 'production') {
-      keys(propTypes).forEach(prop => {
-        const err = propTypes[prop](props, prop, name, 'prop');
-        if (err) {
-          throw err;
-        }
-      });
+      const err = (0, _checkPropTypes2.default)(propTypes, props, 'prop', name);
+      if (err) {
+        throw err;
+      }
     }
 
     keys(childContextTypes).forEach(prop => {
@@ -108,7 +110,7 @@ exports.default = (0, _upgradeSharedClass2.default)(class Component {
   }
 });
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./shared/upgrade-shared-class":5,"./tasks/react-like-component":6,"./util/caches":7,"./util/symbols":8,"diffhtml":16,"diffhtml-shared-internals/dist/cjs/caches":9,"diffhtml-shared-internals/dist/cjs/process":10}],2:[function(require,module,exports){
+},{"./shared/upgrade-shared-class":5,"./tasks/react-like-component":6,"./util/caches":7,"./util/symbols":8,"diffhtml":21,"diffhtml-shared-internals/dist/cjs/caches":14,"diffhtml-shared-internals/dist/cjs/process":15,"prop-types/checkPropTypes":12}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -331,7 +333,7 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
     }
   }
 };
-},{"../util/caches":7,"diffhtml-shared-internals/dist/cjs/caches":9,"diffhtml/dist/cjs/tree/create":30}],7:[function(require,module,exports){
+},{"../util/caches":7,"diffhtml-shared-internals/dist/cjs/caches":14,"diffhtml/dist/cjs/tree/create":35}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -347,6 +349,247 @@ Object.defineProperty(exports, "__esModule", {
 });
 const $$render = exports.$$render = Symbol('diff.render');
 },{}],9:[function(require,module,exports){
+"use strict";
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * 
+ */
+
+function makeEmptyFunction(arg) {
+  return function () {
+    return arg;
+  };
+}
+
+/**
+ * This function accepts and discards inputs; it has no side effects. This is
+ * primarily useful idiomatically for overridable function endpoints which
+ * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
+ */
+var emptyFunction = function emptyFunction() {};
+
+emptyFunction.thatReturns = makeEmptyFunction;
+emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
+emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
+emptyFunction.thatReturnsNull = makeEmptyFunction(null);
+emptyFunction.thatReturnsThis = function () {
+  return this;
+};
+emptyFunction.thatReturnsArgument = function (arg) {
+  return arg;
+};
+
+module.exports = emptyFunction;
+},{}],10:[function(require,module,exports){
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+'use strict';
+
+/**
+ * Use invariant() to assert state which your program assumes to be true.
+ *
+ * Provide sprintf-style format (only %s is supported) and arguments
+ * to provide information about what broke and what you were
+ * expecting.
+ *
+ * The invariant message will be stripped in production, but the invariant
+ * will remain to ensure logic does not differ in production.
+ */
+
+var validateFormat = function validateFormat(format) {};
+
+if ("development" !== 'production') {
+  validateFormat = function validateFormat(format) {
+    if (format === undefined) {
+      throw new Error('invariant requires an error message argument');
+    }
+  };
+}
+
+function invariant(condition, format, a, b, c, d, e, f) {
+  validateFormat(format);
+
+  if (!condition) {
+    var error;
+    if (format === undefined) {
+      error = new Error('Minified exception occurred; use the non-minified dev environment ' + 'for the full error message and additional helpful warnings.');
+    } else {
+      var args = [a, b, c, d, e, f];
+      var argIndex = 0;
+      error = new Error(format.replace(/%s/g, function () {
+        return args[argIndex++];
+      }));
+      error.name = 'Invariant Violation';
+    }
+
+    error.framesToPop = 1; // we don't care about invariant's own frame
+    throw error;
+  }
+}
+
+module.exports = invariant;
+},{}],11:[function(require,module,exports){
+/**
+ * Copyright 2014-2015, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+'use strict';
+
+var emptyFunction = require('./emptyFunction');
+
+/**
+ * Similar to invariant but only logs a warning if the condition is not met.
+ * This can be used to log issues in development environments in critical
+ * paths. Removing the logging code for production environments will keep the
+ * same logic and follow the same code paths.
+ */
+
+var warning = emptyFunction;
+
+if ("development" !== 'production') {
+  (function () {
+    var printWarning = function printWarning(format) {
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      var argIndex = 0;
+      var message = 'Warning: ' + format.replace(/%s/g, function () {
+        return args[argIndex++];
+      });
+      if (typeof console !== 'undefined') {
+        console.error(message);
+      }
+      try {
+        // --- Welcome to debugging React ---
+        // This error was thrown as a convenience so that you can use this stack
+        // to find the callsite that caused this warning to fire.
+        throw new Error(message);
+      } catch (x) {}
+    };
+
+    warning = function warning(condition, format) {
+      if (format === undefined) {
+        throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
+      }
+
+      if (format.indexOf('Failed Composite propType: ') === 0) {
+        return; // Ignore CompositeComponent proptype check.
+      }
+
+      if (!condition) {
+        for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+          args[_key2 - 2] = arguments[_key2];
+        }
+
+        printWarning.apply(undefined, [format].concat(args));
+      }
+    };
+  })();
+}
+
+module.exports = warning;
+},{"./emptyFunction":9}],12:[function(require,module,exports){
+/**
+ * Copyright 2013-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+'use strict';
+
+if ("development" !== 'production') {
+  var invariant = require('fbjs/lib/invariant');
+  var warning = require('fbjs/lib/warning');
+  var ReactPropTypesSecret = require('./lib/ReactPropTypesSecret');
+  var loggedTypeFailures = {};
+}
+
+/**
+ * Assert that the values match with the type specs.
+ * Error messages are memorized and will only be shown once.
+ *
+ * @param {object} typeSpecs Map of name to a ReactPropType
+ * @param {object} values Runtime values that need to be type-checked
+ * @param {string} location e.g. "prop", "context", "child context"
+ * @param {string} componentName Name of the component for error messages.
+ * @param {?Function} getStack Returns the component stack.
+ * @private
+ */
+function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
+  if ("development" !== 'production') {
+    for (var typeSpecName in typeSpecs) {
+      if (typeSpecs.hasOwnProperty(typeSpecName)) {
+        var error;
+        // Prop type validation may throw. In case they do, we don't want to
+        // fail the render phase where it didn't fail before. So we log it.
+        // After these have been cleaned up, we'll let them throw.
+        try {
+          // This is intentionally an invariant that gets caught. It's the same
+          // behavior as without this statement except with a better message.
+          invariant(typeof typeSpecs[typeSpecName] === 'function', '%s: %s type `%s` is invalid; it must be a function, usually from ' + 'React.PropTypes.', componentName || 'React class', location, typeSpecName);
+          error = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, ReactPropTypesSecret);
+        } catch (ex) {
+          error = ex;
+        }
+        warning(!error || error instanceof Error, '%s: type specification of %s `%s` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a %s. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).', componentName || 'React class', location, typeSpecName, typeof error);
+        if (error instanceof Error && !(error.message in loggedTypeFailures)) {
+          // Only monitor this failure once because there tends to be a lot of the
+          // same error.
+          loggedTypeFailures[error.message] = true;
+
+          var stack = getStack ? getStack() : '';
+
+          warning(false, 'Failed %s type: %s%s', location, error.message, stack != null ? stack : '');
+        }
+      }
+    }
+  }
+}
+
+module.exports = checkPropTypes;
+
+},{"./lib/ReactPropTypesSecret":13,"fbjs/lib/invariant":10,"fbjs/lib/warning":11}],13:[function(require,module,exports){
+/**
+ * Copyright 2013-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+'use strict';
+
+var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
+
+module.exports = ReactPropTypesSecret;
+
+},{}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -364,7 +607,7 @@ Object.keys(_caches).forEach(function (key) {
     }
   });
 });
-},{"diffhtml/dist/cjs/util/caches":33}],10:[function(require,module,exports){
+},{"diffhtml/dist/cjs/util/caches":38}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -381,7 +624,7 @@ Object.defineProperty(exports, 'default', {
 });
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"diffhtml/dist/cjs/util/process":40}],11:[function(require,module,exports){
+},{"diffhtml/dist/cjs/util/process":45}],16:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -777,7 +1020,7 @@ var mount = document.querySelector('#api-browser');
 console.log(mount);
 (0, _diffhtml.innerHTML)(mount, (0, _diffhtml.html)(_templateObject11, ApiBrowser));
 
-},{"diffhtml":16,"diffhtml-components/dist/cjs/component":1,"proxy-polyfill/proxy.min":13,"whatwg-fetch":14}],12:[function(require,module,exports){
+},{"diffhtml":21,"diffhtml-components/dist/cjs/component":1,"proxy-polyfill/proxy.min":18,"whatwg-fetch":19}],17:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -963,7 +1206,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],13:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 (function (global){
 (function(d){function k(a){return a?"object"==typeof a||"function"==typeof a:!1}if(!d.Proxy){var l=null;d.a=function(a,c){function d(){}if(!k(a)||!k(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){d=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");}};var f=c;c={get:null,set:null,apply:null,construct:null};for(var g in f){if(!(g in c))throw new TypeError("Proxy polyfill does not support trap '"+g+"'");c[g]=
 f[g]}"function"==typeof f&&(c.apply=f.apply.bind(f));var e=this,m=!1,n="function"==typeof a;if(c.apply||c.construct||n)e=function(){var b=this&&this.constructor===e;d(b?"construct":"apply");if(b&&c.construct)return c.construct.call(this,a,arguments);if(!b&&c.apply)return c.apply(a,this,arguments);if(n)return b?(b=Array.prototype.slice.call(arguments),b.unshift(a),new (a.bind.apply(a,b))):a.apply(this,arguments);throw new TypeError(b?"not a constructor":"not a function");},m=!0;var p=c.get?function(b){d("get");
@@ -971,7 +1214,7 @@ return c.get(this,b,e)}:function(b){d("get");return this[b]},r=c.set?function(b,
 h,{get:p.bind(a,h)});Object.seal(a);Object.seal(e);return e};d.a.b=function(a,c){return{proxy:new d.a(a,c),revoke:l}};d.a.revocable=d.a.b;d.Proxy=d.a}})("undefined"!==typeof module&&module.exports?global:window);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -1439,7 +1682,7 @@ h,{get:p.bind(a,h)});Object.seal(a);Object.seal(e);return e};d.a.b=function(a,c)
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],15:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1557,13 +1800,13 @@ function handleTaggedTemplate(strings, ...values) {
   // always returning an array.
   return childNodes.length === 1 ? childNodes[0] : (0, _create2.default)(childNodes);
 }
-},{"./tree/create":30,"./util/decode-entities":34,"./util/escape":35,"./util/parser":38}],16:[function(require,module,exports){
+},{"./tree/create":35,"./util/decode-entities":39,"./util/escape":40,"./util/parser":43}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.html = exports.innerHTML = exports.outerHTML = exports.use = exports.createElement = exports.createTree = exports.release = exports.removeTransitionState = exports.addTransitionState = exports.VERSION = undefined;
+exports.html = exports.innerHTML = exports.outerHTML = exports.use = exports.createTree = exports.release = exports.removeTransitionState = exports.addTransitionState = exports.VERSION = undefined;
 
 var _create = require('./tree/create');
 
@@ -1655,13 +1898,12 @@ exports.addTransitionState = _transition.addTransitionState;
 exports.removeTransitionState = _transition.removeTransitionState;
 exports.release = _release2.default;
 exports.createTree = _create2.default;
-exports.createElement = _create2.default;
 exports.use = _use2.default;
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.html = _html2.default;
 exports.default = diff;
-},{"./html":15,"./inner-html":17,"./outer-html":20,"./release":21,"./tasks/end-as-promise":22,"./tasks/patch-node":23,"./tasks/reconcile-trees":24,"./tasks/schedule":25,"./tasks/should-update":26,"./tasks/sync-trees":27,"./transition":29,"./tree/create":30,"./use":32,"./version":42}],17:[function(require,module,exports){
+},{"./html":20,"./inner-html":22,"./outer-html":25,"./release":26,"./tasks/end-as-promise":27,"./tasks/patch-node":28,"./tasks/reconcile-trees":29,"./tasks/schedule":30,"./tasks/should-update":31,"./tasks/sync-trees":32,"./transition":34,"./tree/create":35,"./use":37,"./version":47}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1676,10 +1918,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = tasks => function innerHTML(element, markup = '', options = {}) {
   options.inner = true;
-  options.tasks = options.tasks || tasks;
+  options.tasks = [].concat(options.tasks || tasks);
   return _transaction2.default.create(element, markup, options).start();
 };
-},{"./transaction":28}],18:[function(require,module,exports){
+},{"./transaction":33}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1770,7 +2012,7 @@ function createNode(vTree, ownerDocument = document) {
 
   return domNode;
 }
-},{"../util/caches":33,"../util/process":40,"../util/svg":41}],19:[function(require,module,exports){
+},{"../util/caches":38,"../util/process":45,"../util/svg":46}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2016,7 +2258,7 @@ function patchNode(patches) {
 
   return promises;
 }
-},{"../transition":29,"../util/caches":33,"../util/decode-entities":34,"../util/escape":35,"../util/memory":37,"./create":18}],20:[function(require,module,exports){
+},{"../transition":34,"../util/caches":38,"../util/decode-entities":39,"../util/escape":40,"../util/memory":42,"./create":23}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2031,10 +2273,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = tasks => function outerHTML(element, markup = '', options = {}) {
   options.inner = false;
-  options.tasks = options.tasks || tasks;
+  options.tasks = options.tasks || [...tasks];
   return _transaction2.default.create(element, markup, options).start();
 };
-},{"./transaction":28}],21:[function(require,module,exports){
+},{"./transaction":33}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2061,7 +2303,7 @@ function release(domNode) {
   // Recycle all unprotected objects.
   (0, _memory.cleanMemory)();
 }
-},{"./util/caches":33,"./util/memory":37}],22:[function(require,module,exports){
+},{"./util/caches":38,"./util/memory":42}],27:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2085,7 +2327,7 @@ function endAsPromise(transaction) {
     return Promise.resolve(transaction.end());
   }
 }
-},{}],23:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2115,7 +2357,7 @@ function patch(transaction) {
 
   transaction.promises = promises;
 }
-},{"../node/patch":19}],24:[function(require,module,exports){
+},{"../node/patch":24}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2189,7 +2431,7 @@ function reconcileTrees(transaction) {
 
   measure('reconcile trees');
 }
-},{"../tree/create":30,"../util/caches":33,"../util/memory":37,"../util/parser":38,"../util/pool":39}],25:[function(require,module,exports){
+},{"../tree/create":35,"../util/caches":38,"../util/memory":42,"../util/parser":43,"../util/pool":44}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2237,7 +2479,7 @@ function schedule(transaction) {
   // Indicate we are now rendering a transaction for this DOM Node.
   state.isRendering = true;
 }
-},{"../util/caches":33}],26:[function(require,module,exports){
+},{"../util/caches":38}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2260,7 +2502,7 @@ function shouldUpdate(transaction) {
 
   measure('should update');
 }
-},{}],27:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2312,7 +2554,7 @@ function syncTrees(transaction) {
 
   measure('sync trees');
 }
-},{"../node/create":18,"../tree/sync":31,"../util/caches":33,"../util/memory":37}],28:[function(require,module,exports){
+},{"../node/create":23,"../tree/sync":36,"../util/caches":38,"../util/memory":42}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2538,7 +2780,7 @@ class Transaction {
   }
 }
 exports.default = Transaction;
-},{"./tasks/end-as-promise":22,"./tasks/patch-node":23,"./tasks/reconcile-trees":24,"./tasks/schedule":25,"./tasks/should-update":26,"./tasks/sync-trees":27,"./util/caches":33,"./util/make-measure":36,"./util/memory":37,"./util/process":40}],29:[function(require,module,exports){
+},{"./tasks/end-as-promise":27,"./tasks/patch-node":28,"./tasks/reconcile-trees":29,"./tasks/schedule":30,"./tasks/should-update":31,"./tasks/sync-trees":32,"./util/caches":38,"./util/make-measure":41,"./util/memory":42,"./util/process":45}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2633,7 +2875,7 @@ function runTransitions(setName, ...args) {
 
   return promises;
 }
-},{"./util/caches":33,"./util/process":40}],30:[function(require,module,exports){
+},{"./util/caches":38,"./util/process":45}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2815,7 +3057,7 @@ function createTree(input, attributes, childNodes, ...rest) {
 
   return vTree;
 }
-},{"../util/caches":33,"../util/pool":39}],31:[function(require,module,exports){
+},{"../util/caches":38,"../util/pool":44}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3130,7 +3372,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
 
   return patches;
 }
-},{"../util/caches":33,"../util/process":40}],32:[function(require,module,exports){
+},{"../util/caches":38,"../util/process":45}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3195,7 +3437,7 @@ function use(middleware) {
     SyncTreeHookCache.delete(syncTreeHook);
   };
 }
-},{"./util/caches":33,"./util/process":40}],33:[function(require,module,exports){
+},{"./util/caches":38,"./util/process":45}],38:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3217,7 +3459,7 @@ const MiddlewareCache = exports.MiddlewareCache = new Set();
 MiddlewareCache.CreateTreeHookCache = new Set();
 MiddlewareCache.CreateNodeHookCache = new Set();
 MiddlewareCache.SyncTreeHookCache = new Set();
-},{}],34:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -3246,7 +3488,7 @@ function decodeEntities(string) {
   return element.textContent;
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],35:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3263,7 +3505,7 @@ exports.default = escape;
 function escape(unescaped) {
   return unescaped.replace(/[&<>]/g, match => `&#${match.charCodeAt(0)};`);
 }
-},{}],36:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -3314,7 +3556,7 @@ exports.default = (domNode, vTree) => {
   };
 };
 }).call(this,require('_process'))
-},{"_process":12}],37:[function(require,module,exports){
+},{"_process":17}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3388,7 +3630,7 @@ function cleanMemory(isBusy = false) {
     }
   });
 }
-},{"./caches":33,"./pool":39}],38:[function(require,module,exports){
+},{"./caches":38,"./pool":44}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3785,7 +4027,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
 
   return root;
 }
-},{"../tree/create":30,"./pool":39}],39:[function(require,module,exports){
+},{"../tree/create":35,"./pool":44}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3850,7 +4092,7 @@ exports.default = {
     }
   }
 };
-},{}],40:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -3866,7 +4108,7 @@ exports.default = Object.defineProperty({}, 'env', {
   get: () => normalize.env
 });
 }).call(this,require('_process'))
-},{"_process":12}],41:[function(require,module,exports){
+},{"_process":17}],46:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3877,11 +4119,11 @@ const namespace = exports.namespace = 'http://www.w3.org/2000/svg';
 
 // List of SVG elements.
 const elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
-},{}],42:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 const __VERSION__ = exports.__VERSION__ = '1.0.0-beta';
-},{}]},{},[11]);
+},{}]},{},[16]);

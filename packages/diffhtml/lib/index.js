@@ -52,7 +52,6 @@ export {
   removeTransitionState,
   release,
   createTree,
-  createTree as createElement,
   use,
   outerHTML,
   innerHTML,

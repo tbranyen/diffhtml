@@ -1,7 +1,7 @@
 {
   "name": "diffhtml-middleware-verify-state",
   "version": "1.0.0-beta",
-  "description": "",
+  "description": "Verifies render state middleware, useful for sanity checking",
   "main": "dist/verify-state.js",
   "scripts": {
     "build": "browserify -t babelify -s verifyState index.js | derequire > dist/verify-state.js",

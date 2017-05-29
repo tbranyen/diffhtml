@@ -1,11 +1,10 @@
 import { createTree, innerHTML, outerHTML, use, html } from 'diffhtml';
-import PropTypes from 'proptypes';
 import { Component } from 'diffhtml-components';
-//import syntheticEvents from 'diffhtml-middleware-synthetic-events';
+import syntheticEvents from 'diffhtml-middleware-synthetic-events';
 
-const { assign, freeze, keys } = Object;
+const { keys } = Object;
 
-//use(syntheticEvents());
+use(syntheticEvents());
 
 exports.createElement = (...args) => {
   const tree = createTree(...args);
@@ -28,7 +27,6 @@ exports.createElement = (...args) => {
 };
 
 exports.Component = Component;
-exports.PropTypes = PropTypes;
 exports.html = html;
 exports.render = (component, mount) => innerHTML(mount, component, );
 exports.isValidElement = function(object) {

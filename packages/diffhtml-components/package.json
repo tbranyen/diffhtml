@@ -16,7 +16,7 @@
     "document-register-element": "^1.4.1",
     "jsdom-wc": "11.0.0-alpha-1",
     "mocha": "^3.2.0",
-    "proptypes": "^1.0.0",
+    "prop-types": "^15.5.10",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^7.0.0",
@@ -27,16 +27,15 @@
     "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs",
     "build-es": "NODE_ENV=es babel lib -d dist/es",
     "build": "npm run build-cjs && npm run build-es",
-    "watch": "rollup -c rollup.config.js -w",
     "test": "NODE_ENV=test mocha test/_setup test",
-    "test-watch": "NODE_ENV=test mocha --colors -w test/_setup test",
+    "test-watch": "NODE_ENV=test mocha -w test/_setup test",
     "test:ci": "npm run test"
   },
   "peerDependencies": {
     "diffhtml": ">=1.0.0-beta"
   },
   "optionalDependencies": {
-    "proptypes": "^1.0.0"
+    "proptypes": "^15.5.10"
   },
   "dependencies": {
     "diffhtml-shared-internals": "1.0.0-beta"

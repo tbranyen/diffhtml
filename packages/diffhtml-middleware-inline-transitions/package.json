@@ -26,7 +26,7 @@
     "derequire": "^2.0.6",
     "diffhtml": "^1.0.0-beta",
     "istanbul": "^1.1.0-alpha.1",
-    "jsdom": "^9.11.0",
+    "jsdom-wc": "^11.0.0-alpha-1",
     "mocha": "^3.2.0",
     "watchify": "^3.9.0"
   },
