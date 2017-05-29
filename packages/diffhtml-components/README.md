@@ -28,7 +28,8 @@ some components.
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
-import Component from 'diffhtml-components/component';
+import Component from 'diffhtml-components/lib/component';
+import PropTypes from 'proptypes';
 
 class SimpleClock extends Component {
   render() {
@@ -65,7 +66,8 @@ Will only work in browsers that support v1 Web Components spec:
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
-import { WebComponent, PropTypes } from 'diffhtml-components';
+import WebComponent from 'diffhtml-components/lib/web-component';
+import PropTypes from 'proptypes';
 
 class SimpleClock extends WebComponent {
   render() {
