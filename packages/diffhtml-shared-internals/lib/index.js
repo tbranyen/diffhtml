@@ -1,4 +1,5 @@
 export * from './caches';
+export * from './create-node';
 export * from './decode-entities';
 export * from './escape';
 export * from './make-measure';
