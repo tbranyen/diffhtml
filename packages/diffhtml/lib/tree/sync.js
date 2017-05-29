@@ -63,7 +63,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`
   // `newTree`. Pass along the `keysLookup` object so that middleware can make
   // smart decisions when dealing with keys.
   SyncTreeHookCache.forEach((fn, retVal) => {
-    if (retVal = fn(oldTree, newTree, null)) {
+    if ((retVal = fn(oldTree, newTree, null)) && retVal !== newTree) {
       newTree = retVal;
 
       // Find attributes.
