@@ -1,1 +1,1 @@
-export * from 'diffhtml/lib/util/escape';
+export { default as escape } from 'diffhtml/lib/util/escape';
