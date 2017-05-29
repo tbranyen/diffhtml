@@ -787,6 +787,68 @@ describe('Util', function() {
         attributes: {},
       });
     });
+
+    it('will correctly parse surrounding text nodes', () => {
+      const vTree = parse(`<div>
+    <h1>Attach/Detach Template</h1>
+</div>`);
+
+      deepEqual(vTree, {
+          rawNodeName: '#document-fragment',
+          nodeName: '#document-fragment',
+          nodeValue: '',
+          nodeType: 11,
+          key: '',
+          childNodes: [{
+              "rawNodeName": "div",
+              "nodeName": "div",
+              "nodeValue": "",
+              "nodeType": 1,
+              "key": "",
+              "childNodes": [
+                  {
+                      "rawNodeName": "#text",
+                      "nodeName": "#text",
+                      "nodeValue": "\n    ",
+                      "nodeType": 3,
+                      "key": "",
+                      "childNodes": [],
+                      "attributes": {}
+                  },
+                  {
+                      "rawNodeName": "h1",
+                      "nodeName": "h1",
+                      "nodeValue": "",
+                      "nodeType": 1,
+                      "key": "",
+                      "childNodes": [
+                          {
+                              "rawNodeName": "#text",
+                              "nodeName": "#text",
+                              "nodeValue": "Attach/Detach Template",
+                              "nodeType": 3,
+                              "key": "",
+                              "childNodes": [],
+                              "attributes": {}
+                          }
+                      ],
+                      "attributes": {}
+                  },
+                  {
+                      "rawNodeName": "#text",
+                      "nodeName": "#text",
+                      "nodeValue": "\n",
+                      "nodeType": 3,
+                      "key": "",
+                      "childNodes": [],
+                      "attributes": {}
+                  }
+              ],
+              "attributes": {}
+          }],
+          attributes: {},
+      });
+    });
   });
 
   describe('SVG', () => {
