@@ -4653,9 +4653,9 @@ var _shouldUpdate = require('./tasks/should-update');
 
 var _shouldUpdate2 = _interopRequireDefault(_shouldUpdate);
 
-var _reconcileTrees = require('./tasks/reconcile-trees');
+var _reconcileTreesWithParse = require('./tasks/reconcile-trees-with-parse');
 
-var _reconcileTrees2 = _interopRequireDefault(_reconcileTrees);
+var _reconcileTreesWithParse2 = _interopRequireDefault(_reconcileTreesWithParse);
 
 var _syncTrees = require('./tasks/sync-trees');
 
@@ -4695,30 +4695,11 @@ var _version = require('./version');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const tasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
+const defaultTasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTreesWithParse2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
 
-const innerHTML = (0, _innerHtml2.default)(tasks);
-const outerHTML = (0, _outerHtml2.default)(tasks);
-
+const innerHTML = (0, _innerHtml2.default)(defaultTasks);
+const outerHTML = (0, _outerHtml2.default)(defaultTasks);
 const VERSION = _version.__VERSION__;
-
-// Public API. Passed to subscribed middleware.
-const diff = {
-  VERSION,
-  addTransitionState: _transition.addTransitionState,
-  removeTransitionState: _transition.removeTransitionState,
-  release: _release2.default,
-  createTree: _create2.default,
-  use: _use2.default,
-  outerHTML,
-  innerHTML,
-  html: _html2.default
-};
-
-// Ensure the `diff` property is nonenumerable so it doesn't show up in logs.
-if (!_use2.default.diff) {
-  Object.defineProperty(_use2.default, 'diff', { value: diff, enumerable: false });
-}
 
 // Automatically hook up to DevTools if they are present.
 if (typeof devTools === 'function') {
@@ -4735,8 +4716,18 @@ exports.use = _use2.default;
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.html = _html2.default;
-exports.default = diff;
-},{"./html":34,"./inner-html":36,"./outer-html":39,"./release":40,"./tasks/end-as-promise":41,"./tasks/patch-node":42,"./tasks/reconcile-trees":43,"./tasks/schedule":44,"./tasks/should-update":45,"./tasks/sync-trees":46,"./transition":48,"./tree/create":49,"./use":51,"./version":61}],36:[function(require,module,exports){
+exports.default = {
+  VERSION,
+  addTransitionState: _transition.addTransitionState,
+  removeTransitionState: _transition.removeTransitionState,
+  release: _release2.default,
+  createTree: _create2.default,
+  use: _use2.default,
+  outerHTML,
+  innerHTML,
+  html: _html2.default
+};
+},{"./html":34,"./inner-html":36,"./outer-html":39,"./release":40,"./tasks/end-as-promise":41,"./tasks/patch-node":42,"./tasks/reconcile-trees-with-parse":43,"./tasks/schedule":44,"./tasks/should-update":45,"./tasks/sync-trees":46,"./transition":48,"./tree/create":49,"./use":51,"./version":61}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4751,7 +4742,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = tasks => function innerHTML(element, markup = '', options = {}) {
   options.inner = true;
-  options.tasks = [].concat(options.tasks || tasks);
+  options.tasks = options.tasks || tasks;
   return _transaction2.default.create(element, markup, options).start();
 };
 },{"./transaction":47}],37:[function(require,module,exports){
@@ -5106,7 +5097,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = tasks => function outerHTML(element, markup = '', options = {}) {
   options.inner = false;
-  options.tasks = options.tasks || [...tasks];
+  options.tasks = options.tasks || tasks;
   return _transaction2.default.create(element, markup, options).start();
 };
 },{"./transaction":47}],40:[function(require,module,exports){
@@ -5200,10 +5191,6 @@ exports.default = reconcileTrees;
 
 var _caches = require('../util/caches');
 
-var _pool = require('../util/pool');
-
-var _pool2 = _interopRequireDefault(_pool);
-
 var _memory = require('../util/memory');
 
 var _parser = require('../util/parser');
@@ -5264,7 +5251,7 @@ function reconcileTrees(transaction) {
 
   measure('reconcile trees');
 }
-},{"../tree/create":49,"../util/caches":52,"../util/memory":56,"../util/parser":57,"../util/pool":58}],44:[function(require,module,exports){
+},{"../tree/create":49,"../util/caches":52,"../util/memory":56,"../util/parser":57}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5394,30 +5381,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _schedule = require('./tasks/schedule');
-
-var _schedule2 = _interopRequireDefault(_schedule);
-
-var _shouldUpdate = require('./tasks/should-update');
-
-var _shouldUpdate2 = _interopRequireDefault(_shouldUpdate);
-
-var _reconcileTrees = require('./tasks/reconcile-trees');
-
-var _reconcileTrees2 = _interopRequireDefault(_reconcileTrees);
-
-var _syncTrees = require('./tasks/sync-trees');
-
-var _syncTrees2 = _interopRequireDefault(_syncTrees);
-
-var _patchNode = require('./tasks/patch-node');
-
-var _patchNode2 = _interopRequireDefault(_patchNode);
-
-var _endAsPromise = require('./tasks/end-as-promise');
-
-var _endAsPromise2 = _interopRequireDefault(_endAsPromise);
-
 var _caches = require('./util/caches');
 
 var _memory = require('./util/memory');
@@ -5529,7 +5492,7 @@ class Transaction {
       measure: (0, _makeMeasure2.default)(domNode, markup)
     };
 
-    this.tasks = options.tasks || [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
+    this.tasks = [].concat(options.tasks);
 
     // Store calls to trigger after the transaction has ended.
     this.endedCallbacks = new Set();
@@ -5613,7 +5576,7 @@ class Transaction {
   }
 }
 exports.default = Transaction;
-},{"./tasks/end-as-promise":41,"./tasks/patch-node":42,"./tasks/reconcile-trees":43,"./tasks/schedule":44,"./tasks/should-update":45,"./tasks/sync-trees":46,"./util/caches":52,"./util/make-measure":55,"./util/memory":56,"./util/process":59}],48:[function(require,module,exports){
+},{"./util/caches":52,"./util/make-measure":55,"./util/memory":56,"./util/process":59}],48:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {

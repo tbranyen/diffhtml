@@ -1711,7 +1711,7 @@ class Transaction {
       measure: makeMeasure(domNode, markup)
     };
 
-    this.tasks = options.tasks || [schedule, shouldUpdate, reconcileTrees, syncTrees, patch, endAsPromise];
+    this.tasks = [].concat(options.tasks);
 
     // Store calls to trigger after the transaction has ended.
     this.endedCallbacks = new Set();
@@ -1797,13 +1797,13 @@ class Transaction {
 
 var bindInnerHTML = (tasks => function innerHTML(element, markup = '', options = {}) {
   options.inner = true;
-  options.tasks = [].concat(options.tasks || tasks);
+  options.tasks = options.tasks || tasks;
   return Transaction.create(element, markup, options).start();
 });
 
 var bindOuterHTML = (tasks => function outerHTML(element, markup = '', options = {}) {
   options.inner = false;
-  options.tasks = options.tasks || [...tasks];
+  options.tasks = options.tasks || tasks;
   return Transaction.create(element, markup, options).start();
 });
 
@@ -1968,15 +1968,19 @@ function use(middleware) {
 
 const __VERSION__ = '1.0.0-beta';
 
-const tasks = [schedule, shouldUpdate, reconcileTrees, syncTrees, patch, endAsPromise];
+const defaultTasks = [schedule, shouldUpdate, reconcileTrees, syncTrees, patch, endAsPromise];
 
-const innerHTML = bindInnerHTML(tasks);
-const outerHTML = bindOuterHTML(tasks);
-
+const innerHTML = bindInnerHTML(defaultTasks);
+const outerHTML = bindOuterHTML(defaultTasks);
 const VERSION = __VERSION__;
 
-// Public API. Passed to subscribed middleware.
-const diff = {
+// Automatically hook up to DevTools if they are present.
+if (typeof devTools === 'function') {
+  use(devTools());
+  console.info('diffHTML DevTools Found and Activated...');
+}
+
+var index = {
   VERSION,
   addTransitionState,
   removeTransitionState,
@@ -1988,17 +1992,6 @@ const diff = {
   html: handleTaggedTemplate
 };
 
-// Ensure the `diff` property is nonenumerable so it doesn't show up in logs.
-if (!use.diff) {
-  Object.defineProperty(use, 'diff', { value: diff, enumerable: false });
-}
-
-// Automatically hook up to DevTools if they are present.
-if (typeof devTools === 'function') {
-  use(devTools());
-  console.info('diffHTML DevTools Found and Activated...');
-}
-
 exports.VERSION = VERSION;
 exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
@@ -2008,7 +2001,7 @@ exports.use = use;
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.html = handleTaggedTemplate;
-exports['default'] = diff;
+exports['default'] = index;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

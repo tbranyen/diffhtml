@@ -48,6 +48,16 @@ exports.default = (0, _upgradeSharedClass2.default)(class Component {
     unsubscribeMiddleware();
   }
 
+  [_symbols.$$render]() {
+    const vTree = _caches2.ComponentTreeCache.get(this);
+    const domNode = _caches.NodeCache.get(vTree);
+    const renderTree = this.render();
+
+    (0, _diffhtml.outerHTML)(domNode, renderTree).then(() => {
+      this.componentDidUpdate();
+    });
+  }
+
   constructor(initialProps) {
     const props = this.props = assign({}, initialProps);
     const state = this.state = {};
@@ -69,44 +79,25 @@ exports.default = (0, _upgradeSharedClass2.default)(class Component {
       props[prop] = defaultProps[prop];
     });
 
-    if (_process2.default.env.NODE_ENV !== 'production') {
-      const err = (0, _checkPropTypes2.default)(propTypes, props, 'prop', name);
-      if (err) {
-        throw err;
-      }
-    }
+    (0, _checkPropTypes2.default)(propTypes, props, 'prop', name);
 
-    keys(childContextTypes).forEach(prop => {
-      if (_process2.default.env.NODE_ENV !== 'production') {
-        const err = childContextTypes[prop](this.context, prop, name, 'context');
-        if (err) {
-          throw err;
-        }
-      }
+    //keys(childContextTypes).forEach(prop => {
+    //  if (process.env.NODE_ENV !== 'production') {
+    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
+    //    if (err) { throw err; }
+    //  }
 
-      //this.context[prop] = child
-    });
+    //  //this.context[prop] = child
+    //});
 
-    keys(contextTypes).forEach(prop => {
-      if (_process2.default.env.NODE_ENV !== 'production') {
-        const err = childContextTypes[prop](this.context, prop, name, 'context');
-        if (err) {
-          throw err;
-        }
-      }
+    //keys(contextTypes).forEach(prop => {
+    //  if (process.env.NODE_ENV !== 'production') {
+    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
+    //    if (err) { throw err; }
+    //  }
 
-      this.context[prop] = child;
-    });
-  }
-
-  [_symbols.$$render]() {
-    const vTree = _caches2.ComponentTreeCache.get(this);
-    const domNode = _caches.NodeCache.get(vTree);
-    const renderTree = this.render();
-
-    (0, _diffhtml.outerHTML)(domNode, renderTree).then(() => {
-      this.componentDidUpdate();
-    });
+    //  this.context[prop] = child
+    //});
   }
 });
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
@@ -1820,9 +1811,9 @@ var _shouldUpdate = require('./tasks/should-update');
 
 var _shouldUpdate2 = _interopRequireDefault(_shouldUpdate);
 
-var _reconcileTrees = require('./tasks/reconcile-trees');
+var _reconcileTreesWithParse = require('./tasks/reconcile-trees-with-parse');
 
-var _reconcileTrees2 = _interopRequireDefault(_reconcileTrees);
+var _reconcileTreesWithParse2 = _interopRequireDefault(_reconcileTreesWithParse);
 
 var _syncTrees = require('./tasks/sync-trees');
 
@@ -1862,30 +1853,11 @@ var _version = require('./version');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const tasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
+const defaultTasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTreesWithParse2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
 
-const innerHTML = (0, _innerHtml2.default)(tasks);
-const outerHTML = (0, _outerHtml2.default)(tasks);
-
+const innerHTML = (0, _innerHtml2.default)(defaultTasks);
+const outerHTML = (0, _outerHtml2.default)(defaultTasks);
 const VERSION = _version.__VERSION__;
-
-// Public API. Passed to subscribed middleware.
-const diff = {
-  VERSION,
-  addTransitionState: _transition.addTransitionState,
-  removeTransitionState: _transition.removeTransitionState,
-  release: _release2.default,
-  createTree: _create2.default,
-  use: _use2.default,
-  outerHTML,
-  innerHTML,
-  html: _html2.default
-};
-
-// Ensure the `diff` property is nonenumerable so it doesn't show up in logs.
-if (!_use2.default.diff) {
-  Object.defineProperty(_use2.default, 'diff', { value: diff, enumerable: false });
-}
 
 // Automatically hook up to DevTools if they are present.
 if (typeof devTools === 'function') {
@@ -1902,8 +1874,18 @@ exports.use = _use2.default;
 exports.outerHTML = outerHTML;
 exports.innerHTML = innerHTML;
 exports.html = _html2.default;
-exports.default = diff;
-},{"./html":20,"./inner-html":22,"./outer-html":25,"./release":26,"./tasks/end-as-promise":27,"./tasks/patch-node":28,"./tasks/reconcile-trees":29,"./tasks/schedule":30,"./tasks/should-update":31,"./tasks/sync-trees":32,"./transition":34,"./tree/create":35,"./use":37,"./version":47}],22:[function(require,module,exports){
+exports.default = {
+  VERSION,
+  addTransitionState: _transition.addTransitionState,
+  removeTransitionState: _transition.removeTransitionState,
+  release: _release2.default,
+  createTree: _create2.default,
+  use: _use2.default,
+  outerHTML,
+  innerHTML,
+  html: _html2.default
+};
+},{"./html":20,"./inner-html":22,"./outer-html":25,"./release":26,"./tasks/end-as-promise":27,"./tasks/patch-node":28,"./tasks/reconcile-trees-with-parse":29,"./tasks/schedule":30,"./tasks/should-update":31,"./tasks/sync-trees":32,"./transition":34,"./tree/create":35,"./use":37,"./version":47}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1918,7 +1900,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = tasks => function innerHTML(element, markup = '', options = {}) {
   options.inner = true;
-  options.tasks = [].concat(options.tasks || tasks);
+  options.tasks = options.tasks || tasks;
   return _transaction2.default.create(element, markup, options).start();
 };
 },{"./transaction":33}],23:[function(require,module,exports){
@@ -2273,7 +2255,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = tasks => function outerHTML(element, markup = '', options = {}) {
   options.inner = false;
-  options.tasks = options.tasks || [...tasks];
+  options.tasks = options.tasks || tasks;
   return _transaction2.default.create(element, markup, options).start();
 };
 },{"./transaction":33}],26:[function(require,module,exports){
@@ -2367,10 +2349,6 @@ exports.default = reconcileTrees;
 
 var _caches = require('../util/caches');
 
-var _pool = require('../util/pool');
-
-var _pool2 = _interopRequireDefault(_pool);
-
 var _memory = require('../util/memory');
 
 var _parser = require('../util/parser');
@@ -2431,7 +2409,7 @@ function reconcileTrees(transaction) {
 
   measure('reconcile trees');
 }
-},{"../tree/create":35,"../util/caches":38,"../util/memory":42,"../util/parser":43,"../util/pool":44}],30:[function(require,module,exports){
+},{"../tree/create":35,"../util/caches":38,"../util/memory":42,"../util/parser":43}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2561,30 +2539,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _schedule = require('./tasks/schedule');
-
-var _schedule2 = _interopRequireDefault(_schedule);
-
-var _shouldUpdate = require('./tasks/should-update');
-
-var _shouldUpdate2 = _interopRequireDefault(_shouldUpdate);
-
-var _reconcileTrees = require('./tasks/reconcile-trees');
-
-var _reconcileTrees2 = _interopRequireDefault(_reconcileTrees);
-
-var _syncTrees = require('./tasks/sync-trees');
-
-var _syncTrees2 = _interopRequireDefault(_syncTrees);
-
-var _patchNode = require('./tasks/patch-node');
-
-var _patchNode2 = _interopRequireDefault(_patchNode);
-
-var _endAsPromise = require('./tasks/end-as-promise');
-
-var _endAsPromise2 = _interopRequireDefault(_endAsPromise);
-
 var _caches = require('./util/caches');
 
 var _memory = require('./util/memory');
@@ -2696,7 +2650,7 @@ class Transaction {
       measure: (0, _makeMeasure2.default)(domNode, markup)
     };
 
-    this.tasks = options.tasks || [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
+    this.tasks = [].concat(options.tasks);
 
     // Store calls to trigger after the transaction has ended.
     this.endedCallbacks = new Set();
@@ -2780,7 +2734,7 @@ class Transaction {
   }
 }
 exports.default = Transaction;
-},{"./tasks/end-as-promise":27,"./tasks/patch-node":28,"./tasks/reconcile-trees":29,"./tasks/schedule":30,"./tasks/should-update":31,"./tasks/sync-trees":32,"./util/caches":38,"./util/make-measure":41,"./util/memory":42,"./util/process":45}],34:[function(require,module,exports){
+},{"./util/caches":38,"./util/make-measure":41,"./util/memory":42,"./util/process":45}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
