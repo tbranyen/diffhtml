@@ -1,19 +1,22 @@
 {
   "name": "diffhtml-components",
   "version": "1.0.0-beta",
-  "main": "dist/components.js",
+  "main": "dist/cjs/index",
+  "esnext:main": "dist/es/index",
   "devDependencies": {
+    "babel-cli": "^6.24.1",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-classes": "^6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-register": "^6.23.0",
     "diffhtml": "^1.0.0-beta",
     "document-register-element": "^1.4.1",
-    "jsdom": "^9.10.0",
+    "jsdom-wc": "11.0.0-alpha-1",
     "mocha": "^3.2.0",
-    "prop-types": "^15.5.10",
+    "proptypes": "^1.0.0",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^7.0.0",
@@ -21,17 +24,21 @@
     "rollup-watch": "^3.2.2"
   },
   "scripts": {
-    "build": "NODE_ENV=build rollup -c rollup.config.js",
-    "build-test": "browserify -t babelify test.js -o test-out.js",
+    "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs",
+    "build-es": "NODE_ENV=es babel lib -d dist/es",
+    "build": "npm run build-cjs && npm run build-es",
     "watch": "rollup -c rollup.config.js -w",
     "test": "NODE_ENV=test mocha test/_setup test",
-    "test-watch": "NODE_ENV=test mocha -w test/_setup test",
+    "test-watch": "NODE_ENV=test mocha --colors -w test/_setup test",
     "test:ci": "npm run test"
   },
   "peerDependencies": {
     "diffhtml": ">=1.0.0-beta"
   },
   "optionalDependencies": {
-    "prop-types": "^15.5.10"
+    "proptypes": "^1.0.0"
+  },
+  "dependencies": {
+    "diffhtml-shared-internals": "1.0.0-beta"
   }
 }

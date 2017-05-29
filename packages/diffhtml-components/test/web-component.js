@@ -3,26 +3,71 @@ import { innerHTML, html, createTree, use } from 'diffhtml';
 import PropTypes from 'proptypes';
 import WebComponent from '../lib/web-component';
 
-describe.only('Web Component', function() {
-  it('can render JSX', () => {
-    customElements.define('jsx-test', class extends WebComponent {
-      render() {
-        const { message } = this.props;
+describe('Web Component', function() {
+  beforeEach(() => {
+    newJSDOMSandbox();
+  });
 
-        return (
-          <div>{message}</div>
-        );
+  it('can make a component', () => {
+    class CustomComponent extends WebComponent {
+      render() {
+        return html`
+          <div>Hello world</div>
+        `;
       }
+    }
+
+    customElements.define('custom-component', CustomComponent);
+
+    innerHTML(document.body, html`<custom-component />`);
+
+    const instance = document.body.querySelector('custom-component');
+
+    equal(instance.shadowRoot.firstChild.outerHTML, '<div>Hello world</div>');
+    equal(document.body.innerHTML, '<custom-component></custom-component>');
+  });
+
+  describe('JSX Compatibility', () => {
+    it('can render JSX', () => {
+      customElements.define('jsx-test', class extends WebComponent {
+        render() {
+          return (
+            <div>Hello world</div>
+          );
+        }
+      });
+
+      innerHTML(document.body, <jsx-test />);
+
+      const output = document.createElement('div');
+      output.appendChild(document.body.firstChild.shadowRoot);
+
+      equal(output.innerHTML, '<div>Hello world</div>');
+      equal(document.body.innerHTML, '<jsx-test></jsx-test>');
     });
 
-    const domNode = document.createElement('div');
-    document.body.appendChild(domNode);
+    it('can render JSX with props', () => {
+      customElements.define('jsx-test', class extends WebComponent {
+        render() {
+          const { message } = this.props;
 
-    innerHTML(domNode, <jsx-test message="Hello world!" />);
+          return (
+            <div>{message}</div>
+          );
+        }
 
-    equal(domNode.shadowRoot, '<div><jsx-test message="Hello world!"></jsx-test></div>');
-    equal(domNode.outerHTML, '<div><jsx-test message="Hello world!"></jsx-test></div>');
+        static propTypes = {
+          message: PropTypes.string,
+        }
+      });
 
-    return new Promise(resolve => setTimeout(resolve, 2000));
+      const domNode = document.createElement('div');
+      document.body.appendChild(domNode);
+
+      innerHTML(domNode, <jsx-test message="Hello world!" />);
+
+      equal(domNode.firstChild.shadowRoot.firstChild.outerHTML, '<div>Hello world!</div>');
+      equal(domNode.outerHTML, '<div><jsx-test message="Hello world!"></jsx-test></div>');
+    });
   });
 });

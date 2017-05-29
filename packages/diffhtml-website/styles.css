@@ -484,7 +484,7 @@ layer {
   width: 40px;
 }
 
-@media only screen and (max-width : 1400px) {
+@media only screen and (max-width : 1330px) {
   html, body {
     background-color: #FFF !important;
     overflow-x: hidden !important;

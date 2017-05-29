@@ -567,6 +567,10 @@ function syncTree(oldTree, newTree, patches) {
 
   // If we somehow end up comparing two totally different kinds of elements,
   // we'll want to raise an error to let the user know something is wrong.
+  if (isEmpty) {
+    return patches;
+  }
+
   const oldChildNodes = oldTree.childNodes;
   const newChildNodes = newTree.childNodes;
 

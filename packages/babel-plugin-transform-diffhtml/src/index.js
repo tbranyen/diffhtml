@@ -2,7 +2,10 @@ import parse from 'diffhtml/dist/cjs/util/parser';
 import * as babylon from 'babylon';
 import Global from './global';
 
-const TOKEN = '__DIFFHTML__';
+const hasNonWhitespaceEx = /\S/;
+const TOKEN = '__DIFFHTML_BABEL__';
+const doctypeEx = /<!.*>/i;
+const tokenEx = /__DIFFHTML_BABEL__([^_]*)__/;
 const isPropEx = /(=|'|")/;
 
 /**
@@ -12,49 +15,42 @@ const isPropEx = /(=|'|")/;
  * @return {Object} containing the visitor handler.
  */
 export default function({ types: t }) {
-  // If dynamic bits are interpolated between strings, this will concatenate
-  // them together.
-  const makeConcatExpr = (value, supplemental) => {
-    return value.split(symbol).reduce((memo, str, i, parts) => {
-      // Last part should be string terminator
-      if (i === parts.length - 1 && memo) {
-        memo = t.binaryExpression('+', memo, t.stringLiteral(str));
-        return memo;
+  const interpolateValues = (string, supplemental, createTree) => {
+    // If this is text and not a doctype, add as a text node.
+    if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
+      return [t.stringLiteral('#text'), t.stringLiteral(string)];
+    }
+
+    const childNodes = [];
+    const parts = string.split(tokenEx);
+    let { length } = parts;
+
+    for (let i = 0; i < length; i++) {
+      const value = parts[i];
+
+      if (!value) { continue; }
+
+      // When we split on the token expression, the capture group will replace
+      // the token's position. So all we do is ensure that we're on an odd
+      // index and then we can source the correct value.
+      if (i % 2 === 1) {
+        const innerTree = supplemental.children[value];
+        if (!innerTree) { continue; }
+        const isFragment = innerTree.nodeType === 11;
+
+        if (typeof innerTree.rawNodeName === 'string' && isFragment) {
+          childNodes.push(...innerTree.childNodes);
+        }
+        else {
+          childNodes.push(t.callExpression(createTree, [innerTree]));
+        }
       }
-
-      const dynamicBit = supplemental.shift();
-
-      // First run.
-      if (!memo) {
-        memo = t.binaryExpression('+', t.stringLiteral(str), dynamicBit);
+      else if (!doctypeEx.test(value) && hasNonWhitespaceEx.test(value) || (i !== 0 && i !== length -1)) {
+        childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.stringLiteral(value)]));
       }
-      else {
-        memo = t.binaryExpression('+', memo, t.binaryExpression(
-          '+', t.stringLiteral(str), dynamicBit
-        ));
-      }
+    }
 
-      return memo;
-    }, null);
-  };
-
-  const splitDyanmicValues = (value, supplemental) => {
-    const expressions = value.split(symbol).reduce((memo, str, i, arr) => {
-      const isEmpty = !Boolean(str);
-
-      if (!isEmpty) {
-        memo.push(t.stringLiteral(str));
-      }
-
-      // If not the last one.
-      if (i !== arr.length - 1) {
-        memo.push(supplemental.shift());
-      }
-
-      return memo;
-    }, []);
-
-    return t.arrayExpression(expressions);
+    return [childNodes.length === 1 ? childNodes[0] : t.arrayExpression(childNodes)];
   };
 
   // Takes in a dot-notation identifier and breaks it up into a
@@ -183,7 +179,7 @@ export default function({ types: t }) {
             HTML.push(token);
 
             if (isProp) {
-              supplemental.props[i] = expression;
+              supplemental.attributes[i] = expression;
             }
             else {
               supplemental.children[i] = expression;
@@ -276,28 +272,8 @@ export default function({ types: t }) {
           else if (nodeType === 3) {
             let value = nodeValue.value || '';
 
-            if (value.trim() === symbol) {
-              const childNodes = supplemental.children.shift();
-
-              args.push(createTree, [childNodes]);
-
-              isDynamic = true;
-            }
-            else if (value.indexOf(symbol) > -1) {
-              const values = splitDyanmicValues(value, supplemental.children);
-
-              if (values.elements.length === 1) {
-                args.push(values.elements[0]);
-              }
-              else {
-                args.push(createTree, [
-                  t.stringLiteral('#document-fragment'),
-                  t.nullLiteral(),
-                  values.length === 1 ? values[0] : values,
-                ]);
-              }
-
-              isDynamic = true;
+            if (value.match(tokenEx)) {
+              args.push(createTree, interpolateValues(value, supplemental, createTree));
             }
             else {
               args.push(createTree, [

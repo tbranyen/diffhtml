@@ -1,5 +1,5 @@
-Static Sync
-===========
+diffHTML Static Sync
+====================
 
 A static HTML server that monitors the folder it was executed in for changes
 and diffs them seamlessly into the browser without needing to reload the page.
@@ -14,15 +14,15 @@ globally which is what is most commonly used for command line tools.
 
 ``` sh
 # Using npm:
-npm install static-sync -g
+npm install diffhtml-sync -g
 
 # Using yarn:
-yarn global add static-sync
+yarn global add diffhtml-sync
 ```
 
 ### Usage
 
-If all goes well, you should now have a `static-sync` command in your `PATH`
+If all goes well, you should now have a `diffhtml-sync` command in your `PATH`
 which means you can execute it in the command line. Open an existing folder
 with HTML files or make a new one and run this command in it. You shouldn't
 see any output just yet, but the command should appear to hang.

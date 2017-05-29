@@ -1,17 +1,23 @@
-import { innerHTML, createTree } from 'diffhtml';
-import WebComponent from './lib/web-component';
-import PropTypes from 'proptypes';
+const { JSDOM } = require('jsdom-wc');
+const { window } = new JSDOM(`<!DOCTYPE html>`);
 
-class extends WebComponent {
-  render({ message }) {
-    return (
-      <div>{message}</div>
-    );
-  }
+Object.assign(global, {
+  document: window.document,
+  HTMLElement: window.HTMLElement,
+  customElements: window.customElements,
+  window,
+});
 
-  static propTypes = {
-    message: PropTypes.string.isRequired,
+class BoldComponent extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `<b>${this.innerHTML}</b>`;
   }
 }
 
-innerHTML(document.body, <jsx-test message="Hello world!" />);
+customElements.define('bold-component', BoldComponent);
+
+document.body.innerHTML = `
+  <bold-component>What a time to be...</bold-component>
+`;
+
+console.log(document.body.outerHTML);

@@ -159,6 +159,10 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`
     }
   }
 
+  if (isEmpty) {
+    return patches;
+  }
+
   const oldChildNodes = oldTree.childNodes;
   const newChildNodes = newTree.childNodes;
 

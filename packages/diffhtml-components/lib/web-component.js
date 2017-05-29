@@ -1,9 +1,9 @@
 import { innerHTML } from 'diffhtml';
 import upgradeSharedClass from './shared/upgrade-shared-class';
+import { $$render } from './util/symbols';
 
 const Debounce = new WeakMap();
 const { setPrototypeOf, freeze, assign, keys } = Object;
-const $$render = Symbol.for('diff.render');
 
 // Convert observed attributes from passed PropTypes.
 const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
@@ -22,6 +22,11 @@ const createState = (domNode, newState) => {
   return freeze(assign({}, domNode.state, newState));
 };
 
+// Creates the `component.contxt` object.
+const createContext = (domNode) => {
+
+};
+
 export default upgradeSharedClass(class WebComponent extends HTMLElement {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
@@ -38,7 +43,7 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
 
     this.props = createProps(this);
     this.state = createState(this);
-    this.componentWillMount();
+    this.context = createContext(this);
   }
 
   connectedCallback() {

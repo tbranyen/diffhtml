@@ -326,7 +326,7 @@ var keywords = {
   "class": new KeywordTokenType("class"),
   "extends": new KeywordTokenType("extends", { beforeExpr: beforeExpr }),
   "export": new KeywordTokenType("export"),
-  "import": new KeywordTokenType("import"),
+  "import": new KeywordTokenType("import", { startsExpr: startsExpr }),
   "yield": new KeywordTokenType("yield", { beforeExpr: beforeExpr, startsExpr: startsExpr }),
   "null": new KeywordTokenType("null", { startsExpr: startsExpr }),
   "true": new KeywordTokenType("true", { startsExpr: startsExpr }),
@@ -494,7 +494,7 @@ var State = function () {
 
     this.potentialArrowAt = -1;
 
-    this.inMethod = this.inFunction = this.inGenerator = this.inAsync = this.inPropertyName = this.inType = this.noAnonFunctionType = false;
+    this.inMethod = this.inFunction = this.inGenerator = this.inAsync = this.inPropertyName = this.inType = this.inClassProperty = this.noAnonFunctionType = false;
 
     this.labels = [];
 
@@ -524,6 +524,8 @@ var State = function () {
 
     this.containsEsc = this.containsOctal = false;
     this.octalPosition = null;
+
+    this.invalidTemplateEscapePosition = null;
 
     this.exportedIdentifiers = [];
 
@@ -1204,25 +1206,29 @@ var Tokenizer = function () {
 
   Tokenizer.prototype.readNumber = function readNumber(startsWithDot) {
     var start = this.state.pos;
-    var octal = this.input.charCodeAt(this.state.pos) === 48;
+    var octal = this.input.charCodeAt(start) === 48; // '0'
     var isFloat = false;
 
     if (!startsWithDot && this.readInt(10) === null) this.raise(start, "Invalid number");
+    if (octal && this.state.pos == start + 1) octal = false; // number === 0
+
     var next = this.input.charCodeAt(this.state.pos);
-    if (next === 46) {
+    if (next === 46 && !octal) {
       // '.'
       ++this.state.pos;
       this.readInt(10);
       isFloat = true;
       next = this.input.charCodeAt(this.state.pos);
     }
-    if (next === 69 || next === 101) {
+
+    if ((next === 69 || next === 101) && !octal) {
       // 'eE'
       next = this.input.charCodeAt(++this.state.pos);
       if (next === 43 || next === 45) ++this.state.pos; // '+-'
       if (this.readInt(10) === null) this.raise(start, "Invalid number");
       isFloat = true;
     }
+
     if (isIdentifierStart(this.fullCharCodeAtPos())) this.raise(this.state.pos, "Identifier directly after number");
 
     var str = this.input.slice(start, this.state.pos);
@@ -1231,8 +1237,10 @@ var Tokenizer = function () {
       val = parseFloat(str);
     } else if (!octal || str.length === 1) {
       val = parseInt(str, 10);
-    } else if (/[89]/.test(str) || this.state.strict) {
+    } else if (this.state.strict) {
       this.raise(start, "Invalid number");
+    } else if (/[89]/.test(str)) {
+      val = parseInt(str, 10);
     } else {
       val = parseInt(str, 8);
     }
@@ -1241,17 +1249,27 @@ var Tokenizer = function () {
 
   // Read a string value, interpreting backslash-escapes.
 
-  Tokenizer.prototype.readCodePoint = function readCodePoint() {
+  Tokenizer.prototype.readCodePoint = function readCodePoint(throwOnInvalid) {
     var ch = this.input.charCodeAt(this.state.pos);
     var code = void 0;
 
     if (ch === 123) {
+      // '{'
       var codePos = ++this.state.pos;
-      code = this.readHexChar(this.input.indexOf("}", this.state.pos) - this.state.pos);
+      code = this.readHexChar(this.input.indexOf("}", this.state.pos) - this.state.pos, throwOnInvalid);
       ++this.state.pos;
-      if (code > 0x10FFFF) this.raise(codePos, "Code point out of bounds");
+      if (code === null) {
+        --this.state.invalidTemplateEscapePosition; // to point to the '\'' instead of the 'u'
+      } else if (code > 0x10FFFF) {
+        if (throwOnInvalid) {
+          this.raise(codePos, "Code point out of bounds");
+        } else {
+          this.state.invalidTemplateEscapePosition = codePos - 2;
+          return null;
+        }
+      }
     } else {
-      code = this.readHexChar(4);
+      code = this.readHexChar(4, throwOnInvalid);
     }
     return code;
   };
@@ -1281,7 +1299,8 @@ var Tokenizer = function () {
 
   Tokenizer.prototype.readTmplToken = function readTmplToken() {
     var out = "",
-        chunkStart = this.state.pos;
+        chunkStart = this.state.pos,
+        containsInvalid = false;
     for (;;) {
       if (this.state.pos >= this.input.length) this.raise(this.state.start, "Unterminated template");
       var ch = this.input.charCodeAt(this.state.pos);
@@ -1297,12 +1316,17 @@ var Tokenizer = function () {
           }
         }
         out += this.input.slice(chunkStart, this.state.pos);
-        return this.finishToken(types.template, out);
+        return this.finishToken(types.template, containsInvalid ? null : out);
       }
       if (ch === 92) {
         // '\'
         out += this.input.slice(chunkStart, this.state.pos);
-        out += this.readEscapedChar(true);
+        var escaped = this.readEscapedChar(true);
+        if (escaped === null) {
+          containsInvalid = true;
+        } else {
+          out += escaped;
+        }
         chunkStart = this.state.pos;
       } else if (isNewLine(ch)) {
         out += this.input.slice(chunkStart, this.state.pos);
@@ -1329,6 +1353,7 @@ var Tokenizer = function () {
   // Used to read escaped characters
 
   Tokenizer.prototype.readEscapedChar = function readEscapedChar(inTemplate) {
+    var throwOnInvalid = !inTemplate;
     var ch = this.input.charCodeAt(++this.state.pos);
     ++this.state.pos;
     switch (ch) {
@@ -1337,9 +1362,17 @@ var Tokenizer = function () {
       case 114:
         return "\r"; // 'r' -> '\r'
       case 120:
-        return String.fromCharCode(this.readHexChar(2)); // 'x'
+        {
+          // 'x'
+          var code = this.readHexChar(2, throwOnInvalid);
+          return code === null ? null : String.fromCharCode(code);
+        }
       case 117:
-        return codePointToString(this.readCodePoint()); // 'u'
+        {
+          // 'u'
+          var _code = this.readCodePoint(throwOnInvalid);
+          return _code === null ? null : codePointToString(_code);
+        }
       case 116:
         return "\t"; // 't' -> '\t'
       case 98:
@@ -1357,6 +1390,7 @@ var Tokenizer = function () {
         return "";
       default:
         if (ch >= 48 && ch <= 55) {
+          var codePos = this.state.pos - 1;
           var octalStr = this.input.substr(this.state.pos - 1, 3).match(/^[0-7]+/)[0];
           var octal = parseInt(octalStr, 8);
           if (octal > 255) {
@@ -1364,12 +1398,16 @@ var Tokenizer = function () {
             octal = parseInt(octalStr, 8);
           }
           if (octal > 0) {
-            if (!this.state.containsOctal) {
+            if (inTemplate) {
+              this.state.invalidTemplateEscapePosition = codePos;
+              return null;
+            } else if (this.state.strict) {
+              this.raise(codePos, "Octal literal in strict mode");
+            } else if (!this.state.containsOctal) {
+              // These properties are only used to throw an error for an octal which occurs
+              // in a directive which occurs prior to a "use strict" directive.
               this.state.containsOctal = true;
-              this.state.octalPosition = this.state.pos - 2;
-            }
-            if (this.state.strict || inTemplate) {
-              this.raise(this.state.pos - 2, "Octal literal in strict mode");
+              this.state.octalPosition = codePos;
             }
           }
           this.state.pos += octalStr.length - 1;
@@ -1379,12 +1417,19 @@ var Tokenizer = function () {
     }
   };
 
-  // Used to read character escape sequences ('\x', '\u', '\U').
+  // Used to read character escape sequences ('\x', '\u').
 
-  Tokenizer.prototype.readHexChar = function readHexChar(len) {
+  Tokenizer.prototype.readHexChar = function readHexChar(len, throwOnInvalid) {
     var codePos = this.state.pos;
     var n = this.readInt(16, len);
-    if (n === null) this.raise(codePos, "Bad character escape sequence");
+    if (n === null) {
+      if (throwOnInvalid) {
+        this.raise(codePos, "Bad character escape sequence");
+      } else {
+        this.state.pos = codePos - 1;
+        this.state.invalidTemplateEscapePosition = codePos - 1;
+      }
+    }
     return n;
   };
 
@@ -1416,7 +1461,7 @@ var Tokenizer = function () {
         }
 
         ++this.state.pos;
-        var esc = this.readCodePoint();
+        var esc = this.readCodePoint(true);
         if (!(first ? isIdentifierStart : isIdentifierChar)(esc, true)) {
           this.raise(escStart, "Invalid Unicode escape");
         }
@@ -2336,11 +2381,17 @@ pp$1.parseClass = function (node, isStatement, optionalId) {
 };
 
 pp$1.isClassProperty = function () {
-  return this.match(types.eq) || this.isLineTerminator();
+  return this.match(types.eq) || this.match(types.semi) || this.match(types.braceR);
 };
 
-pp$1.isClassMutatorStarter = function () {
-  return false;
+pp$1.isClassMethod = function () {
+  return this.match(types.parenL);
+};
+
+pp$1.isNonstaticConstructor = function (method) {
+  return !method.computed && !method.static && (method.key.name === "constructor" || // Identifier
+  method.key.value === "constructor" // Literal
+  );
 };
 
 pp$1.parseClassBody = function (node) {
@@ -2378,91 +2429,103 @@ pp$1.parseClassBody = function (node) {
       decorators = [];
     }
 
-    var isConstructorCall = false;
-    var isMaybeStatic = this.match(types.name) && this.state.value === "static";
-    var isGenerator = this.eat(types.star);
-    var isGetSet = false;
-    var isAsync = false;
-
-    this.parsePropertyName(method);
-
-    method.static = isMaybeStatic && !this.match(types.parenL);
-    if (method.static) {
-      isGenerator = this.eat(types.star);
-      this.parsePropertyName(method);
-    }
-
-    if (!isGenerator) {
-      if (this.isClassProperty()) {
+    method.static = false;
+    if (this.match(types.name) && this.state.value === "static") {
+      var key = this.parseIdentifier(true); // eats 'static'
+      if (this.isClassMethod()) {
+        // a method named 'static'
+        method.kind = "method";
+        method.computed = false;
+        method.key = key;
+        this.parseClassMethod(classBody, method, false, false);
+        continue;
+      } else if (this.isClassProperty()) {
+        // a property named 'static'
+        method.computed = false;
+        method.key = key;
         classBody.body.push(this.parseClassProperty(method));
         continue;
       }
-
-      if (method.key.type === "Identifier" && !method.computed && this.hasPlugin("classConstructorCall") && method.key.name === "call" && this.match(types.name) && this.state.value === "constructor") {
-        isConstructorCall = true;
-        this.parsePropertyName(method);
-      }
+      // otherwise something static
+      method.static = true;
     }
 
-    var isAsyncMethod = !this.match(types.parenL) && !method.computed && method.key.type === "Identifier" && method.key.name === "async";
-    if (isAsyncMethod) {
-      if (this.hasPlugin("asyncGenerators") && this.eat(types.star)) isGenerator = true;
-      isAsync = true;
+    if (this.eat(types.star)) {
+      // a generator
+      method.kind = "method";
       this.parsePropertyName(method);
-    }
-
-    method.kind = "method";
-
-    if (!method.computed) {
-      var key = method.key;
-
-      // handle get/set methods
-      // eg. class Foo { get bar() {} set bar() {} }
-
-      if (!isAsync && !isGenerator && !this.isClassMutatorStarter() && key.type === "Identifier" && !this.match(types.parenL) && (key.name === "get" || key.name === "set")) {
-        isGetSet = true;
-        method.kind = key.name;
-        key = this.parsePropertyName(method);
+      if (this.isNonstaticConstructor(method)) {
+        this.raise(method.key.start, "Constructor can't be a generator");
       }
-
-      // disallow invalid constructors
-      var isConstructor = !isConstructorCall && !method.static && (key.name === "constructor" || // Identifier
-      key.value === "constructor" // Literal
-      );
-      if (isConstructor) {
-        if (hadConstructor) this.raise(key.start, "Duplicate constructor in the same class");
-        if (isGetSet) this.raise(key.start, "Constructor can't have get/set modifier");
-        if (isGenerator) this.raise(key.start, "Constructor can't be a generator");
-        if (isAsync) this.raise(key.start, "Constructor can't be an async function");
-        method.kind = "constructor";
-        hadConstructor = true;
+      if (!method.computed && method.static && (method.key.name === "prototype" || method.key.value === "prototype")) {
+        this.raise(method.key.start, "Classes may not have static property named prototype");
       }
-
-      // disallow static prototype method
-      var isStaticPrototype = method.static && (key.name === "prototype" || // Identifier
-      key.value === "prototype" // Literal
-      );
-      if (isStaticPrototype) {
-        this.raise(key.start, "Classes may not have static property named prototype");
+      this.parseClassMethod(classBody, method, true, false);
+    } else {
+      var isSimple = this.match(types.name);
+      var _key = this.parsePropertyName(method);
+      if (!method.computed && method.static && (method.key.name === "prototype" || method.key.value === "prototype")) {
+        this.raise(method.key.start, "Classes may not have static property named prototype");
       }
-    }
-
-    // convert constructor to a constructor call
-    if (isConstructorCall) {
-      if (hadConstructorCall) this.raise(method.start, "Duplicate constructor call in the same class");
-      method.kind = "constructorCall";
-      hadConstructorCall = true;
-    }
-
-    // disallow decorators on class constructors
-    if ((method.kind === "constructor" || method.kind === "constructorCall") && method.decorators) {
-      this.raise(method.start, "You can't attach decorators to a class constructor");
-    }
-
-    this.parseClassMethod(classBody, method, isGenerator, isAsync);
-
-    if (isGetSet) {
-      this.checkGetterSetterParamCount(method);
+      if (this.isClassMethod()) {
+        // a normal method
+        if (this.isNonstaticConstructor(method)) {
+          if (hadConstructor) {
+            this.raise(_key.start, "Duplicate constructor in the same class");
+          } else if (method.decorators) {
+            this.raise(method.start, "You can't attach decorators to a class constructor");
+          }
+          hadConstructor = true;
+          method.kind = "constructor";
+        } else {
+          method.kind = "method";
+        }
+        this.parseClassMethod(classBody, method, false, false);
+      } else if (this.isClassProperty()) {
+        // a normal property
+        if (this.isNonstaticConstructor(method)) {
+          this.raise(method.key.start, "Classes may not have a non-static field named 'constructor'");
+        }
+        classBody.body.push(this.parseClassProperty(method));
+      } else if (isSimple && _key.name === "async" && !this.isLineTerminator()) {
+        // an async method
+        var isGenerator = this.hasPlugin("asyncGenerators") && this.eat(types.star);
+        method.kind = "method";
+        this.parsePropertyName(method);
+        if (this.isNonstaticConstructor(method)) {
+          this.raise(method.key.start, "Constructor can't be an async function");
+        }
+        this.parseClassMethod(classBody, method, isGenerator, true);
+      } else if (isSimple && (_key.name === "get" || _key.name === "set") && !(this.isLineTerminator() && this.match(types.star))) {
+        // `get\n*` is an uninitialized property named 'get' followed by a generator.
+        // a getter or setter
+        method.kind = _key.name;
+        this.parsePropertyName(method);
+        if (this.isNonstaticConstructor(method)) {
+          this.raise(method.key.start, "Constructor can't have get/set modifier");
+        }
+        this.parseClassMethod(classBody, method, false, false);
+        this.checkGetterSetterParamCount(method);
+      } else if (this.hasPlugin("classConstructorCall") && isSimple && _key.name === "call" && this.match(types.name) && this.state.value === "constructor") {
+        // a (deprecated) call constructor
+        if (hadConstructorCall) {
+          this.raise(method.start, "Duplicate constructor call in the same class");
+        } else if (method.decorators) {
+          this.raise(method.start, "You can't attach decorators to a class constructor");
+        }
+        hadConstructorCall = true;
+        method.kind = "constructorCall";
+        this.parsePropertyName(method); // consume "constructor" and make it the method's name
+        this.parseClassMethod(classBody, method, false, false);
+      } else if (this.isLineTerminator()) {
+        // an uninitialized class property (due to ASI, since we don't otherwise recognize the next token)
+        if (this.isNonstaticConstructor(method)) {
+          this.raise(method.key.start, "Classes may not have a non-static field named 'constructor'");
+        }
+        classBody.body.push(this.parseClassProperty(method));
+      } else {
+        this.unexpected();
+      }
     }
   }
 
@@ -2476,6 +2539,7 @@ pp$1.parseClassBody = function (node) {
 };
 
 pp$1.parseClassProperty = function (node) {
+  this.state.inClassProperty = true;
   if (this.match(types.eq)) {
     if (!this.hasPlugin("classProperties")) this.unexpected();
     this.next();
@@ -2484,6 +2548,7 @@ pp$1.parseClassProperty = function (node) {
     node.value = null;
   }
   this.semicolon();
+  this.state.inClassProperty = false;
   return this.finishNode(node, "ClassProperty");
 };
 
@@ -3200,7 +3265,7 @@ pp$3.getExpression = function () {
 // the AST node that the inner parser gave them in another node.
 
 // Parse a full expression. The optional arguments are used to
-// forbid the `in` operator (in for loops initalization expressions)
+// forbid the `in` operator (in for loops initialization expressions)
 // and provide reference for storing '=' operator inside shorthand
 // property assignment in contexts where both object expression
 // and object pattern might appear (so it's possible to raise
@@ -3450,7 +3515,7 @@ pp$3.parseSubscripts = function (base, startPos, startLoc, noCalls) {
     } else if (this.match(types.backQuote)) {
       var _node5 = this.startNodeAt(startPos, startLoc);
       _node5.tag = base;
-      _node5.quasi = this.parseTemplate();
+      _node5.quasi = this.parseTemplate(true);
       base = this.finishNode(_node5, "TaggedTemplateExpression");
     } else {
       return base;
@@ -3515,7 +3580,7 @@ pp$3.parseExprAtom = function (refShorthandDefaultPos) {
 
   switch (this.state.type) {
     case types._super:
-      if (!this.state.inMethod && !this.options.allowSuperOutsideMethod) {
+      if (!this.state.inMethod && !this.state.inClassProperty && !this.options.allowSuperOutsideMethod) {
         this.raise(this.state.start, "'super' outside of function or class");
       }
 
@@ -3639,7 +3704,7 @@ pp$3.parseExprAtom = function (refShorthandDefaultPos) {
       return this.parseNew();
 
     case types.backQuote:
-      return this.parseTemplate();
+      return this.parseTemplate(false);
 
     case types.doubleColon:
       node = this.startNode();
@@ -3728,7 +3793,7 @@ pp$3.parseParenAndDistinguishExpression = function (startPos, startLoc, canBeArr
       var spreadNodeStartPos = this.state.start;
       var spreadNodeStartLoc = this.state.startLoc;
       spreadStart = this.state.start;
-      exprList.push(this.parseParenItem(this.parseRest(), spreadNodeStartLoc, spreadNodeStartPos));
+      exprList.push(this.parseParenItem(this.parseRest(), spreadNodeStartPos, spreadNodeStartLoc));
       break;
     } else {
       exprList.push(this.parseMaybeAssign(false, refShorthandDefaultPos, this.parseParenItem, refNeedsArrowPos));
@@ -3807,7 +3872,13 @@ pp$3.parseNew = function () {
   var meta = this.parseIdentifier(true);
 
   if (this.eat(types.dot)) {
-    return this.parseMetaProperty(node, meta, "target");
+    var metaProp = this.parseMetaProperty(node, meta, "target");
+
+    if (!this.state.inFunction) {
+      this.raise(metaProp.property.start, "new.target can only be used in functions");
+    }
+
+    return metaProp;
   }
 
   node.callee = this.parseNoCallExpr();
@@ -3824,8 +3895,15 @@ pp$3.parseNew = function () {
 
 // Parse template expression.
 
-pp$3.parseTemplateElement = function () {
+pp$3.parseTemplateElement = function (isTagged) {
   var elem = this.startNode();
+  if (this.state.value === null) {
+    if (!isTagged || !this.hasPlugin("templateInvalidEscapes")) {
+      this.raise(this.state.invalidTemplateEscapePosition, "Invalid escape sequence in template");
+    } else {
+      this.state.invalidTemplateEscapePosition = null;
+    }
+  }
   elem.value = {
     raw: this.input.slice(this.state.start, this.state.end).replace(/\r\n?/g, "\n"),
     cooked: this.state.value
@@ -3835,17 +3913,17 @@ pp$3.parseTemplateElement = function () {
   return this.finishNode(elem, "TemplateElement");
 };
 
-pp$3.parseTemplate = function () {
+pp$3.parseTemplate = function (isTagged) {
   var node = this.startNode();
   this.next();
   node.expressions = [];
-  var curElt = this.parseTemplateElement();
+  var curElt = this.parseTemplateElement(isTagged);
   node.quasis = [curElt];
   while (!curElt.tail) {
     this.expect(types.dollarBraceL);
     node.expressions.push(this.parseExpression());
     this.expect(types.braceR);
-    node.quasis.push(curElt = this.parseTemplateElement());
+    node.quasis.push(curElt = this.parseTemplateElement(isTagged));
   }
   this.next();
   return this.finishNode(node, "TemplateLiteral");
@@ -4011,8 +4089,9 @@ pp$3.parseObjectProperty = function (prop, startPos, startLoc, isPattern, refSho
   }
 
   if (!prop.computed && prop.key.type === "Identifier") {
+    this.checkReservedWord(prop.key.name, prop.key.start, true, true);
+
     if (isPattern) {
-      this.checkReservedWord(prop.key.name, prop.key.start, true, true);
       prop.value = this.parseMaybeDefault(startPos, startLoc, prop.key.__clone());
     } else if (this.match(types.eq) && refShorthandDefaultPos) {
       if (!refShorthandDefaultPos.start) {
@@ -4999,7 +5078,7 @@ pp$8.flowParseDeclareInterface = function (node) {
 
 // Interfaces
 
-pp$8.flowParseInterfaceish = function (node, allowStatic) {
+pp$8.flowParseInterfaceish = function (node) {
   node.id = this.parseIdentifier();
 
   if (this.isRelational("<")) {
@@ -5024,7 +5103,7 @@ pp$8.flowParseInterfaceish = function (node, allowStatic) {
     } while (this.eat(types.comma));
   }
 
-  node.body = this.flowParseObjectType(allowStatic);
+  node.body = this.flowParseObjectType(true, false, false);
 };
 
 pp$8.flowParseInterfaceExtends = function () {
@@ -5205,7 +5284,7 @@ pp$8.flowParseObjectTypeCallProperty = function (node, isStatic) {
   return this.finishNode(node, "ObjectTypeCallProperty");
 };
 
-pp$8.flowParseObjectType = function (allowStatic, allowExact) {
+pp$8.flowParseObjectType = function (allowStatic, allowExact, allowSpread) {
   var oldInType = this.state.inType;
   this.state.inType = true;
 
@@ -5253,24 +5332,37 @@ pp$8.flowParseObjectType = function (allowStatic, allowExact) {
       }
       nodeStart.callProperties.push(this.flowParseObjectTypeCallProperty(node, isStatic));
     } else {
-      propertyKey = this.flowParseObjectPropertyKey();
-      if (this.isRelational("<") || this.match(types.parenL)) {
-        // This is a method property
+      if (this.match(types.ellipsis)) {
+        if (!allowSpread) {
+          this.unexpected(null, "Spread operator cannot appear in class or interface definitions");
+        }
         if (variance) {
-          this.unexpected(variancePos);
+          this.unexpected(variance.start, "Spread properties cannot have variance");
         }
-        nodeStart.properties.push(this.flowParseObjectTypeMethod(startPos, startLoc, isStatic, propertyKey));
-      } else {
-        if (this.eat(types.question)) {
-          optional = true;
-        }
-        node.key = propertyKey;
-        node.value = this.flowParseTypeInitialiser();
-        node.optional = optional;
-        node.static = isStatic;
-        node.variance = variance;
+        this.expect(types.ellipsis);
+        node.argument = this.flowParseType();
         this.flowObjectTypeSemicolon();
-        nodeStart.properties.push(this.finishNode(node, "ObjectTypeProperty"));
+        nodeStart.properties.push(this.finishNode(node, "ObjectTypeSpreadProperty"));
+      } else {
+        propertyKey = this.flowParseObjectPropertyKey();
+        if (this.isRelational("<") || this.match(types.parenL)) {
+          // This is a method property
+          if (variance) {
+            this.unexpected(variance.start);
+          }
+          nodeStart.properties.push(this.flowParseObjectTypeMethod(startPos, startLoc, isStatic, propertyKey));
+        } else {
+          if (this.eat(types.question)) {
+            optional = true;
+          }
+          node.key = propertyKey;
+          node.value = this.flowParseTypeInitialiser();
+          node.optional = optional;
+          node.static = isStatic;
+          node.variance = variance;
+          this.flowObjectTypeSemicolon();
+          nodeStart.properties.push(this.finishNode(node, "ObjectTypeProperty"));
+        }
       }
     }
 
@@ -5432,10 +5524,10 @@ pp$8.flowParsePrimaryType = function () {
       return this.flowIdentToTypeAnnotation(startPos, startLoc, node, this.parseIdentifier());
 
     case types.braceL:
-      return this.flowParseObjectType(false, false);
+      return this.flowParseObjectType(false, false, true);
 
     case types.braceBarL:
-      return this.flowParseObjectType(false, true);
+      return this.flowParseObjectType(false, true, true);
 
     case types.bracketL:
       return this.flowParseTupleType();
@@ -5740,14 +5832,14 @@ var flowPlugin = function flowPlugin(instance) {
   });
 
   instance.extend("parseParenItem", function (inner) {
-    return function (node, startLoc, startPos) {
-      node = inner.call(this, node, startLoc, startPos);
+    return function (node, startPos, startLoc) {
+      node = inner.call(this, node, startPos, startLoc);
       if (this.eat(types.question)) {
         node.optional = true;
       }
 
       if (this.match(types.colon)) {
-        var typeCastNode = this.startNodeAt(startLoc, startPos);
+        var typeCastNode = this.startNodeAt(startPos, startLoc);
         typeCastNode.expression = node;
         typeCastNode.typeAnnotation = this.flowParseTypeAnnotation();
 
@@ -5914,10 +6006,23 @@ var flowPlugin = function flowPlugin(instance) {
     };
   });
 
+  // determine whether or not we're currently in the position where a class method would appear
+  instance.extend("isClassMethod", function (inner) {
+    return function () {
+      return this.isRelational("<") || inner.call(this);
+    };
+  });
+
   // determine whether or not we're currently in the position where a class property would appear
   instance.extend("isClassProperty", function (inner) {
     return function () {
       return this.match(types.colon) || inner.call(this);
+    };
+  });
+
+  instance.extend("isNonstaticConstructor", function (inner) {
+    return function (method) {
+      return !this.match(types.colon) && inner.call(this, method);
     };
   });
 
@@ -6177,6 +6282,12 @@ var flowPlugin = function flowPlugin(instance) {
         } catch (err) {
           if (err instanceof SyntaxError) {
             this.state = state;
+
+            // Remove `tc.j_expr` and `tc.j_oTag` from context added
+            // by parsing `jsxTagStart` to stop the JSX plugin from
+            // messing with the tokens
+            this.state.context.length -= 2;
+
             jsxError = err;
           } else {
             // istanbul ignore next: no such error is expected
@@ -6185,9 +6296,6 @@ var flowPlugin = function flowPlugin(instance) {
         }
       }
 
-      // Need to push something onto the context to stop
-      // the JSX plugin from messing with the tokens
-      this.state.context.push(types$1.parenExpression);
       if (jsxError != null || this.isRelational("<")) {
         var arrowExpression = void 0;
         var typeParameters = void 0;
@@ -6210,7 +6318,6 @@ var flowPlugin = function flowPlugin(instance) {
           this.raise(typeParameters.start, "Expected an arrow function after this type parameter declaration");
         }
       }
-      this.state.context.pop();
 
       return inner.apply(this, args);
     };
@@ -6248,16 +6355,6 @@ var flowPlugin = function flowPlugin(instance) {
   instance.extend("shouldParseArrow", function (inner) {
     return function () {
       return this.match(types.colon) || inner.call(this);
-    };
-  });
-
-  instance.extend("isClassMutatorStarter", function (inner) {
-    return function () {
-      if (this.isRelational("<")) {
-        return true;
-      } else {
-        return inner.call(this);
-      }
     };
   });
 };
@@ -7071,189 +7168,6 @@ exports.tokTypes = types;
 },{}],2:[function(require,module,exports){
 'use strict';
 
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout() {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-})();
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while (len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () {
-    return '/';
-};
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function () {
-    return 0;
-};
-
-},{}],3:[function(require,module,exports){
-'use strict';
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -7261,46 +7175,45 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (_ref) {
   var t = _ref.types;
 
-  // If dynamic bits are interpolated between strings, this will concatenate
-  // them together.
-  var makeConcatExpr = function makeConcatExpr(value, supplemental) {
-    return value.split(symbol).reduce(function (memo, str, i, parts) {
-      // Last part should be string terminator
-      if (i === parts.length - 1 && memo) {
-        memo = t.binaryExpression('+', memo, t.stringLiteral(str));
-        return memo;
+  var interpolateValues = function interpolateValues(string, supplemental, createTree) {
+    // If this is text and not a doctype, add as a text node.
+    if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
+      return [t.stringLiteral('#text'), t.stringLiteral(string)];
+    }
+
+    var childNodes = [];
+    var parts = string.split(tokenEx);
+    var length = parts.length;
+
+
+    for (var i = 0; i < length; i++) {
+      var value = parts[i];
+
+      if (!value) {
+        continue;
       }
 
-      var dynamicBit = supplemental.shift();
+      // When we split on the token expression, the capture group will replace
+      // the token's position. So all we do is ensure that we're on an odd
+      // index and then we can source the correct value.
+      if (i % 2 === 1) {
+        var innerTree = supplemental.children[value];
+        if (!innerTree) {
+          continue;
+        }
+        var isFragment = innerTree.nodeType === 11;
 
-      // First run.
-      if (!memo) {
-        memo = t.binaryExpression('+', t.stringLiteral(str), dynamicBit);
-      } else {
-        memo = t.binaryExpression('+', memo, t.binaryExpression('+', t.stringLiteral(str), dynamicBit));
+        if (typeof innerTree.rawNodeName === 'string' && isFragment) {
+          childNodes.push.apply(childNodes, _toConsumableArray(innerTree.childNodes));
+        } else {
+          childNodes.push(t.callExpression(createTree, [innerTree]));
+        }
+      } else if (!doctypeEx.test(value) && hasNonWhitespaceEx.test(value) || i !== 0 && i !== length - 1) {
+        childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.stringLiteral(value)]));
       }
+    }
 
-      return memo;
-    }, null);
-  };
-
-  var splitDyanmicValues = function splitDyanmicValues(value, supplemental) {
-    var expressions = value.split(symbol).reduce(function (memo, str, i, arr) {
-      var isEmpty = !Boolean(str);
-
-      if (!isEmpty) {
-        memo.push(t.stringLiteral(str));
-      }
-
-      // If not the last one.
-      if (i !== arr.length - 1) {
-        memo.push(supplemental.shift());
-      }
-
-      return memo;
-    }, []);
-
-    return t.arrayExpression(expressions);
+    return [childNodes.length === 1 ? childNodes[0] : t.arrayExpression(childNodes)];
   };
 
   // Takes in a dot-notation identifier and breaks it up into a
@@ -7367,8 +7280,9 @@ exports.default = function (_ref) {
       }).filter(Boolean);
 
       var supplemental = {
-        props: [],
-        children: []
+        attributes: {},
+        children: {},
+        tags: {}
       };
 
       var quasis = path.node.quasi.quasis;
@@ -7387,7 +7301,7 @@ exports.default = function (_ref) {
       var HTML = [];
       var dynamicBits = [];
 
-      quasis.forEach(function (quasi) {
+      quasis.forEach(function (quasi, i) {
         HTML.push(quasi.value.raw);
 
         if (expressions.length) {
@@ -7413,12 +7327,14 @@ exports.default = function (_ref) {
               isProp = true;
             }
 
-            HTML.push(symbol);
+            var token = TOKEN + i + '__';
+
+            HTML.push(token);
 
             if (isProp) {
-              supplemental.props.push(expression);
+              supplemental.attributes[i] = expression;
             } else {
-              supplemental.children.push(expression);
+              supplemental.children[i] = expression;
             }
           }
         }
@@ -7510,22 +7426,8 @@ exports.default = function (_ref) {
           else if (nodeType === 3) {
               var value = nodeValue.value || '';
 
-              if (value.trim() === symbol) {
-                var _childNodes = supplemental.children.shift();
-
-                args.push(createTree, [_childNodes]);
-
-                isDynamic = true;
-              } else if (value.indexOf(symbol) > -1) {
-                var values = splitDyanmicValues(value, supplemental.children);
-
-                if (values.elements.length === 1) {
-                  args.push(values.elements[0]);
-                } else {
-                  args.push(createTree, [t.stringLiteral('#document-fragment'), t.nullLiteral(), values.length === 1 ? values[0] : values]);
-                }
-
-                isDynamic = true;
+              if (value.match(tokenEx)) {
+                args.push(createTree, interpolateValues(value, supplemental, createTree));
               } else {
                 args.push(createTree, [t.stringLiteral('#text'), t.nullLiteral(), nodeValue]);
               }
@@ -7581,7 +7483,12 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var symbol = '__DIFFHTML_BABEL__';
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var hasNonWhitespaceEx = /\S/;
+var TOKEN = '__DIFFHTML_BABEL__';
+var doctypeEx = /<!.*>/i;
+var tokenEx = /__DIFFHTML_BABEL__([^_]*)__/;
 var isPropEx = /(=|'|")/;
 
 /**
@@ -7592,43 +7499,30 @@ var isPropEx = /(=|'|")/;
  */
 ;
 
-},{"./global":undefined,"babylon":1,"diffhtml/dist/cjs/util/parser":12}],4:[function(require,module,exports){
+},{"./global":undefined,"babylon":1,"diffhtml/dist/cjs/util/parser":5}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-  return typeof obj;
-} : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-};
-
 exports.default = createTree;
 
-var _util = require('../util');
+var _caches = require('../util/caches');
 
-function _toConsumableArray(arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
-      arr2[i] = arr[i];
-    }return arr2;
-  } else {
-    return Array.from(arr);
-  }
+var _pool = require('../util/pool');
+
+var _pool2 = _interopRequireDefault(_pool);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
 }
 
-var assign = Object.assign;
-var isArray = Array.isArray;
+const { CreateTreeHookCache } = _caches.MiddlewareCache;
+const { assign } = Object;
+const { isArray } = Array;
+const fragmentName = '#document-fragment';
 
-var fragmentName = '#document-fragment';
-
-function createTree(input, attributes, childNodes) {
-  for (var _len = arguments.length, rest = Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
-    rest[_key - 3] = arguments[_key];
-  }
-
+function createTree(input, attributes, childNodes, ...rest) {
   // If no input was provided then we return an indication as such.
   if (!input) {
     return null;
@@ -7639,18 +7533,16 @@ function createTree(input, attributes, childNodes) {
   if (isArray(input)) {
     childNodes = [];
 
-    for (var i = 0; i < input.length; i++) {
-      var newTree = createTree(input[i]);
+    for (let i = 0; i < input.length; i++) {
+      const newTree = createTree(input[i]);
       if (!newTree) {
         continue;
       }
-      var isFragment = newTree.nodeType === 11;
+      const isFragment = newTree.nodeType === 11;
 
       if (typeof newTree.rawNodeName === 'string' && isFragment) {
-        var _childNodes;
-
-        (_childNodes = childNodes).push.apply(_childNodes, _toConsumableArray(newTree.childNodes));
-      } else if (newTree) {
+        childNodes.push(...newTree.childNodes);
+      } else {
         childNodes.push(newTree);
       }
     }
@@ -7658,7 +7550,7 @@ function createTree(input, attributes, childNodes) {
     return createTree(fragmentName, null, childNodes);
   }
 
-  var isObject = (typeof input === 'undefined' ? 'undefined' : _typeof(input)) === 'object';
+  const isObject = typeof input === 'object';
 
   // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
   if (input && isObject && 'parentNode' in input) {
@@ -7676,13 +7568,10 @@ function createTree(input, attributes, childNodes) {
     else if (input.nodeType === 1 && input.attributes.length) {
         attributes = {};
 
-        for (var _i = 0; _i < input.attributes.length; _i++) {
-          var _input$attributes$_i = input.attributes[_i],
-              name = _input$attributes$_i.name,
-              value = _input$attributes$_i.value;
+        for (let i = 0; i < input.attributes.length; i++) {
+          const { name, value } = input.attributes[i];
 
           // If the attribute's value is empty, seek out the property instead.
-
           if (value === '' && name in input) {
             attributes[name] = input[name];
             continue;
@@ -7697,14 +7586,14 @@ function createTree(input, attributes, childNodes) {
       if (input.childNodes.length) {
         childNodes = [];
 
-        for (var _i2 = 0; _i2 < input.childNodes.length; _i2++) {
-          childNodes.push(createTree(input.childNodes[_i2]));
+        for (let i = 0; i < input.childNodes.length; i++) {
+          childNodes.push(createTree(input.childNodes[i]));
         }
       }
     }
 
-    var vTree = createTree(input.nodeName, attributes, childNodes);
-    _util.NodeCache.set(vTree, input);
+    const vTree = createTree(input.nodeName, attributes, childNodes);
+    _caches.NodeCache.set(vTree, input);
     return vTree;
   }
 
@@ -7715,13 +7604,13 @@ function createTree(input, attributes, childNodes) {
 
   // Support JSX-style children being passed.
   if (rest.length) {
-    childNodes = [childNodes].concat(rest);
+    childNodes = [childNodes, ...rest];
   }
 
   // Allocate a new VTree from the pool.
-  var entry = _util.Pool.get();
-  var isTextNode = input === '#text';
-  var isString = typeof input === 'string';
+  const entry = _pool2.default.get();
+  const isTextNode = input === '#text';
+  const isString = typeof input === 'string';
 
   entry.key = '';
   entry.rawNodeName = input;
@@ -7731,8 +7620,8 @@ function createTree(input, attributes, childNodes) {
   entry.attributes = {};
 
   if (isTextNode) {
-    var _nodes = arguments.length === 2 ? attributes : childNodes;
-    var nodeValue = isArray(_nodes) ? _nodes.join('') : _nodes;
+    const nodes = arguments.length === 2 ? attributes : childNodes;
+    const nodeValue = isArray(nodes) ? nodes.join('') : nodes;
 
     entry.nodeType = 3;
     entry.nodeValue = String(nodeValue || '');
@@ -7748,16 +7637,16 @@ function createTree(input, attributes, childNodes) {
     entry.nodeType = 1;
   }
 
-  var useAttributes = isArray(attributes) || (typeof attributes === 'undefined' ? 'undefined' : _typeof(attributes)) !== 'object';
-  var nodes = useAttributes ? attributes : childNodes;
-  var nodeArray = isArray(nodes) ? nodes : [nodes];
+  const useAttributes = isArray(attributes) || typeof attributes !== 'object';
+  const nodes = useAttributes ? attributes : childNodes;
+  const nodeArray = isArray(nodes) ? nodes : [nodes];
 
   if (nodes && nodeArray.length) {
-    for (var _i3 = 0; _i3 < nodeArray.length; _i3++) {
-      var newNode = nodeArray[_i3];
+    for (let i = 0; i < nodeArray.length; i++) {
+      const newNode = nodeArray[i];
 
       // Assume objects are vTrees.
-      if ((typeof newNode === 'undefined' ? 'undefined' : _typeof(newNode)) === 'object') {
+      if (typeof newNode === 'object') {
         entry.childNodes.push(newNode);
       }
       // Cover generate cases where a user has indicated they do not want a
@@ -7768,7 +7657,7 @@ function createTree(input, attributes, childNodes) {
     }
   }
 
-  if (attributes && (typeof attributes === 'undefined' ? 'undefined' : _typeof(attributes)) === 'object' && !isArray(attributes)) {
+  if (attributes && typeof attributes === 'object' && !isArray(attributes)) {
     entry.attributes = attributes;
   }
 
@@ -7782,640 +7671,43 @@ function createTree(input, attributes, childNodes) {
     entry.key = String(entry.attributes.key);
   }
 
-  return entry;
-}
-module.exports = exports['default'];
+  let vTree = entry;
 
-
-},{"../util":10}],5:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _create = require('./create');
-
-Object.defineProperty(exports, 'createTree', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_create).default;
-  }
-});
-
-var _sync = require('./sync');
-
-Object.defineProperty(exports, 'syncTree', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_sync).default;
-  }
-});
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { default: obj };
-}
-
-
-},{"./create":4,"./sync":6}],6:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = syncTree;
-var assign = Object.assign,
-    keys = Object.keys;
-
-var empty = {};
-
-// Reuse these maps, it's more performant to clear them than to recreate.
-var oldKeys = new Map();
-var newKeys = new Map();
-
-var propToAttrMap = {
-  className: 'class',
-  htmlFor: 'for'
-};
-
-var addTreeOperations = function addTreeOperations(TREE_OPS, patchset) {
-  var INSERT_BEFORE = patchset.INSERT_BEFORE,
-      REMOVE_CHILD = patchset.REMOVE_CHILD,
-      REPLACE_CHILD = patchset.REPLACE_CHILD;
-
-  // We want to look if anything has changed, if nothing has we won't add it to
-  // the patchset.
-
-  if (INSERT_BEFORE || REMOVE_CHILD || REPLACE_CHILD) {
-    TREE_OPS.push(patchset);
-  }
-};
-
-function syncTree(oldTree, newTree, patches) {
-  if (!newTree) {
-    throw new Error('Missing new tree to sync into');
-  }
-
-  // Create new arrays for patches or use existing from a recursive call.
-  patches = patches || {
-    TREE_OPS: [],
-    NODE_VALUE: [],
-    SET_ATTRIBUTE: [],
-    REMOVE_ATTRIBUTE: []
-  };
-
-  var _patches = patches,
-      TREE_OPS = _patches.TREE_OPS,
-      NODE_VALUE = _patches.NODE_VALUE,
-      SET_ATTRIBUTE = _patches.SET_ATTRIBUTE,
-      REMOVE_ATTRIBUTE = _patches.REMOVE_ATTRIBUTE;
-
-  // Build up a patchset object to use for tree operations.
-
-  var patchset = {
-    INSERT_BEFORE: null,
-    REMOVE_CHILD: null,
-    REPLACE_CHILD: null
-  };
-
-  // Seek out attribute changes first, but only from element Nodes.
-  if (newTree.nodeType === 1) {
-    var oldAttributes = oldTree ? oldTree.attributes : empty;
-    var newAttributes = newTree.attributes;
-
-    // Search for sets and changes.
-
-    for (var key in newAttributes) {
-      var value = newAttributes[key];
-
-      if (key in oldAttributes && oldAttributes[key] === newAttributes[key]) {
-        continue;
-      }
-
-      if (oldTree) {
-        oldAttributes[key] = value;
-      }
-
-      // Alias prop names to attr names for patching purposes.
-      if (key in propToAttrMap) {
-        key = propToAttrMap[key];
-      }
-
-      SET_ATTRIBUTE.push(oldTree || newTree, key, value);
+  CreateTreeHookCache.forEach((fn, retVal) => {
+    // Invoke all the `createNodeHook` functions passing along this transaction
+    // as the only argument. These functions must return valid vTree values.
+    if (retVal = fn(vTree)) {
+      vTree = retVal;
     }
-
-    if (oldTree) {
-      // Search for removals.
-      for (var _key in oldAttributes) {
-        if (_key in newAttributes) {
-          continue;
-        }
-        REMOVE_ATTRIBUTE.push(oldTree || newTree, _key);
-        delete oldAttributes[_key];
-      }
-    }
-  }
-
-  // If both VTrees are text nodes and the values are different, change the
-  // NODE_VALUE.
-  if (newTree.nodeName === '#text') {
-    if (oldTree && oldTree.nodeName === '#text') {
-      if (oldTree.nodeValue !== newTree.nodeName) {
-        NODE_VALUE.push(oldTree, newTree.nodeValue, oldTree.nodeValue);
-        oldTree.nodeValue = newTree.nodeValue;
-        addTreeOperations(TREE_OPS, patchset);
-        return patches;
-      }
-    } else {
-      NODE_VALUE.push(newTree, newTree.nodeValue, null);
-      addTreeOperations(TREE_OPS, patchset);
-      return patches;
-    }
-  }
-
-  // If there was no oldTree specified, this is a new element so scan for
-  // attributes.
-  if (!oldTree) {
-    // Dig into all nested children for attribute changes.
-    for (var i = 0; i < newTree.childNodes.length; i++) {
-      syncTree(null, newTree.childNodes[i], patches);
-    }
-
-    return patches;
-  }
-
-  var oldNodeName = oldTree.nodeName;
-  var newNodeName = newTree.nodeName;
-
-  if (oldNodeName !== newNodeName && newTree.nodeType !== 11) {
-    throw new Error('Sync failure, cannot compare ' + newNodeName + ' with ' + oldNodeName);
-  }
-
-  var oldChildNodes = oldTree.childNodes;
-  var newChildNodes = newTree.childNodes;
-
-  // Determines if any of the elements have a key attribute. If so, then we can
-  // safely assume keys are being used here for optimization/transition
-  // purposes.
-
-  var hasOldKeys = oldChildNodes.some(function (vTree) {
-    return vTree.key;
-  });
-  var hasNewKeys = newChildNodes.some(function (vTree) {
-    return vTree.key;
   });
 
-  // If we are working with keys, we can follow an optimized path.
-  if (hasOldKeys || hasNewKeys) {
-    oldKeys.clear();
-    newKeys.clear();
-
-    // Put the old `childNode` VTree's into the key cache for lookup.
-    for (var _i = 0; _i < oldChildNodes.length; _i++) {
-      var vTree = oldChildNodes[_i];
-
-      // Only add references if the key exists, otherwise ignore it. This
-      // allows someone to specify a single key and keep that element around.
-      if (vTree.key) {
-        oldKeys.set(vTree.key, vTree);
-      }
-    }
-
-    // Put the new `childNode` VTree's into the key cache for lookup.
-    for (var _i2 = 0; _i2 < newChildNodes.length; _i2++) {
-      var _vTree = newChildNodes[_i2];
-
-      // Only add references if the key exists, otherwise ignore it. This
-      // allows someone to specify a single key and keep that element around.
-      if (_vTree.key) {
-        newKeys.set(_vTree.key, _vTree);
-      }
-    }
-
-    // Do a single pass over the new child nodes.
-    for (var _i3 = 0; _i3 < newChildNodes.length; _i3++) {
-      var oldChildNode = oldChildNodes[_i3];
-      var newChildNode = newChildNodes[_i3];
-      var newKey = newChildNode.key;
-
-      // If there is no old element to compare to, this is a simple addition.
-
-      if (!oldChildNode) {
-        // Prefer an existing match to a brand new element.
-        var optimalNewNode = null;
-
-        // Prefer existing to new and remove from old position.
-        if (oldKeys.has(newKey)) {
-          optimalNewNode = oldKeys.get(newKey);
-          oldChildNodes.splice(oldChildNodes.indexOf(optimalNewNode), 1);
-        } else {
-          optimalNewNode = newChildNode;
-        }
-
-        if (patchset.INSERT_BEFORE === null) {
-          patchset.INSERT_BEFORE = [];
-        }
-        patchset.INSERT_BEFORE.push(oldTree, optimalNewNode, null);
-        oldChildNodes.push(optimalNewNode);
-        syncTree(null, optimalNewNode, patches);
-        continue;
-      }
-
-      var oldKey = oldChildNode.key;
-
-      // Remove the old Node and insert the new node (aka replace).
-
-      if (!newKeys.has(oldKey) && !oldKeys.has(newKey)) {
-        if (patchset.REPLACE_CHILD === null) {
-          patchset.REPLACE_CHILD = [];
-        }
-        //if (newChildNode.nodeType === 11) { debugger; }
-        patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
-        oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
-        continue;
-      }
-      // Remove the old node instead of replacing.
-      else if (!newKeys.has(oldKey)) {
-          if (patchset.REMOVE_CHILD === null) {
-            patchset.REMOVE_CHILD = [];
-          }
-          patchset.REMOVE_CHILD.push(oldChildNode);
-          oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1);
-          _i3 = _i3 - 1;
-          continue;
-        }
-
-      // If there is a key set for this new element, use that to figure out
-      // which element to use.
-      if (newKey !== oldKey) {
-        var _optimalNewNode = newChildNode;
-
-        // Prefer existing to new and remove from old position.
-        if (newKey && oldKeys.has(newKey)) {
-          _optimalNewNode = oldKeys.get(newKey);
-          oldChildNodes.splice(oldChildNodes.indexOf(_optimalNewNode), 1);
-        } else if (newKey) {
-          _optimalNewNode = newChildNode;
-        }
-
-        if (patchset.INSERT_BEFORE === null) {
-          patchset.INSERT_BEFORE = [];
-        }
-        patchset.INSERT_BEFORE.push(oldTree, _optimalNewNode, oldChildNode);
-        oldChildNodes.splice(_i3, 0, _optimalNewNode);
-        continue;
-      }
-
-      // If the element we're replacing is totally different from the previous
-      // replace the entire element, don't bother investigating children.
-      if (oldChildNode.nodeName !== newChildNode.nodeName) {
-        if (patchset.REPLACE_CHILD === null) {
-          patchset.REPLACE_CHILD = [];
-        }
-        //if (newChildNode.nodeType === 11) { debugger; }
-        patchset.REPLACE_CHILD.push(newChildNode, oldChildNode);
-        oldTree.childNodes[_i3] = newChildNode;
-        syncTree(null, newChildNode, patches);
-        continue;
-      }
-
-      syncTree(oldChildNode, newChildNode, patches);
-    }
-  }
-
-  // No keys used on this level, so we will do easier transformations.
-  else {
-      // Do a single pass over the new child nodes.
-      for (var _i4 = 0; _i4 < newChildNodes.length; _i4++) {
-        var _oldChildNode = oldChildNodes[_i4];
-        var _newChildNode = newChildNodes[_i4];
-
-        // If there is no old element to compare to, this is a simple addition.
-        if (!_oldChildNode) {
-          if (patchset.INSERT_BEFORE === null) {
-            patchset.INSERT_BEFORE = [];
-          }
-          patchset.INSERT_BEFORE.push(oldTree, _newChildNode, null);
-          oldChildNodes.push(_newChildNode);
-          syncTree(null, _newChildNode, patches);
-          continue;
-        }
-
-        // If the element we're replacing is totally different from the previous
-        // replace the entire element, don't bother investigating children.
-        if (_oldChildNode.nodeName !== _newChildNode.nodeName) {
-          if (patchset.REPLACE_CHILD === null) {
-            patchset.REPLACE_CHILD = [];
-          }
-          patchset.REPLACE_CHILD.push(_newChildNode, _oldChildNode);
-          //if (newChildNode.nodeType === 11) { debugger; }
-          oldTree.childNodes[_i4] = _newChildNode;
-          syncTree(null, _newChildNode, patches);
-          continue;
-        }
-
-        syncTree(_oldChildNode, _newChildNode, patches);
-      }
-    }
-
-  // We've reconciled new changes, so we can remove any old nodes and adjust
-  // lengths to be equal.
-  if (oldChildNodes.length !== newChildNodes.length) {
-    for (var _i5 = newChildNodes.length; _i5 < oldChildNodes.length; _i5++) {
-      if (patchset.REMOVE_CHILD === null) {
-        patchset.REMOVE_CHILD = [];
-      }
-      patchset.REMOVE_CHILD.push(oldChildNodes[_i5]);
-    }
-
-    oldChildNodes.length = newChildNodes.length;
-  }
-
-  addTreeOperations(TREE_OPS, patchset);
-
-  return patches;
+  return vTree;
 }
-module.exports = exports['default'];
 
-
-},{}],7:[function(require,module,exports){
+},{"../util/caches":4,"../util/pool":6}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 // Associates DOM Nodes with state objects.
-var StateCache = exports.StateCache = new Map();
+const StateCache = exports.StateCache = new Map();
 
 // Associates Virtual Tree Elements with DOM Nodes.
-var NodeCache = exports.NodeCache = new Map();
-
-// Caches all middleware. You cannot unset a middleware once it has been added.
-var MiddlewareCache = exports.MiddlewareCache = new Set();
+const NodeCache = exports.NodeCache = new Map();
 
 // Cache transition functions.
-var TransitionCache = exports.TransitionCache = new Map();
+const TransitionCache = exports.TransitionCache = new Map();
 
+// Caches all middleware. You cannot unset a middleware once it has been added.
+const MiddlewareCache = exports.MiddlewareCache = new Set();
 
-},{}],8:[function(require,module,exports){
-(function (global){
-'use strict';
+// Very specific caches used by middleware.
+MiddlewareCache.CreateTreeHookCache = new Set();
+MiddlewareCache.CreateNodeHookCache = new Set();
+MiddlewareCache.SyncTreeHookCache = new Set();
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-  return typeof obj;
-} : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-};
-
-exports.default = decodeEntities;
-// Support loading diffHTML in non-browser environments.
-var g = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : window;
-var element = g.document ? document.createElement('div') : null;
-
-/**
- * Decodes HTML strings.
- *
- * @see http://stackoverflow.com/a/5796718
- * @param string
- * @return unescaped HTML
- */
-function decodeEntities(string) {
-  // If there are no HTML entities, we can safely pass the string through.
-  if (!element || !string || !string.indexOf || !string.includes('&')) {
-    return string;
-  }
-
-  element.innerHTML = string;
-  return element.textContent;
-}
-module.exports = exports['default'];
-
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = escape;
-/**
- * Tiny HTML escaping function, useful to protect against things like XSS and
- * unintentionally breaking attributes with quotes.
- *
- * @param {String} unescaped - An HTML value, unescaped
- * @return {String} - An HTML-safe string
- */
-function escape(unescaped) {
-  return unescaped.replace(/[&<>]/g, function (match) {
-    return "&#" + match.charCodeAt(0) + ";";
-  });
-}
-module.exports = exports["default"];
-
-
-},{}],10:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _caches = require('./caches');
-
-Object.defineProperty(exports, 'StateCache', {
-  enumerable: true,
-  get: function get() {
-    return _caches.StateCache;
-  }
-});
-Object.defineProperty(exports, 'NodeCache', {
-  enumerable: true,
-  get: function get() {
-    return _caches.NodeCache;
-  }
-});
-Object.defineProperty(exports, 'MiddlewareCache', {
-  enumerable: true,
-  get: function get() {
-    return _caches.MiddlewareCache;
-  }
-});
-Object.defineProperty(exports, 'TransitionCache', {
-  enumerable: true,
-  get: function get() {
-    return _caches.TransitionCache;
-  }
-});
-
-var _memory = require('./memory');
-
-Object.defineProperty(exports, 'protectVTree', {
-  enumerable: true,
-  get: function get() {
-    return _memory.protectVTree;
-  }
-});
-Object.defineProperty(exports, 'unprotectVTree', {
-  enumerable: true,
-  get: function get() {
-    return _memory.unprotectVTree;
-  }
-});
-Object.defineProperty(exports, 'cleanMemory', {
-  enumerable: true,
-  get: function get() {
-    return _memory.cleanMemory;
-  }
-});
-
-var _svg = require('./svg');
-
-Object.defineProperty(exports, 'namespace', {
-  enumerable: true,
-  get: function get() {
-    return _svg.namespace;
-  }
-});
-Object.defineProperty(exports, 'elements', {
-  enumerable: true,
-  get: function get() {
-    return _svg.elements;
-  }
-});
-
-var _decodeEntities = require('./decode-entities');
-
-Object.defineProperty(exports, 'decodeEntities', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_decodeEntities).default;
-  }
-});
-
-var _escape = require('./escape');
-
-Object.defineProperty(exports, 'escape', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_escape).default;
-  }
-});
-
-var _performance = require('./performance');
-
-Object.defineProperty(exports, 'makeMeasure', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_performance).default;
-  }
-});
-
-var _pool = require('./pool');
-
-Object.defineProperty(exports, 'Pool', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_pool).default;
-  }
-});
-
-var _parser = require('./parser');
-
-Object.defineProperty(exports, 'parse', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_parser).default;
-  }
-});
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { default: obj };
-}
-
-
-},{"./caches":7,"./decode-entities":8,"./escape":9,"./memory":11,"./parser":12,"./performance":13,"./pool":14,"./svg":15}],11:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.protectVTree = protectVTree;
-exports.unprotectVTree = unprotectVTree;
-exports.cleanMemory = cleanMemory;
-
-var _pool = require('./pool');
-
-var _pool2 = _interopRequireDefault(_pool);
-
-var _caches = require('./caches');
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { default: obj };
-}
-
-var memory = _pool2.default.memory,
-    protect = _pool2.default.protect,
-    unprotect = _pool2.default.unprotect;
-
-/**
- * Ensures that an vTree is not recycled during a render cycle.
- *
- * @param vTree
- * @return vTree
- */
-
-function protectVTree(vTree) {
-  protect(vTree);
-
-  for (var i = 0; i < vTree.childNodes.length; i++) {
-    protectVTree(vTree.childNodes[i]);
-  }
-
-  return vTree;
-}
-
-/**
- * Allows an vTree to be recycled during a render cycle.
- *
- * @param vTree
- * @return
- */
-function unprotectVTree(vTree) {
-  unprotect(vTree);
-
-  for (var i = 0; i < vTree.childNodes.length; i++) {
-    unprotectVTree(vTree.childNodes[i]);
-  }
-
-  return vTree;
-}
-
-/**
- * Moves all unprotected allocations back into available pool. This keeps
- * diffHTML in a consistent state after synchronizing.
- */
-function cleanMemory() {
-  memory.allocated.forEach(function (vTree) {
-    return memory.free.add(vTree);
-  });
-  memory.allocated.clear();
-
-  // Clean out unused elements, if we have any elements cached that no longer
-  // have a backing VTree, we can safely remove them from the cache.
-  _caches.NodeCache.forEach(function (node, descriptor) {
-    if (!memory.protected.has(descriptor)) {
-      _caches.NodeCache.delete(descriptor);
-    }
-  });
-}
-
-
-},{"./caches":7,"./pool":14}],12:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8423,7 +7715,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = parse;
 
-var _tree = require('../tree');
+var _create = require('../tree/create');
+
+var _create2 = _interopRequireDefault(_create);
 
 var _pool = require('./pool');
 
@@ -8433,37 +7727,30 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { default: obj };
 }
 
-function _toConsumableArray(arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
-      arr2[i] = arr[i];
-    }return arr2;
-  } else {
-    return Array.from(arr);
-  }
-} // Adapted implementation from:
+// Adapted implementation from:
 // https://github.com/ashi009/node-fast-html-parser
 
-var hasNonWhitespaceEx = /\S/;
-var doctypeEx = /<!.*>/i;
-var attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
-var spaceEx = /[^ ]/;
-var tokenEx = /__DIFFHTML__([^_]*)__/;
-var tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
+const hasNonWhitespaceEx = /\S/;
+const doctypeEx = /<!.*>/i;
+const attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+const spaceEx = /[^ ]/;
+const tokenEx = /__DIFFHTML__([^_]*)__/;
+const tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
 
-var assign = Object.assign;
+const { assign } = Object;
 
-var blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
-var selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr']);
+const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 
-var kElementsClosedByOpening = {
+const selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr', 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+
+const kElementsClosedByOpening = {
   li: { li: true },
   p: { p: true, div: true },
   td: { td: true, th: true },
   th: { td: true, th: true }
 };
 
-var kElementsClosedByClosing = {
+const kElementsClosedByClosing = {
   li: { ul: true, ol: true },
   a: { div: true },
   b: { div: true },
@@ -8481,22 +7768,18 @@ var kElementsClosedByClosing = {
  * @param string
  * @param supplemental
  */
-var interpolateValues = function interpolateValues(currentParent, string) {
-  var _currentParent$childN;
-
-  var supplemental = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
+const interpolateValues = (currentParent, string, supplemental = {}) => {
   // If this is text and not a doctype, add as a text node.
   if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
-    return currentParent.childNodes.push((0, _tree.createTree)('#text', string));
+    return currentParent.childNodes.push((0, _create2.default)('#text', string));
   }
 
-  var childNodes = [];
-  var parts = string.split(tokenEx);
-  var length = parts.length;
+  const childNodes = [];
+  const parts = string.split(tokenEx);
+  let { length } = parts;
 
-  for (var i = 0; i < parts.length; i++) {
-    var value = parts[i];
+  for (let i = 0; i < parts.length; i++) {
+    const value = parts[i];
 
     if (!value) {
       continue;
@@ -8506,23 +7789,23 @@ var interpolateValues = function interpolateValues(currentParent, string) {
     // the token's position. So all we do is ensure that we're on an odd
     // index and then we can source the correct value.
     if (i % 2 === 1) {
-      var innerTree = supplemental.children[value];
+      const innerTree = supplemental.children[value];
       if (!innerTree) {
         continue;
       }
-      var isFragment = innerTree.nodeType === 11;
+      const isFragment = innerTree.nodeType === 11;
 
       if (typeof innerTree.rawNodeName === 'string' && isFragment) {
-        childNodes.push.apply(childNodes, _toConsumableArray(innerTree.childNodes));
+        childNodes.push(...innerTree.childNodes);
       } else {
         childNodes.push(innerTree);
       }
     } else if (!doctypeEx.test(value)) {
-      childNodes.push((0, _tree.createTree)('#text', value));
+      childNodes.push((0, _create2.default)('#text', value));
     }
   }
 
-  (_currentParent$childN = currentParent.childNodes).push.apply(_currentParent$childN, childNodes);
+  currentParent.childNodes.push(...childNodes);
 };
 
 /**
@@ -8536,35 +7819,35 @@ var interpolateValues = function interpolateValues(currentParent, string) {
  * @param {Object} supplemental - Interpolated data from a tagged template
  * @return {Object} vTree
  */
-var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
-  var match = null;
+const HTMLElement = (nodeName, rawAttrs, supplemental) => {
+  let match = null;
 
   // Support dynamic tag names like: `<${MyComponent} />`.
   if (match = tokenEx.exec(nodeName)) {
     return HTMLElement(supplemental.tags[match[1]], rawAttrs, supplemental);
   }
 
-  var attributes = {};
+  const attributes = {};
 
   // Migrate raw attributes into the attributes object used by the VTree.
-  for (var _match; _match = attrEx.exec(rawAttrs || '');) {
-    var name = _match[1];
-    var value = _match[6] || _match[5] || _match[4] || _match[1];
-    var tokenMatch = value.match(tokenEx);
+  for (let match; match = attrEx.exec(rawAttrs || '');) {
+    const name = match[1];
+    const value = match[6] || match[5] || match[4] || match[1];
+    let tokenMatch = value.match(tokenEx);
 
     // If we have multiple interpolated values in an attribute, we must
     // flatten to a string. There are no other valid options.
     if (tokenMatch && tokenMatch.length) {
-      var parts = value.split(tokenEx);
-      var length = parts.length;
+      const parts = value.split(tokenEx);
+      let { length } = parts;
 
-      var hasToken = tokenEx.exec(name);
-      var newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
+      const hasToken = tokenEx.exec(name);
+      const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
 
-      for (var i = 0; i < parts.length; i++) {
-        var _value = parts[i];
+      for (let i = 0; i < parts.length; i++) {
+        const value = parts[i];
 
-        if (!_value) {
+        if (!value) {
           continue;
         }
 
@@ -8573,22 +7856,22 @@ var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
         // an odd index and then we can source the correct value.
         if (i % 2 === 1) {
           if (attributes[newName]) {
-            attributes[newName] += supplemental.attributes[_value];
+            attributes[newName] += supplemental.attributes[value];
           } else {
-            attributes[newName] = supplemental.attributes[_value];
+            attributes[newName] = supplemental.attributes[value];
           }
         } else {
           if (attributes[newName]) {
-            attributes[newName] += _value;
+            attributes[newName] += value;
           } else {
-            attributes[newName] = _value;
+            attributes[newName] = value;
           }
         }
       }
     } else if (tokenMatch = tokenEx.exec(name)) {
-      var nameAndValue = supplemental.attributes[tokenMatch[1]];
-      var _hasToken = tokenEx.exec(value);
-      var getValue = _hasToken ? supplemental.attributes[_hasToken[1]] : value;
+      const nameAndValue = supplemental.attributes[tokenMatch[1]];
+      const hasToken = tokenEx.exec(value);
+      const getValue = hasToken ? supplemental.attributes[hasToken[1]] : value;
 
       attributes[nameAndValue] = value === '""' ? '' : getValue;
     } else {
@@ -8596,7 +7879,7 @@ var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
     }
   }
 
-  return (0, _tree.createTree)(nodeName, attributes, []);
+  return (0, _create2.default)(nodeName, attributes, []);
 };
 
 /**
@@ -8607,14 +7890,12 @@ var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
  * @param {Object} options - Contains options like silencing warnings
  * @return {Object} - Parsed Virtual Tree Element
  */
-function parse(html, supplemental) {
-  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  var root = (0, _tree.createTree)('#document-fragment', null, []);
-  var stack = [root];
-  var currentParent = root;
-  var lastTextPos = -1;
-  var preLastTextPos = -1;
+function parse(html, supplemental, options = {}) {
+  const root = (0, _create2.default)('#document-fragment', null, []);
+  const stack = [root];
+  let currentParent = root;
+  let lastTextPos = -1;
+  let preLastTextPos = -1;
 
   // If there are no HTML elements, treat the passed in html as a single
   // text node.
@@ -8624,7 +7905,7 @@ function parse(html, supplemental) {
   }
 
   // Look through the HTML markup for valid tags.
-  for (var match, text; match = tagEx.exec(html);) {
+  for (let match, text; match = tagEx.exec(html);) {
     if (lastTextPos > -1) {
       if (lastTextPos + match[0].length < tagEx.lastIndex) {
         text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
@@ -8636,10 +7917,10 @@ function parse(html, supplemental) {
       }
     }
 
-    var matchOffset = tagEx.lastIndex - match[0].length;
+    const matchOffset = tagEx.lastIndex - match[0].length;
 
     if (lastTextPos === -1 && matchOffset > 0) {
-      var string = html.slice(0, matchOffset);
+      const string = html.slice(0, matchOffset);
 
       if (string && hasNonWhitespaceEx.test(string) && !doctypeEx.exec(string)) {
         interpolateValues(currentParent, string, supplemental);
@@ -8656,7 +7937,7 @@ function parse(html, supplemental) {
 
     if (!match[1]) {
       // not </ tags
-      var attrs = {};
+      const attrs = {};
 
       if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
         if (kElementsClosedByOpening[currentParent.rawNodeName][match[2]]) {
@@ -8671,9 +7952,9 @@ function parse(html, supplemental) {
 
       if (blockText.has(match[2])) {
         // A little test to find next </script> or </style> ...
-        var closeMarkup = '</' + match[2] + '>';
-        var index = html.indexOf(closeMarkup, tagEx.lastIndex);
-        var length = match[2].length;
+        const closeMarkup = '</' + match[2] + '>';
+        const index = html.indexOf(closeMarkup, tagEx.lastIndex);
+        const { length } = match[2];
 
         if (index === -1) {
           lastTextPos = tagEx.lastIndex = html.length + 1;
@@ -8683,53 +7964,31 @@ function parse(html, supplemental) {
           match[1] = true;
         }
 
-        var newText = html.slice(match.index + match[0].length, index);
-
-        // TODO Determine if a closing tag is present.
-        //if (options.strict) {
-        //  const nodeName = currentParent.rawNodeName;
-
-        //  // Find a subset of the markup passed in to validate.
-        //  const markup = markup.slice(
-        //    tagEx.lastIndex - match[0].length
-        //  ).split('\n').slice(0, 3);
-
-        //  console.log(markup);
-
-        //  // Position the caret next to the first non-whitespace character.
-        //  const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
-
-        //  // Craft the warning message and inject it into the markup.
-        //  markup.splice(1, 0, `${caret}
-        //Invali markup. Saw ${match[2]}, expected ${nodeName}
-        //  `);
-
-        //  // Throw an error message if the markup isn't what we expected.
-        //  throw new Error(`\n\n${markup.join('\n')}`);
-        //}
-
+        const newText = html.slice(match.index + match[0].length, index);
         interpolateValues(currentParent, newText.trim(), supplemental);
       }
     }
 
     if (match[1] || match[4] || selfClosing.has(match[2])) {
       if (match[2] !== currentParent.rawNodeName && options.strict) {
-        var nodeName = currentParent.rawNodeName;
+        const nodeName = currentParent.rawNodeName;
 
         // Find a subset of the markup passed in to validate.
-        var markup = html.slice(tagEx.lastIndex - match[0].length).split('\n').slice(0, 3);
+        const markup = html.slice(tagEx.lastIndex - match[0].length).split('\n').slice(0, 3);
 
         // Position the caret next to the first non-whitespace character.
-        var caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
+        const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
 
         // Craft the warning message and inject it into the markup.
-        markup.splice(1, 0, caret + '\nPossibly invalid markup. Saw ' + match[2] + ', expected ' + nodeName + '...\n        ');
+        markup.splice(1, 0, `${caret}
+Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
+        `);
 
         // Throw an error message if the markup isn't what we expected.
-        throw new Error('\n\n' + markup.join('\n'));
+        throw new Error(`\n\n${markup.join('\n')}`);
       }
 
-      var tokenMatch = tokenEx.exec(match[2]);
+      const tokenMatch = tokenEx.exec(match[2]);
 
       // </ or /> or <br> etc.
       while (currentParent) {
@@ -8742,9 +8001,9 @@ function parse(html, supplemental) {
         }
         // Not self-closing, so seek out the next match.
         else if (tokenMatch) {
-            var value = supplemental.tags[tokenMatch[1]];
+            const value = supplemental.tags[tokenMatch[1]];
 
-            if (currentParent.nodeName === value) {
+            if (currentParent.rawNodeName === value) {
               stack.pop();
               currentParent = stack[stack.length - 1];
 
@@ -8752,17 +8011,16 @@ function parse(html, supplemental) {
             }
           }
 
-        if (currentParent.rawNodeName == match[2]) {
+        if (currentParent.rawNodeName === match[2]) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
           break;
         } else {
-          var tag = kElementsClosedByClosing[currentParent.rawNodeName];
+          const tag = kElementsClosedByClosing[currentParent.rawNodeName];
 
           // Trying to close current tag, and move on
           if (tag) {
-
             if (tag[match[2]]) {
               stack.pop();
               currentParent = stack[stack.length - 1];
@@ -8779,7 +8037,7 @@ function parse(html, supplemental) {
   }
 
   // Find any last remaining text after the parsing completes over tags.
-  var remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
+  const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
 
   // Ensure that all values are properly interpolated through the remaining
   // markup after parsing.
@@ -8790,58 +8048,56 @@ function parse(html, supplemental) {
   // This is an entire document, so only allow the HTML children to be
   // body or head.
   if (root.childNodes.length && root.childNodes[0].nodeName === 'html') {
-    (function () {
-      // Store elements from before body end and after body end.
-      var head = { before: [], after: [] };
-      var body = { after: [] };
-      var HTML = root.childNodes[0];
+    // Store elements from before body end and after body end.
+    const head = { before: [], after: [] };
+    const body = { after: [] };
+    const HTML = root.childNodes[0];
 
-      var beforeHead = true;
-      var beforeBody = true;
+    let beforeHead = true;
+    let beforeBody = true;
 
-      // Iterate the children and store elements in the proper array for
-      // later concat, replace the current childNodes with this new array.
-      HTML.childNodes = HTML.childNodes.filter(function (el) {
-        // If either body or head, allow as a valid element.
-        if (el.nodeName === 'body' || el.nodeName === 'head') {
-          if (el.nodeName === 'head') beforeHead = false;
-          if (el.nodeName === 'body') beforeBody = false;
+    // Iterate the children and store elements in the proper array for
+    // later concat, replace the current childNodes with this new array.
+    HTML.childNodes = HTML.childNodes.filter(el => {
+      // If either body or head, allow as a valid element.
+      if (el.nodeName === 'body' || el.nodeName === 'head') {
+        if (el.nodeName === 'head') beforeHead = false;
+        if (el.nodeName === 'body') beforeBody = false;
 
-          return true;
+        return true;
+      }
+      // Not a valid nested HTML tag element, move to respective container.
+      else if (el.nodeType === 1) {
+          if (beforeHead && beforeBody) head.before.push(el);else if (!beforeHead && beforeBody) head.after.push(el);else if (!beforeBody) body.after.push(el);
         }
-        // Not a valid nested HTML tag element, move to respective container.
-        else if (el.nodeType === 1) {
-            if (beforeHead && beforeBody) head.before.push(el);else if (!beforeHead && beforeBody) head.after.push(el);else if (!beforeBody) body.after.push(el);
-          }
-      });
+    });
 
-      // Ensure the first element is the HEAD tag.
-      if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
-        var headInstance = (0, _tree.createTree)('head', null, []);
-        var existing = headInstance.childNodes;
+    // Ensure the first element is the HEAD tag.
+    if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
+      const headInstance = (0, _create2.default)('head', null, []);
+      const existing = headInstance.childNodes;
 
-        existing.unshift.apply(existing, head.before);
-        existing.push.apply(existing, head.after);
-        HTML.childNodes.unshift(headInstance);
-      } else {
-        var _existing = HTML.childNodes[0].childNodes;
+      existing.unshift.apply(existing, head.before);
+      existing.push.apply(existing, head.after);
+      HTML.childNodes.unshift(headInstance);
+    } else {
+      const existing = HTML.childNodes[0].childNodes;
 
-        _existing.unshift.apply(_existing, head.before);
-        _existing.push.apply(_existing, head.after);
-      }
+      existing.unshift.apply(existing, head.before);
+      existing.push.apply(existing, head.after);
+    }
 
-      // Ensure the second element is the body tag.
-      if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
-        var bodyInstance = (0, _tree.createTree)('body', null, []);
-        var _existing2 = bodyInstance.childNodes;
+    // Ensure the second element is the body tag.
+    if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
+      const bodyInstance = (0, _create2.default)('body', null, []);
+      const existing = bodyInstance.childNodes;
 
-        _existing2.push.apply(_existing2, body.after);
-        HTML.childNodes.push(bodyInstance);
-      } else {
-        var _existing3 = HTML.childNodes[1].childNodes;
-        _existing3.push.apply(_existing3, body.after);
-      }
-    })();
+      existing.push.apply(existing, body.after);
+      HTML.childNodes.push(bodyInstance);
+    } else {
+      const existing = HTML.childNodes[1].childNodes;
+      existing.push.apply(existing, body.after);
+    }
   }
 
   // Reset regular expression positions per parse.
@@ -8850,134 +8106,72 @@ function parse(html, supplemental) {
 
   return root;
 }
-module.exports = exports['default'];
 
-
-},{"../tree":5,"./pool":14}],13:[function(require,module,exports){
-(function (process){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var marks = exports.marks = new Map();
-var prefix = exports.prefix = 'diffHTML';
-var DIFF_PERF = 'diff_perf';
-
-var hasSearch = typeof location !== 'undefined';
-var hasArguments = typeof process !== 'undefined' && process.argv;
-var nop = function nop() {};
-
-exports.default = function (domNode, vTree) {
-  // Check for these changes on every check.
-  var wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
-  var wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
-  var wantsPerfChecks = wantsSearch || wantsArguments;
-
-  // If the user has not requested they want perf checks, return a nop
-  // function.
-  if (!wantsPerfChecks) {
-    return nop;
-  }
-
-  return function (name) {
-    // Use the Web Component name if it's available.
-    if (domNode && domNode.host) {
-      name = domNode.host.constructor.name + ' ' + name;
-    } else if (typeof vTree.rawNodeName === 'function') {
-      name = vTree.rawNodeName.name + ' ' + name;
-    }
-
-    var endName = name + '-end';
-
-    if (!marks.has(name)) {
-      marks.set(name, performance.now());
-      performance.mark(name);
-    } else {
-      var totalMs = (performance.now() - marks.get(name)).toFixed(3);
-
-      marks.delete(name);
-
-      performance.mark(endName);
-      performance.measure(prefix + ' ' + name + ' (' + totalMs + 'ms)', name, endName);
-    }
-  };
-};
-
-
-}).call(this,require('_process'))
-},{"_process":2}],14:[function(require,module,exports){
+},{"../tree/create":3,"./pool":6}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 // A modest size.
-var size = 10000;
+const size = 10000;
 
-var free = new Set();
-var allocate = new Set();
-var _protect = new Set();
-var shape = function shape() {
-  return {
-    rawNodeName: '',
-    nodeName: '',
-    nodeValue: '',
-    nodeType: 1,
-    key: '',
-    childNodes: [],
-    attributes: {}
-  };
-};
+const free = new Set();
+const allocate = new Set();
+const protect = new Set();
+const shape = () => ({
+  rawNodeName: '',
+  nodeName: '',
+  nodeValue: '',
+  nodeType: 1,
+  key: '',
+  childNodes: [],
+  attributes: {}
+});
 
 // Creates a pool to query new or reused values from.
-var memory = { free: free, allocated: allocate, protected: _protect };
+const memory = { free, allocated: allocate, protected: protect };
 
 // Prime the free memory pool with VTrees.
-for (var i = 0; i < size; i++) {
+for (let i = 0; i < size; i++) {
   free.add(shape());
 }
 
-// Cache the values object, this is a live reference.
-var freeValues = free.values();
+// Cache the values object, we'll refer to this iterator which is faster
+// than calling it every single time. It gets replaced once exhausted.
+let freeValues = free.values();
 
 // Cache VTree objects in a pool which is used to get
 exports.default = {
-  size: size,
-  memory: memory,
+  size,
+  memory,
 
-  get: function get() {
-    var value = freeValues.next().value || shape();
+  get() {
+    const { value = shape(), done } = freeValues.next();
+
+    // This extra bit of work allows us to avoid calling `free.values()` every
+    // single time an object is needed.
+    if (done) {
+      freeValues = free.values();
+    }
+
     free.delete(value);
     allocate.add(value);
     return value;
   },
-  protect: function protect(value) {
+
+  protect(value) {
     allocate.delete(value);
-    _protect.add(value);
+    protect.add(value);
   },
-  unprotect: function unprotect(value) {
-    if (_protect.has(value)) {
-      _protect.delete(value);
+
+  unprotect(value) {
+    if (protect.has(value)) {
+      protect.delete(value);
       free.add(value);
     }
   }
 };
-module.exports = exports['default'];
 
-
-},{}],15:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-// Namespace.
-var namespace = exports.namespace = 'http://www.w3.org/2000/svg';
-
-// List of SVG elements.
-var elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
-
-
-},{}]},{},[3])(3)
+},{}]},{},[2])(2)
 });

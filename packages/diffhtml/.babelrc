@@ -8,8 +8,17 @@
       "plugins": ["version-inline"]
     },
     "cjs": {
-      "presets": ["es2015"],
-      "plugins": ["version-inline", "add-module-exports"]
+      "plugins": [
+        "transform-es2015-modules-commonjs",
+        ["module-rewrite", { "replaceFunc": "../../utils/replace-cjs.js" }],
+        "version-inline"
+      ]
+    },
+    "es": {
+      "plugins": [
+        ["module-rewrite", { "replaceFunc": "../../utils/replace-es.js" }],
+        "version-inline"
+      ]
     },
     "test": {
       "presets": ["es2015"],

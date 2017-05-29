@@ -21,6 +21,7 @@ const renderResponse = version => res => {
   });
 };
 
+// Support the lack of nginx fronting these assets in production.
 if (process.env.NODE_ENV !== 'production') {
   app.use('/assets', express.static('./'));
   app.use(favicon(new Buffer(20)));
@@ -38,5 +39,6 @@ watch(path, true, done => readFile(path, (err, result) => {
     const html = template.render({ api });
 
     done(html);
+    console.log('there');
   });
 }));

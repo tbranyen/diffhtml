@@ -5,6 +5,7 @@ const socket = new Socket('ws://localhost:54321');
 
 socket.on('open', () => {
   socket.on('message', message => {
+    console.log(message);
     const { file, markup } = JSON.parse(message);
 
     if (file === true || location.pathname.slice(1) === file) {

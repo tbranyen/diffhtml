@@ -25,6 +25,9 @@
   },
   "homepage": "https://diffhtml.org/",
   "devDependencies": {
-    "lerna": "2.0.0-beta.37"
+    "lerna": "2.0.0-rc.5",
+    "babel-cli": "^6.24.1",
+    "babel-plugin-module-rewrite": "^0.1.2",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1"
   }
 }
