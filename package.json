@@ -4,9 +4,9 @@
   "version": "1.0.0-beta",
   "description": "Build web user interfaces with JavaScript",
   "scripts": {
-    "build": "NODE_ENV=production lerna run build",
-    "test": "NODE_ENV=test lerna run test",
-    "test-cov": "NODE_ENV=test lerna run test-cov",
+    "build": "lerna run build",
+    "test": "lerna run test",
+    "test-cov": "lerna run test-cov",
     "postinstall": "lerna bootstrap"
   },
   "repository": {
