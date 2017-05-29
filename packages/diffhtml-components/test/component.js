@@ -1,7 +1,7 @@
 import { ok, equal, throws, doesNotThrow } from 'assert';
 import { innerHTML, html, use } from 'diffhtml';
 import process from 'diffhtml-shared-internals/lib/process';
-import PropTypes from 'proptypes';
+import PropTypes from 'prop-types';
 import Component from '../lib/component';
 
 describe('React Like Component', function() {
@@ -149,7 +149,7 @@ describe('React Like Component', function() {
       equal(vTree.attributes.test, ref);
     });
 
-    it('can throw if missing proptypes in development', () => {
+    it('can warn if missing proptypes in development', () => {
       class CustomComponent extends Component {
         render() {
           return html`<div />`;
@@ -161,8 +161,14 @@ describe('React Like Component', function() {
       };
 
       const domNode = document.createElement('div');
+      const oldConsoleError = console.error;
 
-      throws(() => innerHTML(domNode, html`<${CustomComponent} />`));
+      let logCalled = false;
+      console.error = () => logCalled = true;
+
+      innerHTML(domNode, html`<${CustomComponent} />`);
+      console.error = oldConsoleError;
+      ok(logCalled);
     });
 
     it('cannot throw if missing proptypes in production', () => {

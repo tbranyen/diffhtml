@@ -1,9 +1,10 @@
 import { innerHTML } from 'diffhtml';
+import checkPropTypes from 'prop-types/checkPropTypes';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { $$render } from './util/symbols';
 
 const Debounce = new WeakMap();
-const { setPrototypeOf, freeze, assign, keys } = Object;
+const { setPrototypeOf, assign, keys } = Object;
 
 // Convert observed attributes from passed PropTypes.
 const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
@@ -12,14 +13,14 @@ const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
 const createProps = domNode => {
   const observedAttributes = getObserved(domNode.constructor);
 
-  return freeze(observedAttributes.reduce((props, attr) => assign(props, {
+  return observedAttributes.reduce((props, attr) => assign(props, {
     [attr]: attr in domNode ? domNode[attr] : domNode.getAttribute(attr) || undefined,
-  }), {}));
+  }), {});
 };
 
 // Creates the `component.state` object.
 const createState = (domNode, newState) => {
-  return freeze(assign({}, domNode.state, newState));
+  return assign({}, domNode.state, newState);
 };
 
 // Creates the `component.contxt` object.
@@ -44,6 +45,24 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
     this.props = createProps(this);
     this.state = createState(this);
     this.context = createContext(this);
+
+    const {
+      defaultProps = {},
+      propTypes = {},
+      childContextTypes = {},
+      contextTypes = {},
+      name,
+    } = this.constructor;
+
+    keys(defaultProps).forEach(prop => {
+      if (prop in this.props && this.props[prop] !== undefined) {
+        return;
+      }
+
+      this.props[prop] = defaultProps[prop];
+    });
+
+    checkPropTypes(propTypes, this.props, 'prop', name);
   }
 
   connectedCallback() {

@@ -35,7 +35,7 @@
     "diffhtml": ">=1.0.0-beta"
   },
   "optionalDependencies": {
-    "proptypes": "^15.5.10"
+    "prop-types": "^15.5.10"
   },
   "dependencies": {
     "diffhtml-shared-internals": "1.0.0-beta"

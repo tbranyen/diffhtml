@@ -1,5 +1,4 @@
 import { NodeCache } from '../util/caches';
-import Pool from '../util/pool';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import parse from '../util/parser';
 import createTree from '../tree/create';

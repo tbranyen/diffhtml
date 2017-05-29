@@ -23,6 +23,16 @@ export default upgradeSharedClass(class Component {
     unsubscribeMiddleware();
   }
 
+  [$$render]() {
+    const vTree = ComponentTreeCache.get(this);
+    const domNode = NodeCache.get(vTree);
+    const renderTree = this.render();
+
+    outerHTML(domNode, renderTree).then(() => {
+      this.componentDidUpdate();
+    });
+  }
+
   constructor(initialProps) {
     const props = this.props = assign({}, initialProps);
     const state = this.state = {};
@@ -44,37 +54,24 @@ export default upgradeSharedClass(class Component {
       props[prop] = defaultProps[prop];
     });
 
-    if (process.env.NODE_ENV !== 'production') {
-      const err = checkPropTypes(propTypes, props, 'prop', name);
-      if (err) { throw err; }
-    }
+    checkPropTypes(propTypes, props, 'prop', name);
 
-    keys(childContextTypes).forEach(prop => {
-      if (process.env.NODE_ENV !== 'production') {
-        const err = childContextTypes[prop](this.context, prop, name, 'context');
-        if (err) { throw err; }
-      }
+    //keys(childContextTypes).forEach(prop => {
+    //  if (process.env.NODE_ENV !== 'production') {
+    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
+    //    if (err) { throw err; }
+    //  }
 
-      //this.context[prop] = child
-    });
+    //  //this.context[prop] = child
+    //});
 
-    keys(contextTypes).forEach(prop => {
-      if (process.env.NODE_ENV !== 'production') {
-        const err = childContextTypes[prop](this.context, prop, name, 'context');
-        if (err) { throw err; }
-      }
+    //keys(contextTypes).forEach(prop => {
+    //  if (process.env.NODE_ENV !== 'production') {
+    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
+    //    if (err) { throw err; }
+    //  }
 
-      this.context[prop] = child
-    });
-  }
-
-  [$$render]() {
-    const vTree = ComponentTreeCache.get(this);
-    const domNode = NodeCache.get(vTree);
-    const renderTree = this.render();
-
-    outerHTML(domNode, renderTree).then(() => {
-      this.componentDidUpdate();
-    });
+    //  this.context[prop] = child
+    //});
   }
 });

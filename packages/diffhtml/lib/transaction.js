@@ -1,9 +1,3 @@
-import schedule from './tasks/schedule';
-import shouldUpdate from './tasks/should-update';
-import reconcileTrees from './tasks/reconcile-trees';
-import syncTrees from './tasks/sync-trees';
-import patchNode from './tasks/patch-node';
-import endAsPromise from './tasks/end-as-promise';
 import { StateCache, MiddlewareCache } from './util/caches';
 import { cleanMemory } from './util/memory';
 import makeMeasure from './util/make-measure';
@@ -107,14 +101,7 @@ export default class Transaction {
       measure: makeMeasure(domNode, markup),
     };
 
-    this.tasks = options.tasks || [
-      schedule,
-      shouldUpdate,
-      reconcileTrees,
-      syncTrees,
-      patchNode,
-      endAsPromise,
-    ];
+    this.tasks = [].concat(options.tasks);
 
     // Store calls to trigger after the transaction has ended.
     this.endedCallbacks = new Set();
