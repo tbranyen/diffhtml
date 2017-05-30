@@ -31,9 +31,14 @@ webServer.use('/', (req, res, next) => {
 
 webServer.use(express.static(process.cwd()));
 
-webServer.listen(8000, () => getSocket.then(socket => {
-  console.log('Socket connection established, monitoring files...');
-  watcher.on('change', path => readFile(path, (err, buffer) => socket.send(
-    JSON.stringify({ file: basename(path), markup: String(buffer) })
-  )));
-}));
+webServer.listen(process.env.SERVER_PORT || 8000, () => {
+  console.log('Listening at http://localhost:8000');
+
+  getSocket.then(socket => {
+    console.log('Socket connection established, monitoring files...');
+
+    watcher.on('change', path => readFile(path, (err, buffer) => socket.send(
+      JSON.stringify({ file: basename(path), markup: String(buffer) })
+    )));
+  });
+});
