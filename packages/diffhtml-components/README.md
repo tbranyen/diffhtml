@@ -20,9 +20,12 @@ help you create Virtual Trees.
 
 ##### PropTypes
 
-The PropTypes package has been extracted out of React and Preact into separate
-standalone bundles. Preact: (`npm i proptypes`) and React (`npm i prop-types`).
-Both are compatible with these components.
+The PropTypes package has been extracted out of React into a standalone module
+(`npm i prop-types`) which can be used with both `Component` and `WebComponent`
+implementations.
+
+In the case of the `WebComponent` implementation they are required to be
+present so that the implement knows which attributes to track.
 
 ##### Examples
 

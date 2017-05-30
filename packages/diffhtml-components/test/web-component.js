@@ -1,6 +1,6 @@
 import { equal, throws, doesNotThrow } from 'assert';
 import { innerHTML, html, createTree, use } from 'diffhtml';
-import PropTypes from 'proptypes';
+import PropTypes from 'prop-types';
 import WebComponent from '../lib/web-component';
 
 describe('Web Component', function() {
