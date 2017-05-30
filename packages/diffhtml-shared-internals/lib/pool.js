@@ -1,1 +1,1 @@
-export * from 'diffhtml/lib/util/pool';
+export { default as Pool } from 'diffhtml/lib/util/pool';

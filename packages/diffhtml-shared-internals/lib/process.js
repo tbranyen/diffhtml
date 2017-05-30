@@ -1,1 +1,1 @@
-export { default } from 'diffhtml/lib/util/process';
+export { default as process } from 'diffhtml/lib/util/process';
