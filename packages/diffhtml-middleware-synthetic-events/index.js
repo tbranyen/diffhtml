@@ -1,3 +1,5 @@
+import { NodeCache } from 'diffhtml-shared-internals/lib/caches';
+
 const useCapture = [
   'onload', 'onunload', 'onscroll', 'onfocus', 'onblur', 'onloadstart',
   'onprogress', 'onerror', 'onabort', 'onload', 'onloadend', 'onpointerenter',
@@ -110,7 +112,6 @@ const bindEventsTo = domNode => {
 const syntheticEvents = (options = {}) => {
   function syntheticEventsTask() {
     return ({ state, patches }) => {
-      const { internals: { NodeCache } } = state;
       const { SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
 
       if (SET_ATTRIBUTE.length) {

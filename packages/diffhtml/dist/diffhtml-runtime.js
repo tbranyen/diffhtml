@@ -21,6 +21,13 @@ MiddlewareCache.CreateTreeHookCache = new Set();
 MiddlewareCache.CreateNodeHookCache = new Set();
 MiddlewareCache.SyncTreeHookCache = new Set();
 
+var caches = Object.freeze({
+	StateCache: StateCache,
+	NodeCache: NodeCache,
+	TransitionCache: TransitionCache,
+	MiddlewareCache: MiddlewareCache
+});
+
 // A modest size.
 const size = 10000;
 
@@ -1421,8 +1428,12 @@ const outerHTML = bindOuterHTML(defaultTasks);
 const VERSION = `${__VERSION__}-runtime`;
 
 // Automatically hook up to DevTools if they are present.
-if (typeof devTools === 'function') {
-  use(devTools());
+if (typeof devTools.default === 'function') {
+  use(devTools.default({
+    VERSION,
+    caches
+  }));
+
   console.info('diffHTML DevTools Found and Activated...');
 }
 

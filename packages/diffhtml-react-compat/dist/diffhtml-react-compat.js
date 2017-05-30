@@ -1,10 +1,11 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('diffhtml'), require('diffhtml-components'), require('diffhtml-middleware-synthetic-events')) :
-	typeof define === 'function' && define.amd ? define(['diffhtml', 'diffhtml-components', 'diffhtml-middleware-synthetic-events'], factory) :
-	(factory(global.diffhtml,global.diffhtmlComponents,global.syntheticEvents));
-}(this, (function (diffhtml,diffhtmlComponents,syntheticEvents) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('diffhtml'), require('diffhtml-components'), require('diffhtml-middleware-synthetic-events'), require('prop-types')) :
+	typeof define === 'function' && define.amd ? define(['diffhtml', 'diffhtml-components', 'diffhtml-middleware-synthetic-events', 'prop-types'], factory) :
+	(factory(global.diffhtml,global.diffhtmlComponents,global.syntheticEvents,global.PropTypes));
+}(this, (function (diffhtml,diffhtmlComponents,syntheticEvents,PropTypes) {
 
 syntheticEvents = 'default' in syntheticEvents ? syntheticEvents['default'] : syntheticEvents;
+PropTypes = 'default' in PropTypes ? PropTypes['default'] : PropTypes;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -33,6 +34,7 @@ exports.createElement = function () {
   return tree;
 };
 
+exports.PropTypes = PropTypes;
 exports.Component = diffhtmlComponents.Component;
 exports.html = diffhtml.html;
 exports.render = function (component, mount) {

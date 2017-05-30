@@ -22,8 +22,8 @@ export default function webComponentTask(transaction) {
         }
 
         if (REPLACE_CHILD) {
-          for (let i = 0; i < REPLACE_CHILD.length; i += 3) {
-            const newTree = REPLACE_CHILD[i + 1];
+          for (let i = 0; i < REPLACE_CHILD.length; i += 2) {
+            const newTree = REPLACE_CHILD[i];
             const instance = NodeCache.get(newTree);
 
             if (instance.componentDidMount) {

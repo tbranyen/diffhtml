@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _caches = _dereq_('diffhtml-shared-internals/dist/cjs/caches');
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var useCapture = ['onload', 'onunload', 'onscroll', 'onfocus', 'onblur', 'onloadstart', 'onprogress', 'onerror', 'onabort', 'onload', 'onloadend', 'onpointerenter', 'onpointerleave'];
@@ -130,7 +132,6 @@ var syntheticEvents = function syntheticEvents() {
     return function (_ref) {
       var state = _ref.state,
           patches = _ref.patches;
-      var NodeCache = state.internals.NodeCache;
       var SET_ATTRIBUTE = patches.SET_ATTRIBUTE,
           REMOVE_ATTRIBUTE = patches.REMOVE_ATTRIBUTE;
 
@@ -141,7 +142,7 @@ var syntheticEvents = function syntheticEvents() {
           var _name = SET_ATTRIBUTE[i + 1];
           var value = SET_ATTRIBUTE[i + 2];
 
-          var domNode = NodeCache.get(vTree);
+          var domNode = _caches.NodeCache.get(vTree);
           var eventName = _name.toLowerCase();
 
           // Remove inline event binding from element and add to handlers.
@@ -177,7 +178,7 @@ var syntheticEvents = function syntheticEvents() {
           var _vTree = REMOVE_ATTRIBUTE[_i];
           var _name2 = REMOVE_ATTRIBUTE[_i + 1];
 
-          var _domNode = NodeCache.get(_vTree);
+          var _domNode = _caches.NodeCache.get(_vTree);
           var _eventName = _name2.toLowerCase();
 
           // Remove event binding from element and instead add to handlers.
@@ -205,5 +206,45 @@ var syntheticEvents = function syntheticEvents() {
 exports.default = syntheticEvents;
 module.exports = exports['default'];
 
+},{"diffhtml-shared-internals/dist/cjs/caches":2}],2:[function(_dereq_,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _caches = _dereq_('diffhtml/dist/cjs/util/caches');
+
+Object.keys(_caches).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _caches[key];
+    }
+  });
+});
+},{"diffhtml/dist/cjs/util/caches":3}],3:[function(_dereq_,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+// Associates DOM Nodes with state objects.
+const StateCache = exports.StateCache = new Map();
+
+// Associates Virtual Tree Elements with DOM Nodes.
+const NodeCache = exports.NodeCache = new Map();
+
+// Cache transition functions.
+const TransitionCache = exports.TransitionCache = new Map();
+
+// Caches all middleware. You cannot unset a middleware once it has been added.
+const MiddlewareCache = exports.MiddlewareCache = new Set();
+
+// Very specific caches used by middleware.
+MiddlewareCache.CreateTreeHookCache = new Set();
+MiddlewareCache.CreateNodeHookCache = new Set();
+MiddlewareCache.SyncTreeHookCache = new Set();
 },{}]},{},[1])(1)
 });

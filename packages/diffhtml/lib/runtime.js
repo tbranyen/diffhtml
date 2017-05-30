@@ -5,6 +5,7 @@ import reconcileTrees from './tasks/reconcile-trees-for-runtime';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
+import * as caches from './util/caches';
 import bindInnerHTML from './inner-html';
 import bindOuterHTML from './outer-html';
 import release from './release';
@@ -21,8 +22,12 @@ const outerHTML = bindOuterHTML(defaultTasks);
 const VERSION = `${__VERSION__}-runtime`;
 
 // Automatically hook up to DevTools if they are present.
-if (typeof devTools === 'function') {
-  use(devTools());
+if (typeof devTools.default === 'function') {
+  use(devTools.default({
+    VERSION,
+    caches,
+  }));
+
   console.info('diffHTML DevTools Found and Activated...');
 }
 

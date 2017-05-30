@@ -244,12 +244,34 @@ function componentDidMount(newTree) {
   triggerRef(ref, instance);
 }
 
+function componentDidUnmount(oldTree) {
+  if (_caches2.InstanceCache.has(oldTree)) {
+    _caches2.InstanceCache.get(oldTree).componentDidUnmount();
+  }
+
+  const instance = _caches2.InstanceCache.get(oldTree);
+
+  searchForRefs(oldTree);
+
+  if (!instance) {
+    return;
+  }
+
+  const { ref } = instance.props;
+
+  triggerRef(ref, null);
+}
+
 function reactLikeComponentTask(transaction) {
   return transaction.onceEnded(() => {
     const { patches } = transaction;
 
     if (patches.TREE_OPS && patches.TREE_OPS.length) {
-      patches.TREE_OPS.forEach(({ INSERT_BEFORE, REPLACE_CHILD }) => {
+      patches.TREE_OPS.forEach(({
+        INSERT_BEFORE,
+        REPLACE_CHILD,
+        REMOVE_CHILD
+      }) => {
         if (INSERT_BEFORE) {
           for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
             const newTree = INSERT_BEFORE[i + 1];
@@ -258,9 +280,16 @@ function reactLikeComponentTask(transaction) {
         }
 
         if (REPLACE_CHILD) {
-          for (let i = 0; i < REPLACE_CHILD.length; i += 3) {
-            const newTree = REPLACE_CHILD[i + 1];
+          for (let i = 0; i < REPLACE_CHILD.length; i += 2) {
+            const newTree = REPLACE_CHILD[i];
             componentDidMount(newTree);
+          }
+        }
+
+        if (REMOVE_CHILD) {
+          for (let i = 0; i < REMOVE_CHILD.length; i += 1) {
+            const oldTree = REMOVE_CHILD[i];
+            componentDidUnmount(oldTree);
           }
         }
       });
@@ -607,7 +636,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _process = require('diffhtml/dist/cjs/util/process');
 
-Object.defineProperty(exports, 'default', {
+Object.defineProperty(exports, 'process', {
   enumerable: true,
   get: function () {
     return _interopRequireDefault(_process).default;
@@ -1827,6 +1856,10 @@ var _endAsPromise = require('./tasks/end-as-promise');
 
 var _endAsPromise2 = _interopRequireDefault(_endAsPromise);
 
+var _caches = require('./util/caches');
+
+var caches = _interopRequireWildcard(_caches);
+
 var _innerHtml = require('./inner-html');
 
 var _innerHtml2 = _interopRequireDefault(_innerHtml);
@@ -1851,6 +1884,8 @@ var _transition = require('./transition');
 
 var _version = require('./version');
 
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const defaultTasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTreesWithParse2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
@@ -1860,8 +1895,12 @@ const outerHTML = (0, _outerHtml2.default)(defaultTasks);
 const VERSION = _version.__VERSION__;
 
 // Automatically hook up to DevTools if they are present.
-if (typeof devTools === 'function') {
-  (0, _use2.default)(devTools());
+if (typeof devTools !== 'undefined' && devTools.default) {
+  (0, _use2.default)(devTools.default({
+    VERSION,
+    caches
+  }));
+
   console.info('diffHTML DevTools Found and Activated...');
 }
 
@@ -1885,7 +1924,7 @@ exports.default = {
   innerHTML,
   html: _html2.default
 };
-},{"./html":20,"./inner-html":22,"./outer-html":25,"./release":26,"./tasks/end-as-promise":27,"./tasks/patch-node":28,"./tasks/reconcile-trees-with-parse":29,"./tasks/schedule":30,"./tasks/should-update":31,"./tasks/sync-trees":32,"./transition":34,"./tree/create":35,"./use":37,"./version":47}],22:[function(require,module,exports){
+},{"./html":20,"./inner-html":22,"./outer-html":25,"./release":26,"./tasks/end-as-promise":27,"./tasks/patch-node":28,"./tasks/reconcile-trees-with-parse":29,"./tasks/schedule":30,"./tasks/should-update":31,"./tasks/sync-trees":32,"./transition":34,"./tree/create":35,"./use":37,"./util/caches":38,"./version":47}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {

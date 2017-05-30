@@ -2,9 +2,14 @@
   "name": "diffhtml-middleware-synthetic-events",
   "version": "1.0.0-beta",
   "description": "Global event delegation middleware, avoids inline events",
-  "main": "dist/synthetic-events.js",
+  "main": "dist/cjs/index",
+  "module": "dist/es/index",
+  "jsnext:main": "dist/es/index",
+  "esnext:main": "dist/es/index",
   "scripts": {
-    "build": "browserify -t babelify -s syntheticEvents index.js | derequire > dist/synthetic-events.js"
+    "build-cjs": "NODE_ENV=cjs babel index.js -d dist/cjs",
+    "build-es": "NODE_ENV=es babel index.js -d dist/es",
+    "build": "NODE_ENV=build browserify -t babelify -s syntheticEvents index.js | derequire > dist/synthetic-events.js && npm run build-cjs && npm run build-es"
   },
   "keywords": [
     "diffhtml",
@@ -15,10 +20,12 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "devDependencies": {
+    "babel-cli": "^6.24.1",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-es2015": "^6.22.0",
     "babelify": "^7.3.0",
     "browserify": "^14.0.0",
-    "derequire": "^2.0.6"
+    "derequire": "^2.0.6",
+    "diffhtml-shared-internals": "1.0.0-beta"
   }
 }

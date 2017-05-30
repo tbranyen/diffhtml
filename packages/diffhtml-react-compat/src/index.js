@@ -1,6 +1,7 @@
 import { createTree, innerHTML, outerHTML, use, html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 import syntheticEvents from 'diffhtml-middleware-synthetic-events';
+import PropTypes from 'prop-types';
 
 const { keys } = Object;
 
@@ -26,6 +27,7 @@ exports.createElement = (...args) => {
   return tree;
 };
 
+exports.PropTypes = PropTypes;
 exports.Component = Component;
 exports.html = html;
 exports.render = (component, mount) => innerHTML(mount, component, );
