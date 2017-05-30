@@ -3,6 +3,8 @@
   "version": "1.0.0-beta",
   "description": "Build JavaScript components and apps using a Virtual DOM",
   "main": "dist/cjs/index",
+  "module": "dist/es/index",
+  "jsnext:main": "dist/es/index",
   "esnext:main": "dist/es/index",
   "author": "Tim Branyen (@tbranyen)",
   "repository": "https://github.com/tbranyen/diffhtml",
