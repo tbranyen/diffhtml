@@ -144,7 +144,7 @@ describe('Integration: outerHTML', function() {
       `);
 
       assert.equal(this.fixture.querySelector('p'), null);
-      assert.equal(this.fixture.childNodes[0].innerHTML.trim(), `
+      assert.equal(this.fixture.childNodes[1].innerHTML.trim(), `
          var test = \"<p></p>\";
       `.trim());
     });
