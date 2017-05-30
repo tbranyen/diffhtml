@@ -1,5 +1,13 @@
 {
   "env": {
+    "build": {
+      "plugins": [
+        ["module-rewrite", { "replaceFunc": "../../utils/replace-es.js" }],
+        "transform-object-rest-spread",
+        "transform-class-properties"
+      ]
+    },
+
     "cjs": {
       "plugins": [
         "transform-es2015-modules-commonjs",

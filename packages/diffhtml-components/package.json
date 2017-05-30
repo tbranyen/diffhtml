@@ -28,7 +28,7 @@
   "scripts": {
     "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs",
     "build-es": "NODE_ENV=es babel lib -d dist/es",
-    "build": "npm run build-cjs && npm run build-es",
+    "build": "NODE_ENV=build rollup -c rollup.config.js && npm run build-cjs && npm run build-es",
     "test": "NODE_ENV=test mocha test/_setup test",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test",
     "test:ci": "npm run test"
