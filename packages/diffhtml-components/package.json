@@ -34,12 +34,12 @@
     "test:ci": "npm run test"
   },
   "peerDependencies": {
-    "diffhtml": ">=1.0.0-beta"
+    "diffhtml": "^1.0.0-beta"
   },
   "optionalDependencies": {
     "prop-types": "^15.5.10"
   },
   "dependencies": {
-    "diffhtml-shared-internals": "1.0.0-beta"
+    "diffhtml-shared-internals": "^1.0.0-beta"
   }
 }

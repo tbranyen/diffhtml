@@ -17,6 +17,6 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "diffhtml": "1.0.0-beta"
+    "diffhtml": "^1.0.0-beta"
   }
 }

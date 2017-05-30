@@ -31,6 +31,6 @@
     "mocha": "^2.5.3"
   },
   "peerDependencies": {
-    "diffhtml": ">=1.0.0-beta"
+    "diffhtml": "^1.0.0-beta"
   }
 }

@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "chokidar": "^1.6.1",
-    "diffhtml": "1.0.0-beta",
+    "diffhtml": "^1.0.0-beta",
     "engine.io": "^1.8.1",
     "express": "^4.14.0"
   },

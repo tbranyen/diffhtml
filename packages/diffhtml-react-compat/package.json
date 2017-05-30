@@ -14,7 +14,7 @@
     "babelify": "^7.3.0",
     "browserify": "^13.3.0",
     "derequire": "^2.0.6",
-    "diffhtml": "1.0.0-beta",
+    "diffhtml": "^1.0.0-beta",
     "prop-types": "^15.5.10",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
@@ -25,11 +25,11 @@
     "watchify": "^3.8.0"
   },
   "dependencies": {
-    "diffhtml-components": "1.0.0-beta",
-    "diffhtml-middleware-synthetic-events": "1.0.0-beta"
+    "diffhtml-components": "^1.0.0-beta",
+    "diffhtml-middleware-synthetic-events": "^1.0.0-beta"
   },
   "peerDependencies": {
-    "diffhtml": ">=1.0.0-beta",
+    "diffhtml": "^1.0.0-beta",
     "prop-types": "^15.5.10"
   }
 }
