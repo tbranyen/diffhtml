@@ -1,6 +1,8 @@
 diffHTML Static Sync
 --------------------
 
+Stable Version: 1.0.0-beta.1
+
 A static HTML server that monitors the folder it was executed in for changes
 and diffs them seamlessly into the browser without needing to reload the page.
 

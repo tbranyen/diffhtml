@@ -2,7 +2,7 @@
 
 *A powerful JavaScript library for building user interfaces.*
 
-Stable version: 1.0.0-beta
+Stable version: 1.0.0-beta.1
 
 Inspired by React and motivated by the Web, this library is designed to help
 web developers write components and applications for the web. By focusing on

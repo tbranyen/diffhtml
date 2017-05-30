@@ -1,7 +1,7 @@
 diffHTML React Compatibility Package
 ------------------------------------
 
-Stable Version: 1.0.0-beta
+Stable Version: 1.0.0-beta.1
 
 This is a compatibility package meant to be a drop-in replacement for the
 modules: `react` and `react-dom`. It wraps the [diffHTML

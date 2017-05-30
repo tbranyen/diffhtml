@@ -1,7 +1,7 @@
 diffHTML Components
 -------------------
 
-Stable Version: 1.0.0-beta
+Stable Version: 1.0.0-beta.1
 
 JavaScript classes for rendering components using either Custom Element or
 React-inspired implementations.

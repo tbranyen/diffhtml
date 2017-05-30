@@ -1,7 +1,7 @@
 diffHTML Babel Transform Plugin
 -------------------------------
 
-Stable Version: 1.0.0-beta
+Stable Version: 1.0.0-beta.1
 
 This plugin transforms tagged template strings in your projects to
 [diffHTML](https://github.com/tbranyen/diffhtml) `createTree` calls. 

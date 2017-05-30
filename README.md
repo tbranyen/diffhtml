@@ -1,7 +1,7 @@
 diffHTML: A JavaScript View Layer
 ---------------------------------
 
-Stable version: 1.0.0-beta
+Stable version: 1.0.0-beta.1
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Coverage
