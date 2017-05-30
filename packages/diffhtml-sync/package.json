@@ -5,7 +5,7 @@
   "version": "1.0.0-beta",
   "description": "",
   "scripts": {
-    "build": "browserify -t babelify sync.js -o dist/sync.js"
+    "build": "mkdir -p dist ; browserify -t babelify sync.js -o dist/sync.js"
   },
   "keywords": [
     "diffhtml",
