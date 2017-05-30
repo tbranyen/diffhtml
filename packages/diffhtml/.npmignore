@@ -1,10 +1,11 @@
 benchmarks
 examples
 test
-karma.conf.js
 .babelrc
 .gitattributes
-.gitignore
+.istanbul.yml
 .jshintrc
 .npmignore
 .travis.yml
+rollup.main.config.js
+rollup.runtime.config.js
