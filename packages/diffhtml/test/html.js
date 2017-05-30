@@ -388,6 +388,14 @@ describe('HTML (Tagged template)', function() {
         childNodes: [],
         attributes: {},
       }, {
+          "attributes": {},
+          "childNodes": [],
+          "key": "",
+          "nodeName": "#text",
+          "nodeType": 3,
+          "nodeValue": "\n      ",
+          "rawNodeName": "#text"
+      }, {
         rawNodeName: 'web-component',
         nodeName: 'web-component',
         nodeValue: '',
