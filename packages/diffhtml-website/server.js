@@ -4,7 +4,7 @@ const combyne = require('combyne');
 const express = require('express');
 const favicon = require('serve-favicon');
 const apiDox = require('diffhtml-dox');
-const { watch, clientScript } = require('diffhtml-sync');
+const { watch, clientScript } = require('diffhtml-static-sync');
 
 const app = express();
 const port = process.env.PORT || 8000;
