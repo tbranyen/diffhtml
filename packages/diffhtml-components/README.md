@@ -37,9 +37,12 @@ class MyComponent extends Component {
 // Load a suitable polyfill if you really want to use these in production.
 customElements.define('web-component', class extends WebComponent {
   render() {
-    return (
-      <span>Even Supports JSX!</span>
-    );
+    return html`
+      <span>Custom Elements work just fine and 1:1 with React Components</span>
+    `;
+    //return (
+    //  <span>Even Supports JSX (use Babel transform)!</span>
+    //);
   }
 });
 
