@@ -1,6 +1,23 @@
 {
-  "presets": ["es2015"],
-  "plugins": [
-    "add-module-exports"
-  ]
+  "env": {
+    "build": {
+      "presets": ["es2015"],
+      "plugins": [
+        "add-module-exports",
+        ["module-rewrite", { "replaceFunc": "../../utils/replace-cjs.js" }]
+      ],
+    },
+    "cjs": {
+      "plugins": [
+        "add-module-exports",
+        "transform-es2015-modules-commonjs",
+        ["module-rewrite", { "replaceFunc": "../../utils/replace-cjs.js" }]
+      ]
+    },
+    "es": {
+      "plugins": [
+        ["module-rewrite", { "replaceFunc": "../../utils/replace-es.js" }]
+      ]
+    }
+  }
 }

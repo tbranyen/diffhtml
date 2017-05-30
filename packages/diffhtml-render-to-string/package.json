@@ -4,7 +4,7 @@
   "description": "Renders diffHTML Virtual Trees to strings",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
+    "test": "mocha --colors",
     "test:ci": "npm run test"
   },
   "devDependencies": {

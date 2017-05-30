@@ -27,7 +27,7 @@
   "devDependencies": {
     "lerna": "2.0.0-rc.5",
     "babel-cli": "^6.24.1",
-    "babel-plugin-module-rewrite": "^0.1.2",
+    "babel-plugin-module-rewrite": "tbranyen/babel-plugin-module-rewrite#temp-exports-build",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1"
   }
 }

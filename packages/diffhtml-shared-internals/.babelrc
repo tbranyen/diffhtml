@@ -9,7 +9,6 @@
 
     "es": {
       "plugins": [
-        "transform-es2015-modules-commonjs",
         ["module-rewrite", { "replaceFunc": "../../utils/replace-es.js" }]
       ]
     }

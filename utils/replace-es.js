@@ -4,6 +4,7 @@ module.exports = (originalPath, filePath) => {
   }
 
   return originalPath.replace(/diffhtml(.*)\/lib\/(.*)|diffhtml(.*)?/, (full, sub, file) => {
+    console.log(full, sub, file);
     if (sub) {
       return `diffhtml${sub}/dist/es/${file}`;
     }

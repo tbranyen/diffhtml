@@ -4,7 +4,9 @@
   "description": "",
   "main": "dist/logger.js",
   "scripts": {
-    "build": "browserify -t babelify -s logger index.js -o dist/logger.js",
+    "build-cjs": "NODE_ENV=cjs babel index.js -d dist/cjs",
+    "build-es": "NODE_ENV=es babel index.js -d dist/es",
+    "build": "NODE_ENV=build browserify -t babelify -s logger index.js -o dist/logger.js && npm run build-cjs && npm run build-es",
     "watch": "watchify -t babelify -s logger index.js -o dist/logger.js -v"
   },
   "keywords": [
