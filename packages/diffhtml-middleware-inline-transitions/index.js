@@ -1,3 +1,8 @@
+import {
+  addTransitionState,
+  removeTransitionState,
+} from 'diffhtml/lib/transition';
+
 const { assign, keys } = Object;
 
 const eventsToTransitionName = {
@@ -48,7 +53,7 @@ export default function inlineTransitions(options = {}) {
     map[isFunction ? 'set' : 'delete'](domNode, newVal);
   };
 
-  const subscribe = ({ addTransitionState }) => {
+  const subscribe = () => {
     addTransitionState('attributeChanged', attributeChanged);
 
     // Add a transition for every type.
@@ -99,7 +104,7 @@ export default function inlineTransitions(options = {}) {
   };
 
   // This will unbind any internally bound transition states.
-  const unsubscribe = ({ removeTransitionState }) => {
+  const unsubscribe = () => {
     // Unbind all the transition states.
     removeTransitionState('attributeChanged', attributeChanged);
 

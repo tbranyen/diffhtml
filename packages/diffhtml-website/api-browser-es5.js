@@ -3084,7 +3084,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
   // `newTree`. Pass along the `keysLookup` object so that middleware can make
   // smart decisions when dealing with keys.
   SyncTreeHookCache.forEach((fn, retVal) => {
-    if (retVal = fn(oldTree, newTree, null)) {
+    if ((retVal = fn(oldTree, newTree, null)) && retVal !== newTree) {
       newTree = retVal;
 
       // Find attributes.
@@ -3770,7 +3770,6 @@ function parse(html, supplemental, options = {}) {
   const stack = [root];
   let currentParent = root;
   let lastTextPos = -1;
-  let preLastTextPos = -1;
 
   // If there are no HTML elements, treat the passed in html as a single
   // text node.
@@ -3785,8 +3784,7 @@ function parse(html, supplemental, options = {}) {
       if (lastTextPos + match[0].length < tagEx.lastIndex) {
         text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
 
-        // Do not process leading whitespace in a tagged template.
-        if (preLastTextPos === -1 ? hasNonWhitespaceEx.test(text) : text) {
+        if (text) {
           interpolateValues(currentParent, text, supplemental);
         }
       }
@@ -3802,7 +3800,6 @@ function parse(html, supplemental, options = {}) {
       }
     }
 
-    preLastTextPos = lastTextPos;
     lastTextPos = tagEx.lastIndex;
 
     // This is a comment (TODO support these).

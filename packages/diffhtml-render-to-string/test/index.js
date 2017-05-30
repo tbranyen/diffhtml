@@ -60,7 +60,8 @@ describe('renderToString', function() {
       </div>
     `);
 
-    const expected = `<div><p>Hello world</p>
+    const expected = `<div>
+        <p>Hello world</p>
       </div>`;
 
     equal(actual, expected);

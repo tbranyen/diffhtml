@@ -4,10 +4,12 @@
   "description": "Monitors inline attributes and assigns transition hooks",
   "main": "dist/inline-transitions.js",
   "scripts": {
-    "build": "browserify -t babelify -s inlineTransitions index.js -o dist/inline-transitions.js",
+    "build-cjs": "NODE_ENV=cjs babel index.js -d dist/cjs",
+    "build-es": "NODE_ENV=es babel index.js -d dist/es",
+    "build": "NODE_ENV=build browserify -t babelify -s inlineTransitions index.js -o dist/inline-transitions.js && npm run build-cjs && npm run build-es",
     "watch": "watchify -t babelify -s inlineTransitions index.js -o dist/inline-transitions.js -v",
     "mocha": "mocha test/_setup test/*.js",
-    "test": "istanbul cover _mocha -- -- test/_setup test/*.js",
+    "test": "NODE_ENV=cjs istanbul cover _mocha -- -- test/_setup test/*.js",
     "test:ci": "npm run test"
   },
   "keywords": [
@@ -17,6 +19,7 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "devDependencies": {
+    "babel-cli": "^6.24.1",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-es2015": "^6.22.0",
     "babel-register": "^6.23.0",

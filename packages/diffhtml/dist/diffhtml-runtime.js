@@ -443,7 +443,7 @@ function syncTree(oldTree, newTree, patches) {
   // `newTree`. Pass along the `keysLookup` object so that middleware can make
   // smart decisions when dealing with keys.
   SyncTreeHookCache.forEach((fn, retVal) => {
-    if (retVal = fn(oldTree, newTree, null)) {
+    if ((retVal = fn(oldTree, newTree, null)) && retVal !== newTree) {
       newTree = retVal;
 
       // Find attributes.

@@ -63,7 +63,9 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
     it('can render a nested interpolated mixed expression', () => {
       const vTree = fixtures.renderNestedInterpolatedMixedExpression();
       diff.innerHTML(this.fixture, vTree);
-      assert.equal(this.fixture.innerHTML.trim(), '<div><div>Hello world!</div>\n    </div>');
+      assert.equal(this.fixture.innerHTML.trim(), `<div>
+      <div>Hello world!</div>
+    </div>`);
     });
 
     it('can render a nested template interpolated mixed expression', () => {

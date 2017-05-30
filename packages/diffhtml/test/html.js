@@ -323,7 +323,7 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('will not mess up interpolation if HTML comments are used', () => {
+  it.skip('will not mess up interpolation if HTML comments are used', () => {
     const fixtures = ['test', 'this'];
     const span = html`
       <!--
