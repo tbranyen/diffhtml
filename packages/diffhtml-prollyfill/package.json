@@ -1,13 +1,17 @@
 {
   "name": "diffhtml-prollyfill",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "description": "Exposes an experimental browser API for diffHTML",
   "main": "dist/diff-prollyfill",
   "scripts": {
     "build": "browserify -g babelify -u diffhtml -x diffhtml -s diff index.js -o dist/diff-prollyfill.js",
     "watch": "watchify -g babelify -u diffhtml -x diffhtml -s diff index.js -o dist/diff-prollyfill.js -v"
   },
-  "keywords": ["polyfill", "prollyfill", "diffhtml"],
+  "keywords": [
+    "polyfill",
+    "prollyfill",
+    "diffhtml"
+  ],
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "devDependencies": {

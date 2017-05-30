@@ -6,7 +6,12 @@
   "scripts": {
     "build": "browserify -t babelify -s syntheticEvents index.js | derequire > dist/synthetic-events.js"
   },
-  "keywords": ["diffhtml", "middleware", "synthetic", "events"],
+  "keywords": [
+    "diffhtml",
+    "middleware",
+    "synthetic",
+    "events"
+  ],
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "devDependencies": {

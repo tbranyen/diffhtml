@@ -7,7 +7,11 @@
   "scripts": {
     "build": "browserify -t babelify sync.js -o dist/sync.js"
   },
-  "keywords": ["diffhtml", "html", "sync"],
+  "keywords": [
+    "diffhtml",
+    "html",
+    "sync"
+  ],
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "dependencies": {

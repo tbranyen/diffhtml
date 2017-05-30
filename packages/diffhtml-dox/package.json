@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node bin/start"
   },
-  "keywords": ["diffhtml", "documentation", "dox"],
+  "keywords": [
+    "diffhtml",
+    "documentation",
+    "dox"
+  ],
   "author": "Tim Branyen",
   "license": "MIT",
   "dependencies": {
