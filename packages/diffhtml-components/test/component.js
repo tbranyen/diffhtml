@@ -1,6 +1,6 @@
 import { ok, equal, throws, doesNotThrow } from 'assert';
 import { innerHTML, html, use } from 'diffhtml';
-import process from 'diffhtml-shared-internals/lib/process';
+import { process } from 'diffhtml-shared-internals';
 import PropTypes from 'prop-types';
 import Component from '../lib/component';
 
