@@ -1,1 +1,1 @@
-export * from 'diffhtml/lib/util/make-measure';
+export { default as makeMeasure } from 'diffhtml/lib/util/make-measure';
