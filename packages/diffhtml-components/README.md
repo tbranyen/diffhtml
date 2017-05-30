@@ -3,7 +3,7 @@ diffHTML Components
 
 Stable Version: 1.0.0-beta
 
-JavaScript classes for rendering components using either Web Component or
+JavaScript classes for rendering components using either Custom Element or
 React-inspired implementations.
 
 ##### Installation
@@ -17,6 +17,34 @@ npm install diffhtml-components
 Before you can use this module, you will need to have diffHTML loaded first.
 This component simply provides the `Component` and `WebComponent` classes that
 help you create Virtual Trees.
+
+You can create a Component as easy as:
+
+``` js
+import { html, innerHTML } from 'diffhtml';
+import { Component, WebComponent } from 'diffhtml-components';
+
+class MyComponent extends Component {
+  render() {
+    return html`
+      <h1>Rendering a Web Component inside a React-Like Component:</h1>
+      <web-component />
+    `;
+  }
+}
+
+// Only works if your browser supports the `customElements` global registry.
+// Load a suitable polyfill if you really want to use these in production.
+customElements.define('web-component', class extends WebComponent {
+  render() {
+    return (
+      <span>Even Supports JSX!</span>
+    );
+  }
+});
+
+innerHTML(document.body, html`<${App} />`);
+```
 
 ##### PropTypes
 
