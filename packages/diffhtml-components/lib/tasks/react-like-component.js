@@ -39,12 +39,34 @@ function componentDidMount(newTree) {
   triggerRef(ref, instance);
 }
 
+function componentDidUnmount(oldTree) {
+  if (InstanceCache.has(oldTree)) {
+    InstanceCache.get(oldTree).componentDidUnmount();
+  }
+
+  const instance = InstanceCache.get(oldTree);
+
+  searchForRefs(oldTree);
+
+  if (!instance) {
+    return;
+  }
+
+  const { ref } = instance.props;
+
+  triggerRef(ref, null);
+}
+
 export default function reactLikeComponentTask(transaction) {
   return transaction.onceEnded(() => {
     const { patches } = transaction;
 
     if (patches.TREE_OPS && patches.TREE_OPS.length) {
-      patches.TREE_OPS.forEach(({ INSERT_BEFORE, REPLACE_CHILD }) => {
+      patches.TREE_OPS.forEach(({
+        INSERT_BEFORE,
+        REPLACE_CHILD,
+        REMOVE_CHILD,
+      }) => {
         if (INSERT_BEFORE) {
           for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
             const newTree = INSERT_BEFORE[i + 1];
@@ -56,6 +78,13 @@ export default function reactLikeComponentTask(transaction) {
           for (let i = 0; i < REPLACE_CHILD.length; i += 3) {
             const newTree = REPLACE_CHILD[i + 1];
             componentDidMount(newTree);
+          }
+        }
+
+        if (REMOVE_CHILD) {
+          for (let i = 0; i < REMOVE_CHILD.length; i += 1) {
+            const oldTree = REMOVE_CHILD[i];
+            componentDidUnmount(oldTree);
           }
         }
       });

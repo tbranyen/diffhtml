@@ -8,6 +8,10 @@ describe('Web Component', function() {
     newJSDOMSandbox();
   });
 
+  after(() => {
+    WebComponent.unsubscribeMiddleware();
+  });
+
   it('can make a component', () => {
     class CustomComponent extends WebComponent {
       render() {
@@ -25,6 +29,30 @@ describe('Web Component', function() {
 
     equal(instance.shadowRoot.firstChild.outerHTML, '<div>Hello world</div>');
     equal(document.body.innerHTML, '<custom-component></custom-component>');
+  });
+
+  it('can pass properties to constructor', () => {
+    let ctorMessage = null;
+
+    class CustomComponent extends WebComponent {
+      render({ message }) {
+        return html`
+          <div>${message}</div>
+        `;
+      }
+
+      constructor(props) {
+        super(props);
+
+        ctorMessage = props.message;
+      }
+    }
+
+    customElements.define('custom-component', CustomComponent);
+
+    innerHTML(document.body, html`<custom-component message="Test" />`);
+
+    equal(ctorMessage, 'Test');
   });
 
   describe('JSX Compatibility', () => {

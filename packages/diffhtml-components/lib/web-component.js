@@ -1,6 +1,7 @@
-import { innerHTML } from 'diffhtml';
+import { innerHTML, use } from 'diffhtml';
 import checkPropTypes from 'prop-types/checkPropTypes';
 import upgradeSharedClass from './shared/upgrade-shared-class';
+import webComponentTask from './tasks/web-component';
 import { $$render } from './util/symbols';
 
 const Debounce = new WeakMap();
@@ -28,7 +29,15 @@ const createContext = (domNode) => {
 
 };
 
+// Allow tests to unbind this task, you would not typically need to do this
+// in a web application, as this code loads once and is not reloaded.
+const unsubscribeMiddleware = use(webComponentTask);
+
 export default upgradeSharedClass(class WebComponent extends HTMLElement {
+  static unsubscribeMiddleware() {
+    unsubscribeMiddleware();
+  }
+
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
   }

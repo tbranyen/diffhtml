@@ -60,7 +60,7 @@ present so that the implement knows which attributes to track.
 
 ##### Examples
 
-**React Like**
+*React Like*
 
 Useful when you need minimal React features for new projects. This is not a
 good package for React Compatibility inter-op. Although it can work to load
@@ -100,7 +100,7 @@ innerHTML(document.body, html`<${SimpleClock} />`);
 ```
 
 
-**Web Components**
+*Web Components*
 
 Will only work in browsers that support v1 Web Components spec:
 
