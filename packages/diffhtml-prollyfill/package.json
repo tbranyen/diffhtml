@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-prollyfill",
-  "version": "1.0.0-beta",
+  "version": "1.0.0-beta.1",
   "description": "Exposes an experimental browser API for diffHTML",
   "main": "dist/diff-prollyfill",
   "scripts": {
@@ -18,9 +18,9 @@
     "babel-preset-es2015": "^6.13.2",
     "babelify": "^7.3.0",
     "browserify": "^13.1.0",
-    "diffhtml": "^1.0.0-beta"
+    "diffhtml": "^1.0.0-beta.1"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta"
+    "diffhtml": "^1.0.0-beta.1"
   }
 }

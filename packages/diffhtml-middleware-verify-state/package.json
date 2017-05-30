@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-verify-state",
-  "version": "1.0.0-beta",
+  "version": "1.0.0-beta.1",
   "description": "Verifies render state middleware, useful for sanity checking",
   "main": "dist/verify-state.js",
   "scripts": {

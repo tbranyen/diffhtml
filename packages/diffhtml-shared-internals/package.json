@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-shared-internals",
-  "version": "1.0.0-beta",
+  "version": "1.0.0-beta.1",
   "description": "Access the diffHTML core internals",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -17,6 +17,6 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "diffhtml": "^1.0.0-beta"
+    "diffhtml": "^1.0.0-beta.1"
   }
 }

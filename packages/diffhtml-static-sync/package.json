@@ -2,7 +2,7 @@
   "name": "diffhtml-static-sync",
   "bin": "index.js",
   "main": ".",
-  "version": "1.0.0-beta",
+  "version": "1.0.0-beta.1",
   "description": "A static HTTP server that hot reloads HTML on save",
   "scripts": {
     "build": "mkdir -p dist ; browserify -t babelify sync.js -o dist/sync.js"
@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "chokidar": "^1.6.1",
-    "diffhtml": "^1.0.0-beta",
+    "diffhtml": "^1.0.0-beta.1",
     "engine.io": "^1.8.1",
     "express": "^4.14.0"
   },
