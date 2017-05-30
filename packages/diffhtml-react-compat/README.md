@@ -1,12 +1,15 @@
-# diffHTML React Compatibility Package
+diffHTML React Compatibility Package
+------------------------------------
+
+Stable Version: 1.0.0-beta
 
 This is a compatibility package meant to be a drop-in replacement for the
 modules: `react` and `react-dom`. It wraps the [diffHTML
-Components](../diffhtml-components) repository as the base for the component
-constructors. It then layers additional React-specific APIs.
+Components](../diffhtml-components) repository as the base for the `Component`
+constructor. It then layers additional React-specific APIs.
 
-## How it works
+##### Installation
 
-## How to configure
-
-## Troubleshooting
+``` sh
+npm install diffhtml diffhtml-react-compat
+```

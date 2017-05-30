@@ -1,11 +1,12 @@
 diffHTML Prollyfill
 -------------------
 
+Stable Version: 1.0.0-beta
+
 Use directly in place of [`diffhtml`](https://github.com/tbranyen/diffhtml).
 The term prollyfill means I'd like to see it be a standard some day, but is
 currently not under any consideration. [*Click here for the "prollyfill"
 origin tweet.*](https://twitter.com/slexaxton/status/257543702124306432)
-
 
 #### Install
 

@@ -1,9 +1,9 @@
 {
-  "name": "diffhtml-sync",
+  "name": "diffhtml-static-sync",
   "bin": "index.js",
   "main": ".",
   "version": "1.0.0-beta",
-  "description": "",
+  "description": "A static HTTP server that hot reloads HTML on save",
   "scripts": {
     "build": "mkdir -p dist ; browserify -t babelify sync.js -o dist/sync.js"
   },
