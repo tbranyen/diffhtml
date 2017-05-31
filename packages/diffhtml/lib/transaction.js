@@ -3,6 +3,17 @@ import { cleanMemory } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
 
+import schedule from './tasks/schedule';
+import shouldUpdate from './tasks/should-update';
+import reconcileTrees from './tasks/reconcile-trees';
+import syncTrees from './tasks/sync-trees';
+import patchNode from './tasks/patch-node';
+import endAsPromise from './tasks/end-as-promise';
+
+export const defaultTasks = [
+  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
+];
+
 export default class Transaction {
   static create(domNode, markup, options) {
     return new Transaction(domNode, markup, options);

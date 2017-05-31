@@ -13,14 +13,20 @@ function renderAttributes(attributes) {
 function renderToString(vTree) {
   let output = '';
   const { attributes, childNodes, rawNodeName: Constructor } = vTree;
+  const props = Object.assign({}, attributes);
 
   // Component.
   if (typeof Constructor === 'function') {
     const canNew = Constructor.prototype && Constructor.prototype.render;
+    const { defaultProps = {} } = Constructor;
 
-    attributes.children = childNodes;
+    props.children = childNodes;
 
-    const newTree = canNew ? new Constructor(attributes).render() : Constructor(attributes);
+    Object.keys(defaultProps).forEach(propName => {
+      props[propName] = props[propName] !== undefined ? props[propName] : defaultProps[propName];
+    });
+
+    const newTree = canNew ? new Constructor(props).render(props) : Constructor(props);
 
     output += renderToString(newTree);
   }

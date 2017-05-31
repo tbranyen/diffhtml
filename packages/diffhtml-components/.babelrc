@@ -1,36 +1,8 @@
 {
+  "presets": ["diffhtml-imports"],
   "env": {
-    "build": {
-      "plugins": [
-        ["module-rewrite", { "replaceFunc": "../../utils/replace-es.js" }],
-        "transform-object-rest-spread",
-        "transform-class-properties"
-      ]
-    },
-
-    "cjs": {
-      "plugins": [
-        "transform-es2015-modules-commonjs",
-        "transform-object-rest-spread",
-        "transform-class-properties",
-        ["module-rewrite", { "replaceFunc": "../../utils/replace-cjs.js" }],
-      ]
-    },
-
-    "es": {
-      "plugins": [
-        ["module-rewrite", { "replaceFunc": "../../utils/replace-es.js" }],
-        "transform-object-rest-spread",
-        "transform-class-properties"
-      ]
-    },
-
     "test": {
       "plugins": [
-        ["module-rewrite", { "replaceFunc": "../../utils/replace-cjs.js" }],
-        "transform-es2015-modules-commonjs",
-        "transform-object-rest-spread",
-        "transform-class-properties",
         ["transform-react-jsx", { "pragma": "createTree" }]
       ]
     }

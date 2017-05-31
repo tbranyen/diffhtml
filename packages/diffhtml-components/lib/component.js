@@ -1,12 +1,12 @@
-import { use, innerHTML, outerHTML } from 'diffhtml';
-import checkPropTypes from 'prop-types/checkPropTypes';
-import { NodeCache } from 'diffhtml-shared-internals/lib/caches';
-import process from 'diffhtml-shared-internals/lib/process';
+import process from './util/process';
+import PropTypes from 'prop-types';
+import { use, innerHTML, outerHTML, Internals } from 'diffhtml';
 import reactLikeComponentTask from './tasks/react-like-component';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { ComponentTreeCache, InstanceCache } from './util/caches';
 import { $$render } from './util/symbols';
 
+const { NodeCache } = Internals;
 const { keys, assign } = Object;
 
 // Registers a custom middleware to help map the diffHTML render lifecycle
@@ -16,11 +16,17 @@ const root = (typeof global !== 'undefined' ? global : window)
 
 // Allow tests to unbind this task, you would not typically need to do this
 // in a web application, as this code loads once and is not reloaded.
-const unsubscribeMiddleware = use(reactLikeComponentTask);
+const subscribeMiddleware = () => use(reactLikeComponentTask);
+const unsubscribeMiddleware = subscribeMiddleware();
 
 export default upgradeSharedClass(class Component {
+  static subscribeMiddleware() {
+    return subscribeMiddleware();
+  }
+
   static unsubscribeMiddleware() {
     unsubscribeMiddleware();
+    return subscribeMiddleware;
   }
 
   [$$render]() {
@@ -54,7 +60,9 @@ export default upgradeSharedClass(class Component {
       props[prop] = defaultProps[prop];
     });
 
-    checkPropTypes(propTypes, props, 'prop', name);
+    if (process.env.NODE_ENV !== 'production') {
+      PropTypes.checkPropTypes(propTypes, props, 'prop', name);
+    }
 
     //keys(childContextTypes).forEach(prop => {
     //  if (process.env.NODE_ENV !== 'production') {

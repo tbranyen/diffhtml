@@ -1,24 +1,27 @@
-diffHTML Components
--------------------
+# <div style="background-color: #FFF; display: inline-block; padding: 10px 0px; color: #333;"><±/> diffHTML Components</div>
+
+*JavaScript classes for rendering components using either Custom Element or
+React-inspired implementations.*
 
 Stable Version: 1.0.0-beta.1
 
-JavaScript classes for rendering components using either Custom Element or
-React-inspired implementations.
+The component classes `Component` and `WebComponent` are designed to be
+interchangeable and as close to feature-parity as possible. This helps bridges
+the React and Web Component gap.
 
-##### Installation
+## Installation
 
 ``` sh
 npm install diffhtml-components
 ```
 
-##### Getting started
+## Getting started
 
 Before you can use this module, you will need to have diffHTML loaded first.
 This component simply provides the `Component` and `WebComponent` classes that
-help you create Virtual Trees.
+help you create Virtual Trees and structure your code.
 
-You can create a Component as easy as:
+You can create components as easy as:
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
@@ -30,6 +33,9 @@ class MyComponent extends Component {
       <h1>Rendering a Web Component inside a React-Like Component:</h1>
       <web-component />
     `;
+    //return (
+    //  <span>Even Supports JSX (use Babel transform)!</span>
+    //);
   }
 }
 
@@ -49,16 +55,29 @@ customElements.define('web-component', class extends WebComponent {
 innerHTML(document.body, html`<${App} />`);
 ```
 
-##### PropTypes
+## PropTypes
 
 The PropTypes package has been extracted out of React into a standalone module
 (`npm i prop-types`) which can be used with both `Component` and `WebComponent`
 implementations.
 
-In the case of the `WebComponent` implementation they are required to be
-present so that the implement knows which attributes to track.
+**If you are using Web Components please note that PropTypes are required so
+that the implementation knows which attributes to fire change events on.**
 
-##### Examples
+[See the MDN article on it for more
+information](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements#Observed_attributes)
+
+## State
+
+State 
+
+## Force Update
+
+The `forceUpdate()` method is implemented and will trigger a no-questions-asked
+re-render of your component. This is a synchronous operation, but if diffHTML
+has a paused transaction, 
+
+## Examples
 
 *React Like*
 

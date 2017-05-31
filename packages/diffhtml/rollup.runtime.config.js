@@ -5,25 +5,25 @@ import hypothetical from 'rollup-plugin-hypothetical';
 import Visualizer from 'rollup-plugin-visualizer';
 
 const entries = {
-  min: 'dist/diffhtml-runtime.js',
-  production: 'lib/runtime.js',
+  min: 'lib/runtime.js',
+  umd: 'lib/runtime.js',
 };
 
 const dests = {
   min: 'dist/diffhtml-runtime.min.js',
-  production: 'dist/diffhtml-runtime.js',
+  umd: 'dist/diffhtml-runtime.js',
 }
 
-const { NODE_ENV = 'production' } = process.env;
+const { NODE_ENV = 'umd' } = process.env;
 
 export const exports = 'named';
 export const context = 'this';
 export const entry = entries[NODE_ENV];
 export const sourceMap = false;
 export const moduleName = 'diff';
-export const targets = [{ dest: dests[NODE_ENV], format: NODE_ENV === 'production' ? 'umd' : 'es' }];
+export const targets = [{ dest: dests[NODE_ENV], format: 'umd' }];
 export const plugins = [
-  replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
+  NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   babel(),
   nodeResolve({ jsnext: true }),
   hypothetical({
@@ -36,13 +36,15 @@ export const plugins = [
           return createTree(...args);
         }
       `,
-      './lib/util/parser.js': `
-        export default () => console.log('Runtime is not built with parsing');
+
+      './lib/util/parse.js': `
+        export default () => console.error('Runtime is not built with parsing');
       `,
+
       './lib/util/performance.js': `
         export default () => () => {};
       `,
     }
   }),
-  NODE_ENV === 'production' && Visualizer({ filename: './dist/diffhtml-runtime-build-size.html' }),
+  NODE_ENV === 'umd' && Visualizer({ filename: './dist/runtime-build-size.html' }),
 ];

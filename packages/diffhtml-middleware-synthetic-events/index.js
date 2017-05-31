@@ -1,4 +1,6 @@
-import { NodeCache } from 'diffhtml-shared-internals/lib/caches';
+import { Internals } from 'diffhtml';
+
+const { NodeCache } = Internals;
 
 const useCapture = [
   'onload', 'onunload', 'onscroll', 'onfocus', 'onblur', 'onloadstart',

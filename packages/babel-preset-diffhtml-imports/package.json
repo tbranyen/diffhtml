@@ -1,0 +1,17 @@
+{
+  "name": "babel-preset-diffhtml-imports",
+  "version": "1.0.0-beta.1",
+  "description": "Used to normalize import paths to diffHTML modules based on env",
+  "main": "index.js",
+  "author": "Tim Branyen (@tbranyen)",
+  "license": "MIT",
+  "dependencies": {
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-module-rewrite": "^0.2.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-preset-es2015-rollup": "^3.0.0",
+    "diffhtml": "^1.0.0-beta.1"
+  }
+}

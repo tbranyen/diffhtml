@@ -1,28 +1,7 @@
 {
+  "presets": ["diffhtml-imports"],
   "env": {
-    "min": {
-      "presets": ["babili"]
-    },
-    "production": {
-      "presets": []
-    },
-    "cjs": {
-      "plugins": [
-        "transform-es2015-modules-commonjs",
-        ["module-rewrite", { "replaceFunc": "../../utils/replace-cjs.js" }]
-      ]
-    },
-    "es": {
-      "plugins": [
-        ["module-rewrite", { "replaceFunc": "../../utils/replace-es.js" }]
-      ]
-    },
-    "test": {
-      "presets": ["es2015"],
-      "retainLines": true
-    },
     "test+cov": {
-      "presets": ["es2015"],
       "plugins": [
         ["istanbul", { "useInlineSourceMaps": false }]
       ],

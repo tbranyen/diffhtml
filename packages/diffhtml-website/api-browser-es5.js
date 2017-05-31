@@ -1,687 +1,27 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-(function (global){
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+var _templateObject = babelHelpers.taggedTemplateLiteral(['\n      Stable is ', '\n\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    '], ['\n      Stable is ', '\n\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    ']),
+    _templateObject2 = babelHelpers.taggedTemplateLiteral(['<option\n          data-ref="', '"\n          ', '\n        >\n          ', '\n        </option>'], ['<option\n          data-ref="', '"\n          ', '\n        >\n          ', '\n        </option>']),
+    _templateObject3 = babelHelpers.taggedTemplateLiteral(['<li>\n          <a href="#', '">', '<strong class="args">(', ')</strong></a>\n        </li>'], ['<li>\n          <a href="#', '">', '<strong class="args">(', ')</strong></a>\n        </li>']),
+    _templateObject4 = babelHelpers.taggedTemplateLiteral(['\n            <div class="comment">\n              <a class="header" id="', '" href="#', '"><h4 class="api-method">', '<strong class="args">(', ')</strong></h4></a>\n\n              <p class="push-left">\n                <a class="methods" href="#api">&nbsp; Back to API</a> |\n                <a class="view-on-github" href="', '">\n                  <i class="fa fa-github" aria-hidden="true"></i> View source on GitHub\n                </a>\n              </p>\n\n              <div>\n                ', '\n              </div>\n\n              <h5>', '</h5>\n\n              ', '\n\n              <h5>Arguments</h5>\n\n              ', '\n\n              <h5>Return value</h5>\n\n              ', '\n\n              <div class="gap"></div>\n              <hr>\n            </div>\n          '], ['\n            <div class="comment">\n              <a class="header" id="', '" href="#', '"><h4 class="api-method">', '<strong class="args">(', ')</strong></h4></a>\n\n              <p class="push-left">\n                <a class="methods" href="#api">&nbsp; Back to API</a> |\n                <a class="view-on-github" href="', '">\n                  <i class="fa fa-github" aria-hidden="true"></i> View source on GitHub\n                </a>\n              </p>\n\n              <div>\n                ', '\n              </div>\n\n              <h5>', '</h5>\n\n              ', '\n\n              <h5>Arguments</h5>\n\n              ', '\n\n              <h5>Return value</h5>\n\n              ', '\n\n              <div class="gap"></div>\n              <hr>\n            </div>\n          ']),
+    _templateObject5 = babelHelpers.taggedTemplateLiteral(['\n                <pre><code class="javascript hljs">\n                  ', '\n                </code></pre>\n              '], ['\n                <pre><code class="javascript hljs">\n                  ', '\n                </code></pre>\n              ']),
+    _templateObject6 = babelHelpers.taggedTemplateLiteral(['\n                <table class="details">\n                  <thead>\n                    <tr>\n                      <th>Name</th>\n                      <th>Description</th>\n                      <th>Default value</th>\n                      <th>Required</th>\n                    </tr>\n                  </thead>\n\n                  <tbody>\n                    ', '\n                  </tbody>\n                </table>\n              '], ['\n                <table class="details">\n                  <thead>\n                    <tr>\n                      <th>Name</th>\n                      <th>Description</th>\n                      <th>Default value</th>\n                      <th>Required</th>\n                    </tr>\n                  </thead>\n\n                  <tbody>\n                    ', '\n                  </tbody>\n                </table>\n              ']),
+    _templateObject7 = babelHelpers.taggedTemplateLiteral(['<tr>\n                      <td class="strong">', '</td>\n                      <td>', '</td>\n                      <td><code>', '</code></td>\n                      <td>', '</td>\n                    </tr>'], ['<tr>\n                      <td class="strong">', '</td>\n                      <td>', '</td>\n                      <td><code>', '</code></td>\n                      <td>', '</td>\n                    </tr>']),
+    _templateObject8 = babelHelpers.taggedTemplateLiteral(['\n                No arguments to display\n              '], ['\n                No arguments to display\n              ']),
+    _templateObject9 = babelHelpers.taggedTemplateLiteral(['<p>\n                ', '\n              </p>'], ['<p>\n                ', '\n              </p>']),
+    _templateObject10 = babelHelpers.taggedTemplateLiteral(['\n      No API data loaded.\n    '], ['\n      No API data loaded.\n    ']),
+    _templateObject11 = babelHelpers.taggedTemplateLiteral(['<', ' />'], ['<', ' />']);
 
 var _diffhtml = require('diffhtml');
 
-var _checkPropTypes = require('prop-types/checkPropTypes');
+var _component = require('diffhtml');
 
-var _checkPropTypes2 = _interopRequireDefault(_checkPropTypes);
-
-var _caches = require('diffhtml-shared-internals/dist/cjs/caches');
-
-var _process = require('diffhtml-shared-internals/dist/cjs/process');
-
-var _process2 = _interopRequireDefault(_process);
-
-var _reactLikeComponent = require('./tasks/react-like-component');
-
-var _reactLikeComponent2 = _interopRequireDefault(_reactLikeComponent);
-
-var _upgradeSharedClass = require('./shared/upgrade-shared-class');
-
-var _upgradeSharedClass2 = _interopRequireDefault(_upgradeSharedClass);
-
-var _caches2 = require('./util/caches');
-
-var _symbols = require('./util/symbols');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const { keys, assign } = Object;
-
-// Registers a custom middleware to help map the diffHTML render lifecycle
-// internals to React. This currently isn't necessary for the Web Component
-// implementation since they inherently provide lifecycle hooks.
-const root = typeof global !== 'undefined' ? global : window;
-
-// Allow tests to unbind this task, you would not typically need to do this
-// in a web application, as this code loads once and is not reloaded.
-const unsubscribeMiddleware = (0, _diffhtml.use)(_reactLikeComponent2.default);
-
-exports.default = (0, _upgradeSharedClass2.default)(class Component {
-  static unsubscribeMiddleware() {
-    unsubscribeMiddleware();
-  }
-
-  [_symbols.$$render]() {
-    const vTree = _caches2.ComponentTreeCache.get(this);
-    const domNode = _caches.NodeCache.get(vTree);
-    const renderTree = this.render();
-
-    (0, _diffhtml.outerHTML)(domNode, renderTree).then(() => {
-      this.componentDidUpdate();
-    });
-  }
-
-  constructor(initialProps) {
-    const props = this.props = assign({}, initialProps);
-    const state = this.state = {};
-    const context = this.context = {};
-
-    const {
-      defaultProps = {},
-      propTypes = {},
-      childContextTypes = {},
-      contextTypes = {},
-      name
-    } = this.constructor;
-
-    keys(defaultProps).forEach(prop => {
-      if (prop in props && props[prop] !== undefined) {
-        return;
-      }
-
-      props[prop] = defaultProps[prop];
-    });
-
-    (0, _checkPropTypes2.default)(propTypes, props, 'prop', name);
-
-    //keys(childContextTypes).forEach(prop => {
-    //  if (process.env.NODE_ENV !== 'production') {
-    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
-    //    if (err) { throw err; }
-    //  }
-
-    //  //this.context[prop] = child
-    //});
-
-    //keys(contextTypes).forEach(prop => {
-    //  if (process.env.NODE_ENV !== 'production') {
-    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
-    //    if (err) { throw err; }
-    //  }
-
-    //  this.context[prop] = child
-    //});
-  }
-});
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./shared/upgrade-shared-class":5,"./tasks/react-like-component":6,"./util/caches":7,"./util/symbols":8,"diffhtml":21,"diffhtml-shared-internals/dist/cjs/caches":14,"diffhtml-shared-internals/dist/cjs/process":15,"prop-types/checkPropTypes":12}],2:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = forceUpdate;
-
-var _symbols = require('../util/symbols');
-
-const Debounce = new WeakMap();
-const { assign } = Object;
-
-function forceUpdate() {
-  this[_symbols.$$render]();
-}
-},{"../util/symbols":8}],3:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = {
-  shouldComponentUpdate: function shouldComponentUpdate() {
-    return true;
-  },
-  componentWillReceiveProps: function componentWillReceiveProps() {},
-  componentWillMount: function componentWillMount() {},
-  componentDidMount: function componentDidMount() {},
-  componentDidUpdate: function componentDidUpdate() {},
-  componentWillUnmount: function componentWillUnmount() {},
-  componentDidUnmount: function componentDidUnmount() {}
-};
-},{}],4:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = setState;
-
-var _symbols = require('../util/symbols');
-
-const Debounce = new WeakMap();
-const { assign } = Object;
-
-function setState(newState) {
-  this.state = assign({}, this.state, newState);
-
-  if (!Debounce.has(this) && this.shouldComponentUpdate()) {
-    this[_symbols.$$render]();
-
-    Debounce.set(this, setTimeout(() => {
-      Debounce.delete(this);
-
-      if (this.shouldComponentUpdate()) {
-        this[_symbols.$$render]();
-      }
-    }));
-  }
-}
-},{"../util/symbols":8}],5:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = upgradeClass;
-
-var _lifecycleHooks = require('./lifecycle-hooks');
-
-var _lifecycleHooks2 = _interopRequireDefault(_lifecycleHooks);
-
-var _setState = require('./set-state');
-
-var _setState2 = _interopRequireDefault(_setState);
-
-var _forceUpdate = require('./force-update');
-
-var _forceUpdate2 = _interopRequireDefault(_forceUpdate);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const { assign } = Object;
-
-function upgradeClass(Constructor) {
-  assign(Constructor.prototype, _lifecycleHooks2.default, { forceUpdate: _forceUpdate2.default, setState: _setState2.default });
-  return Constructor;
-}
-},{"./force-update":2,"./lifecycle-hooks":3,"./set-state":4}],6:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = reactLikeComponentTask;
-
-var _create = require('diffhtml/dist/cjs/tree/create');
-
-var _create2 = _interopRequireDefault(_create);
-
-var _caches = require('diffhtml-shared-internals/dist/cjs/caches');
-
-var _caches2 = require('../util/caches');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const { assign } = Object;
-
-function triggerRef(ref, instance) {
-  if (typeof ref === 'function') {
-    ref(instance);
-  } else if (typeof ref === 'string') {
-    this[ref](instance);
-  }
-}
-
-function searchForRefs(newTree) {
-  if (newTree.attributes.ref) {
-    triggerRef(newTree.attributes.ref, _caches.NodeCache.get(newTree));
-  }
-
-  newTree.childNodes.forEach(searchForRefs);
-}
-
-function componentDidMount(newTree) {
-  if (_caches2.InstanceCache.has(newTree)) {
-    _caches2.InstanceCache.get(newTree).componentDidMount();
-  }
-
-  const instance = _caches2.InstanceCache.get(newTree);
-
-  searchForRefs(newTree);
-
-  if (!instance) {
-    return;
-  }
-
-  const { ref } = instance.props;
-
-  triggerRef(ref, instance);
-}
-
-function componentDidUnmount(oldTree) {
-  if (_caches2.InstanceCache.has(oldTree)) {
-    _caches2.InstanceCache.get(oldTree).componentDidUnmount();
-  }
-
-  const instance = _caches2.InstanceCache.get(oldTree);
-
-  searchForRefs(oldTree);
-
-  if (!instance) {
-    return;
-  }
-
-  const { ref } = instance.props;
-
-  triggerRef(ref, null);
-}
-
-function reactLikeComponentTask(transaction) {
-  return transaction.onceEnded(() => {
-    const { patches } = transaction;
-
-    if (patches.TREE_OPS && patches.TREE_OPS.length) {
-      patches.TREE_OPS.forEach(({
-        INSERT_BEFORE,
-        REPLACE_CHILD,
-        REMOVE_CHILD
-      }) => {
-        if (INSERT_BEFORE) {
-          for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
-            const newTree = INSERT_BEFORE[i + 1];
-            componentDidMount(newTree);
-          }
-        }
-
-        if (REPLACE_CHILD) {
-          for (let i = 0; i < REPLACE_CHILD.length; i += 2) {
-            const newTree = REPLACE_CHILD[i];
-            componentDidMount(newTree);
-          }
-        }
-
-        if (REMOVE_CHILD) {
-          for (let i = 0; i < REMOVE_CHILD.length; i += 1) {
-            const oldTree = REMOVE_CHILD[i];
-            componentDidUnmount(oldTree);
-          }
-        }
-      });
-    }
-  });
-}
-
-reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
-  // Stateful components have a very limited API, designed to be fully
-  // implemented by a higher-level abstraction. The only method ever called is
-  // `render`. It is up to a higher level abstraction on how to handle the
-  // changes.
-  for (let i = 0; i < newTree.childNodes.length; i++) {
-    const oldChild = oldTree && oldTree.childNodes && oldTree.childNodes[i];
-    const newChild = newTree.childNodes[i];
-
-    // If incoming tree is a component, flatten down to tree for now.
-    if (newChild && typeof newChild.rawNodeName === 'function') {
-      const newCtor = newChild.rawNodeName;
-      const oldInstanceCache = _caches2.InstanceCache.get(oldChild);
-      const children = newChild.childNodes;
-      const props = assign({}, newChild.attributes, { children });
-      const canNew = newCtor.prototype;
-
-      // If the component has already been initialized, we can reuse it.
-      const oldInstance = oldChild && oldInstanceCache instanceof newCtor && oldInstanceCache;
-      const newInstance = !oldInstance && canNew && new newCtor(props);
-      const instance = oldInstance || newInstance;
-
-      let renderTree = null;
-
-      if (oldInstance) {
-        oldInstance.componentWillReceiveProps(props);
-
-        if (oldInstance.shouldComponentUpdate()) {
-          renderTree = oldInstance.render(props, oldInstance.state);
-        }
-      } else {
-        renderTree = (0, _create2.default)(instance && instance.render ? instance.render(props, instance.state) : newCtor(props));
-      }
-
-      if (!renderTree) {
-        continue;
-      }
-
-      if (renderTree.nodeType === 11) {
-        throw new Error('Top level render must return single Node');
-      }
-
-      // Build a new tree from the render, and use this as the current tree.
-      newTree.childNodes[i] = renderTree;
-
-      // Cache this new current tree.
-      if (instance) {
-        _caches2.ComponentTreeCache.set(instance, renderTree);
-        _caches2.InstanceCache.set(renderTree, instance);
-      }
-
-      // Recursively update trees.
-      return newTree;
-    }
-  }
-};
-},{"../util/caches":7,"diffhtml-shared-internals/dist/cjs/caches":14,"diffhtml/dist/cjs/tree/create":35}],7:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-const ComponentTreeCache = exports.ComponentTreeCache = new WeakMap();
-const InstanceCache = exports.InstanceCache = new WeakMap();
-},{}],8:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-const $$render = exports.$$render = Symbol('diff.render');
-},{}],9:[function(require,module,exports){
-"use strict";
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * 
- */
-
-function makeEmptyFunction(arg) {
-  return function () {
-    return arg;
-  };
-}
-
-/**
- * This function accepts and discards inputs; it has no side effects. This is
- * primarily useful idiomatically for overridable function endpoints which
- * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
- */
-var emptyFunction = function emptyFunction() {};
-
-emptyFunction.thatReturns = makeEmptyFunction;
-emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
-emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
-emptyFunction.thatReturnsNull = makeEmptyFunction(null);
-emptyFunction.thatReturnsThis = function () {
-  return this;
-};
-emptyFunction.thatReturnsArgument = function (arg) {
-  return arg;
-};
-
-module.exports = emptyFunction;
-},{}],10:[function(require,module,exports){
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- */
-
-'use strict';
-
-/**
- * Use invariant() to assert state which your program assumes to be true.
- *
- * Provide sprintf-style format (only %s is supported) and arguments
- * to provide information about what broke and what you were
- * expecting.
- *
- * The invariant message will be stripped in production, but the invariant
- * will remain to ensure logic does not differ in production.
- */
-
-var validateFormat = function validateFormat(format) {};
-
-if ("development" !== 'production') {
-  validateFormat = function validateFormat(format) {
-    if (format === undefined) {
-      throw new Error('invariant requires an error message argument');
-    }
-  };
-}
-
-function invariant(condition, format, a, b, c, d, e, f) {
-  validateFormat(format);
-
-  if (!condition) {
-    var error;
-    if (format === undefined) {
-      error = new Error('Minified exception occurred; use the non-minified dev environment ' + 'for the full error message and additional helpful warnings.');
-    } else {
-      var args = [a, b, c, d, e, f];
-      var argIndex = 0;
-      error = new Error(format.replace(/%s/g, function () {
-        return args[argIndex++];
-      }));
-      error.name = 'Invariant Violation';
-    }
-
-    error.framesToPop = 1; // we don't care about invariant's own frame
-    throw error;
-  }
-}
-
-module.exports = invariant;
-},{}],11:[function(require,module,exports){
-/**
- * Copyright 2014-2015, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- */
-
-'use strict';
-
-var emptyFunction = require('./emptyFunction');
-
-/**
- * Similar to invariant but only logs a warning if the condition is not met.
- * This can be used to log issues in development environments in critical
- * paths. Removing the logging code for production environments will keep the
- * same logic and follow the same code paths.
- */
-
-var warning = emptyFunction;
-
-if ("development" !== 'production') {
-  (function () {
-    var printWarning = function printWarning(format) {
-      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        args[_key - 1] = arguments[_key];
-      }
-
-      var argIndex = 0;
-      var message = 'Warning: ' + format.replace(/%s/g, function () {
-        return args[argIndex++];
-      });
-      if (typeof console !== 'undefined') {
-        console.error(message);
-      }
-      try {
-        // --- Welcome to debugging React ---
-        // This error was thrown as a convenience so that you can use this stack
-        // to find the callsite that caused this warning to fire.
-        throw new Error(message);
-      } catch (x) {}
-    };
-
-    warning = function warning(condition, format) {
-      if (format === undefined) {
-        throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
-      }
-
-      if (format.indexOf('Failed Composite propType: ') === 0) {
-        return; // Ignore CompositeComponent proptype check.
-      }
-
-      if (!condition) {
-        for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-          args[_key2 - 2] = arguments[_key2];
-        }
-
-        printWarning.apply(undefined, [format].concat(args));
-      }
-    };
-  })();
-}
-
-module.exports = warning;
-},{"./emptyFunction":9}],12:[function(require,module,exports){
-/**
- * Copyright 2013-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
-
-'use strict';
-
-if ("development" !== 'production') {
-  var invariant = require('fbjs/lib/invariant');
-  var warning = require('fbjs/lib/warning');
-  var ReactPropTypesSecret = require('./lib/ReactPropTypesSecret');
-  var loggedTypeFailures = {};
-}
-
-/**
- * Assert that the values match with the type specs.
- * Error messages are memorized and will only be shown once.
- *
- * @param {object} typeSpecs Map of name to a ReactPropType
- * @param {object} values Runtime values that need to be type-checked
- * @param {string} location e.g. "prop", "context", "child context"
- * @param {string} componentName Name of the component for error messages.
- * @param {?Function} getStack Returns the component stack.
- * @private
- */
-function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
-  if ("development" !== 'production') {
-    for (var typeSpecName in typeSpecs) {
-      if (typeSpecs.hasOwnProperty(typeSpecName)) {
-        var error;
-        // Prop type validation may throw. In case they do, we don't want to
-        // fail the render phase where it didn't fail before. So we log it.
-        // After these have been cleaned up, we'll let them throw.
-        try {
-          // This is intentionally an invariant that gets caught. It's the same
-          // behavior as without this statement except with a better message.
-          invariant(typeof typeSpecs[typeSpecName] === 'function', '%s: %s type `%s` is invalid; it must be a function, usually from ' + 'React.PropTypes.', componentName || 'React class', location, typeSpecName);
-          error = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, ReactPropTypesSecret);
-        } catch (ex) {
-          error = ex;
-        }
-        warning(!error || error instanceof Error, '%s: type specification of %s `%s` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a %s. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).', componentName || 'React class', location, typeSpecName, typeof error);
-        if (error instanceof Error && !(error.message in loggedTypeFailures)) {
-          // Only monitor this failure once because there tends to be a lot of the
-          // same error.
-          loggedTypeFailures[error.message] = true;
-
-          var stack = getStack ? getStack() : '';
-
-          warning(false, 'Failed %s type: %s%s', location, error.message, stack != null ? stack : '');
-        }
-      }
-    }
-  }
-}
-
-module.exports = checkPropTypes;
-
-},{"./lib/ReactPropTypesSecret":13,"fbjs/lib/invariant":10,"fbjs/lib/warning":11}],13:[function(require,module,exports){
-/**
- * Copyright 2013-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
-
-'use strict';
-
-var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
-
-module.exports = ReactPropTypesSecret;
-
-},{}],14:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _caches = require('diffhtml/dist/cjs/util/caches');
-
-Object.keys(_caches).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function () {
-      return _caches[key];
-    }
-  });
-});
-},{"diffhtml/dist/cjs/util/caches":38}],15:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _process = require('diffhtml/dist/cjs/util/process');
-
-Object.defineProperty(exports, 'process', {
-  enumerable: true,
-  get: function () {
-    return _interopRequireDefault(_process).default;
-  }
-});
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"diffhtml/dist/cjs/util/process":45}],16:[function(require,module,exports){
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _templateObject = _taggedTemplateLiteral(['\n      Stable is ', '\n\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    '], ['\n      Stable is ', '\n\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    ']),
-    _templateObject2 = _taggedTemplateLiteral(['<option\n          data-ref="', '"\n          ', '\n        >\n          ', '\n        </option>'], ['<option\n          data-ref="', '"\n          ', '\n        >\n          ', '\n        </option>']),
-    _templateObject3 = _taggedTemplateLiteral(['<li>\n          <a href="#', '">', '<strong class="args">(', ')</strong></a>\n        </li>'], ['<li>\n          <a href="#', '">', '<strong class="args">(', ')</strong></a>\n        </li>']),
-    _templateObject4 = _taggedTemplateLiteral(['\n            <div class="comment">\n              <a class="header" id="', '" href="#', '"><h4 class="api-method">', '<strong class="args">(', ')</strong></h4></a>\n\n              <p class="push-left">\n                <a class="methods" href="#api">&nbsp; Back to API</a> |\n                <a class="view-on-github" href="', '">\n                  <i class="fa fa-github" aria-hidden="true"></i> View source on GitHub\n                </a>\n              </p>\n\n              <div>\n                ', '\n              </div>\n\n              <h5>', '</h5>\n\n              ', '\n\n              <h5>Arguments</h5>\n\n              ', '\n\n              <h5>Return value</h5>\n\n              ', '\n\n              <div class="gap"></div>\n              <hr>\n            </div>\n          '], ['\n            <div class="comment">\n              <a class="header" id="', '" href="#', '"><h4 class="api-method">', '<strong class="args">(', ')</strong></h4></a>\n\n              <p class="push-left">\n                <a class="methods" href="#api">&nbsp; Back to API</a> |\n                <a class="view-on-github" href="', '">\n                  <i class="fa fa-github" aria-hidden="true"></i> View source on GitHub\n                </a>\n              </p>\n\n              <div>\n                ', '\n              </div>\n\n              <h5>', '</h5>\n\n              ', '\n\n              <h5>Arguments</h5>\n\n              ', '\n\n              <h5>Return value</h5>\n\n              ', '\n\n              <div class="gap"></div>\n              <hr>\n            </div>\n          ']),
-    _templateObject5 = _taggedTemplateLiteral(['\n                <pre><code class="javascript hljs">\n                  ', '\n                </code></pre>\n              '], ['\n                <pre><code class="javascript hljs">\n                  ', '\n                </code></pre>\n              ']),
-    _templateObject6 = _taggedTemplateLiteral(['\n                <table class="details">\n                  <thead>\n                    <tr>\n                      <th>Name</th>\n                      <th>Description</th>\n                      <th>Default value</th>\n                      <th>Required</th>\n                    </tr>\n                  </thead>\n\n                  <tbody>\n                    ', '\n                  </tbody>\n                </table>\n              '], ['\n                <table class="details">\n                  <thead>\n                    <tr>\n                      <th>Name</th>\n                      <th>Description</th>\n                      <th>Default value</th>\n                      <th>Required</th>\n                    </tr>\n                  </thead>\n\n                  <tbody>\n                    ', '\n                  </tbody>\n                </table>\n              ']),
-    _templateObject7 = _taggedTemplateLiteral(['<tr>\n                      <td class="strong">', '</td>\n                      <td>', '</td>\n                      <td><code>', '</code></td>\n                      <td>', '</td>\n                    </tr>'], ['<tr>\n                      <td class="strong">', '</td>\n                      <td>', '</td>\n                      <td><code>', '</code></td>\n                      <td>', '</td>\n                    </tr>']),
-    _templateObject8 = _taggedTemplateLiteral(['\n                No arguments to display\n              '], ['\n                No arguments to display\n              ']),
-    _templateObject9 = _taggedTemplateLiteral(['<p>\n                ', '\n              </p>'], ['<p>\n                ', '\n              </p>']),
-    _templateObject10 = _taggedTemplateLiteral(['\n      No API data loaded.\n    '], ['\n      No API data loaded.\n    ']),
-    _templateObject11 = _taggedTemplateLiteral(['<', ' />'], ['<', ' />']);
-
-var _diffhtml = require('diffhtml');
-
-var _component = require('diffhtml-components/dist/cjs/component');
-
-var _component2 = _interopRequireDefault(_component);
+var _component2 = babelHelpers.interopRequireDefault(_component);
 
 require('proxy-polyfill/proxy.min');
 
 require('whatwg-fetch');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _hljs = hljs,
     highlightAuto = _hljs.highlightAuto;
@@ -689,9 +29,8 @@ var _hljs = hljs,
 var $$render = Symbol.for('diff.render');
 
 var ApiBrowser = function (_Component) {
-  _inherits(ApiBrowser, _Component);
-
-  _createClass(ApiBrowser, [{
+  babelHelpers.inherits(ApiBrowser, _Component);
+  babelHelpers.createClass(ApiBrowser, [{
     key: 'render',
     value: function render() {
       var _this2 = this;
@@ -725,9 +64,9 @@ var ApiBrowser = function (_Component) {
   }]);
 
   function ApiBrowser() {
-    _classCallCheck(this, ApiBrowser);
+    babelHelpers.classCallCheck(this, ApiBrowser);
 
-    var _this = _possibleConstructorReturn(this, (ApiBrowser.__proto__ || Object.getPrototypeOf(ApiBrowser)).call(this));
+    var _this = babelHelpers.possibleConstructorReturn(this, (ApiBrowser.__proto__ || Object.getPrototypeOf(ApiBrowser)).call(this));
 
     var debounce = function debounce() {
       clearTimeout(debounce.timeout);
@@ -774,7 +113,7 @@ var ApiBrowser = function (_Component) {
     return _this;
   }
 
-  _createClass(ApiBrowser, [{
+  babelHelpers.createClass(ApiBrowser, [{
     key: 'trimCode',
     value: function trimCode(src) {
       var whitespaceRegex = /(\s+).*/;
@@ -886,7 +225,6 @@ var ApiBrowser = function (_Component) {
       });
     })
   }]);
-
   return ApiBrowser;
 }(_component2.default);
 
@@ -906,7 +244,7 @@ var sem = 0;
       var target = document.querySelector('a[href=\'' + selector + '\']');
 
       if (target) {
-        [].concat(_toConsumableArray(document.querySelectorAll('.target'))).forEach(function (el) {
+        [].concat(babelHelpers.toConsumableArray(document.querySelectorAll('.target'))).forEach(function (el) {
           return el.classList.remove('target');
         });
         target.classList.add('target');
@@ -938,7 +276,7 @@ var sem = 0;
     }).join(', ').trim()).trim());
 
     // Make up a table full of offsets.
-    var headerTable = [].concat(_toConsumableArray(nodes)).map(function (el) {
+    var headerTable = [].concat(babelHelpers.toConsumableArray(nodes)).map(function (el) {
       var top = el.getBoundingClientRect().top + scrollTop;
       var selector = '#' + el.id;
       var anchor = document.querySelector('nav a[href=\'' + selector + '\']');
@@ -1040,7 +378,7 @@ var mount = document.querySelector('#api-browser');
 console.log(mount);
 (0, _diffhtml.innerHTML)(mount, (0, _diffhtml.html)(_templateObject11, ApiBrowser));
 
-},{"diffhtml":21,"diffhtml-components/dist/cjs/component":1,"proxy-polyfill/proxy.min":18,"whatwg-fetch":19}],17:[function(require,module,exports){
+},{"diffhtml":6,"proxy-polyfill/proxy.min":3,"whatwg-fetch":4}],2:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -1226,15 +564,15 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],18:[function(require,module,exports){
-(function (global){
-(function(d){function k(a){return a?"object"==typeof a||"function"==typeof a:!1}if(!d.Proxy){var l=null;d.a=function(a,c){function d(){}if(!k(a)||!k(c))throw new TypeError("Cannot create proxy with a non-object as target or handler");l=function(){d=function(b){throw new TypeError("Cannot perform '"+b+"' on a proxy that has been revoked");}};var f=c;c={get:null,set:null,apply:null,construct:null};for(var g in f){if(!(g in c))throw new TypeError("Proxy polyfill does not support trap '"+g+"'");c[g]=
-f[g]}"function"==typeof f&&(c.apply=f.apply.bind(f));var e=this,m=!1,n="function"==typeof a;if(c.apply||c.construct||n)e=function(){var b=this&&this.constructor===e;d(b?"construct":"apply");if(b&&c.construct)return c.construct.call(this,a,arguments);if(!b&&c.apply)return c.apply(a,this,arguments);if(n)return b?(b=Array.prototype.slice.call(arguments),b.unshift(a),new (a.bind.apply(a,b))):a.apply(this,arguments);throw new TypeError(b?"not a constructor":"not a function");},m=!0;var p=c.get?function(b){d("get");
-return c.get(this,b,e)}:function(b){d("get");return this[b]},r=c.set?function(b,a){d("set");c.set(this,b,a,e)}:function(a,c){d("set");this[a]=c},q={};Object.getOwnPropertyNames(a).forEach(function(b){m&&b in e||(Object.defineProperty(e,b,{enumerable:!!Object.getOwnPropertyDescriptor(a,b).enumerable,get:p.bind(a,b),set:r.bind(a,b)}),q[b]=!0)});f=!0;Object.setPrototypeOf?Object.setPrototypeOf(e,Object.getPrototypeOf(a)):e.__proto__?e.__proto__=a.__proto__:f=!1;if(c.get||!f)for(var h in a)q[h]||Object.defineProperty(e,
-h,{get:p.bind(a,h)});Object.seal(a);Object.seal(e);return e};d.a.b=function(a,c){return{proxy:new d.a(a,c),revoke:l}};d.a.revocable=d.a.b;d.Proxy=d.a}})("undefined"!==typeof module&&module.exports?global:window);
+},{}],3:[function(require,module,exports){
+(function (process,global){
+(function(c){function l(a){return a?"object"==typeof a||"function"==typeof a:!1}if(!c.Proxy){var m=null;c.a=function(a,b){function c(){}if(!l(a)||!l(b))throw new TypeError("Cannot create proxy with a non-object as target or handler");m=function(){c=function(a){throw new TypeError("Cannot perform '"+a+"' on a proxy that has been revoked");}};var e=b;b={get:null,set:null,apply:null,construct:null};for(var h in e){if(!(h in b))throw new TypeError("Proxy polyfill does not support trap '"+h+"'");b[h]=
+e[h]}"function"==typeof e&&(b.apply=e.apply.bind(e));var d=this,n=!1,p="function"==typeof a;if(b.apply||b.construct||p)d=function(){var g=this&&this.constructor===d,f=Array.prototype.slice.call(arguments);c(g?"construct":"apply");if(g&&b.construct)return b.construct.call(this,a,f);if(!g&&b.apply)return b.apply(a,this,f);if(p)return g?(f.unshift(a),new (a.bind.apply(a,f))):a.apply(this,f);throw new TypeError(g?"not a constructor":"not a function");},n=!0;var q=b.get?function(a){c("get");return b.get(this,
+a,d)}:function(a){c("get");return this[a]},t=b.set?function(a,f){c("set");b.set(this,a,f,d)}:function(a,b){c("set");this[a]=b},r={};Object.getOwnPropertyNames(a).forEach(function(b){n&&b in d||(Object.defineProperty(d,b,{enumerable:!!Object.getOwnPropertyDescriptor(a,b).enumerable,get:q.bind(a,b),set:t.bind(a,b)}),r[b]=!0)});e=!0;Object.setPrototypeOf?Object.setPrototypeOf(d,Object.getPrototypeOf(a)):d.__proto__?d.__proto__=a.__proto__:e=!1;if(b.get||!e)for(var k in a)r[k]||Object.defineProperty(d,
+k,{get:q.bind(a,k)});Object.seal(a);Object.seal(d);return d};c.a.b=function(a,b){return{proxy:new c.a(a,b),revoke:m}};c.a.revocable=c.a.b;c.Proxy=c.a}})("undefined"!==typeof process&&"[object process]"=={}.toString.call(process)?global:self);
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],19:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"_process":2}],4:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -1702,7 +1040,7 @@ h,{get:p.bind(a,h)});Object.seal(a);Object.seal(e);return e};d.a.b=function(a,c)
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],20:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1714,9 +1052,9 @@ var _create = require('./tree/create');
 
 var _create2 = _interopRequireDefault(_create);
 
-var _parser = require('./util/parser');
+var _parse = require('./util/parse');
 
-var _parser2 = _interopRequireDefault(_parser);
+var _parse2 = _interopRequireDefault(_parse);
 
 var _escape = require('./util/escape');
 
@@ -1752,7 +1090,7 @@ function handleTaggedTemplate(strings, ...values) {
 
   // Parse only the text, no dynamic bits.
   if (strings.length === 1 && !values.length) {
-    const childNodes = (0, _parser2.default)(strings[0]).childNodes;
+    const childNodes = (0, _parse2.default)(strings[0]).childNodes;
     return childNodes.length > 1 ? (0, _create2.default)(childNodes) : childNodes[0];
   }
 
@@ -1814,51 +1152,39 @@ function handleTaggedTemplate(strings, ...values) {
   });
 
   // Parse the instrumented markup to get the Virtual Tree.
-  const childNodes = (0, _parser2.default)(HTML, supplemental).childNodes;
+  const childNodes = (0, _parse2.default)(HTML, supplemental).childNodes;
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
   return childNodes.length === 1 ? childNodes[0] : (0, _create2.default)(childNodes);
 }
-},{"./tree/create":35,"./util/decode-entities":39,"./util/escape":40,"./util/parser":43}],21:[function(require,module,exports){
+},{"./tree/create":21,"./util/decode-entities":25,"./util/escape":26,"./util/parse":30}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.html = exports.innerHTML = exports.outerHTML = exports.use = exports.createTree = exports.release = exports.removeTransitionState = exports.addTransitionState = exports.VERSION = undefined;
+exports.Internals = exports.html = exports.innerHTML = exports.outerHTML = exports.use = exports.createTree = exports.release = exports.removeTransitionState = exports.addTransitionState = exports.VERSION = undefined;
 
 var _create = require('./tree/create');
 
 var _create2 = _interopRequireDefault(_create);
 
-var _schedule = require('./tasks/schedule');
+var _parseNewTree = require('./tasks/parse-new-tree');
 
-var _schedule2 = _interopRequireDefault(_schedule);
+var _parseNewTree2 = _interopRequireDefault(_parseNewTree);
 
-var _shouldUpdate = require('./tasks/should-update');
+var _reconcileTrees = require('./tasks/reconcile-trees');
 
-var _shouldUpdate2 = _interopRequireDefault(_shouldUpdate);
+var _reconcileTrees2 = _interopRequireDefault(_reconcileTrees);
 
-var _reconcileTreesWithParse = require('./tasks/reconcile-trees-with-parse');
+var _internals = require('./util/internals');
 
-var _reconcileTreesWithParse2 = _interopRequireDefault(_reconcileTreesWithParse);
+var _internals2 = _interopRequireDefault(_internals);
 
-var _syncTrees = require('./tasks/sync-trees');
+var _parse = require('./util/parse');
 
-var _syncTrees2 = _interopRequireDefault(_syncTrees);
-
-var _patchNode = require('./tasks/patch-node');
-
-var _patchNode2 = _interopRequireDefault(_patchNode);
-
-var _endAsPromise = require('./tasks/end-as-promise');
-
-var _endAsPromise2 = _interopRequireDefault(_endAsPromise);
-
-var _caches = require('./util/caches');
-
-var caches = _interopRequireWildcard(_caches);
+var _parse2 = _interopRequireDefault(_parse);
 
 var _innerHtml = require('./inner-html');
 
@@ -1867,6 +1193,8 @@ var _innerHtml2 = _interopRequireDefault(_innerHtml);
 var _outerHtml = require('./outer-html');
 
 var _outerHtml2 = _interopRequireDefault(_outerHtml);
+
+var _transaction = require('./transaction');
 
 var _html = require('./html');
 
@@ -1884,52 +1212,58 @@ var _transition = require('./transition');
 
 var _version = require('./version');
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const defaultTasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTreesWithParse2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
+// At startup inject the HTML parser into the default set of tasks.
+_transaction.defaultTasks.splice(_transaction.defaultTasks.indexOf(_reconcileTrees2.default), 0, _parseNewTree2.default);
 
-const innerHTML = (0, _innerHtml2.default)(defaultTasks);
-const outerHTML = (0, _outerHtml2.default)(defaultTasks);
-const VERSION = _version.__VERSION__;
-
-// Automatically hook up to DevTools if they are present.
-if (typeof devTools !== 'undefined' && devTools.default) {
-  (0, _use2.default)(devTools.default({
-    VERSION,
-    caches
-  }));
-
-  console.info('diffHTML DevTools Found and Activated...');
-}
-
-exports.VERSION = VERSION;
-exports.addTransitionState = _transition.addTransitionState;
-exports.removeTransitionState = _transition.removeTransitionState;
-exports.release = _release2.default;
-exports.createTree = _create2.default;
-exports.use = _use2.default;
-exports.outerHTML = outerHTML;
-exports.innerHTML = innerHTML;
-exports.html = _html2.default;
-exports.default = {
-  VERSION,
+const api = {
+  VERSION: _version.__VERSION__,
   addTransitionState: _transition.addTransitionState,
   removeTransitionState: _transition.removeTransitionState,
   release: _release2.default,
   createTree: _create2.default,
   use: _use2.default,
-  outerHTML,
-  innerHTML,
+  outerHTML: _outerHtml2.default,
+  innerHTML: _innerHtml2.default,
   html: _html2.default
 };
-},{"./html":20,"./inner-html":22,"./outer-html":25,"./release":26,"./tasks/end-as-promise":27,"./tasks/patch-node":28,"./tasks/reconcile-trees-with-parse":29,"./tasks/schedule":30,"./tasks/should-update":31,"./tasks/sync-trees":32,"./transition":34,"./tree/create":35,"./use":37,"./util/caches":38,"./version":47}],22:[function(require,module,exports){
+
+// This is an internal API exported purely for middleware and extensions to
+// leverage internal APIs that are not part of the public API. There are no
+// promises that this will not break in the future. We will attempt to minimize
+// changes and will supply fallbacks when APIs change.
+//
+// Note: The HTML parser is only available in this mode.
+const Internals = Object.assign(_internals2.default, api, { parse: _parse2.default, defaultTasks: _transaction.defaultTasks });
+
+// Attach a circular reference to `Internals` for ES/CJS builds.
+api.Internals = Internals;
+
+// Automatically hook up to DevTools if they are present.
+if (typeof devTools !== 'undefined') {
+  (0, _use2.default)(devTools(Internals));
+  console.info('diffHTML DevTools Found and Activated...');
+}
+
+exports.VERSION = _version.__VERSION__;
+exports.addTransitionState = _transition.addTransitionState;
+exports.removeTransitionState = _transition.removeTransitionState;
+exports.release = _release2.default;
+exports.createTree = _create2.default;
+exports.use = _use2.default;
+exports.outerHTML = _outerHtml2.default;
+exports.innerHTML = _innerHtml2.default;
+exports.html = _html2.default;
+exports.Internals = Internals;
+exports.default = api;
+},{"./html":5,"./inner-html":7,"./outer-html":10,"./release":11,"./tasks/parse-new-tree":13,"./tasks/reconcile-trees":15,"./transaction":19,"./transition":20,"./tree/create":21,"./use":23,"./util/internals":27,"./util/parse":30,"./version":34}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.default = innerHTML;
 
 var _transaction = require('./transaction');
 
@@ -1937,12 +1271,12 @@ var _transaction2 = _interopRequireDefault(_transaction);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-exports.default = tasks => function innerHTML(element, markup = '', options = {}) {
+function innerHTML(element, markup = '', options = {}) {
   options.inner = true;
-  options.tasks = options.tasks || tasks;
+  options.tasks = options.tasks || _transaction.defaultTasks;
   return _transaction2.default.create(element, markup, options).start();
-};
-},{"./transaction":33}],23:[function(require,module,exports){
+}
+},{"./transaction":19}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2033,7 +1367,7 @@ function createNode(vTree, ownerDocument = document) {
 
   return domNode;
 }
-},{"../util/caches":38,"../util/process":45,"../util/svg":46}],24:[function(require,module,exports){
+},{"../util/caches":24,"../util/process":32,"../util/svg":33}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2279,12 +1613,13 @@ function patchNode(patches) {
 
   return promises;
 }
-},{"../transition":34,"../util/caches":38,"../util/decode-entities":39,"../util/escape":40,"../util/memory":42,"./create":23}],25:[function(require,module,exports){
+},{"../transition":20,"../util/caches":24,"../util/decode-entities":25,"../util/escape":26,"../util/memory":29,"./create":8}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.default = outerHTML;
 
 var _transaction = require('./transaction');
 
@@ -2292,12 +1627,12 @@ var _transaction2 = _interopRequireDefault(_transaction);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-exports.default = tasks => function outerHTML(element, markup = '', options = {}) {
+function outerHTML(element, markup = '', options = {}) {
   options.inner = false;
-  options.tasks = options.tasks || tasks;
+  options.tasks = options.tasks || _transaction.defaultTasks;
   return _transaction2.default.create(element, markup, options).start();
-};
-},{"./transaction":33}],26:[function(require,module,exports){
+}
+},{"./transaction":19}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2324,7 +1659,7 @@ function release(domNode) {
   // Recycle all unprotected objects.
   (0, _memory.cleanMemory)();
 }
-},{"./util/caches":38,"./util/memory":42}],27:[function(require,module,exports){
+},{"./util/caches":24,"./util/memory":29}],12:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2348,7 +1683,45 @@ function endAsPromise(transaction) {
     return Promise.resolve(transaction.end());
   }
 }
-},{}],28:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = parseNewTree;
+
+var _caches = require('../util/caches');
+
+var _parse = require('../util/parse');
+
+var _parse2 = _interopRequireDefault(_parse);
+
+var _create = require('../tree/create');
+
+var _create2 = _interopRequireDefault(_create);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function parseNewTree(transaction) {
+  const { state, markup, options } = transaction;
+  const { measure } = state;
+  const { inner } = options;
+
+  if (typeof markup === 'string') {
+    measure('parsing markup for new tree');
+
+    const { childNodes } = (0, _parse2.default)(markup, null, options);
+
+    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
+    // with outerHTML, we can only support diffing against a single element,
+    // so pick the first one, if there are none, just pass the entire root.
+    transaction.newTree = (0, _create2.default)(inner ? childNodes : childNodes[0] || childNodes);
+
+    measure('parsing markup for new tree');
+  }
+}
+},{"../tree/create":21,"../util/caches":24,"../util/parse":30}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2378,7 +1751,7 @@ function patch(transaction) {
 
   transaction.promises = promises;
 }
-},{"../node/patch":24}],29:[function(require,module,exports){
+},{"../node/patch":9}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2390,10 +1763,6 @@ var _caches = require('../util/caches');
 
 var _memory = require('../util/memory');
 
-var _parser = require('../util/parser');
-
-var _parser2 = _interopRequireDefault(_parser);
-
 var _create = require('../tree/create');
 
 var _create2 = _interopRequireDefault(_create);
@@ -2402,10 +1771,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
-  const { previousMarkup, measure } = state;
+  const { previousMarkup } = state;
   const { inner } = options;
-
-  measure('reconcile trees');
 
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
@@ -2422,33 +1789,26 @@ function reconcileTrees(transaction) {
   // Associate the old tree with this brand new transaction.
   transaction.oldTree = state.oldTree;
 
-  // This is HTML Markup, so we need to parse it.
-  if (typeof markup === 'string') {
-    const { childNodes } = (0, _parser2.default)(markup, null, options);
-
-    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
-    // with outerHTML, we can only support diffing against a single element,
-    // so pick the first one, if there are none, just pass the entire root.
-    transaction.newTree = (0, _create2.default)(inner ? childNodes : childNodes[0] || childNodes);
+  // If we are in a render transaction where no markup was previously parsed
+  // then reconcile trees will attempt to create a tree based on the incoming
+  // markup (JSX/html/etc).
+  if (!transaction.newTree) {
+    transaction.newTree = (0, _create2.default)(markup);
   }
-  // Otherwise the value passed is a Virtual Tree or an Array.
-  else {
-      const { rawNodeName, nodeName, attributes } = transaction.oldTree;
-      const newTree = (0, _create2.default)(markup);
-      const isFragment = newTree.nodeType === 11;
-      const isUnknown = typeof newTree.rawNodeName !== 'string';
 
-      transaction.newTree = newTree;
+  // If we are diffing only the parent's childNodes, then adjust the newTree to
+  // be a replica of the oldTree except with the childNodes changed.
+  if (inner) {
+    const { oldTree, newTree } = transaction;
+    const { rawNodeName, nodeName, attributes } = oldTree;
+    const isUnknown = typeof newTree.rawNodeName !== 'string';
+    const isFragment = newTree.nodeType === 11;
+    const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
 
-      if (inner) {
-        const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
-        transaction.newTree = (0, _create2.default)(nodeName, attributes, children);
-      }
-    }
-
-  measure('reconcile trees');
+    transaction.newTree = (0, _create2.default)(nodeName, attributes, children);
+  }
 }
-},{"../tree/create":35,"../util/caches":38,"../util/memory":42,"../util/parser":43}],30:[function(require,module,exports){
+},{"../tree/create":21,"../util/caches":24,"../util/memory":29}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2496,7 +1856,7 @@ function schedule(transaction) {
   // Indicate we are now rendering a transaction for this DOM Node.
   state.isRendering = true;
 }
-},{"../util/caches":38}],31:[function(require,module,exports){
+},{"../util/caches":24}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2519,7 +1879,7 @@ function shouldUpdate(transaction) {
 
   measure('should update');
 }
-},{}],32:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2571,12 +1931,13 @@ function syncTrees(transaction) {
 
   measure('sync trees');
 }
-},{"../node/create":23,"../tree/sync":36,"../util/caches":38,"../util/memory":42}],33:[function(require,module,exports){
+},{"../node/create":8,"../tree/sync":22,"../util/caches":24,"../util/memory":29}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.defaultTasks = undefined;
 
 var _caches = require('./util/caches');
 
@@ -2590,7 +1951,33 @@ var _process = require('./util/process');
 
 var _process2 = _interopRequireDefault(_process);
 
+var _schedule = require('./tasks/schedule');
+
+var _schedule2 = _interopRequireDefault(_schedule);
+
+var _shouldUpdate = require('./tasks/should-update');
+
+var _shouldUpdate2 = _interopRequireDefault(_shouldUpdate);
+
+var _reconcileTrees = require('./tasks/reconcile-trees');
+
+var _reconcileTrees2 = _interopRequireDefault(_reconcileTrees);
+
+var _syncTrees = require('./tasks/sync-trees');
+
+var _syncTrees2 = _interopRequireDefault(_syncTrees);
+
+var _patchNode = require('./tasks/patch-node');
+
+var _patchNode2 = _interopRequireDefault(_patchNode);
+
+var _endAsPromise = require('./tasks/end-as-promise');
+
+var _endAsPromise2 = _interopRequireDefault(_endAsPromise);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const defaultTasks = exports.defaultTasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
 
 class Transaction {
   static create(domNode, markup, options) {
@@ -2773,7 +2160,7 @@ class Transaction {
   }
 }
 exports.default = Transaction;
-},{"./util/caches":38,"./util/make-measure":41,"./util/memory":42,"./util/process":45}],34:[function(require,module,exports){
+},{"./tasks/end-as-promise":12,"./tasks/patch-node":14,"./tasks/reconcile-trees":15,"./tasks/schedule":16,"./tasks/should-update":17,"./tasks/sync-trees":18,"./util/caches":24,"./util/make-measure":28,"./util/memory":29,"./util/process":32}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2868,7 +2255,7 @@ function runTransitions(setName, ...args) {
 
   return promises;
 }
-},{"./util/caches":38,"./util/process":45}],35:[function(require,module,exports){
+},{"./util/caches":24,"./util/process":32}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3050,7 +2437,7 @@ function createTree(input, attributes, childNodes, ...rest) {
 
   return vTree;
 }
-},{"../util/caches":38,"../util/pool":44}],36:[function(require,module,exports){
+},{"../util/caches":24,"../util/pool":31}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3108,8 +2495,8 @@ function syncTree(oldTree, newTree, patches) {
 
         if (vTree.key) {
           map.set(vTree.key, vTree);
-        } else if (map.size && vTree.nodeType === 1) {
-          if (_process2.default.env.NODE_ENV !== 'production') {
+        } else if (_process2.default.env.NODE_ENV !== 'production') {
+          if (map.size && vTree.nodeType === 1) {
             throw new Error(`Missing \`key\` all siblings must supply this attribute.
 
 Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
@@ -3365,7 +2752,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
 
   return patches;
 }
-},{"../util/caches":38,"../util/process":45}],37:[function(require,module,exports){
+},{"../util/caches":24,"../util/process":32}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3407,7 +2794,7 @@ function use(middleware) {
 
   // Call the subscribe method if it was defined, passing in the full public
   // API we have access to at this point.
-  subscribe && middleware.subscribe(use.diff);
+  subscribe && middleware.subscribe();
 
   // Add the hyper-specific create hooks.
   createTreeHook && CreateTreeHookCache.add(createTreeHook);
@@ -3422,7 +2809,7 @@ function use(middleware) {
 
     // Call the unsubscribe method if defined in the middleware (allows them
     // to cleanup).
-    unsubscribe && unsubscribe(use.diff);
+    unsubscribe && unsubscribe();
 
     // Cleanup the specific fns from their Cache.
     CreateTreeHookCache.delete(createTreeHook);
@@ -3430,7 +2817,7 @@ function use(middleware) {
     SyncTreeHookCache.delete(syncTreeHook);
   };
 }
-},{"./util/caches":38,"./util/process":45}],38:[function(require,module,exports){
+},{"./util/caches":24,"./util/process":32}],24:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3452,7 +2839,7 @@ const MiddlewareCache = exports.MiddlewareCache = new Set();
 MiddlewareCache.CreateTreeHookCache = new Set();
 MiddlewareCache.CreateNodeHookCache = new Set();
 MiddlewareCache.SyncTreeHookCache = new Set();
-},{}],39:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -3481,7 +2868,7 @@ function decodeEntities(string) {
   return element.textContent;
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],40:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3498,7 +2885,65 @@ exports.default = escape;
 function escape(unescaped) {
   return unescaped.replace(/[&<>]/g, match => `&#${match.charCodeAt(0)};`);
 }
-},{}],41:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
+(function (global){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _caches = require('./caches');
+
+var caches = _interopRequireWildcard(_caches);
+
+var _decodeEntities = require('./decode-entities');
+
+var _decodeEntities2 = _interopRequireDefault(_decodeEntities);
+
+var _escape = require('./escape');
+
+var _escape2 = _interopRequireDefault(_escape);
+
+var _makeMeasure = require('./make-measure');
+
+var _makeMeasure2 = _interopRequireDefault(_makeMeasure);
+
+var _memory = require('./memory');
+
+var memory = _interopRequireWildcard(_memory);
+
+var _pool = require('./pool');
+
+var _pool2 = _interopRequireDefault(_pool);
+
+var _process = require('./process');
+
+var _process2 = _interopRequireDefault(_process);
+
+var _svg = require('./svg');
+
+var svg = _interopRequireWildcard(_svg);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+const root = typeof global !== 'undefined' ? global : window;
+
+const internals = root[Symbol.for('diff.shared-internals')] = Object.assign({
+  decodeEntities: _decodeEntities2.default,
+  escape: _escape2.default,
+  makeMeasure: _makeMeasure2.default,
+  memory,
+  Pool: _pool2.default,
+  process: _process2.default,
+  svg
+}, caches);
+
+exports.default = internals;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./caches":24,"./decode-entities":25,"./escape":26,"./make-measure":28,"./memory":29,"./pool":31,"./process":32,"./svg":33}],28:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -3549,7 +2994,7 @@ exports.default = (domNode, vTree) => {
   };
 };
 }).call(this,require('_process'))
-},{"_process":17}],42:[function(require,module,exports){
+},{"_process":2}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3608,9 +3053,10 @@ function unprotectVTree(vTree) {
 function cleanMemory(isBusy = false) {
   _caches.StateCache.forEach(state => isBusy = state.isRendering || isBusy);
 
-  if (isBusy) {
-    //return;
-  }
+  // TODO Pause GC in between renders.
+  //if (isBusy) {
+  //  return;
+  //}
 
   memory.allocated.forEach(vTree => memory.free.add(vTree));
   memory.allocated.clear();
@@ -3623,7 +3069,7 @@ function cleanMemory(isBusy = false) {
     }
   });
 }
-},{"./caches":38,"./pool":44}],43:[function(require,module,exports){
+},{"./caches":24,"./pool":31}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4017,7 +3463,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
 
   return root;
 }
-},{"../tree/create":35,"./pool":44}],44:[function(require,module,exports){
+},{"../tree/create":21,"./pool":31}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4082,7 +3528,7 @@ exports.default = {
     }
   }
 };
-},{}],45:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4098,7 +3544,7 @@ exports.default = Object.defineProperty({}, 'env', {
   get: () => normalize.env
 });
 }).call(this,require('_process'))
-},{"_process":17}],46:[function(require,module,exports){
+},{"_process":2}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4109,11 +3555,11 @@ const namespace = exports.namespace = 'http://www.w3.org/2000/svg';
 
 // List of SVG elements.
 const elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
-},{}],47:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 const __VERSION__ = exports.__VERSION__ = '1.0.0-beta';
-},{}]},{},[16]);
+},{}]},{},[1]);

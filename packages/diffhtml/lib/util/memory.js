@@ -42,9 +42,10 @@ export function unprotectVTree(vTree) {
 export function cleanMemory(isBusy = false) {
   StateCache.forEach(state => (isBusy = state.isRendering || isBusy));
 
-  if (isBusy) {
-    //return;
-  }
+  // TODO Pause GC in between renders.
+  //if (isBusy) {
+  //  return;
+  //}
 
   memory.allocated.forEach(vTree => memory.free.add(vTree));
   memory.allocated.clear();

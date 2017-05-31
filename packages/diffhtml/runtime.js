@@ -1,1 +1,1 @@
-module.exports = require('./dist/diffhtml-runtime');
+export * from './lib/runtime';

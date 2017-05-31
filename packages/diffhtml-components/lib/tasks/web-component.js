@@ -1,4 +1,6 @@
-import { NodeCache } from 'diffhtml-shared-internals/dist/cjs/caches';
+import { Internals } from 'diffhtml';
+
+const { NodeCache } = Internals;
 
 export default function webComponentTask(transaction) {
   return transaction.onceEnded(() => {
@@ -15,7 +17,7 @@ export default function webComponentTask(transaction) {
             const newTree = INSERT_BEFORE[i + 1];
             const instance = NodeCache.get(newTree);
 
-            if (instance.componentDidMount) {
+            if (instance && instance.componentDidMount) {
               instance.componentDidMount();
             }
           }
@@ -26,7 +28,7 @@ export default function webComponentTask(transaction) {
             const newTree = REPLACE_CHILD[i];
             const instance = NodeCache.get(newTree);
 
-            if (instance.componentDidMount) {
+            if (instance && instance.componentDidMount) {
               instance.componentDidMount();
             }
           }
@@ -37,7 +39,7 @@ export default function webComponentTask(transaction) {
             const oldTree = REMOVE_CHILD[i];
             const instance = NodeCache.get(oldTree);
 
-            if (instance.componentDidUnmount) {
+            if (instance && instance.componentDidUnmount) {
               instance.componentDidUnmount();
             }
           }

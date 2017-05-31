@@ -1,5 +1,6 @@
-diffHTML: A JavaScript View Layer
----------------------------------
+# <div style="background-color: #FFF; display: inline-block; padding: 10px 0px; color: #333;"><±/> diffHTML: A JavaScript View Layer</div>
+
+*An integrated collection of JavaScript tools for building user interfaces.*
 
 Stable version: 1.0.0-beta.1
 

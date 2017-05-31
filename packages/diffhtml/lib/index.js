@@ -1,34 +1,46 @@
 import createTree from './tree/create';
-import schedule from './tasks/schedule';
-import shouldUpdate from './tasks/should-update';
-import reconcileTrees from './tasks/reconcile-trees-with-parse';
-import syncTrees from './tasks/sync-trees';
-import patchNode from './tasks/patch-node';
-import endAsPromise from './tasks/end-as-promise';
-import * as caches from './util/caches';
-import bindInnerHTML from './inner-html';
-import bindOuterHTML from './outer-html';
+import parseNewTree from './tasks/parse-new-tree';
+import reconcileTrees from './tasks/reconcile-trees';
+import internals from './util/internals';
+import parse from './util/parse';
+import innerHTML from './inner-html';
+import outerHTML from './outer-html';
+import { defaultTasks } from './transaction';
 import html from './html';
 import release from './release';
 import use from './use';
 import { addTransitionState, removeTransitionState } from './transition';
-import { __VERSION__ } from './version';
+import { __VERSION__ as VERSION } from './version';
 
-const defaultTasks = [
-  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
-];
+// At startup inject the HTML parser into the default set of tasks.
+defaultTasks.splice(defaultTasks.indexOf(reconcileTrees), 0, parseNewTree);
 
-const innerHTML = bindInnerHTML(defaultTasks);
-const outerHTML = bindOuterHTML(defaultTasks);
-const VERSION = __VERSION__;
+const api = {
+  VERSION,
+  addTransitionState,
+  removeTransitionState,
+  release,
+  createTree,
+  use,
+  outerHTML,
+  innerHTML,
+  html,
+};
+
+// This is an internal API exported purely for middleware and extensions to
+// leverage internal APIs that are not part of the public API. There are no
+// promises that this will not break in the future. We will attempt to minimize
+// changes and will supply fallbacks when APIs change.
+//
+// Note: The HTML parser is only available in this mode.
+const Internals = Object.assign(internals, api, { parse, defaultTasks });
+
+// Attach a circular reference to `Internals` for ES/CJS builds.
+api.Internals = Internals;
 
 // Automatically hook up to DevTools if they are present.
-if (typeof devTools !== 'undefined' && devTools.default) {
-  use(devTools.default({
-    VERSION,
-    caches,
-  }));
-
+if (typeof devTools !== 'undefined') {
+  use(devTools(Internals));
   console.info('diffHTML DevTools Found and Activated...');
 }
 
@@ -42,16 +54,7 @@ export {
   outerHTML,
   innerHTML,
   html,
+  Internals,
 };
 
-export default {
-  VERSION,
-  addTransitionState,
-  removeTransitionState,
-  release,
-  createTree,
-  use,
-  outerHTML,
-  innerHTML,
-  html,
-};
+export default api;
