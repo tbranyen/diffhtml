@@ -3,6 +3,5 @@ language: node_js
 
 node_js:
   - 6.10.3
-  - stable
 
 script: lerna run build && lerna run test:ci
