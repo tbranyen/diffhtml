@@ -43,6 +43,16 @@ level or any specific nested package level.
   smaller runtime build (which excludes HTML parser, tagged templates, and
   performance metrics).
 
+* **[diffhtml-components](/packages/diffhtml-components)**
+
+  ``` sh
+  npm install diffhtml-components
+  ```
+
+  Provides stateful React-like and v1 Web Component classes with a consistent
+  API. If you're looking for drop-in React parity, refer to the
+  [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
+
 * **[diffhtml-render-to-string](/packages/diffhtml-render-to-string)**
 
   ``` sh
@@ -59,18 +69,8 @@ level or any specific nested package level.
   ```
 
   Converts HTML found in tagged template strings to `createTree` calls and
-  allows you to shave bytes off your builds by switching to the
-  diffhtml-runtime.
-
-* **[diffhtml-components](/packages/diffhtml-components)**
-
-  ``` sh
-  npm install diffhtml-components
-  ```
-
-  Provides stateful React-like and Web Component classes with a consistent API.
-  If you're looking for better React parity, refer to the
-  [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
+  allows you to shave bytes off your bundles by switching to the
+  diffHTML runtime build.
 
 * [diffhtml-middleware-logger](/packages/diffhtml-middleware-logger)
 
@@ -87,8 +87,8 @@ level or any specific nested package level.
   ```
 
   Changes the event binding from inline event handlers like `onclick = fn` to
-  use `addEventListener`. Hooks are attached to the `body` element and
-  coordinates events using delegation.
+  use `addEventListener`. Events are attached to the `body` element and
+  coordinated to children through delegation.
 
 * [diffhtml-middleware-inline-transitions](/packages/diffhtml-middleware-inline-transitions)
 
@@ -115,10 +115,10 @@ level or any specific nested package level.
   npm install diffhtml-prollyfill
   ```
 
-  Use directly in place of [`diffhtml`](https://github.com/tbranyen/diffhtml).
-  The term prollyfill means I'd like to see it be a standard some day, but is
-  currently not under any consideration. [*Click here for the "prollyfill"
-  origin tweet.*](https://twitter.com/slexaxton/status/257543702124306432)
+  A way to hook diffHTML natively in the DOM environment. The term prollyfill
+  means it would be nice to see it become a standard some day, but is currently
+  not under any consideration. [*Click here for the "prollyfill" origin
+  tweet.*](https://twitter.com/slexaxton/status/257543702124306432)
 
 * [diffhtml-react-compat](/packages/diffhtml-react-compat)
 
@@ -130,6 +130,15 @@ level or any specific nested package level.
   modules: `react` and `react-dom`. It wraps the [diffHTML
   Components](/packages/diffhtml-components) package as the base for the
   component constructors. It then layers additional React-specific APIs.
+
+* [diffhtml-static-sync](/packages/diffhtml-static-sync)
+
+  ```
+  npm install diffhtml-static-sync
+  ```
+
+  A work-in-progress static HTML server that automatically reloads your markup
+  as you save using Web Sockets.
 
 * [diffhtml-website](/packages/diffhtml-website)
 
