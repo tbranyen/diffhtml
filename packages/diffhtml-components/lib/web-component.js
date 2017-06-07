@@ -1,4 +1,4 @@
-import { innerHTML, use } from 'diffhtml';
+import { createTree, innerHTML, use } from 'diffhtml';
 import PropTypes from 'prop-types';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import webComponentTask from './tasks/web-component';
@@ -13,10 +13,13 @@ const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
 // Creates the `component.props` object.
 const createProps = domNode => {
   const observedAttributes = getObserved(domNode.constructor);
+  const initialProps = {
+    children: [].map.call(domNode.childNodes, createTree),
+  };
 
   return observedAttributes.reduce((props, attr) => assign(props, {
     [attr]: attr in domNode ? domNode[attr] : domNode.getAttribute(attr) || undefined,
-  }), {});
+  }), initialProps);
 };
 
 // Creates the `component.state` object.

@@ -55,6 +55,10 @@ webComponentTask.syncTreeHook = (oldTree, newTree) => {
   // implemented by a higher-level abstraction. The only method ever called is
   // `render`. It is up to a higher level abstraction on how to handle the
   // changes.
+  if (!newTree || !newTree.childNodes) {
+    return newTree;
+  }
+
   for (let i = 0; i < newTree.childNodes.length; i++) {
     const oldChild = oldTree && oldTree.childNodes && oldTree.childNodes[i];
     const newChild = newTree.childNodes[i];
@@ -66,6 +70,8 @@ webComponentTask.syncTreeHook = (oldTree, newTree) => {
       });
     }
   }
+
+  return newTree;
 };
 
 webComponentTask.createNodeHook = (vTree) => {
