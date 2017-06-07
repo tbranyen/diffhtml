@@ -7,9 +7,15 @@
   "jsnext:main": "dist/es/index",
   "esnext:main": "dist/es/index",
   "scripts": {
+    "prepublish": "npm run min",
+    "clean": "rm -rf dist/* && mkdir -p dist",
+    "min": "npm run build && npm run build-min",
+    "build": "npm run clean && npm run build-umd && npm run build-cjs && npm run build-esm",
     "build-cjs": "NODE_ENV=cjs babel index.js -d dist/cjs",
-    "build-es": "NODE_ENV=es babel index.js -d dist/es",
-    "build": "NODE_ENV=build browserify -t babelify -s syntheticEvents index.js | derequire > dist/synthetic-events.js && npm run build-cjs && npm run build-es"
+    "build-esm": "NODE_ENV=esm babel index.js -d dist/es",
+    "build-umd": "NODE_ENV=umd rollup -c rollup.config.js",
+    "build-min": "NODE_ENV=min rollup -c rollup.config.js && uglifyjs dist/synthetic-events.min.js -o dist/synthetic-events.min.js -m -c",
+    "watch": "NODE_ENV=umd rollup -c rollup.config.js -w"
   },
   "keywords": [
     "diffhtml",
@@ -21,11 +27,17 @@
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-preset-es2015": "^6.22.0",
-    "babelify": "^7.3.0",
-    "browserify": "^14.0.0",
-    "derequire": "^2.0.6",
-    "diffhtml-shared-internals": "^1.0.0-beta.1"
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.1",
+    "diffhtml": "1.0.0-beta.1",
+    "rollup": "^0.41.4",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-replace": "^1.1.1",
+    "rollup-plugin-visualizer": "^0.2.0",
+    "rollup-watch": "^3.2.2",
+    "uglify-js": "^3.0.15"
+  },
+  "peerDependencies": {
+    "diffhtml": ">=1.0.0-beta"
   }
 }

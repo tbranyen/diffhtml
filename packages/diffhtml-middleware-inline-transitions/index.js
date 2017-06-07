@@ -1,7 +1,4 @@
-import {
-  addTransitionState,
-  removeTransitionState,
-} from 'diffhtml/lib/transition';
+import { addTransitionState, removeTransitionState } from 'diffhtml';
 
 const { assign, keys } = Object;
 

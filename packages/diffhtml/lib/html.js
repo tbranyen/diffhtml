@@ -1,5 +1,5 @@
 import createTree from './tree/create';
-import parse from './util/parser';
+import parse from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 

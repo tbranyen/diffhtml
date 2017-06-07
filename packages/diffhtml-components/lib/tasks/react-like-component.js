@@ -1,7 +1,7 @@
-import createTree from 'diffhtml/dist/cjs/tree/create';
-import { NodeCache } from 'diffhtml-shared-internals/dist/cjs/caches';
+import { createTree, Internals } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../util/caches';
 
+const { NodeCache } = Internals;
 const { assign } = Object;
 
 function triggerRef(ref, instance) {

@@ -7,12 +7,17 @@
   "jsnext:main": "dist/es/index",
   "esnext:main": "dist/es/index",
   "scripts": {
+    "prepublish": "npm run min",
+    "clean": "rm -rf dist/* && mkdir -p dist",
+    "min": "npm run build && npm run build-min",
+    "build": "npm run clean && npm run build-umd && npm run build-cjs && npm run build-esm",
     "build-cjs": "NODE_ENV=cjs babel index.js -d dist/cjs",
-    "build-es": "NODE_ENV=es babel index.js -d dist/es",
-    "build": "NODE_ENV=build browserify -t babelify -s inlineTransitions index.js -o dist/inline-transitions.js && npm run build-cjs && npm run build-es",
-    "watch": "watchify -t babelify -s inlineTransitions index.js -o dist/inline-transitions.js -v",
+    "build-esm": "NODE_ENV=esm babel index.js -d dist/es",
+    "build-umd": "NODE_ENV=umd rollup -c rollup.config.js",
+    "build-min": "NODE_ENV=min rollup -c rollup.config.js && uglifyjs dist/inline-transitions.min.js -o dist/inline-transitions.min.js -m -c",
+    "watch": "NODE_ENV=umd rollup -c rollup.config.js -w",
     "mocha": "mocha test/_setup test/*.js",
-    "test": "NODE_ENV=cjs istanbul cover _mocha -- -- test/_setup test/*.js",
+    "test": "NODE_ENV=test istanbul cover _mocha -- -- test/_setup test/*.js",
     "test:ci": "npm run test"
   },
   "keywords": [
@@ -23,18 +28,20 @@
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.1",
     "babel-register": "^6.23.0",
-    "babelify": "^7.3.0",
-    "browserify": "^14.0.0",
     "coveralls": "^2.11.15",
-    "derequire": "^2.0.6",
     "diffhtml": "^1.0.0-beta.1",
     "istanbul": "^1.1.0-alpha.1",
     "jsdom-wc": "^11.0.0-alpha-1",
     "mocha": "^3.2.0",
-    "watchify": "^3.9.0"
+    "rollup": "^0.41.4",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-replace": "^1.1.1",
+    "rollup-plugin-visualizer": "^0.2.0",
+    "rollup-watch": "^3.2.2",
+    "uglify-js": "^3.0.15"
   },
   "peerDependencies": {
     "diffhtml": "^1.0.0-beta.1"

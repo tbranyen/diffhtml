@@ -1,3 +1,7 @@
+import { Internals } from 'diffhtml';
+
+const { decodeEntities } = Internals;
+
 const getValue = (vTree, keyName) => {
   if (vTree instanceof Node && vTree.attributes) {
     return vTree.attributes[keyName].value || vTree[keyName];
@@ -16,30 +20,13 @@ const setupDebugger = options => message => {
   }
 };
 
-export const cloneTree = tree => tree ? assign({}, tree, {
+const cloneTree = tree => tree ? assign({}, tree, {
   attributes: assign({}, tree.attributes),
   childNodes: tree.childNodes.map(vTree => cloneTree(vTree)),
 }) : null;
 
 // Support loading diffHTML in non-browser environments.
 const element = global.document ? document.createElement('div') : null;
-
-/**
- * Decodes HTML strings.
- *
- * @see http://stackoverflow.com/a/5796718
- * @param string
- * @return unescaped HTML
- */
-export const decodeEntities = string => {
-  // If there are no HTML entities, we can safely pass the string through.
-  if (!element || !string || !string.indexOf || string.indexOf('&') === -1) {
-    return string;
-  }
-
-  element.innerHTML = string;
-  return element.textContent;
-};
 
 const flattenFragments = vTree => {
   vTree.childNodes.forEach((childNode, i) => {
@@ -56,7 +43,7 @@ const flattenFragments = vTree => {
   return vTree;
 };
 
-export const compareTrees = (options, transaction, oldTree, newTree) => {
+const compareTrees = (options, transaction, oldTree, newTree) => {
   const { promises, state: { internals: { NodeCache } } } = transaction;
 
   const debug = setupDebugger(options);

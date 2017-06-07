@@ -1,13 +1,12 @@
 import { createTree, innerHTML, outerHTML, use, html } from 'diffhtml';
-import { Component } from 'diffhtml-components';
+import Component from 'diffhtml-components/lib/component';
 import syntheticEvents from 'diffhtml-middleware-synthetic-events';
-import PropTypes from 'prop-types';
 
 const { keys } = Object;
 
 use(syntheticEvents());
 
-exports.createElement = (...args) => {
+const createElement = (...args) => {
   const tree = createTree(...args);
 
   tree.$$typeof = Symbol.for('react.element');
@@ -16,6 +15,10 @@ exports.createElement = (...args) => {
 
   if (attributes.includes('className')) {
     tree.attributes.class = tree.attributes.className;
+  }
+
+  if (attribtues.includes('htmlFor')) {
+    tree.attributes.for = tree.attributes.htmlFor;
   }
 
   attributes.forEach(name => {
@@ -27,14 +30,22 @@ exports.createElement = (...args) => {
   return tree;
 };
 
-exports.PropTypes = PropTypes;
+const render = (component, mount, opts) => innerHTML(mount, component, opts);
+const isValidElement = object => (
+  typeof object === 'object' &&
+  object !== null &&
+  object.$$typeof === Symbol.for('react.element')
+);
+exports.createElement = createElement;
 exports.Component = Component;
 exports.html = html;
-exports.render = (component, mount) => innerHTML(mount, component, );
-exports.isValidElement = function(object) {
-  return (
-    typeof object === 'object' &&
-    object !== null &&
-    object.$$typeof === Symbol.for('react.element')
-  );
-};
+exports.render = render;
+exports.isValidElement = isValidElement;
+
+export default {
+  createElement,
+  Component,
+  html,
+  render,
+  isValidElement,
+}

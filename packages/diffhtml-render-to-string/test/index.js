@@ -66,4 +66,26 @@ describe('renderToString', function() {
 
     equal(actual, expected);
   });
+
+  it('can render vanilla components with props', () => {
+    class Component {
+      render({ message }) {
+        return html`
+          <p>${message}</p>
+        `;
+      }
+    }
+
+    const actual = renderToString(html`
+      <div>
+        <${Component} message="Hello world" />
+      </div>
+    `);
+
+    const expected = `<div>
+        <p>Hello world</p>
+      </div>`;
+
+    equal(actual, expected);
+  });
 });

@@ -1,5 +1,5 @@
 import { innerHTML, use } from 'diffhtml';
-import checkPropTypes from 'prop-types/checkPropTypes';
+import PropTypes from 'prop-types';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import webComponentTask from './tasks/web-component';
 import { $$render } from './util/symbols';
@@ -31,11 +31,17 @@ const createContext = (domNode) => {
 
 // Allow tests to unbind this task, you would not typically need to do this
 // in a web application, as this code loads once and is not reloaded.
-const unsubscribeMiddleware = use(webComponentTask);
+const subscribeMiddleware = () => use(webComponentTask);
+const unsubscribeMiddleware = subscribeMiddleware();
 
 export default upgradeSharedClass(class WebComponent extends HTMLElement {
+  static subscribeMiddleware() {
+    return subscribeMiddleware();
+  }
+
   static unsubscribeMiddleware() {
     unsubscribeMiddleware();
+    return subscribeMiddleware;
   }
 
   static get observedAttributes() {
@@ -71,7 +77,9 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
       this.props[prop] = defaultProps[prop];
     });
 
-    checkPropTypes(propTypes, this.props, 'prop', name);
+    if (process.env.NODE_ENV !== 'production') {
+      PropTypes.checkPropTypes(propTypes, this.props, 'prop', name);
+    }
   }
 
   connectedCallback() {

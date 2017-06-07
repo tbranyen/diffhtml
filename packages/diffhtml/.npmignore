@@ -1,11 +1,9 @@
 benchmarks
-examples
 test
 .babelrc
 .gitattributes
 .istanbul.yml
 .jshintrc
 .npmignore
-.travis.yml
 rollup.main.config.js
 rollup.runtime.config.js

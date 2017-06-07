@@ -1,7 +1,8 @@
-import parse from 'diffhtml/lib/util/parser';
+import { Internals } from 'diffhtml';
 import * as babylon from 'babylon';
 import Global from './global';
 
+const { parse } = Internals;
 const hasNonWhitespaceEx = /\S/;
 const TOKEN = '__DIFFHTML_BABEL__';
 const doctypeEx = /<!.*>/i;

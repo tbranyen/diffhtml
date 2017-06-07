@@ -167,7 +167,6 @@ const log = (message, method, color, date, transaction, completed) => {
   }
 };
 
-//
 export default opts => function loggerTask(transaction) {
   const start = new Date();
 

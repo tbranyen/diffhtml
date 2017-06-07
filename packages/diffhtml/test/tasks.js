@@ -2,7 +2,7 @@ import { equal, deepEqual, throws } from 'assert';
 import html from '../lib/html';
 import release from '../lib/release';
 import Transaction from '../lib/transaction';
-import reconcileTrees from '../lib/tasks/reconcile-trees-with-parse';
+import reconcileTrees from '../lib/tasks/reconcile-trees';
 import syncTrees from '../lib/tasks/sync-trees';
 import validateMemory from './util/validateMemory';
 

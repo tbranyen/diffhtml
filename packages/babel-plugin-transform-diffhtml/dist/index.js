@@ -2641,7 +2641,7 @@ pp$1.parseExportDeclaration = function () {
 
 pp$1.isExportDefaultSpecifier = function () {
   if (this.match(types.name)) {
-    return this.state.value !== "type" && this.state.value !== "async" && this.state.value !== "interface";
+    return this.state.value !== "async";
   }
 
   if (!this.match(types._default)) {
@@ -2954,6 +2954,8 @@ pp$2.toAssignable = function (node, isBinding, contextDescription) {
 
       case "SpreadProperty":
         node.type = "RestProperty";
+        var arg = node.argument;
+        this.toAssignable(arg, isBinding, contextDescription);
         break;
 
       case "ArrayExpression":
@@ -4471,7 +4473,8 @@ pp$6.processComment = function (node) {
 
   var stack = this.state.commentStack;
 
-  var lastChild = void 0,
+  var firstChild = void 0,
+      lastChild = void 0,
       trailingComments = void 0,
       i = void 0,
       j = void 0;
@@ -4502,8 +4505,36 @@ pp$6.processComment = function (node) {
   }
 
   // Eating the stack.
+  if (stack.length > 0 && last(stack).start >= node.start) {
+    firstChild = stack.pop();
+  }
+
   while (stack.length > 0 && last(stack).start >= node.start) {
     lastChild = stack.pop();
+  }
+
+  if (!lastChild && firstChild) lastChild = firstChild;
+
+  // Attach comments that follow a trailing comma on the last
+  // property in an object literal or a trailing comma in function arguments
+  // as trailing comments
+  if (firstChild && (firstChild.type === "ObjectProperty" || node.type === "CallExpression") && this.state.leadingComments.length > 0) {
+    var lastComment = last(this.state.leadingComments);
+    if (lastComment.start >= node.start) {
+      if (this.state.commentPreviousNode) {
+        for (j = 0; j < this.state.leadingComments.length; j++) {
+          if (this.state.leadingComments[j].end < this.state.commentPreviousNode.end) {
+            this.state.leadingComments.splice(j, 1);
+            j--;
+          }
+        }
+
+        if (this.state.leadingComments.length > 0) {
+          firstChild.trailingComments = this.state.leadingComments;
+          this.state.leadingComments = [];
+        }
+      }
+    }
   }
 
   if (lastChild) {
@@ -5250,7 +5281,7 @@ pp$8.flowParseObjectTypeMethodish = function (node) {
   }
 
   this.expect(types.parenL);
-  while (this.match(types.name)) {
+  while (!this.match(types.parenR) && !this.match(types.ellipsis)) {
     node.params.push(this.flowParseFunctionTypeParam());
     if (!this.match(types.parenR)) {
       this.expect(types.comma);
@@ -5804,6 +5835,16 @@ var flowPlugin = function flowPlugin(instance) {
   instance.extend("shouldParseExportDeclaration", function (inner) {
     return function () {
       return this.isContextual("type") || this.isContextual("interface") || inner.call(this);
+    };
+  });
+
+  instance.extend("isExportDefaultSpecifier", function (inner) {
+    return function () {
+      if (this.match(types.name) && (this.state.value === "type" || this.state.value === "interface")) {
+        return false;
+      }
+
+      return inner.call(this);
     };
   });
 
@@ -7365,7 +7406,7 @@ exports.default = function (_ref) {
         }
       });
 
-      var root = (0, _parser2.default)(HTML, null, { strict: false }).childNodes;
+      var root = parse(HTML, null, { strict: false }).childNodes;
       var strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       var vTree = babylon.parse('(' + strRoot + ')');
 
@@ -7509,9 +7550,7 @@ exports.default = function (_ref) {
   return { visitor: visitor };
 };
 
-var _parser = require('diffhtml/dist/cjs/util/parser');
-
-var _parser2 = _interopRequireDefault(_parser);
+var _diffhtml = require('diffhtml');
 
 var _babylon = require('babylon');
 
@@ -7521,11 +7560,13 @@ var _global = require('./global');
 
 var _global2 = _interopRequireDefault(_global);
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var parse = _diffhtml.Internals.parse;
 
 var hasNonWhitespaceEx = /\S/;
 var TOKEN = '__DIFFHTML_BABEL__';
@@ -7543,676 +7584,5 @@ var isTagEx = /(<|\/)/;
  */
 ;
 
-},{"./global":undefined,"babylon":1,"diffhtml/dist/cjs/util/parser":5}],3:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = createTree;
-
-var _caches = require('../util/caches');
-
-var _pool = require('../util/pool');
-
-var _pool2 = _interopRequireDefault(_pool);
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { default: obj };
-}
-
-const { CreateTreeHookCache } = _caches.MiddlewareCache;
-const { assign } = Object;
-const { isArray } = Array;
-const fragmentName = '#document-fragment';
-
-function createTree(input, attributes, childNodes, ...rest) {
-  // If no input was provided then we return an indication as such.
-  if (!input) {
-    return null;
-  }
-
-  // If the first argument is an array, we assume this is a DOM fragment and
-  // the array are the childNodes.
-  if (isArray(input)) {
-    childNodes = [];
-
-    for (let i = 0; i < input.length; i++) {
-      const newTree = createTree(input[i]);
-      if (!newTree) {
-        continue;
-      }
-      const isFragment = newTree.nodeType === 11;
-
-      if (typeof newTree.rawNodeName === 'string' && isFragment) {
-        childNodes.push(...newTree.childNodes);
-      } else {
-        childNodes.push(newTree);
-      }
-    }
-
-    return createTree(fragmentName, null, childNodes);
-  }
-
-  const isObject = typeof input === 'object';
-
-  // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
-  if (input && isObject && 'parentNode' in input) {
-    attributes = {};
-    childNodes = [];
-
-    // When working with a text node, simply save the nodeValue as the
-    // initial value.
-    if (input.nodeType === 3) {
-      childNodes = input.nodeValue;
-    }
-    // Element types are the only kind of DOM node we care about attributes
-    // from. Shadow DOM, Document Fragments, Text, Comment nodes, etc. can
-    // ignore this.
-    else if (input.nodeType === 1 && input.attributes.length) {
-        attributes = {};
-
-        for (let i = 0; i < input.attributes.length; i++) {
-          const { name, value } = input.attributes[i];
-
-          // If the attribute's value is empty, seek out the property instead.
-          if (value === '' && name in input) {
-            attributes[name] = input[name];
-            continue;
-          }
-
-          attributes[name] = value;
-        }
-      }
-
-    // Get the child nodes from an Element or Fragment/Shadow Root.
-    if (input.nodeType === 1 || input.nodeType === 11) {
-      if (input.childNodes.length) {
-        childNodes = [];
-
-        for (let i = 0; i < input.childNodes.length; i++) {
-          childNodes.push(createTree(input.childNodes[i]));
-        }
-      }
-    }
-
-    const vTree = createTree(input.nodeName, attributes, childNodes);
-    _caches.NodeCache.set(vTree, input);
-    return vTree;
-  }
-
-  // Assume any object value is a valid VTree object.
-  if (isObject) {
-    return input;
-  }
-
-  // Support JSX-style children being passed.
-  if (rest.length) {
-    childNodes = [childNodes, ...rest];
-  }
-
-  // Allocate a new VTree from the pool.
-  const entry = _pool2.default.get();
-  const isTextNode = input === '#text';
-  const isString = typeof input === 'string';
-
-  entry.key = '';
-  entry.rawNodeName = input;
-  entry.nodeName = isString ? input.toLowerCase() : '#document-fragment';
-  entry.childNodes.length = 0;
-  entry.nodeValue = '';
-  entry.attributes = {};
-
-  if (isTextNode) {
-    const nodes = arguments.length === 2 ? attributes : childNodes;
-    const nodeValue = isArray(nodes) ? nodes.join('') : nodes;
-
-    entry.nodeType = 3;
-    entry.nodeValue = String(nodeValue || '');
-
-    return entry;
-  }
-
-  if (input === fragmentName || typeof input !== 'string') {
-    entry.nodeType = 11;
-  } else if (input === '#comment') {
-    entry.nodeType = 8;
-  } else {
-    entry.nodeType = 1;
-  }
-
-  const useAttributes = isArray(attributes) || typeof attributes !== 'object';
-  const nodes = useAttributes ? attributes : childNodes;
-  const nodeArray = isArray(nodes) ? nodes : [nodes];
-
-  if (nodes && nodeArray.length) {
-    for (let i = 0; i < nodeArray.length; i++) {
-      const newNode = nodeArray[i];
-
-      // Assume objects are vTrees.
-      if (typeof newNode === 'object') {
-        entry.childNodes.push(newNode);
-      }
-      // Cover generate cases where a user has indicated they do not want a
-      // node from appearing.
-      else if (newNode) {
-          entry.childNodes.push(createTree('#text', null, newNode));
-        }
-    }
-  }
-
-  if (attributes && typeof attributes === 'object' && !isArray(attributes)) {
-    entry.attributes = attributes;
-  }
-
-  // If is a script tag and has a src attribute, key off that.
-  if (entry.nodeName === 'script' && entry.attributes.src) {
-    entry.key = String(entry.attributes.src);
-  }
-
-  // Set the `key` prop if passed as an attr, overrides `script[src]`.
-  if (entry.attributes && 'key' in entry.attributes) {
-    entry.key = String(entry.attributes.key);
-  }
-
-  let vTree = entry;
-
-  CreateTreeHookCache.forEach((fn, retVal) => {
-    // Invoke all the `createNodeHook` functions passing along this transaction
-    // as the only argument. These functions must return valid vTree values.
-    if (retVal = fn(vTree)) {
-      vTree = retVal;
-    }
-  });
-
-  return vTree;
-}
-
-},{"../util/caches":4,"../util/pool":6}],4:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-// Associates DOM Nodes with state objects.
-const StateCache = exports.StateCache = new Map();
-
-// Associates Virtual Tree Elements with DOM Nodes.
-const NodeCache = exports.NodeCache = new Map();
-
-// Cache transition functions.
-const TransitionCache = exports.TransitionCache = new Map();
-
-// Caches all middleware. You cannot unset a middleware once it has been added.
-const MiddlewareCache = exports.MiddlewareCache = new Set();
-
-// Very specific caches used by middleware.
-MiddlewareCache.CreateTreeHookCache = new Set();
-MiddlewareCache.CreateNodeHookCache = new Set();
-MiddlewareCache.SyncTreeHookCache = new Set();
-
-},{}],5:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = parse;
-
-var _create = require('../tree/create');
-
-var _create2 = _interopRequireDefault(_create);
-
-var _pool = require('./pool');
-
-var _pool2 = _interopRequireDefault(_pool);
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { default: obj };
-}
-
-// Adapted implementation from:
-// https://github.com/ashi009/node-fast-html-parser
-
-const hasNonWhitespaceEx = /\S/;
-const doctypeEx = /<!.*>/i;
-const attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
-const spaceEx = /[^ ]/;
-const tokenEx = /__DIFFHTML__([^_]*)__/;
-const tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
-
-const { assign } = Object;
-
-const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
-
-const selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr', 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
-
-const kElementsClosedByOpening = {
-  li: { li: true },
-  p: { p: true, div: true },
-  td: { td: true, th: true },
-  th: { td: true, th: true }
-};
-
-const kElementsClosedByClosing = {
-  li: { ul: true, ol: true },
-  a: { div: true },
-  b: { div: true },
-  i: { div: true },
-  p: { div: true },
-  td: { tr: true, table: true },
-  th: { tr: true, table: true }
-};
-
-/**
- * Interpolate dynamic supplemental values from the tagged template into the
- * tree.
- *
- * @param currentParent
- * @param string
- * @param supplemental
- */
-const interpolateValues = (currentParent, string, supplemental = {}) => {
-  // If this is text and not a doctype, add as a text node.
-  if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
-    return currentParent.childNodes.push((0, _create2.default)('#text', string));
-  }
-
-  const childNodes = [];
-  const parts = string.split(tokenEx);
-  let { length } = parts;
-
-  for (let i = 0; i < parts.length; i++) {
-    const value = parts[i];
-
-    if (!value) {
-      continue;
-    }
-
-    // When we split on the token expression, the capture group will replace
-    // the token's position. So all we do is ensure that we're on an odd
-    // index and then we can source the correct value.
-    if (i % 2 === 1) {
-      const innerTree = supplemental.children[value];
-      if (!innerTree) {
-        continue;
-      }
-      const isFragment = innerTree.nodeType === 11;
-
-      if (typeof innerTree.rawNodeName === 'string' && isFragment) {
-        childNodes.push(...innerTree.childNodes);
-      } else {
-        childNodes.push(innerTree);
-      }
-    } else if (!doctypeEx.test(value)) {
-      childNodes.push((0, _create2.default)('#text', value));
-    }
-  }
-
-  currentParent.childNodes.push(...childNodes);
-};
-
-/**
- * HTMLElement, which contains a set of children.
- *
- * Note: this is a minimalist implementation, no complete tree structure
- * provided (no parentNode, nextSibling, previousSibling etc).
- *
- * @param {String} nodeName - DOM Node name
- * @param {Object} rawAttrs - DOM Node Attributes
- * @param {Object} supplemental - Interpolated data from a tagged template
- * @return {Object} vTree
- */
-const HTMLElement = (nodeName, rawAttrs, supplemental) => {
-  let match = null;
-
-  // Support dynamic tag names like: `<${MyComponent} />`.
-  if (match = tokenEx.exec(nodeName)) {
-    return HTMLElement(supplemental.tags[match[1]], rawAttrs, supplemental);
-  }
-
-  const attributes = {};
-
-  // Migrate raw attributes into the attributes object used by the VTree.
-  for (let match; match = attrEx.exec(rawAttrs || '');) {
-    const name = match[1];
-    const value = match[6] || match[5] || match[4] || match[1];
-    let tokenMatch = value.match(tokenEx);
-
-    // If we have multiple interpolated values in an attribute, we must
-    // flatten to a string. There are no other valid options.
-    if (tokenMatch && tokenMatch.length) {
-      const parts = value.split(tokenEx);
-      let { length } = parts;
-
-      const hasToken = tokenEx.exec(name);
-      const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
-
-      for (let i = 0; i < parts.length; i++) {
-        const value = parts[i];
-
-        if (!value) {
-          continue;
-        }
-
-        // When we split on the token expression, the capture group will
-        // replace the token's position. So all we do is ensure that we're on
-        // an odd index and then we can source the correct value.
-        if (i % 2 === 1) {
-          if (attributes[newName]) {
-            attributes[newName] += supplemental.attributes[value];
-          } else {
-            attributes[newName] = supplemental.attributes[value];
-          }
-        } else {
-          if (attributes[newName]) {
-            attributes[newName] += value;
-          } else {
-            attributes[newName] = value;
-          }
-        }
-      }
-    } else if (tokenMatch = tokenEx.exec(name)) {
-      const nameAndValue = supplemental.attributes[tokenMatch[1]];
-      const hasToken = tokenEx.exec(value);
-      const getValue = hasToken ? supplemental.attributes[hasToken[1]] : value;
-
-      attributes[nameAndValue] = value === '""' ? '' : getValue;
-    } else {
-      attributes[name] = value === '""' ? '' : value;
-    }
-  }
-
-  return (0, _create2.default)(nodeName, attributes, []);
-};
-
-/**
- * Parses HTML and returns a root element
- *
- * @param {String} html - String of HTML markup to parse into a Virtual Tree
- * @param {Object} supplemental - Dynamic interpolated data values
- * @param {Object} options - Contains options like silencing warnings
- * @return {Object} - Parsed Virtual Tree Element
- */
-function parse(html, supplemental, options = {}) {
-  const root = (0, _create2.default)('#document-fragment', null, []);
-  const stack = [root];
-  let currentParent = root;
-  let lastTextPos = -1;
-
-  // If there are no HTML elements, treat the passed in html as a single
-  // text node.
-  if (html.indexOf('<') === -1 && html) {
-    interpolateValues(currentParent, html, supplemental);
-    return root;
-  }
-
-  // Look through the HTML markup for valid tags.
-  for (let match, text; match = tagEx.exec(html);) {
-    if (lastTextPos > -1) {
-      if (lastTextPos + match[0].length < tagEx.lastIndex) {
-        text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
-
-        if (text) {
-          interpolateValues(currentParent, text, supplemental);
-        }
-      }
-    }
-
-    const matchOffset = tagEx.lastIndex - match[0].length;
-
-    if (lastTextPos === -1 && matchOffset > 0) {
-      const string = html.slice(0, matchOffset);
-
-      if (string && hasNonWhitespaceEx.test(string) && !doctypeEx.exec(string)) {
-        interpolateValues(currentParent, string, supplemental);
-      }
-    }
-
-    lastTextPos = tagEx.lastIndex;
-
-    // This is a comment (TODO support these).
-    if (match[0][1] === '!') {
-      continue;
-    }
-
-    if (!match[1]) {
-      // not </ tags
-      const attrs = {};
-
-      if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
-        if (kElementsClosedByOpening[currentParent.rawNodeName][match[2]]) {
-          stack.pop();
-          currentParent = stack[stack.length - 1];
-        }
-      }
-
-      currentParent = currentParent.childNodes[currentParent.childNodes.push(HTMLElement(match[2], match[3], supplemental)) - 1];
-
-      stack.push(currentParent);
-
-      if (blockText.has(match[2])) {
-        // A little test to find next </script> or </style> ...
-        const closeMarkup = '</' + match[2] + '>';
-        const index = html.indexOf(closeMarkup, tagEx.lastIndex);
-        const { length } = match[2];
-
-        if (index === -1) {
-          lastTextPos = tagEx.lastIndex = html.length + 1;
-        } else {
-          lastTextPos = index + closeMarkup.length;
-          tagEx.lastIndex = lastTextPos;
-          match[1] = true;
-        }
-
-        const newText = html.slice(match.index + match[0].length, index);
-        interpolateValues(currentParent, newText.trim(), supplemental);
-      }
-    }
-
-    if (match[1] || match[4] || selfClosing.has(match[2])) {
-      if (match[2] !== currentParent.rawNodeName && options.strict) {
-        const nodeName = currentParent.rawNodeName;
-
-        // Find a subset of the markup passed in to validate.
-        const markup = html.slice(tagEx.lastIndex - match[0].length).split('\n').slice(0, 3);
-
-        // Position the caret next to the first non-whitespace character.
-        const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
-
-        // Craft the warning message and inject it into the markup.
-        markup.splice(1, 0, `${caret}
-Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
-        `);
-
-        // Throw an error message if the markup isn't what we expected.
-        throw new Error(`\n\n${markup.join('\n')}`);
-      }
-
-      const tokenMatch = tokenEx.exec(match[2]);
-
-      // </ or /> or <br> etc.
-      while (currentParent) {
-        // Self closing dynamic nodeName.
-        if (match[4] === '/' && tokenMatch) {
-          stack.pop();
-          currentParent = stack[stack.length - 1];
-
-          break;
-        }
-        // Not self-closing, so seek out the next match.
-        else if (tokenMatch) {
-            const value = supplemental.tags[tokenMatch[1]];
-
-            if (currentParent.rawNodeName === value) {
-              stack.pop();
-              currentParent = stack[stack.length - 1];
-
-              break;
-            }
-          }
-
-        if (currentParent.rawNodeName === match[2]) {
-          stack.pop();
-          currentParent = stack[stack.length - 1];
-
-          break;
-        } else {
-          const tag = kElementsClosedByClosing[currentParent.rawNodeName];
-
-          // Trying to close current tag, and move on
-          if (tag) {
-            if (tag[match[2]]) {
-              stack.pop();
-              currentParent = stack[stack.length - 1];
-
-              continue;
-            }
-          }
-
-          // Use aggressive strategy to handle unmatching markups.
-          break;
-        }
-      }
-    }
-  }
-
-  // Find any last remaining text after the parsing completes over tags.
-  const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
-
-  // Ensure that all values are properly interpolated through the remaining
-  // markup after parsing.
-  if (remainingText) {
-    interpolateValues(currentParent, remainingText, supplemental);
-  }
-
-  // This is an entire document, so only allow the HTML children to be
-  // body or head.
-  if (root.childNodes.length && root.childNodes[0].nodeName === 'html') {
-    // Store elements from before body end and after body end.
-    const head = { before: [], after: [] };
-    const body = { after: [] };
-    const HTML = root.childNodes[0];
-
-    let beforeHead = true;
-    let beforeBody = true;
-
-    // Iterate the children and store elements in the proper array for
-    // later concat, replace the current childNodes with this new array.
-    HTML.childNodes = HTML.childNodes.filter(el => {
-      // If either body or head, allow as a valid element.
-      if (el.nodeName === 'body' || el.nodeName === 'head') {
-        if (el.nodeName === 'head') beforeHead = false;
-        if (el.nodeName === 'body') beforeBody = false;
-
-        return true;
-      }
-      // Not a valid nested HTML tag element, move to respective container.
-      else if (el.nodeType === 1) {
-          if (beforeHead && beforeBody) head.before.push(el);else if (!beforeHead && beforeBody) head.after.push(el);else if (!beforeBody) body.after.push(el);
-        }
-    });
-
-    // Ensure the first element is the HEAD tag.
-    if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
-      const headInstance = (0, _create2.default)('head', null, []);
-      const existing = headInstance.childNodes;
-
-      existing.unshift.apply(existing, head.before);
-      existing.push.apply(existing, head.after);
-      HTML.childNodes.unshift(headInstance);
-    } else {
-      const existing = HTML.childNodes[0].childNodes;
-
-      existing.unshift.apply(existing, head.before);
-      existing.push.apply(existing, head.after);
-    }
-
-    // Ensure the second element is the body tag.
-    if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
-      const bodyInstance = (0, _create2.default)('body', null, []);
-      const existing = bodyInstance.childNodes;
-
-      existing.push.apply(existing, body.after);
-      HTML.childNodes.push(bodyInstance);
-    } else {
-      const existing = HTML.childNodes[1].childNodes;
-      existing.push.apply(existing, body.after);
-    }
-  }
-
-  // Reset regular expression positions per parse.
-  attrEx.lastIndex = 0;
-  tagEx.lastIndex = 0;
-
-  return root;
-}
-
-},{"../tree/create":3,"./pool":6}],6:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-// A modest size.
-const size = 10000;
-
-const free = new Set();
-const allocate = new Set();
-const protect = new Set();
-const shape = () => ({
-  rawNodeName: '',
-  nodeName: '',
-  nodeValue: '',
-  nodeType: 1,
-  key: '',
-  childNodes: [],
-  attributes: {}
-});
-
-// Creates a pool to query new or reused values from.
-const memory = { free, allocated: allocate, protected: protect };
-
-// Prime the free memory pool with VTrees.
-for (let i = 0; i < size; i++) {
-  free.add(shape());
-}
-
-// Cache the values object, we'll refer to this iterator which is faster
-// than calling it every single time. It gets replaced once exhausted.
-let freeValues = free.values();
-
-// Cache VTree objects in a pool which is used to get
-exports.default = {
-  size,
-  memory,
-
-  get() {
-    const { value = shape(), done } = freeValues.next();
-
-    // This extra bit of work allows us to avoid calling `free.values()` every
-    // single time an object is needed.
-    if (done) {
-      freeValues = free.values();
-    }
-
-    free.delete(value);
-    allocate.add(value);
-    return value;
-  },
-
-  protect(value) {
-    allocate.delete(value);
-    protect.add(value);
-  },
-
-  unprotect(value) {
-    if (protect.has(value)) {
-      protect.delete(value);
-      free.add(value);
-    }
-  }
-};
-
-},{}]},{},[2])(2)
+},{"./global":undefined,"babylon":1,"diffhtml":"diffhtml"}]},{},[2])(2)
 });

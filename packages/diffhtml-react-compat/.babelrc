@@ -1,6 +1,4 @@
 {
-  "presets": [
-    ["es2015", { "modules": false }]
-  ]
+  "presets": ["diffhtml-imports"]
 }
 

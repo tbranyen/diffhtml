@@ -1,6 +1,3 @@
 {
-  "presets": "es2015",
-  "plugins": [
-    ["module-rewrite", { "replaceFunc": "../../utils/replace-cjs.js" }],
-  ]
+  "presets": ["es2015", "diffhtml-imports"],
 }
