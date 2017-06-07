@@ -1,5 +1,6 @@
 {
   "name": "diffhtml-bundling",
+  "private": true,
   "version": "1.0.0-beta.3",
   "description": "Demonstrates various bundling and deployment techniques",
   "main": "index.js",
