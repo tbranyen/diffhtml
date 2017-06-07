@@ -7,7 +7,7 @@ import decodeEntities from '../lib/util/decode-entities';
 import escape from '../lib/util/escape';
 import parse from '../lib/util/parse';
 import _process from '../lib/util/process';
-import { namespace, elements } from '../lib/util/svg';
+import { namespace } from '../lib/util/svg';
 import { protectVTree, unprotectVTree, cleanMemory } from '../lib/util/memory';
 import makeMeasure from '../lib/util/make-measure';
 import Pool from '../lib/util/pool';
@@ -853,11 +853,6 @@ describe('Util', function() {
   });
 
   describe('SVG', () => {
-    it('exports a list of valid SVG elements', () => {
-      ok(Array.isArray(elements));
-      ok(elements.length);
-    });
-
     it('exports the SVG namespace', () => {
       equal(namespace, 'http://www.w3.org/2000/svg');
     });

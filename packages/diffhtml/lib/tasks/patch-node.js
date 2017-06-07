@@ -10,6 +10,12 @@ export default function patch(transaction) {
   const { domNode, state, state: { measure }, patches } = transaction;
   const { promises = [] } = transaction;
 
+  // Is the root SVG?
+  state.isSVG = transaction.oldTree.nodeName === 'svg';
+
+  // Set the ownerDocument.
+  state.ownerDocument = domNode.ownerDocument || document;
+
   measure('patch node');
   promises.push(...patchNode(patches, state));
   measure('patch node');
