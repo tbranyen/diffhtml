@@ -6,6 +6,7 @@ import { NodeCache } from '../lib/util/caches';
 import decodeEntities from '../lib/util/decode-entities';
 import escape from '../lib/util/escape';
 import parse from '../lib/util/parse';
+import _process from '../lib/util/process';
 import { namespace, elements } from '../lib/util/svg';
 import { protectVTree, unprotectVTree, cleanMemory } from '../lib/util/memory';
 import makeMeasure from '../lib/util/make-measure';
@@ -50,7 +51,7 @@ describe('Util', function() {
     });
   });
 
-  describe('Parser', () => {
+  describe('Parse', () => {
     it('will support empty attributes', () => {
       const vTree = parse('<option value="test" selected></option>').childNodes[0];
 
@@ -1070,6 +1071,12 @@ describe('Util', function() {
 
       const regex = /diffHTML Component test-4 \((.*)ms\)/;
       ok(regex.exec(performance.measure.firstCall.args[0]));
+    });
+  });
+
+  describe('Process', () => {
+    it('it matches the global process', () => {
+      equal(_process, global.process);
     });
   });
 });
