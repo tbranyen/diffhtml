@@ -1,7 +1,7 @@
 diffHTML Middleware Verify State
 --------------------------------
 
-Stable Version: 1.0.0-beta.1
+Stable Version: 1.0.0-beta.2
 
 Asserts that a render properly updated the old Virtual Tree and the DOM. Will
 recursively search for inconsistencies, displays warnings unless debugging is

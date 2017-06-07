@@ -2,7 +2,7 @@
 
 *An integrated collection of JavaScript tools for building user interfaces.*
 
-Stable version: 1.0.0-beta.1
+Stable version: 1.0.0-beta.2
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Coverage
