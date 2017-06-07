@@ -56,7 +56,7 @@ describe('Web Component', function() {
       equal(ctorMessage, 'Test');
     });
 
-    it.only('can pass children in properties to constructor', () => {
+    it('can pass children in properties to constructor', () => {
       let children = null;
 
       class CustomComponent extends WebComponent {

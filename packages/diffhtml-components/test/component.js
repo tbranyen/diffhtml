@@ -29,22 +29,7 @@ describe('React Like Component', function() {
     equal(domNode.outerHTML, '<div><div>Hello world</div></div>');
   });
 
-  it('cannot return multiple elements yet', () => {
-    class CustomComponent extends Component {
-      render() {
-        return html`
-          <div>Hello world</div>
-          <p>Test</p>
-        `;
-      }
-    }
-
-    const domNode = document.createElement('div');
-
-    throws(() => innerHTML(domNode, html`<${CustomComponent} />`));
-  });
-
-  it.skip('can return multiple elements', () => {
+  it('can return multiple elements', () => {
     class CustomComponent extends Component {
       render() {
         return html`
@@ -57,7 +42,7 @@ describe('React Like Component', function() {
     const domNode = document.createElement('div');
     innerHTML(domNode, html`<${CustomComponent} />`);
 
-    equal(domNode.outerHTML, '<div><div>Hello world</div><p>test</p></div>');
+    equal(domNode.outerHTML, '<div><div>Hello world</div>\n          <p>Test</p></div>');
   });
 
   describe('Lifecycle', () => {
