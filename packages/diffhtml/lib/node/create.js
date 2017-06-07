@@ -1,8 +1,8 @@
 import { NodeCache, MiddlewareCache } from '../util/caches';
-import { namespace } from '../util/svg';
 import process from '../util/process';
 
 const { CreateNodeHookCache } = MiddlewareCache;
+const namespace = 'http://www.w3.org/2000/svg';
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
