@@ -159,12 +159,19 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`
     }
   }
 
+  const newChildNodes = newTree.childNodes;
+
+  // Scan all childNodes for attribute changes.
   if (isEmpty) {
+    // Do a single pass over the new child nodes.
+    for (let i = 0; i < newChildNodes.length; i++) {
+      syncTree(null, newChildNodes[i], patches);
+    }
+
     return patches;
   }
 
   const oldChildNodes = oldTree.childNodes;
-  const newChildNodes = newTree.childNodes;
 
   // If we are working with keys, we can follow an optimized path.
   if (keysLookup.old.size || keysLookup.new.size) {

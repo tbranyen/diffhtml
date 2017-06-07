@@ -1,6 +1,7 @@
 import { Internals } from 'diffhtml';
 
-const { decodeEntities } = Internals;
+const root = typeof global !== 'undefined' ? global : window;
+const { NodeCache, decodeEntities } = Internals;
 
 const getValue = (vTree, keyName) => {
   if (vTree instanceof Node && vTree.attributes) {
@@ -26,7 +27,7 @@ const cloneTree = tree => tree ? assign({}, tree, {
 }) : null;
 
 // Support loading diffHTML in non-browser environments.
-const element = global.document ? document.createElement('div') : null;
+const element = root.document ? document.createElement('div') : null;
 
 const flattenFragments = vTree => {
   vTree.childNodes.forEach((childNode, i) => {
@@ -44,7 +45,7 @@ const flattenFragments = vTree => {
 };
 
 const compareTrees = (options, transaction, oldTree, newTree) => {
-  const { promises, state: { internals: { NodeCache } } } = transaction;
+  const { promises } = transaction;
 
   const debug = setupDebugger(options);
 
