@@ -1,5 +1,5 @@
 import { NodeCache, MiddlewareCache } from '../util/caches';
-import { elements, namespace } from '../util/svg';
+import { namespace } from '../util/svg';
 import process from '../util/process';
 
 const { CreateNodeHookCache } = MiddlewareCache;
@@ -11,9 +11,10 @@ const { CreateNodeHookCache } = MiddlewareCache;
  *
  * @param {Object} - A Virtual Tree Element or VTree-like element
  * @param {Object} - Document to create Nodes in
+ * @param {Boolean} - Is their a root SVG element?
  * @return {Object} - A DOM Node matching the vTree
  */
-export default function createNode(vTree, ownerDocument = document) {
+export default function createNode(vTree, ownerDocument = document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {
     if (!vTree) {
       throw new Error('Missing VTree when trying to create DOM Node');
@@ -28,6 +29,7 @@ export default function createNode(vTree, ownerDocument = document) {
   }
 
   const { nodeName, childNodes = [] } = vTree;
+  isSVG = isSVG || nodeName === 'svg';
 
   // Will vary based on the properties of the VTree.
   let domNode = null;
@@ -50,12 +52,8 @@ export default function createNode(vTree, ownerDocument = document) {
     else if (nodeName === '#document-fragment') {
       domNode = ownerDocument.createDocumentFragment();
     }
-    // If the nodeName matches any of the known SVG element names, mark it as
-    // SVG. The reason for doing this over detecting if nested in an <svg>
-    // element, is that we do not currently have circular dependencies in the
-    // VTree, by avoiding parentNode, so there is no way to crawl up the
-    // parents.
-    else if (elements.indexOf(nodeName) > -1) {
+    // Support SVG.
+    else if (isSVG) {
       domNode = ownerDocument.createElementNS(namespace, nodeName);
     }
     // If not a Text or SVG Node, then create with the standard method.
@@ -70,7 +68,7 @@ export default function createNode(vTree, ownerDocument = document) {
   // Append all the children into the domNode, making sure to run them
   // through this `createNode` function as well.
   for (let i = 0; i < childNodes.length; i++) {
-    domNode.appendChild(createNode(childNodes[i], ownerDocument));
+    domNode.appendChild(createNode(childNodes[i], ownerDocument, isSVG));
   }
 
   return domNode;

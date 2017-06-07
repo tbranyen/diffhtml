@@ -4,8 +4,7 @@ import validateMemory from '../util/validateMemory';
 
 describe('Integration: SVG', function() {
   beforeEach(function() {
-    this.fixture = document.createElement('div');
-    this.fixture.innerHTML = '<svg></svg>';
+    this.fixture = document.createElement('svg');
     this.namespace = 'http://www.w3.org/2000/svg';
   });
 

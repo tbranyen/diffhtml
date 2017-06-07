@@ -15,9 +15,10 @@ const removeAttribute = (domNode, name) => {
   }
 };
 
-export default function patchNode(patches) {
+export default function patchNode(patches, state = {}) {
   const promises = [];
   const { TREE_OPS, NODE_VALUE, SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
+  const { isSVG, ownerDocument } = state;
 
   // Set attributes.
   if (SET_ATTRIBUTE.length) {
@@ -26,7 +27,7 @@ export default function patchNode(patches) {
       const _name = SET_ATTRIBUTE[i + 1];
       const value = decodeEntities(SET_ATTRIBUTE[i + 2]);
 
-      const domNode = createNode(vTree);
+      const domNode = createNode(vTree, ownerDocument, isSVG);
       const attributeChanged = TransitionCache.get('attributeChanged');
       const oldValue = domNode.getAttribute(_name);
       const newPromises = runTransitions(
@@ -119,21 +120,21 @@ export default function patchNode(patches) {
       for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
         const vTree = INSERT_BEFORE[i];
         const newTree = INSERT_BEFORE[i + 1];
-        const referenceTree = INSERT_BEFORE[i + 2];
+        const refTree = INSERT_BEFORE[i + 2];
 
         const domNode = NodeCache.get(vTree);
-        const referenceNode = referenceTree && createNode(referenceTree);
+        const refNode = refTree && createNode(refTree, ownerDocument, isSVG);
         const attached = TransitionCache.get('attached');
 
-        if (referenceTree) {
-          protectVTree(referenceTree);
+        if (refTree) {
+          protectVTree(refTree);
         }
 
-        const newNode = createNode(newTree);
+        const newNode = createNode(newTree, ownerDocument, isSVG);
         protectVTree(newTree);
 
         // If refNode is `null` then it will simply append like `appendChild`.
-        domNode.insertBefore(newNode, referenceNode);
+        domNode.insertBefore(newNode, refNode);
 
         const attachedPromises = runTransitions('attached', newNode);
 
@@ -171,7 +172,7 @@ export default function patchNode(patches) {
         const oldTree = REPLACE_CHILD[i + 1];
 
         const oldDomNode = NodeCache.get(oldTree);
-        const newDomNode = createNode(newTree);
+        const newDomNode = createNode(newTree, ownerDocument, isSVG);
         const attached = TransitionCache.get('attached');
         const detached = TransitionCache.get('detached');
         const replaced = TransitionCache.get('replaced');
