@@ -1,16 +1,20 @@
 {
   "name": "diffhtml-bundling",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.2",
   "description": "Demonstrates various bundling and deployment techniques",
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "diffhtml": "1.0.0-beta.1",
-    "diffhtml-components": "1.0.0-beta.1",
-    "diffhtml-prollyfill": "1.0.0-beta.1",
-    "diffhtml-middleware-inline-transitions": "1.0.0-beta.1"
+    "diffhtml": "^1.0.0-beta.2",
+    "diffhtml-components": "^1.0.0-beta.2",
+    "diffhtml-middleware-inline-transitions": "^1.0.0-beta.2",
+    "diffhtml-prollyfill": "^1.0.0-beta.2"
   },
-  "keywords": ["diffhtml", "bundling", "techniques"],
+  "keywords": [
+    "diffhtml",
+    "bundling",
+    "techniques"
+  ],
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT"
 }
