@@ -14,6 +14,10 @@ export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
 ];
 
+export const tasks = {
+  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise
+};
+
 export default class Transaction {
   static create(domNode, markup, options) {
     return new Transaction(domNode, markup, options);

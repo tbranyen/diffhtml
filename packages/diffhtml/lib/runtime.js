@@ -2,7 +2,7 @@ import createTree from './tree/create';
 import internals from './util/internals';
 import innerHTML from './inner-html';
 import outerHTML from './outer-html';
-import { defaultTasks } from './transaction';
+import { defaultTasks, tasks } from './transaction';
 import release from './release';
 import use from './use';
 import { addTransitionState, removeTransitionState } from './transition';
@@ -27,7 +27,7 @@ const api = {
 // leverage internal APIs that are not part of the public API. There are no
 // promises that this will not break in the future. We will attempt to minimize
 // changes and will supply fallbacks when APIs change.
-const Internals = Object.assign(internals, api, { defaultTasks });
+const Internals = Object.assign(internals, api, { defaultTasks, tasks });
 
 // Attach a circular reference to `Internals` for ES/CJS builds.
 api.Internals = Internals;

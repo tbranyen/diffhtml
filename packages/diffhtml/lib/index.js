@@ -5,7 +5,7 @@ import internals from './util/internals';
 import parse from './util/parse';
 import innerHTML from './inner-html';
 import outerHTML from './outer-html';
-import { defaultTasks } from './transaction';
+import { defaultTasks, tasks } from './transaction';
 import html from './html';
 import release from './release';
 import use from './use';
@@ -33,7 +33,7 @@ const api = {
 // changes and will supply fallbacks when APIs change.
 //
 // Note: The HTML parser is only available in this mode.
-const Internals = Object.assign(internals, api, { parse, defaultTasks });
+const Internals = Object.assign(internals, api, { parse, defaultTasks, tasks });
 
 // Attach a circular reference to `Internals` for ES/CJS builds.
 api.Internals = Internals;
