@@ -7219,7 +7219,7 @@ exports.default = function (_ref) {
   var interpolateValues = function interpolateValues(string, supplemental, createTree) {
     // If this is text and not a doctype, add as a text node.
     if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
-      return [t.stringLiteral('#text'), t.stringLiteral(string)];
+      return t.arrayExpression([t.stringLiteral('#text'), t.stringLiteral(string)]);
     }
 
     var childNodes = [];
@@ -7247,10 +7247,10 @@ exports.default = function (_ref) {
         if (typeof innerTree.rawNodeName === 'string' && isFragment) {
           childNodes.push.apply(childNodes, _toConsumableArray(innerTree.childNodes));
         } else {
-          if (innerTree.type === 'StringLiteral') {
+          if (innerTree.type === 'StringLiteral' || innerTree.type === 'NumberLiteral') {
             childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.nullLiteral(), innerTree]));
           } else {
-            childNodes.push(t.callExpression(createTree, [innerTree]));
+            childNodes.push(innerTree);
           }
         }
       } else if (!doctypeEx.test(value) && hasNonWhitespaceEx.test(value) || i !== 0 && i !== length - 1) {
@@ -7270,7 +7270,7 @@ exports.default = function (_ref) {
     if (identifiers.length === 0) {
       return;
     } else if (identifiers.length === 1) {
-      return identifiers[0];
+      return t.identifier(identifiers[0]);
     } else {
       return identifiers.reduce(function (memo, identifier) {
         if (!memo) {
@@ -7470,12 +7470,12 @@ exports.default = function (_ref) {
           var args = [];
 
           // Replace attribute values.
-          attributes.properties.forEach(function (property) {
-            var token = property.value.value.match(tokenEx);
+          attributes.properties.forEach(function (property, i, properties) {
+            var keyToken = property.key.value.match(tokenEx);
+            var valueToken = property.value.value.match(tokenEx);
 
-            if (token) {
-              property.value = supplemental.attributes[token[1]];
-            }
+            properties[i] = t.objectProperty(keyToken ? supplemental.attributes[keyToken[1]] : property.key, valueToken ? supplemental.attributes[valueToken[1]] : property.value, Boolean(keyToken // isComputed
+            ));
           });
 
           // Real elements.
@@ -7493,7 +7493,9 @@ exports.default = function (_ref) {
               isDynamic = true;
             }
 
-            args.push(createTree, [identifierIsInScope ? t.identifier(rawNodeName) : nodeName, attributes, t.arrayExpression(_expressions.map(function (expr) {
+            var token = rawNodeName.match(tokenEx);
+
+            args.push(createTree, [identifierIsInScope ? t.identifier(rawNodeName) : token ? supplemental.tags[token[1]] : nodeName, attributes, t.arrayExpression(_expressions.map(function (expr) {
               return expr.expression;
             }))]);
           }
@@ -7516,7 +7518,7 @@ exports.default = function (_ref) {
               }
             }
 
-          var callExpr = args.length ? t.callExpression.apply(null, args) : args.replacement;
+          var callExpr = args.replacement || t.callExpression.apply(null, args);
 
           // TODO This will determine if the Node is embedded in a dynamic call
           // in which case it cannot be hoisted.
