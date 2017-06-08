@@ -134,16 +134,21 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
       }
 
       if (renderTree.nodeType === 11) {
-        throw new Error('Top level render must return single Node');
+        newTree.childNodes = [...renderTree.childNodes];
+
+        if (instance) {
+          ComponentTreeCache.set(instance, oldTree);
+          InstanceCache.set(oldTree, instance);
+        }
       }
+      else {
+        // Build a new tree from the render, and use this as the current tree.
+        newTree.childNodes[i] = renderTree;
 
-      // Build a new tree from the render, and use this as the current tree.
-      newTree.childNodes[i] = renderTree;
-
-      // Cache this new current tree.
-      if (instance) {
-        ComponentTreeCache.set(instance, renderTree);
-        InstanceCache.set(renderTree, instance);
+        if (instance) {
+          ComponentTreeCache.set(instance, renderTree);
+          InstanceCache.set(renderTree, instance);
+        }
       }
 
       // Recursively update trees.

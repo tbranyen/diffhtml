@@ -21,7 +21,7 @@ export default function({ types: t }) {
   const interpolateValues = (string, supplemental, createTree) => {
     // If this is text and not a doctype, add as a text node.
     if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
-      return [t.stringLiteral('#text'), t.stringLiteral(string)];
+      return t.arrayExpression([t.stringLiteral('#text'), t.stringLiteral(string)]);
     }
 
     const childNodes = [];
@@ -45,11 +45,11 @@ export default function({ types: t }) {
           childNodes.push(...innerTree.childNodes);
         }
         else {
-          if (innerTree.type === 'StringLiteral') {
+          if (innerTree.type === 'StringLiteral' || innerTree.type === 'NumberLiteral') {
             childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.nullLiteral(), innerTree]));
           }
           else {
-            childNodes.push(t.callExpression(createTree, [innerTree]));
+            childNodes.push(innerTree);
           }
         }
       }
@@ -71,7 +71,7 @@ export default function({ types: t }) {
       return;
     }
     else if (identifiers.length === 1) {
-      return identifiers[0];
+      return t.identifier(identifiers[0]);
     }
     else {
       return identifiers.reduce((memo, identifier) => {
@@ -276,12 +276,15 @@ export default function({ types: t }) {
           const args = [];
 
           // Replace attribute values.
-          attributes.properties.forEach(property => {
-            const token = property.value.value.match(tokenEx);
+          attributes.properties.forEach((property, i, properties) => {
+            const keyToken = property.key.value.match(tokenEx);
+            const valueToken = property.value.value.match(tokenEx);
 
-            if (token) {
-              property.value = supplemental.attributes[token[1]];
-            }
+            properties[i] = t.objectProperty(
+              keyToken ? supplemental.attributes[keyToken[1]] : property.key,
+              valueToken ? supplemental.attributes[valueToken[1]] : property.value,
+              Boolean(keyToken) // isComputed
+            );
           });
 
           // Real elements.
@@ -299,8 +302,10 @@ export default function({ types: t }) {
               isDynamic = true;
             }
 
+            const token = rawNodeName.match(tokenEx);
+
             args.push(createTree, [
-              identifierIsInScope ? t.identifier(rawNodeName) : nodeName,
+              identifierIsInScope ? t.identifier(rawNodeName) : (token ? supplemental.tags[token[1]] : nodeName),
               attributes,
               t.arrayExpression(expressions.map(expr => expr.expression)),
             ]);
@@ -330,9 +335,7 @@ export default function({ types: t }) {
             }
           }
 
-          const callExpr = args.length ?
-            t.callExpression.apply(null, args) :
-            args.replacement;
+          const callExpr = args.replacement || t.callExpression.apply(null, args);
 
           // TODO This will determine if the Node is embedded in a dynamic call
           // in which case it cannot be hoisted.

@@ -1,4 +1,4 @@
-import { equal, throws, doesNotThrow } from 'assert';
+import { deepEqual, equal, throws, doesNotThrow } from 'assert';
 import { innerHTML, html, createTree, use } from 'diffhtml';
 import PropTypes from 'prop-types';
 import WebComponent from '../lib/web-component';
@@ -31,28 +31,60 @@ describe('Web Component', function() {
     equal(document.body.innerHTML, '<custom-component></custom-component>');
   });
 
-  it('can pass properties to constructor', () => {
-    let ctorMessage = null;
+  describe('Props', () => {
+    it('can pass properties to constructor', () => {
+      let ctorMessage = null;
 
-    class CustomComponent extends WebComponent {
-      render({ message }) {
-        return html`
-          <div>${message}</div>
-        `;
+      class CustomComponent extends WebComponent {
+        render({ message }) {
+          return html`
+            <div>${message}</div>
+          `;
+        }
+
+        constructor(props) {
+          super(props);
+
+          ctorMessage = props.message;
+        }
       }
 
-      constructor(props) {
-        super(props);
+      customElements.define('custom-component', CustomComponent);
 
-        ctorMessage = props.message;
+      innerHTML(document.body, html`<custom-component message="Test" />`);
+
+      equal(ctorMessage, 'Test');
+    });
+
+    it('can pass children in properties to constructor', () => {
+      let children = null;
+
+      class CustomComponent extends WebComponent {
+        render({ message }) {
+          return html`
+            <div>${message}</div>
+          `;
+        }
+
+        constructor(props) {
+          super(props);
+
+          children = props.children;
+        }
       }
-    }
 
-    customElements.define('custom-component', CustomComponent);
+      customElements.define('custom-component', CustomComponent);
 
-    innerHTML(document.body, html`<custom-component message="Test" />`);
+      innerHTML(document.body, html`<custom-component message="Test">
+        <span>Testing</span>
+      </custom-component>`);
 
-    equal(ctorMessage, 'Test');
+      deepEqual(children, [
+        createTree('#text', '\n        '),
+        createTree('span', null, 'Testing'),
+        createTree('#text', '\n      '),
+      ]);
+    });
   });
 
   describe('JSX Compatibility', () => {

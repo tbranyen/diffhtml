@@ -29,18 +29,6 @@ export const plugins = [
   hypothetical({
     allowRealFiles: true,
     files: {
-      './lib/html.js': `
-        import createTree from './tree/create';
-
-        export default function html(...args) {
-          return createTree(...args);
-        }
-      `,
-
-      './lib/util/parse.js': `
-        export default () => console.error('Runtime is not built with parsing');
-      `,
-
       './lib/util/performance.js': `
         export default () => () => {};
       `,

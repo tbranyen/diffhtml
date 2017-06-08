@@ -127,9 +127,22 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   if (nodes && nodeArray.length) {
     for (let i = 0; i < nodeArray.length; i++) {
       const newNode = nodeArray[i];
+      const isArray = Array.isArray(newNode);
 
+      // Merge in arrays.
+      if (isArray) {
+        for (let i = 0; i < newNode.length; i++) {
+          entry.childNodes.push(newNode[i]);
+        }
+      }
+      // Merge in fragments.
+      else if (newNode.nodeType === 11 && typeof newNode.rawNodeName === 'string') {
+        for (let i = 0; i < newNode.childNodes.length; i++) {
+          entry.childNodes.push(newNode.childNodes[i]);
+        }
+      }
       // Assume objects are vTrees.
-      if (typeof newNode === 'object') {
+      else if (newNode && typeof newNode === 'object') {
         entry.childNodes.push(newNode);
       }
       // Cover generate cases where a user has indicated they do not want a
