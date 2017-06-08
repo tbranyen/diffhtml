@@ -1,15 +1,15 @@
 {
   "name": "diffhtml-bundling",
   "private": true,
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Demonstrates various bundling and deployment techniques",
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "diffhtml": "^1.0.0-beta.3",
-    "diffhtml-components": "^1.0.0-beta.3",
-    "diffhtml-middleware-inline-transitions": "^1.0.0-beta.3",
-    "diffhtml-prollyfill": "^1.0.0-beta.3"
+    "diffhtml": "^1.0.0-beta.4",
+    "diffhtml-components": "^1.0.0-beta.4",
+    "diffhtml-middleware-inline-transitions": "^1.0.0-beta.4",
+    "diffhtml-prollyfill": "^1.0.0-beta.4"
   },
   "keywords": [
     "diffhtml",

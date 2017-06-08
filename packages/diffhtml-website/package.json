@@ -1,7 +1,7 @@
 {
   "name": "diffhtml-website",
   "private": true,
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "",
   "main": "server.js",
   "scripts": {
@@ -14,9 +14,9 @@
   "dependencies": {
     "combyne": "^2.0.0",
     "connect-livereload": "^0.5.4",
-    "diffhtml": "^1.0.0-beta.3",
-    "diffhtml-components": "^1.0.0-beta.3",
-    "diffhtml-static-sync": "^1.0.0-beta.3",
+    "diffhtml": "^1.0.0-beta.4",
+    "diffhtml-components": "^1.0.0-beta.4",
+    "diffhtml-static-sync": "^1.0.0-beta.4",
     "express": "^4.14.0",
     "font-awesome": "^4.6.3",
     "proxy-polyfill": "^0.1.6",
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "babel-polyfill": "^6.13.0",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.3",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.4",
     "babel-preset-es2015": "^6.22.0",
     "babelify": "^7.3.0",
     "combynexpress": "^3.0.0",

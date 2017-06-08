@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-logger",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Logs out render transactions to the console",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -26,8 +26,8 @@
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.3",
-    "diffhtml": "^1.0.0-beta.3",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.4",
+    "diffhtml": "^1.0.0-beta.4",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-node-resolve": "^2.0.0",
@@ -37,6 +37,6 @@
     "uglify-js": "^3.0.15"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.3"
+    "diffhtml": "^1.0.0-beta.4"
   }
 }

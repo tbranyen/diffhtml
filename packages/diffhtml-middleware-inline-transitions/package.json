@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-inline-transitions",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Monitors inline attributes and assigns transition hooks",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -28,10 +28,10 @@
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.3",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.4",
     "babel-register": "^6.23.0",
     "coveralls": "^2.11.15",
-    "diffhtml": "^1.0.0-beta.3",
+    "diffhtml": "^1.0.0-beta.4",
     "istanbul": "^1.1.0-alpha.1",
     "jsdom-wc": "^11.0.0-alpha-1",
     "mocha": "^3.2.0",
@@ -44,6 +44,6 @@
     "uglify-js": "^3.0.15"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.3"
+    "diffhtml": "^1.0.0-beta.4"
   }
 }
