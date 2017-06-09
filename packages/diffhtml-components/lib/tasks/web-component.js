@@ -5,6 +5,10 @@ const { assign } = Object;
 
 export default function webComponentTask(transaction) {
   return transaction.onceEnded(() => {
+    if (transaction.aborted) {
+      return;
+    }
+
     const { patches } = transaction;
 
     if (patches.TREE_OPS && patches.TREE_OPS.length) {

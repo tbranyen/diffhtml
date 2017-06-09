@@ -59,6 +59,10 @@ function componentDidUnmount(oldTree) {
 
 export default function reactLikeComponentTask(transaction) {
   return transaction.onceEnded(() => {
+    if (transaction.aborted) {
+      return;
+    }
+
     const { patches } = transaction;
 
     if (patches.TREE_OPS && patches.TREE_OPS.length) {
