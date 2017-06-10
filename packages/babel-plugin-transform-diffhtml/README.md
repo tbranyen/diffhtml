@@ -6,9 +6,9 @@ This plugin transforms tagged template strings in your projects to
 [diffHTML](https://github.com/tbranyen/diffhtml) `createTree` calls. 
 
 More specifically this plugin transforms tagged template strings
-(`html\`<div></div>\``) in your JavaScript files to flat strings that get
-parsed by the diffHTML HTML Parser, from there they are pieced back together
-using the AST into a valid JSX/HyperScript-like `h(tagName, props,
+(`html\`&lt;div&gt;&lt;/div&gt;\``) in your JavaScript files to flat strings
+that get parsed by the diffHTML HTML Parser, from there they are pieced back
+together using the AST into a valid JSX/HyperScript-like `h(tagName, props,
 ...childNodes)`. This is both a runtime performance optimization as well as a
 build time since you can exclude more of diffHTML from your build.
 
