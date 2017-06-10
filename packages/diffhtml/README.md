@@ -1,4 +1,4 @@
-# <div style="background-color: #FFF; display: inline-block; padding: 10px 0px; color: #333;"><±/> diffHTML</div>
+# <div style="background-color: #FFF; display: inline-block; padding: 10px 0px; color: #333; letter-spacing: 2px;"><±/> diffHTML</div>
 
 *The core diffHTML library that parses HTML, syncs changes, and patches the DOM.*
 

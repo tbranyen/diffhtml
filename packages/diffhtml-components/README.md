@@ -1,4 +1,4 @@
-# <div style="background-color: #FFF; display: inline-block; padding: 10px 0px; color: #333;"><±/> diffHTML Components</div>
+# <±/> diffHTML: Components
 
 *JavaScript classes for rendering components using either Custom Element or
 React-inspired implementations.*

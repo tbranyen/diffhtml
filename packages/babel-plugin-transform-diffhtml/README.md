@@ -1,5 +1,4 @@
-diffHTML Babel Transform Plugin
--------------------------------
+# <±/> diffHTML: Babel Transform Plugin
 
 Stable Version: 1.0.0-beta.4
 
@@ -16,13 +15,13 @@ build time since you can exclude more of diffHTML from your build.
 **Note!* This plugin has been built for use in Babel 6.x environments, and will
 not work with Babel 5.x ( *deprecated*) or older versions.**
 
-##### Installation
+## Installation
 
 ``` javascript
 npm i --save-dev babel-plugin-transform-diffhtml
 ```
 
-##### How to use
+## How to use
 
 Add the plugin to your `package.json` and update the plugin section in your
 `.babelrc` file. Or if your Babel settings are located inside the
@@ -76,7 +75,7 @@ function renderTime(time) {
 renderTime(new Date());
 ```
 
-##### Specifying options
+### Specifying options
 
 You can override three identifiers that are used within the transform:
 

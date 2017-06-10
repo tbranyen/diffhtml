@@ -1,5 +1,4 @@
-diffHTML Middleware Logger
---------------------------
+# <±/> diffHTML: Logger Middleware
 
 Stable Version: 1.0.0-beta.4
 
