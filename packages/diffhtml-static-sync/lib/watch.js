@@ -5,8 +5,10 @@ const express = require('express');
 const getSocket = require('./socket');
 const clientScript = require('./util/client-script');
 
+const CWD = process.cwd();
+
 const webServer = express();
-const watcher = watch(process.cwd(), {
+const watcher = watch(CWD, {
   ignored: /[\/\\]\./,
   persistent: true,
 });
@@ -17,7 +19,7 @@ webServer.use('/', (req, res, next) => {
 
   if (isRoot || ext === '.html') {
     const path = isRoot ? 'index.html' : req.url;
-    readFile(join(process.cwd(), req.url), (err, buffer) => {
+    readFile(join(CWD, path), (err, buffer) => {
       res.send(`
         ${String(buffer)}
         <script>${clientScript}</script>
@@ -29,16 +31,25 @@ webServer.use('/', (req, res, next) => {
   }
 });
 
-webServer.use(express.static(process.cwd()));
+webServer.use(express.static(CWD));
 
 webServer.listen(process.env.SERVER_PORT || 8000, () => {
   console.log('Listening at http://localhost:8000');
 
-  getSocket.then(socket => {
+  getSocket.then(sockets => {
     console.log('Socket connection established, monitoring files...');
 
-    watcher.on('change', path => readFile(path, (err, buffer) => socket.send(
-      JSON.stringify({ file: basename(path), markup: String(buffer) })
-    )));
+    watcher.on('change', path => {
+      console.log(`${path} changed`);
+
+      readFile(path, (err, buffer) => {
+        sockets.forEach(socket => {
+          socket.send(JSON.stringify({
+            file: path.slice(CWD.length + 1),
+            markup: String(buffer),
+          }));
+        });
+      });
+    });
   });
 });
