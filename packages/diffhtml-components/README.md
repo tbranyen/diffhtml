@@ -1,4 +1,4 @@
-# <±/> diffHTML: Components
+# <±/> diffHTML Components
 
 *JavaScript classes for rendering components using either Custom Element or
 React-inspired implementations.*

@@ -1,4 +1,4 @@
-# <±/> diffHTML: Inline Transitions Middleware
+# <±/> diffHTML Inline Transitions Middleware
 
 Stable Version: 1.0.0-beta.4
 

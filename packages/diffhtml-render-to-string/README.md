@@ -1,5 +1,4 @@
-diffHTML Render To String
--------------------------
+# <±/> diffHTML Render to String
 
 Stable Version: 1.0.0-beta.4
 

@@ -1,6 +1,6 @@
-# <±/> diffHTML: A JavaScript View Library
+# <±/> diffHTML
 
-*An integrated collection of JavaScript tools for building user interfaces.*
+*A suite of JavaScript tools for building user interfaces.*
 
 Stable version: 1.0.0-beta.4
 

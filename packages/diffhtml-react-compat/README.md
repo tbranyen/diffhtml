@@ -1,5 +1,4 @@
-diffHTML React Compatibility Package
-------------------------------------
+# <±/> diffHTML React Compat 
 
 Stable Version: 1.0.0-beta.4
 

@@ -1,4 +1,4 @@
-# <±/> diffHTML: Babel Transform Plugin
+# <±/> diffHTML Babel Transform Plugin
 
 Stable Version: 1.0.0-beta.4
 

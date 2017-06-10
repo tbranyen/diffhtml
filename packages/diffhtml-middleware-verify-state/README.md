@@ -1,5 +1,4 @@
-diffHTML Middleware Verify State
---------------------------------
+# <±/> diffHTML Verify State Middleware
 
 Stable Version: 1.0.0-beta.4
 
