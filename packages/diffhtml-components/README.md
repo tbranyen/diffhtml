@@ -52,7 +52,7 @@ customElements.define('web-component', class extends WebComponent {
   }
 });
 
-innerHTML(document.body, html`<${App} />`);
+innerHTML(document.body, html`<${MyComponent} />`);
 ```
 
 ## PropTypes
