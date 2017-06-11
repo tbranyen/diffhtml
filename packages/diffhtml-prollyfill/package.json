@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-prollyfill",
-  "version": "1.0.0-beta.5",
+  "version": "1.0.0-beta.6",
   "description": "Exposes an experimental browser API for diffHTML",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -26,8 +26,8 @@
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.5",
-    "diffhtml": "^1.0.0-beta.5",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.6",
+    "diffhtml": "^1.0.0-beta.6",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-hypothetical": "^1.2.1",
@@ -38,6 +38,6 @@
     "uglify-js": "^3.0.15"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.5"
+    "diffhtml": "^1.0.0-beta.6"
   }
 }

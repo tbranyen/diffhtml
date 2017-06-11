@@ -1,6 +1,6 @@
 {
   "name": "diffhtml",
-  "version": "1.0.0-beta.5",
+  "version": "1.0.0-beta.6",
   "description": "Build JavaScript components and apps using a Virtual DOM",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -32,7 +32,7 @@
   "devDependencies": {
     "babel-cli": "^6.23.0",
     "babel-plugin-istanbul": "^4.0.0",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.5",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.6",
     "babel-register": "^6.23.0",
     "coveralls": "^2.11.16",
     "jsdom": "^9.10.0",
