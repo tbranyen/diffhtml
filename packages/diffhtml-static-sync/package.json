@@ -5,7 +5,8 @@
   "version": "1.0.0-beta.5",
   "description": "A static HTTP server that hot reloads HTML on save",
   "scripts": {
-    "build": "mkdir -p dist ; browserify -t babelify sync.js -o dist/sync.js"
+    "build": "mkdir -p dist ; browserify -t babelify sync.js -o dist/sync.js",
+    "watch": "mkdir -p dist ; watchify -t babelify sync.js -o dist/sync.js -v"
   },
   "keywords": [
     "diffhtml",
@@ -26,6 +27,7 @@
     "babel-preset-es2015": "^6.18.0",
     "babelify": "^7.3.0",
     "browserify": "^13.1.1",
-    "engine.io-client": "^1.8.1"
+    "engine.io-client": "^1.8.1",
+    "watchify": "^3.9.0"
   }
 }

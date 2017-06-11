@@ -54,7 +54,10 @@ function open() {
 
       if (staticSyncHandlers.size) {
         let retVal = false;
-        retVal = staticSyncHandlers.forEach(fn => fn({ file, markup }));
+
+        staticSyncHandlers.forEach(fn => {
+          retVal = retVal || fn({ file, markup });
+        });
 
         if (retVal) {
           return retVal;
@@ -90,16 +93,16 @@ function open() {
           console.log(`Updated with: ${markup}`);
         }
 
-        outerHTML(document.documentElement, markup || '<html></html>')
+        outerHTML(document.documentElement, markup || '<html></html>');
+        /*
           .then(() => {
             Internals.StateCache.forEach((state, domNode) => {
               if (domNode !== document.documentElement) {
-                console.log(domNode.isConnected);
-                console.log(domNode, state.previousMarkup);
                 outerHTML(domNode, state.previousMarkup);
               }
             });
           });
+        */
       }
 
       // All other files cause a full page reload.
