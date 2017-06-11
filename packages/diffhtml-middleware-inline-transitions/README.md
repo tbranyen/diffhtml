@@ -1,6 +1,6 @@
 # <±/> diffHTML Inline Transitions Middleware
 
-Stable Version: 1.0.0-beta.4
+Stable Version: 1.0.0-beta.5
 
 Tiny module to support binding/unbinding declarative diffHTML transition hooks.
 
