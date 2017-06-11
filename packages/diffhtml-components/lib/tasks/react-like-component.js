@@ -129,16 +129,20 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
           renderTree = oldInstance.render(props, oldInstance.state);
         }
       }
+      else if (instance && instance.render) {
+        renderTree = createTree(instance.render(props, instance.state));
+      }
       else {
-        renderTree = createTree
-          (instance && instance.render ? instance.render(props, instance.state) : newCtor(props)
-        );
+        renderTree = createTree(newCtor(props));
       }
 
+      // Nothing was rendered so continue.
       if (!renderTree) {
         continue;
       }
 
+      // Replace the rendered value into the new tree, if rendering a fragment
+      // this will inject the contents into the parent.
       if (renderTree.nodeType === 11) {
         newTree.childNodes = [...renderTree.childNodes];
 
@@ -147,8 +151,9 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
           InstanceCache.set(oldTree, instance);
         }
       }
+      // If the rendered value is a single element use it as the root for
+      // diffing.
       else {
-        // Build a new tree from the render, and use this as the current tree.
         newTree.childNodes[i] = renderTree;
 
         if (instance) {
