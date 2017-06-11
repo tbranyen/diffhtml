@@ -46,15 +46,6 @@ export default function syncTree(oldTree, newTree, patches) {
         if (vTree.key) {
           map.set(vTree.key, vTree);
         }
-        else if (process.env.NODE_ENV !== 'production') {
-          if (map.size && vTree.nodeType === 1) {
-            throw new Error(
-            `Missing \`key\` all siblings must supply this attribute.
-
-Virtual Element: ${JSON.stringify(vTree, null, 2)}`
-            );
-          }
-        }
       }
     }
   }

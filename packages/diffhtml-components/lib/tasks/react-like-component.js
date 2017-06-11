@@ -97,17 +97,19 @@ export default function reactLikeComponentTask(transaction) {
 }
 
 reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
+  const oldChildNodes = oldTree && oldTree.childNodes ;
+
   // Stateful components have a very limited API, designed to be fully
   // implemented by a higher-level abstraction. The only method ever called is
   // `render`. It is up to a higher level abstraction on how to handle the
   // changes.
   for (let i = 0; i < newTree.childNodes.length; i++) {
-    const oldChild = oldTree && oldTree.childNodes && oldTree.childNodes[i];
     const newChild = newTree.childNodes[i];
 
     // If incoming tree is a component, flatten down to tree for now.
     if (newChild && typeof newChild.rawNodeName === 'function') {
       const newCtor = newChild.rawNodeName;
+      const oldChild = oldChildNodes && oldChildNodes[i];
       const oldInstanceCache = InstanceCache.get(oldChild);
       const children = newChild.childNodes;
       const props = assign({}, newChild.attributes, { children });
@@ -127,16 +129,20 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
           renderTree = oldInstance.render(props, oldInstance.state);
         }
       }
+      else if (instance && instance.render) {
+        renderTree = createTree(instance.render(props, instance.state));
+      }
       else {
-        renderTree = createTree
-          (instance && instance.render ? instance.render(props, instance.state) : newCtor(props)
-        );
+        renderTree = createTree(newCtor(props));
       }
 
+      // Nothing was rendered so continue.
       if (!renderTree) {
         continue;
       }
 
+      // Replace the rendered value into the new tree, if rendering a fragment
+      // this will inject the contents into the parent.
       if (renderTree.nodeType === 11) {
         newTree.childNodes = [...renderTree.childNodes];
 
@@ -145,8 +151,9 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
           InstanceCache.set(oldTree, instance);
         }
       }
+      // If the rendered value is a single element use it as the root for
+      // diffing.
       else {
-        // Build a new tree from the render, and use this as the current tree.
         newTree.childNodes[i] = renderTree;
 
         if (instance) {
@@ -154,9 +161,8 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
           InstanceCache.set(renderTree, instance);
         }
       }
-
-      // Recursively update trees.
-      return newTree;
     }
   }
+
+  return newTree;
 };

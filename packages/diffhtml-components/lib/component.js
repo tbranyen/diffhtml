@@ -61,7 +61,9 @@ export default upgradeSharedClass(class Component {
     });
 
     if (process.env.NODE_ENV !== 'production') {
-      PropTypes.checkPropTypes(propTypes, props, 'prop', name);
+      if (PropTypes.checkPropTypes) {
+        PropTypes.checkPropTypes(propTypes, props, 'prop', name);
+      }
     }
 
     //keys(childContextTypes).forEach(prop => {

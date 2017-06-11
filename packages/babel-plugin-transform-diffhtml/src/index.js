@@ -327,11 +327,18 @@ export default function({ types: t }) {
               isDynamic = true;
             }
             else {
-              args.push(createTree, [
-                t.stringLiteral('#text'),
-                t.nullLiteral(),
-                nodeValue
-              ]);
+              let id = path.scope.generateUidIdentifier('vtree');
+
+              path.scope.parent.push({
+                id,
+                init: t.callExpression(createTree, [
+                  t.stringLiteral('#text'),
+                  t.nullLiteral(),
+                  nodeValue,
+                ])
+              });
+
+              args.replacement = id;
             }
           }
 

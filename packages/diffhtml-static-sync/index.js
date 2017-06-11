@@ -7,7 +7,6 @@ if (require.main === module) {
 const { readFile, readFileSync } = require('fs');
 const { basename, join } = require('path');
 const { watch } = require('chokidar');
-const express = require('express');
 const getSocket = require('./lib/socket');
 
 exports.clientScript = require('./lib/util/client-script');

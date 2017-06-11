@@ -2,4 +2,8 @@ const { readFileSync } = require('fs');
 const { join } = require('path');
 const escape = require('./escape');
 
-module.exports = escape(readFileSync(join(__dirname, '../../dist/sync.js')));
+Object.defineProperty(module, 'exports', {
+  get() {
+    return escape(readFileSync(join(__dirname, '../../dist/sync.js')));
+  }
+});

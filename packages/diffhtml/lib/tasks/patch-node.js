@@ -9,11 +9,9 @@ import patchNode from '../node/patch';
 export default function patch(transaction) {
   const { domNode, state, state: { measure }, patches } = transaction;
   const { promises = [] } = transaction;
+  const { namespaceURI = '', nodeName } = domNode;
 
-  // Is the root SVG?
-  state.isSVG = transaction.oldTree.nodeName === 'svg';
-
-  // Set the ownerDocument.
+  state.isSVG = nodeName.toLowerCase() === 'svg' || namespaceURI.includes('svg');
   state.ownerDocument = domNode.ownerDocument || document;
 
   measure('patch node');

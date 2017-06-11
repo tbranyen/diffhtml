@@ -15,6 +15,8 @@ const removeAttribute = (domNode, name) => {
   }
 };
 
+const blacklist = new Set();
+
 export default function patchNode(patches, state = {}) {
   const promises = [];
   const { TREE_OPS, NODE_VALUE, SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
@@ -28,7 +30,6 @@ export default function patchNode(patches, state = {}) {
       const value = decodeEntities(SET_ATTRIBUTE[i + 2]);
 
       const domNode = createNode(vTree, ownerDocument, isSVG);
-      const attributeChanged = TransitionCache.get('attributeChanged');
       const oldValue = domNode.getAttribute(_name);
       const newPromises = runTransitions(
         'attributeChanged', domNode, _name, oldValue, value
@@ -45,12 +46,18 @@ export default function patchNode(patches, state = {}) {
       // Normal attribute value.
       if (!isObject && !isFunction && name) {
         const noValue = value === null || value === undefined;
+        // Runtime checking if the property can be set.
+        const blacklistName = vTree.nodeName + '-' + name;
 
-        // Allow the user to find the real value in the DOM Node as a
-        // property.
-        try {
-          domNode[name] = value;
-        } catch (unhandledException) {}
+        // If the property has not been blacklisted then use try/catch to try
+        // and set it.
+        if (!blacklist.has(blacklistName)) {
+          try {
+            domNode[name] = value;
+          } catch (unhandledException) {
+            blacklist.add(blacklistName);
+          }
+        }
 
         // Set the actual attribute, this will ensure attributes like
         // `autofocus` aren't reset by the property call above.
