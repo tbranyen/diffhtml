@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-components",
-  "version": "1.0.0-beta.4",
+  "version": "1.0.0-beta.5",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
   "jsnext:main": "dist/es/index",
@@ -11,9 +11,9 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-react-jsx": "^6.24.1",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.4",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.5",
     "babel-register": "^6.23.0",
-    "diffhtml": "^1.0.0-beta.4",
+    "diffhtml": "^1.0.0-beta.5",
     "diffhtml-shared-internals": "^1.0.0-beta.1",
     "jsdom-wc": "11.0.0-alpha-1",
     "mocha": "^3.2.0",
@@ -48,7 +48,7 @@
     "test:ci": "npm run test"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.4"
+    "diffhtml": "^1.0.0-beta.5"
   },
   "optionalDependencies": {
     "prop-types": "^15.5.10"
