@@ -81,7 +81,9 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
     });
 
     if (process.env.NODE_ENV !== 'production') {
-      PropTypes.checkPropTypes(propTypes, this.props, 'prop', name);
+      if (PropTypes.checkPropTypes) {
+        PropTypes.checkPropTypes(propTypes, this.props, 'prop', name);
+      }
     }
   }
 

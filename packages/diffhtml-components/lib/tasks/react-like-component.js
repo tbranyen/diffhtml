@@ -97,17 +97,19 @@ export default function reactLikeComponentTask(transaction) {
 }
 
 reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
+  const oldChildNodes = oldTree && oldTree.childNodes ;
+
   // Stateful components have a very limited API, designed to be fully
   // implemented by a higher-level abstraction. The only method ever called is
   // `render`. It is up to a higher level abstraction on how to handle the
   // changes.
   for (let i = 0; i < newTree.childNodes.length; i++) {
-    const oldChild = oldTree && oldTree.childNodes && oldTree.childNodes[i];
     const newChild = newTree.childNodes[i];
 
     // If incoming tree is a component, flatten down to tree for now.
     if (newChild && typeof newChild.rawNodeName === 'function') {
       const newCtor = newChild.rawNodeName;
+      const oldChild = oldChildNodes && oldChildNodes[i];
       const oldInstanceCache = InstanceCache.get(oldChild);
       const children = newChild.childNodes;
       const props = assign({}, newChild.attributes, { children });
@@ -154,9 +156,8 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
           InstanceCache.set(renderTree, instance);
         }
       }
-
-      // Recursively update trees.
-      return newTree;
     }
   }
+
+  return newTree;
 };
