@@ -49,6 +49,8 @@ Open http://localhost:8000
 Waiting for changes ⣻ Socket connection established
 ```
 
+Pass `--quiet` to prevent verbose logging in the browser console and terminal.
+
 ## Markdown
 
 Markdown is supported out-of-the-box, browse them as you would normal HTML
@@ -58,3 +60,26 @@ picked up automatically in folders.
 ## LiveReload
 
 By default any other file types are treated as a full page reload.
+
+## Static Handler
+
+You can define your own handlers to respond to file changes. These are set up
+as a global `Set`. Like so:
+
+``` js
+window.staticSyncHandlers = new Set();
+```
+
+You can add your own function hooks into the Set, but calling `add`:
+
+``` js
+staticSyncHandlers.add(({ file, markup /*, quiet */ }) => {
+  if (file === 'some/file') {
+    // Do something with the contents
+  }
+});
+```
+
+There is an optional argument quiet, shown above, that you can use to silence
+logging output to prevent clutter in the console. This is toggled from the
+`--quiet` CLI flag.
