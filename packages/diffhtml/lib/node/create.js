@@ -28,7 +28,7 @@ export default function createNode(vTree, ownerDocument = document, isSVG) {
     return existingNode;
   }
 
-  const { nodeName, childNodes = [] } = vTree;
+  const { nodeName, rawNodeName = nodeName, childNodes = [] } = vTree;
   isSVG = isSVG || nodeName === 'svg';
 
   // Will vary based on the properties of the VTree.
@@ -54,11 +54,11 @@ export default function createNode(vTree, ownerDocument = document, isSVG) {
     }
     // Support SVG.
     else if (isSVG) {
-      domNode = ownerDocument.createElementNS(namespace, nodeName);
+      domNode = ownerDocument.createElementNS(namespace, rawNodeName);
     }
     // If not a Text or SVG Node, then create with the standard method.
     else {
-      domNode = ownerDocument.createElement(nodeName);
+      domNode = ownerDocument.createElement(rawNodeName);
     }
   }
 

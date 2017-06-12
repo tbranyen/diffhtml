@@ -245,17 +245,13 @@ export default function({ types: t }) {
             return;
           }
 
-          const nodeName = childNode.properties.filter(property => {
-            return property.key.value === 'nodeName';
-          })[0].value;
-
           // The nodeName without `toLowerCase()` being called on it.
           const rawNodeName = childNode.properties.filter(property => {
             return property.key.value === 'rawNodeName';
-          })[0].value.value;
+          })[0].value;
 
           // Extract
-          const identifierIsInScope = path.scope.hasBinding(rawNodeName);
+          const identifierIsInScope = path.scope.hasBinding(rawNodeName.value);
 
           const nodeType = childNode.properties.filter(property => {
             return property.key.value === 'nodeType';
@@ -302,10 +298,10 @@ export default function({ types: t }) {
               isDynamic = true;
             }
 
-            const token = rawNodeName.match(tokenEx);
+            const token = rawNodeName.value.match(tokenEx);
 
             args.push(createTree, [
-              identifierIsInScope ? t.identifier(rawNodeName) : (token ? supplemental.tags[token[1]] : nodeName),
+              identifierIsInScope ? t.identifier(rawNodeName.value) : (token ? supplemental.tags[token[1]] : rawNodeName),
               attributes,
               t.arrayExpression(expressions.map(expr => expr.expression)),
             ]);

@@ -1,2 +1,2 @@
-export const ComponentTreeCache = new WeakMap();
-export const InstanceCache = new WeakMap();
+export const ComponentTreeCache = new Map();
+export const InstanceCache = new Map();

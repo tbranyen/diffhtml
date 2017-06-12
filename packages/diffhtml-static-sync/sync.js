@@ -56,7 +56,7 @@ function open() {
         let retVal = false;
 
         staticSyncHandlers.forEach(fn => {
-          retVal = retVal || fn({ file, markup });
+          retVal = retVal || fn({ file, markup, quiet });
         });
 
         if (retVal) {
@@ -84,6 +84,8 @@ function open() {
             domNode.href = domNode.href.replace(/\?.*|$/, queryString);
           });
         }
+
+        return;
       }
 
       const path = location.pathname.slice(1) || 'index.html';
