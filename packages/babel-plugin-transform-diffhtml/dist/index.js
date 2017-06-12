@@ -7439,17 +7439,13 @@ exports.default = function (_ref) {
             return;
           }
 
-          var nodeName = childNode.properties.filter(function (property) {
-            return property.key.value === 'nodeName';
-          })[0].value;
-
           // The nodeName without `toLowerCase()` being called on it.
           var rawNodeName = childNode.properties.filter(function (property) {
             return property.key.value === 'rawNodeName';
-          })[0].value.value;
+          })[0].value;
 
           // Extract
-          var identifierIsInScope = path.scope.hasBinding(rawNodeName);
+          var identifierIsInScope = path.scope.hasBinding(rawNodeName.value);
 
           var nodeType = childNode.properties.filter(function (property) {
             return property.key.value === 'nodeType';
@@ -7493,9 +7489,9 @@ exports.default = function (_ref) {
               isDynamic = true;
             }
 
-            var token = rawNodeName.match(tokenEx);
+            var token = rawNodeName.value.match(tokenEx);
 
-            args.push(createTree, [identifierIsInScope ? t.identifier(rawNodeName) : token ? supplemental.tags[token[1]] : nodeName, attributes, t.arrayExpression(_expressions.map(function (expr) {
+            args.push(createTree, [identifierIsInScope ? t.identifier(rawNodeName.value) : token ? supplemental.tags[token[1]] : rawNodeName, attributes, t.arrayExpression(_expressions.map(function (expr) {
               return expr.expression;
             }))]);
           }

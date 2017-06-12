@@ -124,6 +124,7 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
 
       if (oldInstance) {
         oldInstance.componentWillReceiveProps(props);
+        oldInstance.props = props;
 
         if (oldInstance.shouldComponentUpdate()) {
           renderTree = oldInstance.render(props, oldInstance.state);

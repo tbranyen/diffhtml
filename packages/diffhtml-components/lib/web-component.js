@@ -108,6 +108,7 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
     if (this.shadowRoot && !Debounce.has(this)) {
       const nextProps = createProps(this);
       this.componentWillReceiveProps(nextProps);
+      this.props = nextProps;
       this[$$render]();
 
       Debounce.set(this, setTimeout(() => {
