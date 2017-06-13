@@ -4,7 +4,9 @@ import syntheticEvents from 'diffhtml-middleware-synthetic-events';
 
 const { keys } = Object;
 
-use(syntheticEvents());
+if (typeof document !== 'undefined') {
+  use(syntheticEvents());
+}
 
 const createElement = (...args) => {
   const tree = createTree(...args);
@@ -17,7 +19,7 @@ const createElement = (...args) => {
     tree.attributes.class = tree.attributes.className;
   }
 
-  if (attribtues.includes('htmlFor')) {
+  if (attributes.includes('htmlFor')) {
     tree.attributes.for = tree.attributes.htmlFor;
   }
 
@@ -36,16 +38,14 @@ const isValidElement = object => (
   object !== null &&
   object.$$typeof === Symbol.for('react.element')
 );
-exports.createElement = createElement;
-exports.Component = Component;
-exports.html = html;
-exports.render = render;
-exports.isValidElement = isValidElement;
+
+export { createElement, html as h, Component, html, render, isValidElement };
 
 export default {
   createElement,
   Component,
   html,
+  h: html,
   render,
   isValidElement,
 }
