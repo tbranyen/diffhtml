@@ -1,6 +1,7 @@
 const { join } = require('path');
 
-const ES2015 = require('babel-preset-es2015-rollup');
+const ES2015 = require('babel-preset-es2015');
+const ES2015Rollup = require('babel-preset-es2015-rollup');
 const ModuleRewrite = require('babel-plugin-module-rewrite').default;
 const ObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
 const ClassProperties = require('babel-plugin-transform-class-properties');
@@ -14,9 +15,13 @@ const { NODE_ENV } = process.env;
 
 module.exports = {};
 
+module.exports.presets = [
+  ES2015.buildPreset(null, { modules: false }),
+];
+
 if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
   module.exports.presets = [
-    ES2015,
+    ES2015Rollup,
   ];
 
   module.exports.plugins = [
