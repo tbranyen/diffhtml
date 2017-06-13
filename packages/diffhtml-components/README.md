@@ -5,7 +5,7 @@ React-inspired implementations.*
 
 Stable Version: 1.0.0-beta.6
 
-The component classes `Component` and `WebComponent` are designed to be
+The exported classes `Component` and `WebComponent` are designed to be
 interchangeable and as close to feature-parity as possible. This helps bridges
 the React and Web Component gap.
 
@@ -18,8 +18,9 @@ npm install diffhtml-components
 ## Getting started
 
 Before you can use this module, you will need to have diffHTML loaded first.
-This component simply provides the `Component` and `WebComponent` classes that
-help you create Virtual Trees and structure your code.
+This component simply provides the `Component` and `WebComponent` classes, and
+respective middleware, which help you create Virtual Trees and structure your
+code.
 
 You can create components as easy as:
 
@@ -67,27 +68,132 @@ that the implementation knows which attributes to fire change events on.**
 [See the MDN article on it for more
 information](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements#Observed_attributes)
 
+
+Example using PropTypes with ES6:
+
+``` js
+import { html } from 'diffhtml';
+import { Component } from 'diffhtml-components';
+import PropTypes from 'prop-types';
+
+class MyComponent extends Component {
+  render() {
+    const { className } = this.props;
+
+    return html`
+      <div class=${className}>${label}</div>
+    `;
+  }
+}
+
+MyComponent.propTypes = {
+  className: PropTypes.string.isRequired,
+  label: PropTypes.string,
+};
+```
+
+Using with `babel-plugin-transform-class-properties`:
+
+``` js
+import { html } from 'diffhtml';
+import { Component } from 'diffhtml-components';
+import PropTypes from 'prop-types';
+
+class MyComponent extends Component {
+  render() {
+    const { className } = this.props;
+
+    return html`
+      <div class=${className}>${label}</div>
+    `;
+  }
+
+  static propTypes = {
+    className: PropTypes.string.isRequired,
+    label: PropTypes.string,
+  }
+}
+```
+
+Also note that in order to fully remove PropTypes from a bundler, you will need
+to add additional configuration. Please consult the bundlers documentation for
+this until we add examples.
+
 ## State
 
-State 
+diffHTML Components are stateful and follow the React model of `setState`. By
+default your components are given an empty `state` object that you can use to
+store any kind of local state for your component. While you can edit this
+object directly, this will not trigger any kind of component update. To set
+the new state and trigger a re-render, you will need to use the `setState`
+method.
+
+For example:
+
+``` js
+import { html } from 'diffhtml';
+import { Component } from 'diffhtml-components';
+import PropTypes from 'prop-types';
+
+class SimpleCounter extends Component {
+  render() {
+    const {  } = this.props;
+
+    return html`
+      <div class=${className}>${label}</div>
+    `;
+  }
+
+  componentDidMount() {
+    // Increment the `tick` state every second.
+    this.interval = setInterval(() => this.setState({
+      tick: ++this.state.tick,
+    }), 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
+  }
+}
+```
+
+The `setState` call receives the incoming object, which is merged into the
+existing `this.state` and then into a brand new object, which effectively
+causes your `state` property to be "immutable".
+
+If you were to call `setState` in a tight loop, you would notice that the first
+call would trigger a re-render, but would not render again until the tight
+loop completes. This is a way to throttle while also allowing `setState` to be
+reliable for synchronous operations.
+
+If you do not like the behavior and wish to have more control over setting
+state and rendering changes, look into `forceUpdate` below.
 
 ## Force Update
 
 The `forceUpdate()` method is implemented and will trigger a no-questions-asked
-re-render of your component. This is a synchronous operation, but if diffHTML
-has a paused transaction, 
+-render of your component. This is a synchronous operation, but if diffHTML
+has a paused transaction, this will wait until the existing transaction has
+completed before modifying your component.
+
+This is especially useful if you want to manage state outside of `setState` and
+want your components to be reactive.
 
 ## Examples
 
-*React Like*
+The following examples show what real-world usage of these components may look
+like.
 
-Useful when you need minimal React features for new projects. This is not a
-good package for React Compatibility inter-op. Although it can work to load
-some components.
+### React Like
+
+Useful when you need minimal React features for new projects. This is not
+necessarily a good package for React Compatibility inter-op, although it can
+work to load some components. If you need full parity with React, look to the
+[`diffhtml-react-compat`](../packages/diffhtml-react-compat).
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
-import Component from 'diffhtml-components/lib/component';
+import { Component } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 
 class SimpleClock extends Component {
@@ -119,13 +225,21 @@ innerHTML(document.body, html`<${SimpleClock} />`);
 ```
 
 
-*Web Components*
+### Web Components
 
-Will only work in browsers that support v1 Web Components spec:
+Will only work in browsers that support v1 Web Components specification. At the
+moment this will only work in Blink/Webkit based browsers like: Chrome, Safari,
+and Opera.
+
+[Consensus & Standardization](https://www.chromestatus.com/feature/4696261944934400)
+
+- **Firefox:** In development
+- **Edge:** Public support
+- **Web Developers:** Positive
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
-import WebComponent from 'diffhtml-components/lib/web-component';
+import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 
 class SimpleClock extends WebComponent {

@@ -1,5 +1,5 @@
 import { createTree, Internals } from 'diffhtml';
-import { ComponentTreeCache, InstanceCache } from '../util/caches';
+import { ContextCache, ComponentTreeCache, InstanceCache } from '../util/caches';
 
 const { NodeCache } = Internals;
 const { assign } = Object;
@@ -81,6 +81,14 @@ export default function reactLikeComponentTask(transaction) {
         if (REPLACE_CHILD) {
           for (let i = 0; i < REPLACE_CHILD.length; i += 2) {
             const newTree = REPLACE_CHILD[i];
+            const oldTree = REPLACE_CHILD[i + 1];
+
+            if (InstanceCache.has(oldTree)) {
+              ComponentTreeCache.delete(InstanceCache.get(oldTree));
+              InstanceCache.delete(oldTree);
+            }
+
+            InstanceCache.delete(oldTree);
             componentDidMount(newTree);
           }
         }
@@ -88,6 +96,12 @@ export default function reactLikeComponentTask(transaction) {
         if (REMOVE_CHILD) {
           for (let i = 0; i < REMOVE_CHILD.length; i += 1) {
             const oldTree = REMOVE_CHILD[i];
+
+            if (InstanceCache.has(oldTree)) {
+              ComponentTreeCache.delete(InstanceCache.get(oldTree));
+              InstanceCache.delete(oldTree);
+            }
+
             componentDidUnmount(oldTree);
           }
         }
@@ -97,7 +111,11 @@ export default function reactLikeComponentTask(transaction) {
 }
 
 reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
-  const oldChildNodes = oldTree && oldTree.childNodes ;
+  const oldChildNodes = oldTree && oldTree.childNodes;
+
+  if (newTree && newTree.children && !newTree.childNodes) {
+    newTree = createTree(newTree.nodeName, newTree.attributes, newTree.children);
+  }
 
   // Stateful components have a very limited API, designed to be fully
   // implemented by a higher-level abstraction. The only method ever called is
@@ -121,6 +139,9 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
       const instance = oldInstance || newInstance;
 
       let renderTree = null;
+
+      // Make child/parent relationship.
+      ContextCache.set(instance, newTree);
 
       if (oldInstance) {
         oldInstance.componentWillReceiveProps(props);
