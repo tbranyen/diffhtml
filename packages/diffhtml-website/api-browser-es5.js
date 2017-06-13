@@ -1046,6 +1046,9 @@ k,{get:q.bind(a,k)});Object.seal(a);Object.seal(d);return d};c.a.b=function(a,b)
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 exports.default = handleTaggedTemplate;
 
 var _create = require('./tree/create');
@@ -1066,18 +1069,22 @@ var _decodeEntities2 = _interopRequireDefault(_decodeEntities);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const isAttributeEx = /(=|"|')[^><]*?$/;
-const isTagEx = /(<|\/)/;
-const TOKEN = '__DIFFHTML__';
+var isAttributeEx = /(=|"|')[^><]*?$/;
+var isTagEx = /(<|\/)/;
+var TOKEN = '__DIFFHTML__';
 
 // Get the next value from the list. If the next value is a string, make sure
 // it is escaped.
-const nextValue = values => {
-  const value = values.shift();
+var nextValue = function nextValue(values) {
+  var value = values.shift();
   return typeof value === 'string' ? (0, _escape2.default)((0, _decodeEntities2.default)(value)) : value;
 };
 
-function handleTaggedTemplate(strings, ...values) {
+function handleTaggedTemplate(strings) {
+  for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    values[_key - 1] = arguments[_key];
+  }
+
   // Automatically coerce a string literal to array.
   if (typeof strings === 'string') {
     strings = [strings];
@@ -1090,16 +1097,16 @@ function handleTaggedTemplate(strings, ...values) {
 
   // Parse only the text, no dynamic bits.
   if (strings.length === 1 && !values.length) {
-    const childNodes = (0, _parse2.default)(strings[0]).childNodes;
-    return childNodes.length > 1 ? (0, _create2.default)(childNodes) : childNodes[0];
+    var _childNodes = (0, _parse2.default)(strings[0]).childNodes;
+    return _childNodes.length > 1 ? (0, _create2.default)(_childNodes) : _childNodes[0];
   }
 
   // Used to store markup and tokens.
-  let HTML = '';
+  var HTML = '';
 
   // We filter the supplemental values by where they are used. Values are
   // either, children, or tags (for components).
-  const supplemental = {
+  var supplemental = {
     attributes: {},
     children: {},
     tags: {}
@@ -1110,7 +1117,7 @@ function handleTaggedTemplate(strings, ...values) {
   // diffHTML HTML parser inline. They are passed as an additional argument
   // called supplemental. The following loop instruments the markup with tokens
   // that the parser then uses to assemble the correct tree.
-  strings.forEach((string, i) => {
+  strings.forEach(function (string, i) {
     // Always add the string, we need it to parse the markup later.
     HTML += string;
 
@@ -1118,15 +1125,15 @@ function handleTaggedTemplate(strings, ...values) {
     // This is most likely incomplete code, and will need to be improved in the
     // future with robust testing.
     if (values.length) {
-      const value = nextValue(values);
-      const lastSegment = string.split(' ').pop();
-      const lastCharacter = lastSegment.trim().slice(-1);
-      const isAttribute = Boolean(HTML.match(isAttributeEx));
-      const isTag = Boolean(lastCharacter.match(isTagEx));
-      const isString = typeof value === 'string';
-      const isObject = typeof value === 'object';
-      const isArray = Array.isArray(value);
-      const token = TOKEN + i + '__';
+      var value = nextValue(values);
+      var lastSegment = string.split(' ').pop();
+      var lastCharacter = lastSegment.trim().slice(-1);
+      var isAttribute = Boolean(HTML.match(isAttributeEx));
+      var isTag = Boolean(lastCharacter.match(isTagEx));
+      var isString = typeof value === 'string';
+      var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
+      var isArray = Array.isArray(value);
+      var token = TOKEN + i + '__';
 
       // Injected as attribute.
       if (isAttribute) {
@@ -1152,12 +1159,13 @@ function handleTaggedTemplate(strings, ...values) {
   });
 
   // Parse the instrumented markup to get the Virtual Tree.
-  const childNodes = (0, _parse2.default)(HTML, supplemental).childNodes;
+  var childNodes = (0, _parse2.default)(HTML, supplemental).childNodes;
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
   return childNodes.length === 1 ? childNodes[0] : (0, _create2.default)(childNodes);
 }
+module.exports = exports['default'];
 },{"./tree/create":21,"./util/decode-entities":25,"./util/escape":26,"./util/parse":30}],6:[function(require,module,exports){
 'use strict';
 
@@ -1169,6 +1177,10 @@ exports.Internals = exports.html = exports.innerHTML = exports.outerHTML = expor
 var _create = require('./tree/create');
 
 var _create2 = _interopRequireDefault(_create);
+
+var _create3 = require('./node/create');
+
+var _create4 = _interopRequireDefault(_create3);
 
 var _parseNewTree = require('./tasks/parse-new-tree');
 
@@ -1217,7 +1229,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // At startup inject the HTML parser into the default set of tasks.
 _transaction.defaultTasks.splice(_transaction.defaultTasks.indexOf(_reconcileTrees2.default), 0, _parseNewTree2.default);
 
-const api = {
+var api = {
   VERSION: _version.__VERSION__,
   addTransitionState: _transition.addTransitionState,
   removeTransitionState: _transition.removeTransitionState,
@@ -1235,7 +1247,7 @@ const api = {
 // changes and will supply fallbacks when APIs change.
 //
 // Note: The HTML parser is only available in this mode.
-const Internals = Object.assign(_internals2.default, api, { parse: _parse2.default, defaultTasks: _transaction.defaultTasks });
+var Internals = Object.assign(_internals2.default, api, { parse: _parse2.default, defaultTasks: _transaction.defaultTasks, tasks: _transaction.tasks, createNode: _create4.default });
 
 // Attach a circular reference to `Internals` for ES/CJS builds.
 api.Internals = Internals;
@@ -1257,7 +1269,7 @@ exports.innerHTML = _innerHtml2.default;
 exports.html = _html2.default;
 exports.Internals = Internals;
 exports.default = api;
-},{"./html":5,"./inner-html":7,"./outer-html":10,"./release":11,"./tasks/parse-new-tree":13,"./tasks/reconcile-trees":15,"./transaction":19,"./transition":20,"./tree/create":21,"./use":23,"./util/internals":27,"./util/parse":30,"./version":34}],7:[function(require,module,exports){
+},{"./html":5,"./inner-html":7,"./node/create":8,"./outer-html":10,"./release":11,"./tasks/parse-new-tree":13,"./tasks/reconcile-trees":15,"./transaction":19,"./transition":20,"./tree/create":21,"./use":23,"./util/internals":27,"./util/parse":30,"./version":33}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1271,11 +1283,15 @@ var _transaction2 = _interopRequireDefault(_transaction);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function innerHTML(element, markup = '', options = {}) {
+function innerHTML(element) {
+  var markup = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
   options.inner = true;
   options.tasks = options.tasks || _transaction.defaultTasks;
   return _transaction2.default.create(element, markup, options).start();
 }
+module.exports = exports['default'];
 },{"./transaction":19}],8:[function(require,module,exports){
 'use strict';
 
@@ -1286,15 +1302,15 @@ exports.default = createNode;
 
 var _caches = require('../util/caches');
 
-var _svg = require('../util/svg');
-
 var _process = require('../util/process');
 
 var _process2 = _interopRequireDefault(_process);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const { CreateNodeHookCache } = _caches.MiddlewareCache;
+var CreateNodeHookCache = _caches.MiddlewareCache.CreateNodeHookCache;
+
+var namespace = 'http://www.w3.org/2000/svg';
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
@@ -1303,28 +1319,38 @@ const { CreateNodeHookCache } = _caches.MiddlewareCache;
  *
  * @param {Object} - A Virtual Tree Element or VTree-like element
  * @param {Object} - Document to create Nodes in
+ * @param {Boolean} - Is their a root SVG element?
  * @return {Object} - A DOM Node matching the vTree
  */
-function createNode(vTree, ownerDocument = document) {
+function createNode(vTree) {
+  var ownerDocument = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
+  var isSVG = arguments[2];
+
   if (_process2.default.env.NODE_ENV !== 'production') {
     if (!vTree) {
       throw new Error('Missing VTree when trying to create DOM Node');
     }
   }
 
-  const existingNode = _caches.NodeCache.get(vTree);
+  var existingNode = _caches.NodeCache.get(vTree);
 
   // If the DOM Node was already created, reuse the existing node.
   if (existingNode) {
     return existingNode;
   }
 
-  const { nodeName, childNodes = [] } = vTree;
+  var nodeName = vTree.nodeName,
+      _vTree$rawNodeName = vTree.rawNodeName,
+      rawNodeName = _vTree$rawNodeName === undefined ? nodeName : _vTree$rawNodeName,
+      _vTree$childNodes = vTree.childNodes,
+      childNodes = _vTree$childNodes === undefined ? [] : _vTree$childNodes;
+
+  isSVG = isSVG || nodeName === 'svg';
 
   // Will vary based on the properties of the VTree.
-  let domNode = null;
+  var domNode = null;
 
-  CreateNodeHookCache.forEach((fn, retVal) => {
+  CreateNodeHookCache.forEach(function (fn, retVal) {
     // Invoke all the `createNodeHook` functions passing along the vTree as the
     // only argument. These functions must return a valid DOM Node value.
     if (retVal = fn(vTree)) {
@@ -1342,17 +1368,13 @@ function createNode(vTree, ownerDocument = document) {
     else if (nodeName === '#document-fragment') {
         domNode = ownerDocument.createDocumentFragment();
       }
-      // If the nodeName matches any of the known SVG element names, mark it as
-      // SVG. The reason for doing this over detecting if nested in an <svg>
-      // element, is that we do not currently have circular dependencies in the
-      // VTree, by avoiding parentNode, so there is no way to crawl up the
-      // parents.
-      else if (_svg.elements.indexOf(nodeName) > -1) {
-          domNode = ownerDocument.createElementNS(_svg.namespace, nodeName);
+      // Support SVG.
+      else if (isSVG) {
+          domNode = ownerDocument.createElementNS(namespace, rawNodeName);
         }
         // If not a Text or SVG Node, then create with the standard method.
         else {
-            domNode = ownerDocument.createElement(nodeName);
+            domNode = ownerDocument.createElement(rawNodeName);
           }
   }
 
@@ -1361,18 +1383,22 @@ function createNode(vTree, ownerDocument = document) {
 
   // Append all the children into the domNode, making sure to run them
   // through this `createNode` function as well.
-  for (let i = 0; i < childNodes.length; i++) {
-    domNode.appendChild(createNode(childNodes[i], ownerDocument));
+  for (var i = 0; i < childNodes.length; i++) {
+    domNode.appendChild(createNode(childNodes[i], ownerDocument, isSVG));
   }
 
   return domNode;
 }
-},{"../util/caches":24,"../util/process":32,"../util/svg":33}],9:[function(require,module,exports){
+module.exports = exports['default'];
+},{"../util/caches":24,"../util/process":32}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 exports.default = patchNode;
 
 var _create = require('./create');
@@ -1395,9 +1421,11 @@ var _escape2 = _interopRequireDefault(_escape);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-const removeAttribute = (domNode, name) => {
+var blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
+
+var removeAttribute = function removeAttribute(domNode, name) {
   domNode.removeAttribute(name);
 
   if (name in domNode) {
@@ -1405,39 +1433,54 @@ const removeAttribute = (domNode, name) => {
   }
 };
 
+var blacklist = new Set();
+
 function patchNode(patches) {
-  const promises = [];
-  const { TREE_OPS, NODE_VALUE, SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
+  var state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var promises = [];
+  var TREE_OPS = patches.TREE_OPS,
+      NODE_VALUE = patches.NODE_VALUE,
+      SET_ATTRIBUTE = patches.SET_ATTRIBUTE,
+      REMOVE_ATTRIBUTE = patches.REMOVE_ATTRIBUTE;
+  var isSVG = state.isSVG,
+      ownerDocument = state.ownerDocument;
 
   // Set attributes.
-  if (SET_ATTRIBUTE.length) {
-    for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
-      const vTree = SET_ATTRIBUTE[i];
-      const _name = SET_ATTRIBUTE[i + 1];
-      const value = (0, _decodeEntities2.default)(SET_ATTRIBUTE[i + 2]);
 
-      const domNode = (0, _create2.default)(vTree);
-      const attributeChanged = _caches.TransitionCache.get('attributeChanged');
-      const oldValue = domNode.getAttribute(_name);
-      const newPromises = (0, _transition.runTransitions)('attributeChanged', domNode, _name, oldValue, value);
+  if (SET_ATTRIBUTE.length) {
+    for (var i = 0; i < SET_ATTRIBUTE.length; i += 3) {
+      var vTree = SET_ATTRIBUTE[i];
+      var _name = SET_ATTRIBUTE[i + 1];
+      var value = (0, _decodeEntities2.default)(SET_ATTRIBUTE[i + 2]);
+
+      var domNode = (0, _create2.default)(vTree, ownerDocument, isSVG);
+      var oldValue = domNode.getAttribute(_name);
+      var newPromises = (0, _transition.runTransitions)('attributeChanged', domNode, _name, oldValue, value);
 
       // Triggered either synchronously or asynchronously depending on if a
       // transition was invoked.
-      const isObject = typeof value === 'object';
-      const isFunction = typeof value === 'function';
+      var isObject = (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
+      var isFunction = typeof value === 'function';
 
       // Events must be lowercased otherwise they will not be set correctly.
-      const name = _name.indexOf('on') === 0 ? _name.toLowerCase() : _name;
+      var name = _name.indexOf('on') === 0 ? _name.toLowerCase() : _name;
 
       // Normal attribute value.
       if (!isObject && !isFunction && name) {
-        const noValue = value === null || value === undefined;
+        var noValue = value === null || value === undefined;
+        // Runtime checking if the property can be set.
+        var blacklistName = vTree.nodeName + '-' + name;
 
-        // Allow the user to find the real value in the DOM Node as a
-        // property.
-        try {
-          domNode[name] = value;
-        } catch (unhandledException) {}
+        // If the property has not been blacklisted then use try/catch to try
+        // and set it.
+        if (!blacklist.has(blacklistName)) {
+          try {
+            domNode[name] = value;
+          } catch (unhandledException) {
+            blacklist.add(blacklistName);
+          }
+        }
 
         // Set the actual attribute, this will ensure attributes like
         // `autofocus` aren't reset by the property call above.
@@ -1445,10 +1488,10 @@ function patchNode(patches) {
       }
       // Support patching an object representation of the style object.
       else if (isObject && name === 'style') {
-          const keys = Object.keys(value);
+          var keys = Object.keys(value);
 
-          for (let i = 0; i < keys.length; i++) {
-            domNode.style[keys[i]] = value[keys[i]];
+          for (var _i = 0; _i < keys.length; _i++) {
+            domNode.style[keys[_i]] = value[keys[_i]];
           }
         } else if (typeof value !== 'string') {
           // We remove and re-add the attribute to trigger a change in a web
@@ -1468,137 +1511,156 @@ function patchNode(patches) {
         }
 
       if (newPromises.length) {
-        promises.push(...newPromises);
+        promises.push.apply(promises, _toConsumableArray(newPromises));
       }
     }
   }
 
   // Remove attributes.
   if (REMOVE_ATTRIBUTE.length) {
-    for (let i = 0; i < REMOVE_ATTRIBUTE.length; i += 2) {
-      const vTree = REMOVE_ATTRIBUTE[i];
-      const name = REMOVE_ATTRIBUTE[i + 1];
+    var _loop = function _loop(_i2) {
+      var vTree = REMOVE_ATTRIBUTE[_i2];
+      var name = REMOVE_ATTRIBUTE[_i2 + 1];
 
-      const domNode = _caches.NodeCache.get(vTree);
-      const attributeChanged = _caches.TransitionCache.get('attributeChanged');
-      const oldValue = domNode.getAttribute(name);
-      const newPromises = (0, _transition.runTransitions)('attributeChanged', domNode, name, oldValue, null);
+      var domNode = _caches.NodeCache.get(vTree);
+      var attributeChanged = _caches.TransitionCache.get('attributeChanged');
+      var oldValue = domNode.getAttribute(name);
+      var newPromises = (0, _transition.runTransitions)('attributeChanged', domNode, name, oldValue, null);
 
       if (newPromises.length) {
-        Promise.all(newPromises).then(() => removeAttribute(domNode, name));
-        promises.push(...newPromises);
+        Promise.all(newPromises).then(function () {
+          return removeAttribute(domNode, name);
+        });
+        promises.push.apply(promises, _toConsumableArray(newPromises));
       } else {
         removeAttribute(domNode, name);
       }
+    };
+
+    for (var _i2 = 0; _i2 < REMOVE_ATTRIBUTE.length; _i2 += 2) {
+      _loop(_i2);
     }
   }
 
   // Once attributes have been synchronized into the DOM Nodes, assemble the
   // DOM Tree.
-  for (let i = 0; i < TREE_OPS.length; i++) {
-    const { INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD } = TREE_OPS[i];
+  for (var _i3 = 0; _i3 < TREE_OPS.length; _i3++) {
+    var _TREE_OPS$_i = TREE_OPS[_i3],
+        INSERT_BEFORE = _TREE_OPS$_i.INSERT_BEFORE,
+        REMOVE_CHILD = _TREE_OPS$_i.REMOVE_CHILD,
+        REPLACE_CHILD = _TREE_OPS$_i.REPLACE_CHILD;
 
     // Insert/append elements.
+
     if (INSERT_BEFORE && INSERT_BEFORE.length) {
-      for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
-        const vTree = INSERT_BEFORE[i];
-        const newTree = INSERT_BEFORE[i + 1];
-        const referenceTree = INSERT_BEFORE[i + 2];
+      for (var _i4 = 0; _i4 < INSERT_BEFORE.length; _i4 += 3) {
+        var _vTree = INSERT_BEFORE[_i4];
+        var newTree = INSERT_BEFORE[_i4 + 1];
+        var refTree = INSERT_BEFORE[_i4 + 2];
 
-        const domNode = _caches.NodeCache.get(vTree);
-        const referenceNode = referenceTree && (0, _create2.default)(referenceTree);
-        const attached = _caches.TransitionCache.get('attached');
+        var _domNode = _caches.NodeCache.get(_vTree);
+        var refNode = refTree && (0, _create2.default)(refTree, ownerDocument, isSVG);
+        var attached = _caches.TransitionCache.get('attached');
 
-        if (referenceTree) {
-          (0, _memory.protectVTree)(referenceTree);
+        if (refTree) {
+          (0, _memory.protectVTree)(refTree);
         }
 
-        const newNode = (0, _create2.default)(newTree);
+        var newNode = (0, _create2.default)(newTree, ownerDocument, isSVG);
         (0, _memory.protectVTree)(newTree);
 
         // If refNode is `null` then it will simply append like `appendChild`.
-        domNode.insertBefore(newNode, referenceNode);
+        _domNode.insertBefore(newNode, refNode);
 
-        const attachedPromises = (0, _transition.runTransitions)('attached', newNode);
+        var attachedPromises = (0, _transition.runTransitions)('attached', newNode);
 
-        promises.push(...attachedPromises);
+        promises.push.apply(promises, _toConsumableArray(attachedPromises));
       }
     }
 
     // Remove elements.
     if (REMOVE_CHILD && REMOVE_CHILD.length) {
-      for (let i = 0; i < REMOVE_CHILD.length; i++) {
-        const vTree = REMOVE_CHILD[i];
-        const domNode = _caches.NodeCache.get(vTree);
-        const detached = _caches.TransitionCache.get('detached');
-        const detachedPromises = (0, _transition.runTransitions)('detached', domNode);
+      var _loop2 = function _loop2(_i5) {
+        var vTree = REMOVE_CHILD[_i5];
+        var domNode = _caches.NodeCache.get(vTree);
+        var detached = _caches.TransitionCache.get('detached');
+        var detachedPromises = (0, _transition.runTransitions)('detached', domNode);
 
         if (detachedPromises.length) {
-          Promise.all(detachedPromises).then(() => {
+          Promise.all(detachedPromises).then(function () {
             domNode.parentNode.removeChild(domNode);
             (0, _memory.unprotectVTree)(vTree);
           });
 
-          promises.push(...detachedPromises);
+          promises.push.apply(promises, _toConsumableArray(detachedPromises));
         } else {
           domNode.parentNode.removeChild(domNode);
           (0, _memory.unprotectVTree)(vTree);
         }
+      };
+
+      for (var _i5 = 0; _i5 < REMOVE_CHILD.length; _i5++) {
+        _loop2(_i5);
       }
     }
 
     // Replace elements.
     if (REPLACE_CHILD && REPLACE_CHILD.length) {
-      for (let i = 0; i < REPLACE_CHILD.length; i += 2) {
-        const newTree = REPLACE_CHILD[i];
-        const oldTree = REPLACE_CHILD[i + 1];
+      var _loop3 = function _loop3(_i6) {
+        var newTree = REPLACE_CHILD[_i6];
+        var oldTree = REPLACE_CHILD[_i6 + 1];
 
-        const oldDomNode = _caches.NodeCache.get(oldTree);
-        const newDomNode = (0, _create2.default)(newTree);
-        const attached = _caches.TransitionCache.get('attached');
-        const detached = _caches.TransitionCache.get('detached');
-        const replaced = _caches.TransitionCache.get('replaced');
+        var oldDomNode = _caches.NodeCache.get(oldTree);
+        var newDomNode = (0, _create2.default)(newTree, ownerDocument, isSVG);
+        var attached = _caches.TransitionCache.get('attached');
+        var detached = _caches.TransitionCache.get('detached');
+        var replaced = _caches.TransitionCache.get('replaced');
 
         // Always insert before to allow the element to transition.
         oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
         (0, _memory.protectVTree)(newTree);
 
-        const attachedPromises = (0, _transition.runTransitions)('attached', newDomNode);
-        const detachedPromises = (0, _transition.runTransitions)('detached', oldDomNode);
-        const replacedPromises = (0, _transition.runTransitions)('replaced', oldDomNode, newDomNode);
-        const allPromises = [...attachedPromises, ...detachedPromises, ...replacedPromises];
+        var attachedPromises = (0, _transition.runTransitions)('attached', newDomNode);
+        var detachedPromises = (0, _transition.runTransitions)('detached', oldDomNode);
+        var replacedPromises = (0, _transition.runTransitions)('replaced', oldDomNode, newDomNode);
+        var allPromises = [].concat(_toConsumableArray(attachedPromises), _toConsumableArray(detachedPromises), _toConsumableArray(replacedPromises));
 
         if (allPromises.length) {
-          Promise.all(allPromises).then(() => {
+          Promise.all(allPromises).then(function () {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
             (0, _memory.unprotectVTree)(oldTree);
           });
 
-          promises.push(...allPromises);
+          promises.push.apply(promises, _toConsumableArray(allPromises));
         } else {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
           (0, _memory.unprotectVTree)(oldTree);
         }
+      };
+
+      for (var _i6 = 0; _i6 < REPLACE_CHILD.length; _i6 += 2) {
+        _loop3(_i6);
       }
     }
   }
 
   // Change all nodeValues.
   if (NODE_VALUE.length) {
-    for (let i = 0; i < NODE_VALUE.length; i += 3) {
-      const vTree = NODE_VALUE[i];
-      const nodeValue = NODE_VALUE[i + 1];
-      const oldValue = NODE_VALUE[i + 2];
-      const domNode = _caches.NodeCache.get(vTree);
-      const textChanged = _caches.TransitionCache.get('textChanged');
-      const textChangedPromises = (0, _transition.runTransitions)('textChanged', domNode, oldValue, nodeValue);
+    for (var _i7 = 0; _i7 < NODE_VALUE.length; _i7 += 3) {
+      var _vTree2 = NODE_VALUE[_i7];
+      var nodeValue = NODE_VALUE[_i7 + 1];
+      var _oldValue = NODE_VALUE[_i7 + 2];
+      var _domNode2 = _caches.NodeCache.get(_vTree2);
+      var textChanged = _caches.TransitionCache.get('textChanged');
+      var textChangedPromises = (0, _transition.runTransitions)('textChanged', _domNode2, _oldValue, nodeValue);
 
-      const { parentNode } = domNode;
+      var parentNode = _domNode2.parentNode;
+
 
       if (nodeValue.includes('&')) {
-        domNode.nodeValue = (0, _decodeEntities2.default)(nodeValue);
+        _domNode2.nodeValue = (0, _decodeEntities2.default)(nodeValue);
       } else {
-        domNode.nodeValue = nodeValue;
+        _domNode2.nodeValue = nodeValue;
       }
 
       if (parentNode && blockText.has(parentNode.nodeName.toLowerCase())) {
@@ -1606,13 +1668,14 @@ function patchNode(patches) {
       }
 
       if (textChangedPromises.length) {
-        promises.push(...textChangedPromises);
+        promises.push.apply(promises, _toConsumableArray(textChangedPromises));
       }
     }
   }
 
   return promises;
 }
+module.exports = exports['default'];
 },{"../transition":20,"../util/caches":24,"../util/decode-entities":25,"../util/escape":26,"../util/memory":29,"./create":8}],10:[function(require,module,exports){
 'use strict';
 
@@ -1627,11 +1690,15 @@ var _transaction2 = _interopRequireDefault(_transaction);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function outerHTML(element, markup = '', options = {}) {
+function outerHTML(element) {
+  var markup = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
   options.inner = false;
   options.tasks = options.tasks || _transaction.defaultTasks;
   return _transaction2.default.create(element, markup, options).start();
 }
+module.exports = exports['default'];
 },{"./transaction":19}],11:[function(require,module,exports){
 'use strict';
 
@@ -1646,7 +1713,7 @@ var _memory = require('./util/memory');
 
 function release(domNode) {
   // Try and find a state object for this DOM Node.
-  const state = _caches.StateCache.get(domNode);
+  var state = _caches.StateCache.get(domNode);
 
   // If there is a Virtual Tree element, recycle all objects allocated for it.
   if (state && state.oldTree) {
@@ -1659,6 +1726,7 @@ function release(domNode) {
   // Recycle all unprotected objects.
   (0, _memory.cleanMemory)();
 }
+module.exports = exports['default'];
 },{"./util/caches":24,"./util/memory":29}],12:[function(require,module,exports){
 "use strict";
 
@@ -1670,19 +1738,24 @@ exports.default = endAsPromise;
 // resolves when completed. If you want to make diffHTML return streams or
 // callbacks replace this function.
 function endAsPromise(transaction) {
-  const { promises = [] } = transaction;
+  var _transaction$promises = transaction.promises,
+      promises = _transaction$promises === undefined ? [] : _transaction$promises;
 
   // Operate synchronously unless opted into a Promise-chain. Doesn't matter
   // if they are actually Promises or not, since they will all resolve
   // eventually with `Promise.all`.
+
   if (promises.length) {
-    return Promise.all(promises).then(() => transaction.end());
+    return Promise.all(promises).then(function () {
+      return transaction.end();
+    });
   } else {
     // Pass off the remaining middleware to allow users to dive into the
     // transaction completed lifecycle event.
     return Promise.resolve(transaction.end());
   }
 }
+module.exports = exports["default"];
 },{}],13:[function(require,module,exports){
 'use strict';
 
@@ -1693,9 +1766,9 @@ exports.default = parseNewTree;
 
 var _caches = require('../util/caches');
 
-var _parse = require('../util/parse');
+var _parse2 = require('../util/parse');
 
-var _parse2 = _interopRequireDefault(_parse);
+var _parse3 = _interopRequireDefault(_parse2);
 
 var _create = require('../tree/create');
 
@@ -1704,23 +1777,30 @@ var _create2 = _interopRequireDefault(_create);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function parseNewTree(transaction) {
-  const { state, markup, options } = transaction;
-  const { measure } = state;
-  const { inner } = options;
+  var state = transaction.state,
+      markup = transaction.markup,
+      options = transaction.options;
+  var measure = state.measure;
+  var inner = options.inner;
+
 
   if (typeof markup === 'string') {
     measure('parsing markup for new tree');
 
-    const { childNodes } = (0, _parse2.default)(markup, null, options);
+    var _parse = (0, _parse3.default)(markup, null, options),
+        childNodes = _parse.childNodes;
 
     // If we are dealing with innerHTML, use all the Nodes. If we're dealing
     // with outerHTML, we can only support diffing against a single element,
     // so pick the first one, if there are none, just pass the entire root.
+
+
     transaction.newTree = (0, _create2.default)(inner ? childNodes : childNodes[0] || childNodes);
 
     measure('parsing markup for new tree');
   }
 }
+module.exports = exports['default'];
 },{"../tree/create":21,"../util/caches":24,"../util/parse":30}],14:[function(require,module,exports){
 'use strict';
 
@@ -1735,6 +1815,8 @@ var _patch2 = _interopRequireDefault(_patch);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 /**
  * Processes a set of patches onto a tracked DOM Node.
  *
@@ -1742,15 +1824,27 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param {Array} patches - Contains patch objects
  */
 function patch(transaction) {
-  const { domNode, state, state: { measure }, patches } = transaction;
-  const { promises = [] } = transaction;
+  var domNode = transaction.domNode,
+      state = transaction.state,
+      measure = transaction.state.measure,
+      patches = transaction.patches;
+  var _transaction$promises = transaction.promises,
+      promises = _transaction$promises === undefined ? [] : _transaction$promises;
+  var _domNode$namespaceURI = domNode.namespaceURI,
+      namespaceURI = _domNode$namespaceURI === undefined ? '' : _domNode$namespaceURI,
+      nodeName = domNode.nodeName;
+
+
+  state.isSVG = nodeName.toLowerCase() === 'svg' || namespaceURI.includes('svg');
+  state.ownerDocument = domNode.ownerDocument || document;
 
   measure('patch node');
-  promises.push(...(0, _patch2.default)(patches, state));
+  promises.push.apply(promises, _toConsumableArray((0, _patch2.default)(patches, state)));
   measure('patch node');
 
   transaction.promises = promises;
 }
+module.exports = exports['default'];
 },{"../node/patch":9}],15:[function(require,module,exports){
 'use strict';
 
@@ -1770,12 +1864,16 @@ var _create2 = _interopRequireDefault(_create);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function reconcileTrees(transaction) {
-  const { state, domNode, markup, options } = transaction;
-  const { previousMarkup } = state;
-  const { inner } = options;
+  var state = transaction.state,
+      domNode = transaction.domNode,
+      markup = transaction.markup,
+      options = transaction.options;
+  var previousMarkup = state.previousMarkup;
+  var inner = options.inner;
 
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
+
   if (previousMarkup !== domNode.outerHTML || !state.oldTree) {
     if (state.oldTree) {
       (0, _memory.unprotectVTree)(state.oldTree);
@@ -1799,15 +1897,20 @@ function reconcileTrees(transaction) {
   // If we are diffing only the parent's childNodes, then adjust the newTree to
   // be a replica of the oldTree except with the childNodes changed.
   if (inner) {
-    const { oldTree, newTree } = transaction;
-    const { rawNodeName, nodeName, attributes } = oldTree;
-    const isUnknown = typeof newTree.rawNodeName !== 'string';
-    const isFragment = newTree.nodeType === 11;
-    const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
+    var oldTree = transaction.oldTree,
+        newTree = transaction.newTree;
+    var rawNodeName = oldTree.rawNodeName,
+        nodeName = oldTree.nodeName,
+        attributes = oldTree.attributes;
+
+    var isUnknown = typeof newTree.rawNodeName !== 'string';
+    var isFragment = newTree.nodeType === 11;
+    var children = isFragment && !isUnknown ? newTree.childNodes : newTree;
 
     transaction.newTree = (0, _create2.default)(nodeName, attributes, children);
   }
 }
+module.exports = exports['default'];
 },{"../tree/create":21,"../util/caches":24,"../util/memory":29}],16:[function(require,module,exports){
 'use strict';
 
@@ -1829,10 +1932,11 @@ var _caches = require('../util/caches');
  */
 function schedule(transaction) {
   // The state is a global store which is shared by all like-transactions.
-  const { state } = transaction;
+  var state = transaction.state;
 
   // If there is an in-flight transaction render happening, push this
   // transaction into a queue.
+
   if (state.isRendering) {
     // Resolve an existing transaction that we're going to pave over in the
     // next statement.
@@ -1844,8 +1948,10 @@ function schedule(transaction) {
     // the current transaction completes.
     state.nextTransaction = transaction;
 
-    const deferred = {};
-    const resolver = new Promise(resolve => deferred.resolve = resolve);
+    var deferred = {};
+    var resolver = new Promise(function (resolve) {
+      return deferred.resolve = resolve;
+    });
 
     resolver.resolve = deferred.resolve;
     transaction.promises = [resolver];
@@ -1856,6 +1962,7 @@ function schedule(transaction) {
   // Indicate we are now rendering a transaction for this DOM Node.
   state.isRendering = true;
 }
+module.exports = exports['default'];
 },{"../util/caches":24}],17:[function(require,module,exports){
 'use strict';
 
@@ -1864,7 +1971,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = shouldUpdate;
 function shouldUpdate(transaction) {
-  const { markup, state, state: { measure } } = transaction;
+  var markup = transaction.markup,
+      state = transaction.state,
+      measure = transaction.state.measure;
+
 
   measure('should update');
 
@@ -1879,6 +1989,7 @@ function shouldUpdate(transaction) {
 
   measure('should update');
 }
+module.exports = exports['default'];
 },{}],18:[function(require,module,exports){
 'use strict';
 
@@ -1902,7 +2013,11 @@ var _memory = require('../util/memory');
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function syncTrees(transaction) {
-  const { state: { measure }, oldTree, newTree, domNode } = transaction;
+  var measure = transaction.state.measure,
+      oldTree = transaction.oldTree,
+      newTree = transaction.newTree,
+      domNode = transaction.domNode;
+
 
   measure('sync trees');
 
@@ -1931,13 +2046,18 @@ function syncTrees(transaction) {
 
   measure('sync trees');
 }
+module.exports = exports['default'];
 },{"../node/create":8,"../tree/sync":22,"../util/caches":24,"../util/memory":29}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.defaultTasks = undefined;
+exports.tasks = exports.defaultTasks = undefined;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _caches = require('./util/caches');
 
@@ -1977,97 +2097,117 @@ var _endAsPromise2 = _interopRequireDefault(_endAsPromise);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const defaultTasks = exports.defaultTasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-class Transaction {
-  static create(domNode, markup, options) {
-    return new Transaction(domNode, markup, options);
-  }
+var defaultTasks = exports.defaultTasks = [_schedule2.default, _shouldUpdate2.default, _reconcileTrees2.default, _syncTrees2.default, _patchNode2.default, _endAsPromise2.default];
 
-  static renderNext(state) {
-    if (!state.nextTransaction) {
-      return;
+var tasks = exports.tasks = {
+  schedule: _schedule2.default, shouldUpdate: _shouldUpdate2.default, reconcileTrees: _reconcileTrees2.default, syncTrees: _syncTrees2.default, patchNode: _patchNode2.default, endAsPromise: _endAsPromise2.default
+};
+
+var Transaction = function () {
+  _createClass(Transaction, null, [{
+    key: 'create',
+    value: function create(domNode, markup, options) {
+      return new Transaction(domNode, markup, options);
     }
-
-    // Create the next transaction.
-    const { nextTransaction, nextTransaction: { promises } } = state;
-    const resolver = promises && promises[0];
-
-    state.nextTransaction = undefined;
-    nextTransaction.aborted = false;
-
-    // Remove the last task, this has already been executed (via abort).
-    nextTransaction.tasks.pop();
-
-    // Reflow this transaction.
-    Transaction.flow(nextTransaction, nextTransaction.tasks);
-
-    // Wait for the promises to complete if they exist, otherwise resolve
-    // immediately.
-    if (promises && promises.length > 1) {
-      Promise.all(promises.slice(1)).then(() => resolver.resolve());
-    } else if (resolver) {
-      resolver.resolve();
-    }
-  }
-
-  static flow(transaction, tasks) {
-    let retVal = transaction;
-
-    // Execute each "task" serially, passing the transaction as a baton that
-    // can be used to share state across the tasks.
-    for (let i = 0; i < tasks.length; i++) {
-      // If aborted, don't execute any more tasks.
-      if (transaction.aborted) {
-        return retVal;
+  }, {
+    key: 'renderNext',
+    value: function renderNext(state) {
+      if (!state.nextTransaction) {
+        return;
       }
 
-      // Run the task.
-      retVal = tasks[i](transaction);
+      // Create the next transaction.
+      var nextTransaction = state.nextTransaction,
+          promises = state.nextTransaction.promises;
 
-      // The last `returnValue` is what gets sent to the consumer. This
-      // mechanism is crucial for the `abort`, if you want to modify the "flow"
-      // that's fine, but you must ensure that your last task provides a
-      // mechanism to know when the transaction completes. Something like
-      // callbacks or a Promise.
-      if (retVal !== undefined && retVal !== transaction) {
-        return retVal;
+      var resolver = promises && promises[0];
+
+      state.nextTransaction = undefined;
+      nextTransaction.aborted = false;
+
+      // Remove the last task, this has already been executed (via abort).
+      nextTransaction.tasks.pop();
+
+      // Reflow this transaction.
+      Transaction.flow(nextTransaction, nextTransaction.tasks);
+
+      // Wait for the promises to complete if they exist, otherwise resolve
+      // immediately.
+      if (promises && promises.length > 1) {
+        Promise.all(promises.slice(1)).then(function () {
+          return resolver.resolve();
+        });
+      } else if (resolver) {
+        resolver.resolve();
       }
     }
-  }
+  }, {
+    key: 'flow',
+    value: function flow(transaction, tasks) {
+      var retVal = transaction;
 
-  static assert(transaction) {
-    if (_process2.default.env.NODE_ENV !== 'production') {
-      if (typeof transaction.domNode !== 'object') {
-        throw new Error('Transaction requires a DOM Node mount point');
-      }
+      // Execute each "task" serially, passing the transaction as a baton that
+      // can be used to share state across the tasks.
+      for (var i = 0; i < tasks.length; i++) {
+        // If aborted, don't execute any more tasks.
+        if (transaction.aborted) {
+          return retVal;
+        }
 
-      if (transaction.aborted && transaction.completed) {
-        throw new Error('Transaction was previously aborted');
-      }
+        // Run the task.
+        retVal = tasks[i](transaction);
 
-      if (transaction.completed) {
-        throw new Error('Transaction was previously completed');
+        // The last `returnValue` is what gets sent to the consumer. This
+        // mechanism is crucial for the `abort`, if you want to modify the "flow"
+        // that's fine, but you must ensure that your last task provides a
+        // mechanism to know when the transaction completes. Something like
+        // callbacks or a Promise.
+        if (retVal !== undefined && retVal !== transaction) {
+          return retVal;
+        }
       }
     }
-  }
+  }, {
+    key: 'assert',
+    value: function assert(transaction) {
+      if (_process2.default.env.NODE_ENV !== 'production') {
+        if (_typeof(transaction.domNode) !== 'object') {
+          throw new Error('Transaction requires a DOM Node mount point');
+        }
 
-  static invokeMiddleware(transaction) {
-    const { tasks } = transaction;
+        if (transaction.aborted && transaction.completed) {
+          throw new Error('Transaction was previously aborted');
+        }
 
-    _caches.MiddlewareCache.forEach(fn => {
-      // Invoke all the middleware passing along this transaction as the only
-      // argument. If they return a value (must be a function) it will be added
-      // to the transaction task flow.
-      const result = fn(transaction);
-
-      if (result) {
-        tasks.push(result);
+        if (transaction.completed) {
+          throw new Error('Transaction was previously completed');
+        }
       }
-    });
-  }
+    }
+  }, {
+    key: 'invokeMiddleware',
+    value: function invokeMiddleware(transaction) {
+      var tasks = transaction.tasks;
 
-  constructor(domNode, markup, options) {
+
+      _caches.MiddlewareCache.forEach(function (fn) {
+        // Invoke all the middleware passing along this transaction as the only
+        // argument. If they return a value (must be a function) it will be added
+        // to the transaction task flow.
+        var result = fn(transaction);
+
+        if (result) {
+          tasks.push(result);
+        }
+      });
+    }
+  }]);
+
+  function Transaction(domNode, markup, options) {
+    _classCallCheck(this, Transaction);
+
     this.domNode = domNode;
     this.markup = markup;
     this.options = options;
@@ -2084,81 +2224,103 @@ class Transaction {
     _caches.StateCache.set(domNode, this.state);
   }
 
-  start() {
-    if (_process2.default.env.NODE_ENV !== 'production') {
-      Transaction.assert(this);
+  _createClass(Transaction, [{
+    key: 'start',
+    value: function start() {
+      if (_process2.default.env.NODE_ENV !== 'production') {
+        Transaction.assert(this);
+      }
+
+      var domNode = this.domNode,
+          measure = this.state.measure,
+          tasks = this.tasks;
+
+      var takeLastTask = tasks.pop();
+
+      this.aborted = false;
+
+      // Add middleware in as tasks.
+      Transaction.invokeMiddleware(this);
+
+      // Measure the render flow if the user wants to track performance.
+      measure('render');
+
+      // Push back the last task as part of ending the flow.
+      tasks.push(takeLastTask);
+
+      return Transaction.flow(this, tasks);
     }
 
-    const { domNode, state: { measure }, tasks } = this;
-    const takeLastTask = tasks.pop();
+    // This will immediately call the last flow task and terminate the flow. We
+    // call the last task to ensure that the control flow completes. This should
+    // end psuedo-synchronously. Think `Promise.resolve()`, `callback()`, and
+    // `return someValue` to provide the most accurate performance reading. This
+    // doesn't matter practically besides that.
 
-    this.aborted = false;
+  }, {
+    key: 'abort',
+    value: function abort() {
+      var state = this.state;
 
-    // Add middleware in as tasks.
-    Transaction.invokeMiddleware(this);
 
-    // Measure the render flow if the user wants to track performance.
-    measure('render');
+      this.aborted = true;
 
-    // Push back the last task as part of ending the flow.
-    tasks.push(takeLastTask);
+      // Grab the last task in the flow and return, this task will be responsible
+      // for calling `transaction.end`.
+      return this.tasks[this.tasks.length - 1](this);
+    }
+  }, {
+    key: 'end',
+    value: function end() {
+      var _this = this;
 
-    return Transaction.flow(this, tasks);
-  }
+      var state = this.state,
+          domNode = this.domNode,
+          options = this.options;
+      var measure = state.measure;
+      var inner = options.inner;
 
-  // This will immediately call the last flow task and terminate the flow. We
-  // call the last task to ensure that the control flow completes. This should
-  // end psuedo-synchronously. Think `Promise.resolve()`, `callback()`, and
-  // `return someValue` to provide the most accurate performance reading. This
-  // doesn't matter practically besides that.
-  abort() {
-    const { state } = this;
 
-    this.aborted = true;
+      measure('finalize');
 
-    // Grab the last task in the flow and return, this task will be responsible
-    // for calling `transaction.end`.
-    return this.tasks[this.tasks.length - 1](this);
-  }
+      this.completed = true;
 
-  end() {
-    const { state, domNode, options } = this;
-    const { measure } = state;
-    const { inner } = options;
+      // Mark the end to rendering.
+      measure('finalize');
+      measure('render');
 
-    measure('finalize');
+      // Trigger all `onceEnded` callbacks, so that middleware can know the
+      // transaction has ended.
+      this.endedCallbacks.forEach(function (callback) {
+        return callback(_this);
+      });
+      this.endedCallbacks.clear();
 
-    this.completed = true;
+      // Cache the markup and text for the DOM node to allow for short-circuiting
+      // future render transactions.
+      state.previousMarkup = domNode.outerHTML;
+      state.isRendering = false;
 
-    // Mark the end to rendering.
-    measure('finalize');
-    measure('render');
+      // Clean up memory before rendering the next transaction, however if
+      // another transaction is running concurrently this will be delayed until
+      // the last render completes.
+      (0, _memory.cleanMemory)();
 
-    // Trigger all `onceEnded` callbacks, so that middleware can know the
-    // transaction has ended.
-    this.endedCallbacks.forEach(callback => callback(this));
-    this.endedCallbacks.clear();
+      // Try and render the next transaction if one has been saved.
+      Transaction.renderNext(state);
 
-    // Cache the markup and text for the DOM node to allow for short-circuiting
-    // future render transactions.
-    state.previousMarkup = domNode.outerHTML;
-    state.isRendering = false;
+      return this;
+    }
+  }, {
+    key: 'onceEnded',
+    value: function onceEnded(callback) {
+      this.endedCallbacks.add(callback);
+    }
+  }]);
 
-    // Clean up memory before rendering the next transaction, however if
-    // another transaction is running concurrently this will be delayed until
-    // the last render completes.
-    (0, _memory.cleanMemory)();
+  return Transaction;
+}();
 
-    // Try and render the next transaction if one has been saved.
-    Transaction.renderNext(state);
-
-    return this;
-  }
-
-  onceEnded(callback) {
-    this.endedCallbacks.add(callback);
-  }
-}
 exports.default = Transaction;
 },{"./tasks/end-as-promise":12,"./tasks/patch-node":14,"./tasks/reconcile-trees":15,"./tasks/schedule":16,"./tasks/should-update":17,"./tasks/sync-trees":18,"./util/caches":24,"./util/make-measure":28,"./util/memory":29,"./util/process":32}],20:[function(require,module,exports){
 'use strict';
@@ -2166,6 +2328,9 @@ exports.default = Transaction;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 exports.addTransitionState = addTransitionState;
 exports.removeTransitionState = removeTransitionState;
 exports.runTransitions = runTransitions;
@@ -2178,16 +2343,20 @@ var _process2 = _interopRequireDefault(_process);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 // Available transition states.
-const stateNames = ['attached', 'detached', 'replaced', 'attributeChanged', 'textChanged'];
+var stateNames = ['attached', 'detached', 'replaced', 'attributeChanged', 'textChanged'];
 
 // Sets up the states up so we can add and remove events from the sets.
-stateNames.forEach(stateName => _caches.TransitionCache.set(stateName, new Set()));
+stateNames.forEach(function (stateName) {
+  return _caches.TransitionCache.set(stateName, new Set());
+});
 
 function addTransitionState(stateName, callback) {
   if (_process2.default.env.NODE_ENV !== 'production') {
     if (!stateName || !stateNames.includes(stateName)) {
-      throw new Error(`Invalid state name '${stateName}'`);
+      throw new Error('Invalid state name \'' + stateName + '\'');
     }
 
     if (!callback) {
@@ -2202,7 +2371,7 @@ function removeTransitionState(stateName, callback) {
   if (_process2.default.env.NODE_ENV !== 'production') {
     // Only validate the stateName if the caller provides one.
     if (stateName && !stateNames.includes(stateName)) {
-      throw new Error(`Invalid state name '${stateName}'`);
+      throw new Error('Invalid state name \'' + stateName + '\'');
     }
   }
 
@@ -2216,15 +2385,19 @@ function removeTransitionState(stateName, callback) {
     }
     // Remove all callbacks.
     else {
-        for (let i = 0; i < stateNames.length; i++) {
+        for (var i = 0; i < stateNames.length; i++) {
           _caches.TransitionCache.get(stateNames[i]).clear();
         }
       }
 }
 
-function runTransitions(setName, ...args) {
-  const set = _caches.TransitionCache.get(setName);
-  const promises = [];
+function runTransitions(setName) {
+  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
+  }
+
+  var set = _caches.TransitionCache.get(setName);
+  var promises = [];
 
   if (!set.size) {
     return promises;
@@ -2236,20 +2409,20 @@ function runTransitions(setName, ...args) {
   }
 
   // Run each transition callback, if on the attached/detached.
-  set.forEach(callback => {
-    const retVal = callback(...args);
+  set.forEach(function (callback) {
+    var retVal = callback.apply(undefined, args);
 
     // Is a `thennable` object or Native Promise.
-    if (typeof retVal === 'object' && retVal.then) {
+    if ((typeof retVal === 'undefined' ? 'undefined' : _typeof(retVal)) === 'object' && retVal.then) {
       promises.push(retVal);
     }
   });
 
   if (setName === 'attached' || setName === 'detached') {
-    const element = args[0];
+    var element = args[0];
 
-    [...element.childNodes].forEach(childNode => {
-      promises.push(...runTransitions(setName, childNode, ...args.slice(1)));
+    [].concat(_toConsumableArray(element.childNodes)).forEach(function (childNode) {
+      promises.push.apply(promises, _toConsumableArray(runTransitions.apply(undefined, [setName, childNode].concat(_toConsumableArray(args.slice(1))))));
     });
   }
 
@@ -2261,6 +2434,9 @@ function runTransitions(setName, ...args) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 exports.default = createTree;
 
 var _caches = require('../util/caches');
@@ -2271,12 +2447,19 @@ var _pool2 = _interopRequireDefault(_pool);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const { CreateTreeHookCache } = _caches.MiddlewareCache;
-const { assign } = Object;
-const { isArray } = Array;
-const fragmentName = '#document-fragment';
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-function createTree(input, attributes, childNodes, ...rest) {
+var CreateTreeHookCache = _caches.MiddlewareCache.CreateTreeHookCache;
+var assign = Object.assign;
+var isArray = Array.isArray;
+
+var fragmentName = '#document-fragment';
+
+function createTree(input, attributes, childNodes) {
+  for (var _len = arguments.length, rest = Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
+    rest[_key - 3] = arguments[_key];
+  }
+
   // If no input was provided then we return an indication as such.
   if (!input) {
     return null;
@@ -2287,15 +2470,17 @@ function createTree(input, attributes, childNodes, ...rest) {
   if (isArray(input)) {
     childNodes = [];
 
-    for (let i = 0; i < input.length; i++) {
-      const newTree = createTree(input[i]);
+    for (var i = 0; i < input.length; i++) {
+      var newTree = createTree(input[i]);
       if (!newTree) {
         continue;
       }
-      const isFragment = newTree.nodeType === 11;
+      var isFragment = newTree.nodeType === 11;
 
       if (typeof newTree.rawNodeName === 'string' && isFragment) {
-        childNodes.push(...newTree.childNodes);
+        var _childNodes;
+
+        (_childNodes = childNodes).push.apply(_childNodes, _toConsumableArray(newTree.childNodes));
       } else {
         childNodes.push(newTree);
       }
@@ -2304,7 +2489,7 @@ function createTree(input, attributes, childNodes, ...rest) {
     return createTree(fragmentName, null, childNodes);
   }
 
-  const isObject = typeof input === 'object';
+  var isObject = (typeof input === 'undefined' ? 'undefined' : _typeof(input)) === 'object';
 
   // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
   if (input && isObject && 'parentNode' in input) {
@@ -2322,10 +2507,13 @@ function createTree(input, attributes, childNodes, ...rest) {
     else if (input.nodeType === 1 && input.attributes.length) {
         attributes = {};
 
-        for (let i = 0; i < input.attributes.length; i++) {
-          const { name, value } = input.attributes[i];
+        for (var _i = 0; _i < input.attributes.length; _i++) {
+          var _input$attributes$_i = input.attributes[_i],
+              name = _input$attributes$_i.name,
+              value = _input$attributes$_i.value;
 
           // If the attribute's value is empty, seek out the property instead.
+
           if (value === '' && name in input) {
             attributes[name] = input[name];
             continue;
@@ -2340,15 +2528,15 @@ function createTree(input, attributes, childNodes, ...rest) {
       if (input.childNodes.length) {
         childNodes = [];
 
-        for (let i = 0; i < input.childNodes.length; i++) {
-          childNodes.push(createTree(input.childNodes[i]));
+        for (var _i2 = 0; _i2 < input.childNodes.length; _i2++) {
+          childNodes.push(createTree(input.childNodes[_i2]));
         }
       }
     }
 
-    const vTree = createTree(input.nodeName, attributes, childNodes);
-    _caches.NodeCache.set(vTree, input);
-    return vTree;
+    var _vTree = createTree(input.nodeName, attributes, childNodes);
+    _caches.NodeCache.set(_vTree, input);
+    return _vTree;
   }
 
   // Assume any object value is a valid VTree object.
@@ -2358,13 +2546,13 @@ function createTree(input, attributes, childNodes, ...rest) {
 
   // Support JSX-style children being passed.
   if (rest.length) {
-    childNodes = [childNodes, ...rest];
+    childNodes = [childNodes].concat(rest);
   }
 
   // Allocate a new VTree from the pool.
-  const entry = _pool2.default.get();
-  const isTextNode = input === '#text';
-  const isString = typeof input === 'string';
+  var entry = _pool2.default.get();
+  var isTextNode = input === '#text';
+  var isString = typeof input === 'string';
 
   entry.key = '';
   entry.rawNodeName = input;
@@ -2374,8 +2562,8 @@ function createTree(input, attributes, childNodes, ...rest) {
   entry.attributes = {};
 
   if (isTextNode) {
-    const nodes = arguments.length === 2 ? attributes : childNodes;
-    const nodeValue = isArray(nodes) ? nodes.join('') : nodes;
+    var _nodes = arguments.length === 2 ? attributes : childNodes;
+    var nodeValue = isArray(_nodes) ? _nodes.join('') : _nodes;
 
     entry.nodeType = 3;
     entry.nodeValue = String(nodeValue || '');
@@ -2391,27 +2579,40 @@ function createTree(input, attributes, childNodes, ...rest) {
     entry.nodeType = 1;
   }
 
-  const useAttributes = isArray(attributes) || typeof attributes !== 'object';
-  const nodes = useAttributes ? attributes : childNodes;
-  const nodeArray = isArray(nodes) ? nodes : [nodes];
+  var useAttributes = isArray(attributes) || (typeof attributes === 'undefined' ? 'undefined' : _typeof(attributes)) !== 'object';
+  var nodes = useAttributes ? attributes : childNodes;
+  var nodeArray = isArray(nodes) ? nodes : [nodes];
 
   if (nodes && nodeArray.length) {
-    for (let i = 0; i < nodeArray.length; i++) {
-      const newNode = nodeArray[i];
+    for (var _i3 = 0; _i3 < nodeArray.length; _i3++) {
+      var newNode = nodeArray[_i3];
+      var _isArray = Array.isArray(newNode);
 
-      // Assume objects are vTrees.
-      if (typeof newNode === 'object') {
-        entry.childNodes.push(newNode);
-      }
-      // Cover generate cases where a user has indicated they do not want a
-      // node from appearing.
-      else if (newNode) {
-          entry.childNodes.push(createTree('#text', null, newNode));
+      // Merge in arrays.
+      if (_isArray) {
+        for (var _i4 = 0; _i4 < newNode.length; _i4++) {
+          entry.childNodes.push(newNode[_i4]);
         }
+      }
+      // Merge in fragments.
+      else if (newNode.nodeType === 11 && typeof newNode.rawNodeName === 'string') {
+          for (var _i5 = 0; _i5 < newNode.childNodes.length; _i5++) {
+            entry.childNodes.push(newNode.childNodes[_i5]);
+          }
+        }
+        // Assume objects are vTrees.
+        else if (newNode && (typeof newNode === 'undefined' ? 'undefined' : _typeof(newNode)) === 'object') {
+            entry.childNodes.push(newNode);
+          }
+          // Cover generate cases where a user has indicated they do not want a
+          // node from appearing.
+          else if (newNode) {
+              entry.childNodes.push(createTree('#text', null, newNode));
+            }
     }
   }
 
-  if (attributes && typeof attributes === 'object' && !isArray(attributes)) {
+  if (attributes && (typeof attributes === 'undefined' ? 'undefined' : _typeof(attributes)) === 'object' && !isArray(attributes)) {
     entry.attributes = attributes;
   }
 
@@ -2425,9 +2626,9 @@ function createTree(input, attributes, childNodes, ...rest) {
     entry.key = String(entry.attributes.key);
   }
 
-  let vTree = entry;
+  var vTree = entry;
 
-  CreateTreeHookCache.forEach((fn, retVal) => {
+  CreateTreeHookCache.forEach(function (fn, retVal) {
     // Invoke all the `createNodeHook` functions passing along this transaction
     // as the only argument. These functions must return valid vTree values.
     if (retVal = fn(vTree)) {
@@ -2437,6 +2638,7 @@ function createTree(input, attributes, childNodes, ...rest) {
 
   return vTree;
 }
+module.exports = exports['default'];
 },{"../util/caches":24,"../util/pool":31}],22:[function(require,module,exports){
 'use strict';
 
@@ -2453,10 +2655,12 @@ var _process2 = _interopRequireDefault(_process);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const { SyncTreeHookCache } = _caches.MiddlewareCache;
-const { assign, keys } = Object;
-const empty = {};
-const keyNames = ['old', 'new'];
+var SyncTreeHookCache = _caches.MiddlewareCache.SyncTreeHookCache;
+var assign = Object.assign,
+    keys = Object.keys;
+
+var empty = {};
+var keyNames = ['old', 'new'];
 
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
@@ -2464,13 +2668,13 @@ function syncTree(oldTree, newTree, patches) {
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 
-  const oldNodeName = oldTree.nodeName;
-  const newNodeName = newTree.nodeName;
-  const isFragment = newTree.nodeType === 11;
-  const isEmpty = oldTree === empty;
+  var oldNodeName = oldTree.nodeName;
+  var newNodeName = newTree.nodeName;
+  var isFragment = newTree.nodeType === 11;
+  var isEmpty = oldTree === empty;
 
   // Reuse these maps, it's more efficient to clear them than to re-create.
-  const keysLookup = { old: new Map(), new: new Map() };
+  var keysLookup = { old: new Map(), new: new Map() };
 
   if (_process2.default.env.NODE_ENV !== 'production') {
     if (newTree === empty) {
@@ -2478,29 +2682,23 @@ function syncTree(oldTree, newTree, patches) {
     }
 
     if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
-      throw new Error(`Sync failure, cannot compare ${newNodeName} with ${oldNodeName}`);
+      throw new Error('Sync failure, cannot compare ' + newNodeName + ' with ' + oldNodeName);
     }
   }
 
   // Reduce duplicate logic by condensing old and new operations in a loop.
-  for (let i = 0; i < keyNames.length; i++) {
-    const keyName = keyNames[i];
-    const map = keysLookup[keyName];
-    const vTree = arguments[i];
-    const nodes = vTree && vTree.childNodes;
+  for (var i = 0; i < keyNames.length; i++) {
+    var keyName = keyNames[i];
+    var map = keysLookup[keyName];
+    var vTree = arguments[i];
+    var nodes = vTree && vTree.childNodes;
 
     if (nodes && nodes.length) {
-      for (let i = 0; i < nodes.length; i++) {
-        const vTree = nodes[i];
+      for (var _i = 0; _i < nodes.length; _i++) {
+        var _vTree = nodes[_i];
 
-        if (vTree.key) {
-          map.set(vTree.key, vTree);
-        } else if (_process2.default.env.NODE_ENV !== 'production') {
-          if (map.size && vTree.nodeType === 1) {
-            throw new Error(`Missing \`key\` all siblings must supply this attribute.
-
-Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
-          }
+        if (_vTree.key) {
+          map.set(_vTree.key, _vTree);
         }
       }
     }
@@ -2509,7 +2707,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
   // Invoke any middleware hooks, allow the middleware to replace the
   // `newTree`. Pass along the `keysLookup` object so that middleware can make
   // smart decisions when dealing with keys.
-  SyncTreeHookCache.forEach((fn, retVal) => {
+  SyncTreeHookCache.forEach(function (fn, retVal) {
     if ((retVal = fn(oldTree, newTree, null)) && retVal !== newTree) {
       newTree = retVal;
 
@@ -2517,12 +2715,12 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
       syncTree(null, retVal, patches);
     }
 
-    for (let i = 0; i < newTree.childNodes.length; i++) {
-      const oldChildNode = isEmpty ? empty : oldTree.childNodes[i];
-      const newChildNode = newTree.childNodes[i];
+    for (var _i2 = 0; _i2 < newTree.childNodes.length; _i2++) {
+      var oldChildNode = isEmpty ? empty : oldTree.childNodes[_i2];
+      var newChildNode = newTree.childNodes[_i2];
 
       if (retVal = fn(oldChildNode, newChildNode, keysLookup)) {
-        newTree.childNodes[i] = retVal;
+        newTree.childNodes[_i2] = retVal;
       }
     }
   });
@@ -2535,18 +2733,26 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
     NODE_VALUE: []
   };
 
-  const { SET_ATTRIBUTE, REMOVE_ATTRIBUTE, TREE_OPS, NODE_VALUE } = patches;
+  var _patches = patches,
+      SET_ATTRIBUTE = _patches.SET_ATTRIBUTE,
+      REMOVE_ATTRIBUTE = _patches.REMOVE_ATTRIBUTE,
+      TREE_OPS = _patches.TREE_OPS,
+      NODE_VALUE = _patches.NODE_VALUE;
 
   // Build up a patchset object to use for tree operations.
-  const patchset = {
+
+  var patchset = {
     INSERT_BEFORE: [],
     REMOVE_CHILD: [],
     REPLACE_CHILD: []
   };
 
   // USED: INSERT_BEFORE: 3x, REMOVE_CHILD: 2x, REPLACE_CHILD: 3x.
-  const { INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD } = patchset;
-  const isElement = newTree.nodeType === 1;
+  var INSERT_BEFORE = patchset.INSERT_BEFORE,
+      REMOVE_CHILD = patchset.REMOVE_CHILD,
+      REPLACE_CHILD = patchset.REPLACE_CHILD;
+
+  var isElement = newTree.nodeType === 1;
 
   // Text nodes are low level and frequently change, so this path is accounted
   // for first.
@@ -2568,12 +2774,12 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
 
   // Seek out attribute changes first, but only from element Nodes.
   if (isElement) {
-    const oldAttributes = isEmpty ? empty : oldTree.attributes;
-    const newAttributes = newTree.attributes;
+    var oldAttributes = isEmpty ? empty : oldTree.attributes;
+    var newAttributes = newTree.attributes;
 
     // Search for sets and changes.
-    for (let key in newAttributes) {
-      const value = newAttributes[key];
+    for (var key in newAttributes) {
+      var value = newAttributes[key];
 
       if (key in oldAttributes && oldAttributes[key] === newAttributes[key]) {
         continue;
@@ -2588,12 +2794,12 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
 
     // Search for removals.
     if (!isEmpty) {
-      for (let key in oldAttributes) {
-        if (key in newAttributes) {
+      for (var _key in oldAttributes) {
+        if (_key in newAttributes) {
           continue;
         }
-        REMOVE_ATTRIBUTE.push(oldTree, key);
-        delete oldAttributes[key];
+        REMOVE_ATTRIBUTE.push(oldTree, _key);
+        delete oldAttributes[_key];
       }
     }
   }
@@ -2602,26 +2808,33 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
   // we'll want to raise an error to let the user know something is wrong.
   if (_process2.default.env.NODE_ENV !== 'production') {
     if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
-      throw new Error(`Sync failure, cannot compare ${newNodeName} with ${oldNodeName}`);
+      throw new Error('Sync failure, cannot compare ' + newNodeName + ' with ' + oldNodeName);
     }
   }
 
+  var newChildNodes = newTree.childNodes;
+
+  // Scan all childNodes for attribute changes.
   if (isEmpty) {
+    // Do a single pass over the new child nodes.
+    for (var _i3 = 0; _i3 < newChildNodes.length; _i3++) {
+      syncTree(null, newChildNodes[_i3], patches);
+    }
+
     return patches;
   }
 
-  const oldChildNodes = oldTree.childNodes;
-  const newChildNodes = newTree.childNodes;
+  var oldChildNodes = oldTree.childNodes;
 
   // If we are working with keys, we can follow an optimized path.
   if (keysLookup.old.size || keysLookup.new.size) {
-    const values = keysLookup.old.values();
+    var values = keysLookup.old.values();
 
     // Do a single pass over the new child nodes.
-    for (let i = 0; i < newChildNodes.length; i++) {
-      const oldChildNode = oldChildNodes[i];
-      const newChildNode = newChildNodes[i];
-      const newKey = newChildNode.key;
+    for (var _i4 = 0; _i4 < newChildNodes.length; _i4++) {
+      var oldChildNode = oldChildNodes[_i4];
+      var newChildNode = newChildNodes[_i4];
+      var newKey = newChildNode.key;
 
       // If there is no old element to compare to, this is a simple addition.
       if (!oldChildNode) {
@@ -2631,9 +2844,9 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
         continue;
       }
 
-      const oldKey = oldChildNode.key;
-      const oldInNew = keysLookup.new.has(oldKey);
-      const newInOld = keysLookup.old.has(newKey);
+      var oldKey = oldChildNode.key;
+      var oldInNew = keysLookup.new.has(oldKey);
+      var newInOld = keysLookup.old.has(newKey);
 
       // Remove the old Node and insert the new node (aka replace).
       if (!oldInNew && !newInOld) {
@@ -2646,14 +2859,14 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
       else if (!oldInNew) {
           REMOVE_CHILD.push(oldChildNode);
           oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1);
-          i = i - 1;
+          _i4 = _i4 - 1;
           continue;
         }
 
       // If there is a key set for this new element, use that to figure out
       // which element to use.
       if (newKey !== oldKey) {
-        let optimalNewNode = newChildNode;
+        var optimalNewNode = newChildNode;
 
         // Prefer existing to new and remove from old position.
         if (newKey && newInOld) {
@@ -2667,7 +2880,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
         }
 
         INSERT_BEFORE.push(oldTree, optimalNewNode, oldChildNode);
-        oldChildNodes.splice(i, 0, optimalNewNode);
+        oldChildNodes.splice(_i4, 0, optimalNewNode);
         continue;
       }
 
@@ -2675,7 +2888,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
       // replace the entire element, don't bother investigating children.
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
         REPLACE_CHILD.push(newChildNode, oldChildNode);
-        oldTree.childNodes[i] = newChildNode;
+        oldTree.childNodes[_i4] = newChildNode;
         syncTree(null, newChildNode, patches);
         continue;
       }
@@ -2687,32 +2900,32 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
   // No keys used on this level, so we will do easier transformations.
   else {
       // Do a single pass over the new child nodes.
-      for (let i = 0; i < newChildNodes.length; i++) {
-        const oldChildNode = oldChildNodes && oldChildNodes[i];
-        const newChildNode = newChildNodes[i];
+      for (var _i5 = 0; _i5 < newChildNodes.length; _i5++) {
+        var _oldChildNode = oldChildNodes && oldChildNodes[_i5];
+        var _newChildNode = newChildNodes[_i5];
 
         // If there is no old element to compare to, this is a simple addition.
-        if (!oldChildNode) {
-          INSERT_BEFORE.push(oldTree, newChildNode, null);
+        if (!_oldChildNode) {
+          INSERT_BEFORE.push(oldTree, _newChildNode, null);
 
           if (oldChildNodes) {
-            oldChildNodes.push(newChildNode);
+            oldChildNodes.push(_newChildNode);
           }
 
-          syncTree(null, newChildNode, patches);
+          syncTree(null, _newChildNode, patches);
           continue;
         }
 
         // If the element we're replacing is totally different from the previous
         // replace the entire element, don't bother investigating children.
-        if (oldChildNode.nodeName !== newChildNode.nodeName) {
-          REPLACE_CHILD.push(newChildNode, oldChildNode);
-          oldTree.childNodes[i] = newChildNode;
-          syncTree(null, newChildNode, patches);
+        if (_oldChildNode.nodeName !== _newChildNode.nodeName) {
+          REPLACE_CHILD.push(_newChildNode, _oldChildNode);
+          oldTree.childNodes[_i5] = _newChildNode;
+          syncTree(null, _newChildNode, patches);
           continue;
         }
 
-        syncTree(oldChildNode, newChildNode, patches);
+        syncTree(_oldChildNode, _newChildNode, patches);
       }
     }
 
@@ -2726,8 +2939,8 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
   // We've reconciled new changes, so we can remove any old nodes and adjust
   // lengths to be equal.
   if (oldChildNodes.length !== newChildNodes.length) {
-    for (let i = newChildNodes.length; i < oldChildNodes.length; i++) {
-      REMOVE_CHILD.push(oldChildNodes[i]);
+    for (var _i6 = newChildNodes.length; _i6 < oldChildNodes.length; _i6++) {
+      REMOVE_CHILD.push(oldChildNodes[_i6]);
     }
 
     oldChildNodes.length = newChildNodes.length;
@@ -2752,6 +2965,7 @@ Virtual Element: ${JSON.stringify(vTree, null, 2)}`);
 
   return patches;
 }
+module.exports = exports['default'];
 },{"../util/caches":24,"../util/process":32}],23:[function(require,module,exports){
 'use strict';
 
@@ -2768,12 +2982,9 @@ var _process2 = _interopRequireDefault(_process);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const {
-  CreateTreeHookCache,
-  CreateNodeHookCache,
-  SyncTreeHookCache
-} = _caches.MiddlewareCache;
-
+var CreateTreeHookCache = _caches.MiddlewareCache.CreateTreeHookCache,
+    CreateNodeHookCache = _caches.MiddlewareCache.CreateNodeHookCache,
+    SyncTreeHookCache = _caches.MiddlewareCache.SyncTreeHookCache;
 function use(middleware) {
   if (_process2.default.env.NODE_ENV !== 'production') {
     if (typeof middleware !== 'function') {
@@ -2781,15 +2992,14 @@ function use(middleware) {
     }
   }
 
-  const {
-    subscribe,
-    unsubscribe,
-    createTreeHook,
-    createNodeHook,
-    syncTreeHook
-  } = middleware;
+  var subscribe = middleware.subscribe,
+      unsubscribe = middleware.unsubscribe,
+      createTreeHook = middleware.createTreeHook,
+      createNodeHook = middleware.createNodeHook,
+      syncTreeHook = middleware.syncTreeHook;
 
   // Add the function to the set of middlewares.
+
   _caches.MiddlewareCache.add(middleware);
 
   // Call the subscribe method if it was defined, passing in the full public
@@ -2802,7 +3012,7 @@ function use(middleware) {
   syncTreeHook && SyncTreeHookCache.add(syncTreeHook);
 
   // The unsubscribe method for the middleware.
-  return () => {
+  return function () {
     // Remove this middleware from the internal cache. This will prevent it
     // from being invoked in the future.
     _caches.MiddlewareCache.delete(middleware);
@@ -2817,6 +3027,7 @@ function use(middleware) {
     SyncTreeHookCache.delete(syncTreeHook);
   };
 }
+module.exports = exports['default'];
 },{"./util/caches":24,"./util/process":32}],24:[function(require,module,exports){
 "use strict";
 
@@ -2824,16 +3035,16 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 // Associates DOM Nodes with state objects.
-const StateCache = exports.StateCache = new Map();
+var StateCache = exports.StateCache = new Map();
 
 // Associates Virtual Tree Elements with DOM Nodes.
-const NodeCache = exports.NodeCache = new Map();
+var NodeCache = exports.NodeCache = new Map();
 
 // Cache transition functions.
-const TransitionCache = exports.TransitionCache = new Map();
+var TransitionCache = exports.TransitionCache = new Map();
 
 // Caches all middleware. You cannot unset a middleware once it has been added.
-const MiddlewareCache = exports.MiddlewareCache = new Set();
+var MiddlewareCache = exports.MiddlewareCache = new Set();
 
 // Very specific caches used by middleware.
 MiddlewareCache.CreateTreeHookCache = new Set();
@@ -2846,10 +3057,13 @@ MiddlewareCache.SyncTreeHookCache = new Set();
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 exports.default = decodeEntities;
 // Support loading diffHTML in non-browser environments.
-const g = typeof global === 'object' ? global : window;
-const element = g.document ? document.createElement('div') : null;
+var g = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : window;
+var element = g.document ? document.createElement('div') : null;
 
 /**
  * Decodes HTML strings.
@@ -2867,6 +3081,7 @@ function decodeEntities(string) {
   element.innerHTML = string;
   return element.textContent;
 }
+module.exports = exports['default'];
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],26:[function(require,module,exports){
 "use strict";
@@ -2883,10 +3098,12 @@ exports.default = escape;
  * @return {String} - An HTML-safe string
  */
 function escape(unescaped) {
-  return unescaped.replace(/[&<>]/g, match => `&#${match.charCodeAt(0)};`);
+  return unescaped.replace(/[&<>]/g, function (match) {
+    return "&#" + match.charCodeAt(0) + ";";
+  });
 }
+module.exports = exports["default"];
 },{}],27:[function(require,module,exports){
-(function (global){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2921,48 +3138,39 @@ var _process = require('./process');
 
 var _process2 = _interopRequireDefault(_process);
 
-var _svg = require('./svg');
-
-var svg = _interopRequireWildcard(_svg);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-const root = typeof global !== 'undefined' ? global : window;
-
-const internals = root[Symbol.for('diff.shared-internals')] = Object.assign({
+exports.default = Object.assign({
   decodeEntities: _decodeEntities2.default,
   escape: _escape2.default,
   makeMeasure: _makeMeasure2.default,
-  memory,
+  memory: memory,
   Pool: _pool2.default,
-  process: _process2.default,
-  svg
+  process: _process2.default
 }, caches);
-
-exports.default = internals;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./caches":24,"./decode-entities":25,"./escape":26,"./make-measure":28,"./memory":29,"./pool":31,"./process":32,"./svg":33}],28:[function(require,module,exports){
+module.exports = exports['default'];
+},{"./caches":24,"./decode-entities":25,"./escape":26,"./make-measure":28,"./memory":29,"./pool":31,"./process":32}],28:[function(require,module,exports){
 (function (process){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-const marks = exports.marks = new Map();
-const prefix = exports.prefix = 'diffHTML';
-const DIFF_PERF = 'diff_perf';
+var marks = exports.marks = new Map();
+var prefix = exports.prefix = 'diffHTML';
+var DIFF_PERF = 'diff_perf';
 
-const hasSearch = typeof location !== 'undefined';
-const hasArguments = typeof process !== 'undefined' && process.argv;
-const nop = () => {};
+var hasSearch = typeof location !== 'undefined';
+var hasArguments = typeof process !== 'undefined' && process.argv;
+var nop = function nop() {};
 
-exports.default = (domNode, vTree) => {
+exports.default = function (domNode, vTree) {
   // Check for these changes on every check.
-  const wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
-  const wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
-  const wantsPerfChecks = wantsSearch || wantsArguments;
+  var wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
+  var wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
+  var wantsPerfChecks = wantsSearch || wantsArguments;
 
   // If the user has not requested they want perf checks, return a nop
   // function.
@@ -2970,26 +3178,26 @@ exports.default = (domNode, vTree) => {
     return nop;
   }
 
-  return name => {
+  return function (name) {
     // Use the Web Component name if it's available.
     if (domNode && domNode.host) {
-      name = `${domNode.host.constructor.name} ${name}`;
+      name = domNode.host.constructor.name + ' ' + name;
     } else if (typeof vTree.rawNodeName === 'function') {
-      name = `${vTree.rawNodeName.name} ${name}`;
+      name = vTree.rawNodeName.name + ' ' + name;
     }
 
-    const endName = `${name}-end`;
+    var endName = name + '-end';
 
     if (!marks.has(name)) {
       marks.set(name, performance.now());
       performance.mark(name);
     } else {
-      const totalMs = (performance.now() - marks.get(name)).toFixed(3);
+      var totalMs = (performance.now() - marks.get(name)).toFixed(3);
 
       marks.delete(name);
 
       performance.mark(endName);
-      performance.measure(`${prefix} ${name} (${totalMs}ms)`, name, endName);
+      performance.measure(prefix + ' ' + name + ' (' + totalMs + 'ms)', name, endName);
     }
   };
 };
@@ -3012,7 +3220,9 @@ var _caches = require('./caches');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const { memory, protect, unprotect } = _pool2.default;
+var memory = _pool2.default.memory,
+    protect = _pool2.default.protect,
+    unprotect = _pool2.default.unprotect;
 
 /**
  * Ensures that an vTree is not recycled during a render cycle.
@@ -3020,10 +3230,11 @@ const { memory, protect, unprotect } = _pool2.default;
  * @param vTree
  * @return vTree
  */
+
 function protectVTree(vTree) {
   protect(vTree);
 
-  for (let i = 0; i < vTree.childNodes.length; i++) {
+  for (var i = 0; i < vTree.childNodes.length; i++) {
     protectVTree(vTree.childNodes[i]);
   }
 
@@ -3039,7 +3250,7 @@ function protectVTree(vTree) {
 function unprotectVTree(vTree) {
   unprotect(vTree);
 
-  for (let i = 0; i < vTree.childNodes.length; i++) {
+  for (var i = 0; i < vTree.childNodes.length; i++) {
     unprotectVTree(vTree.childNodes[i]);
   }
 
@@ -3050,20 +3261,26 @@ function unprotectVTree(vTree) {
  * Moves all unprotected allocations back into available pool. This keeps
  * diffHTML in a consistent state after synchronizing.
  */
-function cleanMemory(isBusy = false) {
-  _caches.StateCache.forEach(state => isBusy = state.isRendering || isBusy);
+function cleanMemory() {
+  var isBusy = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+  _caches.StateCache.forEach(function (state) {
+    return isBusy = state.isRendering || isBusy;
+  });
 
   // TODO Pause GC in between renders.
   //if (isBusy) {
   //  return;
   //}
 
-  memory.allocated.forEach(vTree => memory.free.add(vTree));
+  memory.allocated.forEach(function (vTree) {
+    return memory.free.add(vTree);
+  });
   memory.allocated.clear();
 
   // Clean out unused elements, if we have any elements cached that no longer
   // have a backing VTree, we can safely remove them from the cache.
-  _caches.NodeCache.forEach((node, descriptor) => {
+  _caches.NodeCache.forEach(function (node, descriptor) {
     if (!memory.protected.has(descriptor)) {
       _caches.NodeCache.delete(descriptor);
     }
@@ -3087,30 +3304,31 @@ var _pool2 = _interopRequireDefault(_pool);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// Adapted implementation from:
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } // Adapted implementation from:
 // https://github.com/ashi009/node-fast-html-parser
 
-const hasNonWhitespaceEx = /\S/;
-const doctypeEx = /<!.*>/i;
-const attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
-const spaceEx = /[^ ]/;
-const tokenEx = /__DIFFHTML__([^_]*)__/;
-const tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
+var hasNonWhitespaceEx = /\S/;
+var doctypeEx = /<!.*>/i;
+var attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+var spaceEx = /[^ ]/;
+var tokenEx = /__DIFFHTML__([^_]*)__/;
+var tagEx = /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
 
-const { assign } = Object;
+var assign = Object.assign;
 
-const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 
-const selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr', 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+var blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 
-const kElementsClosedByOpening = {
+var selfClosing = new Set(['meta', 'img', 'link', 'input', 'area', 'br', 'hr', 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+
+var kElementsClosedByOpening = {
   li: { li: true },
   p: { p: true, div: true },
   td: { td: true, th: true },
   th: { td: true, th: true }
 };
 
-const kElementsClosedByClosing = {
+var kElementsClosedByClosing = {
   li: { ul: true, ol: true },
   a: { div: true },
   b: { div: true },
@@ -3128,18 +3346,23 @@ const kElementsClosedByClosing = {
  * @param string
  * @param supplemental
  */
-const interpolateValues = (currentParent, string, supplemental = {}) => {
+var interpolateValues = function interpolateValues(currentParent, string) {
+  var _currentParent$childN;
+
+  var supplemental = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
   // If this is text and not a doctype, add as a text node.
   if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
     return currentParent.childNodes.push((0, _create2.default)('#text', string));
   }
 
-  const childNodes = [];
-  const parts = string.split(tokenEx);
-  let { length } = parts;
+  var childNodes = [];
+  var parts = string.split(tokenEx);
+  var length = parts.length;
 
-  for (let i = 0; i < parts.length; i++) {
-    const value = parts[i];
+
+  for (var i = 0; i < parts.length; i++) {
+    var value = parts[i];
 
     if (!value) {
       continue;
@@ -3149,14 +3372,14 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
     // the token's position. So all we do is ensure that we're on an odd
     // index and then we can source the correct value.
     if (i % 2 === 1) {
-      const innerTree = supplemental.children[value];
+      var innerTree = supplemental.children[value];
       if (!innerTree) {
         continue;
       }
-      const isFragment = innerTree.nodeType === 11;
+      var isFragment = innerTree.nodeType === 11;
 
       if (typeof innerTree.rawNodeName === 'string' && isFragment) {
-        childNodes.push(...innerTree.childNodes);
+        childNodes.push.apply(childNodes, _toConsumableArray(innerTree.childNodes));
       } else {
         childNodes.push(innerTree);
       }
@@ -3165,7 +3388,7 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
     }
   }
 
-  currentParent.childNodes.push(...childNodes);
+  (_currentParent$childN = currentParent.childNodes).push.apply(_currentParent$childN, childNodes);
 };
 
 /**
@@ -3179,35 +3402,36 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
  * @param {Object} supplemental - Interpolated data from a tagged template
  * @return {Object} vTree
  */
-const HTMLElement = (nodeName, rawAttrs, supplemental) => {
-  let match = null;
+var HTMLElement = function HTMLElement(nodeName, rawAttrs, supplemental) {
+  var match = null;
 
   // Support dynamic tag names like: `<${MyComponent} />`.
   if (match = tokenEx.exec(nodeName)) {
     return HTMLElement(supplemental.tags[match[1]], rawAttrs, supplemental);
   }
 
-  const attributes = {};
+  var attributes = {};
 
   // Migrate raw attributes into the attributes object used by the VTree.
-  for (let match; match = attrEx.exec(rawAttrs || '');) {
-    const name = match[1];
-    const value = match[6] || match[5] || match[4] || match[1];
-    let tokenMatch = value.match(tokenEx);
+  for (var _match; _match = attrEx.exec(rawAttrs || '');) {
+    var name = _match[1];
+    var value = _match[6] || _match[5] || _match[4] || _match[1];
+    var tokenMatch = value.match(tokenEx);
 
     // If we have multiple interpolated values in an attribute, we must
     // flatten to a string. There are no other valid options.
     if (tokenMatch && tokenMatch.length) {
-      const parts = value.split(tokenEx);
-      let { length } = parts;
+      var parts = value.split(tokenEx);
+      var length = parts.length;
 
-      const hasToken = tokenEx.exec(name);
-      const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
 
-      for (let i = 0; i < parts.length; i++) {
-        const value = parts[i];
+      var hasToken = tokenEx.exec(name);
+      var newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
 
-        if (!value) {
+      for (var i = 0; i < parts.length; i++) {
+        var _value = parts[i];
+
+        if (!_value) {
           continue;
         }
 
@@ -3216,22 +3440,22 @@ const HTMLElement = (nodeName, rawAttrs, supplemental) => {
         // an odd index and then we can source the correct value.
         if (i % 2 === 1) {
           if (attributes[newName]) {
-            attributes[newName] += supplemental.attributes[value];
+            attributes[newName] += supplemental.attributes[_value];
           } else {
-            attributes[newName] = supplemental.attributes[value];
+            attributes[newName] = supplemental.attributes[_value];
           }
         } else {
           if (attributes[newName]) {
-            attributes[newName] += value;
+            attributes[newName] += _value;
           } else {
-            attributes[newName] = value;
+            attributes[newName] = _value;
           }
         }
       }
     } else if (tokenMatch = tokenEx.exec(name)) {
-      const nameAndValue = supplemental.attributes[tokenMatch[1]];
-      const hasToken = tokenEx.exec(value);
-      const getValue = hasToken ? supplemental.attributes[hasToken[1]] : value;
+      var nameAndValue = supplemental.attributes[tokenMatch[1]];
+      var _hasToken = tokenEx.exec(value);
+      var getValue = _hasToken ? supplemental.attributes[_hasToken[1]] : value;
 
       attributes[nameAndValue] = value === '""' ? '' : getValue;
     } else {
@@ -3250,11 +3474,13 @@ const HTMLElement = (nodeName, rawAttrs, supplemental) => {
  * @param {Object} options - Contains options like silencing warnings
  * @return {Object} - Parsed Virtual Tree Element
  */
-function parse(html, supplemental, options = {}) {
-  const root = (0, _create2.default)('#document-fragment', null, []);
-  const stack = [root];
-  let currentParent = root;
-  let lastTextPos = -1;
+function parse(html, supplemental) {
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  var root = (0, _create2.default)('#document-fragment', null, []);
+  var stack = [root];
+  var currentParent = root;
+  var lastTextPos = -1;
 
   // If there are no HTML elements, treat the passed in html as a single
   // text node.
@@ -3264,7 +3490,7 @@ function parse(html, supplemental, options = {}) {
   }
 
   // Look through the HTML markup for valid tags.
-  for (let match, text; match = tagEx.exec(html);) {
+  for (var match, text; match = tagEx.exec(html);) {
     if (lastTextPos > -1) {
       if (lastTextPos + match[0].length < tagEx.lastIndex) {
         text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
@@ -3275,10 +3501,10 @@ function parse(html, supplemental, options = {}) {
       }
     }
 
-    const matchOffset = tagEx.lastIndex - match[0].length;
+    var matchOffset = tagEx.lastIndex - match[0].length;
 
     if (lastTextPos === -1 && matchOffset > 0) {
-      const string = html.slice(0, matchOffset);
+      var string = html.slice(0, matchOffset);
 
       if (string && hasNonWhitespaceEx.test(string) && !doctypeEx.exec(string)) {
         interpolateValues(currentParent, string, supplemental);
@@ -3294,7 +3520,7 @@ function parse(html, supplemental, options = {}) {
 
     if (!match[1]) {
       // not </ tags
-      const attrs = {};
+      var attrs = {};
 
       if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
         if (kElementsClosedByOpening[currentParent.rawNodeName][match[2]]) {
@@ -3309,9 +3535,10 @@ function parse(html, supplemental, options = {}) {
 
       if (blockText.has(match[2])) {
         // A little test to find next </script> or </style> ...
-        const closeMarkup = '</' + match[2] + '>';
-        const index = html.indexOf(closeMarkup, tagEx.lastIndex);
-        const { length } = match[2];
+        var closeMarkup = '</' + match[2] + '>';
+        var index = html.indexOf(closeMarkup, tagEx.lastIndex);
+        var length = match[2].length;
+
 
         if (index === -1) {
           lastTextPos = tagEx.lastIndex = html.length + 1;
@@ -3321,31 +3548,29 @@ function parse(html, supplemental, options = {}) {
           match[1] = true;
         }
 
-        const newText = html.slice(match.index + match[0].length, index);
+        var newText = html.slice(match.index + match[0].length, index);
         interpolateValues(currentParent, newText.trim(), supplemental);
       }
     }
 
     if (match[1] || match[4] || selfClosing.has(match[2])) {
       if (match[2] !== currentParent.rawNodeName && options.strict) {
-        const nodeName = currentParent.rawNodeName;
+        var nodeName = currentParent.rawNodeName;
 
         // Find a subset of the markup passed in to validate.
-        const markup = html.slice(tagEx.lastIndex - match[0].length).split('\n').slice(0, 3);
+        var markup = html.slice(tagEx.lastIndex - match[0].length).split('\n').slice(0, 3);
 
         // Position the caret next to the first non-whitespace character.
-        const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
+        var caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
 
         // Craft the warning message and inject it into the markup.
-        markup.splice(1, 0, `${caret}
-Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
-        `);
+        markup.splice(1, 0, caret + '\nPossibly invalid markup. Saw ' + match[2] + ', expected ' + nodeName + '...\n        ');
 
         // Throw an error message if the markup isn't what we expected.
-        throw new Error(`\n\n${markup.join('\n')}`);
+        throw new Error('\n\n' + markup.join('\n'));
       }
 
-      const tokenMatch = tokenEx.exec(match[2]);
+      var tokenMatch = tokenEx.exec(match[2]);
 
       // </ or /> or <br> etc.
       while (currentParent) {
@@ -3358,7 +3583,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
         }
         // Not self-closing, so seek out the next match.
         else if (tokenMatch) {
-            const value = supplemental.tags[tokenMatch[1]];
+            var value = supplemental.tags[tokenMatch[1]];
 
             if (currentParent.rawNodeName === value) {
               stack.pop();
@@ -3374,7 +3599,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
 
           break;
         } else {
-          const tag = kElementsClosedByClosing[currentParent.rawNodeName];
+          var tag = kElementsClosedByClosing[currentParent.rawNodeName];
 
           // Trying to close current tag, and move on
           if (tag) {
@@ -3394,7 +3619,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
   }
 
   // Find any last remaining text after the parsing completes over tags.
-  const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
+  var remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
 
   // Ensure that all values are properly interpolated through the remaining
   // markup after parsing.
@@ -3406,16 +3631,16 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
   // body or head.
   if (root.childNodes.length && root.childNodes[0].nodeName === 'html') {
     // Store elements from before body end and after body end.
-    const head = { before: [], after: [] };
-    const body = { after: [] };
-    const HTML = root.childNodes[0];
+    var head = { before: [], after: [] };
+    var body = { after: [] };
+    var HTML = root.childNodes[0];
 
-    let beforeHead = true;
-    let beforeBody = true;
+    var beforeHead = true;
+    var beforeBody = true;
 
     // Iterate the children and store elements in the proper array for
     // later concat, replace the current childNodes with this new array.
-    HTML.childNodes = HTML.childNodes.filter(el => {
+    HTML.childNodes = HTML.childNodes.filter(function (el) {
       // If either body or head, allow as a valid element.
       if (el.nodeName === 'body' || el.nodeName === 'head') {
         if (el.nodeName === 'head') beforeHead = false;
@@ -3431,29 +3656,29 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
 
     // Ensure the first element is the HEAD tag.
     if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
-      const headInstance = (0, _create2.default)('head', null, []);
-      const existing = headInstance.childNodes;
+      var headInstance = (0, _create2.default)('head', null, []);
+      var existing = headInstance.childNodes;
 
       existing.unshift.apply(existing, head.before);
       existing.push.apply(existing, head.after);
       HTML.childNodes.unshift(headInstance);
     } else {
-      const existing = HTML.childNodes[0].childNodes;
+      var _existing = HTML.childNodes[0].childNodes;
 
-      existing.unshift.apply(existing, head.before);
-      existing.push.apply(existing, head.after);
+      _existing.unshift.apply(_existing, head.before);
+      _existing.push.apply(_existing, head.after);
     }
 
     // Ensure the second element is the body tag.
     if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
-      const bodyInstance = (0, _create2.default)('body', null, []);
-      const existing = bodyInstance.childNodes;
+      var bodyInstance = (0, _create2.default)('body', null, []);
+      var _existing2 = bodyInstance.childNodes;
 
-      existing.push.apply(existing, body.after);
+      _existing2.push.apply(_existing2, body.after);
       HTML.childNodes.push(bodyInstance);
     } else {
-      const existing = HTML.childNodes[1].childNodes;
-      existing.push.apply(existing, body.after);
+      var _existing3 = HTML.childNodes[1].childNodes;
+      _existing3.push.apply(_existing3, body.after);
     }
   }
 
@@ -3463,6 +3688,7 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
 
   return root;
 }
+module.exports = exports['default'];
 },{"../tree/create":21,"./pool":31}],31:[function(require,module,exports){
 'use strict';
 
@@ -3470,43 +3696,50 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 // A modest size.
-const size = 10000;
+var size = 10000;
 
-const free = new Set();
-const allocate = new Set();
-const protect = new Set();
-const shape = () => ({
-  rawNodeName: '',
-  nodeName: '',
-  nodeValue: '',
-  nodeType: 1,
-  key: '',
-  childNodes: [],
-  attributes: {}
-});
+var free = new Set();
+var allocate = new Set();
+var _protect = new Set();
+var shape = function shape() {
+  return {
+    rawNodeName: '',
+    nodeName: '',
+    nodeValue: '',
+    nodeType: 1,
+    key: '',
+    childNodes: [],
+    attributes: {}
+  };
+};
 
 // Creates a pool to query new or reused values from.
-const memory = { free, allocated: allocate, protected: protect };
+var memory = { free: free, allocated: allocate, protected: _protect };
 
 // Prime the free memory pool with VTrees.
-for (let i = 0; i < size; i++) {
+for (var i = 0; i < size; i++) {
   free.add(shape());
 }
 
 // Cache the values object, we'll refer to this iterator which is faster
 // than calling it every single time. It gets replaced once exhausted.
-let freeValues = free.values();
+var freeValues = free.values();
 
 // Cache VTree objects in a pool which is used to get
 exports.default = {
-  size,
-  memory,
+  size: size,
+  memory: memory,
 
-  get() {
-    const { value = shape(), done } = freeValues.next();
+  get: function get() {
+    var _freeValues$next = freeValues.next(),
+        _freeValues$next$valu = _freeValues$next.value,
+        value = _freeValues$next$valu === undefined ? shape() : _freeValues$next$valu,
+        done = _freeValues$next.done;
 
     // This extra bit of work allows us to avoid calling `free.values()` every
     // single time an object is needed.
+
+
     if (done) {
       freeValues = free.values();
     }
@@ -3515,19 +3748,18 @@ exports.default = {
     allocate.add(value);
     return value;
   },
-
-  protect(value) {
+  protect: function protect(value) {
     allocate.delete(value);
-    protect.add(value);
+    _protect.add(value);
   },
-
-  unprotect(value) {
-    if (protect.has(value)) {
-      protect.delete(value);
+  unprotect: function unprotect(value) {
+    if (_protect.has(value)) {
+      _protect.delete(value);
       free.add(value);
     }
   }
 };
+module.exports = exports['default'];
 },{}],32:[function(require,module,exports){
 (function (process){
 'use strict';
@@ -3535,14 +3767,10 @@ exports.default = {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-const normalize = typeof process !== 'undefined' ? process : {
+exports.default = typeof process !== 'undefined' ? process : {
   env: { NODE_ENV: 'development' }
 };
-
-exports.default = Object.defineProperty({}, 'env', {
-  enumerable: true,
-  get: () => normalize.env
-});
+module.exports = exports['default'];
 }).call(this,require('_process'))
 },{"_process":2}],33:[function(require,module,exports){
 'use strict';
@@ -3550,16 +3778,5 @@ exports.default = Object.defineProperty({}, 'env', {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-// Namespace.
-const namespace = exports.namespace = 'http://www.w3.org/2000/svg';
-
-// List of SVG elements.
-const elements = exports.elements = ['altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor', 'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile', 'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect', 'set', 'stop', 'svg', 'switch', 'symbol', 'text', 'textPath', 'tref', 'tspan', 'use', 'view', 'vkern'];
-},{}],34:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-const __VERSION__ = exports.__VERSION__ = '1.0.0-beta';
+var __VERSION__ = exports.__VERSION__ = '1.0.0-beta';
 },{}]},{},[1]);

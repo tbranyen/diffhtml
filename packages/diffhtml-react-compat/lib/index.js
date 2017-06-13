@@ -1,4 +1,5 @@
 import { createTree, innerHTML, outerHTML, use, html } from 'diffhtml';
+import Children from './children';
 import Component from 'diffhtml-components/lib/component';
 import syntheticEvents from 'diffhtml-middleware-synthetic-events';
 
@@ -39,11 +40,20 @@ const isValidElement = object => (
   object.$$typeof === Symbol.for('react.element')
 );
 
-export { createElement, html as h, Component, html, render, isValidElement };
+export {
+  createElement,
+  Component,
+  Children,
+  html,
+  html as h,
+  render,
+  isValidElement,
+};
 
 export default {
   createElement,
   Component,
+  Children,
   html,
   h: html,
   render,
