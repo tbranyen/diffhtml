@@ -1,6 +1,7 @@
 import { createTree, innerHTML, outerHTML, use, html } from 'diffhtml';
 import Children from './children';
 import Component from 'diffhtml-components/lib/component';
+import PureComponent from './pure-component';
 import syntheticEvents from 'diffhtml-middleware-synthetic-events';
 
 const { keys } = Object;
@@ -43,6 +44,7 @@ const isValidElement = object => (
 export {
   createElement,
   Component,
+  PureComponent,
   Children,
   html,
   html as h,
@@ -53,6 +55,7 @@ export {
 export default {
   createElement,
   Component,
+  PureComponent,
   Children,
   html,
   h: html,
