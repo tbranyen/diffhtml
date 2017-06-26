@@ -76,23 +76,16 @@ describe('React Like Component', function() {
       ok(wasCalled);
     });
 
-    it('can map to componentWillReceiveProps', () => {
+    it.only('can map to componentWillReceiveProps', () => {
       let wasCalled = false;
 
       class CustomComponent extends Component {
         render() {
-          const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.message = 'default'
+          return html`<div />`;
         }
 
         componentWillReceiveProps() {
           wasCalled = true;
-          return false;
         }
       }
 
@@ -302,16 +295,10 @@ describe('React Like Component', function() {
   });
 
   describe('Context', () => {
-    it.skip('can inherit context from a parent component', () => {
+    it('can inherit context from a parent component', () => {
       class ChildComponent extends Component {
         render() {
-          const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.message = 'default'
+          return html`${this.context.message}`;
         }
       }
 
@@ -319,10 +306,18 @@ describe('React Like Component', function() {
         render() {
           return html`<${ChildComponent} />`;
         }
+
+        getChildContext() {
+          return {
+            message: 'From Context'
+          };
+        }
       }
 
       const domNode = document.createElement('div');
       innerHTML(domNode, html`<${ParentComponent} />`);
+
+      equal(domNode.innerHTML, 'From Context');
     });
   });
 });

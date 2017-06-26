@@ -1,5 +1,9 @@
 import { createTree, Internals } from 'diffhtml';
-import { ContextCache, ComponentTreeCache, InstanceCache } from '../util/caches';
+import {
+  ChildParentCache,
+  ComponentTreeCache,
+  InstanceCache,
+} from '../util/caches';
 
 const { NodeCache } = Internals;
 const { assign } = Object;
@@ -86,6 +90,7 @@ export default function reactLikeComponentTask(transaction) {
             if (InstanceCache.has(oldTree)) {
               ComponentTreeCache.delete(InstanceCache.get(oldTree));
               InstanceCache.delete(oldTree);
+              ChildParentCache.delete(oldTree);
             }
 
             InstanceCache.delete(oldTree);
@@ -100,6 +105,7 @@ export default function reactLikeComponentTask(transaction) {
             if (InstanceCache.has(oldTree)) {
               ComponentTreeCache.delete(InstanceCache.get(oldTree));
               InstanceCache.delete(oldTree);
+              ChildParentCache.delete(oldTree);
             }
 
             componentDidUnmount(oldTree);
@@ -110,81 +116,112 @@ export default function reactLikeComponentTask(transaction) {
   });
 }
 
-reactLikeComponentTask.syncTreeHook = (oldTree, newTree) => {
-  const oldChildNodes = oldTree && oldTree.childNodes;
+const getContext = parentTree => {
+  const path = [];
 
+  if (InstanceCache.has(parentTree)) {
+    path.push(InstanceCache.get(parentTree).getChildContext());
+  }
+
+  while (parentTree = ChildParentCache.get(parentTree)) {
+    if (!InstanceCache.has(parentTree)) {
+      continue;
+    }
+
+    path.push(InstanceCache.get(parentTree).getChildContext());
+  }
+
+  // Merge least specific to most specific.
+  return Object.assign({}, ...path.reverse());
+};
+
+function renderComponent({ oldTree, newTree, oldChild, newChild }) {
+  console.log('oldChild', oldChild);
+  const oldInstanceCache = oldChild && InstanceCache.get(oldChild);
+  const newCtor = newChild.rawNodeName;
+  const children = newChild.childNodes;
+  const props = assign({}, newChild.attributes, { children });
+  const canNew = newCtor.prototype;
+
+  // If the component has already been initialized, we can reuse it.
+  const oldInstance = oldInstanceCache instanceof newCtor && oldInstanceCache;
+  const context = getContext(newTree);
+  const newInstance = !oldInstance && canNew && new newCtor(props, context);
+  const instance = oldInstance || newInstance;
+
+  let renderTree = null;
+
+  if (oldInstance) {
+    oldInstance.componentWillReceiveProps(props);
+    oldInstance.props = props;
+    InstanceCache.delete(ComponentTreeCache.get(oldInstance));
+
+    if (oldInstance.shouldComponentUpdate()) {
+      renderTree = oldInstance.render(props, oldInstance.state);
+    }
+
+    ComponentTreeCache.set(oldInstance, renderTree);
+    InstanceCache.set(renderTree, oldInstance);
+    oldTree.childNodes.splice(oldTree.childNodes.indexOf(newTree), 1, renderTree);
+
+    return renderTree;
+  }
+  else if (instance && instance.render) {
+    renderTree = createTree(instance.render(props, instance.state));
+  }
+  else {
+    renderTree = createTree(newCtor(props));
+  }
+
+  // Nothing was rendered so continue.
+  if (!renderTree) {
+    return null;
+  }
+
+  // Replace the rendered value into the new tree, if rendering a fragment
+  // this will inject the contents into the parent.
+  if (typeof renderTree.rawNodeName === 'string' && renderTree.nodeType === 11) {
+    newTree.childNodes = [...renderTree.childNodes];
+
+    if (instance) {
+      ComponentTreeCache.set(instance, oldTree);
+      InstanceCache.set(oldTree, instance);
+    }
+  }
+  // If the rendered value is a single element use it as the root for
+  // diffing.
+  else if (instance) {
+    ComponentTreeCache.set(instance, renderTree);
+    InstanceCache.set(newTree, instance);
+  }
+
+  oldTree.childNodes.splice(oldTree.childNodes.indexOf(newTree), 1, renderTree);
+
+  return renderTree;
+}
+
+reactLikeComponentTask.syncTreeHook = (oldTree, newTree, keys, parentTree) => {
+  // FIXME Detect for external VNode/VTree like instances. Externalize this
+  // logic, does not belong here, used for now to fix Preact compatibility.
   if (newTree && newTree.children && !newTree.childNodes) {
     newTree = createTree(newTree.nodeName, newTree.attributes, newTree.children);
   }
 
-  // Stateful components have a very limited API, designed to be fully
-  // implemented by a higher-level abstraction. The only method ever called is
-  // `render`. It is up to a higher level abstraction on how to handle the
-  // changes.
-  for (let i = 0; i < newTree.childNodes.length; i++) {
-    const newChild = newTree.childNodes[i];
+  // Top level component to process.
+  if (newTree && typeof newTree.rawNodeName === 'function') {
+    const upgraded = renderComponent({
+      oldTree: parentTree,
+      newTree,
+      oldChild: oldTree,
+      newChild: newTree,
+    });
 
-    // If incoming tree is a component, flatten down to tree for now.
-    if (newChild && typeof newChild.rawNodeName === 'function') {
-      const newCtor = newChild.rawNodeName;
-      const oldChild = oldChildNodes && oldChildNodes[i];
-      const oldInstanceCache = InstanceCache.get(oldChild);
-      const children = newChild.childNodes;
-      const props = assign({}, newChild.attributes, { children });
-      const canNew = newCtor.prototype;
+    ChildParentCache.set(upgraded, newTree);
 
-      // If the component has already been initialized, we can reuse it.
-      const oldInstance = oldChild && oldInstanceCache instanceof newCtor && oldInstanceCache;
-      const newInstance = !oldInstance && canNew && new newCtor(props);
-      const instance = oldInstance || newInstance;
-
-      let renderTree = null;
-
-      // Make child/parent relationship.
-      ContextCache.set(instance, newTree);
-
-      if (oldInstance) {
-        oldInstance.componentWillReceiveProps(props);
-        oldInstance.props = props;
-
-        if (oldInstance.shouldComponentUpdate()) {
-          renderTree = oldInstance.render(props, oldInstance.state);
-        }
-      }
-      else if (instance && instance.render) {
-        renderTree = createTree(instance.render(props, instance.state));
-      }
-      else {
-        renderTree = createTree(newCtor(props));
-      }
-
-      // Nothing was rendered so continue.
-      if (!renderTree) {
-        continue;
-      }
-
-      // Replace the rendered value into the new tree, if rendering a fragment
-      // this will inject the contents into the parent.
-      if (renderTree.nodeType === 11) {
-        newTree.childNodes = [...renderTree.childNodes];
-
-        if (instance) {
-          ComponentTreeCache.set(instance, oldTree);
-          InstanceCache.set(oldTree, instance);
-        }
-      }
-      // If the rendered value is a single element use it as the root for
-      // diffing.
-      else {
-        newTree.childNodes[i] = renderTree;
-
-        if (instance) {
-          ComponentTreeCache.set(instance, renderTree);
-          InstanceCache.set(renderTree, instance);
-        }
-      }
-    }
+    return upgraded;
   }
+
+  ChildParentCache.set(newTree, parentTree);
 
   return newTree;
 };
