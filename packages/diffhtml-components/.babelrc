@@ -1,10 +1,6 @@
 {
   "presets": ["diffhtml-imports"],
-  "env": {
-    "test": {
-      "plugins": [
-        ["transform-react-jsx", { "pragma": "createTree" }]
-      ]
-    }
-  }
+  "plugins": [
+    ["transform-react-jsx", { "pragma": "createTree" }]
+  ]
 }

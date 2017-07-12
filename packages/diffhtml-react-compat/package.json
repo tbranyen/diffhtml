@@ -2,7 +2,7 @@
   "name": "diffhtml-react-compat",
   "version": "1.0.0-beta.6",
   "description": "Provides a strong layer of compatibility with React",
-  "main": "dist/diffhtml-react-compat.js",
+  "main": "dist/react-compat.js",
   "scripts": {
     "prepublish": "npm run min",
     "clean": "rm -rf dist/* && mkdir -p dist",

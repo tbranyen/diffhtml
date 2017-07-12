@@ -3,7 +3,11 @@ import PropTypes from 'prop-types';
 import { use, innerHTML, outerHTML, Internals } from 'diffhtml';
 import reactLikeComponentTask from './tasks/react-like-component';
 import upgradeSharedClass from './shared/upgrade-shared-class';
-import { ComponentTreeCache, InstanceCache } from './util/caches';
+import {
+  ChildParentCache,
+  ComponentTreeCache,
+  InstanceCache,
+} from './util/caches';
 import { $$render } from './util/symbols';
 
 const { NodeCache } = Internals;
@@ -16,17 +20,36 @@ const root = (typeof global !== 'undefined' ? global : window)
 
 // Allow tests to unbind this task, you would not typically need to do this
 // in a web application, as this code loads once and is not reloaded.
-const subscribeMiddleware = () => use(reactLikeComponentTask);
-const unsubscribeMiddleware = subscribeMiddleware();
+let unsubscribe = null;
 
-export default upgradeSharedClass(class Component {
+// Looks up the Component tree for context.
+const getContext = instance => {
+  const path = [];
+  let parentTree = ComponentTreeCache.get(instance);
+
+  while (parentTree = ChildParentCache.get(parentTree)) {
+    if (!InstanceCache.has(parentTree)) {
+      continue;
+    }
+
+    path.push(InstanceCache.get(vTree).getChildContext());
+  }
+
+  // Merge least specific to most specific.
+  return assign({}, ...path.reverse());
+};
+
+class Component {
   static subscribeMiddleware() {
-    return subscribeMiddleware();
+    unsubscribe = use(reactLikeComponentTask);
   }
 
   static unsubscribeMiddleware() {
-    unsubscribeMiddleware();
-    return subscribeMiddleware;
+    unsubscribe();
+
+    ChildParentCache.clear();
+    ComponentTreeCache.clear();
+    InstanceCache.clear();
   }
 
   [$$render]() {
@@ -39,10 +62,10 @@ export default upgradeSharedClass(class Component {
     });
   }
 
-  constructor(initialProps) {
+  constructor(initialProps, initialContext) {
     const props = this.props = assign({}, initialProps);
     const state = this.state = {};
-    const context = this.context = {};
+    const context = this.context = assign({}, initialContext);
 
     const {
       defaultProps = {},
@@ -66,22 +89,26 @@ export default upgradeSharedClass(class Component {
       }
     }
 
-    //keys(childContextTypes).forEach(prop => {
-    //  if (process.env.NODE_ENV !== 'production') {
-    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
-    //    if (err) { throw err; }
-    //  }
+    if (process.env.NODE_ENV !== 'production') {
+      keys(childContextTypes).forEach(prop => {
+        const err = childContextTypes[prop](this.context, prop, name, 'context');
+        if (err) { throw err; }
+      });
+    }
 
-    //  //this.context[prop] = child
-    //});
+    keys(contextTypes).forEach(prop => {
+      if (process.env.NODE_ENV !== 'production') {
+        const err = childContextTypes[prop](this.context, prop, name, 'context');
+        if (err) { throw err; }
+      }
 
-    //keys(contextTypes).forEach(prop => {
-    //  if (process.env.NODE_ENV !== 'production') {
-    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
-    //    if (err) { throw err; }
-    //  }
-
-    //  this.context[prop] = child
-    //});
+      this.context[prop] = child
+    });
   }
-});
+}
+
+// Automatically subscribe the React Component middleware.
+Component.subscribeMiddleware();
+
+// Wrap this base class with shared methods.
+export default upgradeSharedClass(Component);

@@ -9,6 +9,23 @@ const SECRET = 'MY BRAIN IBM';
 const transactions = new Map();
 const { use, innerHTML, outerHTML, release, Internals } = (window.diff || diffhtml);
 
+console.log(window.diff, diffhtml);
+
+diffhtml.addTransitionState('attributeChanged', (domNode, name, oldValue, newValue) => {
+  console.log(domNode, name, oldValue, newValue);
+  if (domNode.matches('script')) {
+    if (oldValue !== newValue) {
+      try {
+        eval(newValue);
+      }
+      catch (ex) {
+        console.log('Whoops, ya broke something, see you again shortly');
+        throw ex;
+      }
+    }
+  }
+});
+
 window.staticSyncHandlers = new Set();
 
 //use(transaction => {

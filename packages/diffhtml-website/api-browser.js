@@ -1,5 +1,5 @@
 import { use, html, innerHTML, createElement } from 'diffhtml';
-import Component from 'diffhtml-components/lib/component';
+import { Component } from 'diffhtml-components';
 import 'proxy-polyfill/proxy.min';
 import 'whatwg-fetch';
 

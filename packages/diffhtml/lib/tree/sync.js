@@ -8,7 +8,7 @@ const keyNames = ['old', 'new'];
 
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
-export default function syncTree(oldTree, newTree, patches) {
+export default function syncTree(oldTree, newTree, patches, parentTree, specialCase) {
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 
@@ -54,20 +54,19 @@ export default function syncTree(oldTree, newTree, patches) {
   // `newTree`. Pass along the `keysLookup` object so that middleware can make
   // smart decisions when dealing with keys.
   SyncTreeHookCache.forEach((fn, retVal) => {
-    if ((retVal = fn(oldTree, newTree, null)) && retVal !== newTree) {
+    oldTree = specialCase || oldTree;
+
+    // Call the user provided middleware function for a single root node. Allow
+    // the consumer to specify a return value of a different VTree (useful for
+    // components).
+    retVal = fn(oldTree, newTree, keysLookup, parentTree) || newTree;
+
+    // If the consumer returned a value and it doesn't equal the existing tree,
+    // then splice it into the parent (if it exists) and run a sync.
+    if (retVal && retVal !== newTree) {
+      newTree.childNodes = [].concat(retVal);
+      syncTree(oldTree !== empty ? oldTree : null, retVal, patches, newTree);
       newTree = retVal;
-
-      // Find attributes.
-      syncTree(null, retVal, patches);
-    }
-
-    for (let i = 0; i < newTree.childNodes.length; i++) {
-      const oldChildNode = isEmpty ? empty : oldTree.childNodes[i];
-      const newChildNode = newTree.childNodes[i];
-
-      if (retVal = fn(oldChildNode, newChildNode, keysLookup)) {
-        newTree.childNodes[i] = retVal;
-      }
     }
   });
 
@@ -156,7 +155,7 @@ export default function syncTree(oldTree, newTree, patches) {
   if (isEmpty) {
     // Do a single pass over the new child nodes.
     for (let i = 0; i < newChildNodes.length; i++) {
-      syncTree(null, newChildNodes[i], patches);
+      syncTree(null, newChildNodes[i], patches, newTree);
     }
 
     return patches;
@@ -178,7 +177,7 @@ export default function syncTree(oldTree, newTree, patches) {
       if (!oldChildNode) {
         INSERT_BEFORE.push(oldTree, newChildNode, null);
         oldChildNodes.push(newChildNode);
-        syncTree(null, newChildNode, patches);
+        syncTree(null, newChildNode, patches, newTree);
         continue;
       }
 
@@ -190,7 +189,7 @@ export default function syncTree(oldTree, newTree, patches) {
       if (!oldInNew && !newInOld) {
         REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
-        syncTree(null, newChildNode, patches);
+        syncTree(null, newChildNode, patches, newTree);
         continue;
       }
       // Remove the old node instead of replacing.
@@ -215,7 +214,7 @@ export default function syncTree(oldTree, newTree, patches) {
           optimalNewNode = newChildNode;
 
           // Find attribute changes for this Node.
-          syncTree(null, newChildNode, patches);
+          syncTree(null, newChildNode, patches, newTree);
         }
 
         INSERT_BEFORE.push(oldTree, optimalNewNode, oldChildNode);
@@ -228,11 +227,11 @@ export default function syncTree(oldTree, newTree, patches) {
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
         REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldTree.childNodes[i] = newChildNode;
-        syncTree(null, newChildNode, patches);
+        syncTree(null, newChildNode, patches, newTree);
         continue;
       }
 
-      syncTree(oldChildNode, newChildNode, patches);
+      syncTree(oldChildNode, newChildNode, patches, newTree);
     }
   }
 
@@ -251,7 +250,7 @@ export default function syncTree(oldTree, newTree, patches) {
           oldChildNodes.push(newChildNode);
         }
 
-        syncTree(null, newChildNode, patches);
+        syncTree(null, newChildNode, patches, oldTree);
         continue;
       }
 
@@ -259,20 +258,19 @@ export default function syncTree(oldTree, newTree, patches) {
       // replace the entire element, don't bother investigating children.
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
         REPLACE_CHILD.push(newChildNode, oldChildNode);
+        // FIXME Calling this out specifically as a special case since we
+        // have conflicting requirements between synchronization and how
+        // components handle reconcilation. We basically don't want to dig
+        // deeper into the component at the diffHTML level, but want to let
+        // the middleware have access to the old child.
+        const specialCase = oldTree.childNodes[i];
         oldTree.childNodes[i] = newChildNode;
-        syncTree(null, newChildNode, patches);
+        syncTree(null, newChildNode, patches, oldTree, specialCase);
         continue;
       }
 
-      syncTree(oldChildNode, newChildNode, patches);
+      syncTree(oldChildNode, newChildNode, patches, oldTree);
     }
-  }
-
-  // If there was no `oldTree` provided, we have sync'd all the attributes and
-  // the node value of the `newTree` so we can early abort and not worry about
-  // tree operations.
-  if (isEmpty) {
-    return patches;
   }
 
   // We've reconciled new changes, so we can remove any old nodes and adjust

@@ -102,6 +102,7 @@ export default function patchNode(patches, state = {}) {
 
       const domNode = NodeCache.get(vTree);
       const attributeChanged = TransitionCache.get('attributeChanged');
+
       const oldValue = domNode.getAttribute(name);
       const newPromises = runTransitions(
         'attributeChanged', domNode, name, oldValue, null
@@ -203,7 +204,7 @@ export default function patchNode(patches, state = {}) {
           Promise.all(allPromises).then(() => {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
             unprotectVTree(oldTree);
-          })
+          });
 
           promises.push(...allPromises);
         }

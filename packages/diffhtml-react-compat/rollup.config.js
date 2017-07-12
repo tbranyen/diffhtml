@@ -28,13 +28,13 @@ export const targets = [{
 }];
 
 export const plugins = [
-  replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
-  babel(),
+  NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
+  babel({ runtimeHelpers: true }),
   nodeResolve({ jsnext: true }),
   hypothetical({
     allowRealFiles: true,
     files: {
-      './node_modules/prop-types/index.js': `
+      '../diffhtml-components/node_modules/prop-types/index.js': `
         var root = typeof global !== 'undefined' ? global : window;
         export default root.PropTypes || {};
       `

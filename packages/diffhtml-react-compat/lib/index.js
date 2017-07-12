@@ -1,10 +1,14 @@
 import { createTree, innerHTML, outerHTML, use, html } from 'diffhtml';
+import Children from './children';
 import Component from 'diffhtml-components/lib/component';
+import PureComponent from './pure-component';
 import syntheticEvents from 'diffhtml-middleware-synthetic-events';
 
-const { keys } = Object;
+const { assign, keys } = Object;
 
-use(syntheticEvents());
+if (typeof document !== 'undefined') {
+  use(syntheticEvents());
+}
 
 const createElement = (...args) => {
   const tree = createTree(...args);
@@ -17,7 +21,7 @@ const createElement = (...args) => {
     tree.attributes.class = tree.attributes.className;
   }
 
-  if (attribtues.includes('htmlFor')) {
+  if (attributes.includes('htmlFor')) {
     tree.attributes.for = tree.attributes.htmlFor;
   }
 
@@ -31,21 +35,39 @@ const createElement = (...args) => {
 };
 
 const render = (component, mount, opts) => innerHTML(mount, component, opts);
+
 const isValidElement = object => (
   typeof object === 'object' &&
   object !== null &&
   object.$$typeof === Symbol.for('react.element')
 );
-exports.createElement = createElement;
-exports.Component = Component;
-exports.html = html;
-exports.render = render;
-exports.isValidElement = isValidElement;
 
-export default {
+const createFactory = ctor => createTree.bind(null, ctor);
+
+const cloneElement = object => createTree(assign({}, object));
+
+export {
+  cloneElement,
+  createFactory,
   createElement,
   Component,
+  PureComponent,
+  Children,
   html,
+  html as h,
+  render,
+  isValidElement,
+};
+
+export default {
+  cloneElement,
+  createFactory,
+  createElement,
+  Component,
+  PureComponent,
+  Children,
+  html,
+  h: html,
   render,
   isValidElement,
 }

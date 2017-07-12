@@ -13,7 +13,7 @@ const handlers = new Map();
 const bounded = new Set();
 
 // Ensure we don't get user added event/properties.
-const cloneDoc = document.cloneNode();
+const cloneDoc = typeof document !== 'undefined' ? document.cloneNode() : null;
 
 // Fill up event names.
 for (const name in cloneDoc) {

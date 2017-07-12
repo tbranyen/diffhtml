@@ -81,18 +81,11 @@ describe('React Like Component', function() {
 
       class CustomComponent extends Component {
         render() {
-          const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.message = 'default'
+          return html`<div />`;
         }
 
         componentWillReceiveProps() {
           wasCalled = true;
-          return false;
         }
       }
 
@@ -103,10 +96,84 @@ describe('React Like Component', function() {
       ok(wasCalled);
     });
 
-    it.skip('can map to componentDidMount', () => {});
-    it.skip('can map to componentDidUpdate', () => {});
-    it.skip('can map to componentWillUnmount', () => {});
-    it.skip('can map to componentDidUnmount', () => {});
+    it('can map to componentDidMount', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        componentDidMount() {
+          wasCalled = true;
+        }
+      }
+
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
+
+      ok(wasCalled);
+    });
+
+    it('can map to componentDidUpdate', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        componentDidUpdate() {
+          wasCalled = true;
+        }
+      }
+
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(domNode, html`<${CustomComponent} someProp="false" />`);
+
+      ok(wasCalled);
+    });
+
+    it('can map to componentWillUnmount', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        componentWillUnmount() {
+          wasCalled = true;
+        }
+      }
+
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(domNode, html``);
+
+      ok(wasCalled);
+    });
+
+    it('can map to componentDidUnmount', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        componentDidUnmount() {
+          wasCalled = true;
+        }
+      }
+
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(domNode, html``);
+
+      ok(wasCalled);
+    });
   });
 
   describe('Props', () => {
@@ -302,16 +369,10 @@ describe('React Like Component', function() {
   });
 
   describe('Context', () => {
-    it.skip('can inherit context from a parent component', () => {
+    it('can inherit context from a parent component', () => {
       class ChildComponent extends Component {
         render() {
-          const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.message = 'default'
+          return html`${this.context.message}`;
         }
       }
 
@@ -319,10 +380,18 @@ describe('React Like Component', function() {
         render() {
           return html`<${ChildComponent} />`;
         }
+
+        getChildContext() {
+          return {
+            message: 'From Context'
+          };
+        }
       }
 
       const domNode = document.createElement('div');
       innerHTML(domNode, html`<${ParentComponent} />`);
+
+      equal(domNode.innerHTML, 'From Context');
     });
   });
 });
