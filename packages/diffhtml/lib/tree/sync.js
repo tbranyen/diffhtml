@@ -8,7 +8,7 @@ const keyNames = ['old', 'new'];
 
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
-export default function syncTree(oldTree, newTree, patches, parentTree) {
+export default function syncTree(oldTree, newTree, patches, parentTree, specialCase) {
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 
@@ -54,6 +54,8 @@ export default function syncTree(oldTree, newTree, patches, parentTree) {
   // `newTree`. Pass along the `keysLookup` object so that middleware can make
   // smart decisions when dealing with keys.
   SyncTreeHookCache.forEach((fn, retVal) => {
+    oldTree = specialCase || oldTree;
+
     // Call the user provided middleware function for a single root node. Allow
     // the consumer to specify a return value of a different VTree (useful for
     // components).
@@ -63,7 +65,7 @@ export default function syncTree(oldTree, newTree, patches, parentTree) {
     // then splice it into the parent (if it exists) and run a sync.
     if (retVal && retVal !== newTree) {
       newTree.childNodes = [].concat(retVal);
-      syncTree(oldTree === empty ? null : oldTree, retVal, patches, newTree);
+      syncTree(oldTree !== empty ? oldTree : null, retVal, patches, newTree);
       newTree = retVal;
     }
   });
@@ -256,9 +258,14 @@ export default function syncTree(oldTree, newTree, patches, parentTree) {
       // replace the entire element, don't bother investigating children.
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
         REPLACE_CHILD.push(newChildNode, oldChildNode);
-        const oldChild = oldTree.childNodes[i];
+        // FIXME Calling this out specifically as a special case since we
+        // have conflicting requirements between synchronization and how
+        // components handle reconcilation. We basically don't want to dig
+        // deeper into the component at the diffHTML level, but want to let
+        // the middleware have access to the old child.
+        const specialCase = oldTree.childNodes[i];
         oldTree.childNodes[i] = newChildNode;
-        syncTree(oldChild, newChildNode, patches, oldTree);
+        syncTree(null, newChildNode, patches, oldTree, specialCase);
         continue;
       }
 
