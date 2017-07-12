@@ -2,7 +2,7 @@
 
 *Pre-compiles your tagged template strings for zero runtime cost*
 
-Stable Version: 1.0.0-beta.6
+Stable Version: 1.0.0-beta.7
 
 This plugin transforms tagged template strings in your projects to
 `createTree` calls. By default it will use `createTree` which will need to be
