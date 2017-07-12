@@ -36,7 +36,7 @@ const getContext = instance => {
   }
 
   // Merge least specific to most specific.
-  return Object.assign({}, ...path.reverse());
+  return assign({}, ...path.reverse());
 };
 
 class Component {
@@ -89,12 +89,12 @@ class Component {
       }
     }
 
-    //keys(childContextTypes).forEach(prop => {
-    //  if (process.env.NODE_ENV !== 'production') {
-    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
-    //    if (err) { throw err; }
-    //  }
-    //});
+    if (process.env.NODE_ENV !== 'production') {
+      keys(childContextTypes).forEach(prop => {
+        const err = childContextTypes[prop](this.context, prop, name, 'context');
+        if (err) { throw err; }
+      });
+    }
 
     keys(contextTypes).forEach(prop => {
       if (process.env.NODE_ENV !== 'production') {

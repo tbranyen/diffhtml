@@ -132,11 +132,10 @@ const getContext = parentTree => {
   }
 
   // Merge least specific to most specific.
-  return Object.assign({}, ...path.reverse());
+  return assign({}, ...path.reverse());
 };
 
 function renderComponent({ oldTree, newTree, oldChild, newChild }) {
-  console.log('oldChild', oldChild);
   const oldInstanceCache = oldChild && InstanceCache.get(oldChild);
   const newCtor = newChild.rawNodeName;
   const children = newChild.childNodes;

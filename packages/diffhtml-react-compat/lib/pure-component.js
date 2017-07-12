@@ -1,3 +1,5 @@
+import Component from 'diffhtml-components/lib/component';
+
 export default class PureComponent extends Component {
   shouldComponentUpdate(nextProps, nextState) {
     const nextPropKeys = keys(nextProps);

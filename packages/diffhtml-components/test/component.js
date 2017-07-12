@@ -96,8 +96,45 @@ describe('React Like Component', function() {
       ok(wasCalled);
     });
 
-    it.skip('can map to componentDidMount', () => {});
-    it.skip('can map to componentDidUpdate', () => {});
+    it('can map to componentDidMount', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        componentDidMount() {
+          wasCalled = true;
+        }
+      }
+
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
+
+      ok(wasCalled);
+    });
+
+    it.skip('can map to componentDidUpdate', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        componentDidUpdate() {
+          wasCalled = true;
+        }
+      }
+
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(domNode, html`<${CustomComponent} someProp="false" />`);
+
+      ok(wasCalled);
+    });
+
     it.skip('can map to componentWillUnmount', () => {});
     it.skip('can map to componentDidUnmount', () => {});
   });
