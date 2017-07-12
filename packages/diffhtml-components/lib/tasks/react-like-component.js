@@ -44,11 +44,11 @@ function componentDidMount(newTree) {
 }
 
 function componentDidUnmount(oldTree) {
-  if (InstanceCache.has(oldTree)) {
-    InstanceCache.get(oldTree).componentDidUnmount();
-  }
+  const oldChild = ChildParentCache.get(oldTree);
+  const instance = InstanceCache.get(oldChild);
 
-  const instance = InstanceCache.get(oldTree);
+  instance.componentWillUnmount();
+  instance.componentDidUnmount();
 
   searchForRefs(oldTree);
 
@@ -136,7 +136,12 @@ const getContext = parentTree => {
 };
 
 function renderComponent({ oldTree, newTree, oldChild, newChild }) {
-  const oldInstanceCache = oldChild && InstanceCache.get(oldChild);
+  let oldInstanceCache = null;
+
+  if (oldChild && oldChild.nodeName) {
+    oldInstanceCache = InstanceCache.get(ChildParentCache.get(oldChild));
+  }
+
   const newCtor = newChild.rawNodeName;
   const children = newChild.childNodes;
   const props = assign({}, newChild.attributes, { children });
@@ -157,6 +162,7 @@ function renderComponent({ oldTree, newTree, oldChild, newChild }) {
 
     if (oldInstance.shouldComponentUpdate()) {
       renderTree = oldInstance.render(props, oldInstance.state);
+      oldInstance.componentDidUpdate();
     }
 
     ComponentTreeCache.set(oldInstance, renderTree);

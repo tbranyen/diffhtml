@@ -76,7 +76,7 @@ describe('React Like Component', function() {
       ok(wasCalled);
     });
 
-    it.only('can map to componentWillReceiveProps', () => {
+    it('can map to componentWillReceiveProps', () => {
       let wasCalled = false;
 
       class CustomComponent extends Component {
@@ -115,7 +115,7 @@ describe('React Like Component', function() {
       ok(wasCalled);
     });
 
-    it.skip('can map to componentDidUpdate', () => {
+    it('can map to componentDidUpdate', () => {
       let wasCalled = false;
 
       class CustomComponent extends Component {
@@ -135,8 +135,45 @@ describe('React Like Component', function() {
       ok(wasCalled);
     });
 
-    it.skip('can map to componentWillUnmount', () => {});
-    it.skip('can map to componentDidUnmount', () => {});
+    it('can map to componentWillUnmount', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        componentWillUnmount() {
+          wasCalled = true;
+        }
+      }
+
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(domNode, html``);
+
+      ok(wasCalled);
+    });
+
+    it('can map to componentDidUnmount', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        componentDidUnmount() {
+          wasCalled = true;
+        }
+      }
+
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(domNode, html``);
+
+      ok(wasCalled);
+    });
   });
 
   describe('Props', () => {

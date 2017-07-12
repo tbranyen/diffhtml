@@ -63,7 +63,7 @@ export default function syncTree(oldTree, newTree, patches, parentTree) {
     // then splice it into the parent (if it exists) and run a sync.
     if (retVal && retVal !== newTree) {
       newTree.childNodes = [].concat(retVal);
-      syncTree(null, retVal, patches, oldTree !== empty ? oldTree : newTree);
+      syncTree(oldTree === empty ? null : oldTree, retVal, patches, newTree);
       newTree = retVal;
     }
   });
@@ -256,8 +256,9 @@ export default function syncTree(oldTree, newTree, patches, parentTree) {
       // replace the entire element, don't bother investigating children.
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
         REPLACE_CHILD.push(newChildNode, oldChildNode);
+        const oldChild = oldTree.childNodes[i];
         oldTree.childNodes[i] = newChildNode;
-        syncTree(null, newChildNode, patches, oldTree);
+        syncTree(oldChild, newChildNode, patches, oldTree);
         continue;
       }
 
