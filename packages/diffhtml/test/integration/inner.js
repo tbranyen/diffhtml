@@ -114,24 +114,6 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.firstChild.checked, false);
     });
 
-    it('can change the placeholder attribute', function() {
-      diff.innerHTML(this.fixture, html`
-        <input type="search" placeholder="Search">
-
-        ${new Array(1667).fill({ .map(app => html`
-          <li>${app.name}</li>
-        `)}
-      `)
-
-      diff.innerHTML(this.fixture, html`
-        <input type="search">
-
-        ${[{ name: 1 }, { name: 2 }].map(app => html`
-          <li>${app.name}</li>
-        `)}
-      `)
-    });
-
     describe('Data', function() {
       it('has basic support', function() {
         diff.innerHTML(this.fixture, '<div><p data-test="test2"></p></div>');

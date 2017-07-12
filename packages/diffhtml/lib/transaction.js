@@ -2,7 +2,6 @@ import { StateCache, MiddlewareCache } from './util/caches';
 import { cleanMemory } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
-
 import schedule from './tasks/schedule';
 import shouldUpdate from './tasks/should-update';
 import reconcileTrees from './tasks/reconcile-trees';

@@ -204,7 +204,7 @@ export default function patchNode(patches, state = {}) {
           Promise.all(allPromises).then(() => {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
             unprotectVTree(oldTree);
-          })
+          });
 
           promises.push(...allPromises);
         }
