@@ -8,6 +8,7 @@ import {
   ComponentTreeCache,
   InstanceCache,
 } from './util/caches';
+import getContext from './util/get-context';
 import { $$render } from './util/symbols';
 
 const { NodeCache } = Internals;
@@ -21,23 +22,6 @@ const root = (typeof global !== 'undefined' ? global : window)
 // Allow tests to unbind this task, you would not typically need to do this
 // in a web application, as this code loads once and is not reloaded.
 let unsubscribe = null;
-
-// Looks up the Component tree for context.
-const getContext = instance => {
-  const path = [];
-  let parentTree = ComponentTreeCache.get(instance);
-
-  while (parentTree = ChildParentCache.get(parentTree)) {
-    if (!InstanceCache.has(parentTree)) {
-      continue;
-    }
-
-    path.push(InstanceCache.get(vTree).getChildContext());
-  }
-
-  // Merge least specific to most specific.
-  return assign({}, ...path.reverse());
-};
 
 class Component {
   static subscribeMiddleware() {
@@ -57,8 +41,11 @@ class Component {
     const domNode = NodeCache.get(vTree);
     const renderTree = this.render();
 
+    const prevProps = this.props;
+    const prevState = this.state;
+
     outerHTML(domNode, renderTree).then(() => {
-      this.componentDidUpdate();
+      this.componentDidUpdate(prevProps, prevState);
     });
   }
 
@@ -66,6 +53,9 @@ class Component {
     const props = this.props = assign({}, initialProps);
     const state = this.state = {};
     const context = this.context = assign({}, initialContext);
+
+    this.refs = {};
+    this.props.refs = this.refs;
 
     const {
       defaultProps = {},
@@ -80,30 +70,15 @@ class Component {
         return;
       }
 
-      props[prop] = defaultProps[prop];
+      this.props[prop] = defaultProps[prop];
     });
 
     if (process.env.NODE_ENV !== 'production') {
       if (PropTypes.checkPropTypes) {
         PropTypes.checkPropTypes(propTypes, props, 'prop', name);
+        PropTypes.checkPropTypes(contextTypes, context, 'context', name);
       }
     }
-
-    if (process.env.NODE_ENV !== 'production') {
-      keys(childContextTypes).forEach(prop => {
-        const err = childContextTypes[prop](this.context, prop, name, 'context');
-        if (err) { throw err; }
-      });
-    }
-
-    keys(contextTypes).forEach(prop => {
-      if (process.env.NODE_ENV !== 'production') {
-        const err = childContextTypes[prop](this.context, prop, name, 'context');
-        if (err) { throw err; }
-      }
-
-      this.context[prop] = child
-    });
   }
 }
 

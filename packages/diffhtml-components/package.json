@@ -6,7 +6,8 @@
   "jsnext:main": "dist/es/index",
   "esnext:main": "dist/es/index",
   "dependencies": {
-    "prop-types": "^15.5.10"
+    "prop-types": "^15.5.10",
+    "rollup-plugin-commonjs": "^8.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

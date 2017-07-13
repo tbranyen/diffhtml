@@ -25,6 +25,7 @@ export default function syncTree(oldTree, newTree, patches, parentTree, specialC
       throw new Error('Missing new Virtual Tree to sync changes from');
     }
 
+    // FIXME: Causes issues w/ React, we need to normalize at a higher level.
     if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
       throw new Error(
         `Sync failure, cannot compare ${newNodeName} with ${oldNodeName}`
@@ -141,6 +142,7 @@ export default function syncTree(oldTree, newTree, patches, parentTree, specialC
 
   // If we somehow end up comparing two totally different kinds of elements,
   // we'll want to raise an error to let the user know something is wrong.
+  // FIXME
   if (process.env.NODE_ENV !== 'production') {
     if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
       throw new Error(

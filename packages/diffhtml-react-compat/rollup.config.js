@@ -1,6 +1,6 @@
 import babel from 'rollup-plugin-babel';
 import nodeResolve from 'rollup-plugin-node-resolve';
-import hypothetical from 'rollup-plugin-hypothetical';
+import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
 import Visualizer from 'rollup-plugin-visualizer';
 
@@ -21,6 +21,8 @@ export const context = 'this';
 export const entry = entries[NODE_ENV];
 export const sourceMap = false;
 export const moduleName = 'React';
+export const globals = { diffhtml: 'diff', 'prop-types': 'PropTypes' };
+export const external = ['diffhtml', 'prop-types'];
 
 export const targets = [{
   dest: dests[NODE_ENV],
@@ -30,15 +32,7 @@ export const targets = [{
 export const plugins = [
   NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   babel({ runtimeHelpers: true }),
-  nodeResolve({ jsnext: true }),
-  hypothetical({
-    allowRealFiles: true,
-    files: {
-      '../diffhtml-components/node_modules/prop-types/index.js': `
-        var root = typeof global !== 'undefined' ? global : window;
-        export default root.PropTypes || {};
-      `
-    }
-  }),
+  nodeResolve({ jsnext: true, main: true, skip: external }),
+  commonjs({ include: 'node_modules/**', }),
   NODE_ENV === 'umd' && Visualizer({ filename: './dist/build-size.html' }),
 ];

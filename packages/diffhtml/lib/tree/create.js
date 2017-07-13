@@ -135,6 +135,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
           entry.childNodes.push(newNode[i]);
         }
       }
+      // Skip over `null` nodes.
+      else if (!newNode) {
+        continue;
+      }
       // Merge in fragments.
       else if (newNode.nodeType === 11 && typeof newNode.rawNodeName === 'string') {
         for (let i = 0; i < newNode.childNodes.length; i++) {

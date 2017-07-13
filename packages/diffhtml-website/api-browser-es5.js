@@ -34,6 +34,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var NodeCache = _diffhtml.Internals.NodeCache;
 var keys = Object.keys,
     assign = Object.assign;
@@ -46,12 +48,26 @@ var root = typeof global !== 'undefined' ? global : window;
 
 // Allow tests to unbind this task, you would not typically need to do this
 // in a web application, as this code loads once and is not reloaded.
-var _subscribeMiddleware = function _subscribeMiddleware() {
-  return (0, _diffhtml.use)(_reactLikeComponent2.default);
-};
-var _unsubscribeMiddleware = _subscribeMiddleware();
+var unsubscribe = null;
 
-exports.default = (0, _upgradeSharedClass2.default)(function () {
+// Looks up the Component tree for context.
+var getContext = function getContext(instance) {
+  var path = [];
+  var parentTree = _caches.ComponentTreeCache.get(instance);
+
+  while (parentTree = _caches.ChildParentCache.get(parentTree)) {
+    if (!_caches.InstanceCache.has(parentTree)) {
+      continue;
+    }
+
+    path.push(_caches.InstanceCache.get(vTree).getChildContext());
+  }
+
+  // Merge least specific to most specific.
+  return assign.apply(undefined, [{}].concat(_toConsumableArray(path.reverse())));
+};
+
+var Component = function () {
   _createClass(Component, [{
     key: _symbols.$$render,
     value: function value() {
@@ -68,22 +84,27 @@ exports.default = (0, _upgradeSharedClass2.default)(function () {
   }], [{
     key: 'subscribeMiddleware',
     value: function subscribeMiddleware() {
-      return _subscribeMiddleware();
+      unsubscribe = (0, _diffhtml.use)(_reactLikeComponent2.default);
     }
   }, {
     key: 'unsubscribeMiddleware',
     value: function unsubscribeMiddleware() {
-      _unsubscribeMiddleware();
-      return _subscribeMiddleware;
+      unsubscribe();
+
+      _caches.ChildParentCache.clear();
+      _caches.ComponentTreeCache.clear();
+      _caches.InstanceCache.clear();
     }
   }]);
 
-  function Component(initialProps) {
+  function Component(initialProps, initialContext) {
+    var _this2 = this;
+
     _classCallCheck(this, Component);
 
     var props = this.props = assign({}, initialProps);
     var state = this.state = {};
-    var context = this.context = {};
+    var context = this.context = assign({}, initialContext);
 
     var _constructor = this.constructor,
         _constructor$defaultP = _constructor.defaultProps,
@@ -108,33 +129,36 @@ exports.default = (0, _upgradeSharedClass2.default)(function () {
     if (_process2.default.env.NODE_ENV !== 'production') {
       if (_propTypes2.default.checkPropTypes) {
         _propTypes2.default.checkPropTypes(propTypes, props, 'prop', name);
+        _propTypes2.default.checkPropTypes(childContextTypes, context, 'context', name);
+        _propTypes2.default.checkPropTypes(contextTypes, context, 'context', name);
       }
     }
 
-    //keys(childContextTypes).forEach(prop => {
-    //  if (process.env.NODE_ENV !== 'production') {
-    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
-    //    if (err) { throw err; }
-    //  }
+    keys(contextTypes).forEach(function (prop) {
+      if (_process2.default.env.NODE_ENV !== 'production') {
+        var err = childContextTypes[prop](_this2.context, prop, name, 'context');
+        if (err) {
+          throw err;
+        }
+      }
 
-    //  //this.context[prop] = child
-    //});
-
-    //keys(contextTypes).forEach(prop => {
-    //  if (process.env.NODE_ENV !== 'production') {
-    //    const err = childContextTypes[prop](this.context, prop, name, 'context');
-    //    if (err) { throw err; }
-    //  }
-
-    //  this.context[prop] = child
-    //});
+      _this2.context[prop] = child;
+    });
   }
 
   return Component;
-}());
+}();
+
+// Automatically subscribe the React Component middleware.
+
+
+Component.subscribeMiddleware();
+
+// Wrap this base class with shared methods.
+exports.default = (0, _upgradeSharedClass2.default)(Component);
 module.exports = exports['default'];
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./shared/upgrade-shared-class":6,"./tasks/react-like-component":7,"./util/caches":9,"./util/process":11,"./util/symbols":12,"diffhtml":27,"prop-types":20}],2:[function(require,module,exports){
+},{"./shared/upgrade-shared-class":7,"./tasks/react-like-component":8,"./util/caches":10,"./util/process":12,"./util/symbols":13,"diffhtml":28,"prop-types":21}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -178,7 +202,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.Internals = Internals;
-},{"./component":1,"./util/internals":10,"./web-component":13,"prop-types":20}],3:[function(require,module,exports){
+},{"./component":1,"./util/internals":11,"./web-component":14,"prop-types":21}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -194,7 +218,20 @@ function forceUpdate() {
   this[_symbols.$$render]();
 }
 module.exports = exports['default'];
-},{"../util/symbols":12}],4:[function(require,module,exports){
+},{"../util/symbols":13}],4:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = getChildContext;
+var empty = {};
+
+function getChildContext() {
+  return empty;
+}
+module.exports = exports["default"];
+},{}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -212,7 +249,7 @@ exports.default = {
   componentDidUnmount: function componentDidUnmount() {}
 };
 module.exports = exports["default"];
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -242,7 +279,7 @@ function setState(newState) {
   }
 }
 module.exports = exports['default'];
-},{"../util/symbols":12}],6:[function(require,module,exports){
+},{"../util/symbols":13}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -262,15 +299,24 @@ var _forceUpdate = require('./force-update');
 
 var _forceUpdate2 = _interopRequireDefault(_forceUpdate);
 
+var _getChildContext = require('./get-child-context');
+
+var _getChildContext2 = _interopRequireDefault(_getChildContext);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var assign = Object.assign;
 function upgradeClass(Constructor) {
-  assign(Constructor.prototype, _lifecycleHooks2.default, { forceUpdate: _forceUpdate2.default, setState: _setState2.default });
+  assign(Constructor.prototype, _lifecycleHooks2.default, {
+    forceUpdate: _forceUpdate2.default,
+    setState: _setState2.default,
+    getChildContext: _getChildContext2.default
+  });
+
   return Constructor;
 }
 module.exports = exports['default'];
-},{"./force-update":3,"./lifecycle-hooks":4,"./set-state":5}],7:[function(require,module,exports){
+},{"./force-update":3,"./get-child-context":4,"./lifecycle-hooks":5,"./set-state":6}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -324,11 +370,11 @@ function componentDidMount(newTree) {
 }
 
 function componentDidUnmount(oldTree) {
-  if (_caches.InstanceCache.has(oldTree)) {
-    _caches.InstanceCache.get(oldTree).componentDidUnmount();
-  }
+  var oldChild = _caches.ChildParentCache.get(oldTree);
+  var instance = _caches.InstanceCache.get(oldChild);
 
-  var instance = _caches.InstanceCache.get(oldTree);
+  instance.componentWillUnmount();
+  instance.componentDidUnmount();
 
   searchForRefs(oldTree);
 
@@ -372,6 +418,7 @@ function reactLikeComponentTask(transaction) {
             if (_caches.InstanceCache.has(oldTree)) {
               _caches.ComponentTreeCache.delete(_caches.InstanceCache.get(oldTree));
               _caches.InstanceCache.delete(oldTree);
+              _caches.ChildParentCache.delete(oldTree);
             }
 
             _caches.InstanceCache.delete(oldTree);
@@ -386,6 +433,7 @@ function reactLikeComponentTask(transaction) {
             if (_caches.InstanceCache.has(_oldTree)) {
               _caches.ComponentTreeCache.delete(_caches.InstanceCache.get(_oldTree));
               _caches.InstanceCache.delete(_oldTree);
+              _caches.ChildParentCache.delete(_oldTree);
             }
 
             componentDidUnmount(_oldTree);
@@ -396,84 +444,125 @@ function reactLikeComponentTask(transaction) {
   });
 }
 
-reactLikeComponentTask.syncTreeHook = function (oldTree, newTree) {
-  var oldChildNodes = oldTree && oldTree.childNodes;
+var getContext = function getContext(parentTree) {
+  var path = [];
 
+  if (_caches.InstanceCache.has(parentTree)) {
+    path.push(_caches.InstanceCache.get(parentTree).getChildContext());
+  }
+
+  while (parentTree = _caches.ChildParentCache.get(parentTree)) {
+    if (!_caches.InstanceCache.has(parentTree)) {
+      continue;
+    }
+
+    path.push(_caches.InstanceCache.get(parentTree).getChildContext());
+  }
+
+  // Merge least specific to most specific.
+  return assign.apply(undefined, [{}].concat(_toConsumableArray(path.reverse())));
+};
+
+function renderComponent(_ref2) {
+  var oldTree = _ref2.oldTree,
+      newTree = _ref2.newTree,
+      oldChild = _ref2.oldChild,
+      newChild = _ref2.newChild;
+
+  var oldInstanceCache = null;
+
+  if (oldChild && oldChild.nodeName) {
+    oldInstanceCache = _caches.InstanceCache.get(_caches.ChildParentCache.get(oldChild));
+  }
+
+  var newCtor = newChild.rawNodeName;
+  var children = newChild.childNodes;
+  var props = assign({}, newChild.attributes, { children: children });
+  var canNew = newCtor.prototype;
+
+  // If the component has already been initialized, we can reuse it.
+  var oldInstance = oldInstanceCache instanceof newCtor && oldInstanceCache;
+  var context = getContext(newTree);
+  var newInstance = !oldInstance && canNew && new newCtor(props, context);
+  var instance = oldInstance || newInstance;
+
+  var renderTree = null;
+
+  if (oldInstance) {
+    oldInstance.componentWillReceiveProps(props);
+    oldInstance.props = props;
+    _caches.InstanceCache.delete(_caches.ComponentTreeCache.get(oldInstance));
+
+    if (oldInstance.shouldComponentUpdate()) {
+      renderTree = oldInstance.render(props, oldInstance.state);
+      oldInstance.componentDidUpdate();
+    }
+
+    _caches.ComponentTreeCache.set(oldInstance, renderTree);
+    _caches.InstanceCache.set(renderTree, oldInstance);
+    oldTree.childNodes.splice(oldTree.childNodes.indexOf(newTree), 1, renderTree);
+
+    return renderTree;
+  } else if (instance && instance.render) {
+    renderTree = (0, _diffhtml.createTree)(instance.render(props, instance.state));
+  } else {
+    renderTree = (0, _diffhtml.createTree)(newCtor(props));
+  }
+
+  // Nothing was rendered so continue.
+  if (!renderTree) {
+    return null;
+  }
+
+  // Replace the rendered value into the new tree, if rendering a fragment
+  // this will inject the contents into the parent.
+  if (typeof renderTree.rawNodeName === 'string' && renderTree.nodeType === 11) {
+    newTree.childNodes = [].concat(_toConsumableArray(renderTree.childNodes));
+
+    if (instance) {
+      _caches.ComponentTreeCache.set(instance, oldTree);
+      _caches.InstanceCache.set(oldTree, instance);
+    }
+  }
+  // If the rendered value is a single element use it as the root for
+  // diffing.
+  else if (instance) {
+      _caches.ComponentTreeCache.set(instance, renderTree);
+      _caches.InstanceCache.set(newTree, instance);
+    }
+
+  oldTree.childNodes.splice(oldTree.childNodes.indexOf(newTree), 1, renderTree);
+
+  return renderTree;
+}
+
+reactLikeComponentTask.syncTreeHook = function (oldTree, newTree, keys, parentTree) {
+  // FIXME Detect for external VNode/VTree like instances. Externalize this
+  // logic, does not belong here, used for now to fix Preact compatibility.
   if (newTree && newTree.children && !newTree.childNodes) {
     newTree = (0, _diffhtml.createTree)(newTree.nodeName, newTree.attributes, newTree.children);
   }
 
-  // Stateful components have a very limited API, designed to be fully
-  // implemented by a higher-level abstraction. The only method ever called is
-  // `render`. It is up to a higher level abstraction on how to handle the
-  // changes.
-  for (var i = 0; i < newTree.childNodes.length; i++) {
-    var newChild = newTree.childNodes[i];
+  // Top level component to process.
+  if (newTree && typeof newTree.rawNodeName === 'function') {
+    var upgraded = renderComponent({
+      oldTree: parentTree,
+      newTree: newTree,
+      oldChild: oldTree,
+      newChild: newTree
+    });
 
-    // If incoming tree is a component, flatten down to tree for now.
-    if (newChild && typeof newChild.rawNodeName === 'function') {
-      var newCtor = newChild.rawNodeName;
-      var oldChild = oldChildNodes && oldChildNodes[i];
-      var oldInstanceCache = _caches.InstanceCache.get(oldChild);
-      var children = newChild.childNodes;
-      var props = assign({}, newChild.attributes, { children: children });
-      var canNew = newCtor.prototype;
+    _caches.ChildParentCache.set(upgraded, newTree);
 
-      // If the component has already been initialized, we can reuse it.
-      var oldInstance = oldChild && oldInstanceCache instanceof newCtor && oldInstanceCache;
-      var newInstance = !oldInstance && canNew && new newCtor(props);
-      var instance = oldInstance || newInstance;
-
-      var renderTree = null;
-
-      // Make child/parent relationship.
-      _caches.ContextCache.set(instance, newTree);
-
-      if (oldInstance) {
-        oldInstance.componentWillReceiveProps(props);
-        oldInstance.props = props;
-
-        if (oldInstance.shouldComponentUpdate()) {
-          renderTree = oldInstance.render(props, oldInstance.state);
-        }
-      } else if (instance && instance.render) {
-        renderTree = (0, _diffhtml.createTree)(instance.render(props, instance.state));
-      } else {
-        renderTree = (0, _diffhtml.createTree)(newCtor(props));
-      }
-
-      // Nothing was rendered so continue.
-      if (!renderTree) {
-        continue;
-      }
-
-      // Replace the rendered value into the new tree, if rendering a fragment
-      // this will inject the contents into the parent.
-      if (renderTree.nodeType === 11) {
-        newTree.childNodes = [].concat(_toConsumableArray(renderTree.childNodes));
-
-        if (instance) {
-          _caches.ComponentTreeCache.set(instance, oldTree);
-          _caches.InstanceCache.set(oldTree, instance);
-        }
-      }
-      // If the rendered value is a single element use it as the root for
-      // diffing.
-      else {
-          newTree.childNodes[i] = renderTree;
-
-          if (instance) {
-            _caches.ComponentTreeCache.set(instance, renderTree);
-            _caches.InstanceCache.set(renderTree, instance);
-          }
-        }
-    }
+    return upgraded;
   }
+
+  _caches.ChildParentCache.set(newTree, parentTree);
 
   return newTree;
 };
 module.exports = exports['default'];
-},{"../util/caches":9,"diffhtml":27}],8:[function(require,module,exports){
+},{"../util/caches":10,"diffhtml":28}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -575,7 +664,7 @@ webComponentTask.createNodeHook = function (vTree) {
   }
 };
 module.exports = exports['default'];
-},{"diffhtml":27}],9:[function(require,module,exports){
+},{"diffhtml":28}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -583,8 +672,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 var ComponentTreeCache = exports.ComponentTreeCache = new Map();
 var InstanceCache = exports.InstanceCache = new Map();
-var ContextCache = exports.ContextCache = new Map();
-},{}],10:[function(require,module,exports){
+var ChildParentCache = exports.ChildParentCache = new Map();
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -599,7 +688,7 @@ var caches = _interopRequireWildcard(_caches);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 exports.caches = caches;
-},{"./caches":9}],11:[function(require,module,exports){
+},{"./caches":10}],12:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -614,14 +703,14 @@ var _diffhtml = require('diffhtml');
 exports.default = _diffhtml.Internals.process;
 module.exports = exports['default'];
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"diffhtml":27}],12:[function(require,module,exports){
+},{"diffhtml":28}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var $$render = exports.$$render = Symbol('diff.render');
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -805,7 +894,7 @@ exports.default = (0, _upgradeSharedClass2.default)(function (_HTMLElement) {
 }(HTMLElement));
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./shared/upgrade-shared-class":6,"./tasks/web-component":8,"./util/symbols":12,"_process":23,"diffhtml":27,"prop-types":20}],14:[function(require,module,exports){
+},{"./shared/upgrade-shared-class":7,"./tasks/web-component":9,"./util/symbols":13,"_process":24,"diffhtml":28,"prop-types":21}],15:[function(require,module,exports){
 "use strict";
 
 /**
@@ -844,7 +933,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -900,7 +989,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 }
 
 module.exports = invariant;
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -967,7 +1056,7 @@ if ("umd" !== 'production') {
 }
 
 module.exports = warning;
-},{"./emptyFunction":14}],17:[function(require,module,exports){
+},{"./emptyFunction":15}],18:[function(require,module,exports){
 /**
  * Copyright 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1030,7 +1119,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
 
 module.exports = checkPropTypes;
 
-},{"./lib/ReactPropTypesSecret":21,"fbjs/lib/invariant":15,"fbjs/lib/warning":16}],18:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":22,"fbjs/lib/invariant":16,"fbjs/lib/warning":17}],19:[function(require,module,exports){
 /**
  * Copyright 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1091,7 +1180,7 @@ module.exports = function() {
   return ReactPropTypes;
 };
 
-},{"./lib/ReactPropTypesSecret":21,"fbjs/lib/emptyFunction":14,"fbjs/lib/invariant":15}],19:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":22,"fbjs/lib/emptyFunction":15,"fbjs/lib/invariant":16}],20:[function(require,module,exports){
 /**
  * Copyright 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1605,7 +1694,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
   return ReactPropTypes;
 };
 
-},{"./checkPropTypes":17,"./lib/ReactPropTypesSecret":21,"fbjs/lib/emptyFunction":14,"fbjs/lib/invariant":15,"fbjs/lib/warning":16}],20:[function(require,module,exports){
+},{"./checkPropTypes":18,"./lib/ReactPropTypesSecret":22,"fbjs/lib/emptyFunction":15,"fbjs/lib/invariant":16,"fbjs/lib/warning":17}],21:[function(require,module,exports){
 /**
  * Copyright 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1637,7 +1726,7 @@ if ("umd" !== 'production') {
   module.exports = require('./factoryWithThrowingShims')();
 }
 
-},{"./factoryWithThrowingShims":18,"./factoryWithTypeCheckers":19}],21:[function(require,module,exports){
+},{"./factoryWithThrowingShims":19,"./factoryWithTypeCheckers":20}],22:[function(require,module,exports){
 /**
  * Copyright 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1653,7 +1742,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 'use strict';
 
 var _templateObject = babelHelpers.taggedTemplateLiteral(['\n      Stable is ', '\n\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    '], ['\n      Stable is ', '\n\n      <select onchange=', '>\n        ', '\n      </select>\n\n      <p>\n        All of the following methods are available under the <code>diff</code>\n        namespace and you can alternatively import them individually using\n        CommonJS or ES-2015 modules. The examples shown use the ES-2015 modules\n        format. If you want to use this format as well, you\'ll need a\n        transpiler like <a href="https://babeljs.io/">Babel</a>.\n      </p>\n\n      <hr>\n\n      <ul class="methods">\n        ', '\n      </ul>\n\n      <hr>\n\n      <section class="comments">\n        ', '\n        </section>\n    ']),
@@ -2031,7 +2120,7 @@ var mount = document.querySelector('#api-browser');
 console.log(mount);
 (0, _diffhtml.innerHTML)(mount, (0, _diffhtml.html)(_templateObject11, ApiBrowser));
 
-},{"diffhtml":27,"diffhtml-components":2,"proxy-polyfill/proxy.min":24,"whatwg-fetch":25}],23:[function(require,module,exports){
+},{"diffhtml":28,"diffhtml-components":2,"proxy-polyfill/proxy.min":25,"whatwg-fetch":26}],24:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2217,7 +2306,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 (function (process,global){
 (function(c){function l(a){return a?"object"==typeof a||"function"==typeof a:!1}if(!c.Proxy){var m=null;c.a=function(a,b){function c(){}if(!l(a)||!l(b))throw new TypeError("Cannot create proxy with a non-object as target or handler");m=function(){c=function(a){throw new TypeError("Cannot perform '"+a+"' on a proxy that has been revoked");}};var e=b;b={get:null,set:null,apply:null,construct:null};for(var h in e){if(!(h in b))throw new TypeError("Proxy polyfill does not support trap '"+h+"'");b[h]=
 e[h]}"function"==typeof e&&(b.apply=e.apply.bind(e));var d=this,n=!1,p="function"==typeof a;if(b.apply||b.construct||p)d=function(){var g=this&&this.constructor===d,f=Array.prototype.slice.call(arguments);c(g?"construct":"apply");if(g&&b.construct)return b.construct.call(this,a,f);if(!g&&b.apply)return b.apply(a,this,f);if(p)return g?(f.unshift(a),new (a.bind.apply(a,f))):a.apply(this,f);throw new TypeError(g?"not a constructor":"not a function");},n=!0;var q=b.get?function(a){c("get");return b.get(this,
@@ -2225,7 +2314,7 @@ a,d)}:function(a){c("get");return this[a]},t=b.set?function(a,f){c("set");b.set(
 k,{get:q.bind(a,k)});Object.seal(a);Object.seal(d);return d};c.a.b=function(a,b){return{proxy:new c.a(a,b),revoke:m}};c.a.revocable=c.a.b;c.Proxy=c.a}})("undefined"!==typeof process&&"[object process]"=={}.toString.call(process)?global:self);
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":23}],25:[function(require,module,exports){
+},{"_process":24}],26:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -2693,7 +2782,7 @@ k,{get:q.bind(a,k)});Object.seal(a);Object.seal(d);return d};c.a.b=function(a,b)
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2819,7 +2908,7 @@ function handleTaggedTemplate(strings) {
   return childNodes.length === 1 ? childNodes[0] : (0, _create2.default)(childNodes);
 }
 module.exports = exports['default'];
-},{"./tree/create":42,"./util/decode-entities":46,"./util/escape":47,"./util/parse":51}],27:[function(require,module,exports){
+},{"./tree/create":43,"./util/decode-entities":47,"./util/escape":48,"./util/parse":52}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2922,7 +3011,7 @@ exports.innerHTML = _innerHtml2.default;
 exports.html = _html2.default;
 exports.Internals = Internals;
 exports.default = api;
-},{"./html":26,"./inner-html":28,"./node/create":29,"./outer-html":31,"./release":32,"./tasks/parse-new-tree":34,"./tasks/reconcile-trees":36,"./transaction":40,"./transition":41,"./tree/create":42,"./use":44,"./util/internals":48,"./util/parse":51,"./version":54}],28:[function(require,module,exports){
+},{"./html":27,"./inner-html":29,"./node/create":30,"./outer-html":32,"./release":33,"./tasks/parse-new-tree":35,"./tasks/reconcile-trees":37,"./transaction":41,"./transition":42,"./tree/create":43,"./use":45,"./util/internals":49,"./util/parse":52,"./version":55}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2945,7 +3034,7 @@ function innerHTML(element) {
   return _transaction2.default.create(element, markup, options).start();
 }
 module.exports = exports['default'];
-},{"./transaction":40}],29:[function(require,module,exports){
+},{"./transaction":41}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3043,7 +3132,7 @@ function createNode(vTree) {
   return domNode;
 }
 module.exports = exports['default'];
-},{"../util/caches":45,"../util/process":53}],30:[function(require,module,exports){
+},{"../util/caches":46,"../util/process":54}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3177,6 +3266,7 @@ function patchNode(patches) {
 
       var domNode = _caches.NodeCache.get(vTree);
       var attributeChanged = _caches.TransitionCache.get('attributeChanged');
+
       var oldValue = domNode.getAttribute(name);
       var newPromises = (0, _transition.runTransitions)('attributeChanged', domNode, name, oldValue, null);
 
@@ -3329,7 +3419,7 @@ function patchNode(patches) {
   return promises;
 }
 module.exports = exports['default'];
-},{"../transition":41,"../util/caches":45,"../util/decode-entities":46,"../util/escape":47,"../util/memory":50,"./create":29}],31:[function(require,module,exports){
+},{"../transition":42,"../util/caches":46,"../util/decode-entities":47,"../util/escape":48,"../util/memory":51,"./create":30}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3352,7 +3442,7 @@ function outerHTML(element) {
   return _transaction2.default.create(element, markup, options).start();
 }
 module.exports = exports['default'];
-},{"./transaction":40}],32:[function(require,module,exports){
+},{"./transaction":41}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3380,7 +3470,7 @@ function release(domNode) {
   (0, _memory.cleanMemory)();
 }
 module.exports = exports['default'];
-},{"./util/caches":45,"./util/memory":50}],33:[function(require,module,exports){
+},{"./util/caches":46,"./util/memory":51}],34:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3409,7 +3499,7 @@ function endAsPromise(transaction) {
   }
 }
 module.exports = exports["default"];
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3454,7 +3544,7 @@ function parseNewTree(transaction) {
   }
 }
 module.exports = exports['default'];
-},{"../tree/create":42,"../util/caches":45,"../util/parse":51}],35:[function(require,module,exports){
+},{"../tree/create":43,"../util/caches":46,"../util/parse":52}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3498,7 +3588,7 @@ function patch(transaction) {
   transaction.promises = promises;
 }
 module.exports = exports['default'];
-},{"../node/patch":30}],36:[function(require,module,exports){
+},{"../node/patch":31}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3564,7 +3654,7 @@ function reconcileTrees(transaction) {
   }
 }
 module.exports = exports['default'];
-},{"../tree/create":42,"../util/caches":45,"../util/memory":50}],37:[function(require,module,exports){
+},{"../tree/create":43,"../util/caches":46,"../util/memory":51}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3616,7 +3706,7 @@ function schedule(transaction) {
   state.isRendering = true;
 }
 module.exports = exports['default'];
-},{"../util/caches":45}],38:[function(require,module,exports){
+},{"../util/caches":46}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3643,7 +3733,7 @@ function shouldUpdate(transaction) {
   measure('should update');
 }
 module.exports = exports['default'];
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3700,7 +3790,7 @@ function syncTrees(transaction) {
   measure('sync trees');
 }
 module.exports = exports['default'];
-},{"../node/create":29,"../tree/sync":43,"../util/caches":45,"../util/memory":50}],40:[function(require,module,exports){
+},{"../node/create":30,"../tree/sync":44,"../util/caches":46,"../util/memory":51}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3975,7 +4065,7 @@ var Transaction = function () {
 }();
 
 exports.default = Transaction;
-},{"./tasks/end-as-promise":33,"./tasks/patch-node":35,"./tasks/reconcile-trees":36,"./tasks/schedule":37,"./tasks/should-update":38,"./tasks/sync-trees":39,"./util/caches":45,"./util/make-measure":49,"./util/memory":50,"./util/process":53}],41:[function(require,module,exports){
+},{"./tasks/end-as-promise":34,"./tasks/patch-node":36,"./tasks/reconcile-trees":37,"./tasks/schedule":38,"./tasks/should-update":39,"./tasks/sync-trees":40,"./util/caches":46,"./util/make-measure":50,"./util/memory":51,"./util/process":54}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4081,7 +4171,7 @@ function runTransitions(setName) {
 
   return promises;
 }
-},{"./util/caches":45,"./util/process":53}],42:[function(require,module,exports){
+},{"./util/caches":46,"./util/process":54}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4292,7 +4382,7 @@ function createTree(input, attributes, childNodes) {
   return vTree;
 }
 module.exports = exports['default'];
-},{"../util/caches":45,"../util/pool":52}],43:[function(require,module,exports){
+},{"../util/caches":46,"../util/pool":53}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4317,7 +4407,7 @@ var keyNames = ['old', 'new'];
 
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
-function syncTree(oldTree, newTree, patches) {
+function syncTree(oldTree, newTree, patches, parentTree, specialCase) {
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 
@@ -4361,20 +4451,19 @@ function syncTree(oldTree, newTree, patches) {
   // `newTree`. Pass along the `keysLookup` object so that middleware can make
   // smart decisions when dealing with keys.
   SyncTreeHookCache.forEach(function (fn, retVal) {
-    if ((retVal = fn(oldTree, newTree, null)) && retVal !== newTree) {
+    oldTree = specialCase || oldTree;
+
+    // Call the user provided middleware function for a single root node. Allow
+    // the consumer to specify a return value of a different VTree (useful for
+    // components).
+    retVal = fn(oldTree, newTree, keysLookup, parentTree) || newTree;
+
+    // If the consumer returned a value and it doesn't equal the existing tree,
+    // then splice it into the parent (if it exists) and run a sync.
+    if (retVal && retVal !== newTree) {
+      newTree.childNodes = [].concat(retVal);
+      syncTree(oldTree !== empty ? oldTree : null, retVal, patches, newTree);
       newTree = retVal;
-
-      // Find attributes.
-      syncTree(null, retVal, patches);
-    }
-
-    for (var _i2 = 0; _i2 < newTree.childNodes.length; _i2++) {
-      var oldChildNode = isEmpty ? empty : oldTree.childNodes[_i2];
-      var newChildNode = newTree.childNodes[_i2];
-
-      if (retVal = fn(oldChildNode, newChildNode, keysLookup)) {
-        newTree.childNodes[_i2] = retVal;
-      }
     }
   });
 
@@ -4470,8 +4559,8 @@ function syncTree(oldTree, newTree, patches) {
   // Scan all childNodes for attribute changes.
   if (isEmpty) {
     // Do a single pass over the new child nodes.
-    for (var _i3 = 0; _i3 < newChildNodes.length; _i3++) {
-      syncTree(null, newChildNodes[_i3], patches);
+    for (var _i2 = 0; _i2 < newChildNodes.length; _i2++) {
+      syncTree(null, newChildNodes[_i2], patches, newTree);
     }
 
     return patches;
@@ -4484,16 +4573,16 @@ function syncTree(oldTree, newTree, patches) {
     var values = keysLookup.old.values();
 
     // Do a single pass over the new child nodes.
-    for (var _i4 = 0; _i4 < newChildNodes.length; _i4++) {
-      var oldChildNode = oldChildNodes[_i4];
-      var newChildNode = newChildNodes[_i4];
+    for (var _i3 = 0; _i3 < newChildNodes.length; _i3++) {
+      var oldChildNode = oldChildNodes[_i3];
+      var newChildNode = newChildNodes[_i3];
       var newKey = newChildNode.key;
 
       // If there is no old element to compare to, this is a simple addition.
       if (!oldChildNode) {
         INSERT_BEFORE.push(oldTree, newChildNode, null);
         oldChildNodes.push(newChildNode);
-        syncTree(null, newChildNode, patches);
+        syncTree(null, newChildNode, patches, newTree);
         continue;
       }
 
@@ -4505,14 +4594,14 @@ function syncTree(oldTree, newTree, patches) {
       if (!oldInNew && !newInOld) {
         REPLACE_CHILD.push(newChildNode, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
-        syncTree(null, newChildNode, patches);
+        syncTree(null, newChildNode, patches, newTree);
         continue;
       }
       // Remove the old node instead of replacing.
       else if (!oldInNew) {
           REMOVE_CHILD.push(oldChildNode);
           oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1);
-          _i4 = _i4 - 1;
+          _i3 = _i3 - 1;
           continue;
         }
 
@@ -4529,11 +4618,11 @@ function syncTree(oldTree, newTree, patches) {
           optimalNewNode = newChildNode;
 
           // Find attribute changes for this Node.
-          syncTree(null, newChildNode, patches);
+          syncTree(null, newChildNode, patches, newTree);
         }
 
         INSERT_BEFORE.push(oldTree, optimalNewNode, oldChildNode);
-        oldChildNodes.splice(_i4, 0, optimalNewNode);
+        oldChildNodes.splice(_i3, 0, optimalNewNode);
         continue;
       }
 
@@ -4541,21 +4630,21 @@ function syncTree(oldTree, newTree, patches) {
       // replace the entire element, don't bother investigating children.
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
         REPLACE_CHILD.push(newChildNode, oldChildNode);
-        oldTree.childNodes[_i4] = newChildNode;
-        syncTree(null, newChildNode, patches);
+        oldTree.childNodes[_i3] = newChildNode;
+        syncTree(null, newChildNode, patches, newTree);
         continue;
       }
 
-      syncTree(oldChildNode, newChildNode, patches);
+      syncTree(oldChildNode, newChildNode, patches, newTree);
     }
   }
 
   // No keys used on this level, so we will do easier transformations.
   else {
       // Do a single pass over the new child nodes.
-      for (var _i5 = 0; _i5 < newChildNodes.length; _i5++) {
-        var _oldChildNode = oldChildNodes && oldChildNodes[_i5];
-        var _newChildNode = newChildNodes[_i5];
+      for (var _i4 = 0; _i4 < newChildNodes.length; _i4++) {
+        var _oldChildNode = oldChildNodes && oldChildNodes[_i4];
+        var _newChildNode = newChildNodes[_i4];
 
         // If there is no old element to compare to, this is a simple addition.
         if (!_oldChildNode) {
@@ -4565,7 +4654,7 @@ function syncTree(oldTree, newTree, patches) {
             oldChildNodes.push(_newChildNode);
           }
 
-          syncTree(null, _newChildNode, patches);
+          syncTree(null, _newChildNode, patches, oldTree);
           continue;
         }
 
@@ -4573,27 +4662,26 @@ function syncTree(oldTree, newTree, patches) {
         // replace the entire element, don't bother investigating children.
         if (_oldChildNode.nodeName !== _newChildNode.nodeName) {
           REPLACE_CHILD.push(_newChildNode, _oldChildNode);
-          oldTree.childNodes[_i5] = _newChildNode;
-          syncTree(null, _newChildNode, patches);
+          // FIXME Calling this out specifically as a special case since we
+          // have conflicting requirements between synchronization and how
+          // components handle reconcilation. We basically don't want to dig
+          // deeper into the component at the diffHTML level, but want to let
+          // the middleware have access to the old child.
+          var _specialCase = oldTree.childNodes[_i4];
+          oldTree.childNodes[_i4] = _newChildNode;
+          syncTree(null, _newChildNode, patches, oldTree, _specialCase);
           continue;
         }
 
-        syncTree(_oldChildNode, _newChildNode, patches);
+        syncTree(_oldChildNode, _newChildNode, patches, oldTree);
       }
     }
-
-  // If there was no `oldTree` provided, we have sync'd all the attributes and
-  // the node value of the `newTree` so we can early abort and not worry about
-  // tree operations.
-  if (isEmpty) {
-    return patches;
-  }
 
   // We've reconciled new changes, so we can remove any old nodes and adjust
   // lengths to be equal.
   if (oldChildNodes.length !== newChildNodes.length) {
-    for (var _i6 = newChildNodes.length; _i6 < oldChildNodes.length; _i6++) {
-      REMOVE_CHILD.push(oldChildNodes[_i6]);
+    for (var _i5 = newChildNodes.length; _i5 < oldChildNodes.length; _i5++) {
+      REMOVE_CHILD.push(oldChildNodes[_i5]);
     }
 
     oldChildNodes.length = newChildNodes.length;
@@ -4619,7 +4707,7 @@ function syncTree(oldTree, newTree, patches) {
   return patches;
 }
 module.exports = exports['default'];
-},{"../util/caches":45,"../util/process":53}],44:[function(require,module,exports){
+},{"../util/caches":46,"../util/process":54}],45:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4681,7 +4769,7 @@ function use(middleware) {
   };
 }
 module.exports = exports['default'];
-},{"./util/caches":45,"./util/process":53}],45:[function(require,module,exports){
+},{"./util/caches":46,"./util/process":54}],46:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4703,7 +4791,7 @@ var MiddlewareCache = exports.MiddlewareCache = new Set();
 MiddlewareCache.CreateTreeHookCache = new Set();
 MiddlewareCache.CreateNodeHookCache = new Set();
 MiddlewareCache.SyncTreeHookCache = new Set();
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -4736,7 +4824,7 @@ function decodeEntities(string) {
 }
 module.exports = exports['default'];
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4756,7 +4844,7 @@ function escape(unescaped) {
   });
 }
 module.exports = exports["default"];
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4804,7 +4892,7 @@ exports.default = Object.assign({
   process: _process2.default
 }, caches);
 module.exports = exports['default'];
-},{"./caches":45,"./decode-entities":46,"./escape":47,"./make-measure":49,"./memory":50,"./pool":52,"./process":53}],49:[function(require,module,exports){
+},{"./caches":46,"./decode-entities":47,"./escape":48,"./make-measure":50,"./memory":51,"./pool":53,"./process":54}],50:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4855,7 +4943,7 @@ exports.default = function (domNode, vTree) {
   };
 };
 }).call(this,require('_process'))
-},{"_process":23}],50:[function(require,module,exports){
+},{"_process":24}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4939,7 +5027,7 @@ function cleanMemory() {
     }
   });
 }
-},{"./caches":45,"./pool":52}],51:[function(require,module,exports){
+},{"./caches":46,"./pool":53}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5342,7 +5430,7 @@ function parse(html, supplemental) {
   return root;
 }
 module.exports = exports['default'];
-},{"../tree/create":42,"./pool":52}],52:[function(require,module,exports){
+},{"../tree/create":43,"./pool":53}],53:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5413,7 +5501,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{}],53:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -5425,11 +5513,11 @@ exports.default = typeof process !== 'undefined' ? process : {
 };
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"_process":23}],54:[function(require,module,exports){
+},{"_process":24}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var __VERSION__ = exports.__VERSION__ = '1.0.0-beta';
-},{}]},{},[22]);
+var __VERSION__ = exports.__VERSION__ = '1.0.0-beta.7';
+},{}]},{},[23]);

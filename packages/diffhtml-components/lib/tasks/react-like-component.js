@@ -1,4 +1,5 @@
 import { createTree, Internals } from 'diffhtml';
+import getContext from '../util/get-context';
 import {
   ChildParentCache,
   ComponentTreeCache,
@@ -6,14 +7,14 @@ import {
 } from '../util/caches';
 
 const { NodeCache } = Internals;
-const { assign } = Object;
+const { keys, assign } = Object;
 
-function triggerRef(ref, instance) {
+function triggerRef(ref, node) {
   if (typeof ref === 'function') {
-    ref(instance);
+    ref(node);
   }
   else if (typeof ref === 'string') {
-    this[ref](instance);
+    this[ref](node);
   }
 }
 
@@ -26,31 +27,36 @@ function searchForRefs(newTree) {
 }
 
 function componentDidMount(newTree) {
-  if (InstanceCache.has(newTree)) {
-    InstanceCache.get(newTree).componentDidMount();
-  }
-
   const instance = InstanceCache.get(newTree);
 
+  if (instance) {
+    instance.componentDidMount();
+  }
+
   searchForRefs(newTree);
+
+  newTree.childNodes.forEach(componentDidMount);
 
   if (!instance) {
     return;
   }
 
   const { ref } = instance.props;
-
   triggerRef(ref, instance);
 }
 
 function componentDidUnmount(oldTree) {
   const oldChild = ChildParentCache.get(oldTree);
-  const instance = InstanceCache.get(oldChild);
+  const instance = InstanceCache.get(oldChild) || InstanceCache.get(oldTree);
 
-  instance.componentWillUnmount();
-  instance.componentDidUnmount();
+  if (instance) {
+    instance.componentWillUnmount();
+    instance.componentDidUnmount();
+  }
 
   searchForRefs(oldTree);
+
+  oldTree.childNodes.forEach(componentDidUnmount);
 
   if (!instance) {
     return;
@@ -62,7 +68,7 @@ function componentDidUnmount(oldTree) {
 }
 
 export default function reactLikeComponentTask(transaction) {
-  return transaction.onceEnded(() => {
+  transaction.onceEnded(() => {
     if (transaction.aborted) {
       return;
     }
@@ -101,9 +107,10 @@ export default function reactLikeComponentTask(transaction) {
         if (REMOVE_CHILD) {
           for (let i = 0; i < REMOVE_CHILD.length; i += 1) {
             const oldTree = REMOVE_CHILD[i];
+            const oldInstance = InstanceCache.has(oldTree);
 
-            if (InstanceCache.has(oldTree)) {
-              ComponentTreeCache.delete(InstanceCache.get(oldTree));
+            if (oldInstance) {
+              ComponentTreeCache.delete(oldInstance);
               InstanceCache.delete(oldTree);
               ChildParentCache.delete(oldTree);
             }
@@ -116,25 +123,6 @@ export default function reactLikeComponentTask(transaction) {
   });
 }
 
-const getContext = parentTree => {
-  const path = [];
-
-  if (InstanceCache.has(parentTree)) {
-    path.push(InstanceCache.get(parentTree).getChildContext());
-  }
-
-  while (parentTree = ChildParentCache.get(parentTree)) {
-    if (!InstanceCache.has(parentTree)) {
-      continue;
-    }
-
-    path.push(InstanceCache.get(parentTree).getChildContext());
-  }
-
-  // Merge least specific to most specific.
-  return assign({}, ...path.reverse());
-};
-
 function renderComponent({ oldTree, newTree, oldChild, newChild }) {
   let oldInstanceCache = null;
 
@@ -143,17 +131,30 @@ function renderComponent({ oldTree, newTree, oldChild, newChild }) {
   }
 
   const newCtor = newChild.rawNodeName;
-  const children = newChild.childNodes;
+  const { childNodes } = newChild;
+  const children = (childNodes.length === 1 ? childNodes[0] : childNodes) || [];
   const props = assign({}, newChild.attributes, { children });
-  const canNew = newCtor.prototype;
+  const canNew = newCtor.prototype && newCtor.prototype.render;
 
   // If the component has already been initialized, we can reuse it.
   const oldInstance = oldInstanceCache instanceof newCtor && oldInstanceCache;
-  const context = getContext(newTree);
+  const context = assign(getContext(oldTree), getContext(newTree));
   const newInstance = !oldInstance && canNew && new newCtor(props, context);
   const instance = oldInstance || newInstance;
 
   let renderTree = null;
+
+  if (instance) {
+    const { defaultProps = {} } = instance.constructor;
+
+    keys(defaultProps).forEach(prop => {
+      if (prop in props && props[prop] !== undefined) {
+        return;
+      }
+
+      props[prop] = defaultProps[prop];
+    });
+  }
 
   if (oldInstance) {
     oldInstance.componentWillReceiveProps(props);
@@ -162,7 +163,7 @@ function renderComponent({ oldTree, newTree, oldChild, newChild }) {
 
     if (oldInstance.shouldComponentUpdate()) {
       renderTree = oldInstance.render(props, oldInstance.state);
-      oldInstance.componentDidUpdate();
+      oldInstance.componentDidUpdate(props, oldInstance.state || {});
     }
 
     ComponentTreeCache.set(oldInstance, renderTree);
@@ -172,6 +173,7 @@ function renderComponent({ oldTree, newTree, oldChild, newChild }) {
     return renderTree;
   }
   else if (instance && instance.render) {
+    instance.props = props;
     renderTree = createTree(instance.render(props, instance.state));
   }
   else {
@@ -214,6 +216,8 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree, keys, parentTree) => {
 
   // Top level component to process.
   if (newTree && typeof newTree.rawNodeName === 'function') {
+    ChildParentCache.set(newTree, parentTree);
+
     const upgraded = renderComponent({
       oldTree: parentTree,
       newTree,
@@ -221,12 +225,19 @@ reactLikeComponentTask.syncTreeHook = (oldTree, newTree, keys, parentTree) => {
       newChild: newTree,
     });
 
-    ChildParentCache.set(upgraded, newTree);
+    if (!ChildParentCache.has(newTree)) {
+      ChildParentCache.set(upgraded, parentTree);
+    }
+    else {
+      ChildParentCache.set(upgraded, newTree);
+    }
 
     return upgraded;
   }
 
-  ChildParentCache.set(newTree, parentTree);
+  if (parentTree) {
+    ChildParentCache.set(newTree, parentTree);
+  }
 
   return newTree;
 };
