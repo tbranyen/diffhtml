@@ -1,15 +1,29 @@
 # <±/> diffHTML Babel Transform Plugin
 
-*Pre-compiles your tagged template strings for zero runtime cost*
+*Pre-compiles your tagged template strings to reduce runtime cost*
 
 Stable Version: 1.0.0-beta.7
 
-This plugin transforms tagged template strings in your projects to
-`createTree` calls. By default it will use `createTree` which will need to be
-imported into your module.
+This plugin transforms tagged template strings `html` in your projects to
+`createTree` calls. By default it will use `diff.createTree` which will need to
+be imported into your module. This works out-of-the-box with the `diffhtml.js`
+and `diffhtml-runtime.js` UMD script files.
 
+## Installation
 
-Turns this:
+``` javascript
+npm i --save-dev babel-plugin-transform-diffhtml
+```
+
+## Quick demo
+
+Running:
+
+```
+babel test.js -o test.built.js --plugins=transform-diffhtml
+```
+
+Parses and transforms `test.js`:
 
 ``` js
 class HelloWorld extends Component {
@@ -21,31 +35,28 @@ class HelloWorld extends Component {
 }
 ```
 
-into this:
+into `test.built.js`:
 
 ``` js
+var _vtree = diff.createTree("#text", null, "Hello world");
+
 class HelloWorld extends Component {
   render() {
-    return createTree('div', null, 'Hello world');
+    return diff.createTree("div", {}, [_vtree]);
   }
 }
 ```
 
 More specifically this plugin transforms tagged template strings
-(`html`&lt;div&gt;&lt;/div&gt;``) in your JavaScript files to flat strings
-that get parsed by the diffHTML HTML Parser, from there they are pieced back
-together using the AST into a valid JSX/HyperScript-like `h(tagName, props,
-...childNodes)`. This is both a runtime performance optimization as well as a
-build time since you can exclude more of diffHTML from your build.
+(`html`&lt;div&gt;&lt;/div&gt;``) in your JavaScript files to flat strings that
+get parsed by the diffHTML HTML Parser. This ensures consistency with the
+runtime parser. From there they are pieced back together using the AST into a
+valid JSX/HyperScript-like `h(tagName, props, ...childNodes)`. This is both a
+runtime performance optimization as well as a build time since you can exclude
+more of diffHTML from your build.
 
 **Note!* This plugin has been built for use in Babel 6.x environments, and will
 not work with Babel 5.x ( *deprecated*) or older versions.**
-
-## Installation
-
-``` javascript
-npm i --save-dev babel-plugin-transform-diffhtml
-```
 
 ## How to use
 

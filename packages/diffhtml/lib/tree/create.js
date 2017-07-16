@@ -80,6 +80,12 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   // Assume any object value is a valid VTree object.
   if (isObject) {
+    // Support JSX-like object shape.
+    if ('children' in input && !('childNodes' in input)) {
+      const nodeName = input.nodeName || input.elementName;
+      return createTree(nodeName, input.attributes, input.children);
+    }
+
     return input;
   }
 

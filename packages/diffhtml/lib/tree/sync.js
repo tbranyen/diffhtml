@@ -13,7 +13,6 @@ export default function syncTree(oldTree, newTree, patches, parentTree, specialC
   if (!newTree) newTree = empty;
 
   const oldNodeName = oldTree.nodeName;
-  const newNodeName = newTree.nodeName;
   const isFragment = newTree.nodeType === 11;
   const isEmpty = oldTree === empty;
 
@@ -26,9 +25,9 @@ export default function syncTree(oldTree, newTree, patches, parentTree, specialC
     }
 
     // FIXME: Causes issues w/ React, we need to normalize at a higher level.
-    if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
+    if (!isEmpty && oldNodeName !== newTree.nodeName && !isFragment) {
       throw new Error(
-        `Sync failure, cannot compare ${newNodeName} with ${oldNodeName}`
+        `Sync failure, cannot compare ${newTree.nodeName} with ${oldNodeName}`
       );
     }
   }
@@ -66,10 +65,12 @@ export default function syncTree(oldTree, newTree, patches, parentTree, specialC
     // then splice it into the parent (if it exists) and run a sync.
     if (retVal && retVal !== newTree) {
       newTree.childNodes = [].concat(retVal);
-      syncTree(oldTree !== empty ? oldTree : null, retVal, patches, newTree);
+      syncTree(null, retVal, patches, newTree);
       newTree = retVal;
     }
   });
+
+  const newNodeName = newTree.nodeName;
 
   // Create new arrays for patches or use existing from a recursive call.
   patches = patches || {

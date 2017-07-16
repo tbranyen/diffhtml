@@ -10,7 +10,11 @@ export default parentTree => {
   const path = [];
   const instance = InstanceCache.get(parentTree);
 
-  if (instance) {
+  if (!parentTree) {
+    return {};
+  }
+
+  if (instance && instance.getChildContext) {
     path.push(instance.getChildContext());
   }
 
@@ -22,7 +26,12 @@ export default parentTree => {
       continue;
     }
 
-    path.push(InstanceCache.get(parentTree).getChildContext());
+
+    const instance = InstanceCache.get(parentTree);
+
+    if (instance && instance.getChildContext) {
+      path.push(instance.getChildContext());
+    }
   }
 
   // Merge least specific to most specific.

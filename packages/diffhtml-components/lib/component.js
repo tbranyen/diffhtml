@@ -11,7 +11,7 @@ import {
 import getContext from './util/get-context';
 import { $$render } from './util/symbols';
 
-const { NodeCache } = Internals;
+const { createNode, NodeCache } = Internals;
 const { keys, assign } = Object;
 
 // Registers a custom middleware to help map the diffHTML render lifecycle
@@ -38,7 +38,7 @@ class Component {
 
   [$$render]() {
     const vTree = ComponentTreeCache.get(this);
-    const domNode = NodeCache.get(vTree);
+    const domNode = createNode(vTree);
     const renderTree = this.render();
 
     const prevProps = this.props;
@@ -50,12 +50,13 @@ class Component {
   }
 
   constructor(initialProps, initialContext) {
+    initialProps && (initialProps.refs || (initialProps.refs = {}));
+
     const props = this.props = assign({}, initialProps);
     const state = this.state = {};
     const context = this.context = assign({}, initialContext);
 
-    this.refs = {};
-    this.props.refs = this.refs;
+    this.refs = props.refs;
 
     const {
       defaultProps = {},

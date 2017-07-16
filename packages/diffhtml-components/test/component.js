@@ -154,26 +154,6 @@ describe('React Like Component', function() {
 
       ok(wasCalled);
     });
-
-    it('can map to componentDidUnmount', () => {
-      let wasCalled = false;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-
-        componentDidUnmount() {
-          wasCalled = true;
-        }
-      }
-
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
-      innerHTML(domNode, html``);
-
-      ok(wasCalled);
-    });
   });
 
   describe('Props', () => {
@@ -393,5 +373,35 @@ describe('React Like Component', function() {
 
       equal(domNode.innerHTML, 'From Context');
     });
+  });
+
+  describe('HOC', () => {
+    it('can support a component that returns a new component', () => {
+      let didMount = 0;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<span>Hello world</span>`;
+        }
+      }
+
+      const HOC = ChildComponent => class HOCComponent extends Component {
+        render() {
+          return html`<${ChildComponent} />`;
+        }
+
+        componentDidMount() {
+          didMount++;
+        }
+      };
+
+      const WrappedComponent = HOC(CustomComponent);
+      const domNode = document.createElement('div');
+      innerHTML(domNode, html`<${WrappedComponent} />`);
+
+      equal(didMount, 1);
+      equal(domNode.innerHTML, '<span>Hello world</span>');
+    });
+
   });
 });

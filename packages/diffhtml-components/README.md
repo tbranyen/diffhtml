@@ -6,8 +6,8 @@ React-inspired implementations.*
 Stable Version: 1.0.0-beta.7
 
 The exported classes `Component` and `WebComponent` are designed to be
-interchangeable and as close to feature-parity as possible. This helps bridges
-the React and Web Component gap.
+interchangeable and as close to feature-parity as possible. This helps bridge
+the React / Web Component gap.
 
 ## Installation
 
@@ -19,7 +19,7 @@ npm install diffhtml-components
 
 Before you can use this module, you will need to have diffHTML loaded first.
 This component simply provides the `Component` and `WebComponent` classes, and
-respective middleware, which help you create Virtual Trees and structure your
+respective middleware, which help you create Virtual Trees to structure your
 code.
 
 You can create components as easy as:

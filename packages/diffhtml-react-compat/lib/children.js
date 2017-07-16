@@ -40,4 +40,4 @@ export function toArray(children) {
   return Array.isArray(children) ? children : [].concat(children);
 }
 
-export default { map, forEach, count, only, toArray }
+export default { map, forEach, count, only, toArray };
