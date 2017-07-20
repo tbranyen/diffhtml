@@ -7,7 +7,26 @@ const express = require('express');
 const getSocket = require('./socket');
 const clientScript = require('./util/client-script');
 
-const CWD = process.cwd();
+let userDir = '.';
+
+// Find the new path to use
+process.argv.slice(2).some(arg => {
+  if (!arg.includes('--')) {
+    userDir = arg;
+
+    // Absolute paths are not allowed.
+    if (userDir[0] === '/') {
+      throw new Error('No absolute paths are allowed with this tool');
+    }
+
+    // Directory must be relative to this folder (no global).
+    if (userDir[0] !== '.') {
+      userDir = `./${userDir}`;
+    }
+  }
+});
+
+const CWD = join(process.cwd(), userDir);
 
 // CLI Colors
 const yellow = '\x1B[33m';
@@ -17,15 +36,26 @@ const green = '\x1B[32m';
 const reset = '\x1B[m';
 const quiet = process.argv.includes('--quiet');
 
+let hook = null;
+
+process.argv.forEach(arg => {
+  if (arg.includes('--hook')) {
+    const path = arg.split('=')[1];
+    require(join(process.cwd(), path));
+  }
+});
+
 const webServer = express();
 const watcher = watch(CWD, {
   ignored: /[\/\\]\./,
   persistent: true,
 });
 
-const read = path => new Promise((res, rej) => readFile(path, (err, buffer) => {
-  if (err) { rej(err); } else { res(buffer); }
-}));
+const read = path => new Promise((res, rej) => {
+  readFile(join(CWD, path), (err, buffer) => {
+    if (err) { rej(err); } else { res(buffer); }
+  });
+});
 
 const formatMarkdown = markup => `<html>
   <body>
@@ -34,27 +64,34 @@ const formatMarkdown = markup => `<html>
 </html>`;
 
 webServer.use('/', (req, res, next) => {
-  const ext = extname(req.url);
-  const isRoot = req.url === '' || req.url.slice(-1) === '/';
-  const path = root => isRoot ? root : req.url;
+  const url = req.url.split('?')[0];
+  const ext = extname(url);
+  const isRoot = url === '' || url.slice(-1) === '/';
+  const path = newExt => {
+    if (ext) {
+      return url;
+    }
 
-  if (isRoot || ext === '.html' || ext === 'md' || ext === 'markdown') {
-    read(path('index.html'))
-      .catch(() => read('index.md').then(formatMarkdown))
-      .catch(() => read('index.markdown').then(formatMarkdown))
-      .then(buffer => res.send(`
-        ${String(buffer)}
-        <script>${clientScript}</script>
-      `));
-  }
-  else {
-    next();
-  }
+    return `${isRoot ? 'index' : url}.${newExt}`;
+  };
+
+  read(path('html'))
+    .catch(() => read(path('md')).then(formatMarkdown))
+    .catch(() => read(path('markdown')).then(formatMarkdown))
+    .then(buffer => res.send(`
+      ${String(buffer)}
+      <script>${clientScript}</script>
+    `))
+    .catch(() => next());
 });
 
+webServer.use(express.static(process.cwd()));
 webServer.use(express.static(CWD));
 
-webServer.listen(process.env.SERVER_PORT || 8000, () => {
+const port = Number(process.env.SERVER_PORT) || 8000;
+const host = process.env.SERVER_HOST || '0.0.0.0';
+
+webServer.listen(port, host, () => {
   if (!quiet) {
     console.log(`Open http://localhost:8000\n`);
   }
@@ -74,7 +111,7 @@ webServer.listen(process.env.SERVER_PORT || 8000, () => {
           };
 
           if (state.file.includes('.md') || state.file.includes('.markdown')) {
-            state.file = state.file.replace(/(\.md|\.markdown)/g, '.html');
+            state.file = state.file.replace(/(\.md|\.markdown|\.html)/g, '');
             state.markup = formatMarkdown(state.markup);
           }
 
@@ -85,7 +122,7 @@ webServer.listen(process.env.SERVER_PORT || 8000, () => {
   });
 });
 
-const spinner = new Spinner(`${gray}Waiting for changes %s${reset} `);
+const spinner = new Spinner(`${gray}Watching ${userDir} for changes %s${reset} `);
 
 spinner.setSpinnerString(27);
 spinner.start();

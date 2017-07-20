@@ -1,0 +1,55 @@
+{
+  "output_dir": "../../docs",
+  "pages": {
+    "Getting Started": ["index.html", {
+      "Screencast": "#screencast",
+      "About": "#about",
+      "Installing": "#installing",
+      "Accessing the API": "#accessing-the-api"
+    }],
+
+    "API": ["api.html", {
+      "innerHTML": "#inner-html",
+      "outerHTML": "#outer-html",
+      "use": "#use",
+      "html": "#html",
+      "addTransitionState": "#add-transition-state",
+      "removeTransitionState": "#remove-transition-state",
+      "createTree": "#create-tree",
+      "release": "#release"
+    }],
+
+    "Transitions": ["transitions.html", {
+      "attached": "#attached",
+      "detached": "#detached",
+      "replaced": "#replaced",
+      "attributedChanged": "#attributeChanged",
+      "textChanged": "#textChanged"
+    }],
+
+    "Components": ["components.html", {
+      "Overview": "#overview",
+      "Component": "#component",
+      "Web Component": "#web-component",
+      "JSX": "#jsx",
+      "React Compatibility": "#react"
+    }],
+
+    "Middleware": ["middleware.html", {
+      "Logging": "#logging",
+      "Inline Transitions": "#inline-transitions",
+      "Synthetic Events": "#synthetic-events",
+      "Verify State": "#verify-state"
+    }],
+
+    "Tools": ["tools.html", {
+      "Babel Transform": "#babel-transform",
+      "Live Reload Server": "#static-sync",
+      "Render to String": "#render-to-string"
+    }],
+
+    "Examples": ["examples.html", {
+      "TodoMVC": "#todomvc"
+    }]
+  }
+}

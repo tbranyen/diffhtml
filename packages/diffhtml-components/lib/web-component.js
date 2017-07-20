@@ -1,3 +1,4 @@
+import process from './util/process';
 import { createTree, innerHTML, use } from 'diffhtml';
 import PropTypes from 'prop-types';
 import upgradeSharedClass from './shared/upgrade-shared-class';
@@ -53,7 +54,12 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
 
   [$$render]() {
     this.props = createProps(this);
-    innerHTML(this.shadowRoot, this.render(this.props, this.state));
+    if (this.shadowRoot) {
+      innerHTML(this.shadowRoot, this.render(this.props, this.state));
+    }
+    else {
+      innerHTML(this, this.render(this.props, this.state));
+    }
     this.componentDidUpdate();
   }
 
@@ -88,6 +94,7 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
   }
 
   connectedCallback() {
+    console.log('here');
     this.attachShadow({ mode: 'open' });
     this[$$render]();
     this.componentDidMount();

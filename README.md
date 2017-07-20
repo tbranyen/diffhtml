@@ -110,17 +110,6 @@ level or any specific nested package level.
   recursively search for inconsistencies, displays warnings unless debugging is
   enabled, then it throws errors instead.
 
-* [diffhtml-prollyfill](/packages/diffhtml-prollyfill)
-
-  ```
-  npm install diffhtml-prollyfill
-  ```
-
-  A way to hook diffHTML natively in the DOM environment. The term prollyfill
-  means it would be nice to see it become a standard some day, but is currently
-  not under any consideration. [*Click here for the "prollyfill" origin
-  tweet.*](https://twitter.com/slexaxton/status/257543702124306432)
-
 * [diffhtml-react-compat](/packages/diffhtml-react-compat)
 
   ```

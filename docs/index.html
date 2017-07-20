@@ -1,0 +1,289 @@
+<html><head>
+      <meta charset="utf-8"></meta>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+
+      <title>diffHTML: The easy-to-use HTML Virtual DOM for the web</title>
+      <link rel="stylesheet" href="./styles.css"></link>
+    </head><body>
+      <layer>
+        <div class="open-menu">≡</div>
+        <nav>
+    <ul>
+      
+        <a href="index.html"><li class="header"><h4>Getting Started</h4></li></a>
+
+        
+      
+        
+
+        <a href="index.html#screencast"><li>Screencast</li></a>
+      
+        
+
+        <a href="index.html#about"><li>About</li></a>
+      
+        
+
+        <a href="index.html#installing"><li>Installing</li></a>
+      
+        
+
+        <a href="index.html#accessing-the-api"><li>Accessing the API</li></a>
+      
+        <a href="api.html"><li class="header"><h4>API</h4></li></a>
+
+        
+      
+        
+
+        <a href="api.html#inner-html"><li>innerHTML</li></a>
+      
+        
+
+        <a href="api.html#outer-html"><li>outerHTML</li></a>
+      
+        
+
+        <a href="api.html#use"><li>use</li></a>
+      
+        
+
+        <a href="api.html#html"><li>html</li></a>
+      
+        
+
+        <a href="api.html#add-transition-state"><li>addTransitionState</li></a>
+      
+        
+
+        <a href="api.html#remove-transition-state"><li>removeTransitionState</li></a>
+      
+        
+
+        <a href="api.html#create-tree"><li>createTree</li></a>
+      
+        
+
+        <a href="api.html#release"><li>release</li></a>
+      
+        <a href="transitions.html"><li class="header"><h4>Transitions</h4></li></a>
+
+        
+      
+        
+
+        <a href="transitions.html#attached"><li>attached</li></a>
+      
+        
+
+        <a href="transitions.html#detached"><li>detached</li></a>
+      
+        
+
+        <a href="transitions.html#replaced"><li>replaced</li></a>
+      
+        
+
+        <a href="transitions.html#attributeChanged"><li>attributedChanged</li></a>
+      
+        
+
+        <a href="transitions.html#textChanged"><li>textChanged</li></a>
+      
+        <a href="components.html"><li class="header"><h4>Components</h4></li></a>
+
+        
+      
+        
+
+        <a href="components.html#overview"><li>Overview</li></a>
+      
+        
+
+        <a href="components.html#component"><li>Component</li></a>
+      
+        
+
+        <a href="components.html#web-component"><li>Web Component</li></a>
+      
+        
+
+        <a href="components.html#jsx"><li>JSX</li></a>
+      
+        
+
+        <a href="components.html#react"><li>React Compatibility</li></a>
+      
+        <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
+
+        
+      
+        
+
+        <a href="middleware.html#logging"><li>Logging</li></a>
+      
+        
+
+        <a href="middleware.html#inline-transitions"><li>Inline Transitions</li></a>
+      
+        
+
+        <a href="middleware.html#synthetic-events"><li>Synthetic Events</li></a>
+      
+        
+
+        <a href="middleware.html#verify-state"><li>Verify State</li></a>
+      
+        <a href="tools.html"><li class="header"><h4>Tools</h4></li></a>
+
+        
+      
+        
+
+        <a href="tools.html#babel-transform"><li>Babel Transform</li></a>
+      
+        
+
+        <a href="tools.html#static-sync"><li>Live Reload Server</li></a>
+      
+        
+
+        <a href="tools.html#render-to-string"><li>Render to String</li></a>
+      
+        <a href="examples.html"><li class="header"><h4>Examples</h4></li></a>
+
+        
+      
+        
+
+        <a href="examples.html#todomvc"><li>TodoMVC</li></a>
+      
+    </ul>
+  </nav>
+      </layer>
+
+      <section id="content">
+        <header>
+          <h1><±/> diffHTML</h1>
+          The easy-to-use HTML Virtual DOM for the web
+        </header>
+
+        <a href="https://github.com/tbranyen/diffhtml/edit/improve-docs/packages/diffhtml-website/pages/index.md">
+          Edit <span class="fa fa-github"></span>
+        </a>
+        <h1 id="getting-started">Getting started</h1>
+<div class="hero">
+  <p class="social">
+    <a class="github" href="https://github.com/tbranyen/diffhtml">
+      <i class="fa fa-github"></i>
+    </a>
+    <a class="stackoverflow" href="https://stackoverflow.com/search?q=diffhtml+javascript">
+      <i class="fa fa-stack-overflow"></i>
+    </a>
+    <a class="twitter" href="https://twitter.com/diffhtml">
+      <i class="fa fa-twitter"></i>
+    </a>
+    <a class="reddit" href="https://reddit.com/r/diffhtml">
+      <i class="fa fa-reddit"></i>
+    </a>
+    <a class="gitter" href="https://gitter.im/tbranyen/diffhtml">
+      <svg class="gitter" viewBox="60 -20 107.25 187.25">
+        <g id="_x38_MJ9tV.tif" display="none">
+
+            <image display="inline" overflow="visible" width="117" height="32" id="Layer_0" xmlns="xmlns" xlink="xlink" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHYAAAAhCAYAAAAMLF9eAAAACXBIWXMAAAsSAAALEgHS3X78AAAA GXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABO1JREFUeNrsWm9oVWUYP9s92KRr WTmSxqxoEEqLCStYJIUg6BcTB0K1QELsY0iDvoj74AcRFD+M/lAjlKDCf6BDsMJImlExaDqdTm4l m6vrrq6lY1cu3tnv2f2d+e7lnLv37Aa99/r+4Me599z3vec97/M+z/t7nnOqMvWb9nme1+QV8AF4 snb44ITnUNbwadRX+f0YzzmUOardFDjDOpRZKA5Fpn5jAw5Jfh0D07XDR3M4X4fPj4IJMAsO4XwW 5+XcUnCBet5NsWWGBd4Hm/m5G/wY/BN8HVwPLgIHwQ4eXwbfAZ/QzjtYZtgGRS2fpScKxGMbwcX8 vpBH8dgV4FPaeQe3xzo4wzrMOxT/r3js+eZGhnY9pKfAvhvneidC+gTC7h8Re2iTwzlV1MXBCEVg 3Ty2lbESrj8tPNE3y3tSRWwUUvp8+BYa9BUc2ri/P0L1rUJu4C+0+xbHz3FDaeW3QNh9r4g9VdTF wR6Kv3bw2Zh9u0u4vi48VREbhQnMx484fkYj533LjLoBh3d5Iw+C58GLXMWCGk5yCzjpFSplqmED Yfe7gYfM8m4wF2OogRfmxbuU8UW1lcjzuEHbYiJ2hJEgH3Efco2XZCFiHnt9i4wqN7CVRrsOSg37 JHhNuZkE06wnGR7HDf66h+FbN3Q7vfuM4l1hobgjJBSvpxfeikjrxngPKoYMU8As2+r4EjzOa6qQ sa1R5m6LLFSbPLYVXAlOgbvBw+CohJWQRTBA752c60/Rf4wTrf9HhgtGfhtAuytFQqPet4keLkYY RN8+w73TtG3Unt+P/uMh40nRa98C14FdviXeKoNaDS4BvwFPUXzcjTBWLmborGhgPjLUHGsZumts SXee5h4kC+0EeDXKqA6REJ1wm9tVlS2GDSR9lqHPPQ+Oj+XgQ7alOwu50kQ0jMNbpypw4mXxfoqQ WWzRTr/oEJajGwjPN5hS9YvSty2PzYbI+agbSQYpQJjAshBJg3y02IsOL4iuwL3rgvE58EVFeIp6 Hi7XtyWCpH1PRApgI1JU+6k52kR561oWO/Ro9jBD8B/gAfAr8G+f7n+MjU7PI4EO8Au4kxfJ0Jvi wrR8FyTttSGVKVshBustId0Ro/+mZAPPcA6StKGkhxeCCOazCOAroTBXwoWveoUHC3mTHDNkpdZL RQfhZgFTGod7+JrGu8nvsqh3gatoZEkPMzPi6b96I1HerihhUQwynCY40J9DKkH3O6SQMhQUKLD4 h3HopDNIiG7FuU8C41ZbNOgeHqWQ34JBugf1xYsSeRZyDjHSbhYBJdHOGsNykF/QcyXEbAe3YpDL wISmiOfzGK1SjSvRdj/4K/XJewzLVj22k/rvXnCHV3hS0c7crB/GvKWIqzr+Xol57Ix6htFShv8r avhDr/BKkmxjbbhGp2/R6pMcTQSC7CFvgq8xPxMj3lEKGeLdl8GfwO+88qlSmeSxgsXe3A/WZ0U7 zFsQkuUJz9tgt29baMEgf6Cs76JRk1oBQ1boqDQHr6HPHa1yc8QrPDJLz3G5OG11SCZxiQsuZdi2 JkZapP7nNho7MsflvH3kFersD8j1rCtQMM25IsRgz2nbxXQaFVVpYvhKGV7HuG1I37TpYojTNqJ/ n2G7EbV2YHXlKW7N1OEe3FuKzrAO5YRioTjYtD3uEWlNdPghG72DJfhXgAEAeZ7JyudM7bYAAAAA SUVORK5CYII=" transform="matrix(1 0 0 1 1052.3047 715.1357)">
+          </image>
+        </g>
+        <g id="VZchZG.tif" display="none">
+
+            <image display="inline" overflow="visible" width="32" height="32" id="Layer_0_1_" xmlns="xmlns" xlink="xlink" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsSAAALEgHS3X78AAAA GXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAIhJREFUeNpiZAACC2PbM4x//0gx 0BH8Z2Z5duLsYRNGkOUggYFwAIhmobfFMACzl4lhgMGoA0YdMOoAvA5wcnX5ffTc0bMgTA2x0SgY dcCoA0YdgA2w4JPct3sPKxAbk2MwsXpHo2DUAaMOYLQ0sHw2GgUjuyiGdRIHqnPKBOoiD5TvQXYD BBgAmlpH8O1Ct20AAAAASUVORK5CYII=" transform="matrix(1 0 0 1 792 546)">
+          </image>
+        </g>
+        <g id="jxJjd2.tif" display="none">
+
+            <image display="inline" overflow="visible" width="64" height="64" id="Layer_0_2_" xmlns="xmlns" xlink="xlink" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAP/AAAD/wGuK+TeAAAA GXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAnFJREFUeNrsW79LHEEUntE9KzHk clwjeI2FTapACIhdsDgkhMRCbSzCWVkEUoR0KUPaFMJZiH+AIhaHEBBMGSGNf4Bco0fCVYIG0X35 5n7OXW7hZHd25/bNg+9m7it2bt59772Z3R0pNKvnN16iWQUWgDwwLtJjd8A58B3YAqpPfpdJapP/ gqYEZEX67QLYBI5kc/Klr2jeMZl8266AN7KeK71Apww8Ffxsfwwfr4FpwdMWPSFpFp1Jpg6YVArw AMnUAUI54B4grg7wGM+95QCf9fwbIcBcAZKcApjnAN8pwDnAgE0dfhTZ+k4Dmfk5pwBrcwAZqgL6 VdUYZGm1cQqI459xCtDs0cEnkfuz24CeHB/Kj+BmiAzzLgdYthfQr6v67e9R8aMVAhQg3aj4MFWA 9fSdAoTnS3NT1vvtcaLiXRm0XQG6qTEGjRMVHzIJkogjCLrjRMWP6G4wKt6VQftDoF+4ZIwPGQKG Zi17+51xouJtVwD9J12KlLdfAf0/XJrjQy6EzFht+bNV14m9DA4THL1ljYyWu+CVYMyPx/uXNf7A WO/yxh2Q5K3KOOt9okkw0AEBZY0MlDsLdoN2asBL+m59PJvehJfCYRZIMeSAmN8PkHq580Vn/CDe vAJkgvKXYtD4QXwqQmDQ/m54PgVJkAJyPSW0DpBnM6/20C4BE4Khebxfkks8BzgFJG7u8bgLAe4K cC9LNw9Hsj0y4/nuyAxV0V4zXQn+VSFQAS6ZCuBHI/ZPC8VtNCuC1/lBFfZvWw9G6D0+Mopg4oQb 4ANw3JP9fxaKa2jWgWfA45StFFWyrwEnwDfg1/Nq5fafAAMAE6xkAvixwqwAAAAASUVORK5CYII=" transform="matrix(2.7695 0 0 2.7695 86.75 49.25)">
+          </image>
+        </g>
+        <rect x="61" y="41.5" width="8.25" height="61"></rect>
+        <rect x="110.75" y="55.5" width="8.25" height="47"></rect>
+        <rect x="77.5" y="55.5" width="8.25" height="80.25"></rect>
+        <rect x="94.25" y="55.5" width="8.25" height="80.25"></rect>
+      </svg>
+    </a>
+  </p>
+
+  <div class="video-container">
+  </div>
+  
+</div>
+
+<h3 id="about">About</h3>
+<p>The core of diffHTML is a powerful and easy-to-use virtual dom library that can help devs get from the basics to something like React. Being designed to be flexible and allow graceful. Use HTML or JSX, they both get normalized to the same DOM tree. You can diff plain HTML strings, or get fancy with a tagged template handler that will allow you to get React-like capabilities without needing a build step.</p>
+<h3 id="installing">Installing</h3>
+<p>We encourage brand new developers who want to try diffHTML to use our pre-made Glitch examples. This will let you mess with the API without having to download or configure anything.</p>
+<ul>
+<li><p>CDN (Recommended for Beginners):</p>
+<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;</code></pre></li>
+<li><svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
+  <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
+  <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
+</svg>
+
+<pre><code class="lang-sh">npm install diffhtml</code></pre>
+</li>
+<li><p><img width="60" src="images/yarn-logo.svg"></img></p>
+<pre><code class="lang-sh">yarn add diffhtml</code></pre>
+</li>
+</ul>
+<p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p>
+<h3 id="accessing-the-api">Accessing the API</h3>
+<ul>
+<li><p>Browser:</p>
+<pre><code class="lang-javascript">import { innerHTML } from &#39;diffhtml&#39;
+
+innerHTML(document.body, &#39;Hello world!&#39;)</code></pre>
+</li>
+<li><p>ES Modules:</p>
+<pre><code class="lang-javascript">import { innerHTML } from &#39;diffhtml&#39;
+
+innerHTML(document.body, &#39;Hello world!&#39;)</code></pre>
+</li>
+<li><p>Node:</p>
+<pre><code class="lang-javascript">const { innerHTML } = require(&#39;diffhtml&#39;)
+
+innerHTML(document.body, &#39;Hello world!&#39;)</code></pre>
+</li>
+</ul>
+      </section>
+
+      <footer>
+        Built with
+        <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
+        <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+          <strong>by @tbranyen</strong></a>
+          <span style="margin-left: 15px;"> | </span>
+          <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
+      </footer>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+      <script src="/node_modules/diffhtml/dist/diffhtml.js"></script>
+      <script src="/node_modules/diffhtml-components/dist/web-component.js"></script>
+      <script>hljs.initHighlightingOnLoad();
+
+        document.querySelector('.open-menu').onclick = ev => {
+          ev.stopImmediatePropagation();
+
+          const body = document.querySelector('body');
+          const content = document.querySelector('section#content');
+
+          if (body.classList.contains('open')) {
+            return body.onclick();
+          }
+
+          body.classList.add('open');
+
+          body.onclick = () => {
+            body.classList.remove('open');
+            body.onclick = null;
+          };
+        };</script>
+    </body></html>
