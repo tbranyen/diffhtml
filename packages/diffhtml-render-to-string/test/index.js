@@ -12,35 +12,35 @@ describe('renderToString', function() {
 
   it('can render attributes', () => {
     const actual = renderToString(html`<div data-test="test" />`);
-    const expected = `<div data-test="test"/>`;
+    const expected = `<div data-test="test"></div>`;
 
     equal(actual, expected);
   });
 
   it('can render dynamic attributes', () => {
     const actual = renderToString(html`<div data-test=${() => {}} />`);
-    const expected = `<div data-test/>`;
+    const expected = `<div data-test></div>`;
 
     equal(actual, expected);
   });
 
   it('can render a value-less attribute', () => {
     const actual = renderToString(html`<div disabled/>`);
-    const expected = `<div disabled="disabled"/>`;
+    const expected = `<div disabled="disabled"></div>`;
 
     equal(actual, expected);
   });
 
   it('can render top level document fragments', () => {
     const actual = renderToString(html`<div/><p/>`);
-    const expected = `<div/><p/>`;
+    const expected = `<div></div><p></p>`;
 
     equal(actual, expected);
   });
 
   it('can render nested document fragments', () => {
     const actual = renderToString(html`<div>${html`<div/><p/>`}</div>`);
-    const expected = `<div><div/><p/></div>`;
+    const expected = `<div><div></div><p></p></div>`;
 
     equal(actual, expected);
   });

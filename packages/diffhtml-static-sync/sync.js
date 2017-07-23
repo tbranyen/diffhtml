@@ -9,22 +9,19 @@ const SECRET = 'MY BRAIN IBM';
 const transactions = new Map();
 const { use, innerHTML, outerHTML, release, Internals } = (window.diff || diffhtml);
 
-console.log(window.diff, diffhtml);
-
-diffhtml.addTransitionState('attributeChanged', (domNode, name, oldValue, newValue) => {
-  console.log(domNode, name, oldValue, newValue);
-  if (domNode.matches('script')) {
-    if (oldValue !== newValue) {
-      try {
-        eval(newValue);
-      }
-      catch (ex) {
-        console.log('Whoops, ya broke something, see you again shortly');
-        throw ex;
-      }
-    }
-  }
-});
+//diffhtml.addTransitionState('textChanged', (domNode, name, oldValue, newValue) => {
+//  if (domNode.matches('script') &&) {
+//    if (oldValue !== newValue) {
+//      try {
+//        eval(newValue);
+//      }
+//      catch (ex) {
+//        console.log('Whoops, ya broke something, see you again shortly');
+//        throw ex;
+//      }
+//    }
+//  }
+//});
 
 window.staticSyncHandlers = new Set();
 
@@ -69,6 +66,7 @@ function open() {
         console.log(`${file} changed`);
       }
 
+      console.log(staticSyncHandlers);
       if (staticSyncHandlers.size) {
         let retVal = false;
 
@@ -105,9 +103,9 @@ function open() {
         return;
       }
 
-      const path = location.pathname.slice(1) || 'index.html';
+      const path = location.pathname.slice(1) || 'index';
 
-      if (file === true || path === file) {
+      if (file === true || path === file.split('.').slice(0, -1).join('.')) {
         if (!quiet) {
           console.log(`Updated with: ${markup}`);
         }

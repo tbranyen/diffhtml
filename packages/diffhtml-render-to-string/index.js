@@ -37,7 +37,7 @@ function renderToString(vTree) {
   }
   // Empty element.
   else if (!(vTree.childNodes.length) && vTree.nodeType === 1) {
-    output += `<${vTree.nodeName}${renderAttributes(vTree.attributes)}/>`;
+    output += `<${vTree.nodeName}${renderAttributes(vTree.attributes)}></${vTree.nodeName}>`;
   }
   // Text Nodes.
   else if (vTree.nodeType === 3) {

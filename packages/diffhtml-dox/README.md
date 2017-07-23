@@ -1,3 +1,0 @@
-# <±/> diffHTML Documentation Generator
-
-TBD

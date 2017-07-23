@@ -1,4 +1,6 @@
+@import 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/paraiso-dark.min.css';
 @import 'https://fonts.googleapis.com/css?family=Lato:300,400,bold';
+@import 'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css';
 
 * {
   box-sizing: border-box;
@@ -65,6 +67,14 @@ strong.args {
   font-family: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
 }
 
+.hero {
+  width: 100%;
+  min-height: 400px;
+  background: linear-gradient(20deg, rgb(112, 219, 184),  #f7ffb5);
+  margin-top: 20px;
+  position: relative;
+}
+
 ul.methods {
   margin-bottom: 20px !important;
 }
@@ -76,6 +86,7 @@ ul.methods + hr {
 ul.methods li a {
   border-bottom-width: 0 !important; 
   color: #5F5F5F !important;
+  cursor: pointer;
 }
 
 ul.methods li a:hover {
@@ -91,8 +102,8 @@ ul.methods li:hover {
   outline: none !important;
 }
 
-#api-browser .header h4 {
-  display: inline-block;
+.header h4 {
+  margin-bottom: 10px !important;
 }
 
 section#content h3 {
@@ -125,6 +136,10 @@ section#content h4.api-method {
   margin-top: 0;
   margin-bottom: 0;
   margin-left: 0;
+}
+
+nav li.header {
+  margin-top: 15px;
 }
 
 .details ul li {
@@ -226,12 +241,14 @@ section#content {
   width: calc(100% - 360px);
   padding: 15px;
   max-width: 960px;
-  line-height: 30px;
+  line-height: 36px;
   padding-right: 50px;
   padding-left: 50px;
   margin: 0 auto;
   font-size: 20px;
   color: #676767;
+  display: flex;
+  flex-direction: column;
 }
 
 section#content header {
@@ -249,43 +266,63 @@ section#content header h1 {
   font-weight: bold;
   font-size: 26px;
   color: #676767;
+  margin-right: 15px;
 }
 
+a.gitter {
+  width: 40px;
+}
 svg.gitter {
   position: relative;
   top: 5px;
   width: 17px;
+  margin: 0 10px;
 }
 
 p.social {
   margin: 0;
-}
-
-p.social a {
-  margin-right: 7px;
-  border-bottom: none !important;
-  position: relative;
-}
-p.social i {
-  width: 17px;
+  background-color: rgba(113, 219, 184, 0.2) !important;
   text-align: center;
 }
 
+p.social a {
+  margin-right: 0px;
+  border-bottom: 3px solid transparent !important;
+  position: relative;
+  top: -5px;
+  color: #3AAF7E !important;
+  fill: #3AAF7E !important;
+  padding: 20px;
+  cursor: pointer;
+}
+p.social i {
+  width: 40px;
+  text-align: center;
+}
+
+p.social a.github i.fa-github {
+  font-size: 23px !important;
+}
+
 p.social a.github:hover {
-  color: #FF4C4C !important;
-  background-color: transparent !important;
+  color: #000 !important;
+  border-bottom: 3px solid #000 !important;
 }
 p.social a.twitter:hover {
   color: #44C2F9 !important;
-  background-color: transparent !important;
+  border-bottom: 3px solid #44C2F9 !important;
 }
 p.social a.stackoverflow:hover {
   color: #FFAE00 !important;
-  background-color: transparent !important;
+  border-bottom: 3px solid #FFAE00 !important;
+}
+p.social a.reddit:hover {
+  color: #FF4500 !important;
+  border-bottom: 3px solid #FF4500 !important;
 }
 p.social a.gitter:hover {
   fill: #83C510 !important;
-  background-color: transparent !important;
+  border-bottom: 3px solid #83C510 !important;
 }
 
 p.social [class*=hint-]:after {
@@ -299,6 +336,8 @@ section#content strong {
 section#content ul {
   font-size: 18px;
   margin-left: 0px;
+  padding-left: 0px;
+  list-style: none;
 }
 section#content ul.methods {
   margin-left: 20px;
@@ -309,9 +348,6 @@ section#content hr {
   border-bottom: 1px solid #F0F0F0;
 }
 
-section#content h1 {
-  display: inline-block;
-}
 section#content h1,
 section#content h2,
 section#content h3,
@@ -320,16 +356,23 @@ section#content h5 {
   margin: 0;
   color: #A0A0A0;
 }
+section#content h1 {
+  display: inline-block;
+  margin: 20px 0;
+  color: #5a5a5a;
+}
+section#content h2 {
+  font-size: 26px;
+}
+section#content h3 {
+  font-size: 24px;
+}
 
 section#content h5 {
   margin-top: 10px;
   padding-top: 15px;
 }
 
-section#content a.github {
-  padding: 7px !important;
-  border-radius: 5px;
-}
 section#content a:not(.header) {
   text-decoration: none;
   transition: all linear 240ms;
@@ -387,6 +430,7 @@ nav {
   width: 300px;
   height: 100%;
   padding: 14px;
+  padding-top: 0;
   position: absolute;
   top: 0;
   right: 0;
@@ -402,11 +446,12 @@ nav::-webkit-scrollbar { width: 0 !important }
 nav a {
   color: #FFF;
   text-decoration: none;
+  cursor: pointer;
 }
 
 nav ul {
   list-style: none;
-  line-height: 30px;
+  line-height: 26px;
   padding-left: 10px;
   text-align: left;
 }
@@ -422,7 +467,7 @@ nav > ul {
   width: 240px;
   float: right;
   margin-top: 0;
-  top: 40px;
+  top: 87px;
 }
 nav ul li.header:first-child h4 {
   margin-top: 0;
@@ -472,7 +517,7 @@ layer {
   top: 0;
   bottom: 0;
   z-index: 10000;
-  transition: all cubic-bezier(.17,.67,.83,.67) 240ms;
+  transition: none;
 }
 
 .open-menu {
@@ -503,10 +548,13 @@ layer {
   }
 
   layer {
-    width: auto;
+    width: 100%;
+    max-width: 100%;
     will-change: transform;
     transform: translate3d(-300px, 0, 0);
     text-align: center;
+    transition: all cubic-bezier(.17,.67,.83,.67) 240ms;
+    background-color: transparent;
   }
 
   body.open layer {
@@ -519,8 +567,9 @@ layer {
     max-width: 100% !important;
     width: 100%;
     margin: 0 !important;
-    padding-left: 60px !important;
+    padding-left: 15px !important;
     padding-right: 15px !important;
+    padding-top: 45px;
   }
 
   section#content header {
@@ -530,21 +579,25 @@ layer {
   }
 
   .open-menu {
-    display: inline-block !important;
+    display: block;
     position: absolute;
     color: #626262;
-    transform: translate3d(300px, 0, 0);
     top: 0;
+    left: 300px;
     bottom: 0;
     padding: 10px;
     cursor: pointer;
     z-index: 100;
     background: #F0F0F0;
     bottom: 0;
-    width: 33px;
-    height: 100%;
+    height: 42px;
     outline: 0 !important;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+    padding-left: 15px;
   }
 
   .open-menu.hide {
@@ -579,6 +632,23 @@ layer {
 		padding-right: 10px; 
 		white-space: nowrap;
 	}
+
+  .hero {
+    min-height: 200px;
+  }
+
+  footer {
+    transform: translate3d(0, 0, 0);
+    left: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  p.social {
+    text-align: left;
+    padding-left: 5px;
+  }
 }
 
 .hljs-string .hljs-subst {
@@ -592,4 +662,47 @@ svg.transactions {
   border: 1px solid #e2e2e2;
   padding: 0.5em;
   background: #F0F0F0;
+}
+
+footer {
+  background-color: #d8f7b6;
+  position: relative;
+  top: 0px;
+  height: 50px;
+  width: calc(100% - 360px);
+  max-width: 960px;
+  left: 120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+footer a {
+  cursor: pointer;
+}
+
+.video-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  padding-top: 10px;
+}
+
+.video-container iframe {
+  width: calc(100% - 20px);
+  height: calc(100% - 45px);
+  border-radius: 5px;
+}
+
+.hljs {
+  padding-left: 14px;
+  line-height: 22px;
+}
+
+.edit-github {
+  align-self: flex-end;
 }
