@@ -1,6 +1,6 @@
 # <±/> diffHTML
 
-*A suite of JavaScript tools for building user interfaces.*
+*A suite of JavaScript user interface tools built for the web.*
 
 Stable version: 1.0.0-beta.9
 

@@ -2,8 +2,10 @@ import { ok, deepEqual, equal, doesNotThrow, throws } from 'assert';
 import { spy, stub } from 'sinon';
 import Transaction from '../lib/transaction';
 import use from '../lib/use';
+import release from '../lib/release';
 import schedule from '../lib/tasks/schedule';
 import endAsPromise from '../lib/tasks/end-as-promise';
+import validateMemory from './util/validateMemory';
 
 describe('Transaction', function() {
   beforeEach(() => {
@@ -12,6 +14,12 @@ describe('Transaction', function() {
       <div>Hello world</div>
     `;
     this.options = { inner: false, tasks: [spy()] };
+  });
+
+  afterEach(() => {
+    release(null);
+    release(this.domNode);
+    validateMemory();
   });
 
   describe('create', () => {
@@ -29,118 +37,6 @@ describe('Transaction', function() {
 
       deepEqual(transaction, {
         domNode, markup, options, tasks, state, endedCallbacks
-      });
-    });
-  });
-
-  describe('renderNext', () => {
-    it('will render the next transaction in the queue', () => {
-      const { domNode, markup, options } = this;
-      const newMarkup = '<div>Next test</div>';
-      const nextTransaction = Transaction.create(domNode, newMarkup, {
-        tasks: [spy(), endAsPromise],
-      });
-
-      const transaction = Transaction.create(domNode, markup, options);
-      transaction.state.nextTransaction = nextTransaction;
-      transaction.start();
-
-      ok(transaction instanceof Transaction);
-      ok(transaction.tasks[0].calledOnce);
-
-      transaction.end();
-
-      equal(nextTransaction.options.tasks[0].calledOnce, true);
-    });
-
-    it('will schedule a transaction if a previous transaction is active', () => {
-      const { domNode, markup, options } = this;
-      const newMarkup = '<div>Next test</div>';
-      const nextTransaction = Transaction.create(domNode, newMarkup, {
-        tasks: [schedule, spy(), endAsPromise]
-      });
-
-      const transaction = Transaction.create(domNode, markup, options);
-      transaction.state.nextTransaction = nextTransaction;
-      transaction.start();
-
-      ok(transaction instanceof Transaction);
-      ok(transaction.tasks[0].calledOnce);
-      equal(nextTransaction.options.tasks[1].calledOnce, false);
-
-      transaction.end();
-
-      equal(nextTransaction.options.tasks[1].calledOnce, true);
-    });
-
-    it('will schedule a transaction if a previous transaction is active', () => {
-      const { domNode, markup, options } = this;
-      const newMarkup = '<div>Next test</div>';
-
-      const transaction = Transaction.create(domNode, markup, {
-        tasks: [schedule, spy()]
-      });
-
-      transaction.start();
-
-      const nextTransaction = Transaction.create(domNode, newMarkup, {
-        tasks: [schedule, spy(), endAsPromise]
-      });
-
-      ok(transaction.state.isRendering);
-
-      const promise = nextTransaction.start();
-
-      ok(transaction.tasks[1].calledOnce);
-      equal(nextTransaction.tasks[1].called, false);
-
-      transaction.end();
-
-      equal(nextTransaction.tasks[1].calledOnce, true);
-      equal(nextTransaction.completed, undefined);
-
-      return promise.then(() => {
-        equal(nextTransaction.completed, true);
-      });
-    });
-
-    it('will only schedule a single transaction at a time', () => {
-      const { domNode, markup, options } = this;
-      const newMarkup = '<div>Next test</div>';
-
-      const transaction = Transaction.create(domNode, markup, {
-        tasks: [schedule, spy()]
-      });
-
-      transaction.start();
-
-      const skipTransaction = Transaction.create(domNode, newMarkup, {
-        tasks: [schedule, spy(), endAsPromise]
-      });
-
-      const nextTransaction = Transaction.create(domNode, newMarkup, {
-        tasks: [schedule, spy(), endAsPromise]
-      });
-
-      ok(transaction.state.isRendering);
-
-      const skipPromise = skipTransaction.start();
-      const nextPromise = nextTransaction.start();
-
-      equal(skipTransaction.tasks[1].called, false);
-      equal(nextTransaction.tasks[1].called, false);
-
-      transaction.end();
-
-      equal(skipTransaction.tasks[1].calledOnce, false);
-      equal(nextTransaction.tasks[1].calledOnce, true);
-
-      equal(skipTransaction.completed, undefined);
-      equal(nextTransaction.completed, undefined);
-
-      return Promise.all([skipPromise, nextPromise]).then(() => {
-        equal(skipTransaction.completed, true);
-        equal(nextTransaction.completed, true);
       });
     });
   });
@@ -199,8 +95,8 @@ describe('Transaction', function() {
       equal(testFnTwo.calledWith(this), true);
     });
 
-    it('will abort the flow', () => {
-      const testFnOne = transaction => transaction.abort();
+    it('will force abort the flow', () => {
+      const testFnOne = transaction => transaction.abort(true);
       const testFnTwo = spy();
       const testFnThree = spy();
 
@@ -213,6 +109,22 @@ describe('Transaction', function() {
       equal(testFnTwo.called, false);
       equal(testFnThree.calledOnce, true);
       equal(testFnThree.calledWith(transaction), true);
+    });
+
+    it('will silently abort the flow', () => {
+      const testFnOne = transaction => transaction.abort(false);
+      const testFnTwo = spy();
+      const testFnThree = spy();
+
+      const transaction = Transaction.create(null, null, {
+        tasks: [testFnOne, testFnTwo, testFnThree],
+      });
+
+      transaction.start();
+
+      equal(testFnTwo.called, false);
+      equal(testFnThree.calledOnce, false);
+      equal(testFnThree.calledWith(transaction), false);
     });
   });
 
@@ -288,89 +200,116 @@ describe('Transaction', function() {
   });
 
   describe('start', () => {
-    it.skip('will start', () => {});
+    it('will start a transaction', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
 
-    //start() {
-    //  Transaction.assert(this);
+      transaction.start();
 
-    //  const { domNode, state: { measure }, tasks } = this;
-    //  const takeLastTask = tasks.pop();
+      equal(transaction.tasks[0].calledOnce, true);
+    });
 
-    //  this.aborted = false;
+    it('will start a transaction with middleware', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
 
-    //  // Add middleware in as tasks.
-    //  Transaction.invokeMiddleware(this);
+      const task = spy();
+      const middleware = () => task;
+      const unsubscribe = use(middleware);
 
-    //  // Measure the render flow if the user wants to track performance.
-    //  measure('render');
+      transaction.start();
 
-    //  // Push back the last task as part of ending the flow.
-    //  tasks.push(takeLastTask);
+      equal(transaction.tasks.length, 2);
+      unsubscribe();
+    });
 
-    //  return Transaction.flow(this, tasks);
-    //}
+    it('will get the return value from the flow', () => {
+      const { domNode, markup } = this;
+      const token = {};
+      const tasks = [() => token];
+      const transaction = Transaction.create(domNode, markup, { tasks });
+      const returnValue = transaction.start();
+
+      equal(returnValue, token);
+    });
   });
 
   describe('abort', () => {
-    it.skip('will abort', () => {});
+    it('will abort a transaction flow', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
 
-    //const { state } = this;
+      transaction.start();
+      const returnValue = transaction.abort();
 
-    //this.aborted = true;
+      equal(returnValue, undefined);
+      equal(transaction.aborted, true);
+    });
 
-    //// Grab the last task in the flow and return, this task will be responsible
-    //// for calling `transaction.end`.
-    //return this.tasks[this.tasks.length - 1](this);
+    it('will return the last tasks return value', () => {
+      const { domNode, markup } = this;
+      const token = {};
+      const tasks = [() => token];
+      const transaction = Transaction.create(domNode, markup, { tasks });
+
+      transaction.start();
+      const returnValue = transaction.abort(true);
+
+      equal(returnValue, token);
+      equal(transaction.aborted, true);
+    });
   });
 
   describe('end', () => {
-    it.skip('will end', () => {});
+    it('will mark the transaction as completed', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
 
-    //const { state, domNode, options } = this;
-    //const { measure } = state;
-    //const { inner } = options;
+      transaction.end();
 
-    //this.completed = true;
+      equal(transaction.completed, true);
+    });
 
-    //let renderScheduled = false;
+    it('will set the state', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
 
-    //StateCache.forEach(cachedState => {
-    //  if (cachedState.isRendering && cachedState !== state) {
-    //    renderScheduled = true;
-    //  }
-    //});
+      transaction.end();
 
-    //// Don't attempt to clean memory if in the middle of another render.
-    //if (!renderScheduled) {
-    //  cleanMemory();
-    //}
+      equal(transaction.state.previousMarkup, '<div></div>');
+    });
 
-    //// Mark the end to rendering.
-    //measure('finalize');
-    //measure('render');
+    it('will change isRendering', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
 
-    //// Cache the markup and text for the DOM node to allow for short-circuiting
-    //// future render transactions.
-    //state.previousMarkup = domNode[inner ? 'innerHTML' : 'outerHTML'];
-    //state.previousText = domNode.textContent;
 
-    //// Trigger all `onceEnded` callbacks, so that middleware can know the
-    //// transaction has ended.
-    //this.endedCallbacks.forEach(callback => callback(this));
-    //this.endedCallbacks.clear();
+      transaction.start();
+      equal(transaction.state.isRendering, undefined);
 
-    //// We are no longer rendering the previous transaction so set the state to
-    //// `false`.
-    //state.isRendering = false;
-
-    //// Try and render the next transaction if one has been saved.
-    //Transaction.renderNext(state);
-
-    //return this;
+      transaction.end();
+      equal(transaction.state.isRendering, false);
+    });
   });
 
   describe('onceEnded', () => {
-    it.skip('will trigger onceEnded callbacks', () => {});
-    //this.endedCallbacks.add(callback);
+    it('will register callbacks to run after ended', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
+      const fn = () => {};
+
+      transaction.onceEnded(fn);
+      equal(transaction.endedCallbacks.size, 1);
+    });
+
+    it('will trigger onceEnded callbacks', () => {
+      const { domNode, markup, options } = this;
+      const transaction = Transaction.create(domNode, markup, options);
+      const fn = spy();
+
+      transaction.onceEnded(fn);
+      transaction.end();
+      equal(fn.calledOnce, true);
+    });
   });
 });

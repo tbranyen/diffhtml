@@ -16,7 +16,7 @@ describe('Tasks', function() {
     validateMemory();
   });
 
-  describe.skip('reconcileTrees', () => {
+  describe('reconcileTrees', () => {
     it('will upgrade the domNode to a Virtual Tree', () => {
       const transaction = Transaction.create(this.fixture, html`<div/>`, {});
 
@@ -125,22 +125,6 @@ describe('Tasks', function() {
       });
     });
 
-    it('will upgrade markup text to a Virtual Tree', () => {
-      const transaction = Transaction.create(this.fixture, '<div/>', {});
-
-      reconcileTrees(transaction);
-
-      deepEqual(transaction.newTree, {
-        rawNodeName: 'div',
-        nodeName: 'div',
-        nodeValue: '',
-        nodeType: 1,
-        key: '',
-        childNodes: [],
-        attributes: {},
-      });
-    });
-
     it('will upgrade a component and bring over attributes', () => {
       function Component() {}
 
@@ -196,10 +180,10 @@ describe('Tasks', function() {
       reconcileTrees(transaction);
 
       deepEqual(transaction.newTree, {
-        rawNodeName: 'div',
-        nodeName: 'div',
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
         nodeValue: '',
-        nodeType: 1,
+        nodeType: 11,
         key: '',
         childNodes: children,
         attributes: {},

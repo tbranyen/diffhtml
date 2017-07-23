@@ -32,7 +32,7 @@ export const targets = [{
 export const plugins = [
   NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   babel({ runtimeHelpers: true }),
-  nodeResolve({ jsnext: true, main: true, skip: external }),
+  (NODE_ENV !== 'umd' && NODE_ENV !== 'min') && nodeResolve({ jsnext: true, main: true, skip: external }),
   commonjs({ include: 'node_modules/**', }),
   NODE_ENV === 'umd' && Visualizer({ filename: './dist/build-size.html' }),
 ];

@@ -1,15 +1,21 @@
 import { deepEqual, equal, throws, doesNotThrow } from 'assert';
-import { innerHTML, html, createTree, use } from 'diffhtml';
+import { innerHTML, html, createTree, use, release } from 'diffhtml';
 import PropTypes from 'prop-types';
 import WebComponent from '../lib/web-component';
+import validateCaches from './util/validate-caches';
 
 describe('Web Component', function() {
   beforeEach(() => {
     newJSDOMSandbox();
+
+    this.fixture = document.createElement('div');
+    document.body.appendChild(this.fixture);
   });
 
-  after(() => {
-    WebComponent.unsubscribeMiddleware();
+  afterEach(() => {
+    release(this.fixture);
+    document.body.removeChild(this.fixture);
+    validateCaches();
   });
 
   it('can make a component', () => {
@@ -22,13 +28,12 @@ describe('Web Component', function() {
     }
 
     customElements.define('custom-component', CustomComponent);
+    innerHTML(this.fixture, html`<custom-component />`);
 
-    innerHTML(document.body, html`<custom-component />`);
-
-    const instance = document.body.querySelector('custom-component');
+    const instance = this.fixture.querySelector('custom-component');
 
     equal(instance.shadowRoot.firstChild.outerHTML, '<div>Hello world</div>');
-    equal(document.body.innerHTML, '<custom-component></custom-component>');
+    equal(this.fixture.innerHTML, '<custom-component></custom-component>');
   });
 
   describe('Props', () => {
@@ -51,7 +56,7 @@ describe('Web Component', function() {
 
       customElements.define('custom-component', CustomComponent);
 
-      innerHTML(document.body, html`<custom-component message="Test" />`);
+      innerHTML(this.fixture, html`<custom-component message="Test" />`);
 
       equal(ctorMessage, 'Test');
     });
@@ -75,7 +80,7 @@ describe('Web Component', function() {
 
       customElements.define('custom-component', CustomComponent);
 
-      innerHTML(document.body, html`<custom-component message="Test">
+      innerHTML(this.fixture, html`<custom-component message="Test">
         <span>Testing</span>
       </custom-component>`);
 
@@ -97,13 +102,13 @@ describe('Web Component', function() {
         }
       });
 
-      innerHTML(document.body, <jsx-test />);
+      innerHTML(this.fixture, <jsx-test />);
 
       const output = document.createElement('div');
-      output.appendChild(document.body.firstChild.shadowRoot);
+      output.appendChild(this.fixture.firstChild.shadowRoot);
 
       equal(output.innerHTML, '<div>Hello world</div>');
-      equal(document.body.innerHTML, '<jsx-test></jsx-test>');
+      equal(this.fixture.innerHTML, '<jsx-test></jsx-test>');
     });
 
     it('can render JSX with props', () => {
@@ -122,7 +127,7 @@ describe('Web Component', function() {
       });
 
       const domNode = document.createElement('div');
-      document.body.appendChild(domNode);
+      this.fixture.appendChild(domNode);
 
       innerHTML(domNode, <jsx-test message="Hello world!" />);
 

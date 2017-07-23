@@ -3,6 +3,7 @@
 
 import createTree from '../tree/create';
 import Pool from './pool';
+import process from './process';
 
 const hasNonWhitespaceEx = /\S/;
 const doctypeEx = /<!.*>/i;
@@ -121,12 +122,17 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
  * @param {Object} supplemental - Interpolated data from a tagged template
  * @return {Object} vTree
  */
-const HTMLElement = (nodeName, rawAttrs, supplemental) => {
+const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   let match = null;
 
   // Support dynamic tag names like: `<${MyComponent} />`.
   if (match = tokenEx.exec(nodeName)) {
-    return HTMLElement(supplemental.tags[match[1]], rawAttrs, supplemental);
+    return HTMLElement(
+      supplemental.tags[match[1]],
+      rawAttrs,
+      supplemental,
+      options
+    );
   }
 
   const attributes = {};
@@ -159,9 +165,27 @@ const HTMLElement = (nodeName, rawAttrs, supplemental) => {
             attributes[newName] += supplemental.attributes[value];
           }
           else {
-            attributes[newName] = supplemental.attributes[value];
+            const isObject = typeof newName === 'object';
+
+            if (isObject && !Array.isArray(newName) && newName) {
+              assign(attributes, newName);
+            }
+            else if (isObject && options.strict) {
+              if (process.env.NODE_ENV !== 'production') {
+                attrEx.lastIndex = 0;
+                tagEx.lastIndex = 0;
+
+                throw new Error(
+                  'Arrays are not allowed to be spread in strict mode'
+                );
+              }
+            }
+            else if (newName && typeof newName !== 'object') {
+              attributes[newName] = supplemental.attributes[value];
+            }
           }
         }
+        // Otherwise this is a static iteration, simply concat in the raw value.
         else {
           if (attributes[newName]) {
             attributes[newName] += value;
@@ -201,15 +225,35 @@ export default function parse(html, supplemental, options = {}) {
   let currentParent = root;
   let lastTextPos = -1;
 
+  if (process.env.NODE_ENV !== 'production') {
+    const markup = [html];
+
+    if (!html.includes('<') && options.strict) {
+      markup.splice(1, 0, `
+Possibly invalid markup. Opening tag was not properly opened.
+      `);
+
+      throw new Error(`\n\n${markup.join('\n')}`);
+    }
+
+    if (!html.includes('>') && options.strict) {
+      markup.splice(1, 0, `
+Possibly invalid markup. Opening tag was not properly closed.
+      `);
+
+      throw new Error(`\n\n${markup.join('\n')}`);
+    }
+  }
+
   // If there are no HTML elements, treat the passed in html as a single
   // text node.
-  if (html.indexOf('<') === -1 && html) {
+  if (!html.includes('<') && html) {
     interpolateValues(currentParent, html, supplemental);
     return root;
   }
 
   // Look through the HTML markup for valid tags.
-  for (let match, text; match = tagEx.exec(html); ) {
+  for (let match, text, i=0; match = tagEx.exec(html); i++) {
     if (lastTextPos > -1) {
       if (lastTextPos + match[0].length < tagEx.lastIndex) {
         text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
@@ -250,18 +294,47 @@ export default function parse(html, supplemental, options = {}) {
 
       currentParent = currentParent.childNodes[
         currentParent.childNodes.push(
-          HTMLElement(match[2], match[3], supplemental)
+          HTMLElement(match[2], match[3], supplemental, options)
         ) - 1
       ];
 
       stack.push(currentParent);
 
-
-      if (blockText.has(match[2])) {
+      if (options.strict || blockText.has(match[2])) {
         // A little test to find next </script> or </style> ...
         const closeMarkup = '</' + match[2] + '>';
         const index = html.indexOf(closeMarkup, tagEx.lastIndex);
         const { length } = match[2];
+
+        if (process.env.NODE_ENV !== 'production') {
+          if (index === -1 && options.strict) {
+            const nodeName = currentParent.rawNodeName;
+
+            // Find a subset of the markup passed in to validate.
+            const markup = html
+              .slice(tagEx.lastIndex - match[0].length)
+              .split('\n')
+              .slice(0, 3);
+
+            // Position the caret next to the first non-whitespace character.
+            const caret = Array(spaceEx.exec(markup[0]).index + closeMarkup.length - 1).join(' ') + '^';
+
+            const name = supplemental ? supplemental.tags[0].name : match[2];
+
+            // Craft the warning message and inject it into the markup.
+            markup.splice(1, 0, `${caret}
+    Possibly invalid markup. <${name}> is not a self closing tag.
+            `);
+
+            // As we are about to throw an error, make sure to reset the global
+            // `lastIndex` property.
+            attrEx.lastIndex = 0;
+            tagEx.lastIndex = 0;
+
+            // Throw an error message if the markup isn't what we expected.
+            throw new Error(`\n\n${markup.join('\n')}`);
+          }
+        }
 
         if (index === -1) {
           lastTextPos = tagEx.lastIndex = html.length + 1;
@@ -278,24 +351,31 @@ export default function parse(html, supplemental, options = {}) {
     }
 
     if (match[1] || match[4] || selfClosing.has(match[2])) {
-      if (match[2] !== currentParent.rawNodeName && options.strict) {
-        const nodeName = currentParent.rawNodeName;
+      if (process.env.NODE_ENV !== 'production') {
+        if (match[2] !== currentParent.rawNodeName && options.strict) {
+          const nodeName = currentParent.rawNodeName;
 
-        // Find a subset of the markup passed in to validate.
-        const markup = html.slice(
-          tagEx.lastIndex - match[0].length
-        ).split('\n').slice(0, 3);
+          // Find a subset of the markup passed in to validate.
+          const markup = html.slice(
+            tagEx.lastIndex - match[0].length
+          ).split('\n').slice(0, 3);
 
-        // Position the caret next to the first non-whitespace character.
-        const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
+          // Position the caret next to the first non-whitespace character.
+          const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
 
-        // Craft the warning message and inject it into the markup.
-        markup.splice(1, 0, `${caret}
-Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
-        `);
+          // Craft the warning message and inject it into the markup.
+          markup.splice(1, 0, `${caret}
+  Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
+          `);
 
-        // Throw an error message if the markup isn't what we expected.
-        throw new Error(`\n\n${markup.join('\n')}`);
+          // As we are about to throw an error, make sure to reset the global
+          // `lastIndex` property.
+          attrEx.lastIndex = 0;
+          tagEx.lastIndex = 0;
+
+          // Throw an error message if the markup isn't what we expected.
+          throw new Error(`\n\n${markup.join('\n')}`);
+        }
       }
 
       const tokenMatch = tokenEx.exec(match[2]);
@@ -349,6 +429,38 @@ Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
 
   // Find any last remaining text after the parsing completes over tags.
   const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
+
+  if (process.env.NODE_ENV !== 'production') {
+    if ((remainingText.includes('>') || remainingText.includes('<')) && options.strict) {
+      const nodeName = currentParent.rawNodeName;
+
+      // Find a subset of the markup passed in to validate.
+      const markup = [remainingText];
+
+      // Position the caret next to the first non-whitespace character.
+      const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
+
+      // Craft the warning message and inject it into the markup.
+      if (remainingText.includes('>')) {
+        markup.splice(1, 0, `${caret}
+  Possibly invalid markup. Opening tag was not properly opened.
+        `);
+      }
+      else {
+        markup.splice(1, 0, `${caret}
+  Possibly invalid markup. Opening tag was not properly closed.
+        `);
+      }
+
+      // As we are about to throw an error, make sure to reset the global
+      // `lastIndex` property.
+      attrEx.lastIndex = 0;
+      tagEx.lastIndex = 0;
+
+      // Throw an error message if the markup isn't what we expected.
+      throw new Error(`\n\n${markup.join('\n')}`);
+    }
+  }
 
   // Ensure that all values are properly interpolated through the remaining
   // markup after parsing.

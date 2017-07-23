@@ -1,0 +1,14 @@
+{
+	"extName": {
+		"message": "Chrome Extension Base",
+		"description": "Text string (no longer than 45 characters) extension name"
+	},
+	"extDescription": {
+		"message": "Use as the basis for new extensions!",
+		"description": "Text string (no longer than 132 characters) describing the extension. Description appears in chrome://extensions."
+	},
+	"browserActionTitle": {
+		"message": "Chrome Extension Base",
+		"description": "Browser action default_title text string"
+	}
+}

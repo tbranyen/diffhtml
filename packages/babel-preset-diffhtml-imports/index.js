@@ -25,7 +25,6 @@ if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
   ];
 
   module.exports.plugins = [
-    [ModuleRewrite, { replaceFunc: esmFunc }],
     ObjectRestSpread,
     ClassProperties,
   ];
@@ -42,6 +41,8 @@ if (NODE_ENV === 'cjs') {
 }
 
 if (NODE_ENV === 'esm') {
+  module.exports.presets = [];
+
   module.exports.plugins = [
     [ModuleRewrite, { replaceFunc: esmFunc }],
     ObjectRestSpread,

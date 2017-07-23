@@ -2,192 +2,353 @@
       <meta charset="utf-8"></meta>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-
-      <title>diffHTML: The easy-to-use HTML Virtual DOM for the web</title>
-      <link rel="stylesheet" href="./styles.css"></link>
+      <title>diffHTML: The easy-to-use HTML Virtual DOM built for the web!</title>
+      <link rel="stylesheet" href="./index.css"></link>
     </head><body>
-      <layer>
+      <layer id="navigation">
         <div class="open-menu">≡</div>
-        <nav>
-    <ul>
-      
-        <a href="index.html"><li class="header"><h4>Getting Started</h4></li></a>
+        <ul>
+    
+      <a href="index.html"><li class="header"><h4>Getting Started</h4></li></a>
 
-        
       
-        
+    
+      
 
-        <a href="index.html#screencast"><li>Screencast</li></a>
+      <a href="index.html#screencast"><li>Screencast</li></a>
+    
       
-        
 
-        <a href="index.html#about"><li>About</li></a>
+      <a href="index.html#about"><li>About</li></a>
+    
       
-        
 
-        <a href="index.html#installing"><li>Installing</li></a>
+      <a href="index.html#installing"><li>Installing</li></a>
+    
       
-        
 
-        <a href="index.html#accessing-the-api"><li>Accessing the API</li></a>
-      
-        <a href="api.html"><li class="header"><h4>API</h4></li></a>
+      <a href="index.html#accessing-the-api"><li>Accessing the API</li></a>
+    
+      <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
-        
       
-        
+    
+      
 
-        <a href="api.html#inner-html"><li>innerHTML</li></a>
+      <a href="api.html#inner-html"><li>innerHTML</li></a>
+    
       
-        
 
-        <a href="api.html#outer-html"><li>outerHTML</li></a>
+      <a href="api.html#outer-html"><li>outerHTML</li></a>
+    
       
-        
 
-        <a href="api.html#use"><li>use</li></a>
+      <a href="api.html#html"><li>html</li></a>
+    
       
-        
 
-        <a href="api.html#html"><li>html</li></a>
+      <a href="api.html#use"><li>use</li></a>
+    
       
-        
 
-        <a href="api.html#add-transition-state"><li>addTransitionState</li></a>
+      <a href="api.html#add-transition-state"><li>addTransitionState</li></a>
+    
       
-        
 
-        <a href="api.html#remove-transition-state"><li>removeTransitionState</li></a>
+      <a href="api.html#remove-transition-state"><li>removeTransitionState</li></a>
+    
       
-        
 
-        <a href="api.html#create-tree"><li>createTree</li></a>
+      <a href="api.html#create-tree"><li>createTree</li></a>
+    
       
-        
 
-        <a href="api.html#release"><li>release</li></a>
-      
-        <a href="transitions.html"><li class="header"><h4>Transitions</h4></li></a>
+      <a href="api.html#release"><li>release</li></a>
+    
+      <a href="transitions.html"><li class="header"><h4>Transitions</h4></li></a>
 
-        
       
-        
+    
+      
 
-        <a href="transitions.html#attached"><li>attached</li></a>
+      <a href="transitions.html#attached"><li>attached</li></a>
+    
       
-        
 
-        <a href="transitions.html#detached"><li>detached</li></a>
+      <a href="transitions.html#detached"><li>detached</li></a>
+    
       
-        
 
-        <a href="transitions.html#replaced"><li>replaced</li></a>
+      <a href="transitions.html#replaced"><li>replaced</li></a>
+    
       
-        
 
-        <a href="transitions.html#attributeChanged"><li>attributedChanged</li></a>
+      <a href="transitions.html#attributeChanged"><li>attributedChanged</li></a>
+    
       
-        
 
-        <a href="transitions.html#textChanged"><li>textChanged</li></a>
-      
-        <a href="components.html"><li class="header"><h4>Components</h4></li></a>
+      <a href="transitions.html#textChanged"><li>textChanged</li></a>
+    
+      <a href="components.html"><li class="header"><h4>Components</h4></li></a>
 
-        
       
-        
+    
+      
 
-        <a href="components.html#overview"><li>Overview</li></a>
+      <a href="components.html#overview"><li>Overview</li></a>
+    
       
-        
 
-        <a href="components.html#component"><li>Component</li></a>
+      <a href="components.html#component"><li>Component</li></a>
+    
       
-        
 
-        <a href="components.html#web-component"><li>Web Component</li></a>
+      <a href="components.html#web-component"><li>Web Component</li></a>
+    
       
-        
 
-        <a href="components.html#jsx"><li>JSX</li></a>
+      <a href="components.html#jsx"><li>JSX</li></a>
+    
       
-        
 
-        <a href="components.html#react"><li>React Compatibility</li></a>
-      
-        <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
+      <a href="components.html#react"><li>React Compatibility</li></a>
+    
+      <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
 
-        
       
-        
+    
+      
 
-        <a href="middleware.html#logging"><li>Logging</li></a>
+      <a href="middleware.html#logging"><li>Logging</li></a>
+    
       
-        
 
-        <a href="middleware.html#inline-transitions"><li>Inline Transitions</li></a>
+      <a href="middleware.html#inline-transitions"><li>Inline Transitions</li></a>
+    
       
-        
 
-        <a href="middleware.html#synthetic-events"><li>Synthetic Events</li></a>
+      <a href="middleware.html#synthetic-events"><li>Synthetic Events</li></a>
+    
       
-        
 
-        <a href="middleware.html#verify-state"><li>Verify State</li></a>
-      
-        <a href="tools.html"><li class="header"><h4>Tools</h4></li></a>
+      <a href="middleware.html#verify-state"><li>Verify State</li></a>
+    
+      <a href="tools.html"><li class="header"><h4>Tools</h4></li></a>
 
-        
       
-        
+    
+      
 
-        <a href="tools.html#babel-transform"><li>Babel Transform</li></a>
+      <a href="tools.html#babel-transform"><li>Babel Transform</li></a>
+    
       
-        
 
-        <a href="tools.html#static-sync"><li>Live Reload Server</li></a>
+      <a href="tools.html#static-sync"><li>Live Reload Server</li></a>
+    
       
-        
 
-        <a href="tools.html#render-to-string"><li>Render to String</li></a>
-      
-        <a href="examples.html"><li class="header"><h4>Examples</h4></li></a>
+      <a href="tools.html#render-to-string"><li>Render to String</li></a>
+    
+      <a href="examples.html"><li class="header"><h4>Examples</h4></li></a>
 
-        
       
-        
+    
+      
 
-        <a href="examples.html#todomvc"><li>TodoMVC</li></a>
-      
-    </ul>
-  </nav>
+      <a href="examples.html#todomvc"><li>TodoMVC</li></a>
+    
+  </ul>
       </layer>
 
-      <section id="content">
+      <layer id="main">
         <header>
-          <h1><±/> diffHTML</h1>
-          The easy-to-use HTML Virtual DOM for the web
+          <h1>
+            <a href="/"><img width="120" src="/images/diffhtml-logo.png"></img></a>
+            <div>
+              <p>diffHTML</p>
+              <p>The easy-to-use Virtual DOM built for the web!</p>
+            </div>
+          </h1>
         </header>
 
-        <a href="https://github.com/tbranyen/diffhtml/edit/improve-docs/packages/diffhtml-website/pages/transitions.md">
-          Edit <span class="fa fa-github"></span>
-        </a>
-        
-      </section>
+        <section id="content"><h1 id="transitions">Transitions</h1>
+<h2 id="overview">Overview</h2>
+<h3 id="add-a-transition-state-callback">Add a transition state callback</h3>
+<p>Adds a global transition listener.  With many elements this could be an
+expensive operation, so try to limit the amount of listeners added if you&#39;re
+concerned about performance.</p>
+<p>Since the callback triggers with various elements, most of which you probably
+don&#39;t care about, you&#39;ll want to filter.  A good way of filtering is to use the
+DOM <code>matches</code> method.  It&#39;s fairly well supported
+(<a href="http://caniuse.com/#feat=matchesselector">http://caniuse.com/#feat=matchesselector</a>) and may suit many projects.  If you
+need backwards compatibility, consider using jQuery&#39;s <code>is</code>.</p>
+<p>You can do fun, highly specific, filters:</p>
+<pre><code class="lang-javascript">addTransitionState(&#39;attached&#39;, function(element) {
+  // Fade in the main container after it&#39;s attached into the DOM.
+  if (element.matches(&#39;body main.container&#39;)) {
+    $(element).stop(true, true).fadeIn();
+  }
+});
+</code></pre>
+<p>If you like these transitions and want to declaratively assign them in tagged
+templates, check out the <a href="https://github.com/tbranyen/diffhtml-inline-transitions">diffhtml-inline-transitions
+plugin</a>.</p>
+<p><strong>Available states</strong></p>
+<p>Format is: <code>name[callbackArgs]</code></p>
+<ul>
+<li><code>attached[element]</code>
+For when an element is attached to the DOM.</li>
+<li><code>detached[element]</code>
+For when an element leaves the DOM.</li>
+<li><code>replaced[oldElement, newElement]</code>
+For when elements are swapped</li>
+<li><code>attributeChanged[element, attributeName, oldValue, newValue]</code> 
+For when attributes are changed.</li>
+<li><code>textChanged[element, oldValue, newValue]</code>
+For when text has changed in either TextNodes or SVG text elements.</li>
+</ul>
+<h3 id="a-note-about-detached-replaced-element-accuracy">A note about detached/replaced element accuracy</h3>
+<p>When rendering Nodes that contain lists of identical elements, you may not
+receive the elements you expect in the detached and replaced transition state
+hooks. This is a known limitation of string diffing and allows for better
+performance. By default if no key is specified, the last element will be
+removed and the subsequent elements from the one that was removed will be
+mutated via replace.</p>
+<p>This isn&#39;t really ideal. <strong>At all.</strong></p>
+<p>What you should do here is add a <code>key</code> attribute with a unique <code>value</code> that
+persists between renders.</p>
+<p>For example, when the following markup...</p>
+<pre><code class="lang-html">&lt;ul&gt;
+  &lt;li&gt;Test&lt;/li&gt;
+  &lt;li&gt;This&lt;/li&gt;
+  &lt;li&gt;Out&lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+<p>...is changed into...</p>
+<pre><code class="lang-html">&lt;ul&gt;
+  &lt;li&gt;Test&lt;/li&gt;
+  &lt;li&gt;Out&lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+<p>The transformative operations are:</p>
+<ol>
+<li>Remove the last element</li>
+<li>Replace the text of the second element to &#39;out&#39;</li>
+</ol>
+<p>What we intended, however, was to simply remove the second item. And to achieve
+that, decorate your markup like so...</p>
+<pre><code class="lang-html">&lt;ul&gt;
+  &lt;li key=&quot;1&quot;&gt;Test&lt;/li&gt;
+  &lt;li key=&quot;2&quot;&gt;This&lt;/li&gt;
+  &lt;li key=&quot;3&quot;&gt;Out&lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+<p>...and update with matching attributes...</p>
+<pre><code class="lang-html">&lt;ul&gt;
+  &lt;li key=&quot;1&quot;&gt;Test&lt;/li&gt;
+  &lt;li key=&quot;3&quot;&gt;Out&lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+<p>Now the transformative operations are:</p>
+<ol>
+<li>Remove the second element</li>
+</ol>
+<h3 id="remove-a-transition-state-callback">Remove a transition state callback</h3>
+<p>Removes a global transition listener.</p>
+<p>When invoked with no arguments, this method will remove all transition
+callbacks.  When invoked with the name argument it will remove all transition
+state callbacks matching the name, and so on for the callback.</p>
+<pre><code class="lang-javascript">// Removes all registered transition states.
+diff.removeTransitionState();
 
-      <footer>
-        Built with
-        <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
-        <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
-          <strong>by @tbranyen</strong></a>
-          <span style="margin-left: 15px;"> | </span>
-          <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
-      </footer>
+// Removes states by name.
+diff.removeTransitionState(&#39;attached&#39;);
+
+// Removes states by name and callback reference.
+diff.removeTransitionState(&#39;attached&#39;, callbackReference);
+</code></pre>
+<h3 id="html">HTML</h3>
+<p>You can use the <code>diff.html</code> tagged template helper to build up dynamic trees in
+a way that looks very similar to JSX.</p>
+<p>For instance the following example:</p>
+<pre><code class="lang-javascript">const fixture = document.createElement(&#39;div&#39;);
+
+function showUnixTime() {
+  fixture.querySelector(&#39;span&#39;).innerHTML = Date.now();
+}
+
+diff.outerHTML(fixture, `
+  &lt;div&gt;
+    &lt;button&gt;Show current unix time&lt;/button&gt;
+    &lt;span&gt;${Date.now()}&lt;/span&gt;
+  &lt;/div&gt;
+`);
+
+fixture.addEventListener(&#39;click&#39;, showUnixTime);
+</code></pre>
+<p>Could be rewritten with the helper as:</p>
+<pre><code class="lang-javascript">const fixture = document.createElement(&#39;div&#39;);
+
+function showUnixTime() {
+  fixture.querySelector(&#39;span&#39;).innerHTML = Date.now();
+}
+
+diff.outerHTML(fixture, html`
+  &lt;div onclick=${showUnixTime}&gt;
+    &lt;button&gt;Show current unix time&lt;/button&gt;
+    &lt;span&gt;${Date.now()}&lt;/span&gt;
+  &lt;/div&gt;
+`);
+</code></pre>
+<p>So this feature allows for inline binding of any DOM event, and sending dynamic
+property data to any element.</p>
+<p>Tagged templates also have no problem consuming other tagged templates (even
+from arrays), so you will be able to do:</p>
+<pre><code class="lang-javascript">const fixture = document.createElement(&#39;div&#39;);
+
+const listItems = [&#39;diff&#39;, &#39;HTML&#39;, &#39;♥&#39;];
+
+diff.outerHtml(fixture, html`
+  &lt;ul&gt;
+    ${listItems.map(item =&gt; html`&lt;li&gt;${item.text}&lt;/li&gt;`)}
+  &lt;/ul&gt;
+`);
+</code></pre></section>
+
+        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/transitions.md" style="
+            text-align: center;
+            color: #333;
+            text-decoration: none;
+            width: 100%;
+            display: inline-block;
+            padding: 40px;
+            box-sizing: border-box;
+          ">
+          Edit on GitHub &nbsp; <span class="fa fa-github"></span>
+        </a>
+
+        <footer>
+          Built with
+          <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
+          <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+            <strong>by @tbranyen</strong></a>
+            <span style="margin-left: 15px;"> | </span>
+            <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
+        </footer>
+      </layer>
+
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
       <script src="/node_modules/diffhtml/dist/diffhtml.js"></script>
       <script src="/node_modules/diffhtml-components/dist/web-component.js"></script>
       <script>
         hljs.initHighlightingOnLoad();
+
+        // Every time a refresh happens, reload the highlight code block.
+        setTimeout(() => staticSyncHandlers.add(() => {
+          setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+            hljs.highlightBlock(block);
+          }));
+        }));
 
         document.querySelector('.open-menu').onclick = ev => {
           ev.stopImmediatePropagation();

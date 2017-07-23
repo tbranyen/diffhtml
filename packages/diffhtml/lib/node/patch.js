@@ -6,16 +6,22 @@ import decodeEntities from '../util/decode-entities';
 import escape from '../util/escape';
 
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
+const blacklist = new Set();
 
 const removeAttribute = (domNode, name) => {
   domNode.removeAttribute(name);
 
-  if (name in domNode) {
-    domNode[name] = undefined;
+  // Runtime checking if the property can be set.
+  const blacklistName = domNode.nodeName + '-' + name;
+
+  if (!blacklist.has(blacklistName)) {
+    try {
+      domNode[name] = undefined;
+    } catch (unhandledException) {
+      blacklist.add(blacklistName);
+    }
   }
 };
-
-const blacklist = new Set();
 
 export default function patchNode(patches, state = {}) {
   const promises = [];
@@ -76,7 +82,7 @@ export default function patchNode(patches, state = {}) {
         // component or mutation observer. Although you could use a setter or
         // proxy, this is more natural.
         if (domNode.hasAttribute(name) && domNode[name] !== value) {
-          domNode.removeAttribute(name, '');
+          removeAttribute(domNode, name);
         }
 
         // Necessary to track the attribute/prop existence.

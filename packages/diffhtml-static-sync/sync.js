@@ -66,7 +66,6 @@ function open() {
         console.log(`${file} changed`);
       }
 
-      console.log(staticSyncHandlers);
       if (staticSyncHandlers.size) {
         let retVal = false;
 

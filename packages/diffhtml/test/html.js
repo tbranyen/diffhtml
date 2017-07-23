@@ -1,4 +1,4 @@
-import { equal, deepEqual } from 'assert';
+import { equal, deepEqual, doesNotThrow, throws } from 'assert';
 import html from '../lib/html';
 import createTree from '../lib/tree/create';
 import validateMemory from './util/validateMemory';
@@ -323,13 +323,11 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it.skip('will not mess up interpolation if HTML comments are used', () => {
+  it('will not mess up interpolation if HTML comments are used', () => {
     const fixtures = ['test', 'this'];
-    const span = html`
-      <!--
+    const span = html`<!--
       <span>${fixtures[0]}</span>
-      -->
-      <span>${fixtures[1]}</span>
+      --><span>${fixtures[1]}</span>
     `;
 
     deepEqual(span, {
@@ -366,7 +364,7 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('supports mixing custom elements and react components', () => {
+  it('supports mixing custom elements and custom components', () => {
     const React = () => {};
     const vTree = html`
       <${React} />
@@ -405,6 +403,123 @@ describe('HTML (Tagged template)', function() {
         attributes: {},
       }],
       attributes: {},
+    });
+  });
+
+  describe('Strict mode', () => {
+    it('will clean up after an error', () => {
+      throws(() => html.strict`
+        <web-component>
+      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+
+      // Test a second time to ensure clean up occured before the failure.
+      throws(() => html.strict`
+        <web-component>
+      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+    });
+
+    it('will error if tags cannot self-close', () => {
+      throws(() => html.strict`
+        <web-component>
+      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+    });
+
+    it('will error if the closing tag does not match', () => {
+      throws(() => html.strict`
+        <web-component></not-component>
+      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+    });
+
+    it('will error if tag is not closed', () => {
+      throws(() => html.strict`
+        <web-component
+      `, /Possibly invalid markup. Opening tag was not properly closed/);
+    });
+
+    it('will error if tag is not closed along with proper markup', () => {
+      throws(() => html.strict`
+        <proper></proper>
+        <web-component
+      `, /Possibly invalid markup. Opening tag was not properly closed/);
+
+      throws(() => html.strict`
+        <web-component
+        <proper></proper>
+      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+
+      throws(() => html.strict`
+        <proper></proper>
+        <web-component
+        <proper></proper>
+      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+    });
+
+    it('will error if tag is not opened', () => {
+      throws(() => html.strict`
+        web-component>
+      `, /Possibly invalid markup. Opening tag was not properly opened/);
+    });
+
+    it('will error when a custom component is not closed', () => {
+      const Component = () => {};
+
+      throws(() => html.strict`
+        <${Component}>
+      `, /Possibly invalid markup. <Component> is not a self closing tag/);
+    });
+
+    it('will not error on doctype', () => {
+      doesNotThrow(() => html.strict`
+        <!doctype>
+        <html></html>
+      `);
+
+      const actual = html.strict`
+        <!doctype>
+        <html></html>
+      `;
+
+      deepEqual(actual, {
+        rawNodeName: 'html',
+        nodeName: 'html',
+        nodeValue: '',
+        nodeType: 1,
+        key: '',
+        childNodes:
+         [ { rawNodeName: 'head',
+             nodeName: 'head',
+             nodeValue: '',
+             nodeType: 1,
+             key: '',
+             childNodes: [],
+             attributes: {} },
+           { rawNodeName: 'body',
+             nodeName: 'body',
+             nodeValue: '',
+             nodeType: 1,
+             key: '',
+             childNodes: [],
+             attributes: {} } ],
+        attributes: {}
+      });
+    });
+
+    it('will error if tag is not opened along with proper markup', () => {
+      throws(() => html.strict`
+        <proper></proper>
+        web-component>
+      `, /Possibly invalid markup. Opening tag was not properly opened./);
+
+      //throws(() => html.strict`
+      //  web-component>
+      //  <proper></proper>
+      //`, /Possibly invalid markup. <web-component> is not a self closing tag/);
+
+      //throws(() => html.strict`
+      //  <proper></proper>
+      //  web-component>
+      //  <proper></proper>
+      //`, /Possibly invalid markup. <web-component> is not a self closing tag/);
     });
   });
 });

@@ -13,3 +13,8 @@ global.newJSDOMSandbox = () => {
 }
 
 newJSDOMSandbox();
+
+after(() => {
+  require('../lib/component').unsubscribeMiddleware();
+  require('../lib/web-component').unsubscribeMiddleware();
+});

@@ -5,5 +5,4 @@ export default {
   componentDidMount: function componentDidMount() {},
   componentDidUpdate: function componentDidUpdate() {},
   componentWillUnmount: function componentWillUnmount() {},
-  componentDidUnmount: function componentDidUnmount() {},
 };

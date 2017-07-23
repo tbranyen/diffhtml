@@ -1,4 +1,5 @@
-@import 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/paraiso-dark.min.css';
+/*
+@import 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow-night.min.css';
 @import 'https://fonts.googleapis.com/css?family=Lato:300,400,bold';
 @import 'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css';
 
@@ -97,8 +98,8 @@ ul.methods li:hover {
   color: #676767 !important;
 }
 
-#api-browser .header:focus,
-#api-browser .header:focus {
+.header:focus,
+.header:focus {
   outline: none !important;
 }
 
@@ -125,14 +126,14 @@ section#content h4.api-method {
   font-size: 26px;
 }
 
-#api-browser ul, #api-browser .gap {
+ul, .gap {
   margin-bottom: 40px;
   margin-left: 0;
   padding-left: 0;
   color: #CCC;
 }
 
-#api-browser .details ul {
+.details ul {
   margin-top: 0;
   margin-bottom: 0;
   margin-left: 0;
@@ -148,15 +149,15 @@ nav li.header {
   font-size: 14px;
 }
 
-#api-browser {
+{
   font-size: 16px;
 }
 
-#api-browser .strong {
+.strong {
   font-weight: bold;
 }
 
-#api-browser select {
+select {
   background: transparent;
   padding: 6px 10px;
   font-weight: bold;
@@ -170,54 +171,56 @@ nav li.header {
   cursor: pointer;
 }
 
-#api-browser select:hover {
+select:hover {
   border: 1px solid #E2E2E2;
   border-left: 2px solid #CCC;
   background-color: #ececec;
 }
 
-#api-browser h5 {
+h5 {
   margin-top: 20px !important;
   margin-bottom: 10px !important;
   font-size: 16px;
 }
-#api-browser table.details {
+table.details {
   background-color: #FBFBFB;
   border: 1px solid #F0F0F0;
   font-size: 14px;
   box-shadow: 2px 2px 3px rgba(51, 51, 51, 0.05);
   margin: 16px 0;
 }
-#api-browser table.details th {
+table.details th {
   font-size: 14px;
   font-weight: bold;
   text-align: left;
   padding-left: 10px;
   border: none;
   border-right: 1px solid #ececec;
+  height: 42px !important;
 }
-#api-browser table.details td {
+table.details td {
   padding: 10px;
   background-color: rgb(255, 255, 255);
   min-width: 144px;
   border: 1px solid #F0F0F0;
+  height: 62px !important;
 }
 
-#api-browser .comments .comment h3 {
+.comments .comment h3 {
   margin-bottom: 10px;
 }
 
-#api-browser .comments .comment .description {
+.comments .comment .description {
   background: #FBFBFB;
   padding: 0 10px;
   border-radius: 5px;
   border: 1px solid #F0F0F0;
 }
-#api-browser .comments .comment .description p {
+.comments .comment .description p {
   margin: 10px;
 }
 
-#api-browser select:after {
+select:after {
   position: absolute;
   top: 2px;
   left: 2px;
@@ -231,31 +234,31 @@ html, body {
   font-family: Lato, Arial, Helvetica, sans-serif;
   background-color: #F3F3F3;
   width: 100%;
+  display: flex;
+  flex-direction: row;
 }
 
 section#content {
   background-color: #FFF;
-  position: relative;
-  left: 120px;
-  top: 0;
-  width: calc(100% - 360px);
   padding: 15px;
+  width: calc(100% - 360px);
   max-width: 960px;
   line-height: 36px;
   padding-right: 50px;
   padding-left: 50px;
-  margin: 0 auto;
   font-size: 20px;
   color: #676767;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 section#content header {
   font-style: normal;
   font-weight: 300;
   color: #A0A0A0;
-  display: block;
+  display: flex;
+  align-items: center;
   font-size: 22px;
   padding: 20px;
   text-align: center;
@@ -378,10 +381,13 @@ section#content a:not(.header) {
   transition: all linear 240ms;
   color: #333;
   padding: 4px;
-  border-bottom: 2px solid #E2E2E2;
+  align-self: center;
+  opacity: 0.5;
+  border-bottom: 2px solid transparent;
 }
 section#content a:not(.header):hover {
-  border-bottom: 2px solid #a0a0a0;
+  opacity: 1;
+  border-bottom: 2px solid #EEE;
 }
 
 section#content a.no-underline {
@@ -428,7 +434,6 @@ nav {
   background-color: #333;
   color: #FFF;
   width: 300px;
-  height: 100%;
   padding: 14px;
   padding-top: 0;
   position: absolute;
@@ -461,13 +466,10 @@ nav li.sub ul {
 }
 
 nav > ul {
-  padding-left: 0px;
-  position: relative;
   right: 0;
   width: 240px;
-  float: right;
-  margin-top: 0;
-  top: 87px;
+  margin-top: 100px;
+  margin-left: auto;
 }
 nav ul li.header:first-child h4 {
   margin-top: 0;
@@ -508,28 +510,21 @@ table th,td {
 }
 
 layer {
-  display: block;
-  position: fixed;
-  transform: translate3d(0, 0, 0);
-  width: calc(50% - 360px);
+  display: flex;
   background-color: #333;
-  height: 100%;
-  top: 0;
-  bottom: 0;
-  z-index: 10000;
-  transition: none;
+  width: 360px;
+  position: relative;
 }
 
 .open-menu {
   display: none;
-
 }
 
 .open-menu svg {
   width: 40px;
 }
 
-@media only screen and (max-width : 1330px) {
+@media only screen and (max-width : 960px) {
   html, body {
     background-color: #FFF !important;
     overflow-x: hidden !important;
@@ -543,33 +538,33 @@ layer {
   }
 
   center {
-    /* did you expect better */
     text-align: left;
   }
 
   layer {
     width: 100%;
     max-width: 100%;
+    height: 42px;
     will-change: transform;
     transform: translate3d(-300px, 0, 0);
     text-align: center;
-    transition: all cubic-bezier(.17,.67,.83,.67) 240ms;
+    transition: transform cubic-bezier(.17,.67,.83,.67) 240ms;
     background-color: transparent;
   }
 
   body.open layer {
     transform: translate3d(0, 0, 0);
+    height: 100%;
+    transition: transform cubic-bezier(.17,.67,.83,.67) 240ms;
   }
 
   section#content {
-    transform: translate3d(0, 0, 0);
-    left: 0 !important;
     max-width: 100% !important;
     width: 100%;
     margin: 0 !important;
     padding-left: 15px !important;
     padding-right: 15px !important;
-    padding-top: 45px;
+    padding-top: 0px;
   }
 
   section#content header {
@@ -608,7 +603,6 @@ layer {
     outline: 0 !important;
   }
 
-	/* Force table to not be like tables anymore */
 	table, thead, tbody, th, td, tr { 
 		display: block; 
 	}
@@ -616,16 +610,13 @@ layer {
 	tr { border: 1px solid #ccc; }
 	
 	td { 
-		/* Behave  like a "row" */
 		border: none;
 		border-bottom: 1px solid #eee; 
 		position: relative;
 	}
 	
 	td:before { 
-		/* Now like a table header */
 		position: absolute;
-		/* Top/left values mimic padding */
 		top: 6px;
 		left: 6px;
 		width: 45%; 
@@ -667,11 +658,8 @@ svg.transactions {
 footer {
   background-color: #d8f7b6;
   position: relative;
-  top: 0px;
   height: 50px;
-  width: calc(100% - 360px);
-  max-width: 960px;
-  left: 120px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -680,6 +668,11 @@ footer {
 
 footer a {
   cursor: pointer;
+  color: #333;
+}
+
+footer a:hover {
+  color: red;
 }
 
 .video-container {
@@ -706,3 +699,4 @@ footer a {
 .edit-github {
   align-self: flex-end;
 }
+*/

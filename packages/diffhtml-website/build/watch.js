@@ -1,4 +1,5 @@
 const { watch } = require('chokidar');
+const copy = require('./copy');
 const generate = require('./generate');
 
 const watcher = watch(process.cwd(), {
@@ -6,4 +7,7 @@ const watcher = watch(process.cwd(), {
   persistent: true,
 });
 
-watcher.on('change', path => generate());
+watcher.on('change', path => {
+  copy();
+  generate()
+});

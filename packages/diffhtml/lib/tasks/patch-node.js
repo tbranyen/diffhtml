@@ -9,7 +9,9 @@ import patchNode from '../node/patch';
 export default function patch(transaction) {
   const { domNode, state, state: { measure }, patches } = transaction;
   const { promises = [] } = transaction;
-  const { namespaceURI = '', nodeName } = domNode;
+  const { nodeName } = domNode;
+
+  const namespaceURI = domNode.namespaceURI || '';
 
   state.isSVG = nodeName.toLowerCase() === 'svg' || namespaceURI.includes('svg');
   state.ownerDocument = domNode.ownerDocument || document;
