@@ -44,6 +44,12 @@ export default function syncTree(oldTree, newTree, patches, parentTree, specialC
         const vTree = nodes[i];
 
         if (vTree.key) {
+          if (process.env.NODE_ENV !== 'production') {
+            if (map.has(vTree.key)) {
+              throw new Error(`Key: ${vTree.key} cannot be duplicated`);
+            }
+          }
+
           map.set(vTree.key, vTree);
         }
       }

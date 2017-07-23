@@ -750,6 +750,31 @@ describe('Tree', function() {
     });
 
     describe('Elements (keyed)', () => {
+      it('will error if duplicate keys are provided in development', () => {
+        const referenceNode = createTree('div', { key: '0' });
+        const duplicateNode = createTree('div', { key: '0' });
+        const oldTree = createTree('div', null, [referenceNode]);
+        const newTree = createTree('div', null, [
+          referenceNode,
+          duplicateNode,
+        ]);
+
+        throws(() => syncTree(oldTree, newTree));
+      });
+
+      it('will not error if duplicate keys are provided in production', () => {
+        const referenceNode = createTree('div', { key: '0' });
+        const duplicateNode = createTree('div', { key: '0' });
+        const oldTree = createTree('div', null, [referenceNode]);
+        const newTree = createTree('div', null, [
+          referenceNode,
+          duplicateNode,
+        ]);
+
+        process.env.NODE_ENV = 'production';
+        doesNotThrow(() => syncTree(oldTree, newTree));
+      });
+
       describe('insertBefore', () => {
         it('will prepend an element', () => {
           const referenceNode = createTree('div', { key: '0' });
