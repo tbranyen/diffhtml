@@ -146,6 +146,14 @@ const log = (message, method, color, date, transaction, completed) => {
     );
   }
 
+  if (state) {
+    console.log(
+      '%cstate %O',
+      'font-weight: bold; color: #333',
+      state,
+    );
+  }
+
   if (oldTree || newTree) {
     console.log(
       '%coldTree %O newTree %O',

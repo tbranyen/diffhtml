@@ -222,7 +222,7 @@ export default function patchNode(patches, state = {}) {
       const vTree = NODE_VALUE[i];
       const nodeValue = NODE_VALUE[i + 1];
       const oldValue = NODE_VALUE[i + 2];
-      const domNode = NodeCache.get(vTree);
+      const domNode = createNode(vTree);
       const textChanged = TransitionCache.get('textChanged');
       const textChangedPromises = runTransitions(
         'textChanged', domNode, oldValue, nodeValue

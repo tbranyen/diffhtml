@@ -80,6 +80,12 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   // Assume any object value is a valid VTree object.
   if (isObject) {
+    // Support JSX-like object shape.
+    if ('children' in input && !('childNodes' in input)) {
+      const nodeName = input.nodeName || input.elementName;
+      return createTree(nodeName, input.attributes, input.children);
+    }
+
     return input;
   }
 
@@ -134,6 +140,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
         for (let i = 0; i < newNode.length; i++) {
           entry.childNodes.push(newNode[i]);
         }
+      }
+      // Skip over `null` nodes.
+      else if (!newNode) {
+        continue;
       }
       // Merge in fragments.
       else if (newNode.nodeType === 11 && typeof newNode.rawNodeName === 'string') {
