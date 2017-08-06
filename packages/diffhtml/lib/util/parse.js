@@ -273,7 +273,7 @@ export default function parse(html, supplemental, options = {}) {
         }
 
         const newText = html.slice(match.index + match[0].length, index);
-        interpolateValues(currentParent, newText.trim(), supplemental);
+        interpolateValues(currentParent, newText, supplemental);
       }
     }
 
