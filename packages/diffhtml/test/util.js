@@ -849,6 +849,31 @@ describe('Util', function() {
           attributes: {},
       });
     });
+
+    it('will correctly parse hard return text node', () => {
+      const vTree = parse(`<code>
+</code>`).childNodes[0];
+
+      deepEqual(vTree, {
+        "attributes": {},
+        "childNodes": [
+          {
+            "rawNodeName": "#text",
+            "nodeName": "#text",
+            "nodeValue": "\n",
+            "nodeType": 3,
+            "key": "",
+            "childNodes": [],
+            "attributes": {}
+          }
+        ],
+        "key": "",
+        "nodeName": "code",
+        "nodeType": 1,
+        "nodeValue": "",
+        "rawNodeName": "code"
+      });
+    });
   });
 
   describe('Pool', () => {
