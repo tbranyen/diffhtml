@@ -2,7 +2,7 @@
 
 *Pre-compiles your tagged template strings to reduce runtime cost*
 
-Stable Version: 1.0.0-beta.7
+Stable Version: 1.0.0-beta.8
 
 This plugin transforms tagged template strings `html` in your projects to
 `createTree` calls. By default it will use `diff.createTree` which will need to

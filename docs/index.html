@@ -223,16 +223,19 @@
 <p>We encourage brand new developers who want to try diffHTML to use our pre-made Glitch examples. This will let you mess with the API without having to download or configure anything.</p>
 <ul>
 <li><p>CDN (Recommended for Beginners):</p>
-<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;</code></pre></li>
+<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;
+</code></pre></li>
 <li><svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
   <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
   <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
 </svg>
 
-<pre><code class="lang-sh">npm install diffhtml</code></pre>
+<pre><code class="lang-sh">npm install diffhtml
+</code></pre>
 </li>
 <li><p><img width="60" src="images/yarn-logo.svg"></img></p>
-<pre><code class="lang-sh">yarn add diffhtml</code></pre>
+<pre><code class="lang-sh">yarn add diffhtml
+</code></pre>
 </li>
 </ul>
 <p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p>
@@ -241,17 +244,20 @@
 <li><p>Browser:</p>
 <pre><code class="lang-javascript">import { innerHTML } from &#39;diffhtml&#39;
 
-innerHTML(document.body, &#39;Hello world!&#39;)</code></pre>
+innerHTML(document.body, &#39;Hello world!&#39;)
+</code></pre>
 </li>
 <li><p>ES Modules:</p>
 <pre><code class="lang-javascript">import { innerHTML } from &#39;diffhtml&#39;
 
-innerHTML(document.body, &#39;Hello world!&#39;)</code></pre>
+innerHTML(document.body, &#39;Hello world!&#39;)
+</code></pre>
 </li>
 <li><p>Node:</p>
 <pre><code class="lang-javascript">const { innerHTML } = require(&#39;diffhtml&#39;)
 
-innerHTML(document.body, &#39;Hello world!&#39;)</code></pre>
+innerHTML(document.body, &#39;Hello world!&#39;)
+</code></pre>
 </li>
 </ul>
       </section>
@@ -267,7 +273,8 @@ innerHTML(document.body, &#39;Hello world!&#39;)</code></pre>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
       <script src="/node_modules/diffhtml/dist/diffhtml.js"></script>
       <script src="/node_modules/diffhtml-components/dist/web-component.js"></script>
-      <script>hljs.initHighlightingOnLoad();
+      <script>
+        hljs.initHighlightingOnLoad();
 
         document.querySelector('.open-menu').onclick = ev => {
           ev.stopImmediatePropagation();
@@ -285,5 +292,6 @@ innerHTML(document.body, &#39;Hello world!&#39;)</code></pre>
             body.classList.remove('open');
             body.onclick = null;
           };
-        };</script>
+        };
+      </script>
     </body></html>

@@ -181,7 +181,8 @@ page document. While you can dive head first into this function, you can also
 take it slow and work your way up to something more complex.</p>
 <p>For instance the easiest way to start is by using simple HTML strings and
 diffing into the body element.</p>
-<pre><code class="lang-js">innerHTML(document.body, &#39;Hello world&#39;);</code></pre>
+<pre><code class="lang-js">innerHTML(document.body, &#39;Hello world&#39;);
+</code></pre>
 <p>To see how to run this example yourself see the <a href="#examples">Examples</a> section
 below.</p>
 <h3 id="arguments">Arguments</h3>
@@ -224,9 +225,11 @@ from the globally exported <code>diff</code> object. Remember to wrap your code 
   const { innerHTML } = diff
 
   innerHTML(document.body, &#39;&lt;span&gt;Hello world&lt;/span&gt;&#39;)
-}</code></pre>
+}
+</code></pre>
 <p>Or if you prefer you can access the property directly.</p>
-<pre><code class="lang-js">diff.innerHTML(document.body, &#39;&lt;span&gt;Hello world&lt;/span&gt;&#39;)</code></pre>
+<pre><code class="lang-js">diff.innerHTML(document.body, &#39;&lt;span&gt;Hello world&lt;/span&gt;&#39;)
+</code></pre>
 <h3 id="example-latest-es-specification-">Example (Latest ES Specification)</h3>
 <h2 id="release-domnode-">release (domNode)</h2>
 <h3 id="purpose">Purpose</h3>
@@ -253,9 +256,11 @@ from the globally exported <code>diff</code> object. Remember to wrap your code 
 <pre><code class="lang-js">{
   const { release } = diff
   release(document.body)
-}</code></pre>
+}
+</code></pre>
 <p>Or if you prefer you can access the property directly.</p>
-<pre><code class="lang-js">diff.innerHTML(document.body, &#39;&lt;span&gt;Hello world&lt;/span&gt;&#39;)</code></pre>
+<pre><code class="lang-js">diff.innerHTML(document.body, &#39;&lt;span&gt;Hello world&lt;/span&gt;&#39;)
+</code></pre>
 <h3 id="example-latest-es-specification-">Example (Latest ES Specification)</h3>
       </section>
 
@@ -270,7 +275,8 @@ from the globally exported <code>diff</code> object. Remember to wrap your code 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
       <script src="/node_modules/diffhtml/dist/diffhtml.js"></script>
       <script src="/node_modules/diffhtml-components/dist/web-component.js"></script>
-      <script>hljs.initHighlightingOnLoad();
+      <script>
+        hljs.initHighlightingOnLoad();
 
         document.querySelector('.open-menu').onclick = ev => {
           ev.stopImmediatePropagation();
@@ -288,5 +294,6 @@ from the globally exported <code>diff</code> object. Remember to wrap your code 
             body.classList.remove('open');
             body.onclick = null;
           };
-        };</script>
+        };
+      </script>
     </body></html>

@@ -1,7 +1,7 @@
 {
   "name": "diffhtml",
   "private": true,
-  "version": "1.0.0-beta",
+  "version": "1.0.0-beta.8",
   "description": "Build web user interfaces with JavaScript",
   "scripts": {
     "build": "lerna run build",
