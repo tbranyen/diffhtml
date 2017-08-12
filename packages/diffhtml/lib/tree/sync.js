@@ -71,7 +71,7 @@ export default function syncTree(oldTree, newTree, patches, parentTree, specialC
     // then splice it into the parent (if it exists) and run a sync.
     if (retVal && retVal !== newTree) {
       newTree.childNodes = [].concat(retVal);
-      syncTree(null, retVal, patches, newTree);
+      syncTree(oldTree !== empty ? oldTree : null, retVal, patches, newTree);
       newTree = retVal;
     }
   });

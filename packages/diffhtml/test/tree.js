@@ -8,6 +8,8 @@ import {
 } from 'assert';
 import createTree from '../lib/tree/create';
 import syncTree from '../lib/tree/sync';
+import { MiddlewareCache } from '../lib/util/caches';
+import parse from '../lib/util/parse';
 import validateMemory from './util/validateMemory';
 
 describe('Tree', function() {
@@ -712,6 +714,32 @@ describe('Tree', function() {
           SET_ATTRIBUTE: [oldTree, 'autofocus', ''],
           REMOVE_ATTRIBUTE: [],
         });
+      });
+
+      it('will not generate patches when returning old element', () => {
+        const hook = (oldTree, newTree) =>
+          oldTree && oldTree.attributes && oldTree.attributes.class === 'text' ?
+            oldTree :
+            newTree;
+        MiddlewareCache.SyncTreeHookCache.add(hook);
+
+        const oldTree = parse(`
+          <div class="parent"><div class="child"><span class="text">Hello world!</span></div></div>
+        `).childNodes[0];
+        const newTree = parse(`
+          <div class="parent"><div class="child"><span class="image">Goodbye world!</span></div></div>
+        `).childNodes[0];
+
+        const patches = syncTree(oldTree, newTree);
+
+        deepEqual(patches, {
+          TREE_OPS: [],
+          NODE_VALUE: [],
+          SET_ATTRIBUTE: [],
+          REMOVE_ATTRIBUTE: [],
+        });
+
+        MiddlewareCache.SyncTreeHookCache.delete(hook);
       });
 
       describe.skip('Attribute & Property Differences', () => {
