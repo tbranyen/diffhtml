@@ -7,6 +7,9 @@
   "jsnext:main": "dist/es/index",
   "esnext:main": "dist/es/index",
   "author": "Tim Branyen (@tbranyen)",
+  "contributors": [
+    "James DiGioia <jamesorodig@gmail.com> (http://jamesdigioia.com)"
+  ],
   "repository": "https://github.com/tbranyen/diffhtml",
   "license": "MIT",
   "scripts": {

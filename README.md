@@ -134,3 +134,8 @@ level or any specific nested package level.
 
   The source for the [www.diffhtml.org](https://www.diffhtml.org) website,
   powered by: [Node](https://nodejs.com/) and [NodeGit](http://nodegit.org).
+
+## Contributors
+
+| [<img src="https://avatars0.githubusercontent.com/u/4371429?v=4" width="100px;"/><br /><sub>James DiGioia</sub>](http://jamesdigioia.com)<br />[💻](https://github.com/tbranyen/diffhtml/commits?author=mAAdhaTTah "Code") |
+| :---: |

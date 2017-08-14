@@ -19,6 +19,9 @@
     "user interfaces"
   ],
   "author": "Tim Branyen (@tbranyen)",
+  "contributors": [
+    "James DiGioia <jamesorodig@gmail.com> (http://jamesdigioia.com)"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/tbranyen/diffhtml/issues"
