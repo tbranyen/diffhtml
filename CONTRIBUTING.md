@@ -38,22 +38,14 @@ Note this may generate new files, if so, commit these as a dist build.
 ### Lerna publish
 
 Run the `lerna publish` command and follow the instructions to tag your
-release.  This will create the tags and push and do everything else, sans
-actually publish.
+release.  This will create the tags and push and do everything else, including
+actually publishing to npm, so great!
 
 ``` sh
 lerna publish
 ```
 
-Enter in your new version, unless you see it listed.
-
-### Publish to npm
-
-Simply run:
-
-``` sh
-npm publish
-```
+Enter in your new version (using custom), unless you see it listed.
 
 ### Take a deep breath
 
