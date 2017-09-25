@@ -137,5 +137,5 @@ level or any specific nested package level.
 
 ## Contributors
 
-| [<img src="https://avatars0.githubusercontent.com/u/4371429?v=4" width="100px;"/><br /><sub>James DiGioia</sub>](http://jamesdigioia.com)<br />[💻](https://github.com/tbranyen/diffhtml/commits?author=mAAdhaTTah "Code") |
-| :---: |
+| [<img src="https://avatars0.githubusercontent.com/u/181635?v=4" width="100px;"/><br /><sub>Tim Branyen</sub>](https://tbranyen.com)<br />[💻](https://github.com/tbranyen/diffhtml/commits?author=tbranyen "Code") | [<img src="https://avatars0.githubusercontent.com/u/4371429?v=4" width="100px;"/><br /><sub>James DiGioia</sub>](http://jamesdigioia.com)<br />[💻](https://github.com/tbranyen/diffhtml/commits?author=mAAdhaTTah "Code") |
+|:---:|:---:|
