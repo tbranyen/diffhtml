@@ -94,7 +94,6 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log('here');
     this.attachShadow({ mode: 'open' });
     this[$$render]();
     this.componentDidMount();
