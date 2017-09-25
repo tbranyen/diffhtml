@@ -35,14 +35,14 @@ npm test
 
 Note this may generate new files, if so, commit these as a dist build.
 
-### Lerna bump
+### Lerna publish
 
-Run the `lerna bump` command and follow the instructions to tag your release.
-This will create the tags and push and do everything else, sans actually
-publish.
+Run the `lerna publish` command and follow the instructions to tag your
+release.  This will create the tags and push and do everything else, sans
+actually publish.
 
 ``` sh
-lerna bump
+lerna publish
 ```
 
 Enter in your new version, unless you see it listed.
