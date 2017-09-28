@@ -97,6 +97,19 @@ export default function patchNode(patches, state = {}) {
 
         // Necessary to track the attribute/prop existence.
         domNode.setAttribute(name, '');
+
+        // FIXME This is really unfortunate, but after trigger a change via
+        // attr, we need to reset the actual value in the instance for things
+        // like event handlers. In the future it would be great to limit this
+        // to actual attr -> prop keys. Custom attributes do not suffer from
+        // this problem as they are not translated.
+        if (!blacklist.has(blacklistName)) {
+          try {
+            domNode[name] = value;
+          } catch (unhandledException) {
+            blacklist.add(blacklistName);
+          }
+        }
       }
 
       if (newPromises.length) {
