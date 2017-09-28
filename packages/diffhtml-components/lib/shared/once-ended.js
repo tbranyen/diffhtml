@@ -1,7 +1,10 @@
-const uppercaseEx = /[A-Z]/g;
+import { Internals } from 'diffhtml';
 import { ComponentTreeCache } from '../util/caches';
 import componentDidMount from './lifecycle/component-did-mount';
 import componentWillUnmount from './lifecycle/component-will-unmount';
+
+const { NodeCache } = Internals;
+const uppercaseEx = /[A-Z]/g;
 
 export default transaction => {
   if (transaction.aborted) {
@@ -27,7 +30,7 @@ export default transaction => {
           name = name.replace(uppercaseEx, ch => `-${ch.toLowerCase()}`);
 
           if (value && typeof value === 'string') {
-            NodeCache.get(oldTree).setAttribute(normalized, value);
+            NodeCache.get(oldTree).setAttribute(name, value);
           }
         }
       }

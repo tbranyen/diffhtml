@@ -3,7 +3,6 @@ import componentWillUnmount from './lifecycle/component-will-unmount';
 import renderComponent from './render-component';
 import getContext from './get-context';
 
-const root = typeof window !== 'undefined' ? window : global;
 const render = (oldTree, newTree) => {
   const oldComponentTree = ComponentTreeCache.get(oldTree);
 
@@ -18,8 +17,9 @@ const render = (oldTree, newTree) => {
 export const releaseHook = vTree => componentWillUnmount(vTree);
 
 export const createNodeHook = vTree => {
+  const root = typeof window !== 'undefined' ? window : global;
   const { customElements } = root;
-  const Constructor = customElements.get(vTree.nodeName);
+  const Constructor = customElements && customElements.get(vTree.nodeName);
 
   if (Constructor) {
     vTree.attributes.children = vTree.childNodes;

@@ -6,7 +6,7 @@ import validateCaches from './util/validate-caches';
 
 const { process } = Internals;
 
-describe.only('Component implementation', function() {
+describe('Component implementation', function() {
   beforeEach(() => {
     this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
@@ -371,7 +371,7 @@ describe.only('Component implementation', function() {
       doesNotThrow(() => innerHTML(this.fixture, html`<${CustomComponent} />`));
     });
 
-    it.only('can interpolate an object', () => {
+    it('can interpolate an object', () => {
       class CustomComponent extends Component {
         render(props) {
           return html`<div ${props} />`;
@@ -379,7 +379,6 @@ describe.only('Component implementation', function() {
       }
 
       const props = { a: true };
-      console.log(html`<div ${props} />`);
       const vTree = html`<${CustomComponent} ${props} />`;
 
       equal(vTree.attributes.a, true);
@@ -504,7 +503,7 @@ describe.only('Component implementation', function() {
     });
   });
 
-  describe('Context', () => {
+  describe.skip('Context', () => {
     it('can inherit context from a parent component', () => {
       class ChildComponent extends Component {
         render() {

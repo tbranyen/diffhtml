@@ -50,10 +50,10 @@ export default function renderComponent(vTree, context = {}) {
     for (let i = 0; i < childNodes.length; i++) {
       const newTree = childNodes[i];
 
-      if (newTree.nodeType !== 11) {
+      if (newTree && newTree.nodeType !== 11) {
         ComponentTreeCache.set(newTree, vTree);
       }
-      else {
+      else if (newTree) {
         linkTrees(newTree.childNodes);
       }
     }

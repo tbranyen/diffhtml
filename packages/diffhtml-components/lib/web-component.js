@@ -7,7 +7,6 @@ import { $$render } from './util/symbols';
 const root = typeof window !== 'undefined' ? window : global;
 const nullFunc = function() {};
 const HTMLElementCtor = root.HTMLElement || nullFunc;
-const Debounce = new WeakMap();
 const { setPrototypeOf, assign, keys } = Object;
 
 // Convert observed attributes from passed PropTypes.
@@ -20,8 +19,9 @@ const createProps = (domNode, props = {}) => {
     children: [].map.call(domNode.childNodes, createTree),
   };
 
-  const incoming = observedAttributes.reduce((props, attr) => assign(props, {
+  const incoming = observedAttributes.reduce((props, attr) => ({
     [attr]: attr in domNode ? domNode[attr] : domNode.getAttribute(attr) || initialProps[attr],
+    ...props,
   }), initialProps);
 
   return assign({}, props, incoming);
@@ -75,12 +75,13 @@ class WebComponent extends HTMLElementCtor {
   }
 
   connectedCallback() {
+    // This callback gets called during replace operations, there is no point
+    // in re-rendering or creating a new shadow root due to this.
     if (!this.shadowRoot) {
       this.attachShadow({ mode: 'open' });
+      this[$$render]();
+      this.componentDidMount();
     }
-
-    this[$$render]();
-    this.componentDidMount();
   }
 
   disconnectedCallback() {
@@ -94,7 +95,7 @@ class WebComponent extends HTMLElementCtor {
   }
 
   attributeChangedCallback(name, value) {
-    if (!Debounce.has(this) && value !== null) {
+    if (value !== null) {
       const nextProps = createProps(this, this.props);
       const nextState = this.state;
 

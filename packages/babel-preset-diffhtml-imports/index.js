@@ -15,10 +15,6 @@ const { NODE_ENV } = process.env;
 
 module.exports = {};
 
-module.exports.presets = [
-  ES2015.buildPreset(null, { modules: false }),
-];
-
 if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
   module.exports.presets = [
     ES2015Rollup,
@@ -31,6 +27,8 @@ if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
 }
 
 if (NODE_ENV === 'cjs') {
+  module.exports.presets = [];
+
   module.exports.plugins = [
     AddModuleExports,
     [ModuleRewrite, { replaceFunc: cjsFunc }],

@@ -9,11 +9,15 @@ describe('Web Component', function() {
     newJSDOMSandbox();
 
     this.fixture = document.createElement('div');
+    process.env.NODE_ENV = 'development';
     document.body.appendChild(this.fixture);
+    WebComponent.subscribeMiddleware();
   });
 
   afterEach(() => {
+    release(this.fixture.firstChild);
     release(this.fixture);
+    WebComponent.unsubscribeMiddleware();
     document.body.removeChild(this.fixture);
     validateCaches();
   });
@@ -55,7 +59,6 @@ describe('Web Component', function() {
       }
 
       customElements.define('custom-component', CustomComponent);
-
       innerHTML(this.fixture, html`<custom-component message="Test" />`);
 
       equal(ctorMessage, 'Test');
@@ -133,6 +136,33 @@ describe('Web Component', function() {
 
       equal(domNode.firstChild.shadowRoot.firstChild.outerHTML, '<div>Hello world!</div>');
       equal(domNode.outerHTML, '<div><jsx-test message="Hello world!"></jsx-test></div>');
+    });
+  });
+
+  describe('Stateful components', () => {
+    it('can rerender with setState', () => {
+      let ref = null;
+
+      customElements.define('stateful-test', class extends WebComponent {
+        render() {
+          const { msg } = this.state;
+
+          return html`
+            <div>${msg}</div>
+          `;
+        }
+
+        state = {
+          msg: 'default'
+        }
+      });
+
+      innerHTML(this.fixture, html`<stateful-test ref=${node => ref = node} />`);
+      equal(this.fixture.firstChild.shadowRoot.firstChild.outerHTML, '<div>default</div>');
+
+      ref.setState({ msg: 'it works' });
+
+      equal(this.fixture.firstChild.shadowRoot.firstChild.outerHTML, '<div>it works</div>');
     });
   });
 });

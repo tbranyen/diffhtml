@@ -30,7 +30,6 @@ module.exports = (originalPath, filePath) => {
     }
 
     newPath = relative(dirname(filePath), join(path, newPath));
-    //console.log(newPath);
 
     if (newPath[0] !== '.') {
       newPath = `./${newPath}`;

@@ -52,13 +52,15 @@ export function cleanMemory(isBusy = false) {
 
   // Clean out unused elements, if we have any elements cached that no longer
   // have a backing VTree, we can safely remove them from the cache.
-  NodeCache.forEach((node, vTree) => {
-    if (!memory.protected.has(vTree)) {
-      NodeCache.delete(vTree);
+  if (!isBusy) {
+    NodeCache.forEach((node, vTree) => {
+      if (!memory.protected.has(vTree)) {
+        NodeCache.delete(vTree);
 
-      if (ReleaseHookCache.size) {
-        ReleaseHookCache.forEach(fn => fn(vTree));
+        if (ReleaseHookCache.size) {
+          ReleaseHookCache.forEach(fn => fn(vTree));
+        }
       }
-    }
-  });
+    });
+  }
 }

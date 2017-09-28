@@ -49,11 +49,12 @@ export default function patchNode(patches, state = {}) {
       // Events must be lowercased otherwise they will not be set correctly.
       const name = _name.indexOf('on') === 0 ? _name.toLowerCase() : _name;
 
+      // Runtime checking if the property can be set.
+      const blacklistName = vTree.nodeName + '-' + name;
+
       // Normal attribute value.
       if (!isObject && !isFunction && name) {
         const noValue = value === null || value === undefined;
-        // Runtime checking if the property can be set.
-        const blacklistName = vTree.nodeName + '-' + name;
 
         // If the property has not been blacklisted then use try/catch to try
         // and set it.
@@ -78,6 +79,15 @@ export default function patchNode(patches, state = {}) {
         }
       }
       else if (typeof value !== 'string') {
+        // Since this is a property value it gets set directly on the node.
+        if (!blacklist.has(blacklistName)) {
+          try {
+            domNode[name] = value;
+          } catch (unhandledException) {
+            blacklist.add(blacklistName);
+          }
+        }
+
         // We remove and re-add the attribute to trigger a change in a web
         // component or mutation observer. Although you could use a setter or
         // proxy, this is more natural.
@@ -87,11 +97,6 @@ export default function patchNode(patches, state = {}) {
 
         // Necessary to track the attribute/prop existence.
         domNode.setAttribute(name, '');
-
-        // Since this is a property value it gets set directly on the node.
-        try {
-          domNode[name] = value;
-        } catch (unhandledException) {}
       }
 
       if (newPromises.length) {

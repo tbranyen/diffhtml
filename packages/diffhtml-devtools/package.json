@@ -63,11 +63,11 @@
   },
   "dependencies": {
     "semantic-ui-react": "^0.67.0",
-    "diffhtml-react-compat": "1.0.0-beta.8",
-    "diffhtml-components": "1.0.0-beta.8",
-    "diffhtml-middleware-synthetic-events": "1.0.0-beta.8",
-    "diffhtml-middleware-logger": "1.0.0-beta.8",
-    "diffhtml-middleware-verify-state": "1.0.0-beta.8",
-    "diffhtml": "1.0.0-beta.8"
+    "diffhtml-react-compat": "1.0.0-beta.9",
+    "diffhtml-components": "1.0.0-beta.9",
+    "diffhtml-middleware-synthetic-events": "1.0.0-beta.9",
+    "diffhtml-middleware-logger": "1.0.0-beta.9",
+    "diffhtml-middleware-verify-state": "1.0.0-beta.9",
+    "diffhtml": "1.0.0-beta.9"
   }
 }
