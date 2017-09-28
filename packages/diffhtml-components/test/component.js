@@ -529,7 +529,7 @@ describe('Component implementation', function() {
     });
   });
 
-  describe('HOC', () => {
+  describe.skip('HOC', () => {
     it('can support a component that returns a new component', () => {
       let didMount = 0;
 
