@@ -1,3 +1,4 @@
+const { createHash } = require('crypto');
 const { readFile } = require('fs');
 const { basename, extname, join } = require('path');
 const { Spinner } = require('cli-spinner');
@@ -63,30 +64,34 @@ const formatMarkdown = markup => `<html>
   </body>
 </html>`;
 
-webServer.use('/', (req, res, next) => {
+webServer.use((req, res, next) => {
   const url = req.url.split('?')[0];
   const ext = extname(url);
   const isRoot = url === '' || url.slice(-1) === '/';
   const path = newExt => {
-    if (ext) {
+    // If the path has an extension pass through.
+    if (ext && ext !== '.html') {
+      throw null;
+    }
+
+    // If dealing with HTML, send the client script.
+    if (ext === '.html') {
       return url;
     }
 
     return `${isRoot ? 'index' : url}.${newExt}`;
   };
 
-  read(path('html'))
+  new Promise((resolve, reject) => read(path('html')).then(resolve, reject))
     .catch(() => read(path('md')).then(formatMarkdown))
     .catch(() => read(path('markdown')).then(formatMarkdown))
     .then(buffer => res.send(`
       ${String(buffer)}
       <script>${clientScript}</script>
     `))
+    .catch(() => res.sendFile(join(CWD, '.', url)))
     .catch(() => next());
 });
-
-webServer.use(express.static(process.cwd()));
-webServer.use(express.static(CWD));
 
 const port = Number(process.env.SERVER_PORT) || 8000;
 const host = process.env.SERVER_HOST || '0.0.0.0';
@@ -102,13 +107,10 @@ webServer.listen(port, host, () => {
         console.log(`${green}${path} changed${reset}`);
       }
 
-      readFile(path, (err, buffer) => {
+      readFile(path, { encoding: 'utf8' }, (err, markup) => {
         sockets.forEach(socket => {
-          const state = {
-            file: path.slice(CWD.length + 1),
-            markup: String(buffer),
-            quiet,
-          };
+          const file = path.slice(CWD.length + 1);
+          const state = { file, markup, quiet };
 
           if (state.file.includes('.md') || state.file.includes('.markdown')) {
             state.file = state.file.replace(/(\.md|\.markdown|\.html)/g, '');

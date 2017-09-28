@@ -1,4 +1,5 @@
 import createTree from './tree/create';
+import syncTree from './tree/create';
 import createNode from './node/create';
 import internals from './util/internals';
 import innerHTML from './inner-html';
@@ -28,7 +29,12 @@ const api = {
 // leverage internal APIs that are not part of the public API. There are no
 // promises that this will not break in the future. We will attempt to minimize
 // changes and will supply fallbacks when APIs change.
-const Internals = Object.assign(internals, api, { defaultTasks, tasks, createNode });
+const Internals = Object.assign(internals, api, {
+  defaultTasks,
+  tasks,
+  createNode,
+  syncTree,
+});
 
 // Attach a circular reference to `Internals` for ES/CJS builds.
 api.Internals = Internals;

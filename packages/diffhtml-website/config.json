@@ -11,8 +11,8 @@
     "API": ["api.html", {
       "innerHTML": "#inner-html",
       "outerHTML": "#outer-html",
-      "use": "#use",
       "html": "#html",
+      "use": "#use",
       "addTransitionState": "#add-transition-state",
       "removeTransitionState": "#remove-transition-state",
       "createTree": "#create-tree",

@@ -1,6 +1,14 @@
 # API
 
-## innerHTML (element, markup='', options={})
+The core API is designed to be a minimal and extensible.
+
+## innerHTML (element, markup='', options={}) <a name="inner-html" />
+
+``` js
+import { innerHTML } from 'diffhtml';
+
+innerHTML(document.body, 'Hello world');
+```
 
 Used to replace the
 [innerHTML](https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML)
@@ -8,12 +16,43 @@ of an HTML element with passed in markup. This is what bridges diffHTML to the
 page document. While you can dive head first into this function, you can also
 take it slow and work your way up to something more complex.
 
-For instance the easiest way to start is by using simple HTML strings and
-diffing into the body element.
+<table class="details">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Default value</th>
+      <th>Required</th>
+    </tr>
+  </thead>
 
-``` js
-innerHTML(document.body, 'Hello world');
-```
+  <tbody>
+    <tr>
+      <td class="strong">domNode</td>
+      <td>
+        <ul>
+          <li>
+            A DOM Node that is being tracked by diffHTML
+        </li>
+        </ul>
+      </td>
+      <td><code>undefined</code></td>
+      <td>true</td>
+    </tr>
+    <tr>
+      <td class="strong"></td>
+      <td>
+        <ul>
+          <li>
+            A DOM Node that is being tracked by diffHTML
+        </li>
+        </ul>
+      </td>
+      <td><code>undefined</code></td>
+      <td>true</td>
+    </tr>
+  </tbody>
+</table>
 
 To see how to run this example yourself see the [Examples](#examples) section
 below.
@@ -56,37 +95,15 @@ This argument is overloaded. Can be one of many types:
   recommended as there is as a middleware API to achieve custom behavior during
   a render.
 
-### Example (UMD)
-
-A common way to access `innerHTML` is via
-[destructuring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment)
-from the globally exported `diff` object. Remember to wrap your code in a block
-`{}` to prevent leaking the variables globally.
-
-``` js
-{
-  const { innerHTML } = diff
-
-  innerHTML(document.body, '<span>Hello world</span>')
-}
-```
-
-Or if you prefer you can access the property directly.
-
-``` js
-diff.innerHTML(document.body, '<span>Hello world</span>')
-```
-
-### Example (Latest ES Specification)
+<a name="release" />
 
 ## release (domNode)
 
 ### Purpose
 
-Used to completely clean up references internally. Typically you render into
-an element on the page and let diffHTML control everything around or inside it,
-but the element itself is never removed. This method is useful in the case
-where the element is removed.
+Use this method if you need to clean up memory allocations and anything else
+internal to diffHTML associated with your element. This is very useful for unit
+testing and general cleanup when you're done with an element.
 
 ### Arguments
 

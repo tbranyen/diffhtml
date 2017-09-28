@@ -6,16 +6,22 @@ import decodeEntities from '../util/decode-entities';
 import escape from '../util/escape';
 
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
+const blacklist = new Set();
 
 const removeAttribute = (domNode, name) => {
   domNode.removeAttribute(name);
 
-  if (name in domNode) {
-    domNode[name] = undefined;
+  // Runtime checking if the property can be set.
+  const blacklistName = domNode.nodeName + '-' + name;
+
+  if (!blacklist.has(blacklistName)) {
+    try {
+      domNode[name] = undefined;
+    } catch (unhandledException) {
+      blacklist.add(blacklistName);
+    }
   }
 };
-
-const blacklist = new Set();
 
 export default function patchNode(patches, state = {}) {
   const promises = [];
@@ -43,11 +49,12 @@ export default function patchNode(patches, state = {}) {
       // Events must be lowercased otherwise they will not be set correctly.
       const name = _name.indexOf('on') === 0 ? _name.toLowerCase() : _name;
 
+      // Runtime checking if the property can be set.
+      const blacklistName = vTree.nodeName + '-' + name;
+
       // Normal attribute value.
       if (!isObject && !isFunction && name) {
         const noValue = value === null || value === undefined;
-        // Runtime checking if the property can be set.
-        const blacklistName = vTree.nodeName + '-' + name;
 
         // If the property has not been blacklisted then use try/catch to try
         // and set it.
@@ -72,20 +79,37 @@ export default function patchNode(patches, state = {}) {
         }
       }
       else if (typeof value !== 'string') {
+        // Since this is a property value it gets set directly on the node.
+        if (!blacklist.has(blacklistName)) {
+          try {
+            domNode[name] = value;
+          } catch (unhandledException) {
+            blacklist.add(blacklistName);
+          }
+        }
+
         // We remove and re-add the attribute to trigger a change in a web
         // component or mutation observer. Although you could use a setter or
         // proxy, this is more natural.
         if (domNode.hasAttribute(name) && domNode[name] !== value) {
-          domNode.removeAttribute(name, '');
+          removeAttribute(domNode, name);
         }
 
         // Necessary to track the attribute/prop existence.
         domNode.setAttribute(name, '');
 
-        // Since this is a property value it gets set directly on the node.
-        try {
-          domNode[name] = value;
-        } catch (unhandledException) {}
+        // FIXME This is really unfortunate, but after trigger a change via
+        // attr, we need to reset the actual value in the instance for things
+        // like event handlers. In the future it would be great to limit this
+        // to actual attr -> prop keys. Custom attributes do not suffer from
+        // this problem as they are not translated.
+        if (!blacklist.has(blacklistName)) {
+          try {
+            domNode[name] = value;
+          } catch (unhandledException) {
+            blacklist.add(blacklistName);
+          }
+        }
       }
 
       if (newPromises.length) {

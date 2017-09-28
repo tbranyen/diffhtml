@@ -12,6 +12,7 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-custom-element-classes": "^0.1.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-diffhtml-imports": "^1.0.0-beta.9",
     "babel-register": "^6.24.1",

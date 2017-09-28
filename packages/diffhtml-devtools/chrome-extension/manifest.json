@@ -1,0 +1,31 @@
+{
+  "name": "diffhtml-devtools",
+  "version": "0.1.0",
+  "description": "Official diffHTML Chrome DevTools Extension",
+  "permissions": [
+    "tabs",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "scripts": ["scripts/background.js"]
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>", "*://*/*", "http://*/*", "https://*/*"],
+    "js": ["js/contentscript.js"],
+    "run_at": "document_start"
+  }],
+  "web_accessible_resources": [
+    "devtools.es5.js",
+    "scripts/*",
+    "scripts/**/*",
+    "styles/*",
+    "styles/**/*",
+    "node_modules/**/*",
+    "markup/*",
+    "markup/**/*"
+  ],
+  "devtools_page": "markup/devtools.html",
+  "manifest_version": 2,
+  "default_locale": "en"
+}

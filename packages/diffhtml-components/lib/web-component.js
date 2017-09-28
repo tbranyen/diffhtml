@@ -1,74 +1,55 @@
 import process from './util/process';
+import PropTypes from './util/prop-types';
 import { createTree, innerHTML, use } from 'diffhtml';
-import PropTypes from 'prop-types';
 import upgradeSharedClass from './shared/upgrade-shared-class';
-import webComponentTask from './tasks/web-component';
 import { $$render } from './util/symbols';
 
-const Debounce = new WeakMap();
+const root = typeof window !== 'undefined' ? window : global;
+const nullFunc = function() {};
+const HTMLElementCtor = root.HTMLElement || nullFunc;
 const { setPrototypeOf, assign, keys } = Object;
 
 // Convert observed attributes from passed PropTypes.
 const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
 
 // Creates the `component.props` object.
-const createProps = domNode => {
+const createProps = (domNode, props = {}) => {
   const observedAttributes = getObserved(domNode.constructor);
   const initialProps = {
     children: [].map.call(domNode.childNodes, createTree),
   };
 
-  return observedAttributes.reduce((props, attr) => assign(props, {
-    [attr]: attr in domNode ? domNode[attr] : domNode.getAttribute(attr) || undefined,
+  const incoming = observedAttributes.reduce((props, attr) => ({
+    [attr]: attr in domNode ? domNode[attr] : domNode.getAttribute(attr) || initialProps[attr],
+    ...props,
   }), initialProps);
+
+  return assign({}, props, incoming);
 };
 
 // Creates the `component.state` object.
-const createState = (domNode, newState) => {
-  return assign({}, domNode.state, newState);
-};
+const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
-// Creates the `component.contxt` object.
-const createContext = (domNode) => {
-
-};
-
-// Allow tests to unbind this task, you would not typically need to do this
-// in a web application, as this code loads once and is not reloaded.
-const subscribeMiddleware = () => use(webComponentTask);
-const unsubscribeMiddleware = subscribeMiddleware();
-
-export default upgradeSharedClass(class WebComponent extends HTMLElement {
-  static subscribeMiddleware() {
-    return subscribeMiddleware();
-  }
-
-  static unsubscribeMiddleware() {
-    unsubscribeMiddleware();
-    return subscribeMiddleware;
-  }
-
+class WebComponent extends HTMLElementCtor {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
   }
 
   [$$render]() {
-    this.props = createProps(this);
-    if (this.shadowRoot) {
-      innerHTML(this.shadowRoot, this.render(this.props, this.state));
-    }
-    else {
-      innerHTML(this, this.render(this.props, this.state));
-    }
+    this.props = createProps(this, this.props);
+    innerHTML(this.shadowRoot, this.render(this.props, this.state));
     this.componentDidUpdate();
   }
 
-  constructor() {
+  constructor(props, context) {
+    if (HTMLElementCtor === nullFunc) {
+      throw new Error('Custom Elements require a valid browser environment');
+    }
+
     super();
 
-    this.props = createProps(this);
+    this.props = createProps(this, props);
     this.state = createState(this);
-    this.context = createContext(this);
 
     const {
       defaultProps = {},
@@ -94,9 +75,13 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
   }
 
   connectedCallback() {
-    this.attachShadow({ mode: 'open' });
-    this[$$render]();
-    this.componentDidMount();
+    // This callback gets called during replace operations, there is no point
+    // in re-rendering or creating a new shadow root due to this.
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: 'open' });
+      this[$$render]();
+      this.componentDidMount();
+    }
   }
 
   disconnectedCallback() {
@@ -107,20 +92,20 @@ export default upgradeSharedClass(class WebComponent extends HTMLElement {
     // before the animation completes, giving you two nice callbacks to use
     // for detaching.
     this.componentWillUnmount();
-    this.componentDidUnmount();
   }
 
-  attributeChangedCallback() {
-    if (this.shadowRoot && !Debounce.has(this)) {
-      const nextProps = createProps(this);
-      this.componentWillReceiveProps(nextProps);
-      this.props = nextProps;
-      this[$$render]();
+  attributeChangedCallback(name, value) {
+    if (value !== null) {
+      const nextProps = createProps(this, this.props);
+      const nextState = this.state;
 
-      Debounce.set(this, setTimeout(() => {
-        Debounce.delete(this);
+      this.componentWillReceiveProps(nextProps);
+
+      if (this.shouldComponentUpdate(nextProps, nextState)) {
         this[$$render]();
-      }));
+      }
     }
   }
-});
+}
+
+export default upgradeSharedClass(WebComponent);

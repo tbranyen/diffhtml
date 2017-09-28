@@ -9,6 +9,7 @@ describe('Integration: Basics', function() {
   });
 
   afterEach(function() {
+    diff.release(undefined);
     diff.release(this.fixture);
     diff.removeTransitionState();
 
@@ -57,6 +58,78 @@ describe('Integration: Basics', function() {
     });
   });
 
+  describe('Properties and Attributes Handling', () => {
+    it('can "spread" inline objects into empty trees', function() {
+      const vTree = diff.html`
+        <div ${{ a: 1, b: false }} />
+      `;
+
+      assert.equal(vTree.attributes.a, 1);
+      assert.equal(vTree.attributes.b, false);
+    });
+
+    it('can "spread" inline objects into attributes', function() {
+      const vTree = diff.html`
+        <div
+          class="test"
+          ${{ a: 1, b: false }}
+          id="example"
+        />
+      `;
+
+      assert.equal(vTree.attributes.class, 'test');
+      assert.equal(vTree.attributes.a, 1);
+      assert.equal(vTree.attributes.b, false);
+      assert.equal(vTree.attributes.id, 'example');
+    });
+
+    it('can "spread" objects into attributes', function() {
+      const obj = { a: 1, b: false };
+      const vTree = diff.html`
+        <div
+          class="test"
+          ${obj}
+          id="example"
+        />
+      `;
+
+      assert.equal(vTree.attributes.class, 'test');
+      assert.equal(vTree.attributes.a, 1);
+      assert.equal(vTree.attributes.b, false);
+      assert.equal(vTree.attributes.id, 'example');
+    });
+
+    it('will silently ignore arrays that are attempted to be spread', function() {
+      const obj = [1, false];
+      const vTree = diff.html`
+        <div
+          class="test"
+          ${obj}
+          id="example"
+        />
+      `;
+
+      assert.deepEqual(vTree.attributes, {
+        class: 'test',
+        id: 'example',
+      });
+    });
+
+    it('will error if arrays are attempted to be spread in strict mode', function() {
+      const obj = [1, false];
+
+      assert.throws(() => diff.html.strict`
+        <div
+          class="test"
+          ${obj}
+          id="example"
+        />
+      `, /Arrays are not allowed to be spread in strict mode/);
+
+      diff.Internals.memory.cleanMemory();
+    });
+  });
+
   describe('Special features', function() {
     it('can modify the document\'s title', function() {
       var doc = document.implementation.createHTMLDocument('');
@@ -90,14 +163,14 @@ describe('Integration: Basics', function() {
 
     // Temporarily removed this function, saving this test until a suitable
     // replacement is created. This test will be migrated then.
-    it.skip('can diff a fragment into an element', function() {
+    it('can diff a fragment into an element', function() {
       var fragment = document.createDocumentFragment();
 
       diff.innerHTML(fragment, `
         <h1>It works</h1>
       `);
 
-      diff.element(this.fixture, fragment, { inner: true });
+      diff.innerHTML(this.fixture, fragment);
 
       assert.equal(this.fixture.childNodes[0].nodeName.toLowerCase(), 'h1');
       assert.equal(this.fixture.childNodes[0].childNodes[0].nodeValue, 'It works');

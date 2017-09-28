@@ -1,7 +1,7 @@
 import Transaction, { defaultTasks } from './transaction';
 
-export default function outerHTML(element, markup='', options={}) {
+export default function outerHTML(domNode, markup='', options={}) {
   options.inner = false;
   options.tasks = options.tasks || defaultTasks;
-  return Transaction.create(element, markup, options).start();
+  return Transaction.create(domNode, markup, options).start();
 }

@@ -1,5 +1,5 @@
 import { equal, throws } from 'assert';
-import { html, innerHTML, use, release } from '../lib/index';
+import { html, innerHTML, outerHTML, use, release } from '../lib/index';
 import validateMemory from './util/validateMemory';
 
 const { assign } = Object;
@@ -7,8 +7,10 @@ const { assign } = Object;
 describe('Use (Middleware)', function() {
   beforeEach(() => {
     this.unsubscribe = use(assign(() => {}, {
-      syncTreeHook: (oldTree, newTree) => {
-        if (this.syncTreeHook) this.syncTreeHook.apply(this, arguments);
+      syncTreeHook: (...args) => {
+        if (this.syncTreeHook) {
+          return this.syncTreeHook.apply(this, args);
+        }
       }
     }));
   });
@@ -33,7 +35,6 @@ describe('Use (Middleware)', function() {
     const oldTree = document.createElement('div');
     const newTree = html`<div class="test" />`;
 
-
     this.syncTreeHook = () => {
       newTree.attributes['data-track'] = 'some-new-value';
     };
@@ -41,6 +42,42 @@ describe('Use (Middleware)', function() {
     innerHTML(oldTree, newTree);
 
     equal(oldTree.outerHTML, `<div><div class="test" data-track="some-new-value"></div></div>`);
+
+    release(oldTree);
+  });
+
+  it('will allow replacing the newTree during sync', () => {
+    const oldTree = document.createElement('div');
+    const newTree = html`<div class="test" />`;
+
+    this.syncTreeHook = (oldTree, newTree) => {
+      newTree.childNodes.forEach((childNode, i) => {
+        if (childNode.attributes.class === 'test') {
+          newTree.childNodes[i] =  html`<div data-track="some-new-value" />`;
+        }
+      });
+    };
+
+    innerHTML(oldTree, newTree);
+
+    equal(oldTree.innerHTML, `<div data-track="some-new-value"></div>`);
+
+    release(oldTree);
+  });
+
+  it('will allow blackboxing an existing tree to avoid diffing', () => {
+    const oldTree = document.createElement('div');
+    const newTree = html`<div class="test" />`;
+
+    this.syncTreeHook = (oldTree, newTree) => {
+      if (newTree.attributes.class === 'test') {
+        return oldTree;
+      }
+    };
+
+    outerHTML(oldTree, newTree);
+
+    equal(oldTree.outerHTML, `<div></div>`);
 
     release(oldTree);
   });

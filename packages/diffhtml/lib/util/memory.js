@@ -1,6 +1,7 @@
 import Pool from './pool';
-import { NodeCache, StateCache } from './caches';
+import { NodeCache, StateCache, MiddlewareCache } from './caches';
 
+const { ReleaseHookCache } = MiddlewareCache;
 const { memory, protect, unprotect } = Pool;
 
 /**
@@ -28,6 +29,10 @@ export function protectVTree(vTree) {
 export function unprotectVTree(vTree) {
   unprotect(vTree);
 
+  if (ReleaseHookCache.size) {
+    ReleaseHookCache.forEach(fn => fn(vTree));
+  }
+
   for (let i = 0; i < vTree.childNodes.length; i++) {
     unprotectVTree(vTree.childNodes[i]);
   }
@@ -42,19 +47,20 @@ export function unprotectVTree(vTree) {
 export function cleanMemory(isBusy = false) {
   StateCache.forEach(state => (isBusy = state.isRendering || isBusy));
 
-  // TODO Pause GC in between renders.
-  //if (isBusy) {
-  //  return;
-  //}
-
   memory.allocated.forEach(vTree => memory.free.add(vTree));
   memory.allocated.clear();
 
   // Clean out unused elements, if we have any elements cached that no longer
   // have a backing VTree, we can safely remove them from the cache.
-  NodeCache.forEach((node, descriptor) => {
-    if (!memory.protected.has(descriptor)) {
-      NodeCache.delete(descriptor);
-    }
-  });
+  if (!isBusy) {
+    NodeCache.forEach((node, vTree) => {
+      if (!memory.protected.has(vTree)) {
+        NodeCache.delete(vTree);
+
+        if (ReleaseHookCache.size) {
+          ReleaseHookCache.forEach(fn => fn(vTree));
+        }
+      }
+    });
+  }
 }

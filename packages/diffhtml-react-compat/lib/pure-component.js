@@ -1,4 +1,4 @@
-import Component from 'diffhtml-components/lib/component';
+import { Component } from 'diffhtml-components';
 
 export default class PureComponent extends Component {
   shouldComponentUpdate(nextProps, nextState) {

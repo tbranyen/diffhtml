@@ -5,6 +5,7 @@ const {
   CreateTreeHookCache,
   CreateNodeHookCache,
   SyncTreeHookCache,
+  ReleaseHookCache,
 } = MiddlewareCache;
 
 export default function use(middleware) {
@@ -20,6 +21,7 @@ export default function use(middleware) {
     createTreeHook,
     createNodeHook,
     syncTreeHook,
+    releaseHook,
   } = middleware;
 
   // Add the function to the set of middlewares.
@@ -33,6 +35,7 @@ export default function use(middleware) {
   createTreeHook && CreateTreeHookCache.add(createTreeHook);
   createNodeHook && CreateNodeHookCache.add(createNodeHook);
   syncTreeHook && SyncTreeHookCache.add(syncTreeHook);
+  releaseHook && ReleaseHookCache.add(releaseHook);
 
   // The unsubscribe method for the middleware.
   return () => {
@@ -48,5 +51,6 @@ export default function use(middleware) {
     CreateTreeHookCache.delete(createTreeHook);
     CreateNodeHookCache.delete(createNodeHook);
     SyncTreeHookCache.delete(syncTreeHook);
+    ReleaseHookCache.delete(releaseHook);
   };
 }

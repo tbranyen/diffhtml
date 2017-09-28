@@ -1,0 +1,31 @@
+# Install Chrome in Travis-CI.
+before_install:
+  - "sudo apt-get update -qq"
+  - "sudo apt-get remove chromium-browser"
+  - "echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections"
+  - "sudo apt-get install ttf-mscorefonts-installer"
+  - "sudo apt-get install x-ttcidfont-conf"
+  - "sudo mkfontdir"
+  - "sudo apt-get install defoma libgl1-mesa-dri xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic libappindicator1"
+  - "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+  - "sudo mkdir -p /usr/share/desktop-directories"
+  - "sudo dpkg -i google-chrome-stable_current_amd64.deb"
+  - "sudo apt-get install -f"
+  - "sudo dpkg -i google-chrome-stable_current_amd64.deb"
+  - "export CHROME_SANDBOX=/opt/google/chrome/chrome-sandbox"
+  - "sudo rm -f $CHROME_SANDBOX"
+  - "sudo wget https://googledrive.com/host/0B5VlNZ_Rvdw6NTJoZDBSVy1ZdkE -O $CHROME_SANDBOX"
+  - "sudo chown root:root $CHROME_SANDBOX; sudo chmod 4755 $CHROME_SANDBOX"
+  - "sudo md5sum $CHROME_SANDBOX"
+  - "sudo chmod 1777 /dev/shm"
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - "sleep 2"
+  - "cat /etc/init.d/xvfb"
+language: node_js
+node_js:
+  - 0.10
+env:
+  global:
+    - secure: "ZUeyY/wcPM40iP7eGZxPCrOEOBjjhvW9tZJ5ZLxD8n4qB3HVdcU/tstUSuBF/GgTG7BgnLC3TMUP2l6pP6li/JOxfHXrEqVNwrG8VHhpVNMdogVaL/3d0UER/s2cT2ioU7B3bkc4YFc1vR67h235KLaVip8YhMpcF1hhR1P7SC0="
+    - secure: "q5oQpQRFCAfe+y6FgG7Jie48H2glHdAmatbanlYv35WVOwIk2G2SEzKrqSmMgx9mEwWhgK80+8i1bhj85x9uLCXPgJuCTqX4tjdqpL5GcQ354LDveHaXI4NjynrrUg8LF4VtEn8SOQOok7DWcI/9kcAGVfnZmlPQ3fiUdJlcXEE="

@@ -1,20 +1,25 @@
 import { ok, equal, throws, doesNotThrow } from 'assert';
-import { innerHTML, html, use, Internals } from 'diffhtml';
+import { innerHTML, html, use, release, Internals } from 'diffhtml';
 import PropTypes from 'prop-types';
 import Component from '../lib/component';
+import validateCaches from './util/validate-caches';
 
 const { process } = Internals;
 
-describe('React Like Component', function() {
+describe('Component implementation', function() {
   beforeEach(() => {
+    this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
+    Component.subscribeMiddleware();
   });
 
-  after(() => {
+  afterEach(() => {
+    release(this.fixture);
     Component.unsubscribeMiddleware();
+    validateCaches();
   });
 
-  it('can make a component', () => {
+  it('can render a component', () => {
     class CustomComponent extends Component {
       render() {
         return html`
@@ -23,13 +28,12 @@ describe('React Like Component', function() {
       }
     }
 
-    const domNode = document.createElement('div');
-    innerHTML(domNode, html`<${CustomComponent} />`);
+    innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-    equal(domNode.outerHTML, '<div><div>Hello world</div></div>');
+    equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
   });
 
-  it('can return multiple elements', () => {
+  it('can return multiple top level elements', () => {
     class CustomComponent extends Component {
       render() {
         return html`
@@ -39,63 +43,64 @@ describe('React Like Component', function() {
       }
     }
 
-    const domNode = document.createElement('div');
-    innerHTML(domNode, html`<${CustomComponent} />`);
+    innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-    equal(domNode.outerHTML, '<div><div>Hello world</div>\n          <p>Test</p></div>');
+    equal(this.fixture.innerHTML, `<div>Hello world</div>\n          <p>Test</p>`);
+  });
+
+  it('can have a component return a component aka HoC', () => {
+    class CustomComponent extends Component {
+      render({ message }) {
+        return html`${message}`;
+      }
+    }
+
+    const embolden = WrappedComponent => class EmboldenComponent {
+      render() {
+        return html`
+          <b><${WrappedComponent} message="Hello world" /></b>
+        `;
+      }
+    };
+
+    const BoldCustomComponent = embolden(CustomComponent);
+
+    innerHTML(this.fixture, html`<${BoldCustomComponent} />`);
+
+    equal(this.fixture.outerHTML, '<div><b>Hello world</b></div>');
+  });
+
+  it('can have a series of HoC', () => {
+    class CustomComponent extends Component {
+      render({ message }) {
+        return html`${message}`;
+      }
+    }
+
+    const embolden = WrappedComponent => class EmboldenComponent {
+      render({ message }) {
+        return html`
+          <b><${WrappedComponent} message=${message} /></b>
+        `;
+      }
+    };
+
+    const spanify = WrappedComponent => class SpanifyComponent {
+      render({ message }) {
+        return html`
+          <span><${WrappedComponent} message=${message} /></span>
+        `;
+      }
+    };
+
+    const BoldAndSpanned = spanify(embolden(CustomComponent));
+
+    innerHTML(this.fixture, html`<${BoldAndSpanned} message="Hello world" />`);
+
+    equal(this.fixture.outerHTML, '<div><span><b>Hello world</b></span></div>');
   });
 
   describe('Lifecycle', () => {
-    it('can map to shouldComponentUpdate', () => {
-      let wasCalled = false;
-
-      class CustomComponent extends Component {
-        render() {
-          const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.message = 'default'
-        }
-
-        shouldComponentUpdate() {
-          wasCalled = true;
-          return false;
-        }
-      }
-
-      let ref = null;
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} ref=${node => (ref = node)} />`);
-
-      equal(domNode.innerHTML, 'default');
-      ref.setState({ message: 'something' });
-      equal(domNode.innerHTML, 'default');
-      ok(wasCalled);
-    });
-
-    it('can map to componentWillReceiveProps', () => {
-      let wasCalled = false;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-
-        componentWillReceiveProps() {
-          wasCalled = true;
-        }
-      }
-
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
-      innerHTML(domNode, html`<${CustomComponent} someProp="false" />`);
-
-      ok(wasCalled);
-    });
-
     it('can map to componentDidMount', () => {
       let wasCalled = false;
 
@@ -109,28 +114,7 @@ describe('React Like Component', function() {
         }
       }
 
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
-
-      ok(wasCalled);
-    });
-
-    it('can map to componentDidUpdate', () => {
-      let wasCalled = false;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-
-        componentDidUpdate() {
-          wasCalled = true;
-        }
-      }
-
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
-      innerHTML(domNode, html`<${CustomComponent} someProp="false" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
 
       ok(wasCalled);
     });
@@ -148,11 +132,179 @@ describe('React Like Component', function() {
         }
       }
 
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} someProp="true" />`);
-      innerHTML(domNode, html``);
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(this.fixture, html``);
 
       ok(wasCalled);
+    });
+
+    it('can update with setState', () => {
+      let wasCalled = false;
+      let counter = 0;
+
+      class CustomComponent extends Component {
+        render() {
+          const { message } = this.state;
+          return html`${message}`;
+        }
+
+        constructor(props) {
+          counter++;
+          super(props);
+          this.state.message = 'default';
+        }
+
+        shouldComponentUpdate() {
+          wasCalled = true;
+          return true;
+        }
+      }
+
+      let ref = null;
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+      equal(this.fixture.innerHTML, 'default');
+      ref.setState({ message: 'something' });
+      equal(this.fixture.innerHTML, 'something');
+      ok(wasCalled);
+      equal(counter, 1);
+    });
+
+    it.skip('can update multiple top level with setState', () => {
+      class CustomComponent extends Component {
+        render() {
+          const { count } = this.state;
+
+          return html`${Array(count).fill(null).map((nul, i) => html`
+            <div>${String(i)}</div>
+          `)}`;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.count = 2;
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+      const { firstChild } = this.fixture;
+      equal(this.fixture.innerHTML.trim(), '<div>0</div><div>1</div>');
+      ref.setState({ count: 3 });
+      equal(this.fixture.innerHTML.trim(), '<div>0</div><div>1</div><div>2</div>');
+      ref.setState({ count: 1 });
+      equal(this.fixture.innerHTML.trim(), '<div>0</div>');
+      equal(this.fixture.firstChild, firstChild);
+    });
+
+    it('can block rendering with shouldComponentUpdate', () => {
+      let wasCalled = false;
+      let counter = 0;
+
+      class CustomComponent extends Component {
+        render() {
+          const { message } = this.state;
+          return html`${message}`;
+        }
+
+        constructor(props) {
+          counter++;
+          super(props);
+          this.state.message = 'default'
+        }
+
+        shouldComponentUpdate() {
+          wasCalled = true;
+          return false;
+        }
+      }
+
+      let ref = null;
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+      equal(this.fixture.innerHTML, 'default');
+      ref.setState({ message: 'something' });
+      equal(this.fixture.innerHTML, 'default');
+      ok(wasCalled);
+      equal(counter, 1);
+    });
+
+    it('can map to componentWillReceiveProps', () => {
+      let wasCalled = false;
+      let counter = 0;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        constructor(props) {
+          counter++;
+          super(props);
+        }
+
+        componentWillReceiveProps() {
+          wasCalled = true;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="false" />`);
+
+      ok(wasCalled);
+      equal(counter, 1);
+    });
+
+    it('can map root changes to componentDidUpdate', () => {
+      let wasCalled = false;
+      let counter = 0;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        constructor(props) {
+          counter++;
+          super(props);
+        }
+
+        componentDidUpdate() {
+          wasCalled = true;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="false" />`);
+
+      ok(wasCalled);
+      equal(counter, 1);
+    });
+
+    it('can map state changes to componentDidUpdate', () => {
+      let wasCalled = false;
+      let counter = 0;
+      let ref = null;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+
+        constructor(props) {
+          counter++;
+          super(props);
+        }
+
+        componentDidUpdate() {
+          wasCalled = true;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} someProp="true" />`);
+      ref.forceUpdate();
+
+      ok(wasCalled);
+      equal(counter, 1);
     });
   });
 
@@ -193,13 +345,12 @@ describe('React Like Component', function() {
         customProperty: PropTypes.string.isRequired,
       };
 
-      const domNode = document.createElement('div');
       const oldConsoleError = console.error;
 
       let logCalled = false;
       console.error = () => logCalled = true;
 
-      innerHTML(domNode, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
       console.error = oldConsoleError;
       ok(logCalled);
     });
@@ -217,11 +368,21 @@ describe('React Like Component', function() {
         customProperty: PropTypes.string.isRequired,
       };
 
-      const domNode = document.createElement('div');
-
-      doesNotThrow(() => innerHTML(domNode, html`<${CustomComponent} />`));
+      doesNotThrow(() => innerHTML(this.fixture, html`<${CustomComponent} />`));
     });
 
+    it('can interpolate an object', () => {
+      class CustomComponent extends Component {
+        render(props) {
+          return html`<div ${props} />`;
+        }
+      }
+
+      const props = { a: true };
+      const vTree = html`<${CustomComponent} ${props} />`;
+
+      equal(vTree.attributes.a, true);
+    });
   });
 
   describe('Refs', () => {
@@ -234,9 +395,7 @@ describe('React Like Component', function() {
         }
       }
 
-      const domNode = document.createElement('div');
-
-      innerHTML(domNode, html`<${CustomComponent}
+      innerHTML(this.fixture, html`<${CustomComponent}
         ref=${node => (refNode = node)}
       />`);
 
@@ -254,10 +413,9 @@ describe('React Like Component', function() {
         }
       }
 
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
       ok(refNode);
-      equal(domNode.nodeName, 'DIV');
+      equal(this.fixture.nodeName, 'DIV');
     });
   });
 
@@ -276,8 +434,7 @@ describe('React Like Component', function() {
         }
       }
 
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
       equal(typeof state, 'object');
     });
 
@@ -294,9 +451,8 @@ describe('React Like Component', function() {
         }
       }
 
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} />`);
-      equal(domNode.innerHTML, 'default');
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      equal(this.fixture.innerHTML, 'default');
     });
 
     it('can call setState to re-render the component', () => {
@@ -313,14 +469,13 @@ describe('React Like Component', function() {
       }
 
       let ref = null;
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} ref=${node => (ref = node)} />`);
 
-      equal(domNode.innerHTML, 'default');
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+
+      equal(this.fixture.innerHTML, 'default');
       ref.setState({ message: 'something' });
-      equal(domNode.innerHTML, 'something');
+      equal(this.fixture.innerHTML, 'something');
     });
-
   });
 
   describe('forceUpdate', () => {
@@ -338,17 +493,17 @@ describe('React Like Component', function() {
       }
 
       let ref = null;
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${CustomComponent} ref=${node => (ref = node)} />`);
 
-      equal(domNode.innerHTML, 'default');
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+
+      equal(this.fixture.innerHTML, 'default');
       ref.state.message = 'something';
       ref.forceUpdate();
-      equal(domNode.innerHTML, 'something');
+      equal(this.fixture.innerHTML, 'something');
     });
   });
 
-  describe('Context', () => {
+  describe.skip('Context', () => {
     it('can inherit context from a parent component', () => {
       class ChildComponent extends Component {
         render() {
@@ -368,14 +523,13 @@ describe('React Like Component', function() {
         }
       }
 
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${ParentComponent} />`);
+      innerHTML(this.fixture, html`<${ParentComponent} />`);
 
-      equal(domNode.innerHTML, 'From Context');
+      equal(this.fixture.innerHTML, 'From Context');
     });
   });
 
-  describe('HOC', () => {
+  describe.skip('HOC', () => {
     it('can support a component that returns a new component', () => {
       let didMount = 0;
 
@@ -396,11 +550,10 @@ describe('React Like Component', function() {
       };
 
       const WrappedComponent = HOC(CustomComponent);
-      const domNode = document.createElement('div');
-      innerHTML(domNode, html`<${WrappedComponent} />`);
+      innerHTML(this.fixture, html`<${WrappedComponent} />`);
 
       equal(didMount, 1);
-      equal(domNode.innerHTML, '<span>Hello world</span>');
+      equal(this.fixture.innerHTML, '<span>Hello world</span>');
     });
 
   });

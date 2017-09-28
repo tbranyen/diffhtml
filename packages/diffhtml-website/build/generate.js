@@ -14,26 +14,33 @@ function generate() {
   const config = require('../config.json');
   const pages = flattenPages(config.pages);
 
-  const public = path => join(__dirname, '../', config.output_dir, path);
-  const content = path => join(__dirname, '../pages', path);
+  const toPublic = path => join(__dirname, '../', config.output_dir, path);
+  const toPages = path => join(__dirname, '../pages', path);
 
   keys(config.pages).forEach(name => {
     const [ path ] = config.pages[name];
 
-    console.log(`Rendering page ${public(path)}`);
-
     // Look for markdown content to inject.
     let markup = '';
 
-    const mdPath = content(path.replace('.html', '.md'));
+    const mdPath = toPages(path.replace('.html', '.md'));
 
     if (existsSync(mdPath)) {
       markup = marked(String(readFileSync(mdPath)));
     }
 
-    writeFileSync(public(path), renderToString(html`
+    const contents = renderToString(html`
       <${Layout} path=${path} pages=${pages} content=${html(markup)} />
-    `));
+    `);
+
+    const publicPath = toPublic(path);
+    const existingContents = String(readFileSync(publicPath));
+
+    // Only write out if the contents have changed.
+    if (contents !== existingContents) {
+      console.log(`${toPublic(path)} changed, writing to disk`);
+      writeFileSync(publicPath, contents);
+    }
   });
 }
 

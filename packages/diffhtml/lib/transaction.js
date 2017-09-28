@@ -1,5 +1,5 @@
 import { StateCache, MiddlewareCache } from './util/caches';
-import { cleanMemory } from './util/memory';
+import { cleanMemory, protectVTree } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
 import schedule from './tasks/schedule';
@@ -20,34 +20,6 @@ export const tasks = {
 export default class Transaction {
   static create(domNode, markup, options) {
     return new Transaction(domNode, markup, options);
-  }
-
-  static renderNext(state) {
-    if (!state.nextTransaction) {
-      return;
-    }
-
-    // Create the next transaction.
-    const { nextTransaction, nextTransaction: { promises } } = state;
-    const resolver = promises && promises[0];
-
-    state.nextTransaction = undefined;
-    nextTransaction.aborted = false;
-
-    // Remove the last task, this has already been executed (via abort).
-    nextTransaction.tasks.pop();
-
-    // Reflow this transaction.
-    Transaction.flow(nextTransaction, nextTransaction.tasks);
-
-    // Wait for the promises to complete if they exist, otherwise resolve
-    // immediately.
-    if (promises && promises.length > 1) {
-      Promise.all(promises.slice(1)).then(() => resolver.resolve());
-    }
-    else if (resolver) {
-      resolver.resolve();
-    }
   }
 
   static flow(transaction, tasks) {
@@ -150,14 +122,16 @@ export default class Transaction {
   // end psuedo-synchronously. Think `Promise.resolve()`, `callback()`, and
   // `return someValue` to provide the most accurate performance reading. This
   // doesn't matter practically besides that.
-  abort() {
+  abort(isReturn) {
     const { state } = this;
 
     this.aborted = true;
 
     // Grab the last task in the flow and return, this task will be responsible
     // for calling `transaction.end`.
-    return this.tasks[this.tasks.length - 1](this);
+    if (isReturn) {
+      return this.tasks[this.tasks.length - 1](this);
+    }
   }
 
   end() {
@@ -187,9 +161,6 @@ export default class Transaction {
     // another transaction is running concurrently this will be delayed until
     // the last render completes.
     cleanMemory();
-
-    // Try and render the next transaction if one has been saved.
-    Transaction.renderNext(state);
 
     return this;
   }

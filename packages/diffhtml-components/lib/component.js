@@ -1,52 +1,86 @@
 import process from './util/process';
-import PropTypes from 'prop-types';
-import { use, innerHTML, outerHTML, Internals } from 'diffhtml';
-import reactLikeComponentTask from './tasks/react-like-component';
+import PropTypes from './util/prop-types';
+import { use, outerHTML, createTree, release, Internals } from 'diffhtml';
 import upgradeSharedClass from './shared/upgrade-shared-class';
-import {
-  ChildParentCache,
-  ComponentTreeCache,
-  InstanceCache,
-} from './util/caches';
-import getContext from './util/get-context';
-import { $$render } from './util/symbols';
+import { ComponentTreeCache } from './util/caches';
+import { $$render, $$vTree } from './util/symbols';
 
-const { createNode, NodeCache } = Internals;
+const { NodeCache, createNode, syncTree } = Internals;
 const { keys, assign } = Object;
-
-// Registers a custom middleware to help map the diffHTML render lifecycle
-// internals to React. This currently isn't necessary for the Web Component
-// implementation since they inherently provide lifecycle hooks.
-const root = (typeof global !== 'undefined' ? global : window)
-
-// Allow tests to unbind this task, you would not typically need to do this
-// in a web application, as this code loads once and is not reloaded.
-let unsubscribe = null;
+const FRAGMENT = '#document-fragment';
 
 class Component {
-  static subscribeMiddleware() {
-    unsubscribe = use(reactLikeComponentTask);
-  }
-
-  static unsubscribeMiddleware() {
-    unsubscribe();
-
-    ChildParentCache.clear();
-    ComponentTreeCache.clear();
-    InstanceCache.clear();
-  }
+  [$$vTree] = null;
 
   [$$render]() {
-    const vTree = ComponentTreeCache.get(this);
-    const domNode = createNode(vTree);
-    const renderTree = this.render();
+    const vTree = this[$$vTree];
+    let renderTree = this.render();
 
-    const prevProps = this.props;
-    const prevState = this.state;
-
-    outerHTML(domNode, renderTree).then(() => {
-      this.componentDidUpdate(prevProps, prevState);
+    // Find all previous nodes rendered by this component.
+    const childNodes = [...ComponentTreeCache.keys()].filter(key => {
+      if (ComponentTreeCache.get(key) === vTree) {
+        return true;
+      }
     });
+
+    // By default assume a single top/root-level element, if there are multiple
+    // elements returned at the root-level, then we'll do a diff and replace
+    // a fragment from this root point.
+    const domNode = NodeCache.get(childNodes[0]);
+
+    // If there is no DOM Node association then error out.
+    if (process.env.NODE_ENV !== 'production') {
+      if (!domNode) {
+        throw new Error('Missing DOM Node association to this component');
+      }
+
+      // Throw an error if we are not connected, cannot use stateful components
+      // if they are rendered shallow.
+      if (!domNode.parentNode) {
+        throw new Error('Cannot use stateful features when rendered shallow');
+      }
+    }
+
+    // Need to handle multiple top-level rendered elements special, this
+    // requires creating two containers, one for the old children and one for
+    // the new children.
+    if (childNodes.length > 1) {
+      childNodes.forEach(key => ComponentTreeCache.delete(key));
+
+      // Create a placeholder to mark where the elements were as we rip them
+      // from the connected DOM and into a fragment to work on.
+      const placeholder = document.createComment('');
+
+      // Replace one of the original references with the placeholder, so that
+      // when elements are taken out of the page (with a fragment below) we'll
+      // know where to put the new elements.
+      domNode.parentNode.replaceChild(placeholder, domNode);
+
+      // Pull the previously rendered DOM nodes out of the page and into a
+      // container fragment for diffing.
+      const fragment = createNode({ nodeName: FRAGMENT, childNodes });
+
+      // Ensure a fragment is always used.
+      if (renderTree.nodeType !== 11) {
+        renderTree = createTree(FRAGMENT, null, renderTree);
+      }
+
+      // Diff the fragments together.
+      outerHTML(fragment, renderTree);
+
+      // Remap the new elements into the system.
+      [].slice.apply(fragment.childNodes).forEach(childNode => {
+        ComponentTreeCache.set(createTree(childNode), vTree);
+      });
+
+      // Replace the fragments back in.
+      placeholder.parentNode.replaceChild(fragment, placeholder);
+    }
+    else {
+      outerHTML(domNode, renderTree);
+    }
+
+    this.componentDidUpdate();
   }
 
   constructor(initialProps, initialContext) {
@@ -56,7 +90,9 @@ class Component {
     const state = this.state = {};
     const context = this.context = assign({}, initialContext);
 
-    this.refs = props.refs;
+    if (props.refs) {
+      this.refs = props.refs;
+    }
 
     const {
       defaultProps = {},
@@ -75,16 +111,13 @@ class Component {
     });
 
     if (process.env.NODE_ENV !== 'production') {
-      if (PropTypes.checkPropTypes) {
+      if (PropTypes && PropTypes.checkPropTypes) {
         PropTypes.checkPropTypes(propTypes, props, 'prop', name);
         PropTypes.checkPropTypes(contextTypes, context, 'context', name);
       }
     }
   }
 }
-
-// Automatically subscribe the React Component middleware.
-Component.subscribeMiddleware();
 
 // Wrap this base class with shared methods.
 export default upgradeSharedClass(Component);

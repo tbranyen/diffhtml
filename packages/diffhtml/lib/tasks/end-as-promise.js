@@ -8,11 +8,10 @@ export default function endAsPromise(transaction) {
   // if they are actually Promises or not, since they will all resolve
   // eventually with `Promise.all`.
   if (promises.length) {
-    return Promise.all(promises).then(() => transaction.end());
+    return transaction.promise = Promise.all(promises).then(() => transaction.end());
   }
-  else {
-    // Pass off the remaining middleware to allow users to dive into the
-    // transaction completed lifecycle event.
-    return Promise.resolve(transaction.end());
-  }
+
+  // Pass off the remaining middleware to allow users to dive into the
+  // transaction completed lifecycle event.
+  return transaction.promise = Promise.resolve(transaction.end());
 }

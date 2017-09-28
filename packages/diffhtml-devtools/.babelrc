@@ -1,0 +1,8 @@
+{
+  "plugins": [
+    "add-module-exports",
+    "transform-es2015-modules-commonjs",
+    "transform-class-properties",
+    "transform-es2015-arrow-functions"
+  ]
+}

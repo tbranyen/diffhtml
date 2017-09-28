@@ -14,3 +14,4 @@ export const MiddlewareCache = new Set();
 MiddlewareCache.CreateTreeHookCache = new Set();
 MiddlewareCache.CreateNodeHookCache = new Set();
 MiddlewareCache.SyncTreeHookCache = new Set();
+MiddlewareCache.ReleaseHookCache = new Set();

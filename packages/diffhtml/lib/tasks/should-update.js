@@ -7,7 +7,7 @@ export default function shouldUpdate(transaction) {
   // the new markup is a string, otherwise it's possible for our object
   // recycling to match twice.
   if (typeof markup === 'string' && state.markup === markup) {
-    return transaction.abort();
+    return transaction.abort(true);
   }
   else if (typeof markup === 'string') {
     state.markup = markup;

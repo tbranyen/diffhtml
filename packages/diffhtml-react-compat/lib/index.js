@@ -9,7 +9,7 @@ import {
   release,
   Internals,
 } from 'diffhtml';
-import Component from 'diffhtml-components/lib/component';
+import { Component } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 import Children from './children';
 import PureComponent from './pure-component';

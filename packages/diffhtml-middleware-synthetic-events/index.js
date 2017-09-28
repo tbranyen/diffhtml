@@ -1,6 +1,6 @@
 import { Internals } from 'diffhtml';
 
-const { NodeCache } = Internals;
+const { NodeCache, createNode } = Internals;
 
 const useCapture = [
   'onload', 'onunload', 'onscroll', 'onfocus', 'onblur', 'onloadstart',
@@ -122,7 +122,7 @@ const syntheticEvents = (options = {}) => {
           const name = SET_ATTRIBUTE[i + 1];
           const value = SET_ATTRIBUTE[i + 2];
 
-          const domNode = NodeCache.get(vTree);
+          const domNode = createNode(vTree);
           const eventName = name.toLowerCase();
 
           // Remove inline event binding from element and add to handlers.

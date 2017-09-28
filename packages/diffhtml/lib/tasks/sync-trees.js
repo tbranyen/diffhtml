@@ -12,6 +12,12 @@ export default function syncTrees(transaction) {
   // Ignore this for document fragments, they don't appear in the DOM and we
   // treat them as transparent containers.
   if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
+    // If there is no `parentNode` for the replace operation, we will need to
+    // throw an error and prevent the `StateCache` from being updated.
+    if (!domNode.parentNode) {
+      throw new Error('Unable to replace top level node without a parent');
+    }
+
     transaction.patches = {
       TREE_OPS: [{ REPLACE_CHILD: [newTree, oldTree] }],
       SET_ATTRIBUTE: [],
@@ -24,6 +30,7 @@ export default function syncTrees(transaction) {
     protectVTree(transaction.oldTree);
 
     // Update the StateCache since we are changing the top level element.
+    StateCache.delete(domNode);
     StateCache.set(createNode(newTree), transaction.state);
   }
   // Otherwise only diff the children.

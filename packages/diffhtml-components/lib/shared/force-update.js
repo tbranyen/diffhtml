@@ -1,8 +1,5 @@
 import { $$render } from '../util/symbols';
 
-const Debounce = new WeakMap();
-const { assign } = Object;
-
-export default function forceUpdate() {
+export default function forceUpdate(state) {
   this[$$render]();
 }
