@@ -110,6 +110,15 @@ level or any specific nested package level.
   recursively search for inconsistencies, displays warnings unless debugging is
   enabled, then it throws errors instead.
 
+* [diffhtml-middleware-service-worker](/packages/diffhtml-middleware-service-worker)
+
+  ``` sh
+  npm install diffhtml-middleware-service-worker
+  ```
+
+  Helps with the creation of a service worker for PWAs, available as a
+  convenience to make development more friendlier.
+
 * [diffhtml-react-compat](/packages/diffhtml-react-compat)
 
   ```
@@ -129,6 +138,12 @@ level or any specific nested package level.
 
   A work-in-progress static HTML server that automatically reloads your markup
   as you save using Web Sockets.
+
+* [diffhtml-devtools](/packages/diffhtml-devtools)
+
+  A work-in-progress set of developer tools that logs out transactions.
+  Eventually will allow for subscription/unsubscription of middleware, charting
+  for the overall application health, and more.
 
 * [diffhtml-website](/packages/diffhtml-website)
 
