@@ -20,7 +20,7 @@ npm install diffhtml-middleware-logger
 import { use } from 'diffhtml';
 import logger from 'diffhtml-middleware-logger';
 
-diff.use(logger());
+use(logger());
 ```
 
 This is not a very performant middleware, so please do not use this in
