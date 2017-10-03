@@ -7,6 +7,8 @@ const ObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
 const ClassProperties = require('babel-plugin-transform-class-properties');
 const ModulesCommonJS = require('babel-plugin-transform-es2015-modules-commonjs');
 const AddModuleExports = require('babel-plugin-add-module-exports');
+const TransformClasses = require('babel-plugin-transform-es2015-classes');
+const TransformElementClasses = require('babel-plugin-transform-custom-element-classes');
 
 const esmFunc = join(__dirname, 'utils/replace-esm.js');
 const cjsFunc = join(__dirname, 'utils/replace-cjs.js');
@@ -45,6 +47,8 @@ if (NODE_ENV === 'esm') {
     [ModuleRewrite, { replaceFunc: esmFunc }],
     ObjectRestSpread,
     ClassProperties,
+    TransformElementClasses,
+    TransformClasses,
   ];
 }
 
