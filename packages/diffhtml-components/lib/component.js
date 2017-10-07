@@ -80,7 +80,7 @@ class Component {
       outerHTML(domNode, renderTree);
     }
 
-    this.componentDidUpdate();
+    this.componentDidUpdate(this.props, this.state);
   }
 
   constructor(initialProps, initialContext) {

@@ -36,6 +36,7 @@ class DevtoolsTransactionRow extends WebComponent {
 
     const {
       domNode = '',
+      markup = {},
       aborted = false,
       promises = [],
       patches = {
@@ -73,22 +74,36 @@ class DevtoolsTransactionRow extends WebComponent {
       </td>
 
       <td class="center aligned">
-        ${fps && (
-          fps === Infinity && '&infin;' ||
-          fps >= 60 && '>=60' ||
-          fps.toFixed(1)
-        )}
+        <span>
+          ${fps && (
+            fps === Infinity && '&infin;' ||
+            fps >= 60 && '>=60' ||
+            fps.toFixed(1)
+          )}
+        </span>
       </td>
 
       <td class="center aligned">
-        ${aborted ? 'Aborted' : (
-          stateName === 'completed' ? 'Completed' : 'In Progress'
-        )}
+        <span>${new Date().toLocaleTimeString()}</span>
+      </td>
+
+      <td class="center aligned">
+        <span>
+          ${aborted ? 'Aborted' : (
+            stateName === 'completed' ? 'Completed' : 'In Progress'
+          )}
+        </span>
       </td>
 
       <td class="center aligned" onclick=${this.inspectNode}>
         <div class="node">
           &lt;${domNode} /&gt;
+        </div>
+      </td>
+
+      <td class="center aligned" onclick=${this.inspectNode}>
+        <div class="node">
+          &lt;${markup.rawNodeName} /&gt;
         </div>
       </td>
 
@@ -141,11 +156,6 @@ class DevtoolsTransactionRow extends WebComponent {
         user-select: none;
       }
 
-      :host(:hover) td {
-        background-color: #f3f3f3;
-        cursor: pointer;
-      }
-
       .transaction-row {
         padding-left: 20px;
         height: 46px;
@@ -180,14 +190,32 @@ class DevtoolsTransactionRow extends WebComponent {
         text-align: center;
       }
 
-      td { padding: 10px; text-align: center; }
-      td:hover { background-color: #E4E4E4 !important; }
-      td.red:hover { background-color: #F1B1B1 !important; }
-      td.red:hover a { color: #772E2E !important; }
-      td.yellow:hover { background-color: #FFEBA0 !important; }
-      td.yellow:hover a { color: #EF7C11 !important; }
-      td.green:hover { background-color: #A5DEA5 !important; }
-      td.green:hover a { color: #009407 !important; }
+      td {
+        padding: 10px;
+        text-align: center;
+      }
+
+      td > * {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        width: 100%;
+        display: inline-block;
+      }
+
+      td:nth-of-type(1) { width: 40px; }
+      td:nth-of-type(2) { width: 80px; }
+
+      :host(:hover) td {
+        background-color: #FFF4D3;
+        color: #333;
+        cursor: pointer;
+      }
+      :host(:hover) td.red { background-color: #F1B1B1 !important; }
+      :host(:hover) td.red a { color: #772E2E !important; }
+      :host(:hover) td.yellow { background-color: #FFEBA0 !important; }
+      :host(:hover) td.yellow a { color: #EF7C11 !important; }
+      :host(:hover) td.green { background-color: #b8efc5 !important; }
 
       .red { background-color: #F1B1B1; }
       .red a { color: #772E2E; }

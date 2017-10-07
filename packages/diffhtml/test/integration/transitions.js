@@ -20,7 +20,7 @@ describe('Integration: Transitions', function() {
     it('will throw when missing the required name argument', () => {
       throws(() => {
         diff.addTransitionState();
-      }, /Invalid state name/);
+      }, /Invalid state name 'undefined'/);
     });
 
     it('will throw when missing the required callback argument', () => {

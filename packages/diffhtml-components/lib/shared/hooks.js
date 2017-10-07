@@ -1,4 +1,4 @@
-import { InstanceCache, ComponentTreeCache } from '../util/caches';
+import { ComponentTreeCache } from '../util/caches';
 import componentWillUnmount from './lifecycle/component-will-unmount';
 import renderComponent from './render-component';
 import getContext from './get-context';

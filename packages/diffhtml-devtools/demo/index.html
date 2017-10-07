@@ -9,10 +9,16 @@
 
 <body>
   <main></main>
+  <footer></footer>
 
   <script src="../node_modules/diffhtml/dist/diffhtml.js"></script>
+  <script src="../../diffhtml-middleware-inline-transitions/dist/inline-transitions.js"></script>
+  <script src="../../diffhtml-middleware-logger/dist/logger.js"></script>
   <script>
-    const { html, innerHTML } = diff;
+    const { use, html, innerHTML } = diff;
+
+    use(inlineTransitions());
+    use(logger());
 
     const animate = (el, ...args) => new Promise(resolve => el.animate(
       ...args
@@ -24,13 +30,23 @@
 
     const render = () => {
       innerHTML(document.querySelector('main'), html`
-        <div attached=${attached}>${new Date().toLocaleString()}</div>
+        <div ontextchanged=${attached}>
+          <span>Current date: </span>
+          <span>${new Date().toLocaleString()}</span>
+
+          <p>
+            <button onClick=${render}>Re-render</button>
+          </p>
+        </div>
       `)
+
+      innerHTML(document.querySelector('footer'), html`
+        Testing out footer
+      `);
 
       return render;
     };
 
-    setInterval(render(), 1000);
     render();
   </script>
 </body>

@@ -29,13 +29,15 @@ const api = {
   html,
 };
 
+const { assign } = Object;
+
 // This is an internal API exported purely for middleware and extensions to
 // leverage internal APIs that are not part of the public API. There are no
 // promises that this will not break in the future. We will attempt to minimize
 // changes and will supply fallbacks when APIs change.
 //
 // Note: The HTML parser is only available in this mode.
-const Internals = Object.assign(internals, api, {
+const Internals = assign(internals, api, {
   parse,
   defaultTasks,
   tasks,
@@ -49,7 +51,7 @@ api.Internals = Internals;
 // Automatically hook up to DevTools if they are present.
 if (typeof devTools !== 'undefined') {
   use(devTools(Internals));
-  console.warn('diffHTML: DevTools Found and Activated...');
+  console.warn('diffHTML DevTools: Found and Activated...');
 }
 
 export {

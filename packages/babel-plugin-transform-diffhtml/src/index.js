@@ -108,6 +108,7 @@ export default function({ types: t }) {
   const visitor = {
     TaggedTemplateExpression(path, plugin) {
       let tagName = '';
+      let strict = false;
 
       if (path.node.tag.type === 'Identifier') {
         tagName = path.node.tag.name
@@ -116,7 +117,13 @@ export default function({ types: t }) {
         tagName = memberExpressionToString(path.node.tag);
       }
 
-      if (tagName !== (plugin.opts.tagName || 'html')) { return; }
+      if (tagName.indexOf((plugin.opts.tagName || 'html')) !== 0) {
+        return;
+      }
+
+      if (tagName === `${plugin.opts.tagName || 'html'}.strict`) {
+        strict = true;
+      }
 
       const middleware = (plugin.opts.use || []).map(name => {
         try {
@@ -216,7 +223,7 @@ export default function({ types: t }) {
         }
       });
 
-      const root = parse(HTML, null, { strict: false }).childNodes;
+      const root = parse(HTML, null, { strict }).childNodes;
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');
 
@@ -331,10 +338,14 @@ export default function({ types: t }) {
                   t.stringLiteral('#text'),
                   t.nullLiteral(),
                   nodeValue,
-                ])
+                ]),
               });
 
-              args.replacement = id;
+              args.replacement = t.callExpression(createTree, [
+                t.stringLiteral('#text'),
+                t.nullLiteral(),
+                nodeValue,
+              ]);
             }
           }
 

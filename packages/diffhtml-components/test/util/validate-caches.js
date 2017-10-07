@@ -25,6 +25,7 @@ const {
 function validateCore() {
   cleanMemory();
 
+  console.log('protected',memory.protected);
   assert.equal(memory.protected.size, 0,
     'Should not leave leftover protected elements in memory');
 

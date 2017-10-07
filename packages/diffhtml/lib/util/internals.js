@@ -6,7 +6,9 @@ import * as memory from './memory';
 import Pool from './pool';
 import process from './process';
 
-export default Object.assign({
+const { assign } = Object;
+
+export default assign({
   decodeEntities,
   escape,
   makeMeasure,

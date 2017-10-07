@@ -7,6 +7,7 @@ import escape from '../util/escape';
 
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 const blacklist = new Set();
+const whitelist = new Set();
 
 const removeAttribute = (domNode, name) => {
   domNode.removeAttribute(name);
@@ -14,9 +15,13 @@ const removeAttribute = (domNode, name) => {
   // Runtime checking if the property can be set.
   const blacklistName = domNode.nodeName + '-' + name;
 
-  if (!blacklist.has(blacklistName)) {
+  if (whitelist.has(blacklistName)) {
+    domNode[name] = undefined;
+  }
+  else if (!blacklist.has(blacklistName)) {
     try {
       domNode[name] = undefined;
+      whitelist.add(blacklistName);
     } catch (unhandledException) {
       blacklist.add(blacklistName);
     }
@@ -56,11 +61,13 @@ export default function patchNode(patches, state = {}) {
       if (!isObject && !isFunction && name) {
         const noValue = value === null || value === undefined;
 
-        // If the property has not been blacklisted then use try/catch to try
-        // and set it.
-        if (!blacklist.has(blacklistName)) {
+        if (whitelist.has(blacklistName)) {
+          domNode[name] = value;
+        }
+        else if (!blacklist.has(blacklistName)) {
           try {
             domNode[name] = value;
+            whitelist.add(blacklistName);
           } catch (unhandledException) {
             blacklist.add(blacklistName);
           }
@@ -80,32 +87,13 @@ export default function patchNode(patches, state = {}) {
       }
       else if (typeof value !== 'string') {
         // Since this is a property value it gets set directly on the node.
-        if (!blacklist.has(blacklistName)) {
+        if (whitelist.has(blacklistName)) {
+          domNode[name] = value;
+        }
+        else if (!blacklist.has(blacklistName)) {
           try {
             domNode[name] = value;
-          } catch (unhandledException) {
-            blacklist.add(blacklistName);
-          }
-        }
-
-        // We remove and re-add the attribute to trigger a change in a web
-        // component or mutation observer. Although you could use a setter or
-        // proxy, this is more natural.
-        if (domNode.hasAttribute(name) && domNode[name] !== value) {
-          removeAttribute(domNode, name);
-        }
-
-        // Necessary to track the attribute/prop existence.
-        domNode.setAttribute(name, '');
-
-        // FIXME This is really unfortunate, but after trigger a change via
-        // attr, we need to reset the actual value in the instance for things
-        // like event handlers. In the future it would be great to limit this
-        // to actual attr -> prop keys. Custom attributes do not suffer from
-        // this problem as they are not translated.
-        if (!blacklist.has(blacklistName)) {
-          try {
-            domNode[name] = value;
+            whitelist.add(blacklistName);
           } catch (unhandledException) {
             blacklist.add(blacklistName);
           }

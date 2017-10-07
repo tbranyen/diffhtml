@@ -2,6 +2,14 @@ import { Internals, release } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../../util/caches';
 import { releaseHook } from '../hooks';
 
+const hasVTree = (matchTree, vTree) => {
+  if (matchTree === vTree) {
+    return true;
+  }
+
+  vTree.childNodes.forEach(hasVTree.bind(null, matchTree));
+};
+
 export default vTree => {
   const { NodeCache } = Internals;
   const root = typeof window !== 'undefined' ? window : global;
@@ -10,9 +18,13 @@ export default vTree => {
   const componentTree = ComponentTreeCache.get(vTree);
   const instance = InstanceCache.get(componentTree);
 
+  if (vTree.attributes.ref) {
+    vTree.attributes.ref(null);
+  }
+
   if (instance) {
-    [...ComponentTreeCache.keys()].filter(key => {
-      if (NodeCache.has(key)) {
+    [...ComponentTreeCache.keys()].forEach(key => {
+      if (NodeCache.has(key) && hasVTree(vTree, key)) {
         release(NodeCache.get(key));
       }
     });
@@ -24,11 +36,15 @@ export default vTree => {
     instance.componentWillUnmount();
   }
 
-  // Clean up after Web Components.
+  // Clean up Shadow DOM.
   if (Constructor && NodeCache.has(vTree)) {
     release(NodeCache.get(vTree).shadowRoot);
-    release(NodeCache.get(vTree));
   }
+
+  // FIXME We release memory based on the DOM Node. This call is failing
+  // because when the component renders we are setting a new renderTree to
+  // associate
+  release(NodeCache.get(vTree));
 
   ComponentTreeCache.delete(vTree);
   InstanceCache.delete(componentTree);

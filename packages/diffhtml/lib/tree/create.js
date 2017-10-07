@@ -2,7 +2,6 @@ import { NodeCache, MiddlewareCache } from '../util/caches';
 import Pool from '../util/pool';
 
 const { CreateTreeHookCache } = MiddlewareCache;
-const { assign } = Object;
 const { isArray } = Array;
 const fragmentName = '#document-fragment';
 
@@ -133,10 +132,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   if (nodes && nodeArray.length) {
     for (let i = 0; i < nodeArray.length; i++) {
       const newNode = nodeArray[i];
-      const isArray = Array.isArray(newNode);
+      const isNodeArray = isArray(newNode);
 
       // Merge in arrays.
-      if (isArray) {
+      if (isNodeArray) {
         for (let i = 0; i < newNode.length; i++) {
           entry.childNodes.push(newNode[i]);
         }

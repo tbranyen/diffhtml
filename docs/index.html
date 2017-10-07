@@ -5,29 +5,41 @@
       <title>diffHTML: The easy-to-use HTML Virtual DOM built for the web!</title>
       <link rel="stylesheet" href="./index.css"></link>
     </head><body>
+      <div class="open-menu">≡</div>
       <layer id="navigation">
-        <div class="open-menu">≡</div>
+
+        <p class="social">
+          <a class="github" href="https://github.com/tbranyen/diffhtml">
+            <i class="fa fa-github"></i>
+          </a>
+          <a class="stackoverflow" href="https://stackoverflow.com/search?q=diffhtml+javascript">
+            <i class="fa fa-stack-overflow"></i>
+          </a>
+          <a class="twitter" href="https://twitter.com/diffhtml">
+            <i class="fa fa-twitter"></i>
+          </a>
+          <a class="reddit" href="https://reddit.com/r/diffhtml">
+            <i class="fa fa-reddit"></i>
+          </a>
+        </p>
+
         <ul>
     
-      <a href="index.html"><li class="header"><h4>Getting Started</h4></li></a>
+      <a href="index.html"><li class="header"><h4>General</h4></li></a>
 
       
     
       
 
-      <a href="index.html#screencast"><li>Screencast</li></a>
+      <a href="index.html#core-features" target><li>Core Features</li></a>
     
       
 
-      <a href="index.html#about"><li>About</li></a>
+      <a href="index.html#installing-importing" target><li>Installing &#38; Importing</li></a>
     
       
 
-      <a href="index.html#installing"><li>Installing</li></a>
-    
-      
-
-      <a href="index.html#accessing-the-api"><li>Accessing the API</li></a>
+      <a href="index.html#babel-transform" target><li>Babel Transform</li></a>
     
       <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
@@ -35,35 +47,35 @@
     
       
 
-      <a href="api.html#inner-html"><li>innerHTML</li></a>
+      <a href="api.html#inner-html" target><li>innerHTML</li></a>
     
       
 
-      <a href="api.html#outer-html"><li>outerHTML</li></a>
+      <a href="api.html#outer-html" target><li>outerHTML</li></a>
     
       
 
-      <a href="api.html#html"><li>html</li></a>
+      <a href="api.html#html" target><li>html</li></a>
     
       
 
-      <a href="api.html#use"><li>use</li></a>
+      <a href="api.html#use" target><li>use</li></a>
     
       
 
-      <a href="api.html#add-transition-state"><li>addTransitionState</li></a>
+      <a href="api.html#add-transition-state" target><li>addTransitionState</li></a>
     
       
 
-      <a href="api.html#remove-transition-state"><li>removeTransitionState</li></a>
+      <a href="api.html#remove-transition-state" target><li>removeTransitionState</li></a>
     
       
 
-      <a href="api.html#create-tree"><li>createTree</li></a>
+      <a href="api.html#create-tree" target><li>createTree</li></a>
     
       
 
-      <a href="api.html#release"><li>release</li></a>
+      <a href="api.html#release" target><li>release</li></a>
     
       <a href="transitions.html"><li class="header"><h4>Transitions</h4></li></a>
 
@@ -71,47 +83,23 @@
     
       
 
-      <a href="transitions.html#attached"><li>attached</li></a>
+      <a href="transitions.html#attached" target><li>attached</li></a>
     
       
 
-      <a href="transitions.html#detached"><li>detached</li></a>
+      <a href="transitions.html#detached" target><li>detached</li></a>
     
       
 
-      <a href="transitions.html#replaced"><li>replaced</li></a>
+      <a href="transitions.html#replaced" target><li>replaced</li></a>
     
       
 
-      <a href="transitions.html#attributeChanged"><li>attributedChanged</li></a>
+      <a href="transitions.html#attributeChanged" target><li>attributedChanged</li></a>
     
       
 
-      <a href="transitions.html#textChanged"><li>textChanged</li></a>
-    
-      <a href="components.html"><li class="header"><h4>Components</h4></li></a>
-
-      
-    
-      
-
-      <a href="components.html#overview"><li>Overview</li></a>
-    
-      
-
-      <a href="components.html#component"><li>Component</li></a>
-    
-      
-
-      <a href="components.html#web-component"><li>Web Component</li></a>
-    
-      
-
-      <a href="components.html#jsx"><li>JSX</li></a>
-    
-      
-
-      <a href="components.html#react"><li>React Compatibility</li></a>
+      <a href="transitions.html#textChanged" target><li>textChanged</li></a>
     
       <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
 
@@ -119,43 +107,71 @@
     
       
 
-      <a href="middleware.html#logging"><li>Logging</li></a>
+      <a href="middleware.html#logger" target><li>Logger</li></a>
     
       
 
-      <a href="middleware.html#inline-transitions"><li>Inline Transitions</li></a>
+      <a href="middleware.html#inline-transitions" target><li>Inline Transitions</li></a>
     
       
 
-      <a href="middleware.html#synthetic-events"><li>Synthetic Events</li></a>
+      <a href="middleware.html#synthetic-events" target><li>Synthetic Events</li></a>
     
       
 
-      <a href="middleware.html#verify-state"><li>Verify State</li></a>
-    
-      <a href="tools.html"><li class="header"><h4>Tools</h4></li></a>
-
-      
+      <a href="middleware.html#service-worker" target><li>Service Worker</li></a>
     
       
 
-      <a href="tools.html#babel-transform"><li>Babel Transform</li></a>
+      <a href="middleware.html#verify-state" target><li>Verify State</li></a>
     
-      
-
-      <a href="tools.html#static-sync"><li>Live Reload Server</li></a>
-    
-      
-
-      <a href="tools.html#render-to-string"><li>Render to String</li></a>
-    
-      <a href="examples.html"><li class="header"><h4>Examples</h4></li></a>
+      <a href="components.html"><li class="header"><h4>Components</h4></li></a>
 
       
     
       
 
-      <a href="examples.html#todomvc"><li>TodoMVC</li></a>
+      <a href="components.html#overview" target><li>Overview</li></a>
+    
+      
+
+      <a href="components.html#component" target><li>Component</li></a>
+    
+      
+
+      <a href="components.html#web-component" target><li>Web Component</li></a>
+    
+      
+
+      <a href="components.html#jsx" target><li>JSX</li></a>
+    
+      
+
+      <a href="components.html#react" target><li>React Compatibility</li></a>
+    
+      <a href="tools.html"><li class="header"><h4>Additional Packages</h4></li></a>
+
+      
+    
+      
+
+      <a href="tools.html#static-sync" target><li>Live Reload Server</li></a>
+    
+      
+
+      <a href="tools.html#render-to-string" target><li>Render to String</li></a>
+    
+      <a href="examples.html"><li class="header"><h4>Examples (Glitch)</h4></li></a>
+
+      
+    
+      
+
+      <a href="examples.html#todomvc" target><li>TodoMVC</li></a>
+    
+      
+
+      <a href="https://glitch.com/edit/#!/diffhtml-clock" target="blank"><li>Clock</li></a>
     
   </ul>
       </layer>
@@ -165,65 +181,114 @@
           <h1>
             <a href="/"><img width="120" src="/images/diffhtml-logo.png"></img></a>
             <div>
-              <p>diffHTML</p>
+              <p class="name">diffHTML</p><sub>v1.0.0</sub>
               <p>The easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
         </header>
 
-        <section id="content"><div class="hero">
-  <p class="social">
-    <a class="github" href="https://github.com/tbranyen/diffhtml">
-      <i class="fa fa-github"></i>
-    </a>
-    <a class="stackoverflow" href="https://stackoverflow.com/search?q=diffhtml+javascript">
-      <i class="fa fa-stack-overflow"></i>
-    </a>
-    <a class="twitter" href="https://twitter.com/diffhtml">
-      <i class="fa fa-twitter"></i>
-    </a>
-    <a class="reddit" href="https://reddit.com/r/diffhtml">
-      <i class="fa fa-reddit"></i>
-    </a>
-  </p>
-
-  <div class="video-container">
-
-  </div>
-  
-</div>
-
-<h1 id="getting-started">Getting started</h1>
-<h2 id="about">About</h2>
-<p>The diffHTML project is a collection of modules that all depend on or work with
-the
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml">diffhtml</a>
-module. This module provides functions to allow writing declarative
-HTML that gets diffed through a Virtual DOM and patched into the real DOM.</p>
-<p><strong>Turns:</strong></p>
-<pre><code class="lang-javascript">const div = document.createElement(&#39;div&#39;);
-
-div.innerHTML = &#39;Hello world&#39;;
-docuent.body.appendChild(div);
-div.textContent = &#39;Hello world!&#39;;
-</code></pre>
-<p><strong>Into:</strong></p>
-<pre><code class="lang-javascript">diff.innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);
-diff.innerHTML(document.body, &#39;&lt;div&gt;Hello world!&lt;/div&gt;&#39;);
-</code></pre>
-<p>Unlike React, the core engine of diffHTML was designed with the browser in mind
-first so includes the DOM rendering engine. This makes diffHTML suitable for
-web applications with a single package.</p>
-<p>The core of diffHTML is a powerful and easy-to-use virtual dom library that can
-help devs get from the basics to something like React. Being designed to be
-flexible and allow graceful. Use HTML or JSX, they both get normalized to the
-same DOM tree. You can diff plain HTML strings, or get fancy with a tagged
-template handler that will allow you to get React-like capabilities without
-needing a build step.</p>
-<h2 id="installing">Installing</h2>
-<p>We encourage brand new developers who want to try diffHTML to use our pre-made Glitch examples. This will let you mess with the API without having to download or configure anything.</p>
+        <section id="content"><p><strong>Welcome to diffHTML!</strong> An easy-to-use and powerful Virtual DOM library that
+was written to be extensionable, powerful, and very fast. Use this to build
+components, applications, games, and more.</p>
+<h2 id="core-features">Core Features</h2>
 <ul>
-<li><p>CDN (Recommended for Beginners):</p>
+<li><span class="list-icon fa fa-check"></span> ES Module support</li>
+<li><span class="list-icon fa fa-check"></span> Efficient Virtual DOM</li>
+<li><span class="list-icon fa fa-check"></span> Object pooling and memory management</li>
+<li><span class="list-icon fa fa-check"></span> Transitions</li>
+<li><span class="list-icon fa fa-check"></span> Middleware</li>
+</ul>
+<h2 id="installing-importing">Installing &amp; Importing</h2>
+<p>Depending on your use case you may have to install <strong>diffHTML</strong> from a registry
+using a package manager or you can reference it directly from a server.
+Depending on your use case you will use one or the other.</p>
+<h3 id="script-tag">Script tag</h3>
+<p>Using this method will bring in the global minified UMD file. This includes the
+parser so it will be larger than the runtime build weighing at around
+<strong>7.5kb</strong>. Access the API through the <code>window.diff</code> global.</p>
+<pre><code class="lang-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml.min.js&quot;&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  const { innerHTML } = window.diff;
+&lt;/script&gt;
+</code></pre>
+<p>If you use the Babel transform, you will be able to use the runtime instead.
+This converts <code>html</code> tagged template calls into <code>createTree</code> calls, which take
+in the Babel converted trees. This greatly reduces the bundle sizes. The base
+bundle size here is only <strong>5.7kb</strong> min+gzip!</p>
+<pre><code class="lang-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<h3 id="installing-into-node_modules">Installing into <code>node_modules</code></h3>
+<p>You have two options, the official npm client or the yarn alternative.</p>
+<ul>
+<li><svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
+  <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
+  <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
+</svg>
+
+<p>The official package client that ships with Node, can install </p>
+<pre><code class="lang-sh">npm install --save diffhtml
+</code></pre>
+</li>
+<li><p><img width="60" src="images/yarn-logo.svg"></img></p>
+<pre><code class="lang-sh">yarn add diffhtml
+</code></pre>
+</li>
+</ul>
+<h3 id="es-modules">ES modules</h3>
+<p>You can import diffHTML directly over HTTP using the ES modules syntax. This is
+a new feature that isn&#39;t available in all browsers yet, but you can use them
+<a href="https://caniuse.com/#search=modules">safely in nearly all modern browsers</a>.</p>
+<h4 id="-diffhtml-org-server">&gt; diffhtml.org server</h4>
+<p>Hosted on my Linode, don&#39;t rely on this for complete stability, but it supports
+<strong>http/2</strong> push so it&#39;s great for development. I&#39;ll always update this to
+guarentee to be the latest version. Consider this &quot;bleeding edge&quot;, if you need
+stability use <strong>unpkg</strong> below.</p>
+<pre><code class="lang-javascript">// When you&#39;re loading from https, you can go protocol-less.
+import { innerHTML } from &#39;//diffhtml.org/es&#39;;
+
+// When you&#39;re loading from file: or http:
+import { innerHTML } from &#39;https://diffhtml.org/es&#39;;
+</code></pre>
+<h4 id="-unpkg-com-server">&gt; unpkg.com server</h4>
+<p>Sometimes outdated, cold start is sometimes slow, doesn&#39;t have <strong>http/2</strong>, but
+is significantly more stable, so think of this as stable LTS.</p>
+<pre><code class="lang-javascript">import { innerHTML } from &#39;//unpkg.com/diffhtml?module&#39;;
+</code></pre>
+<p>diffHTML is designed to be portable, so you can consume it in a number of ways
+depending on your environment. You can load imports  works well with or without a build tool. It
+can be laode dby browsers with the ES Module syntax.</p>
+<p>There are many ways of getting diffHTML. It has been designed to be flexible
+and the smallest filesize possible.</p>
+<ul>
+<li><p><strong>HTTP (Recommended for Beginners):</strong></p>
+<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;
+</code></pre></li>
+</ul>
+<p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p>
+<p><strong>turns:</strong></p>
+<pre><code class="lang-javascript">// Manually create container.
+const div = document.createElement(&#39;div&#39;);
+
+// Update the content using the `innerHTML` property.
+div.innerHTML = &#39;Hello world&#39;;
+
+// Add into the page body.
+document.body.appendChild(div);
+
+// Update only the text.
+div.textContent = &#39;Hello updated world!&#39;;
+</code></pre>
+<p><strong>into:</strong></p>
+<pre><code class="lang-javascript">// Declaratively create a DIV with the content and append into the page body.
+diff.innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);
+
+// Represent how you want the body to look and diffHTML will update only the
+// changed text.
+diff.innerHTML(document.body, &#39;&lt;div&gt;Hello updated world!&lt;/div&gt;&#39;);
+</code></pre>
+<ul>
+<li><p>HTTP (Recommended for Beginners):</p>
 <pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;
 </code></pre></li>
 <li><svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
@@ -239,28 +304,7 @@ needing a build step.</p>
 </code></pre>
 </li>
 </ul>
-<p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p>
-<h2 id="accessing-the-api">Accessing the API</h2>
-<ul>
-<li><p>Browser:</p>
-<pre><code class="lang-xml">&lt;script src=&quot;node_modules/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;
-</code></pre>
-<pre><code class="lang-javascript">diff.innerHTML(document.body, &#39;Hello world!&#39;)
-</code></pre>
-</li>
-<li><p>ES Modules:</p>
-<pre><code class="lang-javascript">import { innerHTML } from &#39;diffhtml&#39;
-
-innerHTML(document.body, &#39;Hello world!&#39;)
-</code></pre>
-</li>
-<li><p>Node:</p>
-<pre><code class="lang-javascript">const { innerHTML } = require(&#39;diffhtml&#39;)
-
-innerHTML(document.body, &#39;Hello world!&#39;)
-</code></pre>
-</li>
-</ul></section>
+<p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/index.md" style="
             text-align: center;
@@ -275,18 +319,23 @@ innerHTML(document.body, &#39;Hello world!&#39;)
         </a>
 
         <footer>
-          Built with
+          <strong>Built with</strong>
           <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
           <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
-            <strong>by @tbranyen</strong></a>
-            <span style="margin-left: 15px;"> | </span>
-            <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
+            <strong>by @tbranyen</strong>
+          </a>
+          <strong>Logo by</strong>
+          <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
+          <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+            <strong>by @s0phinie</strong>
+          </a>
+          <span style="margin-left: 15px;"> | </span>
+          <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
         </footer>
       </layer>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-      <script src="/node_modules/diffhtml/dist/diffhtml.js"></script>
-      <script src="/node_modules/diffhtml-components/dist/web-component.js"></script>
+      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
       <script>
         hljs.initHighlightingOnLoad();
 

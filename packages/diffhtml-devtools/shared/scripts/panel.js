@@ -1,7 +1,6 @@
 import { innerHTML, html, use } from 'diffhtml';
-import syntheticEvents from 'diffhtml-middleware-synthetic-events';
 import logger from 'diffhtml-middleware-logger';
-//import verifyState from 'diffhtml-middleware-verify-state';
+import verifyState from 'diffhtml-middleware-verify-state';
 
 // Components
 import './components/panels';
@@ -14,17 +13,14 @@ import './components/transaction-row';
 import './panels/transactions';
 import './panels/mounts';
 import './panels/middleware';
-import './panels/resources';
-import './panels/help';
+import './panels/health';
 import './panels/settings';
 
 const { assign } = Object;
 const background = chrome.runtime.connect({ name: 'devtools-page' });
 
-// Chrome extensions don't allow inline event handlers, so this middleware
-// makes it easy to leverage event delegation instead.
-use(syntheticEvents());
-//use(verifyState({ debug: true }));
+//use(logger());
+//use(verifyState());
 
 // Relay the tab ID to the background page
 background.postMessage({
@@ -38,6 +34,7 @@ const initialState = {
   inProgress: [],
   completed: [],
   middleware: [],
+  memory: [],
 };
 
 const reactiveBinding = f => ({ set(t, p, v) { t[p] = v; f(); return !0; } });
@@ -56,7 +53,10 @@ const render = () => innerHTML(document.body, html`
 
   ${state.version && html`
     <devtools-split-view>
-      <devtools-navigation activeRoute=${state.activeRoute} />
+      <devtools-navigation
+        version=${state.version}
+        activeRoute=${state.activeRoute}
+      />
 
       <devtools-panels route="" activeRoute=${state.activeRoute}>
         <devtools-transactions-panel
@@ -74,20 +74,17 @@ const render = () => innerHTML(document.body, html`
         <devtools-middleware-panel middleware=${state.middleware} />
       </devtools-panels>
 
-      <devtools-panels route="#resources" activeRoute=${state.activeRoute}>
-        <devtools-resources-panel />
-      </devtools-panels>
-
-      <devtools-panels route="#help" activeRoute=${state.activeRoute}>
-        <devtools-help-panel />
+      <devtools-panels route="#health" activeRoute=${state.activeRoute}>
+        <devtools-health-panel
+          activeRoute=${state.activeRoute}
+          memory=${state.memory}
+        />
       </devtools-panels>
 
       <devtools-panels route="#settings" activeRoute=${state.activeRoute}>
         <devtools-settings-panel />
       </devtools-panels>
     </devtools-split-view>
-
-    <devtools-footer>Detected diffHTML version: ${state.version}</devtools-footer>
   `}
 `)
 .catch(ex => { throw ex; });
@@ -96,11 +93,10 @@ background.onMessage.addListener(message => {
   switch (message.action) {
     case 'activated': {
       assign(state, {
-        inProgress: [],
-        completed: [],
-        version: message.data.VERSION,
-        middleware: message.data.internals.MiddlewareCache,
-        mounts: message.data.mounts,
+        ...message.data,
+        inProgress: message.data.inProgress || state.inProgress,
+        completed: message.data.completed || state.completed,
+        memory: (state.memory.concat(message.data.memory)).slice(-20),
       });
 
       break;
@@ -108,12 +104,14 @@ background.onMessage.addListener(message => {
 
     case 'start': {
       state.inProgress = state.inProgress.concat(message.data);
+
       break;
     }
 
     case 'end': {
       state.inProgress.shift();
       state.completed = state.completed.concat(message.data);
+
       break;
     }
   }

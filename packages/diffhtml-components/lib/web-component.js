@@ -4,10 +4,11 @@ import { createTree, innerHTML, use } from 'diffhtml';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { $$render } from './util/symbols';
 
+const { setPrototypeOf, assign, keys } = Object;
 const root = typeof window !== 'undefined' ? window : global;
 const nullFunc = function() {};
-const HTMLElementCtor = root.HTMLElement || nullFunc;
-const { setPrototypeOf, assign, keys } = Object;
+
+root.HTMLElement = root.HTMLElement || nullFunc;
 
 // Convert observed attributes from passed PropTypes.
 const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
@@ -30,19 +31,21 @@ const createProps = (domNode, props = {}) => {
 // Creates the `component.state` object.
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
-class WebComponent extends HTMLElementCtor {
+class WebComponent extends HTMLElement {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
   }
 
   [$$render]() {
+    const oldProps = this.props;
+    const oldState = this.state;
     this.props = createProps(this, this.props);
     innerHTML(this.shadowRoot, this.render(this.props, this.state));
-    this.componentDidUpdate();
+    this.componentDidUpdate(oldProps, oldState);
   }
 
   constructor(props, context) {
-    if (HTMLElementCtor === nullFunc) {
+    if (HTMLElement === nullFunc) {
       throw new Error('Custom Elements require a valid browser environment');
     }
 

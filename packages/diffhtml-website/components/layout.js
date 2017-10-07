@@ -12,8 +12,24 @@ module.exports = ({ path, pages, content }) => html`
     </head>
 
     <body>
+      <div class="open-menu">≡</div>
       <layer id="navigation">
-        <div class="open-menu">≡</div>
+
+        <p class="social">
+          <a class="github" href="https://github.com/tbranyen/diffhtml">
+            <i class="fa fa-github"></i>
+          </a>
+          <a class="stackoverflow" href="https://stackoverflow.com/search?q=diffhtml+javascript">
+            <i class="fa fa-stack-overflow"></i>
+          </a>
+          <a class="twitter" href="https://twitter.com/diffhtml">
+            <i class="fa fa-twitter"></i>
+          </a>
+          <a class="reddit" href="https://reddit.com/r/diffhtml">
+            <i class="fa fa-reddit"></i>
+          </a>
+        </p>
+
         <${Nav} pages=${pages} />
       </layer>
 
@@ -22,7 +38,7 @@ module.exports = ({ path, pages, content }) => html`
           <h1>
             <a href="/"><img width="120" src="/images/diffhtml-logo.png"></a>
             <div>
-              <p>diffHTML</p>
+              <p class="name">diffHTML</p><sub>v1.0.0</sub>
               <p>The easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
@@ -46,18 +62,23 @@ module.exports = ({ path, pages, content }) => html`
         </a>
 
         <footer>
-          Built with
+          <strong>Built with</strong>
           <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
           <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
-            <strong>by @tbranyen</strong></a>
-            <span style="margin-left: 15px;"> | </span>
-            <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
+            <strong>by @tbranyen</strong>
+          </a>
+          <strong>Logo by</strong>
+          <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
+          <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+            <strong>by @s0phinie</strong>
+          </a>
+          <span style="margin-left: 15px;"> | </span>
+          <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
         </footer>
       </layer>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-      <script src="/node_modules/diffhtml/dist/diffhtml.js"></script>
-      <script src="/node_modules/diffhtml-components/dist/web-component.js"></script>
+      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
       <script>
         hljs.initHighlightingOnLoad();
 

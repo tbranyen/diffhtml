@@ -23,9 +23,8 @@ module.exports = ->
       options:
         transform: [
           'babelify',
-          ['babelify', { "global": true }],
           'brfs',
-          ["aliasify", { "global": true }]
+          ["aliasify", { global: true }]
         ]
 
         alias:

@@ -1,11 +1,10 @@
 {
   "output_dir": "../../docs",
   "pages": {
-    "Getting Started": ["index.html", {
-      "Screencast": "#screencast",
-      "About": "#about",
-      "Installing": "#installing",
-      "Accessing the API": "#accessing-the-api"
+    "General": ["index.html", {
+      "Core Features": "#core-features",
+      "Installing & Importing": "#installing-importing",
+      "Babel Transform": "#babel-transform"
     }],
 
     "API": ["api.html", {
@@ -27,6 +26,14 @@
       "textChanged": "#textChanged"
     }],
 
+    "Middleware": ["middleware.html", {
+      "Logger": "#logger",
+      "Inline Transitions": "#inline-transitions",
+      "Synthetic Events": "#synthetic-events",
+      "Service Worker": "#service-worker",
+      "Verify State": "#verify-state"
+    }],
+
     "Components": ["components.html", {
       "Overview": "#overview",
       "Component": "#component",
@@ -35,21 +42,14 @@
       "React Compatibility": "#react"
     }],
 
-    "Middleware": ["middleware.html", {
-      "Logging": "#logging",
-      "Inline Transitions": "#inline-transitions",
-      "Synthetic Events": "#synthetic-events",
-      "Verify State": "#verify-state"
-    }],
-
-    "Tools": ["tools.html", {
-      "Babel Transform": "#babel-transform",
+    "Additional Packages": ["tools.html", {
       "Live Reload Server": "#static-sync",
       "Render to String": "#render-to-string"
     }],
 
-    "Examples": ["examples.html", {
-      "TodoMVC": "#todomvc"
+    "Examples (Glitch)": ["examples.html", {
+      "TodoMVC": "#todomvc",
+      "Clock": "https://glitch.com/edit/#!/diffhtml-clock"
     }]
   }
 }

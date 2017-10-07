@@ -7388,6 +7388,7 @@ exports.default = function (_ref) {
   var visitor = {
     TaggedTemplateExpression: function TaggedTemplateExpression(path, plugin) {
       var tagName = '';
+      var strict = false;
 
       if (path.node.tag.type === 'Identifier') {
         tagName = path.node.tag.name;
@@ -7395,8 +7396,12 @@ exports.default = function (_ref) {
         tagName = memberExpressionToString(path.node.tag);
       }
 
-      if (tagName !== (plugin.opts.tagName || 'html')) {
+      if (tagName.indexOf(plugin.opts.tagName || 'html') !== 0) {
         return;
+      }
+
+      if (tagName === (plugin.opts.tagName || 'html') + '.strict') {
+        strict = true;
       }
 
       var middleware = (plugin.opts.use || []).map(function (name) {
@@ -7490,7 +7495,7 @@ exports.default = function (_ref) {
         }
       });
 
-      var root = parse(HTML, null, { strict: false }).childNodes;
+      var root = parse(HTML, null, { strict: strict }).childNodes;
       var strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       var vTree = babylon.parse('(' + strRoot + ')');
 
@@ -7601,7 +7606,7 @@ exports.default = function (_ref) {
                   init: t.callExpression(createTree, [t.stringLiteral('#text'), t.nullLiteral(), nodeValue])
                 });
 
-                args.replacement = id;
+                args.replacement = t.callExpression(createTree, [t.stringLiteral('#text'), t.nullLiteral(), nodeValue]);
               }
             }
 

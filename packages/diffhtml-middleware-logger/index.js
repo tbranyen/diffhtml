@@ -175,12 +175,12 @@ const log = (message, method, color, date, transaction, completed) => {
   }
 };
 
-export default opts => function loggerTask(transaction) {
+const logger = ({ minimize = false }) => function loggerTask(transaction) {
   const start = new Date();
 
   log(
     '%cdiffHTML...render transaction started',
-    'group',
+    minimize ? 'groupCollapsed' : 'group',
     'color: #FF0066',
     start,
     transaction
@@ -193,7 +193,7 @@ export default opts => function loggerTask(transaction) {
 
     log(
       '%cdiffHTML...render transaction aborted  ',
-      'group',
+      minimize ? 'groupCollapsed' : 'group',
       'color: #FF78B2',
       new Date(),
       transaction
@@ -215,7 +215,7 @@ export default opts => function loggerTask(transaction) {
 
       log(
         '%cdiffHTML...render transaction ended  ',
-        'group',
+        minimize ? 'groupCollapsed' : 'group',
         'color: #FF78B2',
         new Date(),
         transaction,
@@ -226,3 +226,5 @@ export default opts => function loggerTask(transaction) {
     });
   };
 };
+
+export default (opts = {}) => logger(opts);
