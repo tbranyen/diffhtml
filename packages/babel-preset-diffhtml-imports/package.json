@@ -9,7 +9,7 @@
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-module-rewrite": "^0.2.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-custom-element-classes": "^0.1.0",
+    "babel-plugin-transform-custom-element-classes": "0.1.0",
     "babel-plugin-transform-es2015-classes": "6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
