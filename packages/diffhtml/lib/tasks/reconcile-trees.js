@@ -6,10 +6,11 @@ export default function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
   const { previousMarkup } = state;
   const { inner } = options;
+  const { outerHTML } = domNode;
 
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
-  if (previousMarkup !== domNode.outerHTML || !state.oldTree) {
+  if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
     if (state.oldTree) {
       unprotectVTree(state.oldTree);
     }

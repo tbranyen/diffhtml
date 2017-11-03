@@ -131,7 +131,7 @@ describe('Integration: innerHTML', function() {
   });
 
   describe('Fragments', () => {
-    it.only('can remove appended dom nodes', () => {
+    it('can remove appended dom nodes', () => {
       const fragment = document.createDocumentFragment();
 
       diff.innerHTML(fragment, '<div></div><p></p>');
@@ -139,6 +139,7 @@ describe('Integration: innerHTML', function() {
       diff.innerHTML(fragment, '<div></div><p></p>');
 
       assert.equal(fragment.childNodes[2], undefined);
+      diff.release(fragment);
     });
   });
 });
