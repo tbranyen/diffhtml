@@ -7,7 +7,7 @@ import process from './process';
 
 const hasNonWhitespaceEx = /\S/;
 const doctypeEx = /<!.*>/i;
-const attrEx = /\b([_a-z][_a-z0-9\-]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+const attrEx = /\b([_a-z][_a-z0-9\-:]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 const spaceEx = /[^ ]/;
 const tokenEx = /__DIFFHTML__([^_]*)__/;
 const tagEx =
