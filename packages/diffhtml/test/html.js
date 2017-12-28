@@ -35,6 +35,12 @@ describe('HTML (Tagged template)', function() {
     equal(multipleValues.attributes.class, 'foo bar');
   });
 
+  it('will support namespace attributes', function() {
+    const div = html`<div ns:key="value" />`;
+
+    equal(div.attributes['ns:key'], 'value');
+  });
+
   it('will interpolate value-less attributes', function() {
     const checked = 'checked';
     const input = html`<input type="checkbox" ${checked}>`;
