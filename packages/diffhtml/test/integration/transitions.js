@@ -20,19 +20,19 @@ describe('Integration: Transitions', function() {
     it('will throw when missing the required name argument', () => {
       throws(() => {
         diff.addTransitionState();
-      }, 'Missing transition state name');
+      }, /Invalid state name/);
     });
 
     it('will throw when missing the required callback argument', () => {
       throws(() => {
         diff.addTransitionState('attached');
-      }, 'Missing transition state callback');
+      }, /Missing transition state callback/);
     });
 
     it('will throw when passed an invalid state name', () => {
       throws(() => {
         diff.addTransitionState('added', () => {});
-      }, 'Invalid state name: added');
+      }, /Invalid state name 'added'/);
     });
 
     it('can add the attached state', () => {
