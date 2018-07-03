@@ -9,6 +9,8 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
   - "sleep 3"
   - "cat /etc/init.d/xvfb"
+  - "sudo chown root /opt/google/chrome/chrome-sandbox"
+  - "sudo chmod 4755 /opt/google/chrome/chrome-sandbox"
 
 node_js:
   - 6.10.3
