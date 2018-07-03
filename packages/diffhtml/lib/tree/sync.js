@@ -85,14 +85,16 @@ export default function syncTree(oldTree, newTree, patches, parentTree, specialC
     // components).
     let retVal = fn(oldTree, newTree, keysLookup, parentTree);
 
+    // If the value returned matches the original element, then short circuit
+    // and do not dig further.
+    if (retVal && retVal === oldTree) {
+      shortCircuit = true;
+    }
     // If the consumer returned a value and it doesn't equal the existing tree,
     // then splice it into the parent (if it exists) and run a sync.
-    if (retVal && retVal !== newTree) {
+    else if (retVal && retVal !== newTree) {
       // Synchronize this new tree.
       newTree = retVal;
-    }
-    else if (retVal && retVal === oldTree) {
-      shortCircuit = true;
     }
   });
 
