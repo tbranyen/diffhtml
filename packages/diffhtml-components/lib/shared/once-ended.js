@@ -27,7 +27,12 @@ export default transaction => {
 
       // Ensure refs are always called.
       if (name === 'ref') {
-        value(NodeCache.get(oldTree));
+        if (typeof value === 'function') {
+          value(NodeCache.get(oldTree));
+        }
+        else if (typeof value === 'string') {
+          console.log('String refs not implemented yet');
+        }
 
         // Do not try and set on the DOM Node.
         continue;

@@ -7,7 +7,6 @@
     "transform-es2015-classes",
     "transform-es2015-modules-commonjs",
     "transform-class-properties",
-    "transform-es2015-arrow-functions",
-    ["transform-diffhtml", { "createTree": "html" }]
+    "transform-es2015-arrow-functions"
   ]
 }

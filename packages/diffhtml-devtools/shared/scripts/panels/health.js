@@ -11,7 +11,7 @@ class DevtoolsHealthPanel extends WebComponent {
   }
 
   render() {
-    const { memory } = this.props;
+    const { memory = [] } = this.props;
 
     const labels = memory.map(mem => new Date(mem.time).toLocaleTimeString());
 

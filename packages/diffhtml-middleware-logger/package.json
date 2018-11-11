@@ -1,5 +1,5 @@
 {
-  "name": "@diffhtml/middleware-logger",
+  "name": "diffhtml-middleware-logger",
   "version": "1.0.0",
   "description": "Logs out render transactions to the console",
   "main": "dist/cjs/index",

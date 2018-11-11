@@ -18,7 +18,7 @@ export default vTree => {
   const componentTree = ComponentTreeCache.get(vTree);
   const instance = InstanceCache.get(componentTree);
 
-  if (vTree.attributes.ref) {
+  if (typeof vTree.attributes.ref === 'function') {
     vTree.attributes.ref(null);
   }
 

@@ -1,6 +1,7 @@
 {
   "presets": ["diffhtml-imports"],
   "plugins": [
+    "babel-plugin-transform-custom-element-classes",
     ["transform-react-jsx", { "pragma": "createTree" }]
   ]
 }
