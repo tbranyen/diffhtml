@@ -36,7 +36,7 @@ module.exports = ({ path, pages, content }) => html`
       <layer id="main">
         <header>
           <h1>
-            <a href="/"><img width="120" src="/images/diffhtml-logo.png"></a>
+            <a href="/"><img width="120" src="./images/diffhtml-logo.png"></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
               <p>The easy-to-use Virtual DOM built for the web!</p>
