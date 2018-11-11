@@ -7,7 +7,7 @@
   "jsnext:main": "dist/es/index",
   "esnext:main": "dist/es/index",
   "scripts": {
-    "prepublish": "npm run min",
+    "prepublishOnly": "npm run min",
     "clean": "rm -rf dist/* && mkdir -p dist",
     "min": "npm run build && npm run build-min",
     "build": "npm run clean && npm run build-umd && npm run build-cjs && npm run build-esm",

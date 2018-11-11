@@ -1,13 +1,14 @@
 # <±/> diffHTML Babel Transform Plugin
 
-*Pre-compiles your tagged template strings to reduce runtime cost*
+*Compiles your tagged template strings to Virtual Tree objects which reduces
+runtime cost*
 
 Stable Version: 1.0.0-beta.9
 
-This plugin transforms tagged template strings `html` in your projects to
-`createTree` calls. By default it will use `diff.createTree` which will need to
-be imported into your module. This works out-of-the-box with the `diffhtml.js`
-and `diffhtml-runtime.js` UMD script files.
+This plugin transforms tagged template strings containing HTML to
+JSX/HyperScript-like function calls. By default it will use `diff.createTree`
+which will need to be imported into your module. This works out-of-the-box with
+the `diffhtml.js` and `diffhtml-runtime.js` UMD script files.
 
 ## Installation
 
@@ -15,7 +16,7 @@ and `diffhtml-runtime.js` UMD script files.
 npm i --save-dev babel-plugin-transform-diffhtml
 ```
 
-## Quick demo
+## Simple example
 
 Running:
 
@@ -47,13 +48,67 @@ class HelloWorld extends Component {
 }
 ```
 
-More specifically this plugin transforms tagged template strings
-(`html`&lt;div&gt;&lt;/div&gt;``) in your JavaScript files to flat strings that
-get parsed by the diffHTML HTML Parser. This ensures consistency with the
-runtime parser. From there they are pieced back together using the AST into a
-valid JSX/HyperScript-like `h(tagName, props, ...childNodes)`. This is both a
-runtime performance optimization as well as a build time since you can exclude
-more of diffHTML from your build.
+## Recommend approach
+
+A paved-path was designed to make authoring and optimizing markup easy. With
+this approach you will not have typically JSX-like downsides, such as requiring
+a build step, having to import a needless function like `React` or `h` (that
+never gets used in your code).
+
+To start, use ES modules (or CJS) to import the `html` tagged template helper:
+
+``` js
+import { html } from 'diffhtml';
+```
+
+Configure the babel plugin to find and replace with the same `html` value. The
+runtime build which will be swapped in, automatically replaces the `html`
+function with the `createTree` call. This saves you from needing to do a
+needless import.
+
+``` json
+plugins: [
+  ["transform-diffhtml", {
+    "createTree": "html",
+  }]
+]
+```
+
+Lastly, make sure you alias the `diffhtml` import to `diffhtml/runtime` in your
+bundler. Note: that this approach doesn't need a build step, since the tagged
+template will work standalone. The bundler will trigger the babel pipeline and
+give you a chance to reassign the import call to a different module.
+
+### Browserify (you may want to point to the CJS distribution):
+
+``` json
+"aliasify": {
+  "aliases": {
+    "diffhtml": "diffhtml/dist/cjs/runtime"
+  }
+}
+```
+
+### Webpack:
+
+``` json
+"resolve": {
+  "alias": {
+    "diffhtml": "diffhtml/runtime"
+  }
+}
+```
+
+## Additional details
+
+More specifically this plugin transforms tagged template strings, like:
+(`html`&lt;div&gt;&lt;/div&gt;``), in your JavaScript files to flat strings
+that get parsed by the HTML parser in diffHTML core. The dynamic values get
+replaced with string tokens. This ensures consistency with the runtime parser.
+From there they are stitched back together using the AST into a valid
+JSX/HyperScript-like `h(tagName, props, ...childNodes)`. This is both a runtime
+performance optimization as well as a build time since you can exclude more of
+diffHTML from your build.
 
 **Note!* This plugin has been built for use in Babel 6.x environments, and will
 not work with Babel 5.x ( *deprecated*) or older versions.**
@@ -124,7 +179,7 @@ Specifying the options in your `.babelrc`:
 ``` javascript
 {
   plugins: [
-    ["transform-tagged-diffhtml", {
+    ["transform-diffhtml", {
       "tagName": "html",
       "createTree": "createTree",
     }]

@@ -2,7 +2,6 @@ import { MiddlewareCache } from '../util/caches';
 import process from '../util/process';
 
 const { SyncTreeHookCache } = MiddlewareCache;
-const { assign, keys } = Object;
 const empty = {};
 const keyNames = ['old', 'new'];
 

@@ -19,8 +19,10 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
       assert.equal(actual.trim(), '<div></div>');
     });
 
-    it.skip('warns on invalid markup', () => {
-      const actual = fixtures.warnsOnInvalidMarkup();
+    it('will not warn on invalid markup', () => {
+      assert.doesNotThrow(() => {
+        fixtures.warnsOnInvalidMarkup();
+      });
     });
   });
 
@@ -78,21 +80,20 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
       const vTree = fixtures.renderTrailingExpression();
       diff.outerHTML(this.fixture, vTree);
       assert.equal(this.fixture.childNodes.length, 2);
-      assert.equal(this.fixture.innerHTML.trim(), 'Hello world');
+      assert.equal(this.fixture.innerHTML.trim(), '<div></div> Hello world');
     });
 
-    it.skip('can render a real world use case', () => {
+    it('can render a real world use case', () => {
       const vTree = fixtures.renderRealWorld();
       diff.innerHTML(this.fixture, vTree);
     });
   });
 
   describe('Bug Fixes', () => {
-    // Something weird with the whitespace
-    it.skip('will not concat neighbor nodes', () => {
+    it('will not concat neighbor nodes', () => {
       const vTree = fixtures.interpolatedValuesAreConcat();
       diff.innerHTML(this.fixture, vTree);
-      assert.equal(this.fixture.textContent, '\n      Text node second\n    ');
+      assert.equal(this.fixture.textContent, '\n      Text node second');
     });
   });
 });

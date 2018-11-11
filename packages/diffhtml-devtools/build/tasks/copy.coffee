@@ -10,6 +10,7 @@ module.exports = ->
     'node_modules/diffhtml-synthetic-events/dist/synthetic-events.js'
     'node_modules/semantic-ui-css/semantic.min.css'
     'node_modules/semantic-ui-icon/**/*'
+    'node_modules/chartist/dist/*'
   ]
 
   @config 'copy',

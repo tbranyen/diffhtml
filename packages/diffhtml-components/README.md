@@ -3,16 +3,16 @@
 *JavaScript classes for rendering components using either Custom Element or
 React-inspired implementations.*
 
-Stable Version: 1.0.0-beta.9
+Stable Version: 1.0.0
 
 The exported classes `Component` and `WebComponent` are designed to be
-interchangeable and as close to feature-parity as possible. This helps bridge
+inter-changeable and as close to feature-parity as possible. This helps bridge
 the React / Web Component gap.
 
 ## Installation
 
 ``` sh
-npm install diffhtml-components
+npm install --save diffhtml-components
 ```
 
 ## Getting started
@@ -228,14 +228,15 @@ innerHTML(document.body, html`<${SimpleClock} />`);
 ### Web Components
 
 Will only work in browsers that support v1 Web Components specification. At the
-moment this will only work in Blink/Webkit based browsers like: Chrome, Safari,
-and Opera.
+moment this will in most stable browsers, with the exception of Internet
+Explorer, which is current in development.
 
 [Consensus & Standardization](https://www.chromestatus.com/feature/4696261944934400)
 
-- **Firefox:** In development
-- **Edge:** Public support
-- **Web Developers:** Positive
+- **Chrome** Stable
+- **Firefox:** Stable
+- **Safari** Stable
+- **Edge:** [In Development](https://developer.microsoft.com/en-us/microsoft-edge/platform/status/customelements/)
 
 ``` js
 import { html, innerHTML } from 'diffhtml';

@@ -15,6 +15,13 @@ const cjsFunc = join(__dirname, 'utils/replace-cjs.js');
 
 const { NODE_ENV } = process.env;
 
+// Ensure that TransformElementClasses makes it into the preset.
+ES2015Rollup.plugins.splice(
+  ES2015Rollup.plugins.indexOf(TransformClasses) + 1,
+  0,
+  TransformElementClasses
+);
+
 module.exports = {};
 
 if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
@@ -29,20 +36,18 @@ if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
 }
 
 if (NODE_ENV === 'cjs') {
-  module.exports.presets = [];
-
   module.exports.plugins = [
     AddModuleExports,
     [ModuleRewrite, { replaceFunc: cjsFunc }],
     ModulesCommonJS,
     ObjectRestSpread,
     ClassProperties,
+    TransformElementClasses,
+    TransformClasses,
   ];
 }
 
 if (NODE_ENV === 'esm') {
-  module.exports.presets = [];
-
   module.exports.plugins = [
     [ModuleRewrite, { replaceFunc: esmFunc }],
     ObjectRestSpread,

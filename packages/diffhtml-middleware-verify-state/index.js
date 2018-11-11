@@ -1,7 +1,7 @@
 import { Internals } from 'diffhtml';
 
 const root = typeof global !== 'undefined' ? global : window;
-const { NodeCache, decodeEntities } = Internals;
+const { NodeCache, decodeEntities, Pool } = Internals;
 
 const getValue = (vTree, keyName) => {
   if (vTree instanceof Node && vTree.attributes) {
@@ -44,7 +44,25 @@ const flattenFragments = vTree => {
   return vTree;
 };
 
-const compareTrees = (options, transaction, oldTree, newTree) => {
+// Verify that a VTree matches what the NodeCache has associated.
+const verifyTreeNodeAssociation = (debug, vTree) => {
+  const node = NodeCache.get(vTree);
+
+  if (!node) {
+    debug(`[Missing DOM Node] ${vTree.nodeName} has no DOM Node association`);
+  }
+  else if (node.nodeName.toLowerCase() !== vTree.nodeName) {
+    debug(`[Mismatched DOM Node] ${vTree.nodeName} has an invalid DOM Node association with ${node.nodeName}`);
+  }
+  else if (!Pool.memory.protected.has(vTree)) {
+    debug(`[Unprotected DOM Node] ${vTree.nodeName} was not protected in memory`);
+  }
+
+  // Recursively search for problems.
+  vTree.childNodes.forEach(verifyTreeNodeAssociation);
+};
+
+const compareTrees = (options, transaction, oldTree, newTree, verifyTree) => {
   const { promises } = transaction;
 
   const debug = setupDebugger(options);
@@ -113,6 +131,8 @@ const compareTrees = (options, transaction, oldTree, newTree) => {
       }
     }
   }
+
+  verifyTreeNodeAssociation(verifyTree);
 };
 
 export default (options={}) => function verifyStateTask() {
@@ -122,11 +142,11 @@ export default (options={}) => function verifyStateTask() {
     const newTree = transaction.newTree;
 
     if (oldTree && newTree) {
-      compareTrees(options, transaction, oldTree, newTree);
+      compareTrees(options, transaction, oldTree, newTree, oldTree);
     }
 
     transaction.onceEnded(() => {
-      compareTrees(options, transaction, domNode, newTree);
+      compareTrees(options, transaction, domNode, newTree, newTree);
     });
   };
 };

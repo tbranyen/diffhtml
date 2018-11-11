@@ -11,6 +11,19 @@ body {
   flex-direction: column;
 }
 
+body::-webkit-scrollbar {
+  width: 5px;
+  position: absolute;
+}
+ 
+body::-webkit-scrollbar-track {
+  background: #ddd;
+}
+ 
+body::-webkit-scrollbar-thumb {
+  background: #666; 
+}
+
 h1:first-child {
   border-bottom: 1px solid #CCCCCC;
   background-color: #FFF;

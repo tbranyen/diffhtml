@@ -1,3 +1,4 @@
+import { Internals } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../util/caches';
 import { $$vTree } from '../util/symbols';
 
@@ -25,7 +26,7 @@ export default function renderComponent(vTree, context = {}) {
       renderTree = instance.render(props, instance.state, context);
 
       if (instance.componentDidUpdate) {
-        instance.componentDidUpdate();
+        instance.componentDidUpdate(instance.props, instance.state);
       }
     }
     else {
@@ -41,7 +42,7 @@ export default function renderComponent(vTree, context = {}) {
     renderTree = instance.render(props, instance.state, context);
   }
   else {
-    renderTree = Component(props, context)
+    renderTree = Component(props, context);
   }
 
   // Associate the children with the parent component that rendered them, this
@@ -50,6 +51,8 @@ export default function renderComponent(vTree, context = {}) {
     for (let i = 0; i < childNodes.length; i++) {
       const newTree = childNodes[i];
 
+      // If the newTree is not a Fragment, associate the `newTree` with the
+      // originating `vTree`.
       if (newTree && newTree.nodeType !== 11) {
         ComponentTreeCache.set(newTree, vTree);
       }
@@ -59,7 +62,13 @@ export default function renderComponent(vTree, context = {}) {
     }
   };
 
+  //
   linkTrees([].concat(renderTree));
+
+  if (renderTree && Component) {
+    // Need to update the NodeCache now.
+    ComponentTreeCache.set(renderTree, vTree);
+  }
 
   return renderTree;
 };

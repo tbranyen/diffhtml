@@ -1,6 +1,10 @@
 {
   "plugins": [
     "add-module-exports",
+    "transform-object-rest-spread",
+    "transform-class-properties",
+    "transform-custom-element-classes",
+    "transform-es2015-classes",
     "transform-es2015-modules-commonjs",
     "transform-class-properties",
     "transform-es2015-arrow-functions"

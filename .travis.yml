@@ -13,6 +13,6 @@ before_script:
   - "sudo chmod 4755 /opt/google/chrome/chrome-sandbox"
 
 node_js:
-  - 6.10.3
+  - 10.10.0
 
 script: lerna run build && lerna run test:ci

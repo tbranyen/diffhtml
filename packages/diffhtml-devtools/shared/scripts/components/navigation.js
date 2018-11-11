@@ -4,10 +4,12 @@ import PropTypes from 'prop-types';
 
 class DevtoolsNavigation extends WebComponent {
   static propTypes = {
+    version: PropTypes.string,
     activeRoute: PropTypes.string,
   }
 
   render() {
+    const { version } = this.props;
     const { nav, selected } = this.state;
 
     return html`
@@ -28,10 +30,9 @@ class DevtoolsNavigation extends WebComponent {
         </ol>
 
         <div class="credit">
-          Created by
-          <p>
-            <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
-          </p>
+          <strong>Detected diffHTML version: ${version}</strong>
+          <hr>
+          Created by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
         </div>
       </div>
     `;
@@ -41,7 +42,7 @@ class DevtoolsNavigation extends WebComponent {
     return `
       :host {
         display: flex;
-        height: calc(100% - 37px);
+        height: 100%;
         flex-basis: 200px;
         flex: none;
         background-color: #F3F3F3;
@@ -56,7 +57,7 @@ class DevtoolsNavigation extends WebComponent {
         margin: 0;
         list-style: none;
         padding: 0;
-        width: 250px;
+        width: 100%;
       }
 
       ol li {
@@ -72,7 +73,7 @@ class DevtoolsNavigation extends WebComponent {
       }
 
       ol li span.label i {
-        color: #AF8585;
+        color: #737373;
         left: -7px;
       }
 
@@ -111,7 +112,7 @@ class DevtoolsNavigation extends WebComponent {
       }
 
       div.credit {
-        font-size: 10px;
+        font-size: 11px;
         padding: 25px;
       }
     `;
@@ -127,8 +128,7 @@ class DevtoolsNavigation extends WebComponent {
         { route: '', label: 'Transactions', icon: 'exchange' },
         { route: 'mounts', label: 'Mounts', icon: 'sitemap' },
         { route: 'middleware', label: 'Middleware', icon: 'chain' },
-        { route: 'resources', label: 'Health', icon: 'heartbeat' },
-        { route: 'help', label: 'Help', icon: 'help' },
+        { route: 'health', label: 'Health', icon: 'heartbeat' },
         { route: 'settings', label: 'Settings', icon: 'settings' },
       ],
     };

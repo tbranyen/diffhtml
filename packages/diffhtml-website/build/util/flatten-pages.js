@@ -11,11 +11,19 @@ module.exports = function flattenPages(pages = {}) {
     if (subpages) {
       keys(subpages).forEach(name => {
         const hash = subpages[name];
+        let href = `${page}${hash}`;
+        let target;
+
+        if (hash.indexOf('http') === 0) {
+          href = hash;
+          target = 'blank';
+        }
 
         flatten.push({
           type: 'subpage',
-          href: `${page}${hash}`,
+          href,
           name,
+          target,
         });
       });
     }

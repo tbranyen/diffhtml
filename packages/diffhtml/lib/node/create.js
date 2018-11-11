@@ -25,6 +25,10 @@ export default function createNode(vTree, ownerDocument = document, isSVG) {
 
   // If the DOM Node was already created, reuse the existing node.
   if (existingNode) {
+    if (existingNode.nodeName.toLowerCase() !== vTree.nodeName) {
+      throw new Error('Shit is wrong');
+    }
+
     return existingNode;
   }
 

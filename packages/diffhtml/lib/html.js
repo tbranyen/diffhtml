@@ -3,6 +3,7 @@ import parse from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 
+const { isArray } = Array;
 const isTagEx = /(<|\/)/;
 const TOKEN = '__DIFFHTML__';
 
@@ -59,7 +60,7 @@ export default function handleTaggedTemplate(strings, ...values) {
       const isTag = Boolean(lastCharacter.match(isTagEx));
       const isString = typeof value === 'string';
       const isObject = typeof value === 'object';
-      const isArray = Array.isArray(value);
+      const _isArray = isArray(value);
       const token = `${TOKEN}${i}__`;
 
       // Injected as a tag.
@@ -73,7 +74,7 @@ export default function handleTaggedTemplate(strings, ...values) {
         HTML += token;
       }
       // Injected as a child node.
-      else if (isArray || isObject) {
+      else if (_isArray || isObject) {
         supplemental.children[i] = createTree(value);
         HTML += token;
       }

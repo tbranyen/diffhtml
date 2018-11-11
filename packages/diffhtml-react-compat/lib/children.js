@@ -1,4 +1,4 @@
-export function map(children, fn, context) {
+export function map(children, fn, ctx) {
   if (children === undefined || children === null) {
     return null;
   }

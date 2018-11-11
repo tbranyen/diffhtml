@@ -13,7 +13,13 @@ document.documentElement.appendChild(injector);
 injector.parentNode.removeChild(injector);
 
 const postMessage = body => chrome.runtime.sendMessage(body);
-//const receiveMessages = fn => chrome.runtime.onMessage.addListener(fn);
+chrome.runtime.onMessage.addListener(ev => {
+  const evt = new CustomEvent(`diffHTML:toggleMiddleware`, {
+    detail: ev,
+  });
+
+  document.dispatchEvent(evt);
+});
 const postEvent = ev => postMessage(JSON.parse(ev.detail));
 
 document.addEventListener('diffHTML:activated', postEvent);

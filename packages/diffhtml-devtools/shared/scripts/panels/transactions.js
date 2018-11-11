@@ -19,21 +19,32 @@ class DevtoolsTransactionsPanel extends WebComponent {
       <style>${this.styles()}</style>
 
       <div class="ui tall segment">
-        <h3>Transactions</h3>
-        <p>
-          Logs out each internal render transaction. Set the sampling rate in
-          <a href="#settings">Settings</a>.
-        </p>
+        <div>
+          <h3>Transactions</h3>
+          <p>
+            This panel shows you when a render occured and what was patched.
+            Set the sampling rate in <a href="#settings">Settings</a>.
+          </p>
+        </div>
+
+        <div>
+          <div class="ui toggle checkbox">
+            <input checked type="checkbox" />
+            <label>Autoscroll</label>
+          </div>
+        </div>
       </div>
 
       <div class="rows">
-        <table class="ui celled sortable selectable structured table striped">
+        <table class="header ui fixed celled sortable selectable structured table striped">
           <thead>
             <tr>
               <th rowspan="2"></th>
               <th class="center aligned" rowspan="2">FPS</th>
+              <th class="center aligned" rowspan="2">Time</th>
               <th class="center aligned" rowspan="2">Status</th>
               <th class="center aligned" rowspan="2">Mount</th>
+              <th class="center aligned" rowspan="2">VTree</th>
               <th class="center aligned" rowspan="2">Transitions</th>
               <th class="center aligned" colspan="4">DOM Tree Changes</th>
               <th class="center aligned" colspan="2">Attribute Changes</th>
@@ -48,10 +59,12 @@ class DevtoolsTransactionsPanel extends WebComponent {
               <th class="center aligned">Remove Attribute</th>
             </tr>
           </thead>
+        </table>
 
+        <table class="ui fixed celled sortable selectable structured table striped">
           ${completed.map((transaction, index) => html`
             <devtools-transaction-row
-              key=${index}
+              key=${String(transaction.startDate)}
               index=${index}
               stateName="completed"
               transaction=${transaction.args}
@@ -92,10 +105,18 @@ class DevtoolsTransactionsPanel extends WebComponent {
         position: sticky;
         top: 0;
         z-index: 100;
-        background: #AF8585;
+        background: #3E82F7;
         border-radius: 0 !important;
         color: #FFF;
         user-select: none;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: flex-end;
+      }
+
+      .ui.segment div:last-child {
+        align-self: flex-end;
       }
 
       a {
@@ -116,6 +137,18 @@ class DevtoolsTransactionsPanel extends WebComponent {
         top: -1px;
       }
 
+      table.header {
+        position: sticky;
+        top: 85px;
+        z-index: 1000;
+        font-size: 1em !important;
+        margin-bottom: 0 !important;
+      }
+
+      table.header + table {
+        margin-top: 0 !important;
+      }
+
       thead {
         position: sticky;
         top: -1px;
@@ -127,6 +160,9 @@ class DevtoolsTransactionsPanel extends WebComponent {
       thead th {
         position: relative;
       }
+
+      thead th:nth-child(1) { width: 40px; }
+      thead th:nth-child(2) { width: 80px; }
 
       thead th:before {
         content: '';
@@ -164,6 +200,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
   componentDidUpdate() {
     const { expandedIndex, autoScroll } = this.state;
 
+    // TODO Have more intelligent locking for scrolling.
     if (expandedIndex === -1 && autoScroll) {
       this.parentNode.scrollTop = this.parentNode.scrollHeight;
     }

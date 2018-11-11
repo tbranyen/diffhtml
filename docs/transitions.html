@@ -5,29 +5,41 @@
       <title>diffHTML: The easy-to-use HTML Virtual DOM built for the web!</title>
       <link rel="stylesheet" href="./index.css"></link>
     </head><body>
+      <div class="open-menu">≡</div>
       <layer id="navigation">
-        <div class="open-menu">≡</div>
+
+        <p class="social">
+          <a class="github" href="https://github.com/tbranyen/diffhtml">
+            <i class="fa fa-github"></i>
+          </a>
+          <a class="stackoverflow" href="https://stackoverflow.com/search?q=diffhtml+javascript">
+            <i class="fa fa-stack-overflow"></i>
+          </a>
+          <a class="twitter" href="https://twitter.com/diffhtml">
+            <i class="fa fa-twitter"></i>
+          </a>
+          <a class="reddit" href="https://reddit.com/r/diffhtml">
+            <i class="fa fa-reddit"></i>
+          </a>
+        </p>
+
         <ul>
     
-      <a href="index.html"><li class="header"><h4>Getting Started</h4></li></a>
+      <a href="index.html"><li class="header"><h4>General</h4></li></a>
 
       
     
       
 
-      <a href="index.html#screencast"><li>Screencast</li></a>
+      <a href="index.html#core-features" target><li>Core Features</li></a>
     
       
 
-      <a href="index.html#about"><li>About</li></a>
+      <a href="index.html#installing-importing" target><li>Installing &#38; Importing</li></a>
     
       
 
-      <a href="index.html#installing"><li>Installing</li></a>
-    
-      
-
-      <a href="index.html#accessing-the-api"><li>Accessing the API</li></a>
+      <a href="index.html#babel-transform" target><li>Babel Transform</li></a>
     
       <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
@@ -35,35 +47,35 @@
     
       
 
-      <a href="api.html#inner-html"><li>innerHTML</li></a>
+      <a href="api.html#inner-html" target><li>innerHTML</li></a>
     
       
 
-      <a href="api.html#outer-html"><li>outerHTML</li></a>
+      <a href="api.html#outer-html" target><li>outerHTML</li></a>
     
       
 
-      <a href="api.html#html"><li>html</li></a>
+      <a href="api.html#html" target><li>html</li></a>
     
       
 
-      <a href="api.html#use"><li>use</li></a>
+      <a href="api.html#use" target><li>use</li></a>
     
       
 
-      <a href="api.html#add-transition-state"><li>addTransitionState</li></a>
+      <a href="api.html#add-transition-state" target><li>addTransitionState</li></a>
     
       
 
-      <a href="api.html#remove-transition-state"><li>removeTransitionState</li></a>
+      <a href="api.html#remove-transition-state" target><li>removeTransitionState</li></a>
     
       
 
-      <a href="api.html#create-tree"><li>createTree</li></a>
+      <a href="api.html#create-tree" target><li>createTree</li></a>
     
       
 
-      <a href="api.html#release"><li>release</li></a>
+      <a href="api.html#release" target><li>release</li></a>
     
       <a href="transitions.html"><li class="header"><h4>Transitions</h4></li></a>
 
@@ -71,47 +83,23 @@
     
       
 
-      <a href="transitions.html#attached"><li>attached</li></a>
+      <a href="transitions.html#attached" target><li>attached</li></a>
     
       
 
-      <a href="transitions.html#detached"><li>detached</li></a>
+      <a href="transitions.html#detached" target><li>detached</li></a>
     
       
 
-      <a href="transitions.html#replaced"><li>replaced</li></a>
+      <a href="transitions.html#replaced" target><li>replaced</li></a>
     
       
 
-      <a href="transitions.html#attributeChanged"><li>attributedChanged</li></a>
+      <a href="transitions.html#attributeChanged" target><li>attributedChanged</li></a>
     
       
 
-      <a href="transitions.html#textChanged"><li>textChanged</li></a>
-    
-      <a href="components.html"><li class="header"><h4>Components</h4></li></a>
-
-      
-    
-      
-
-      <a href="components.html#overview"><li>Overview</li></a>
-    
-      
-
-      <a href="components.html#component"><li>Component</li></a>
-    
-      
-
-      <a href="components.html#web-component"><li>Web Component</li></a>
-    
-      
-
-      <a href="components.html#jsx"><li>JSX</li></a>
-    
-      
-
-      <a href="components.html#react"><li>React Compatibility</li></a>
+      <a href="transitions.html#textChanged" target><li>textChanged</li></a>
     
       <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
 
@@ -119,43 +107,71 @@
     
       
 
-      <a href="middleware.html#logging"><li>Logging</li></a>
+      <a href="middleware.html#logger" target><li>Logger</li></a>
     
       
 
-      <a href="middleware.html#inline-transitions"><li>Inline Transitions</li></a>
+      <a href="middleware.html#inline-transitions" target><li>Inline Transitions</li></a>
     
       
 
-      <a href="middleware.html#synthetic-events"><li>Synthetic Events</li></a>
+      <a href="middleware.html#synthetic-events" target><li>Synthetic Events</li></a>
     
       
 
-      <a href="middleware.html#verify-state"><li>Verify State</li></a>
-    
-      <a href="tools.html"><li class="header"><h4>Tools</h4></li></a>
-
-      
+      <a href="middleware.html#service-worker" target><li>Service Worker</li></a>
     
       
 
-      <a href="tools.html#babel-transform"><li>Babel Transform</li></a>
+      <a href="middleware.html#verify-state" target><li>Verify State</li></a>
     
-      
-
-      <a href="tools.html#static-sync"><li>Live Reload Server</li></a>
-    
-      
-
-      <a href="tools.html#render-to-string"><li>Render to String</li></a>
-    
-      <a href="examples.html"><li class="header"><h4>Examples</h4></li></a>
+      <a href="components.html"><li class="header"><h4>Components</h4></li></a>
 
       
     
       
 
-      <a href="examples.html#todomvc"><li>TodoMVC</li></a>
+      <a href="components.html#overview" target><li>Overview</li></a>
+    
+      
+
+      <a href="components.html#component" target><li>Component</li></a>
+    
+      
+
+      <a href="components.html#web-component" target><li>Web Component</li></a>
+    
+      
+
+      <a href="components.html#jsx" target><li>JSX</li></a>
+    
+      
+
+      <a href="components.html#react" target><li>React Compatibility</li></a>
+    
+      <a href="tools.html"><li class="header"><h4>Additional Packages</h4></li></a>
+
+      
+    
+      
+
+      <a href="tools.html#static-sync" target><li>Live Reload Server</li></a>
+    
+      
+
+      <a href="tools.html#render-to-string" target><li>Render to String</li></a>
+    
+      <a href="examples.html"><li class="header"><h4>Examples (Glitch)</h4></li></a>
+
+      
+    
+      
+
+      <a href="examples.html#todomvc" target><li>TodoMVC</li></a>
+    
+      
+
+      <a href="https://glitch.com/edit/#!/diffhtml-clock" target="blank"><li>Clock</li></a>
     
   </ul>
       </layer>
@@ -165,7 +181,7 @@
           <h1>
             <a href="/"><img width="120" src="/images/diffhtml-logo.png"></img></a>
             <div>
-              <p>diffHTML</p>
+              <p class="name">diffHTML</p><sub>v1.0.0</sub>
               <p>The easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
@@ -328,18 +344,23 @@ diff.outerHtml(fixture, html`
         </a>
 
         <footer>
-          Built with
+          <strong>Built with</strong>
           <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
           <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
-            <strong>by @tbranyen</strong></a>
-            <span style="margin-left: 15px;"> | </span>
-            <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
+            <strong>by @tbranyen</strong>
+          </a>
+          <strong>Logo by</strong>
+          <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
+          <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+            <strong>by @s0phinie</strong>
+          </a>
+          <span style="margin-left: 15px;"> | </span>
+          <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
         </footer>
       </layer>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-      <script src="/node_modules/diffhtml/dist/diffhtml.js"></script>
-      <script src="/node_modules/diffhtml-components/dist/web-component.js"></script>
+      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
       <script>
         hljs.initHighlightingOnLoad();
 

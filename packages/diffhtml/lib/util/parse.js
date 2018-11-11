@@ -14,6 +14,7 @@ const tagEx =
     /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
 
 const { assign } = Object;
+const { isArray } = Array;
 
 const blockText = new Set([
   'script',
@@ -167,7 +168,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
           else {
             const isObject = typeof newName === 'object';
 
-            if (isObject && !Array.isArray(newName) && newName) {
+            if (isObject && !isArray(newName) && newName) {
               assign(attributes, newName);
             }
             else if (isObject && options.strict) {
@@ -352,7 +353,7 @@ Possibly invalid markup. Opening tag was not properly closed.
 
     if (match[1] || match[4] || selfClosing.has(match[2])) {
       if (process.env.NODE_ENV !== 'production') {
-        if (match[2] !== currentParent.rawNodeName && options.strict) {
+        if (currentParent && match[2] !== currentParent.rawNodeName && options.strict) {
           const nodeName = currentParent.rawNodeName;
 
           // Find a subset of the markup passed in to validate.
