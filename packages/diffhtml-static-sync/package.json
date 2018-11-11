@@ -5,7 +5,7 @@
   "version": "1.0.0-beta.9",
   "description": "A static HTTP server that hot reloads HTML on save",
   "scripts": {
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "mkdir -p dist ; browserify -t babelify sync.js -o dist/sync.js",
     "watch": "mkdir -p dist ; watchify -t babelify sync.js -o dist/sync.js -v"
   },

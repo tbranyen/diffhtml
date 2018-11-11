@@ -13,7 +13,7 @@
   "repository": "https://github.com/tbranyen/diffhtml",
   "license": "MIT",
   "scripts": {
-    "prepublish": "npm run min",
+    "prepublishOnly": "npm run min",
     "clean": "rm -rf dist/* && mkdir -p dist",
     "min": "npm run build && npm run build-main-min && npm run build-runtime-min",
     "build": "npm run clean && npm run build-main && npm run build-runtime && npm run build-cjs && npm run build-esm",
