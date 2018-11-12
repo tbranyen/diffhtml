@@ -1,21 +1,25 @@
-**Welcome to diffHTML!** An easy-to-use and powerful Virtual DOM library that
+**Welcome to diffHTML!** A library that assists with creating user interfaces
+for the web using JavaScript. These interfaces can be: applications, games,
+data visualizations, or anything else that you may want to render in a web
+browser.
+
+An easy-to-use and powerful Virtual DOM library that
 was written to be extensionable, powerful, and very fast. Use this to build
 components, applications, games, and more.
 
 ## Core Features
 
-- <span class="list-icon fa fa-exchange" /> ES Module support
-- <span class="list-icon fa fa-forward" /> Transitions
-- <span class="list-icon fa fa-check" /> Middleware
-- <span class="list-icon fa fa-code" /> Efficient Virtual DOM
-- <span class="list-icon fa fa-tree" /> Virtual Tree object pooling
-- <span class="list-icon fa fa-codiepie" /> Auto memory management
+- <span class="list-icon fa fa-exchange"></span> ES Module support
+- <span class="list-icon fa fa-retweet"></span> Async transition hooks
+- <span class="list-icon fa fa-link"></span> Middleware
+- <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
+- <span class="list-icon fa fa-tree"></span> Virtual Tree object pooling
+- <span class="list-icon fa fa-codiepie"></span> Auto memory management
 
 ## Installing & Importing
 
-Depending on your use case you may have to install **diffHTML** from a registry
-using a package manager or you can reference it directly from a server.
-Depending on your use case you will use one or the other.
+Depending on your use case you may have to install from a registry using a
+package manager or you can reference it directly from a server.
 
 ### Script tag
 

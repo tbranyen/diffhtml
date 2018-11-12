@@ -35,7 +35,7 @@ pre code {
 layer#navigation {
   display: flex;
   background-color: #333333;
-  padding: 0 30px;
+  padding: 0 20px;
   width: 220px;
   height: 100%;
   flex-direction: column;
@@ -195,7 +195,7 @@ layer#main ul {
 layer#main ul .list-icon {
   padding-left: 10px;
   margin-right: 10px;
-  color: #3F3F3F;
+  color: #024161;
   font-size: 20px;
   line-height: 22px;
 }
@@ -294,6 +294,7 @@ layer#main footer a:hover {
   layer#main header h1 {
     padding-left: 20px;
     padding-right: 20px;
+    padding-top: 5px;
     flex-direction: row;
     align-items: flex-start;
   }
@@ -324,7 +325,7 @@ layer#main footer a:hover {
     position: sticky;
     color: #FFF;
     top: 22px;
-    left: 28px;
+    left: 18px;
     padding: 0;
     cursor: pointer;
     z-index: 100;

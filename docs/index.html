@@ -187,22 +187,25 @@
           </h1>
         </header>
 
-        <section id="content"><p><strong>Welcome to diffHTML!</strong> An easy-to-use and powerful Virtual DOM library that
+        <section id="content"><p><strong>Welcome to diffHTML!</strong> A library that assists with creating user interfaces
+for the web using JavaScript. These interfaces can be: applications, games,
+data visualizations, or anything else that you may want to render in a web
+browser.</p>
+<p>An easy-to-use and powerful Virtual DOM library that
 was written to be extensionable, powerful, and very fast. Use this to build
 components, applications, games, and more.</p>
 <h2 id="core-features">Core Features</h2>
 <ul>
 <li><span class="list-icon fa fa-exchange"></span> ES Module support</li>
-<li><span class="list-icon fa fa-forward"></span> Transitions</li>
-<li><span class="list-icon fa fa-check"></span> Middleware</li>
+<li><span class="list-icon fa fa-retweet"></span> Async transition hooks</li>
+<li><span class="list-icon fa fa-link"></span> Middleware</li>
 <li><span class="list-icon fa fa-code"></span> Efficient Virtual DOM</li>
 <li><span class="list-icon fa fa-tree"></span> Virtual Tree object pooling</li>
 <li><span class="list-icon fa fa-codiepie"></span> Auto memory management</li>
 </ul>
 <h2 id="installing-importing">Installing &amp; Importing</h2>
-<p>Depending on your use case you may have to install <strong>diffHTML</strong> from a registry
-using a package manager or you can reference it directly from a server.
-Depending on your use case you will use one or the other.</p>
+<p>Depending on your use case you may have to install from a registry using a
+package manager or you can reference it directly from a server.</p>
 <h3 id="script-tag">Script tag</h3>
 <p>Using this method will bring in the global minified UMD file. This includes the
 parser so it will be larger than the runtime build weighing at around
@@ -320,15 +323,12 @@ diff.innerHTML(document.body, &#39;&lt;div&gt;Hello updated world!&lt;/div&gt;&#
         </a>
 
         <footer>
-          <strong>Built with</strong>
-          <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
           <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
-            <strong>by @tbranyen</strong>
+            <span>Created by @tbranyen</span>
           </a>
-          <strong>Logo by</strong>
-          <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
+          <span style="margin: 0 15px;"> | </span>
           <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
-            <strong>by @s0phinie</strong>
+            <span>Logo by @s0phinie</span>
           </a>
           <span style="margin-left: 15px;"> | </span>
           <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>

@@ -62,15 +62,12 @@ module.exports = ({ path, pages, content }) => html`
         </a>
 
         <footer>
-          <strong>Built with</strong>
-          <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
           <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
-            <strong>by @tbranyen</strong>
+            <span>Created by @tbranyen</span>
           </a>
-          <strong>Logo by</strong>
-          <span class="fa fa-heart" style="color: red; margin: 0 15px;"></span>
+          <span style="margin: 0 15px;"> | </span>
           <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
-            <strong>by @s0phinie</strong>
+            <span>Logo by @s0phinie</span>
           </a>
           <span style="margin-left: 15px;"> | </span>
           <a style="margin-left: 15px; text-decoration: none;" href="https://raw.githubusercontent.com/tbranyen/diffhtml/master/LICENSE"> MIT License</a>
