@@ -34,7 +34,9 @@ function generate() {
     `);
 
     const publicPath = toPublic(path);
-    const existingContents = String(readFileSync(publicPath));
+    let existingContents = '';
+
+    try { existingContents = String(readFileSync(publicPath)); } catch(ex) {}
 
     // Only write out if the contents have changed.
     if (contents !== existingContents) {

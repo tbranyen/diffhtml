@@ -229,6 +229,7 @@ layer#main footer a:hover {
   display: none;
 }
 
+/* Tablet */
 @media only screen and (max-width : 1027px) {
   html, body {
     background-color: #FFF;
@@ -267,7 +268,7 @@ layer#main footer a:hover {
   }
 
   layer#main {
-    max-width: 100%;
+    max-width: calc(100% - 50px);
     width: 100%;
     margin: 0 !important;
     padding-left: 0px !important;
@@ -309,9 +310,9 @@ layer#main footer a:hover {
 
   layer#main section#content {
     padding-left: 20px;
-    padding-right: 20px;
+    padding-right: 10px;
     padding-top: 20px;
-    width: calc(100% - 45px);
+    width: 100%;
     box-sizing: border-box;
   }
 
@@ -374,10 +375,25 @@ layer#main footer a:hover {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
+    font-size: 16px;
+    line-height: 22px;
+    padding-left: 12px;
   }
 
   p.social {
     text-align: left;
     padding-left: 5px;
+  }
+}
+
+/* Phone */
+@media only screen and (max-width : 410px) {
+  layer#main header h1 a {
+    padding-top: 10px;
+  }
+
+  layer#main sub {
+    padding-left: 2px;
+    top: -3px;
   }
 }
