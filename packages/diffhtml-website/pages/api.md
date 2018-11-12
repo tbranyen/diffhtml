@@ -16,6 +16,8 @@ what has changed. Works like the browser's `innerHTML` feature, where it only
 updates the children, but not the root tag. If you want to control the entire
 tag, use `outerHTML`.
 
+Simple Hello world:
+
 ``` js
 innerHTML(document.body, 'Hello world');
 ```
@@ -31,16 +33,15 @@ all representing an element (or many elements).
 ## outerHTML **`(domNode, markup, options)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.
+what has changed. Additionally updates the attributes of the parent. If the
+element you're modifying has a parent, you may also change the element type,
+but this isn't really recommended.
 
 Example:
 
 ``` js
 outerHTML(document.body, '<body>Hello world</body>');
 ```
-
-To see how to run this example yourself see the [Examples](#examples) section
-below.
 
 ### Arguments
 

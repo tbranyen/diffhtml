@@ -4,11 +4,12 @@ components, applications, games, and more.
 
 ## Core Features
 
-- <span class="list-icon fa fa-check" /> ES Module support
-- <span class="list-icon fa fa-check" /> Efficient Virtual DOM
-- <span class="list-icon fa fa-check" /> Object pooling and memory management
-- <span class="list-icon fa fa-check" /> Transitions
+- <span class="list-icon fa fa-exchange" /> ES Module support
+- <span class="list-icon fa fa-forward" /> Transitions
 - <span class="list-icon fa fa-check" /> Middleware
+- <span class="list-icon fa fa-code" /> Efficient Virtual DOM
+- <span class="list-icon fa fa-tree" /> Virtual Tree object pooling
+- <span class="list-icon fa fa-codiepie" /> Auto memory management
 
 ## Installing & Importing
 

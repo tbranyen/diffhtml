@@ -199,6 +199,7 @@ flexibility.</p>
 what has changed. Works like the browser&#39;s <code>innerHTML</code> feature, where it only
 updates the children, but not the root tag. If you want to control the entire
 tag, use <code>outerHTML</code>.</p>
+<p>Simple Hello world:</p>
 <pre><code class="lang-js">innerHTML(document.body, &#39;Hello world&#39;);
 </code></pre>
 <h3 id="arguments">Arguments</h3>
@@ -208,12 +209,12 @@ all representing an element (or many elements).</p>
 <p><a name="outer-html"></a></p>
 <h2 id="outerhtml-domnode-markup-options-">outerHTML <strong><code>(domNode, markup, options)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.</p>
+what has changed. Additionally updates the attributes of the parent. If the
+element you&#39;re modifying has a parent, you may also change the element type,
+but this isn&#39;t really recommended.</p>
 <p>Example:</p>
 <pre><code class="lang-js">outerHTML(document.body, &#39;&lt;body&gt;Hello world&lt;/body&gt;&#39;);
 </code></pre>
-<p>To see how to run this example yourself see the <a href="#examples">Examples</a> section
-below.</p>
 <h3 id="arguments">Arguments</h3>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types

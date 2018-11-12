@@ -264,8 +264,8 @@ layer#main footer a:hover {
   }
 
   layer#main {
-    max-width: calc(100% - 245px);
-    width: calc(100% - 245px);
+    max-width: 100%;
+    width: 100%;
     margin: 0 !important;
     padding-left: 0px !important;
     padding-right: 15px !important;
