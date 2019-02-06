@@ -22,7 +22,7 @@
       "attached": "#attached",
       "detached": "#detached",
       "replaced": "#replaced",
-      "attributedChanged": "#attributeChanged",
+      "attributeChanged": "#attributeChanged",
       "textChanged": "#textChanged"
     }],
 
