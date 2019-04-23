@@ -2,12 +2,12 @@
 
 *The core diffHTML library that parses HTML, syncs changes, and patches the DOM.*
 
-Stable version: 1.0.0-beta.9
+Stable version: 1.0.0-beta.10
 
 Inspired by React and motivated by the Web, this library is designed to help
-web developers write components and applications for the web. By focusing on
-the markup representing how your state should look, diffHTML will figure out
-how to modify the page with a minimal amount of operations.
+developers write components and applications using HTML. By focusing on the
+markup representing how your state should look, diffHTML will figure out how to
+modify the page with a minimal amount of operations.
 
 ## Quick Jump
 
@@ -15,23 +15,16 @@ how to modify the page with a minimal amount of operations.
   - [Include in HTML (Browser)](#include-in-html-browser)
   - [Require with CommonJS (Node)](#require-with-commonjs-node)
   - [Import using ES Modules syntax (advanced usage)](#import-using-es-modules-syntax-advanced-usage)
-  - [Module format locations](#module-format-locations)
-- [Quick start](#quick-start)
-  - [Rendering HTML to a DOM Node](#rendering-html-to-a-dom-node)
-  - [Writing a component](#writing-a-component)
-- [Documentation](#documentation)
-  - [Lifecycle overview](#lifecycle-overview)
-  - [Virtual Tree Abstraction](#virtual-tree-abstraction)
-  - [Write & Consume Middleware](#middleware)
 - [API](#API)
+  - **[innerHTML(element, markup, options)](#user-content-diff-an-elements-children-with-markup)**
+  - **[outerHTML(element, markup, options)](#user-content-diff-an-element-with-markup)**
   - **[html\`tagged template helper\`](#user-content-html)**
   - [createTree(nodeName, attributes, children)](#user-content-create-tree)
-  - **[outerHTML(element, markup, options)](#user-content-diff-an-element-with-markup)**
-  - **[innerHTML(element, markup, options)](#user-content-diff-an-elements-children-with-markup)**
   - [release(element)](#user-content-release-element)
   - [addTransitionState(name, callback)](#user-content-add-a-transition-state-callback)
   - [removeTransitionState(name, callback)](#user-content-remove-a-transition-state-callback)
   - [use(middleware)](#use)
+  - [Internals](#internals)
 
 ## How to install
 
@@ -124,121 +117,6 @@ enabled. The CJS build is compiled with Babel to reduce `import` calls to
 | UMD (AMD/CJS/Browser)    | ES5           | `diffhtml/dist/diffhtml.js`
 | CJS                      | ES6           | `diffhtml/dist/cjs/*`
 | ESM (ES Modules)         | ES6           | `diffhtml/dist/es/*`
-
-## Quick start
-
-[Back to quick jump](#quick-jump)
-
-### Rendering HTML to a DOM Node
-
-The primary purpose of diffHTML is to render markup to the DOM. The most
-basic way to apply this concept is by using simple strings.
-
-``` js
-import { innerHTML } from 'diffhtml';
-
-innerHTML(document.body, '<strong>Hello world</strong>');
-```
-
-#### Multi-line strings
-
-[Back to quick jump](#quick-jump)
-
-Multi-line strings can be achieved using the ES6 language feature template
-literal strings. These utilize the back-tick and may be spread over multiple
-lines. These are only useful if you interpolate primitive JavaScript types.
-diffHTML is smart enough to recognize the following example as a single
-`<strong>` instead of parsing as two text nodes and a span:
-
-``` js
-import { innerHTML } from 'diffhtml';
-
-innerHTML(document.body, `
-  <strong>Hello world</strong>
-`);
-```
-
-These even have the ability to interpolate (use variables) values in the
-string. These values can be tag names, element attributes, and child nodes. So
-you could do:
-
-``` js
-import { innerHTML } from 'diffhtml';
-
-const location = 'world';
-
-innerHTML(document.body, `
-  <strong>Hello ${location}</strong>
-`);
-```
-
-Although, if you try and pass an object or function it will be serialized to a
-string, which is generally not desirable. For example this would not work
-correctly, it would flatten the `style` value to a string instead of passing
-the reference:
-
-``` js
-import { innerHTML } from 'diffhtml';
-
-const style = { fontSize: '11px' };
-
-innerHTML(document.body, `
-  <strong style=${style}>Hello world</strong>
-`);
-```
-
-To overcome this limitation, if you need it, seek out the HTML tagged template
-literal. This is a simple function you import and prepend to the template
-strings. You can find more information in the next section.
-
-#### Tagged template literals
-
-[Back to quick jump](#quick-jump)
-
-This upgrades the template literal to use a fast HTML parser which
-builds a Virtual Tree of our markup and assigns dynamic references to
-properties, child nodes, and even facilitates interpolating React components.
-
-To use the tagged template feature, simply import `html`:
-
-``` js
-import { html, innerHTML } from 'diffhtml';
-
-const style = { fontSize: '11px' };
-
-innerHTML(document.body, html`
-  <strong style=${style}>Hello world</strong>
-`);
-```
-
-### Writing a component
-
-[Back to quick jump](#quick-jump)
-
-Components are provided by an optional package **diffhtml-components** which
-contains a Web Component and React Like interface. Both are designed to
-maintain as much cross-compatibility as possible.
-
-The React-like API supports all major browsers, you can import and render a
-component like so:
-
-``` js
-import { html, innerHTML } from 'diffhtml';
-import { Component } from 'diffhtml-components';
-
-class HelloWorld extends Component {
-  render() {
-    return html`
-      <strong>Hello world</strong>
-    `;
-  }
-}
-
-innerHTML(document.body, html`<${HelloWorld} />`);
-```
-
-For more information about this, [check out the docs for
-diffhtml-components](/packages/diffhtml-components)
 
 ## Documentation
 
