@@ -1,6 +1,6 @@
 {
-  "presets": ["es2015"],
   "plugins": [
-    ".",
+    "@babel/plugin-transform-modules-commonjs",
+    "./dist/index.js"
   ]
 }
