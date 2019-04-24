@@ -1,6 +1,6 @@
 # <±/> diffHTML
 
-*The core diffHTML library that parses HTML, syncs changes, and patches the DOM.*
+*The core diffHTML library. Parses HTML, reconciles changes, and keeps the DOM in sync.*
 
 Stable version: 1.0.0-beta.10
 
@@ -12,10 +12,12 @@ modify the page with a minimal amount of operations.
 ## Quick Jump
 
 - [How to install](#how-to-install)
-  - [Include in HTML (Browser)](#include-in-html-browser)
-  - [Require with CommonJS (Node)](#require-with-commonjs-node)
-  - [Import using ES Modules syntax (advanced usage)](#import-using-es-modules-syntax-advanced-usage)
-- [API](#API)
+  - [CDN](#user-content-cdn)
+  - [Include in HTML (Browser)](#user-content-include-in-html-with-a-local-file)
+  - [Require with CommonJS (Node)](#user-content-require-with-commonjs-node)
+  - [Import using ES Modules syntax (Advanced usage)](#user-content-import-using-es-modules-syntax-advanced-usage)
+  - [Module format locations](#user-content-module-format-locations)
+- [API](#user-content-api)
   - **[innerHTML(element, markup, options)](#user-content-diff-an-elements-children-with-markup)**
   - **[outerHTML(element, markup, options)](#user-content-diff-an-element-with-markup)**
   - **[html\`tagged template helper\`](#user-content-html)**
@@ -29,6 +31,33 @@ modify the page with a minimal amount of operations.
 ## How to install
 
 [Back to quick jump...](#quick-jump)
+
+There are a few ways to get diffHTML. You can use native browser ESM imports
+and load from a CDN or locally. Install it through a package manager like npm.
+
+### CDN
+
+[Back to quick jump...](#quick-jump)
+
+The latest build is provided at
+[//diffhtml.org/es](https://diffhtml.org/es). You can also get it from
+[//unpkg.com/diffhtml/dist/es](https://unpkg.com/diffhtml/dist/es) which will
+work the exact same way.
+
+```html
+<script type="module">
+  import { innerHTML } from 'https://diffhtml.org/es';
+
+  innerHTML(document.body, '<span>Hello world</span>');
+</script>
+```
+
+You can drop the protocol and use `//` if you serve from http or https, if
+you're using a local `file://` you will need to specify the `https`.
+
+```js
+import { innerHTML } from '//unpkg.com/diffhtml/dist/es';
+```
 
 The latest built version (but not necessarily the latest stable) is available
 for quick download from the [master
@@ -51,7 +80,7 @@ The module can be included natively in Node or browser environments. It is
 exported as a global named `diff` unless loaded as a module, in which case you
 determine the name diffHTML will be assigned to.
 
-### Include in HTML (browser)
+### Include in HTML with a local file
 
 [Back to quick jump...](#quick-jump)
 
@@ -89,7 +118,7 @@ innerHTML(document.body, '<span>Hello world!</span>');
 You can import only what you need if you're using ES Modules:
 
 
-### Import using ES Modules syntax (advanced usage)
+### Import using ES Modules syntax (Advanced usage)
 
 [Back to quick jump...](#quick-jump)
 
@@ -196,21 +225,21 @@ passed before. If nothing has changed, then it will abort the transaction.
 
 [Back to quick jump...](#quick-jump)
 
-The follow error types are exposed so you can test exceptions:
-
-- TransitionStateError - Happens when errors occur during transitions.
-- DOMException - Happens whenever a DOM manipulation fails.
-
-#### Options
+### innerHTML
 
 [Back to quick jump...](#quick-jump)
 
-This is an optional argument that can be passed to any diff method. The `inner`
-property can only be used with the element method.
+This method also takes in a string of markup, but unlike `outerHTML` this is
+children-only markup that will be nested inside the element passed.
 
-- `inner` - Boolean that determines if `innerHTML` is used.
+You cannot override the `inner` options property here.
 
-### Diff an element with markup
+
+``` javascript
+diff.innerHTML(document.body, '<h1>Hello world!</h1>');
+```
+
+### outerHTML
 
 [Back to quick jump...](#quick-jump)
 
@@ -225,51 +254,27 @@ You cannot override the `inner` options property here.
 diff.outerHTML(document.body, '<body class="test"><h1>Hello world!</h1></body>');
 ```
 
-### Diff an element's children with markup
+### html
 
 [Back to quick jump...](#quick-jump)
 
-This method also takes in a string of markup, but unlike `outerHTML` this is
-children-only markup that will be nested inside the element passed.
+Takes in HTML string input and produces a Virtual Tree that is usable by
+diffHTML. This works identical to React's JSX model.
 
-You cannot override the `inner` options property here.
-
-
-``` javascript
-diff.innerHTML(document.body, '<h1>Hello world!</h1>');
-```
-
-### Diff an element to another element
+#### Options
 
 [Back to quick jump...](#quick-jump)
 
-Unlike the previous two methods, this will take in two elements and diff them
-together.
+This is an optional argument that can be passed to any diff method. The `inner`
+property can only be used with the element method.
 
-The `inner` options property can be set here to change between inner/outerHTML.
+- `inner` - Boolean that determines if `innerHTML` is used.
 
+### Error types
 
-``` javascript
-var newBody = document.createElement('body');
+The follow error types are exposed so you can test exceptions:
 
-newBody.innerHTML = '<h1>Hello world!</h1>';
-newBody.setAttribute('class', 'test');
-
-diff.element(document.body, newBody);
-```
-
-With `inner` set:
-
-``` javascript
-var h1 = document.createElement('h1');
-
-h1.innerHTML = 'Hello world!';
-
-diff.element(document.body, h1, { inner: true });
-```
-
-## Middleware
-
-[Back to quick jump...](#quick-jump)
+- `TransitionStateError` - Happens when errors occur during transitions.
+- `DOMException` - Happens when DOM manipulation fails.
 
 [More information and a demo are available on http://www.diffhtml.org/](http://www.diffhtml.org/)
