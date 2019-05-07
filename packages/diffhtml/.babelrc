@@ -1,4 +1,5 @@
 {
+  "presets": ["diffhtml-imports"],
   "env": {
     "test+cov": {
       "plugins": [

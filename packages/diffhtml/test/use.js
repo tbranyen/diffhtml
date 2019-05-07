@@ -1,18 +1,24 @@
 import { equal, throws } from 'assert';
-import { html, innerHTML, outerHTML, use, release } from '../lib/index';
+import { createTree, html, innerHTML, outerHTML, use, release } from '../lib/index';
 import validateMemory from './util/validateMemory';
 
 const { assign } = Object;
 
 describe('Use (Middleware)', function() {
   beforeEach(() => {
-    this.unsubscribe = use(assign(() => {}, {
+    this.unsubscribe = use({
+      createTreeHook: (...args) => {
+        if (this.createTreeHook) {
+          return this.createTreeHook.apply(this, args);
+        }
+      },
+
       syncTreeHook: (...args) => {
         if (this.syncTreeHook) {
           return this.syncTreeHook.apply(this, args);
         }
-      }
-    }));
+      },
+    });
   });
 
   afterEach(() => {
@@ -20,15 +26,60 @@ describe('Use (Middleware)', function() {
     validateMemory();
   });
 
-  it('will error if a value is passed that is not a function', () => {
+  it('will error if a value is passed that is not a function or object', () => {
     throws(() => use());
     throws(() => use(null));
     throws(() => use(undefined));
     throws(() => use(0));
     throws(() => use(NaN));
     throws(() => use(false));
-    throws(() => use({}));
     throws(() => use([]));
+  });
+
+  it('will allow modifying a vTree during creation', () => {
+    //const Fn = ({ message }) => createTree('marquee', null, message);
+    const Fn = ({ message }) => html`<marquee>${message}</marquee>`;
+    const oldTree = document.createElement('div');
+
+    let i = 0;
+
+    this.createTreeHook = ({ rawNodeName, attributes }) => {
+      if (i === 4) {
+        return;
+      }
+
+      if (typeof rawNodeName === 'function') {
+        i++;
+        return rawNodeName(attributes);
+      }
+    };
+
+    innerHTML(oldTree, html`
+      <${Fn} message="Hello world" />
+    `);
+
+    equal(oldTree.outerHTML, `<div><marquee>Hello world</marquee></div>`);
+
+    release(oldTree);
+  });
+
+  it.skip('will allow modifying a nested vTree during creation', () => {
+    const Fn = ({ message }) => html`<marquee>${message}</marquee>`;
+
+    const oldTree = document.createElement('div');
+    const newTree = html`<div><${Fn} message="Hello world" /></div>`;
+
+    this.createTreeHook = (vTree) => {
+      if (typeof vTree.rawNodeName === 'function') {
+        return vTree.rawNodeName(vTree.attributes);
+      }
+    };
+
+    innerHTML(oldTree, newTree);
+
+    equal(oldTree.outerHTML, `<div><marquee>Hello world</marquee></div>`);
+
+    release(oldTree);
   });
 
   it('will allow modifying the newTree during sync', () => {

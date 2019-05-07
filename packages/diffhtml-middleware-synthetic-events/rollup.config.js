@@ -15,22 +15,22 @@ const dests = {
 
 const { NODE_ENV = 'umd' } = process.env;
 
-export const exports = 'default';
+export const input = entries[NODE_ENV];
 export const context = 'this';
-export const entry = entries[NODE_ENV];
-export const sourceMap = false;
-export const moduleName = 'syntheticEvents';
-export const globals = { diffhtml: 'diff' };
 export const external = ['diffhtml'];
 
-export const targets = [{
+export const output = [{
   dest: dests[NODE_ENV],
   format: 'umd',
+  exports: 'default',
+  name: 'syntheticEvents',
+  sourcemap: false,
+  globals: { diffhtml: 'diff' },
 }];
 
 export const plugins = [
   NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   babel(),
-  nodeResolve({ jsnext: true }),
+  nodeResolve({ mainFields: ['module'] }),
   NODE_ENV === 'umd' && Visualizer({ filename: './dist/build-size.html' }),
 ];

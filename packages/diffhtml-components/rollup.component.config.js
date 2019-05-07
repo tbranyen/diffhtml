@@ -16,23 +16,23 @@ const dests = {
 
 const { NODE_ENV = 'umd' } = process.env;
 
+export const input = entries[NODE_ENV];
 export const context = 'this';
-export const exports = 'default';
-export const entry = entries[NODE_ENV];
-export const sourceMap = false;
-export const moduleName = 'Component';
-export const globals = { diffhtml: 'diff', 'prop-types': 'PropTypes' };
 export const external = ['diffhtml', 'prop-types'];
 
-export const targets = [{
-  dest: dests[NODE_ENV],
+export const output = [{
+  file: dests[NODE_ENV],
   format: 'umd',
+  exports: 'default',
+  name: 'Component',
+  sourcemap: false,
+  globals: { diffhtml: 'diff', 'prop-types': 'PropTypes' },
 }];
 
 export const plugins = [
   NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   babel(),
-  nodeResolve({ main: true, jsnext: true }),
+  nodeResolve({ mainFields: ['main', 'module'] }),
   commonjs({ include: 'node_modules/**', }),
   NODE_ENV === 'umd' && Visualizer({ filename: './dist/component-build-size.html' }),
 ].filter(Boolean);

@@ -25,19 +25,6 @@ export default transaction => {
       let name = SET_ATTRIBUTE[i + 1];
       const value = SET_ATTRIBUTE[i + 2];
 
-      // Ensure refs are always called.
-      if (name === 'ref') {
-        if (typeof value === 'function') {
-          value(NodeCache.get(oldTree));
-        }
-        else if (typeof value === 'string') {
-          console.log('String refs not implemented yet');
-        }
-
-        // Do not try and set on the DOM Node.
-        continue;
-      }
-
       // Normalize uppercase attributes.
       if (uppercaseEx.test(name)) {
         uppercaseEx.lastIndex = 0;

@@ -6,15 +6,17 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "dependencies": {
-    "babel-plugin-add-module-exports": "^0.2.1",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
+    "@babel/plugin-transform-classes": "^7.4.4",
+    "@babel/plugin-transform-modules-commonjs": "^7.4.4",
+    "babel-plugin-add-module-exports": "^1.0.2",
     "babel-plugin-module-rewrite": "^0.2.0",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-custom-element-classes": "0.1.0",
-    "babel-plugin-transform-es2015-classes": "6.24.1",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.8.0",
-    "babel-preset-es2015-rollup": "^3.0.0",
-    "diffhtml": "^1.0.0-beta.9",
-    "find-package-json": "1.0.0"
+    "babel-plugin-transform-custom-element-classes": "^0.1.0",
+    "diffhtml": "^1.0.0-beta.10",
+    "find-package-json": "^1.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.4"
   }
 }

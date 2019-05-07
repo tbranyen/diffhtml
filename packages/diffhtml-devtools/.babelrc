@@ -1,12 +1,11 @@
 {
   "plugins": [
     "add-module-exports",
-    "transform-object-rest-spread",
-    "transform-class-properties",
+    "@babel/plugin-proposal-object-rest-spread",
+    "@babel/plugin-proposal-class-properties",
     "transform-custom-element-classes",
-    "transform-es2015-classes",
-    "transform-es2015-modules-commonjs",
-    "transform-class-properties",
-    "transform-es2015-arrow-functions"
+    "@babel/plugin-transform-classes",
+    "@babel/plugin-transform-modules-commonjs",
+    "@babel/plugin-transform-arrow-functions"
   ]
 }

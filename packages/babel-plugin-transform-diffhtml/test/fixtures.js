@@ -1,6 +1,6 @@
 'use strict';
 
-const diff = require('diffhtml');
+const { html } = require('diffhtml');
 
 BASICS: {
 

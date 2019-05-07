@@ -95,7 +95,7 @@
     
       
 
-      <a href="transitions.html#attributeChanged" target><li>attributedChanged</li></a>
+      <a href="transitions.html#attributeChanged" target><li>attributeChanged</li></a>
     
       
 
@@ -199,13 +199,12 @@ DOM <code>matches</code> method.  It&#39;s fairly well supported
 (<a href="http://caniuse.com/#feat=matchesselector">http://caniuse.com/#feat=matchesselector</a>) and may suit many projects.  If you
 need backwards compatibility, consider using jQuery&#39;s <code>is</code>.</p>
 <p>You can do fun, highly specific, filters:</p>
-<pre><code class="lang-javascript">addTransitionState(&#39;attached&#39;, function(element) {
+<pre><code class="language-javascript">addTransitionState(&#39;attached&#39;, function(element) {
   // Fade in the main container after it&#39;s attached into the DOM.
   if (element.matches(&#39;body main.container&#39;)) {
     $(element).stop(true, true).fadeIn();
   }
-});
-</code></pre>
+});</code></pre>
 <p>If you like these transitions and want to declaratively assign them in tagged
 templates, check out the <a href="https://github.com/tbranyen/diffhtml-inline-transitions">diffhtml-inline-transitions
 plugin</a>.</p>
@@ -223,7 +222,7 @@ For when attributes are changed.</li>
 <li><code>textChanged[element, oldValue, newValue]</code>
 For when text has changed in either TextNodes or SVG text elements.</li>
 </ul>
-<h3 id="a-note-about-detached-replaced-element-accuracy">A note about detached/replaced element accuracy</h3>
+<h3 id="a-note-about-detachedreplaced-element-accuracy">A note about detached/replaced element accuracy</h3>
 <p>When rendering Nodes that contain lists of identical elements, you may not
 receive the elements you expect in the detached and replaced transition state
 hooks. This is a known limitation of string diffing and allows for better
@@ -234,18 +233,16 @@ mutated via replace.</p>
 <p>What you should do here is add a <code>key</code> attribute with a unique <code>value</code> that
 persists between renders.</p>
 <p>For example, when the following markup...</p>
-<pre><code class="lang-html">&lt;ul&gt;
+<pre><code class="language-html">&lt;ul&gt;
   &lt;li&gt;Test&lt;/li&gt;
   &lt;li&gt;This&lt;/li&gt;
   &lt;li&gt;Out&lt;/li&gt;
-&lt;/ul&gt;
-</code></pre>
+&lt;/ul&gt;</code></pre>
 <p>...is changed into...</p>
-<pre><code class="lang-html">&lt;ul&gt;
+<pre><code class="language-html">&lt;ul&gt;
   &lt;li&gt;Test&lt;/li&gt;
   &lt;li&gt;Out&lt;/li&gt;
-&lt;/ul&gt;
-</code></pre>
+&lt;/ul&gt;</code></pre>
 <p>The transformative operations are:</p>
 <ol>
 <li>Remove the last element</li>
@@ -253,18 +250,16 @@ persists between renders.</p>
 </ol>
 <p>What we intended, however, was to simply remove the second item. And to achieve
 that, decorate your markup like so...</p>
-<pre><code class="lang-html">&lt;ul&gt;
+<pre><code class="language-html">&lt;ul&gt;
   &lt;li key=&quot;1&quot;&gt;Test&lt;/li&gt;
   &lt;li key=&quot;2&quot;&gt;This&lt;/li&gt;
   &lt;li key=&quot;3&quot;&gt;Out&lt;/li&gt;
-&lt;/ul&gt;
-</code></pre>
+&lt;/ul&gt;</code></pre>
 <p>...and update with matching attributes...</p>
-<pre><code class="lang-html">&lt;ul&gt;
+<pre><code class="language-html">&lt;ul&gt;
   &lt;li key=&quot;1&quot;&gt;Test&lt;/li&gt;
   &lt;li key=&quot;3&quot;&gt;Out&lt;/li&gt;
-&lt;/ul&gt;
-</code></pre>
+&lt;/ul&gt;</code></pre>
 <p>Now the transformative operations are:</p>
 <ol>
 <li>Remove the second element</li>
@@ -274,20 +269,19 @@ that, decorate your markup like so...</p>
 <p>When invoked with no arguments, this method will remove all transition
 callbacks.  When invoked with the name argument it will remove all transition
 state callbacks matching the name, and so on for the callback.</p>
-<pre><code class="lang-javascript">// Removes all registered transition states.
+<pre><code class="language-javascript">// Removes all registered transition states.
 diff.removeTransitionState();
 
 // Removes states by name.
 diff.removeTransitionState(&#39;attached&#39;);
 
 // Removes states by name and callback reference.
-diff.removeTransitionState(&#39;attached&#39;, callbackReference);
-</code></pre>
+diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
 <h3 id="html">HTML</h3>
 <p>You can use the <code>diff.html</code> tagged template helper to build up dynamic trees in
 a way that looks very similar to JSX.</p>
 <p>For instance the following example:</p>
-<pre><code class="lang-javascript">const fixture = document.createElement(&#39;div&#39;);
+<pre><code class="language-javascript">const fixture = document.createElement(&#39;div&#39;);
 
 function showUnixTime() {
   fixture.querySelector(&#39;span&#39;).innerHTML = Date.now();
@@ -300,10 +294,9 @@ diff.outerHTML(fixture, `
   &lt;/div&gt;
 `);
 
-fixture.addEventListener(&#39;click&#39;, showUnixTime);
-</code></pre>
+fixture.addEventListener(&#39;click&#39;, showUnixTime);</code></pre>
 <p>Could be rewritten with the helper as:</p>
-<pre><code class="lang-javascript">const fixture = document.createElement(&#39;div&#39;);
+<pre><code class="language-javascript">const fixture = document.createElement(&#39;div&#39;);
 
 function showUnixTime() {
   fixture.querySelector(&#39;span&#39;).innerHTML = Date.now();
@@ -314,13 +307,12 @@ diff.outerHTML(fixture, html`
     &lt;button&gt;Show current unix time&lt;/button&gt;
     &lt;span&gt;${Date.now()}&lt;/span&gt;
   &lt;/div&gt;
-`);
-</code></pre>
+`);</code></pre>
 <p>So this feature allows for inline binding of any DOM event, and sending dynamic
 property data to any element.</p>
 <p>Tagged templates also have no problem consuming other tagged templates (even
 from arrays), so you will be able to do:</p>
-<pre><code class="lang-javascript">const fixture = document.createElement(&#39;div&#39;);
+<pre><code class="language-javascript">const fixture = document.createElement(&#39;div&#39;);
 
 const listItems = [&#39;diff&#39;, &#39;HTML&#39;, &#39;♥&#39;];
 
@@ -328,8 +320,7 @@ diff.outerHtml(fixture, html`
   &lt;ul&gt;
     ${listItems.map(item =&gt; html`&lt;li&gt;${item.text}&lt;/li&gt;`)}
   &lt;/ul&gt;
-`);
-</code></pre></section>
+`);</code></pre></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/transitions.md" style="
             text-align: center;

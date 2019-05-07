@@ -1,7 +1,7 @@
 {
   "name": "diffhtml",
   "private": true,
-  "version": "1.0.0-beta.8",
+  "version": "1.0.0-beta.10",
   "description": "Build web user interfaces with JavaScript",
   "scripts": {
     "build": "lerna run build",
@@ -28,6 +28,6 @@
   },
   "homepage": "https://diffhtml.org/",
   "devDependencies": {
-    "lerna": "2.4.0"
+    "lerna": "3.13.3"
   }
 }

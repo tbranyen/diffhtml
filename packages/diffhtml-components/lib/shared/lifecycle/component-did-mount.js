@@ -1,5 +1,6 @@
 import { Internals } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../../util/caches';
+import { $$vTree } from '../../util/symbols';
 
 const { NodeCache } = Internals;
 
@@ -17,22 +18,24 @@ const callRefs = (instance, vTrees) => {
       ref(value);
     }
     else if (typeof ref === 'string') {
-      instance.refs[ref] = value;
+      instance.refs = { ...instance.refs, [ref]: value };
     }
   }
 }
 
 export default function componentDidMount(vTree) {
+  // Ensure this is a stateful component. Stateless components do not get
+  // lifecycle events yet.
   const componentTree = ComponentTreeCache.get(vTree);
   const instance = InstanceCache.get(componentTree);
 
-  callRefs(instance, [vTree, componentTree]);
+  if (instance) {
+    callRefs(instance, [vTree, ...vTree.childNodes]);
 
-  // Ensure this is a stateful component. Stateless components do not get
-  // lifecycle events yet.
-  if (instance && instance.componentDidMount) {
-    instance.componentDidMount();
+    if (instance.componentDidMount) {
+      instance.componentDidMount();
+    }
   }
 
-  //vTree.childNodes.forEach(componentDidMount);
+  vTree.childNodes.forEach(vTree => componentDidMount(vTree));
 }

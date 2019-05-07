@@ -11,7 +11,7 @@ modify the page with a minimal amount of operations.
 
 ## Quick Jump
 
-- [How to install](#how-to-install)
+- [Getting started](#user-content-getting-started)
   - [CDN](#user-content-cdn)
   - [Include in HTML (Browser)](#user-content-include-in-html-with-a-local-file)
   - [Require with CommonJS (Node)](#user-content-require-with-commonjs-node)
@@ -28,7 +28,7 @@ modify the page with a minimal amount of operations.
   - [use(middleware)](#use)
   - [Internals](#internals)
 
-## How to install
+## Getting started
 
 [Back to quick jump...](#quick-jump)
 
@@ -172,8 +172,6 @@ This looks at the markup passed in and checks if it matches with the markup
 passed before. If nothing has changed, then it will abort the transaction.
 
 #### Reconcile trees
-
-
 
 #### Synchronize trees
 

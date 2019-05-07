@@ -95,7 +95,7 @@
     
       
 
-      <a href="transitions.html#attributeChanged" target><li>attributedChanged</li></a>
+      <a href="transitions.html#attributeChanged" target><li>attributeChanged</li></a>
     
       
 
@@ -203,25 +203,23 @@ components, applications, games, and more.</p>
 <li><span class="list-icon fa fa-tree"></span> Virtual Tree object pooling</li>
 <li><span class="list-icon fa fa-codiepie"></span> Auto memory management</li>
 </ul>
-<h2 id="installing-importing">Installing &amp; Importing</h2>
+<h2 id="installing--importing">Installing &amp; Importing</h2>
 <p>Depending on your use case you may have to install from a registry using a
 package manager or you can reference it directly from a server.</p>
 <h3 id="script-tag">Script tag</h3>
 <p>Using this method will bring in the global minified UMD file. This includes the
 parser so it will be larger than the runtime build weighing at around
 <strong>7.5kb</strong>. Access the API through the <code>window.diff</code> global.</p>
-<pre><code class="lang-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml.min.js&quot;&gt;&lt;/script&gt;
+<pre><code class="language-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml.min.js&quot;&gt;&lt;/script&gt;
 
 &lt;script&gt;
   const { innerHTML } = window.diff;
-&lt;/script&gt;
-</code></pre>
+&lt;/script&gt;</code></pre>
 <p>If you use the Babel transform, you will be able to use the runtime instead.
 This converts <code>html</code> tagged template calls into <code>createTree</code> calls, which take
 in the Babel converted trees. This greatly reduces the bundle sizes. The base
 bundle size here is only <strong>5.7kb</strong> min+gzip!</p>
-<pre><code class="lang-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js&quot;&gt;&lt;/script&gt;
-</code></pre>
+<pre><code class="language-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js&quot;&gt;&lt;/script&gt;</code></pre>
 <h3 id="installing-into-node_modules">Installing into <code>node_modules</code></h3>
 <p>You have two options, the official npm client or the yarn alternative.</p>
 <ul>
@@ -231,34 +229,31 @@ bundle size here is only <strong>5.7kb</strong> min+gzip!</p>
 </svg>
 
 <p>The official package client that ships with Node, can install </p>
-<pre><code class="lang-sh">npm install --save diffhtml
-</code></pre>
+<pre><code class="language-sh">npm install --save diffhtml</code></pre>
 </li>
-<li><p><img width="60" src="images/yarn-logo.svg"></img></p>
-<pre><code class="lang-sh">yarn add diffhtml
-</code></pre>
+<li><img width="60" src="images/yarn-logo.svg"></img>
+
+<pre><code class="language-sh">yarn add diffhtml</code></pre>
 </li>
 </ul>
 <h3 id="es-modules">ES modules</h3>
 <p>You can import diffHTML directly over HTTP using the ES modules syntax. This is
 a new feature that isn&#39;t available in all browsers yet, but you can use them
 <a href="https://caniuse.com/#search=modules">safely in nearly all modern browsers</a>.</p>
-<h4 id="-diffhtml-org-server">&gt; diffhtml.org server</h4>
+<h4 id="diffhtmlorg-server">&gt; diffhtml.org server</h4>
 <p>Hosted on my Linode, don&#39;t rely on this for complete stability, but it supports
 <strong>http/2</strong> push so it&#39;s great for development. I&#39;ll always update this to
 guarentee to be the latest version. Consider this &quot;bleeding edge&quot;, if you need
 stability use <strong>unpkg</strong> below.</p>
-<pre><code class="lang-javascript">// When you&#39;re loading from https, you can go protocol-less.
+<pre><code class="language-javascript">// When you&#39;re loading from https, you can go protocol-less.
 import { innerHTML } from &#39;//diffhtml.org/es&#39;;
 
 // When you&#39;re loading from file: or http:
-import { innerHTML } from &#39;https://diffhtml.org/es&#39;;
-</code></pre>
-<h4 id="-unpkg-com-server">&gt; unpkg.com server</h4>
+import { innerHTML } from &#39;https://diffhtml.org/es&#39;;</code></pre>
+<h4 id="unpkgcom-server">&gt; unpkg.com server</h4>
 <p>Sometimes outdated, cold start is sometimes slow, doesn&#39;t have <strong>http/2</strong>, but
 is significantly more stable, so think of this as stable LTS.</p>
-<pre><code class="lang-javascript">import { innerHTML } from &#39;//unpkg.com/diffhtml?module&#39;;
-</code></pre>
+<pre><code class="language-javascript">import { innerHTML } from &#39;//unpkg.com/diffhtml?module&#39;;</code></pre>
 <p>diffHTML is designed to be portable, so you can consume it in a number of ways
 depending on your environment. You can load imports  works well with or without a build tool. It
 can be laode dby browsers with the ES Module syntax.</p>
@@ -266,12 +261,11 @@ can be laode dby browsers with the ES Module syntax.</p>
 and the smallest filesize possible.</p>
 <ul>
 <li><p><strong>HTTP (Recommended for Beginners):</strong></p>
-<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;
-</code></pre></li>
+<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;</code></pre></li>
 </ul>
 <p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p>
 <p><strong>turns:</strong></p>
-<pre><code class="lang-javascript">// Manually create container.
+<pre><code class="language-javascript">// Manually create container.
 const div = document.createElement(&#39;div&#39;);
 
 // Update the content using the `innerHTML` property.
@@ -281,31 +275,27 @@ div.innerHTML = &#39;Hello world&#39;;
 document.body.appendChild(div);
 
 // Update only the text.
-div.textContent = &#39;Hello updated world!&#39;;
-</code></pre>
+div.textContent = &#39;Hello updated world!&#39;;</code></pre>
 <p><strong>into:</strong></p>
-<pre><code class="lang-javascript">// Declaratively create a DIV with the content and append into the page body.
+<pre><code class="language-javascript">// Declaratively create a DIV with the content and append into the page body.
 diff.innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);
 
 // Represent how you want the body to look and diffHTML will update only the
 // changed text.
-diff.innerHTML(document.body, &#39;&lt;div&gt;Hello updated world!&lt;/div&gt;&#39;);
-</code></pre>
+diff.innerHTML(document.body, &#39;&lt;div&gt;Hello updated world!&lt;/div&gt;&#39;);</code></pre>
 <ul>
 <li><p>HTTP (Recommended for Beginners):</p>
-<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;
-</code></pre></li>
+<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;</code></pre></li>
 <li><svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
   <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
   <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
 </svg>
 
-<pre><code class="lang-sh">npm install diffhtml
-</code></pre>
+<pre><code class="language-sh">npm install diffhtml</code></pre>
 </li>
-<li><p><img width="60" src="images/yarn-logo.svg"></img></p>
-<pre><code class="lang-sh">yarn add diffhtml
-</code></pre>
+<li><img width="60" src="images/yarn-logo.svg"></img>
+
+<pre><code class="language-sh">yarn add diffhtml</code></pre>
 </li>
 </ul>
 <p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p></section>

@@ -1,13 +1,15 @@
-import { jsdom } from 'jsdom';
+import { JSDOM } from 'jsdom';
 
-const instance = jsdom();
-const { defaultView } = instance;
+const { stringify } = JSON;
+const { assign } = Object;
+const instance = new JSDOM();
+const { window } = instance;
 
-Object.assign(global, {
-  document: defaultView.document,
-  Element: defaultView.Element,
-  location: defaultView.location,
-  window: defaultView,
+assign(global, {
+  document: window.document,
+  Element: window.Element,
+  location: window.location,
+  window,
 });
 
-console.json = (...a) => a.forEach(o => console.log(JSON.stringify(o, null, 2)));
+console.json = (...a) => a.forEach(o => console.log(stringify(o, null, 2)));

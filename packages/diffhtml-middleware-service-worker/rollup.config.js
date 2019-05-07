@@ -15,17 +15,17 @@ const dests = {
 
 const { NODE_ENV = 'umd' } = process.env;
 
-export const exports = 'default';
+export const input = entries[NODE_ENV];
 export const context = 'this';
-export const entry = entries[NODE_ENV];
-export const sourceMap = false;
-export const moduleName = 'logger';
-export const globals = { diffhtml: 'diff' };
 export const external = ['diffhtml'];
 
-export const targets = [{
-  dest: dests[NODE_ENV],
+export const output = [{
+  file: dests[NODE_ENV],
   format: 'umd',
+  exports: 'default',
+  name: 'serviceWorker',
+  sourcemap: false,
+  globals: { diffhtml: 'diff' },
 }];
 
 export const plugins = [

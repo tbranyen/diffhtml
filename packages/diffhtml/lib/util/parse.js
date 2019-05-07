@@ -7,11 +7,8 @@ import process from './process';
 
 const hasNonWhitespaceEx = /\S/;
 const doctypeEx = /<!.*>/i;
-const attrEx = /\b([_a-z][_a-z0-9\-:]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 const spaceEx = /[^ ]/;
 const tokenEx = /__DIFFHTML__([^_]*)__/;
-const tagEx =
-    /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
 
 const { assign } = Object;
 const { isArray } = Array;
@@ -125,6 +122,7 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   let match = null;
+  const attrEx = /\b([_a-z][_a-z0-9\-:]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 
   // Support dynamic tag names like: `<${MyComponent} />`.
   if (match = tokenEx.exec(nodeName)) {
@@ -173,9 +171,6 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
             }
             else if (isObject && options.strict) {
               if (process.env.NODE_ENV !== 'production') {
-                attrEx.lastIndex = 0;
-                tagEx.lastIndex = 0;
-
                 throw new Error(
                   'Arrays are not allowed to be spread in strict mode'
                 );
@@ -221,6 +216,9 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  * @return {Object} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
+  const tagEx =
+    /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
+  const attrEx = /\b([_a-z][_a-z0-9\-:]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
   const root = createTree('#document-fragment', null, []);
   const stack = [root];
   let currentParent = root;
@@ -327,11 +325,6 @@ Possibly invalid markup. Opening tag was not properly closed.
     Possibly invalid markup. <${name}> is not a self closing tag.
             `);
 
-            // As we are about to throw an error, make sure to reset the global
-            // `lastIndex` property.
-            attrEx.lastIndex = 0;
-            tagEx.lastIndex = 0;
-
             // Throw an error message if the markup isn't what we expected.
             throw new Error(`\n\n${markup.join('\n')}`);
           }
@@ -368,11 +361,6 @@ Possibly invalid markup. Opening tag was not properly closed.
           markup.splice(1, 0, `${caret}
   Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
           `);
-
-          // As we are about to throw an error, make sure to reset the global
-          // `lastIndex` property.
-          attrEx.lastIndex = 0;
-          tagEx.lastIndex = 0;
 
           // Throw an error message if the markup isn't what we expected.
           throw new Error(`\n\n${markup.join('\n')}`);
@@ -453,11 +441,6 @@ Possibly invalid markup. Opening tag was not properly closed.
         `);
       }
 
-      // As we are about to throw an error, make sure to reset the global
-      // `lastIndex` property.
-      attrEx.lastIndex = 0;
-      tagEx.lastIndex = 0;
-
       // Throw an error message if the markup isn't what we expected.
       throw new Error(`\n\n${markup.join('\n')}`);
     }
@@ -527,10 +510,6 @@ Possibly invalid markup. Opening tag was not properly closed.
       existing.push.apply(existing, body.after);
     }
   }
-
-  // Reset regular expression positions per parse.
-  attrEx.lastIndex = 0;
-  tagEx.lastIndex = 0;
 
   return root;
 }

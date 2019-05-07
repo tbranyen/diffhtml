@@ -12,18 +12,18 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "dependencies": {
-    "chokidar": "^1.6.1",
-    "cli-spinner": "^0.2.6",
+    "chokidar": "^3.0.0",
+    "cli-spinner": "^0.2.10",
     "combyne": "^2.0.0",
-    "diffhtml": "^1.0.0-beta.9",
+    "diffhtml": "^1.0.0-beta.10",
     "diffhtml-components": "^1.0.0-beta.9",
     "diffhtml-render-to-string": "^1.0.0-beta.9",
     "diffhtml-static-sync": "^1.0.0-beta.9",
-    "express": "^4.14.0",
-    "font-awesome": "^4.6.3",
-    "marked": "^0.3.6",
+    "express": "^4.16.4",
+    "font-awesome": "^4.7.0",
+    "marked": "^0.6.2",
     "ncp": "^2.0.0",
-    "serve-favicon": "^2.3.0"
+    "serve-favicon": "^2.5.0"
   },
   "devDependencies": {
     "combynexpress": "^3.0.0"

@@ -16,18 +16,18 @@ const dests = {
 
 const { NODE_ENV = 'umd' } = process.env;
 
-export const exports = 'named';
 export const context = 'this';
-export const entry = entries[NODE_ENV];
-export const sourceMap = false;
-export const moduleName = 'React';
-export const globals = { diffhtml: 'diff', 'prop-types': 'PropTypes' };
+export const input = entries[NODE_ENV];
 export const external = ['diffhtml', 'prop-types'];
 
-export const targets = [{
-  dest: dests[NODE_ENV],
+export const output = {
+  file: dests[NODE_ENV],
   format: 'umd',
-}];
+  exports: 'named',
+  globals: { diffhtml: 'diff', 'prop-types': 'PropTypes' },
+  sourcemap: false,
+  name: 'React',
+};
 
 export const plugins = [
   NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),

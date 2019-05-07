@@ -1,6 +1,8 @@
 import { MiddlewareCache } from './util/caches';
 import process from './util/process';
 
+const { isArray } = Array;
+
 const {
   CreateTreeHookCache,
   CreateNodeHookCache,
@@ -9,9 +11,12 @@ const {
 } = MiddlewareCache;
 
 export default function use(middleware) {
+  const isFunction = typeof middleware === 'function';
+  const isObject = typeof middleware === 'object';
+
   if (process.env.NODE_ENV !== 'production') {
-    if (typeof middleware !== 'function') {
-      throw new Error('Middleware must be a function');
+    if (!middleware || (!isFunction && !isObject) || isArray(middleware)) {
+      throw new Error('Middleware must be a function or plain object');
     }
   }
 
@@ -25,7 +30,7 @@ export default function use(middleware) {
   } = middleware;
 
   // Add the function to the set of middlewares.
-  MiddlewareCache.add(middleware);
+  isFunction && MiddlewareCache.add(middleware);
 
   // Call the subscribe method if it was defined, passing in the full public
   // API we have access to at this point.
@@ -41,7 +46,7 @@ export default function use(middleware) {
   return () => {
     // Remove this middleware from the internal cache. This will prevent it
     // from being invoked in the future.
-    MiddlewareCache.delete(middleware);
+    isFunction && MiddlewareCache.delete(middleware);
 
     // Call the unsubscribe method if defined in the middleware (allows them
     // to cleanup).
