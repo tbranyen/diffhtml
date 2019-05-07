@@ -7,7 +7,7 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "test-cov": "lerna run test-cov",
-    "postinstall": "lerna bootstrap"
+    "postinstall": "lerna bootstrap --no-ci"
   },
   "repository": {
     "type": "git",
