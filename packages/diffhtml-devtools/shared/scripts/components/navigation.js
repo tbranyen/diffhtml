@@ -47,7 +47,7 @@ class DevtoolsNavigation extends WebComponent {
         flex: none;
         background-color: #F3F3F3;
         border: 0;
-        border-right: 1px solid rgb(64%, 64%, 64%);
+        /*border-right: 1px solid rgb(64%, 64%, 64%);*/
         box-sizing: border-box;
         user-select: none;
         overflow-y: auto;
@@ -125,7 +125,7 @@ class DevtoolsNavigation extends WebComponent {
       selected: 0,
 
       nav: [
-        { route: '', label: 'Transactions', icon: 'exchange' },
+        { route: '', label: 'Transactions', icon: 'tasks' },
         { route: 'mounts', label: 'Mounts', icon: 'sitemap' },
         { route: 'middleware', label: 'Middleware', icon: 'chain' },
         { route: 'health', label: 'Health', icon: 'heartbeat' },

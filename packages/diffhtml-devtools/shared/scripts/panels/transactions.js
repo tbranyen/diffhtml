@@ -19,7 +19,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
       <style>${this.styles()}</style>
 
       <div class="ui tall segment">
-        <div>
+        <div class="content">
           <h3>Transactions</h3>
           <p>
             This panel shows you when a render occured and what was patched.
@@ -27,7 +27,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
           </p>
         </div>
 
-        <div>
+        <div class="controls">
           <div class="ui toggle checkbox">
             <input checked type="checkbox" />
             <label>Autoscroll</label>
@@ -115,8 +115,16 @@ class DevtoolsTransactionsPanel extends WebComponent {
         align-items: flex-end;
       }
 
-      .ui.segment div:last-child {
-        align-self: flex-end;
+      .ui.segment .content {
+        flex: 1;
+      }
+
+      .ui.segment .controls {
+        align-self: center;
+      }
+
+      .ui.segment .controls .ui.toggle.checkbox input:checked~label {
+        color: #FFF !important;
       }
 
       a {

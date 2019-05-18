@@ -21,7 +21,7 @@ class DevtoolsMountsPanel extends WebComponent {
   render() {
     const { mounts = [] } = this.props;
     const { index } = this.state;
-    const { styles, changeIndex } = this;
+    const { styles, changeIndex, renderVTree } = this;
 
     const options = mounts.map(({ selector }) => ({
       text: selector,
@@ -54,9 +54,14 @@ class DevtoolsMountsPanel extends WebComponent {
         -->
       </div>
 
+
+      ${!options.length && html`
+        <strong>No mounts found, this is most likely an error</strong>
+      `}
+
       ${mounts[index] && html`
         <div class="wrapper">
-          ${this.renderVTree(mounts[index].tree)}
+          ${renderVTree(mounts[index].tree)}
         </div>
       `}
     `;

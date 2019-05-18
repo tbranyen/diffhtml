@@ -113,6 +113,8 @@ background.onMessage.addListener(message => {
       state.inProgress.shift();
       state.completed = state.completed.concat(message.data);
 
+      debugger;
+
       break;
     }
   }
