@@ -22,7 +22,6 @@
     "babel-plugin-add-module-exports": "^1.0.2",
     "babel-plugin-module-rewrite": "^0.2.0",
     "babel-plugin-transform-custom-element-classes": "^0.1.0",
-    "diffhtml": "^1.0.0-beta.10",
     "find-package-json": "^1.2.0"
   },
   "devDependencies": {

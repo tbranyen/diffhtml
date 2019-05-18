@@ -15,4 +15,4 @@ before_script:
 node_js:
   - 10.10.0
 
-script: lerna run build && lerna run test:ci
+script: lerna run build && lerna run min && lerna run test:ci
