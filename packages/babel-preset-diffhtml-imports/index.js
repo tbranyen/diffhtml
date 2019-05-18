@@ -5,8 +5,17 @@ const ObjectRestSpread = require('@babel/plugin-proposal-object-rest-spread').de
 const ClassProperties = require('@babel/plugin-proposal-class-properties').default;
 const ModulesCommonJS = require('@babel/plugin-transform-modules-commonjs').default;
 const AddModuleExports = require('babel-plugin-add-module-exports');
-const TransformClasses = require('@babel/plugin-transform-classes').default;
-const TransformElementClasses = require('babel-plugin-transform-custom-element-classes');
+const Classes = require('@babel/plugin-transform-classes').default;
+const BlockScoping = require('@babel/plugin-transform-block-scoping').default;
+const ArrowFunctions = require('@babel/plugin-transform-arrow-functions').default;
+const ShorthandProperties = require('@babel/plugin-transform-shorthand-properties').default;
+const ObjectDestructuring = require('@babel/plugin-transform-destructuring').default;
+const Parameters = require('@babel/plugin-transform-parameters').default;
+const Spread = require('@babel/plugin-transform-spread').default;
+const TemplateLiterals = require('@babel/plugin-transform-template-literals').default;
+const ForOf = require('@babel/plugin-transform-for-of').default;
+const ComputedProperties = require('@babel/plugin-transform-computed-properties').default;
+const ElementClasses = require('babel-plugin-transform-custom-element-classes');
 
 const esmFunc = join(__dirname, 'utils/replace-esm.js');
 const cjsFunc = join(__dirname, 'utils/replace-cjs.js');
@@ -18,6 +27,16 @@ if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
   exportObj.plugins = [
     ObjectRestSpread,
     ClassProperties,
+    ComputedProperties,
+    BlockScoping,
+    ArrowFunctions,
+    ShorthandProperties,
+    ObjectDestructuring,
+    Parameters,
+    Spread,
+    TemplateLiterals,
+    Classes,
+    ForOf,
   ];
 }
 
@@ -28,8 +47,8 @@ if (NODE_ENV === 'cjs') {
     ModulesCommonJS,
     ObjectRestSpread,
     ClassProperties,
-    TransformElementClasses,
-    TransformClasses,
+    ElementClasses,
+    Classes,
   ];
 }
 
@@ -38,8 +57,6 @@ if (NODE_ENV === 'esm') {
     [ModuleRewrite, { replaceFunc: esmFunc }],
     ObjectRestSpread,
     ClassProperties,
-    TransformElementClasses,
-    TransformClasses,
   ];
 }
 

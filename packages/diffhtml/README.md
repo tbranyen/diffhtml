@@ -13,7 +13,7 @@ modify the page with a minimal amount of operations.
 
 - [Getting started](#user-content-getting-started)
   - [CDN](#user-content-cdn)
-  - [Include in HTML (Browser)](#user-content-include-in-html-with-a-local-file)
+  - [Include in HTML with a local file](#user-content-include-in-html-with-a-local-file)
   - [Require with CommonJS (Node)](#user-content-require-with-commonjs-node)
   - [Import using ES Modules syntax (Advanced usage)](#user-content-import-using-es-modules-syntax-advanced-usage)
   - [Module format locations](#user-content-module-format-locations)

@@ -20,7 +20,7 @@ export const context = 'this';
 export const external = ['diffhtml'];
 
 export const output = [{
-  dest: dests[NODE_ENV],
+  file: dests[NODE_ENV],
   format: 'umd',
   exports: 'default',
   name: 'verifyState',
