@@ -284,7 +284,7 @@ layer#main footer a:hover {
 
   body.open layer#navigation {
     transform: translate3d(0, 0, 0);
-    width: 300px;
+    width: 800px;
     height: 100%;
     padding-right: 0;
   }
