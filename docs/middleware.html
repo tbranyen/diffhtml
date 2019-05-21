@@ -258,7 +258,9 @@ different things. You can use pre-made middleware or create your own easily.</p>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
       <script>
-        hljs.initHighlightingOnLoad();
+        try {
+          hljs.initHighlightingOnLoad();
+        } catch (ex) {}
 
         // Every time a refresh happens, reload the highlight code block.
         if (typeof staticSyncHandlers !== 'undefined') {

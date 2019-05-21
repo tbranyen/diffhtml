@@ -39,10 +39,11 @@ layer#navigation {
   display: flex;
   background-color: #333333;
   padding: 0 20px;
-  width: 220px;
+  width: 240px;
   height: 100%;
   flex-direction: column;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 layer#navigation p.social {
@@ -280,13 +281,15 @@ layer#main footer a:hover {
     height: 42px;
     will-change: transform;
     transform: translate3d(-300px, 0, 0);
+    position: absolute;
   }
 
   body.open layer#navigation {
     transform: translate3d(0, 0, 0);
-    width: 800px;
+    width: 640px;
     height: 100%;
     padding-right: 0;
+    position: static;
   }
 
   layer#main {
@@ -356,6 +359,11 @@ layer#main footer a:hover {
     outline: 0 !important;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     text-align: left;
+    height: 100%;
+    padding-top: 20px;
+    width: 40px;
+    left: 0;
+    padding-left: 20px;
   }
 
   .open-menu.hide {
