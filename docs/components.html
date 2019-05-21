@@ -254,11 +254,13 @@ class ToolBar extends Component {
         hljs.initHighlightingOnLoad();
 
         // Every time a refresh happens, reload the highlight code block.
-        setTimeout(() => staticSyncHandlers.add(() => {
-          setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
-            hljs.highlightBlock(block);
+        if (typeof staticSyncHandlers !== 'undefined') {
+          setTimeout(() => staticSyncHandlers.add(() => {
+            setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+              hljs.highlightBlock(block);
+            }));
           }));
-        }));
+        }
 
         document.querySelector('.open-menu').onclick = ev => {
           ev.stopImmediatePropagation();
