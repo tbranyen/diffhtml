@@ -7,7 +7,7 @@ module.exports = ({ path, pages, content }) => html`
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>diffHTML: The easy-to-use HTML Virtual DOM built for the web!</title>
+      <title>diffHTML: The easy-to-use HTML Virtual DOM, built for the web!</title>
       <link rel="stylesheet" href="./index.css">
     </head>
 
@@ -39,7 +39,7 @@ module.exports = ({ path, pages, content }) => html`
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
-              <p>The easy-to-use Virtual DOM built for the web!</p>
+              <p>The easy-to-use Virtual DOM, built for the web!</p>
             </div>
           </h1>
         </header>
@@ -66,7 +66,7 @@ module.exports = ({ path, pages, content }) => html`
             <span>Created by @tbranyen</span>
           </a>
           <span style="margin: 0 15px;"> | </span>
-          <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+          <a href="https://twitter.com/s0phinie" style="text-decoration: none;">
             <span>Logo by @s0phinie</span>
           </a>
           <span style="margin-left: 15px;"> | </span>
@@ -75,7 +75,6 @@ module.exports = ({ path, pages, content }) => html`
       </layer>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
       <script>
         hljs.initHighlightingOnLoad();
 

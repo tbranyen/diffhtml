@@ -3,6 +3,7 @@
 @import 'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css';
 
 html, body {
+  max-height: 100%;
   margin: 0 auto;
   display: flex;
   font-family: Lato, Arial, Helvetica, sans-serif;
@@ -19,10 +20,12 @@ code {
   font-family: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
   border-radius: 5px;
   color: #4e4e4e;
-  padding: 7px;
-  padding-left: 7px !important;
+  padding: 5px;
+  padding-left: 6px !important;
   font-size: 14px;
   background-color: #e8e8e8;
+  position: relative;
+  top: -1px;
 }
 
 pre code {
@@ -39,17 +42,18 @@ layer#navigation {
   width: 220px;
   height: 100%;
   flex-direction: column;
+  overflow-y: scroll;
 }
 
 layer#navigation p.social {
-  padding-left: 22px;
+  padding-left: 12px;
   padding-top: 36px;
   margin-bottom: 0;
   margin-top: 30px;
 }
 
 layer#navigation p.social a {
-  color: #555;
+  color: #A0A0A0;
   text-decoration: none;
   margin-right: 10px;
   cursor: pointer;
@@ -102,6 +106,7 @@ layer#navigation li.header h4 {
 layer#main {
   background-color: #FFF;
   max-width: 960px;
+  overflow-y: scroll;
   line-height: 30px;
   font-size: 18px;
   color: #333;
@@ -149,16 +154,26 @@ layer#main h1 {
   margin: 0;
   margin-bottom: 30px;
   padding-top: 40px;
+  color: #333333;
 }
 
 layer#main h2 {
   color: #2E94BE;
   font-size: 24px;
+  margin-top: 40px;
+}
+
+layer#main h2 span {
+  text-decoration: underline;
 }
 
 layer#main h3 {
-  color: #7AAAD0;
+  color: #0A6990;
   font-size: 20px;
+}
+
+layer#main strong {
+  color: #0A6990;
 }
 
 layer#main sub {
@@ -179,6 +194,13 @@ layer#main header h1 {
   justify-content: flex-start;
   margin-top: 0;
   margin-bottom: 0;
+}
+
+
+layer#main hr {
+  border: none;
+  border-bottom: 1px solid #e8e8e8;
+  margin: 40px;
 }
 
 layer#main header h1 img {

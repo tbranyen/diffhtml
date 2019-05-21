@@ -2,7 +2,7 @@
       <meta charset="utf-8"></meta>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-      <title>diffHTML: The easy-to-use HTML Virtual DOM built for the web!</title>
+      <title>diffHTML: The easy-to-use HTML Virtual DOM, built for the web!</title>
       <link rel="stylesheet" href="./index.css"></link>
     </head><body>
       <div class="open-menu">≡</div>
@@ -31,15 +31,19 @@
     
       
 
-      <a href="index.html#core-features" target><li>Core Features</li></a>
+      <a href="index.html#core-features" target><li>Core features</li></a>
     
       
 
-      <a href="index.html#installing-importing" target><li>Installing &#38; Importing</li></a>
+      <a href="index.html#installing-and-importing" target><li>Installing and importing</li></a>
     
       
 
-      <a href="index.html#babel-transform" target><li>Babel Transform</li></a>
+      <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
+    
+      
+
+      <a href="index.html#writing-middleware" target><li>Writing middleware</li></a>
     
       <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
@@ -77,9 +81,25 @@
 
       <a href="api.html#release" target><li>release</li></a>
     
+      
+
+      <a href="api.html#internals" target><li>Internals</li></a>
+    
+      
+
+      <a href="api.html#version" target><li>VERSION</li></a>
+    
       <a href="transitions.html"><li class="header"><h4>Transitions</h4></li></a>
 
       
+    
+      
+
+      <a href="transitions.html#add-transition" target><li>Add transition</li></a>
+    
+      
+
+      <a href="transitions.html#remove-transition" target><li>Remove transition</li></a>
     
       
 
@@ -182,53 +202,57 @@
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
-              <p>The easy-to-use Virtual DOM built for the web!</p>
+              <p>The easy-to-use Virtual DOM, built for the web!</p>
             </div>
           </h1>
         </header>
 
-        <section id="content"><p><strong>Welcome to diffHTML!</strong> A library that assists with creating user interfaces
-for the web using JavaScript. These interfaces can be: applications, games,
-data visualizations, or anything else that you may want to render in a web
-browser.</p>
-<p>An easy-to-use and powerful Virtual DOM library that
-was written to be extensionable, powerful, and very fast. Use this to build
-components, applications, games, and more.</p>
-<h2 id="core-features">Core Features</h2>
+        <section id="content"><p><strong>Welcome to diffHTML!</strong> A library created for web engineers and creatives to
+build interactive applications. Lightweight and easy-to-use, it is authored in
+standards-complaint ES6 JavaScript.</p>
+<p>You would use it in the same way as other web frameworks such as:
+<a href="https://reactjs.org/">React</a>, <a href="https://vuejs.org/">Vue</a>, and
+<a href="https://svelte.dev/">Svelte</a>. You may want to look at these first, as they are
+backed by corporations and/or large communities.  </p>
+<p><a name="core-features"></a></p>
+<hr></hr>
+<h2 id="spancore-featuresspan"><span>Core features</span></h2>
 <ul>
-<li><span class="list-icon fa fa-exchange"></span> ES Module support</li>
+<li><span class="list-icon fa fa-exchange"></span> ES/CJS/UMD module support</li>
 <li><span class="list-icon fa fa-retweet"></span> Async transition hooks</li>
 <li><span class="list-icon fa fa-link"></span> Middleware</li>
 <li><span class="list-icon fa fa-code"></span> Efficient Virtual DOM</li>
 <li><span class="list-icon fa fa-tree"></span> Virtual Tree object pooling</li>
-<li><span class="list-icon fa fa-codiepie"></span> Auto memory management</li>
+<li><span class="list-icon fa fa-codiepie"></span> Automatic memory management</li>
 </ul>
-<h2 id="installing--importing">Installing &amp; Importing</h2>
+<p><a name="installing-and-importing"></a></p>
+<hr></hr>
+<h2 id="spaninstalling-and-importingspan"><span>Installing and importing</span></h2>
 <p>Depending on your use case you may have to install from a registry using a
 package manager or you can reference it directly from a server.</p>
 <h3 id="script-tag">Script tag</h3>
 <p>Using this method will bring in the global minified UMD file. This includes the
 parser so it will be larger than the runtime build weighing at around
-<strong>7.5kb</strong>. Access the API through the <code>window.diff</code> global.</p>
+<strong>7.8kb min+gzip</strong>. Access the API through the <code>window.diff</code> global.</p>
 <pre><code class="language-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml.min.js&quot;&gt;&lt;/script&gt;
 
 &lt;script&gt;
   const { innerHTML } = window.diff;
 &lt;/script&gt;</code></pre>
-<p>If you use the Babel transform, you will be able to use the runtime instead.
-This converts <code>html</code> tagged template calls into <code>createTree</code> calls, which take
-in the Babel converted trees. This greatly reduces the bundle sizes. The base
-bundle size here is only <strong>5.7kb</strong> min+gzip!</p>
+<p>If you use the <a href="#optimizing-with-babel">Babel transform</a>, you will be able to
+use the runtime build instead.  This converts <code>html</code> tagged template calls into
+<code>createTree</code> calls, which take in the Babel converted trees. This greatly
+reduces the bundle sizes. The base bundle size here is just <strong>6kb min+gzip</strong>!</p>
 <pre><code class="language-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js&quot;&gt;&lt;/script&gt;</code></pre>
 <h3 id="installing-into-node_modules">Installing into <code>node_modules</code></h3>
-<p>You have two options, the official npm client or the yarn alternative.</p>
+<p>JavaScript package management uses this folder and there are two many different
+clients that can install into. Two recommended ones are shown below:</p>
 <ul>
 <li><svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
   <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
   <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
 </svg>
 
-<p>The official package client that ships with Node, can install </p>
 <pre><code class="language-sh">npm install --save diffhtml</code></pre>
 </li>
 <li><img width="60" src="images/yarn-logo.svg"></img>
@@ -263,42 +287,22 @@ and the smallest filesize possible.</p>
 <li><p><strong>HTTP (Recommended for Beginners):</strong></p>
 <pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;</code></pre></li>
 </ul>
-<p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p>
-<p><strong>turns:</strong></p>
-<pre><code class="language-javascript">// Manually create container.
-const div = document.createElement(&#39;div&#39;);
-
-// Update the content using the `innerHTML` property.
-div.innerHTML = &#39;Hello world&#39;;
-
-// Add into the page body.
-document.body.appendChild(div);
-
-// Update only the text.
-div.textContent = &#39;Hello updated world!&#39;;</code></pre>
-<p><strong>into:</strong></p>
-<pre><code class="language-javascript">// Declaratively create a DIV with the content and append into the page body.
-diff.innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);
-
-// Represent how you want the body to look and diffHTML will update only the
-// changed text.
-diff.innerHTML(document.body, &#39;&lt;div&gt;Hello updated world!&lt;/div&gt;&#39;);</code></pre>
-<ul>
-<li><p>HTTP (Recommended for Beginners):</p>
-<pre><code>&lt;script src=&quot;https://diffhtml.org/master/diffhtml/dist/diffhtml.js&quot;&gt;&lt;/script&gt;</code></pre></li>
-<li><svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
-  <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
-  <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
-</svg>
-
-<pre><code class="language-sh">npm install diffhtml</code></pre>
-</li>
-<li><img width="60" src="images/yarn-logo.svg"></img>
-
-<pre><code class="language-sh">yarn add diffhtml</code></pre>
-</li>
-</ul>
-<p><em>While <code>diffhtml</code> is the core package to install, there are many other modules you may also want to install depending on your use cases.</em></p></section>
+<p><em>While <code>diffhtml</code> is the core package to install, there are many other modules
+you may also want to install depending on your use cases.</em></p>
+<p><a name="optimizing-with-babel"></a></p>
+<hr></hr>
+<h2 id="spanoptimizing-with-babelspan"><span>Optimizing with Babel</span></h2>
+<p>Once you have a working project, you may want to take your code to the next
+level and squeeze out even more performance. With the Babel transform, you can
+write very clean and readable code, and then compile down to something much more
+efficient. For instance, the plugin will automatically hoist static VTrees,
+parse your HTML and build <code>createTree</code> calls avoiding the need for runtime
+parsing, and output produced is directly compatible with the diffHTML/runtime
+build (which removes the HTML parser code).</p>
+<pre><code class="language-sh">npm install -D babel-plugin-transform-diffhtml</code></pre>
+<p><a name="writing-middleware"></a></p>
+<hr></hr>
+<h2 id="spanwriting-middlewarespan"><span>Writing middleware</span></h2></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/index.md" style="
             text-align: center;
@@ -317,7 +321,7 @@ diff.innerHTML(document.body, &#39;&lt;div&gt;Hello updated world!&lt;/div&gt;&#
             <span>Created by @tbranyen</span>
           </a>
           <span style="margin: 0 15px;"> | </span>
-          <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+          <a href="https://twitter.com/s0phinie" style="text-decoration: none;">
             <span>Logo by @s0phinie</span>
           </a>
           <span style="margin-left: 15px;"> | </span>
@@ -326,7 +330,6 @@ diff.innerHTML(document.body, &#39;&lt;div&gt;Hello updated world!&lt;/div&gt;&#
       </layer>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
       <script>
         hljs.initHighlightingOnLoad();
 

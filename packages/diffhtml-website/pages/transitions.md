@@ -1,8 +1,8 @@
 # Transitions
 
-## Overview
+---
 
-### Add a transition state callback
+## <span>Add transition</span>
 
 Adds a global transition listener.  With many elements this could be an
 expensive operation, so try to limit the amount of listeners added if you're
@@ -106,13 +106,12 @@ Now the transformative operations are:
 
 1. Remove the second element
 
-### Remove a transition state callback
+## <span>Remove transition</span>
 
-Removes a global transition listener.
-
-When invoked with no arguments, this method will remove all transition
-callbacks.  When invoked with the name argument it will remove all transition
-state callbacks matching the name, and so on for the callback.
+Removes a global transition listener. When invoked with no arguments, this
+method will remove all transition callbacks. When invoked with the name
+argument it will remove all transition state callbacks matching the name, and
+so on for the callback.
 
 ``` javascript
 // Removes all registered transition states.
@@ -125,62 +124,22 @@ diff.removeTransitionState('attached');
 diff.removeTransitionState('attached', callbackReference);
 ```
 
-### HTML
+<a name="attached"></a>
 
-You can use the `diff.html` tagged template helper to build up dynamic trees in
-a way that looks very similar to JSX.
+## <span>attached</span>
 
-For instance the following example:
+<a name="detached"></a>
 
-``` javascript
-const fixture = document.createElement('div');
+## <span>detached</span>
 
-function showUnixTime() {
-  fixture.querySelector('span').innerHTML = Date.now();
-}
+<a name="replaced"></a>
 
-diff.outerHTML(fixture, `
-  <div>
-    <button>Show current unix time</button>
-    <span>${Date.now()}</span>
-  </div>
-`);
+## <span>replaced</span>
 
-fixture.addEventListener('click', showUnixTime);
-```
+<a name="attribute-changed"></a>
 
-Could be rewritten with the helper as:
+## <span>attributeChanged</span>
 
-``` javascript
-const fixture = document.createElement('div');
+<a name="text-changed"></a>
 
-function showUnixTime() {
-  fixture.querySelector('span').innerHTML = Date.now();
-}
-
-diff.outerHTML(fixture, html`
-  <div onclick=${showUnixTime}>
-    <button>Show current unix time</button>
-    <span>${Date.now()}</span>
-  </div>
-`);
-```
-
-So this feature allows for inline binding of any DOM event, and sending dynamic
-property data to any element.
-
-Tagged templates also have no problem consuming other tagged templates (even
-from arrays), so you will be able to do:
-
-``` javascript
-const fixture = document.createElement('div');
-
-const listItems = ['diff', 'HTML', '♥'];
-
-diff.outerHtml(fixture, html`
-  <ul>
-    ${listItems.map(item => html`<li>${item.text}</li>`)}
-  </ul>
-`);
-```
-
+## <span>textChanged</span>

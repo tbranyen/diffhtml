@@ -2,9 +2,10 @@
   "output_dir": "../../docs",
   "pages": {
     "General": ["index.html", {
-      "Core Features": "#core-features",
-      "Installing & Importing": "#installing-importing",
-      "Babel Transform": "#babel-transform"
+      "Core features": "#core-features",
+      "Installing and importing": "#installing-and-importing",
+      "Optimizing with Babel": "#optimizing-with-babel",
+      "Writing middleware": "#writing-middleware"
     }],
 
     "API": ["api.html", {
@@ -15,10 +16,14 @@
       "addTransitionState": "#add-transition-state",
       "removeTransitionState": "#remove-transition-state",
       "createTree": "#create-tree",
-      "release": "#release"
+      "release": "#release",
+      "Internals": "#internals",
+      "VERSION": "#version"
     }],
 
     "Transitions": ["transitions.html", {
+      "Add transition": "#add-transition",
+      "Remove transition": "#remove-transition",
       "attached": "#attached",
       "detached": "#detached",
       "replaced": "#replaced",

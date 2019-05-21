@@ -2,7 +2,7 @@
       <meta charset="utf-8"></meta>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-      <title>diffHTML: The easy-to-use HTML Virtual DOM built for the web!</title>
+      <title>diffHTML: The easy-to-use HTML Virtual DOM, built for the web!</title>
       <link rel="stylesheet" href="./index.css"></link>
     </head><body>
       <div class="open-menu">≡</div>
@@ -31,15 +31,19 @@
     
       
 
-      <a href="index.html#core-features" target><li>Core Features</li></a>
+      <a href="index.html#core-features" target><li>Core features</li></a>
     
       
 
-      <a href="index.html#installing-importing" target><li>Installing &#38; Importing</li></a>
+      <a href="index.html#installing-and-importing" target><li>Installing and importing</li></a>
     
       
 
-      <a href="index.html#babel-transform" target><li>Babel Transform</li></a>
+      <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
+    
+      
+
+      <a href="index.html#writing-middleware" target><li>Writing middleware</li></a>
     
       <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
@@ -77,9 +81,25 @@
 
       <a href="api.html#release" target><li>release</li></a>
     
+      
+
+      <a href="api.html#internals" target><li>Internals</li></a>
+    
+      
+
+      <a href="api.html#version" target><li>VERSION</li></a>
+    
       <a href="transitions.html"><li class="header"><h4>Transitions</h4></li></a>
 
       
+    
+      
+
+      <a href="transitions.html#add-transition" target><li>Add transition</li></a>
+    
+      
+
+      <a href="transitions.html#remove-transition" target><li>Remove transition</li></a>
     
       
 
@@ -182,7 +202,7 @@
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
-              <p>The easy-to-use Virtual DOM built for the web!</p>
+              <p>The easy-to-use Virtual DOM, built for the web!</p>
             </div>
           </h1>
         </header>
@@ -190,31 +210,26 @@
         <section id="content"><h1 id="middleware">Middleware</h1>
 <p>This concept allows developers to write plugins that augments diffHTML to do
 different things. You can use pre-made middleware or create your own easily.</p>
-<a href="#logger"></a>
-
-<h2 id="logger">Logger</h2>
+<hr></hr>
+<p><a href="#logger"></a></p>
+<h2 id="spanloggerspan"><span>Logger</span></h2>
 <p>Prints out detailed information before and after each render transaction.</p>
-<pre><code>npm install @diffhtml/middleware-logger
+<pre><code class="language-sh">npm install @diffhtml/middleware-logger</code></pre>
+<img src="https://cloud.githubusercontent.com/assets/181635/23392088/32cacd8a-fd2e-11e6-9b95-e3124d827eea.png" width="100%"></img>
 
-&lt;img src=&quot;https://cloud.githubusercontent.com/assets/181635/23392088/32cacd8a-fd2e-11e6-9b95-e3124d827eea.png&quot; width=&quot;100%&quot;&gt;
+<a href="#inline-transitions"></a>
 
-&lt;a href=&quot;#inline-transitions&quot; /&gt;
+<h2 id="spaninline-transitionsspan"><span>Inline Transitions</span></h2>
+<a href="#synthetic-events"></a>
 
-## Inline Transitions
+<h2 id="spansynthetic-eventsspan"><span>Synthetic Events</span></h2>
+<a href="#service-worker"></a>
 
-&lt;a href=&quot;#synthetic-events&quot; /&gt;
+<h2 id="spanservice-workerspan"><span>Service Worker</span></h2>
+<a href="#verify-state"></a>
 
-## Synthetic Events
-
-&lt;a href=&quot;#service-worker&quot; /&gt;
-
-## Service Worker
-
-&lt;a href=&quot;#verify-state&quot; /&gt;
-
-## Verify State
-
-&lt;img src=&quot;https://cloud.githubusercontent.com/assets/181635/23392650/1d7dfdcc-fd32-11e6-8f41-b412279cea55.png&quot; width=&quot;100%&quot;&gt;</code></pre></section>
+<h2 id="spanverify-statespan"><span>Verify State</span></h2>
+<img src="https://cloud.githubusercontent.com/assets/181635/23392650/1d7dfdcc-fd32-11e6-8f41-b412279cea55.png" width="100%"></img></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/middleware.md" style="
             text-align: center;
@@ -233,7 +248,7 @@ different things. You can use pre-made middleware or create your own easily.</p>
             <span>Created by @tbranyen</span>
           </a>
           <span style="margin: 0 15px;"> | </span>
-          <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+          <a href="https://twitter.com/s0phinie" style="text-decoration: none;">
             <span>Logo by @s0phinie</span>
           </a>
           <span style="margin-left: 15px;"> | </span>
@@ -242,7 +257,6 @@ different things. You can use pre-made middleware or create your own easily.</p>
       </layer>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
       <script>
         hljs.initHighlightingOnLoad();
 

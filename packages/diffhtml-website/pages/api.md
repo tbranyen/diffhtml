@@ -1,20 +1,32 @@
 # API
 
-While the core API has been designed to be minimalist, it was done so in an
-extensible and revealing way. New users can jump right in and start creating,
-while experienced developers wanting more can dip into the internals for more
-flexibility.
+The core diffHTML API was designed to be minimal and familiar if you've used
+browser DOM APIs such as `innerHTML` and `addEventListener`. 
 
-<a name="inner-html" />
+You can access any of the top-level API methods & properties by directly
+importing, or deconstructing.
 
-## innerHTML **`(domNode, markup, options)`**
+``` js
+// Using ESM
+import { innerHTML, VERSION, use } from 'diffhtml';
 
-### Purpose
+// Using CJS
+const { innerHTML, VERSION, use } = require('diffhtml');
 
-Replaces the contents of a DOM node with the passed in markup, but only updates
-what has changed. Works like the browser's `innerHTML` feature, where it only
-updates the children, but not the root tag. If you want to control the entire
-tag, use `outerHTML`.
+// Using globals
+const { innerHTML, VERSION, use } = window.diff;
+```
+
+---
+
+<a name="inner-html"></a>
+
+## <span>innerHTML</span> **`(domNode, markup, options)`**
+
+Replaces the contents of a DOM node with the passed in markup, but will only
+update changed content and structure. Works like the browser's `innerHTML` only
+changing the element's children, but not the containing element. If you want to
+control the entire tag, use [`outerHTML`](#outer-html).
 
 Simple Hello world:
 
@@ -24,13 +36,21 @@ innerHTML(document.body, 'Hello world');
 
 ### Arguments
 
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
+#### domNode
 
-<a name="outer-html" />
+Reference element to reflect new markup into
 
-## outerHTML **`(domNode, markup, options)`**
+#### markup
+
+New markup to replace into the `domNode`
+
+#### options
+
+---
+
+<a name="outer-html"></a>
+
+## <span>outerHTML</span> **`(domNode, markup, options)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the
@@ -49,31 +69,11 @@ The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
 
-<a name="html" />
+---
 
-## html **`(markup)`**
+<a name="html"></a>
 
-Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.
-
-Example:
-
-``` js
-outerHTML(document.body, 'Hello world');
-```
-
-To see how to run this example yourself see the [Examples](#examples) section
-below.
-
-### Arguments
-
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
-
-<a name="use" />
-
-## use **`(middlewareFunction)`**
+## <span>html</span> **`(markup)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.
@@ -93,31 +93,11 @@ The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
 
-<a name="add-transition-state" />
+---
 
-## addTransitionState **`(stateName, callback)`**
+<a name="use"></a>
 
-Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.
-
-Example:
-
-``` js
-outerHTML(document.body, 'Hello world');
-```
-
-To see how to run this example yourself see the [Examples](#examples) section
-below.
-
-### Arguments
-
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
-
-<a name="remove-transition-state" />
-
-## removeTransitionState **`(stateName, callback)`**
+## <span>use</span> **`(middlewareFunction)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.
@@ -137,9 +117,11 @@ The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
 
-<a name="create-tree" />
+---
 
-## createTree **`(nodeName, attributes, childNodes)`**
+<a name="add-transition-state"></a>
+
+## <span>addTransitionState</span> **`(stateName, callback)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.
@@ -159,13 +141,59 @@ The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
 
-<a name="release" />
+---
 
-<a name="release" />
+<a name="remove-transition-state"></a>
 
-## release **`(domNode)`**
+## <span>removeTransitionState</span> **`(stateName, callback)`**
 
-### Purpose
+Replaces the contents of a DOM node with the passed in markup, only updates
+what has changed.
+
+Example:
+
+``` js
+outerHTML(document.body, 'Hello world');
+```
+
+To see how to run this example yourself see the [Examples](#examples) section
+below.
+
+### Arguments
+
+The two required inputs are a reference element and new element to compare.
+Although "element" is used, the actual input can be of various input types
+all representing an element (or many elements).
+
+---
+
+<a name="create-tree"></a>
+
+## <span>createTree</span> **`(nodeName, attributes, childNodes)`**
+
+Replaces the contents of a DOM node with the passed in markup, only updates
+what has changed.
+
+Example:
+
+``` js
+outerHTML(document.body, 'Hello world');
+```
+
+To see how to run this example yourself see the [Examples](#examples) section
+below.
+
+### Arguments
+
+The two required inputs are a reference element and new element to compare.
+Although "element" is used, the actual input can be of various input types
+all representing an element (or many elements).
+
+---
+
+<a name="release"></a>
+
+## <span>release</span> **`(domNode)`**
 
 Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
@@ -186,25 +214,41 @@ This argument is overloaded. Can be one of many types:
 - HTML Element / DOM Node (Used interchangeably)
 - Virtual Tree Element (produced from `diff.html`)
 
-### Example (UMD)
+---
 
-A common way to access `innerHTML` is via
-[destructuring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment)
-from the globally exported `diff` object. Remember to wrap your code in a block
-`{}` to prevent leaking the variables globally.
+<a name="internals"></a>
+
+## <span>Internals</span>
+
+Use this method if you need to clean up memory allocations and anything else
+internal to diffHTML associated with your element. This is very useful for unit
+testing and general cleanup when you're done with an element.
+
+### Arguments
+
+The two required inputs are a reference element and new element to compare.
+Although "element" is used, the actual input can be of various input types
+all representing an element (or many elements).
+
+#### domNode
+
+*Reference element.*
+
+This argument is overloaded. Can be one of many types:
+
+- HTML Element / DOM Node (Used interchangeably)
+- Virtual Tree Element (produced from `diff.html`)
+
+---
+
+<a name="version"></a>
+
+## <span>VERSION</span>
+
+Property which indicates the current running version of diffHTML.
+
+### Example
 
 ``` js
-{
-  const { release } = diff
-  release(document.body)
-}
+console.log(VERSION);
 ```
-
-Or if you prefer you can access the property directly.
-
-``` js
-diff.innerHTML(document.body, '<span>Hello world</span>')
-```
-
-### Example (Latest ES Specification)
-

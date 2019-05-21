@@ -1,22 +1,30 @@
-**Welcome to diffHTML!** A library that assists with creating user interfaces
-for the web using JavaScript. These interfaces can be: applications, games,
-data visualizations, or anything else that you may want to render in a web
-browser.
+**Welcome to diffHTML!** A library created for web engineers and creatives to
+build interactive applications. Lightweight and easy-to-use, it is authored in
+standards-complaint ES6 JavaScript.
 
-An easy-to-use and powerful Virtual DOM library that
-was written to be extensionable, powerful, and very fast. Use this to build
-components, applications, games, and more.
+You would use it in the same way as other web frameworks such as:
+[React](https://reactjs.org/), [Vue](https://vuejs.org/), and
+[Svelte](https://svelte.dev/). You may want to look at these first, as they are
+backed by corporations and/or large communities.  
 
-## Core Features
+<a name="core-features"></a>
 
-- <span class="list-icon fa fa-exchange"></span> ES Module support
+---
+
+## <span>Core features</span>
+
+- <span class="list-icon fa fa-exchange"></span> ES/CJS/UMD module support
 - <span class="list-icon fa fa-retweet"></span> Async transition hooks
 - <span class="list-icon fa fa-link"></span> Middleware
 - <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
 - <span class="list-icon fa fa-tree"></span> Virtual Tree object pooling
-- <span class="list-icon fa fa-codiepie"></span> Auto memory management
+- <span class="list-icon fa fa-codiepie"></span> Automatic memory management
 
-## Installing & Importing
+<a name="installing-and-importing"></a>
+
+---
+
+## <span>Installing and importing</span>
 
 Depending on your use case you may have to install from a registry using a
 package manager or you can reference it directly from a server.
@@ -25,7 +33,7 @@ package manager or you can reference it directly from a server.
 
 Using this method will bring in the global minified UMD file. This includes the
 parser so it will be larger than the runtime build weighing at around
-**7.5kb**. Access the API through the `window.diff` global.
+**7.8kb min+gzip**. Access the API through the `window.diff` global.
 
 ```html
 <script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
@@ -35,10 +43,10 @@ parser so it will be larger than the runtime build weighing at around
 </script>
 ```
 
-If you use the Babel transform, you will be able to use the runtime instead.
-This converts `html` tagged template calls into `createTree` calls, which take
-in the Babel converted trees. This greatly reduces the bundle sizes. The base
-bundle size here is only **5.7kb** min+gzip!
+If you use the [Babel transform](#optimizing-with-babel), you will be able to
+use the runtime build instead.  This converts `html` tagged template calls into
+`createTree` calls, which take in the Babel converted trees. This greatly
+reduces the bundle sizes. The base bundle size here is just **6kb min+gzip**!
 
 ```html
 <script src="https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js"></script>
@@ -46,14 +54,13 @@ bundle size here is only **5.7kb** min+gzip!
 
 ### Installing into `node_modules`
 
-You have two options, the official npm client or the yarn alternative.
+JavaScript package management uses this folder and there are two many different
+clients that can install into. Two recommended ones are shown below:
 
 * <svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
     <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
     <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
   </svg>
-
-  The official package client that ships with Node, can install 
 
   ``` sh
   npm install --save diffhtml
@@ -108,56 +115,29 @@ and the smallest filesize possible.
   <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
   ```
 
+_While `diffhtml` is the core package to install, there are many other modules
+you may also want to install depending on your use cases._
 
-_While `diffhtml` is the core package to install, there are many other modules you may also want to install depending on your use cases._
+<a name="optimizing-with-babel"></a>
 
+---
 
-**turns:**
+## <span>Optimizing with Babel</span>
 
-``` javascript
-// Manually create container.
-const div = document.createElement('div');
+Once you have a working project, you may want to take your code to the next
+level and squeeze out even more performance. With the Babel transform, you can
+write very clean and readable code, and then compile down to something much more
+efficient. For instance, the plugin will automatically hoist static VTrees,
+parse your HTML and build `createTree` calls avoiding the need for runtime
+parsing, and output produced is directly compatible with the diffHTML/runtime
+build (which removes the HTML parser code).
 
-// Update the content using the `innerHTML` property.
-div.innerHTML = 'Hello world';
-
-// Add into the page body.
-document.body.appendChild(div);
-
-// Update only the text.
-div.textContent = 'Hello updated world!';
+``` sh
+npm install -D babel-plugin-transform-diffhtml
 ```
 
-**into:**
+<a name="writing-middleware"></a>
 
-``` javascript
-// Declaratively create a DIV with the content and append into the page body.
-diff.innerHTML(document.body, '<div>Hello world</div>');
+---
 
-// Represent how you want the body to look and diffHTML will update only the
-// changed text.
-diff.innerHTML(document.body, '<div>Hello updated world!</div>');
-```
-
-* HTTP (Recommended for Beginners):
-
-  ```
-  <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
-  ```
-
-* <svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
-    <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
-    <path fill="#FFF" d="M1,1v4h2v-3h1v3h1v-4h1v5h2v-4h1v2h-1v1h2v-4h1v4h2v-3h1v3h1v-3h1v3h1v-4"></path>
-  </svg>
-
-  ``` sh
-  npm install diffhtml
-  ```
-
-* <img width="60" src="images/yarn-logo.svg">
-
-  ``` sh
-  yarn add diffhtml
-  ```
-
-_While `diffhtml` is the core package to install, there are many other modules you may also want to install depending on your use cases._
+## <span>Writing middleware</span>

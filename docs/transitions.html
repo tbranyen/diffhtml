@@ -2,7 +2,7 @@
       <meta charset="utf-8"></meta>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-      <title>diffHTML: The easy-to-use HTML Virtual DOM built for the web!</title>
+      <title>diffHTML: The easy-to-use HTML Virtual DOM, built for the web!</title>
       <link rel="stylesheet" href="./index.css"></link>
     </head><body>
       <div class="open-menu">≡</div>
@@ -31,15 +31,19 @@
     
       
 
-      <a href="index.html#core-features" target><li>Core Features</li></a>
+      <a href="index.html#core-features" target><li>Core features</li></a>
     
       
 
-      <a href="index.html#installing-importing" target><li>Installing &#38; Importing</li></a>
+      <a href="index.html#installing-and-importing" target><li>Installing and importing</li></a>
     
       
 
-      <a href="index.html#babel-transform" target><li>Babel Transform</li></a>
+      <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
+    
+      
+
+      <a href="index.html#writing-middleware" target><li>Writing middleware</li></a>
     
       <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
@@ -77,9 +81,25 @@
 
       <a href="api.html#release" target><li>release</li></a>
     
+      
+
+      <a href="api.html#internals" target><li>Internals</li></a>
+    
+      
+
+      <a href="api.html#version" target><li>VERSION</li></a>
+    
       <a href="transitions.html"><li class="header"><h4>Transitions</h4></li></a>
 
       
+    
+      
+
+      <a href="transitions.html#add-transition" target><li>Add transition</li></a>
+    
+      
+
+      <a href="transitions.html#remove-transition" target><li>Remove transition</li></a>
     
       
 
@@ -182,14 +202,14 @@
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
-              <p>The easy-to-use Virtual DOM built for the web!</p>
+              <p>The easy-to-use Virtual DOM, built for the web!</p>
             </div>
           </h1>
         </header>
 
         <section id="content"><h1 id="transitions">Transitions</h1>
-<h2 id="overview">Overview</h2>
-<h3 id="add-a-transition-state-callback">Add a transition state callback</h3>
+<hr></hr>
+<h2 id="spanadd-transitionspan"><span>Add transition</span></h2>
 <p>Adds a global transition listener.  With many elements this could be an
 expensive operation, so try to limit the amount of listeners added if you&#39;re
 concerned about performance.</p>
@@ -264,11 +284,11 @@ that, decorate your markup like so...</p>
 <ol>
 <li>Remove the second element</li>
 </ol>
-<h3 id="remove-a-transition-state-callback">Remove a transition state callback</h3>
-<p>Removes a global transition listener.</p>
-<p>When invoked with no arguments, this method will remove all transition
-callbacks.  When invoked with the name argument it will remove all transition
-state callbacks matching the name, and so on for the callback.</p>
+<h2 id="spanremove-transitionspan"><span>Remove transition</span></h2>
+<p>Removes a global transition listener. When invoked with no arguments, this
+method will remove all transition callbacks. When invoked with the name
+argument it will remove all transition state callbacks matching the name, and
+so on for the callback.</p>
 <pre><code class="language-javascript">// Removes all registered transition states.
 diff.removeTransitionState();
 
@@ -277,50 +297,16 @@ diff.removeTransitionState(&#39;attached&#39;);
 
 // Removes states by name and callback reference.
 diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
-<h3 id="html">HTML</h3>
-<p>You can use the <code>diff.html</code> tagged template helper to build up dynamic trees in
-a way that looks very similar to JSX.</p>
-<p>For instance the following example:</p>
-<pre><code class="language-javascript">const fixture = document.createElement(&#39;div&#39;);
-
-function showUnixTime() {
-  fixture.querySelector(&#39;span&#39;).innerHTML = Date.now();
-}
-
-diff.outerHTML(fixture, `
-  &lt;div&gt;
-    &lt;button&gt;Show current unix time&lt;/button&gt;
-    &lt;span&gt;${Date.now()}&lt;/span&gt;
-  &lt;/div&gt;
-`);
-
-fixture.addEventListener(&#39;click&#39;, showUnixTime);</code></pre>
-<p>Could be rewritten with the helper as:</p>
-<pre><code class="language-javascript">const fixture = document.createElement(&#39;div&#39;);
-
-function showUnixTime() {
-  fixture.querySelector(&#39;span&#39;).innerHTML = Date.now();
-}
-
-diff.outerHTML(fixture, html`
-  &lt;div onclick=${showUnixTime}&gt;
-    &lt;button&gt;Show current unix time&lt;/button&gt;
-    &lt;span&gt;${Date.now()}&lt;/span&gt;
-  &lt;/div&gt;
-`);</code></pre>
-<p>So this feature allows for inline binding of any DOM event, and sending dynamic
-property data to any element.</p>
-<p>Tagged templates also have no problem consuming other tagged templates (even
-from arrays), so you will be able to do:</p>
-<pre><code class="language-javascript">const fixture = document.createElement(&#39;div&#39;);
-
-const listItems = [&#39;diff&#39;, &#39;HTML&#39;, &#39;♥&#39;];
-
-diff.outerHtml(fixture, html`
-  &lt;ul&gt;
-    ${listItems.map(item =&gt; html`&lt;li&gt;${item.text}&lt;/li&gt;`)}
-  &lt;/ul&gt;
-`);</code></pre></section>
+<p><a name="attached"></a></p>
+<h2 id="spanattachedspan"><span>attached</span></h2>
+<p><a name="detached"></a></p>
+<h2 id="spandetachedspan"><span>detached</span></h2>
+<p><a name="replaced"></a></p>
+<h2 id="spanreplacedspan"><span>replaced</span></h2>
+<p><a name="attribute-changed"></a></p>
+<h2 id="spanattributechangedspan"><span>attributeChanged</span></h2>
+<p><a name="text-changed"></a></p>
+<h2 id="spantextchangedspan"><span>textChanged</span></h2></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/transitions.md" style="
             text-align: center;
@@ -339,7 +325,7 @@ diff.outerHtml(fixture, html`
             <span>Created by @tbranyen</span>
           </a>
           <span style="margin: 0 15px;"> | </span>
-          <a href="https://twitter.com/tbranyen" style="text-decoration: none;">
+          <a href="https://twitter.com/s0phinie" style="text-decoration: none;">
             <span>Logo by @s0phinie</span>
           </a>
           <span style="margin-left: 15px;"> | </span>
@@ -348,7 +334,6 @@ diff.outerHtml(fixture, html`
       </layer>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
       <script>
         hljs.initHighlightingOnLoad();
 
