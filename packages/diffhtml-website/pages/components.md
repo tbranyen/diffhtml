@@ -1,23 +1,35 @@
 # Components
 
-### Purpose
+An improved way of composing applications using classes and the notion of a
+"Component" which borrows from the React public API.
 
-An advanced way of composing applications and 
+<a name="overview"></a>
 
-### Stateless function component
+---
 
-### Stateful class component
+## <a href="#overview">Overview</a>
 
-``` js
-import { Component } from 'diffhtml-components';
 
-class ToolBar extends Component {
-  render() {
-    return `
-      <div class="tool-bar">
-        
-      </div>
-    `;
-  }
-}
-```
+<a name="component"></a>
+
+---
+
+## <a href="#component">Component</a>
+
+<a name="web-component"></a>
+
+---
+
+## <a href="#web-component">Web Component</a>
+
+<a name="jsx"></a>
+
+---
+
+## <a href="#jsx">JSX</a>
+
+<a name="react-compatibility"></a>
+
+---
+
+## <a href="#react-compatibility">React Compatibility</a>

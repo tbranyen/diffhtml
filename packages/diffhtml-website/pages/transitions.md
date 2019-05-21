@@ -1,8 +1,10 @@
 # Transitions
 
+<a name="#add-transition"></a>
+
 ---
 
-## <span>Add transition</span>
+## <a href="#add-transition">Add transition</a>
 
 Adds a global transition listener.  With many elements this could be an
 expensive operation, so try to limit the amount of listeners added if you're
@@ -106,7 +108,11 @@ Now the transformative operations are:
 
 1. Remove the second element
 
-## <span>Remove transition</span>
+<a name="remove-transition"></a>
+
+---
+
+## <a href="#remove-transition">Remove transition</a>
 
 Removes a global transition listener. When invoked with no arguments, this
 method will remove all transition callbacks. When invoked with the name
@@ -126,20 +132,30 @@ diff.removeTransitionState('attached', callbackReference);
 
 <a name="attached"></a>
 
-## <span>attached</span>
+---
+
+## <a href="#attached">attached</a>
 
 <a name="detached"></a>
 
-## <span>detached</span>
+---
+
+## <a href="#detached">detached</a>
 
 <a name="replaced"></a>
 
-## <span>replaced</span>
+---
+
+## <a href="#replaced">replaced</a>
 
 <a name="attribute-changed"></a>
 
-## <span>attributeChanged</span>
+---
+
+## <a href="#attribute-changed">attributeChanged</a>
 
 <a name="text-changed"></a>
 
-## <span>textChanged</span>
+---
+
+## <a href="#text-changed">textChanged</a>

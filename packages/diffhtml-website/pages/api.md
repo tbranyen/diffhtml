@@ -17,11 +17,11 @@ const { innerHTML, VERSION, use } = require('diffhtml');
 const { innerHTML, VERSION, use } = window.diff;
 ```
 
----
-
 <a name="inner-html"></a>
 
-## <span>innerHTML</span> **`(domNode, markup, options)`**
+---
+
+## <a href="#inner-html">innerHTML</a> **`(domNode, markup, options)`**
 
 Replaces the contents of a DOM node with the passed in markup, but will only
 update changed content and structure. Works like the browser's `innerHTML` only
@@ -46,11 +46,11 @@ New markup to replace into the `domNode`
 
 #### options
 
----
-
 <a name="outer-html"></a>
 
-## <span>outerHTML</span> **`(domNode, markup, options)`**
+---
+
+## <a href="#outer-html">outerHTML</a> **`(domNode, markup, options)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the
@@ -69,11 +69,11 @@ The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
 
----
-
 <a name="html"></a>
 
-## <span>html</span> **`(markup)`**
+---
+
+## <a href="#html">html</a> **`(markup)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.
@@ -92,12 +92,12 @@ below.
 The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
-
----
 
 <a name="use"></a>
 
-## <span>use</span> **`(middlewareFunction)`**
+---
+
+## <a href="#use">use</a> **`(middlewareFunction)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.
@@ -116,12 +116,12 @@ below.
 The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
-
----
 
 <a name="add-transition-state"></a>
 
-## <span>addTransitionState</span> **`(stateName, callback)`**
+---
+
+## <a href="#add-transition-state">addTransitionState</a> **`(stateName, callback)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.
@@ -140,12 +140,12 @@ below.
 The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
-
----
 
 <a name="remove-transition-state"></a>
 
-## <span>removeTransitionState</span> **`(stateName, callback)`**
+---
+
+## <a href="#remove-transition-state">removeTransitionState</a> **`(stateName, callback)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.
@@ -164,12 +164,12 @@ below.
 The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
-
----
 
 <a name="create-tree"></a>
 
-## <span>createTree</span> **`(nodeName, attributes, childNodes)`**
+---
+
+## <a href="#create-tree">createTree</a> **`(nodeName, attributes, childNodes)`**
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.
@@ -189,11 +189,11 @@ The two required inputs are a reference element and new element to compare.
 Although "element" is used, the actual input can be of various input types
 all representing an element (or many elements).
 
----
-
 <a name="release"></a>
 
-## <span>release</span> **`(domNode)`**
+---
+
+## <a href="#release">release</a> **`(domNode)`**
 
 Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
@@ -213,12 +213,12 @@ This argument is overloaded. Can be one of many types:
 
 - HTML Element / DOM Node (Used interchangeably)
 - Virtual Tree Element (produced from `diff.html`)
-
----
 
 <a name="internals"></a>
 
-## <span>Internals</span>
+---
+
+## <a href="#internals">Internals</a>
 
 Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
@@ -239,11 +239,11 @@ This argument is overloaded. Can be one of many types:
 - HTML Element / DOM Node (Used interchangeably)
 - Virtual Tree Element (produced from `diff.html`)
 
----
-
 <a name="version"></a>
 
-## <span>VERSION</span>
+---
+
+## <a href="#version">VERSION</a>
 
 Property which indicates the current running version of diffHTML.
 

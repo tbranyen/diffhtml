@@ -220,9 +220,9 @@ const { innerHTML, VERSION, use } = require(&#39;diffhtml&#39;);
 
 // Using globals
 const { innerHTML, VERSION, use } = window.diff;</code></pre>
-<hr></hr>
 <p><a name="inner-html"></a></p>
-<h2 id="spaninnerhtmlspan-domnode-markup-options"><span>innerHTML</span> <strong><code>(domNode, markup, options)</code></strong></h2>
+<hr></hr>
+<h2 id="a-hrefinner-htmlinnerhtmla-domnode-markup-options"><a href="#inner-html">innerHTML</a> <strong><code>(domNode, markup, options)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, but will only
 update changed content and structure. Works like the browser&#39;s <code>innerHTML</code> only
 changing the element&#39;s children, but not the containing element. If you want to
@@ -235,9 +235,9 @@ control the entire tag, use <a href="#outer-html"><code>outerHTML</code></a>.</p
 <h4 id="markup">markup</h4>
 <p>New markup to replace into the <code>domNode</code></p>
 <h4 id="options">options</h4>
-<hr></hr>
 <p><a name="outer-html"></a></p>
-<h2 id="spanouterhtmlspan-domnode-markup-options"><span>outerHTML</span> <strong><code>(domNode, markup, options)</code></strong></h2>
+<hr></hr>
+<h2 id="a-hrefouter-htmlouterhtmla-domnode-markup-options"><a href="#outer-html">outerHTML</a> <strong><code>(domNode, markup, options)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the
 element you&#39;re modifying has a parent, you may also change the element type,
@@ -248,9 +248,9 @@ but this isn&#39;t really recommended.</p>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
-<hr></hr>
 <p><a name="html"></a></p>
-<h2 id="spanhtmlspan-markup"><span>html</span> <strong><code>(markup)</code></strong></h2>
+<hr></hr>
+<h2 id="a-hrefhtmlhtmla-markup"><a href="#html">html</a> <strong><code>(markup)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.</p>
 <p>Example:</p>
@@ -261,9 +261,9 @@ below.</p>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
-<hr></hr>
 <p><a name="use"></a></p>
-<h2 id="spanusespan-middlewarefunction"><span>use</span> <strong><code>(middlewareFunction)</code></strong></h2>
+<hr></hr>
+<h2 id="a-hrefuseusea-middlewarefunction"><a href="#use">use</a> <strong><code>(middlewareFunction)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.</p>
 <p>Example:</p>
@@ -274,9 +274,9 @@ below.</p>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
-<hr></hr>
 <p><a name="add-transition-state"></a></p>
-<h2 id="spanaddtransitionstatespan-statename-callback"><span>addTransitionState</span> <strong><code>(stateName, callback)</code></strong></h2>
+<hr></hr>
+<h2 id="a-hrefadd-transition-stateaddtransitionstatea-statename-callback"><a href="#add-transition-state">addTransitionState</a> <strong><code>(stateName, callback)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.</p>
 <p>Example:</p>
@@ -287,9 +287,9 @@ below.</p>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
-<hr></hr>
 <p><a name="remove-transition-state"></a></p>
-<h2 id="spanremovetransitionstatespan-statename-callback"><span>removeTransitionState</span> <strong><code>(stateName, callback)</code></strong></h2>
+<hr></hr>
+<h2 id="a-hrefremove-transition-stateremovetransitionstatea-statename-callback"><a href="#remove-transition-state">removeTransitionState</a> <strong><code>(stateName, callback)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.</p>
 <p>Example:</p>
@@ -300,9 +300,9 @@ below.</p>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
-<hr></hr>
 <p><a name="create-tree"></a></p>
-<h2 id="spancreatetreespan-nodename-attributes-childnodes"><span>createTree</span> <strong><code>(nodeName, attributes, childNodes)</code></strong></h2>
+<hr></hr>
+<h2 id="a-hrefcreate-treecreatetreea-nodename-attributes-childnodes"><a href="#create-tree">createTree</a> <strong><code>(nodeName, attributes, childNodes)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed.</p>
 <p>Example:</p>
@@ -313,9 +313,9 @@ below.</p>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
-<hr></hr>
 <p><a name="release"></a></p>
-<h2 id="spanreleasespan-domnode"><span>release</span> <strong><code>(domNode)</code></strong></h2>
+<hr></hr>
+<h2 id="a-hrefreleasereleasea-domnode"><a href="#release">release</a> <strong><code>(domNode)</code></strong></h2>
 <p>Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
 testing and general cleanup when you&#39;re done with an element.</p>
@@ -330,9 +330,9 @@ all representing an element (or many elements).</p>
 <li>HTML Element / DOM Node (Used interchangeably)</li>
 <li>Virtual Tree Element (produced from <code>diff.html</code>)</li>
 </ul>
-<hr></hr>
 <p><a name="internals"></a></p>
-<h2 id="spaninternalsspan"><span>Internals</span></h2>
+<hr></hr>
+<h2 id="a-hrefinternalsinternalsa"><a href="#internals">Internals</a></h2>
 <p>Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
 testing and general cleanup when you&#39;re done with an element.</p>
@@ -347,9 +347,9 @@ all representing an element (or many elements).</p>
 <li>HTML Element / DOM Node (Used interchangeably)</li>
 <li>Virtual Tree Element (produced from <code>diff.html</code>)</li>
 </ul>
-<hr></hr>
 <p><a name="version"></a></p>
-<h2 id="spanversionspan"><span>VERSION</span></h2>
+<hr></hr>
+<h2 id="a-hrefversionversiona"><a href="#version">VERSION</a></h2>
 <p>Property which indicates the current running version of diffHTML.</p>
 <h3 id="example">Example</h3>
 <pre><code class="language-js">console.log(VERSION);</code></pre></section>

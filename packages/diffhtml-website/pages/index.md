@@ -1,6 +1,6 @@
-**Welcome to diffHTML!** A library created for web engineers and creatives to
-build interactive applications. Lightweight and easy-to-use, it is authored in
-standards-complaint ES6 JavaScript.
+**Welcome to diffHTML!** A library created for engineers, creatives, and pretty
+much anyone interested in building interactive web applications. Lightweight
+and easy-to-use, it is authored in standards-compliant ES6 JavaScript.
 
 You would use it in the same way as other web frameworks such as:
 [React](https://reactjs.org/), [Vue](https://vuejs.org/), and
@@ -11,20 +11,20 @@ backed by corporations and/or large communities.
 
 ---
 
-## <span>Core features</span>
+## <a href="#core-features">Core features</a>
 
 - <span class="list-icon fa fa-exchange"></span> ES/CJS/UMD module support
 - <span class="list-icon fa fa-retweet"></span> Async transition hooks
 - <span class="list-icon fa fa-link"></span> Middleware
 - <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
-- <span class="list-icon fa fa-tree"></span> Virtual Tree object pooling
+- <span class="list-icon fa fa-tree"></span> Virtual tree object pooling
 - <span class="list-icon fa fa-codiepie"></span> Automatic memory management
 
 <a name="installing-and-importing"></a>
 
 ---
 
-## <span>Installing and importing</span>
+## <a href="#installing-and-importing">Installing and importing</a>
 
 Depending on your use case you may have to install from a registry using a
 package manager or you can reference it directly from a server.
@@ -104,10 +104,10 @@ import { innerHTML } from '//unpkg.com/diffhtml?module';
 
 diffHTML is designed to be portable, so you can consume it in a number of ways
 depending on your environment. You can load imports  works well with or without a build tool. It
-can be laode dby browsers with the ES Module syntax.
+can be loaded by browsers with the ES Module syntax.
  
 There are many ways of getting diffHTML. It has been designed to be flexible
-and the smallest filesize possible.
+and the smallest file size possible.
 
 * **HTTP (Recommended for Beginners):**
 
@@ -122,7 +122,9 @@ you may also want to install depending on your use cases._
 
 ---
 
-## <span>Optimizing with Babel</span>
+## <a href="#optimizing-with-babel">Optimizing with Babel</a>
+
+While diffHTML is relatively small
 
 Once you have a working project, you may want to take your code to the next
 level and squeeze out even more performance. With the Babel transform, you can
@@ -140,4 +142,4 @@ npm install -D babel-plugin-transform-diffhtml
 
 ---
 
-## <span>Writing middleware</span>
+## <a href="#writing-middleware">Writing middleware</a>
