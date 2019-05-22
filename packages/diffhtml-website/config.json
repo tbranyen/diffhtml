@@ -22,13 +22,9 @@
     }],
 
     "Transitions": ["transitions.html", {
+      "Available states": "#available-states",
       "Add transition": "#add-transition",
-      "Remove transition": "#remove-transition",
-      "attached": "#attached",
-      "detached": "#detached",
-      "replaced": "#replaced",
-      "attributeChanged": "#attributeChanged",
-      "textChanged": "#textChanged"
+      "Remove transition": "#remove-transition"
     }],
 
     "Middleware": ["middleware.html", {

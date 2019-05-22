@@ -209,7 +209,6 @@ layer#main header h1 img {
 }
 
 layer#main ul {
-  font-size: 18px;
   margin-left: 0;
   padding-left: 0;
   list-style: none;
@@ -247,6 +246,47 @@ layer#main footer a:hover {
   color: red;
 }
 
+layer#main table {
+  background-color: #FBFBFB;
+  border: 1px solid #F0F0F0;
+  font-size: 14px;
+  box-shadow: 2px 2px 3px rgba(51, 51, 51, 0.05);
+  margin: 16px 0;
+}
+
+table {
+  border-spacing: 0;
+}
+
+table thead {
+  font-size: 18px;
+}
+
+table th,td {
+  border: 1px dotted #C3C3C3;
+}
+
+table th {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: left;
+  padding-left: 10px;
+  border: none;
+  border-right: 1px solid #ececec;
+}
+
+table th {
+  background-color: gainsboro;
+  color: #333;
+  padding: 10px;
+}
+
+table td {
+  padding: 10px;
+  background-color: #FFF;
+  min-width: 144px;
+  border: 1px solid #F0F0F0;
+}
 
 .open-menu {
   display: none;
@@ -374,24 +414,24 @@ layer#main footer a:hover {
     outline: 0 !important;
   }
 
-	table, thead, tbody, th, td, tr { 
-		display: block; 
+	table, thead, tbody, th, td, tr {
+		display: block;
 	}
-	
+
 	tr { border: 1px solid #ccc; }
-	
-	td { 
+
+	td {
 		border: none;
-		border-bottom: 1px solid #eee; 
+		border-bottom: 1px solid #eee;
 		position: relative;
 	}
-	
-	td:before { 
+
+	td:before {
 		position: absolute;
 		top: 6px;
 		left: 6px;
-		width: 45%; 
-		padding-right: 10px; 
+		width: 45%;
+		padding-right: 10px;
 		white-space: nowrap;
 	}
 

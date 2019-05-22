@@ -95,31 +95,15 @@
     
       
 
+      <a href="transitions.html#available-states" target><li>Available states</li></a>
+    
+      
+
       <a href="transitions.html#add-transition" target><li>Add transition</li></a>
     
       
 
       <a href="transitions.html#remove-transition" target><li>Remove transition</li></a>
-    
-      
-
-      <a href="transitions.html#attached" target><li>attached</li></a>
-    
-      
-
-      <a href="transitions.html#detached" target><li>detached</li></a>
-    
-      
-
-      <a href="transitions.html#replaced" target><li>replaced</li></a>
-    
-      
-
-      <a href="transitions.html#attributeChanged" target><li>attributeChanged</li></a>
-    
-      
-
-      <a href="transitions.html#textChanged" target><li>textChanged</li></a>
     
       <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
 
@@ -212,14 +196,18 @@
 browser DOM APIs such as <code>innerHTML</code> and <code>addEventListener</code>. </p>
 <p>You can access any of the top-level API methods &amp; properties by directly
 importing, or deconstructing.</p>
-<pre><code class="language-js">// Using ESM
-import { innerHTML, VERSION, use } from &#39;diffhtml&#39;;
-
-// Using CJS
-const { innerHTML, VERSION, use } = require(&#39;diffhtml&#39;);
-
-// Using globals
-const { innerHTML, VERSION, use } = window.diff;</code></pre>
+<p><strong>Using ES modules</strong></p>
+<pre><code class="language-js">import { innerHTML, VERSION, use } from &#39;diffhtml&#39;;
+// or
+import diff from &#39;diffhtml&#39;;</code></pre>
+<p><strong>Using CommonJS</strong></p>
+<pre><code class="language-js">const { innerHTML, VERSION, use } = require(&#39;diffhtml&#39;);
+// or
+const diff = require(&#39;diffhtml&#39;);</code></pre>
+<p><strong>Using browser globals</strong></p>
+<pre><code class="language-js">const { innerHTML, VERSION, use } = window.diff;
+// or
+const { diff } = window;</code></pre>
 <p><a name="inner-html"></a></p>
 <hr></hr>
 <h2 id="a-hrefinner-htmlinnerhtmla-domnode-markup-options"><a href="#inner-html">innerHTML</a> <strong><code>(domNode, markup, options)</code></strong></h2>
@@ -227,15 +215,29 @@ const { innerHTML, VERSION, use } = window.diff;</code></pre>
 update changed content and structure. Works like the browser&#39;s <code>innerHTML</code> only
 changing the element&#39;s children, but not the containing element. If you want to
 control the entire tag, use <a href="#outer-html"><code>outerHTML</code></a>.</p>
-<p>Simple Hello world:</p>
-<pre><code class="language-js">innerHTML(document.body, &#39;Hello world&#39;);</code></pre>
 <h3 id="arguments">Arguments</h3>
-<h4 id="domnode">domNode</h4>
-<p>Reference element to reflect new markup into</p>
-<h4 id="markup">markup</h4>
-<p>New markup to replace into the <code>domNode</code></p>
-<h4 id="options">options</h4>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>domNode</strong></td>
+<td>The root DOM Node to change the child contents of, but not the element itself.</td>
+</tr>
+<tr>
+<td><strong>markup</strong></td>
+<td>New markup to replace into the <code>domNode</code>.</td>
+</tr>
+<tr>
+<td><strong>options</strong></td>
+<td><ul><li><b>- tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li></ul></td>
+</tr>
+</tbody></table>
 <p><a name="outer-html"></a></p>
+<h3 id="examples">Examples</h3>
 <hr></hr>
 <h2 id="a-hrefouter-htmlouterhtmla-domnode-markup-options"><a href="#outer-html">outerHTML</a> <strong><code>(domNode, markup, options)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
@@ -245,16 +247,49 @@ but this isn&#39;t really recommended.</p>
 <p>Example:</p>
 <pre><code class="language-js">outerHTML(document.body, &#39;&lt;body&gt;Hello world&lt;/body&gt;&#39;);</code></pre>
 <h3 id="arguments-1">Arguments</h3>
-<p>The two required inputs are a reference element and new element to compare.
-Although &quot;element&quot; is used, the actual input can be of various input types
-all representing an element (or many elements).</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>domNode</strong></td>
+<td>A DOM Node to change.</td>
+</tr>
+<tr>
+<td><strong>markup</strong></td>
+<td>New markup to replace the entire <code>domNode</code> with.</td>
+</tr>
+<tr>
+<td><strong>options</strong></td>
+<td><ul><li><b>- tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li></ul></td>
+</tr>
+</tbody></table>
 <p><a name="html"></a></p>
 <hr></hr>
 <h2 id="a-hrefhtmlhtmla-markup"><a href="#html">html</a> <strong><code>(markup)</code></strong></h2>
-<p>Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.</p>
-<p>Example:</p>
-<pre><code class="language-js">outerHTML(document.body, &#39;Hello world&#39;);</code></pre>
+<p>A <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates">tagged
+template</a>
+function that parses HTML and creates VTree&#39;s under-the-hood. Can also be used
+like a normal function. Effectively creates the manual <code>createTree(nodeName,
+attributes, children)</code> calls automatically by parsing the HTML. You are allowed
+to &quot;interpolate&quot; or mix dynamic values with the HTML string content. This is
+useful when working with Web Components, DOM events,</p>
+<p>When you pass a single element and provide newlines and whitespace before and
+after it, like the example below, it will be automatically trimmed. If you
+provide multiple elements, the whitespace becomes </p>
+<p>A simple example of its usage along with interpolation.</p>
+<pre><code class="language-js">html`
+  &lt;body&gt;
+    &lt;center style=${{ fontSize: &#39;11px&#39; }}&gt;Hello world&lt;/center&gt;
+  &lt;/body&gt;
+`;</code></pre>
+<p>Will basically convert to:</p>
+<pre><code class="language-js">createTree(&#39;body&#39;, null, [
+  createTree(&#39;center&#39;, { style: { fontSize: &#39;11px&#39; } }, [&#39;Hello world&#39;]),
+]);</code></pre>
 <p>To see how to run this example yourself see the <a href="#examples">Examples</a> section
 below.</p>
 <h3 id="arguments-2">Arguments</h3>
@@ -263,17 +298,53 @@ Although &quot;element&quot; is used, the actual input can be of various input t
 all representing an element (or many elements).</p>
 <p><a name="use"></a></p>
 <hr></hr>
-<h2 id="a-hrefuseusea-middlewarefunction"><a href="#use">use</a> <strong><code>(middlewareFunction)</code></strong></h2>
-<p>Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.</p>
-<p>Example:</p>
-<pre><code class="language-js">outerHTML(document.body, &#39;Hello world&#39;);</code></pre>
-<p>To see how to run this example yourself see the <a href="#examples">Examples</a> section
-below.</p>
+<h2 id="a-hrefuseusea-middlewarefunction-or-middlewareobject"><a href="#use">use</a> <strong><code>(middlewareFunction or middlewareObject)</code></strong></h2>
+<p>Can be used to mount pre-existing middleware or you can write your own.
+Middleware are effectively hooks that execute in various areas of the
+reconciler during a render call such as <code>innerHTML</code> or <code>outerHTML</code>.</p>
+<p>A function is useful when you want to follow the transactions (which are
+started and run a series of tasks), and passing an object can be cleaner when
+you want to modify the Virtual Tree or automatically add properties.</p>
 <h3 id="arguments-3">Arguments</h3>
-<p>The two required inputs are a reference element and new element to compare.
-Although &quot;element&quot; is used, the actual input can be of various input types
-all representing an element (or many elements).</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>middlewareFunction</strong></td>
+<td>Use this when you want total control over the task flow. Return inner functions to delve deeper into the flow. Any of the middleware object properties may be attached the function and used together.</td>
+</tr>
+<tr>
+<td><strong>middlewareObject</strong></td>
+<td>Use this when you don&#39;t care about the transaction start/stop, and want a cleaner way to monitor the VTree lifecycle. <p><b>- createTreeHook</b></p><p><b>- syncTreeHook</b></p> <p><b>- releaseHook</b></p></td>
+</tr>
+</tbody></table>
+<h3 id="examples-1">Examples</h3>
+<h4 id="logging-the-start-of-a-render-transaction">Logging the start of a render transaction</h4>
+<pre><code class="language-js">function someTask(transaction) {
+  console.log(&#39;Start of render transaction:&#39;, transaction);
+}
+
+use(someTask);</code></pre>
+<h4 id="logging-the-end-of-a-render-transaction">Logging the end of a render transaction</h4>
+<pre><code class="language-js">function someTask(transaction) {
+  console.log(&#39;Start of render transaction:&#39;, transaction);
+
+  return () =&gt; {
+    console.log(&#39;End of render transaction scheduled&#39;);
+
+    // Must wait until all transitions complete to know for sure that the
+    // render action has completed.
+    transaction.onceEnded(() =&gt; {
+      console.log(&#39;End of render transaction completed&#39;);
+    });
+  };
+}
+
+use(someTask);</code></pre>
 <p><a name="add-transition-state"></a></p>
 <hr></hr>
 <h2 id="a-hrefadd-transition-stateaddtransitionstatea-statename-callback"><a href="#add-transition-state">addTransitionState</a> <strong><code>(stateName, callback)</code></strong></h2>
@@ -323,7 +394,7 @@ testing and general cleanup when you&#39;re done with an element.</p>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
-<h4 id="domnode-1">domNode</h4>
+<h4 id="domnode">domNode</h4>
 <p><em>Reference element.</em></p>
 <p>This argument is overloaded. Can be one of many types:</p>
 <ul>
@@ -340,7 +411,7 @@ testing and general cleanup when you&#39;re done with an element.</p>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
-<h4 id="domnode-2">domNode</h4>
+<h4 id="domnode-1">domNode</h4>
 <p><em>Reference element.</em></p>
 <p>This argument is overloaded. Can be one of many types:</p>
 <ul>

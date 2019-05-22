@@ -1,6 +1,25 @@
 # Transitions
 
-<a name="#add-transition"></a>
+<a name="available-states"></a>
+
+---
+
+## <a href="#available-states">Available states</a>
+
+Format is: `name[callbackArgs]`
+
+- `attached[element]`
+  For when an element is attached to the DOM.
+- `detached[element]`
+  For when an element leaves the DOM.
+- `replaced[oldElement, newElement]`
+  For when elements are swapped
+- `attributeChanged[element, attributeName, oldValue, newValue]` 
+  For when attributes are changed.
+- `textChanged[element, oldValue, newValue]`
+  For when text has changed in either TextNodes or SVG text elements.
+
+<a name="add-transition"></a>
 
 ---
 
@@ -30,21 +49,6 @@ addTransitionState('attached', function(element) {
 If you like these transitions and want to declaratively assign them in tagged
 templates, check out the [diffhtml-inline-transitions
 plugin](https://github.com/tbranyen/diffhtml-inline-transitions).
-
-**Available states**
-
-Format is: `name[callbackArgs]`
-
-- `attached[element]`
-  For when an element is attached to the DOM.
-- `detached[element]`
-  For when an element leaves the DOM.
-- `replaced[oldElement, newElement]`
-  For when elements are swapped
-- `attributeChanged[element, attributeName, oldValue, newValue]` 
-  For when attributes are changed.
-- `textChanged[element, oldValue, newValue]`
-  For when text has changed in either TextNodes or SVG text elements.
 
 ### A note about detached/replaced element accuracy
 
@@ -129,33 +133,3 @@ diff.removeTransitionState('attached');
 // Removes states by name and callback reference.
 diff.removeTransitionState('attached', callbackReference);
 ```
-
-<a name="attached"></a>
-
----
-
-## <a href="#attached">attached</a>
-
-<a name="detached"></a>
-
----
-
-## <a href="#detached">detached</a>
-
-<a name="replaced"></a>
-
----
-
-## <a href="#replaced">replaced</a>
-
-<a name="attribute-changed"></a>
-
----
-
-## <a href="#attribute-changed">attributeChanged</a>
-
-<a name="text-changed"></a>
-
----
-
-## <a href="#text-changed">textChanged</a>

@@ -7,6 +7,11 @@ You would use it in the same way as other web frameworks such as:
 [Svelte](https://svelte.dev/). You may want to look at these first, as they are
 backed by corporations and/or large communities.  
 
+diffHTML offers a uniquely simple way of writing middleware that reaches the
+lowest levels of the rendering flow without needing to write much more than a
+function. The Virtual DOM avoids garbage collection pitfalls and increased
+performance by utilizing object pooling of a stable "Virtual Tree" shape.
+
 <a name="core-features"></a>
 
 ---

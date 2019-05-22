@@ -95,31 +95,15 @@
     
       
 
+      <a href="transitions.html#available-states" target><li>Available states</li></a>
+    
+      
+
       <a href="transitions.html#add-transition" target><li>Add transition</li></a>
     
       
 
       <a href="transitions.html#remove-transition" target><li>Remove transition</li></a>
-    
-      
-
-      <a href="transitions.html#attached" target><li>attached</li></a>
-    
-      
-
-      <a href="transitions.html#detached" target><li>detached</li></a>
-    
-      
-
-      <a href="transitions.html#replaced" target><li>replaced</li></a>
-    
-      
-
-      <a href="transitions.html#attributeChanged" target><li>attributeChanged</li></a>
-    
-      
-
-      <a href="transitions.html#textChanged" target><li>textChanged</li></a>
     
       <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
 
@@ -208,7 +192,23 @@
         </header>
 
         <section id="content"><h1 id="transitions">Transitions</h1>
-<p><a name="#add-transition"></a></p>
+<p><a name="available-states"></a></p>
+<hr></hr>
+<h2 id="a-hrefavailable-statesavailable-statesa"><a href="#available-states">Available states</a></h2>
+<p>Format is: <code>name[callbackArgs]</code></p>
+<ul>
+<li><code>attached[element]</code>
+For when an element is attached to the DOM.</li>
+<li><code>detached[element]</code>
+For when an element leaves the DOM.</li>
+<li><code>replaced[oldElement, newElement]</code>
+For when elements are swapped</li>
+<li><code>attributeChanged[element, attributeName, oldValue, newValue]</code> 
+For when attributes are changed.</li>
+<li><code>textChanged[element, oldValue, newValue]</code>
+For when text has changed in either TextNodes or SVG text elements.</li>
+</ul>
+<p><a name="add-transition"></a></p>
 <hr></hr>
 <h2 id="a-hrefadd-transitionadd-transitiona"><a href="#add-transition">Add transition</a></h2>
 <p>Adds a global transition listener.  With many elements this could be an
@@ -229,20 +229,6 @@ need backwards compatibility, consider using jQuery&#39;s <code>is</code>.</p>
 <p>If you like these transitions and want to declaratively assign them in tagged
 templates, check out the <a href="https://github.com/tbranyen/diffhtml-inline-transitions">diffhtml-inline-transitions
 plugin</a>.</p>
-<p><strong>Available states</strong></p>
-<p>Format is: <code>name[callbackArgs]</code></p>
-<ul>
-<li><code>attached[element]</code>
-For when an element is attached to the DOM.</li>
-<li><code>detached[element]</code>
-For when an element leaves the DOM.</li>
-<li><code>replaced[oldElement, newElement]</code>
-For when elements are swapped</li>
-<li><code>attributeChanged[element, attributeName, oldValue, newValue]</code> 
-For when attributes are changed.</li>
-<li><code>textChanged[element, oldValue, newValue]</code>
-For when text has changed in either TextNodes or SVG text elements.</li>
-</ul>
 <h3 id="a-note-about-detachedreplaced-element-accuracy">A note about detached/replaced element accuracy</h3>
 <p>When rendering Nodes that contain lists of identical elements, you may not
 receive the elements you expect in the detached and replaced transition state
@@ -299,22 +285,7 @@ diff.removeTransitionState();
 diff.removeTransitionState(&#39;attached&#39;);
 
 // Removes states by name and callback reference.
-diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
-<p><a name="attached"></a></p>
-<hr></hr>
-<h2 id="a-hrefattachedattacheda"><a href="#attached">attached</a></h2>
-<p><a name="detached"></a></p>
-<hr></hr>
-<h2 id="a-hrefdetacheddetacheda"><a href="#detached">detached</a></h2>
-<p><a name="replaced"></a></p>
-<hr></hr>
-<h2 id="a-hrefreplacedreplaceda"><a href="#replaced">replaced</a></h2>
-<p><a name="attribute-changed"></a></p>
-<hr></hr>
-<h2 id="a-hrefattribute-changedattributechangeda"><a href="#attribute-changed">attributeChanged</a></h2>
-<p><a name="text-changed"></a></p>
-<hr></hr>
-<h2 id="a-hreftext-changedtextchangeda"><a href="#text-changed">textChanged</a></h2></section>
+diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/transitions.md" style="
             text-align: center;
