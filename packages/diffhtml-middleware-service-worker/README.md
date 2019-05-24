@@ -2,11 +2,11 @@
 
 Stable Version: 1.0.0-beta.9
 
-While this does not really benefit from being a middleware, I made it as such
-since it looks nice in the `use` and can be disabled if the middleware is
-unsubscribed. I've added some developer niceties, like auto clearing the caches
-for development. It's also possible to disable the worker completely if you
-get annoyed with some behavior.
+while this does not really benefit from being a middleware, i made it as such
+since it looks nice when added to `use()` and can be disabled if the middleware
+is unsubscribed. i've added some developer niceties, like auto clearing the
+caches for development. it's also possible to disable the worker completely if
+you get annoyed with some behavior.
 
 ## Installation
 
@@ -19,9 +19,7 @@ npm install diffhtml-middleware-service-worker
 ``` javascript
 import { use } from 'diffhtml';
 import serviceWorker from 'diffhtml-middleware-service-worker';
-```
 
-``` javascript
 // Defaults shown, these are all optional values.
 use(serviceWorker({
   url: '/service-worker.js',

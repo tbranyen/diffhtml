@@ -96,6 +96,7 @@ layer#navigation ul {
   list-style: none;
   line-height: 30px;
   padding-left: 10px;
+  padding-bottom: 40px;
   width: 200px;
 }
 
@@ -212,10 +213,11 @@ layer#main ul {
   margin-left: 0;
   padding-left: 0;
   list-style: none;
+  font-size: 16px;
 }
 
 layer#main ul .list-icon {
-  padding-left: 10px;
+  padding-left: 0;
   margin-right: 10px;
   color: #024161;
   font-size: 20px;
@@ -300,6 +302,7 @@ table td {
     overflow: visible;
     width: 100%;
     margin-left: 0px;
+    overflow-y: hidden;
   }
 
   body.open {
@@ -326,14 +329,13 @@ table td {
 
   body.open layer#navigation {
     transform: translate3d(0, 0, 0);
-    width: 640px;
+    width: 240px;
     height: 100%;
-    padding-right: 0;
+    padding-right: 80px;
     position: static;
   }
 
   layer#main {
-    max-width: calc(100% - 50px);
     width: 100%;
     margin: 0 !important;
     padding-left: 0px !important;
@@ -391,7 +393,6 @@ table td {
     position: sticky;
     color: #FFF;
     top: 22px;
-    left: 18px;
     padding: 0;
     cursor: pointer;
     z-index: 100;

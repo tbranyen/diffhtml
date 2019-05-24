@@ -3,7 +3,7 @@
   "pages": {
     "General": ["index.html", {
       "Core features": "#core-features",
-      "Installing and importing": "#installing-and-importing",
+      "Installing & importing": "#installing-and-importing",
       "Optimizing with Babel": "#optimizing-with-babel",
       "Writing middleware": "#writing-middleware"
     }],

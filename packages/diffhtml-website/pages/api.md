@@ -310,3 +310,5 @@ Property which indicates the current running version of diffHTML.
 ``` js
 console.log(VERSION);
 ```
+
+---

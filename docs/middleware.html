@@ -35,7 +35,7 @@
     
       
 
-      <a href="index.html#installing-and-importing" target><li>Installing and importing</li></a>
+      <a href="index.html#installing-and-importing" target><li>Installing &#38; importing</li></a>
     
       
 
@@ -194,26 +194,142 @@
         <section id="content"><h1 id="middleware">Middleware</h1>
 <p>This concept allows developers to write plugins that augments diffHTML to do
 different things. You can use pre-made middleware or create your own easily.</p>
-<p><a name="logger"></a></p>
-<hr></hr>
-<h2 id="a-hrefloggerloggera"><a href="#logger">Logger</a></h2>
-<p>Prints out detailed information before and after each render transaction.</p>
-<pre><code class="language-sh">npm install @diffhtml/middleware-logger</code></pre>
-<img src="https://cloud.githubusercontent.com/assets/181635/23392088/32cacd8a-fd2e-11e6-9b95-e3124d827eea.png" width="100%"></img>
-
 <p><a name="inline-transitions"></a></p>
 <hr></hr>
 <h2 id="a-hrefinline-transitionsinline-transitionsa"><a href="#inline-transitions">Inline Transitions</a></h2>
-<p><a name="synthetic-events"></a></p>
+<p><a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions">https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions</a></p>
+<p>Tiny module to support binding/unbinding declarative diffHTML transition hooks.</p>
+<pre><code class="language-sh">npm install diffhtml-middleware-inline-transitions</code></pre>
+<p>Full events and args list:</p>
+<table>
+<thead>
+<tr>
+<th align="left">Event Name</th>
+<th align="left">Args</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>onattached</strong></td>
+<td align="left"><code>(eventTarget, domNode)</code></td>
+</tr>
+<tr>
+<td align="left"><strong>ondetached</strong></td>
+<td align="left"><code>(eventTarget, domNode)</code></td>
+</tr>
+<tr>
+<td align="left"><strong>onreplaced</strong></td>
+<td align="left"><code>(eventTarget, oldNode, newNode)</code></td>
+</tr>
+<tr>
+<td align="left"><strong>onattributechanged</strong></td>
+<td align="left"><code>(eventTarget, oldNode, attributeName, oldValue, newValue)</code></td>
+</tr>
+<tr>
+<td align="left"><strong>ontextchanged</strong></td>
+<td align="left"><code>(eventTarget, oldNode, oldValue, newValue)</code></td>
+</tr>
+</tbody></table>
+<h3 id="example">Example</h3>
+<p>Apply to an element by passing the function to the associated state name:</p>
+<pre><code class="language-js">import $ from &#39;jquery&#39;;
+import { innerHTML, html, use } from &#39;diffhtml&#39;;
+import inlineTransitions from &#39;diffhtml-middleware-inline-transitions&#39;;
+
+// Enable the monitoring of attributes for changes.
+use(inlineTransitions());
+
+// Use jQuery to return a promise and fade in the body and paragraph.
+function fadeIn(body, domNode) {
+  return $(domNode).fadeOut(0).fadeIn(1000).promise();
+}
+
+innerHTML(document.body, html`&lt;body onattached=${fadeIn}&gt;
+  &lt;p&gt;Watch me fade in slowly!&lt;/p&gt;
+&lt;/body&gt;`);</code></pre>
+<p><a name="logger"></a></p>
 <hr></hr>
-<h2 id="a-hrefsynthetic-eventssynthetic-eventsa"><a href="#synthetic-events">Synthetic Events</a></h2>
+<h2 id="a-hrefloggerloggera"><a href="#logger">Logger</a></h2>
+<p><a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger">https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger</a></p>
+<p>Use with diffHTML to <code>console.log</code> out render
+<a href="https://diffhtml.org/#transaction">Transaction</a> operations. This will nest
+sub-component renders if they happen during a parent render.</p>
+<pre><code class="language-sh">npm install diffhtml-middleware-logger</code></pre>
+<img src="https://cloud.githubusercontent.com/assets/181635/23392088/32cacd8a-fd2e-11e6-9b95-e3124d827eea.png" width="100%"></img>
+
+
+<h3 id="example-1">Example</h3>
+<pre><code class="language-javascript">import { use } from &#39;diffhtml&#39;;
+import logger from &#39;diffhtml-middleware-logger&#39;;
+
+use(logger());</code></pre>
+<p>This is not a very performant middleware, so please do not use this in
+production where performance is critical. Use only in development or behind a
+flag.</p>
 <p><a name="service-worker"></a></p>
 <hr></hr>
 <h2 id="a-hrefservice-workerservice-workera"><a href="#service-worker">Service Worker</a></h2>
+<p><a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker">https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker</a></p>
+<p>While this does not really benefit from being a middleware, I made it as such
+since it looks nice in the use and can be disabled if the middleware is
+unsubscribed. I&#39;ve added some developer niceties, like auto clearing the caches
+for development. It&#39;s also possible to disable the worker completely if you get
+annoyed with some behavior.</p>
+<pre><code class="language-sh">npm install diffhtml-middleware-service-worker</code></pre>
+<h3 id="example-2">Example</h3>
+<pre><code class="language-javascript">import { use } from &#39;diffhtml&#39;;
+import serviceWorker from &#39;diffhtml-middleware-service-worker&#39;;
+
+// Defaults shown, these are all optional values.
+use(serviceWorker({
+  url: &#39;/service-worker.js&#39;,
+  scope: &#39;/&#39;,
+  autoClearCaches: location.search.includes(&#39;diff_autoclear&#39;),
+  disable: location.search.includes(&#39;diff_disable&#39;),
+  quiet: location.search.includes(&#39;diff_quiet&#39;),
+  options: {},
+}));</code></pre>
+<p><a name="synthetic-events"></a></p>
+<hr></hr>
+<h2 id="a-hrefsynthetic-eventssynthetic-eventsa"><a href="#synthetic-events">Synthetic Events</a></h2>
+<p><a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events">https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events</a></p>
+<p>Changes the event binding from inline event handlers like <code>onclick = fn</code> to use
+<code>addEventListener</code>. Hooks are attached to the <code>body</code> element and coordinated
+using event delegation.</p>
+<pre><code class="language-sh">npm install diffhtml-middleware-synthetic-events</code></pre>
+<h3 id="example-3">Example</h3>
+<pre><code class="language-js">import { use, html, innerHTML } from &#39;diffhtml&#39;;
+import syntheticEvents from &#39;diffhtml-middleware-synthetic-events&#39;;
+
+use(syntheticEvents());
+
+function render() {
+  return html`
+    &lt;div onclick=${e =&gt; console.log(e)} /&gt;
+  `;
+}
+
+// Binds the event on div using `addEventListener`.
+innerHTML(document.body, render());</code></pre>
+<p>A good use case for this middleware is building a Chrome Extension where using
+inline event handlers is not possible. Supports non-bubbling events via the
+<code>useCapture</code> flag.</p>
 <p><a name="verify-state"></a></p>
 <hr></hr>
 <h2 id="a-hrefverify-stateverify-statea"><a href="#verify-state">Verify State</a></h2>
-<img src="https://cloud.githubusercontent.com/assets/181635/23392650/1d7dfdcc-fd32-11e6-8f41-b412279cea55.png" width="100%"></img></section>
+<p><a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state">https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state</a></p>
+<p>Asserts that a render properly updated the old Virtual Tree and the DOM. Will
+recursively search for inconsistencies, displays warnings unless debugging is
+enabled, then it throws errors instead.</p>
+<pre><code class="language-sh">npm install diffhtml-middleware-verify-state</code></pre>
+<img src="https://cloud.githubusercontent.com/assets/181635/23392650/1d7dfdcc-fd32-11e6-8f41-b412279cea55.png" width="100%"></img>
+
+<h3 id="example-4">Example</h3>
+<pre><code class="language-js">import { use } from &#39;diffhtml&#39;;
+import verifyState from &#39;diffhtml-middleware-verify-state&#39;;
+
+// Throw when debug is truthy (when location.search has `?debug`)
+use(verifyState({ debug: location.search.includes(&#39;debug&#39;) }));</code></pre>
+<hr></hr></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/middleware.md" style="
             text-align: center;

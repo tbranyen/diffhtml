@@ -7,11 +7,6 @@ You would use it in the same way as other web frameworks such as:
 [Svelte](https://svelte.dev/). You may want to look at these first, as they are
 backed by corporations and/or large communities.  
 
-diffHTML offers a uniquely simple way of writing middleware that reaches the
-lowest levels of the rendering flow without needing to write much more than a
-function. The Virtual DOM avoids garbage collection pitfalls and increased
-performance by utilizing object pooling of a stable "Virtual Tree" shape.
-
 <a name="core-features"></a>
 
 ---
@@ -29,33 +24,35 @@ performance by utilizing object pooling of a stable "Virtual Tree" shape.
 
 ---
 
-## <a href="#installing-and-importing">Installing and importing</a>
+## <a href="#installing-and-importing">Installing & importing</a>
 
-Depending on your use case you may have to install from a registry using a
-package manager or you can reference it directly from a server.
+The source code is authored in valid ES6 and can be run without a transpiler
+in JavaScript runtimes that support the latest specification. The minified
+version can be run in an ES5 environment as it runs through a separate build
+step to make it compatible with UglifyJS.
 
-### Script tag
+You can access any of the diffHTML source code from the following servers. The
+"official" diffhtml.org is on a Linode and is only suitable for hobby projects
+<u>DO NOT RELY</u> on it in production.
+
+### Latest full version minified endpoints
 
 Using this method will bring in the global minified UMD file. This includes the
 parser so it will be larger than the runtime build weighing at around
 **7.8kb min+gzip**. Access the API through the `window.diff` global.
 
-```html
-<script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
+- **https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js**
+- **https://unpkg.com/diffhtml/dist/diffhtml.min.js**
 
-<script>
-  const { innerHTML } = window.diff;
-</script>
-```
+### Latest runtime version minified endpoints
 
 If you use the [Babel transform](#optimizing-with-babel), you will be able to
 use the runtime build instead.  This converts `html` tagged template calls into
 `createTree` calls, which take in the Babel converted trees. This greatly
 reduces the bundle sizes. The base bundle size here is just **6kb min+gzip**!
 
-```html
-<script src="https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js"></script>
-```
+- **https://diffhtml.org/master/diffhtml/dist/diffhtml-runtime.min.js**
+- **https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js**
 
 ### Installing into `node_modules`
 
@@ -77,51 +74,60 @@ clients that can install into. Two recommended ones are shown below:
   yarn add diffhtml
   ```
 
+This will create the following structure:
+
+```
+node_modules/diffhtml
+├── dist
+│   ├── cjs # where all the CommonJS files are
+│   ├── diffhtml.js
+│   ├── diffhtml.min.js
+│   ├── diffhtml-runtime.js
+│   ├── diffhtml-runtime.min.js
+│   └── es # where all the ESM files are
+├── lib
+├── package.json
+└── README.md
+```
+
+### Script tag
+
+Use this tag in HTML to load diffHTML globally.
+
+```html
+<script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
+
+<script>
+  const { innerHTML } = window.diff;
+</script>
+```
+
+Loading just the runtime:
+
+
+```html
+<script src="https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js"></script>
+```
+
 ### ES modules
 
 You can import diffHTML directly over HTTP using the ES modules syntax. This is
 a new feature that isn't available in all browsers yet, but you can use them
 [safely in nearly all modern browsers](https://caniuse.com/#search=modules).
 
-#### > diffhtml.org server
-
-Hosted on my Linode, don't rely on this for complete stability, but it supports
-**http/2** push so it's great for development. I'll always update this to
-guarentee to be the latest version. Consider this "bleeding edge", if you need
-stability use **unpkg** below.
-
 ``` javascript
-// When you're loading from https, you can go protocol-less.
-import { innerHTML } from '//diffhtml.org/es';
-
-// When you're loading from file: or http:
-import { innerHTML } from 'https://diffhtml.org/es';
+import { innerHTML } from 'https://unpkg.com/diffhtml?module';
 ```
 
-#### > unpkg.com server
-
-Sometimes outdated, cold start is sometimes slow, doesn't have **http/2**, but
-is significantly more stable, so think of this as stable LTS.
+To load just the runtime:
 
 ``` javascript
-import { innerHTML } from '//unpkg.com/diffhtml?module';
+import { innerHTML } from 'https://unpkg.com/diffhtml/runtime?module';
 ```
-
-diffHTML is designed to be portable, so you can consume it in a number of ways
-depending on your environment. You can load imports  works well with or without a build tool. It
-can be loaded by browsers with the ES Module syntax.
- 
-There are many ways of getting diffHTML. It has been designed to be flexible
-and the smallest file size possible.
-
-* **HTTP (Recommended for Beginners):**
-
-  ```
-  <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
-  ```
 
 _While `diffhtml` is the core package to install, there are many other modules
-you may also want to install depending on your use cases._
+you may also want to install depending on your use cases. All of them are available
+at the same CDN endpoints._
 
 <a name="optimizing-with-babel"></a>
 
@@ -148,3 +154,5 @@ npm install -D babel-plugin-transform-diffhtml
 ---
 
 ## <a href="#writing-middleware">Writing middleware</a>
+
+---
