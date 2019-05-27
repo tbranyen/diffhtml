@@ -1,11 +1,10 @@
 {
   "output_dir": "../../docs",
   "pages": {
-    "General": ["index.html", {
+    "Home": ["index.html", {
       "Core features": "#core-features",
       "Installing & importing": "#installing-and-importing",
       "Optimizing with Babel": "#optimizing-with-babel",
-      "Runtime build": "#runtime-build",
       "Writing middleware": "#writing-middleware"
     }],
 

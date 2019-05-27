@@ -25,7 +25,7 @@
 
         <ul>
     
-      <a href="index.html"><li class="header"><h4>General</h4></li></a>
+      <a href="index.html"><li class="header"><h4>Home</h4></li></a>
 
       
     
@@ -40,10 +40,6 @@
       
 
       <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
-    
-      
-
-      <a href="index.html#runtime-build" target><li>Runtime build</li></a>
     
       
 
@@ -196,22 +192,45 @@
         </header>
 
         <section id="content"><h1 id="transitions">Transitions</h1>
+<p>A unique concept to diffHTML, these transitions are activated as first class
+events whenever elements are added, removed, changed, and when attributes and
+text have changed.</p>
+<p>By returning promises you can halt rendering until they have completed. This
+could allow you to easily build keyframe based animations or integrate tools
+like <a href="https://animejs.com/documentation/#finishedPromise">anime.js</a> that
+support Promises.</p>
 <p><a name="available-states"></a></p>
 <hr></hr>
 <h2 id="a-hrefavailable-statesavailable-statesa"><a href="#available-states">Available states</a></h2>
-<p>Format is: <code>name[callbackArgs]</code></p>
-<ul>
-<li><code>attached[element]</code>
-For when an element is attached to the DOM.</li>
-<li><code>detached[element]</code>
-For when an element leaves the DOM.</li>
-<li><code>replaced[oldElement, newElement]</code>
-For when elements are swapped</li>
-<li><code>attributeChanged[element, attributeName, oldValue, newValue]</code> 
-For when attributes are changed.</li>
-<li><code>textChanged[element, oldValue, newValue]</code>
-For when text has changed in either TextNodes or SVG text elements.</li>
-</ul>
+<p>There are many states you can listen to, they get added globally and allow you
+to do filtering. You add them using the <code>addTransitionState</code> method.</p>
+<pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;</code></pre>
+<h3 id="a-nameattached-hrefattachedattacheda"><a name="attached" href="#attached">Attached</a></h3>
+<p>For when an element is attached to the DOM.</p>
+<pre><code class="language-js">addTransitionState(&#39;attached&#39;, (element) =&gt; {
+  console.log(element);
+});</code></pre>
+<h3 id="a-namedetached-hrefdetacheddetacheda"><a name="detached" href="#detached">Detached</a></h3>
+<p>For when an element leaves the DOM.</p>
+<pre><code class="language-js">addTransitionState(&#39;detached&#39;, (element) =&gt; {
+  console.log(element);
+});</code></pre>
+<h3 id="a-namereplaced-hrefreplacedreplaceda"><a name="replaced" href="#replaced">Replaced</a></h3>
+<p>Whenever two elements are replaced at render time this is called with the old
+and new elements.</p>
+<pre><code class="language-js">addTransitionState(&#39;replaced&#39;, (oldElement, newElement) =&gt; {
+  console.log(oldElement, newElement);
+});</code></pre>
+<h3 id="a-nameattribute-changed-hrefattribute-changedattribute-changeda"><a name="attribute-changed" href="#attribute-changed">Attribute changed</a></h3>
+<p>For when attributes have changed.</p>
+<pre><code class="language-js">addTransitionState(&#39;attributeChanged&#39;, (element, attrName, oldValue, newValue) =&gt; {
+  console.log(element, attrName, oldValue, newValue);
+});</code></pre>
+<h3 id="a-nametext-changed-hreftext-changedtext-changeda"><a name="text-changed" href="#text-changed">Text changed</a></h3>
+<p>For when text has changed in either TextNodes or SVG text elements.</p>
+<pre><code class="language-js">addTransitionState(&#39;attributeChanged&#39;, (element, oldValue, newValue) =&gt; {
+  console.log(element, oldValue, newValue);
+});</code></pre>
 <p><a name="add-transition"></a></p>
 <hr></hr>
 <h2 id="a-hrefadd-transitionadd-transitiona"><a href="#add-transition">Add transition</a></h2>
@@ -240,7 +259,6 @@ hooks. This is a known limitation of string diffing and allows for better
 performance. By default if no key is specified, the last element will be
 removed and the subsequent elements from the one that was removed will be
 mutated via replace.</p>
-<p>This isn&#39;t really ideal. <strong>At all.</strong></p>
 <p>What you should do here is add a <code>key</code> attribute with a unique <code>value</code> that
 persists between renders.</p>
 <p>For example, when the following markup...</p>

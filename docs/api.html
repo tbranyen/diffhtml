@@ -25,7 +25,7 @@
 
         <ul>
     
-      <a href="index.html"><li class="header"><h4>General</h4></li></a>
+      <a href="index.html"><li class="header"><h4>Home</h4></li></a>
 
       
     
@@ -40,10 +40,6 @@
       
 
       <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
-    
-      
-
-      <a href="index.html#runtime-build" target><li>Runtime build</li></a>
     
       
 
@@ -199,7 +195,7 @@
 <p>The core diffHTML API was designed to be minimal and familiar if you&#39;ve used
 browser DOM APIs such as <code>innerHTML</code> and <code>addEventListener</code>. </p>
 <p>You can access any of the top-level API methods &amp; properties by directly
-importing, or deconstructing.</p>
+importing or deconstructing.</p>
 <p><strong>Using ES modules</strong></p>
 <pre><code class="language-js">import { innerHTML, VERSION, use } from &#39;diffhtml&#39;;
 // or
@@ -393,11 +389,24 @@ all representing an element (or many elements).</p>
 <h2 id="a-hrefreleasereleasea-domnode"><a href="#release">release</a> <strong><code>(domNode)</code></strong></h2>
 <p>Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
-testing and general cleanup when you&#39;re done with an element.</p>
+testing and general cleanup when you&#39;re done with an element. Applications will
+probably not use this if the app lives as long as the tab.</p>
 <h3 id="arguments-7">Arguments</h3>
-<p>The two required inputs are a reference element and new element to compare.
-Although &quot;element&quot; is used, the actual input can be of various input types
-all representing an element (or many elements).</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>domNode</strong></td>
+<td>The root DOM Node to release memory around</td>
+</tr>
+</tbody></table>
+<p>This method should fully release everything related to the rendering, but its
+possible an untested code path is hit, so you should track the internal memory
+allocations to verify that memory isn&#39;t causing a problem.</p>
 <h4 id="domnode">domNode</h4>
 <p><em>Reference element.</em></p>
 <p>This argument is overloaded. Can be one of many types:</p>
@@ -408,19 +417,70 @@ all representing an element (or many elements).</p>
 <p><a name="internals"></a></p>
 <hr></hr>
 <h2 id="a-hrefinternalsinternalsa"><a href="#internals">Internals</a></h2>
-<p>Use this method if you need to clean up memory allocations and anything else
-internal to diffHTML associated with your element. This is very useful for unit
-testing and general cleanup when you&#39;re done with an element.</p>
-<h3 id="arguments-8">Arguments</h3>
-<p>The two required inputs are a reference element and new element to compare.
-Although &quot;element&quot; is used, the actual input can be of various input types
-all representing an element (or many elements).</p>
-<h4 id="domnode-1">domNode</h4>
-<p><em>Reference element.</em></p>
-<p>This argument is overloaded. Can be one of many types:</p>
+<p>The internals are exposed for curious developers to write code against.
+Understanding these APIs will give you greater insight into how diffHTML works.</p>
+<h3 id="a-namemiddleware-cache-hrefmiddleware-cachemiddlewarecachea"><a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a></h3>
+<p>An object that contains Sets of functions. You can hook into:</p>
 <ul>
-<li>HTML Element / DOM Node (Used interchangeably)</li>
-<li>Virtual Tree Element (produced from <code>diff.html</code>)</li>
+<li><strong>CreateNodeHookCache</strong> - Whenever a DOM Node is created</li>
+<li><strong>CreateTreeHookCache</strong> - Whenever a VTree is created</li>
+<li><strong>ReleaseHookCache</strong> - Whenever a VTree has been released</li>
+<li><strong>SyncTreeHookCache</strong> - Whenever VTrees are compared</li>
+</ul>
+<h3 id="a-namenode-cache-hrefnode-cachenodecachea"><a name="node-cache" href="#node-cache">NodeCache</a></h3>
+<p>A Map that can be used to get access to the DOM Node associated to a VTree.
+This is comparable to <code>findDOMNode</code> in React. Basically if you encounter an
+object that the documentation says is a VTree and you want to convert to a DOM
+Node, you could write something like:</p>
+<pre><code class="language-js">import { Internals } from &#39;diffhtml&#39;;
+
+function findDOMNode(vTree) {
+  return Internals.NodeCache.get(vTree);
+}
+
+findDOMNode(someVTree);</code></pre>
+<p>If it comes back as <code>null</code> or <code>undefined</code> then you should take that to mean
+that the VTree is no longer bound to an element in the DOM. You may also find
+that diffHTML has re-used the VTree you have saved, so calling <code>NodeCache.get</code>
+will yield an unexpected result. Therefore its recommended to call this method
+immediately if you need the DOM node and not save a VTree in between
+re-renders.</p>
+<h3 id="a-nametransaction-hreftransactiontransactiona"><a name="transaction" href="#transaction">Transaction</a></h3>
+<p>A render transaction is scheduled whenever <code>innerHTML</code> or <code>outerHTML</code> are
+called. It is a subclass of a <code>Transaction</code> class that gives it a few methods:
+<em>abort</em>, <em>end</em>, <em>onceEnded</em>, and <em>start</em>. This instance is mutable and the
+properties will change by the internals. You should not modify the transaction
+directly unless you know what you&#39;re doing. Reading any property is considered
+the live source-of-truth and a safe operation.</p>
+<p>There are a series of tasks that run when a transaction is created. Depending
+on the build flavor, full or runtime, you will get a different set of tasks. By
+default transactions run synchronously and you can observe a result immediately
+after running <code>innerHTML</code> or <code>outerHTML</code>.</p>
+<p>If you use <code>addTransitionState</code> and return a Promise to delay rendering, this
+could cause multiple renders to stack up and then transactions will be
+asynchronous.</p>
+<pre><code class="language-sh">&gt; schedule        # If another transaction is running, this will run after
+&gt; shouldUpdate    # If nothing has changed, abort early
+&gt; parseNewTree    # Full build only, will parse a passed in string of HTML
+&gt; reconcileTrees  # Align trees before diffing
+&gt; syncTrees       # Loop through and compare trees as efficiently as possible
+&gt; patchNode       # Apply chnages to the DOM
+&gt; endAsPromise    # If a transaction is delayed, resolve once complete</code></pre>
+<p>Transactions have a number of properties available to access:</p>
+<ul>
+<li><strong>aborted</strong> - The transaction was abandoned</li>
+<li><strong>completed</strong> - The transaction successfully completed</li>
+<li><strong>domNode</strong> - The container element being rendered into</li>
+<li><strong>endedCallbacks</strong> - The set of callbacks that will be called once completed</li>
+<li><strong>markup</strong> - The raw input to render</li>
+<li><strong>newTree</strong> - The reconciled tree to use for new source-of-truth</li>
+<li><strong>oldTree</strong> - The old tree which may already be updated with <strong>newTree</strong></li>
+<li><strong>options</strong> - Options used when renderingo</li>
+<li><strong>patches</strong> - What has been updated in the DOM</li>
+<li><strong>promise</strong> - The raw promise backing the tranasction completeness</li>
+<li><strong>promises</strong> - All promises attached to the transaction from transitions</li>
+<li><strong>state</strong> - Internal state object for the transaction</li>
+<li><strong>tasks</strong> - Array of functions that were executed when rendering</li>
 </ul>
 <p><a name="version"></a></p>
 <hr></hr>

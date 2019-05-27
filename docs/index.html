@@ -25,7 +25,7 @@
 
         <ul>
     
-      <a href="index.html"><li class="header"><h4>General</h4></li></a>
+      <a href="index.html"><li class="header"><h4>Home</h4></li></a>
 
       
     
@@ -40,10 +40,6 @@
       
 
       <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
-    
-      
-
-      <a href="index.html#runtime-build" target><li>Runtime build</li></a>
     
       
 
@@ -226,8 +222,8 @@ step to make it compatible with UglifyJS.</p>
 parser so it will be larger than the runtime build weighing at around
 <strong>7.8kb min+gzip</strong>. Access the API through the <code>window.diff</code> global.</p>
 <ul>
-<li><strong><a href="https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js">https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js</a></strong></li>
-<li><strong><a href="https://unpkg.com/diffhtml/dist/diffhtml.min.js">https://unpkg.com/diffhtml/dist/diffhtml.min.js</a></strong></li>
+<li><strong>Minified</strong> <strong><a href="https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js">https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js</a></strong></li>
+<li><strong>Raw</strong> <strong><a href="https://unpkg.com/diffhtml/dist/diffhtml.min.js">https://unpkg.com/diffhtml/dist/diffhtml.min.js</a></strong></li>
 </ul>
 <p><a name="latest-runtime-version"></a></p>
 <h3 id="a-hreflatest-runtime-versionlatest-runtime-version-minified-endpointsa"><a href="#latest-runtime-version">Latest runtime version minified endpoints</a></h3>
@@ -236,8 +232,8 @@ use the runtime build instead.  This converts <code>html</code> tagged template 
 <code>createTree</code> calls, which take in the Babel converted trees. This greatly
 reduces the bundle sizes. The base bundle size here is just <strong>6kb min+gzip</strong>!</p>
 <ul>
-<li><strong><a href="https://diffhtml.org/master/diffhtml/dist/diffhtml-runtime.min.js">https://diffhtml.org/master/diffhtml/dist/diffhtml-runtime.min.js</a></strong></li>
-<li><strong><a href="https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js">https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js</a></strong></li>
+<li><strong>Minified</strong> <strong><a href="https://diffhtml.org/master/diffhtml/dist/diffhtml-runtime.min.js">https://diffhtml.org/master/diffhtml/dist/diffhtml-runtime.min.js</a></strong></li>
+<li><strong>Raw</strong> <strong><a href="https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js">https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js</a></strong></li>
 </ul>
 <p><a name="installing-node-modules"></a></p>
 <h3 id="a-hrefinstalling-node-modulesinstalling-into-node_modulesa"><a href="#installing-node-modules">Installing into <code>node_modules</code></a></h3>
@@ -321,7 +317,7 @@ your code depending on how it is written and structured. For instance, anytime
 you have an element that does not change it will be hoisted and reused instead
 of recreated every time. Any <code>html</code> tagged template calls will be converted to
 <code>createTree</code> calls. After code has been run through this plugin you will be
-able to pair with the <a href="#runtime-build">runtime build</a>.</p>
+able to pair with the runtime build.</p>
 <p>and enable the use of the runtime build
 which decreases the file size further.</p>
 <p>To use, install into your project as a dev dependency.</p>
@@ -332,18 +328,39 @@ which decreases the file size further.</p>
   &quot;plugins&quot;: [&quot;babel-plugin-transform-diffhtml&quot;]
 }</code></pre>
 <p><a href="https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml#-diffhtml-babel-transform-plugin">Refer to the configuration documentation.</a></p>
-<p><a name="runtime-build"></a></p>
-<hr></hr>
-<h2 id="a-hrefruntime-buildruntime-builda"><a href="#runtime-build">Runtime build</a></h2>
-<p>The runtime configuration is a custom build that removes the HTML parser,
-performance instrumentation, and is a much smaller build.</p>
-<p>This is better for production scenarios when you want to get the best
-performance and the lowest filesize.</p>
 <p><a name="writing-middleware"></a></p>
 <hr></hr>
 <h2 id="a-hrefwriting-middlewarewriting-middlewarea"><a href="#writing-middleware">Writing middleware</a></h2>
-<p>You would write middleware when you want to extend diffHTML in ways that it was
-not originally intended. For instance, you could use middleware to </p>
+<p>You would write middleware when you need to extend diffHTML to do things that
+that were not originally intended. For instance, you could write logic that
+says whenever a specific attribute is present to execute some code on the
+element when it enters and leaves the DOM. You could log whenever diffHTML has
+a render operation scheduled, monitor transitions, and more.</p>
+<p>A basic middleware looks as simple as:</p>
+<pre><code class="language-js">import { use } from &#39;diffhtml&#39;;
+
+use(() =&gt; {
+  console.log(&#39;diffHTML render transaction is starting&#39;);
+
+  return () =&gt; {
+    console.log(&#39;diffHTML render transaction is ending&#39;);
+  };
+});</code></pre>
+<p>There are several core middleware modules already written that you could use as
+a reference. A good starting one to look at is the <a href="/middleware#logger">Logger</a>
+if you&#39;re interested in tracking the render transaction flow.</p>
+<p>If you wanted to track when an element enters and leaves the DOM you could use
+the <a href="/transitions.html#available-states">attached and detached transition
+states</a>. You could also check the
+transaction when rendering is complete to see what is being attached and
+removed.</p>
+<pre><code class="language-js">use(() =&gt; ({ patches }) =&gt; {
+  patches.TREE_OPS.forEach(({ INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD }) =&gt; {
+    if (patch.INSERT_BEFORE) {
+
+    }
+  });
+});</code></pre>
 <hr></hr></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/index.md" style="

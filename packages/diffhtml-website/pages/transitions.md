@@ -1,22 +1,77 @@
 # Transitions
+
+A unique concept to diffHTML, these transitions are activated as first class
+events whenever elements are added, removed, changed, and when attributes and
+text have changed.
+
+By returning promises you can halt rendering until they have completed. This
+could allow you to easily build keyframe based animations or integrate tools
+like [anime.js](https://animejs.com/documentation/#finishedPromise) that
+support Promises.
+
 <a name="available-states"></a>
 
 ---
 
 ## <a href="#available-states">Available states</a>
 
-Format is: `name[callbackArgs]`
+There are many states you can listen to, they get added globally and allow you
+to do filtering. You add them using the `addTransitionState` method.
 
-- `attached[element]`
-  For when an element is attached to the DOM.
-- `detached[element]`
-  For when an element leaves the DOM.
-- `replaced[oldElement, newElement]`
-  For when elements are swapped
-- `attributeChanged[element, attributeName, oldValue, newValue]` 
-  For when attributes are changed.
-- `textChanged[element, oldValue, newValue]`
-  For when text has changed in either TextNodes or SVG text elements.
+```js
+import { addTransitionState } from 'diffhtml';
+```
+
+### <a name="attached" href="#attached">Attached</a>
+
+For when an element is attached to the DOM.
+
+```js
+addTransitionState('attached', (element) => {
+  console.log(element);
+});
+```
+
+### <a name="detached" href="#detached">Detached</a>
+
+For when an element leaves the DOM.
+
+```js
+addTransitionState('detached', (element) => {
+  console.log(element);
+});
+```
+
+### <a name="replaced" href="#replaced">Replaced</a>
+
+Whenever two elements are replaced at render time this is called with the old
+and new elements.
+
+```js
+addTransitionState('replaced', (oldElement, newElement) => {
+  console.log(oldElement, newElement);
+});
+```
+
+### <a name="attribute-changed" href="#attribute-changed">Attribute changed</a>
+
+For when attributes have changed.
+
+```js
+addTransitionState('attributeChanged', (element, attrName, oldValue, newValue) => {
+  console.log(element, attrName, oldValue, newValue);
+});
+```
+
+### <a name="text-changed" href="#text-changed">Text changed</a>
+
+For when text has changed in either TextNodes or SVG text elements.
+
+```js
+addTransitionState('attributeChanged', (element, oldValue, newValue) => {
+  console.log(element, oldValue, newValue);
+});
+```
 
 <a name="add-transition"></a>
 
@@ -57,8 +112,6 @@ hooks. This is a known limitation of string diffing and allows for better
 performance. By default if no key is specified, the last element will be
 removed and the subsequent elements from the one that was removed will be
 mutated via replace.
-
-This isn't really ideal. **At all.**
 
 What you should do here is add a `key` attribute with a unique `value` that
 persists between renders.

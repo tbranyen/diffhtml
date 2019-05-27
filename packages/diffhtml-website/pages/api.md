@@ -4,7 +4,7 @@ The core diffHTML API was designed to be minimal and familiar if you've used
 browser DOM APIs such as `innerHTML` and `addEventListener`. 
 
 You can access any of the top-level API methods & properties by directly
-importing, or deconstructing.
+importing or deconstructing.
 
 **Using ES modules**
 
@@ -255,13 +255,18 @@ all representing an element (or many elements).
 
 Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
-testing and general cleanup when you're done with an element.
+testing and general cleanup when you're done with an element. Applications will
+probably not use this if the app lives as long as the tab.
 
 ### Arguments
 
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
+| Name        | Description
+| ----------- | -----------
+| **domNode** | The root DOM Node to release memory around
+
+This method should fully release everything related to the rendering, but its
+possible an untested code path is hit, so you should track the internal memory
+allocations to verify that memory isn't causing a problem.
 
 #### domNode
 
@@ -278,24 +283,85 @@ This argument is overloaded. Can be one of many types:
 
 ## <a href="#internals">Internals</a>
 
-Use this method if you need to clean up memory allocations and anything else
-internal to diffHTML associated with your element. This is very useful for unit
-testing and general cleanup when you're done with an element.
+The internals are exposed for curious developers to write code against.
+Understanding these APIs will give you greater insight into how diffHTML works.
 
-### Arguments
+### <a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a>
 
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
+An object that contains Sets of functions. You can hook into:
 
-#### domNode
+- **CreateNodeHookCache** - Whenever a DOM Node is created
+- **CreateTreeHookCache** - Whenever a VTree is created
+- **ReleaseHookCache** - Whenever a VTree has been released
+- **SyncTreeHookCache** - Whenever VTrees are compared
 
-*Reference element.*
+### <a name="node-cache" href="#node-cache">NodeCache</a>
 
-This argument is overloaded. Can be one of many types:
+A Map that can be used to get access to the DOM Node associated to a VTree.
+This is comparable to `findDOMNode` in React. Basically if you encounter an
+object that the documentation says is a VTree and you want to convert to a DOM
+Node, you could write something like:
 
-- HTML Element / DOM Node (Used interchangeably)
-- Virtual Tree Element (produced from `diff.html`)
+```js
+import { Internals } from 'diffhtml';
+
+function findDOMNode(vTree) {
+  return Internals.NodeCache.get(vTree);
+}
+
+findDOMNode(someVTree);
+```
+
+If it comes back as `null` or `undefined` then you should take that to mean
+that the VTree is no longer bound to an element in the DOM. You may also find
+that diffHTML has re-used the VTree you have saved, so calling `NodeCache.get`
+will yield an unexpected result. Therefore its recommended to call this method
+immediately if you need the DOM node and not save a VTree in between
+re-renders.
+
+### <a name="transaction" href="#transaction">Transaction</a>
+
+A render transaction is scheduled whenever `innerHTML` or `outerHTML` are
+called. It is a subclass of a `Transaction` class that gives it a few methods:
+_abort_, _end_, _onceEnded_, and _start_. This instance is mutable and the
+properties will change by the internals. You should not modify the transaction
+directly unless you know what you're doing. Reading any property is considered
+the live source-of-truth and a safe operation.
+
+There are a series of tasks that run when a transaction is created. Depending
+on the build flavor, full or runtime, you will get a different set of tasks. By
+default transactions run synchronously and you can observe a result immediately
+after running `innerHTML` or `outerHTML`.
+
+If you use `addTransitionState` and return a Promise to delay rendering, this
+could cause multiple renders to stack up and then transactions will be
+asynchronous.
+
+```sh
+> schedule        # If another transaction is running, this will run after
+> shouldUpdate    # If nothing has changed, abort early
+> parseNewTree    # Full build only, will parse a passed in string of HTML
+> reconcileTrees  # Align trees before diffing
+> syncTrees       # Loop through and compare trees as efficiently as possible
+> patchNode       # Apply chnages to the DOM
+> endAsPromise    # If a transaction is delayed, resolve once complete
+```
+
+Transactions have a number of properties available to access:
+
+- **aborted** - The transaction was abandoned
+- **completed** - The transaction successfully completed
+- **domNode** - The container element being rendered into
+- **endedCallbacks** - The set of callbacks that will be called once completed
+- **markup** - The raw input to render
+- **newTree** - The reconciled tree to use for new source-of-truth
+- **oldTree** - The old tree which may already be updated with **newTree**
+- **options** - Options used when renderingo
+- **patches** - What has been updated in the DOM
+- **promise** - The raw promise backing the tranasction completeness
+- **promises** - All promises attached to the transaction from transitions
+- **state** - Internal state object for the transaction
+- **tasks** - Array of functions that were executed when rendering
 
 <a name="version"></a>
 
