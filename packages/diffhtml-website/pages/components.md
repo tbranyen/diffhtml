@@ -33,3 +33,5 @@ An improved way of composing applications using classes and the notion of a
 ---
 
 ## <a href="#react-compatibility">React Compatibility</a>
+
+---

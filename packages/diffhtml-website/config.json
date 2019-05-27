@@ -5,6 +5,7 @@
       "Core features": "#core-features",
       "Installing & importing": "#installing-and-importing",
       "Optimizing with Babel": "#optimizing-with-babel",
+      "Runtime build": "#runtime-build",
       "Writing middleware": "#writing-middleware"
     }],
 
@@ -28,10 +29,10 @@
     }],
 
     "Middleware": ["middleware.html", {
-      "Logger": "#logger",
       "Inline Transitions": "#inline-transitions",
-      "Synthetic Events": "#synthetic-events",
+      "Logger": "#logger",
       "Service Worker": "#service-worker",
+      "Synthetic Events": "#synthetic-events",
       "Verify State": "#verify-state"
     }],
 

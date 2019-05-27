@@ -9,7 +9,10 @@ different things. You can use pre-made middleware or create your own easily.
 
 ## <a href="#inline-transitions">Inline Transitions</a>
 
-[https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions](https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions)
+<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions">
+  <i class="fa fa-github" />
+  GitHub repo link
+</a>
 
 Tiny module to support binding/unbinding declarative diffHTML transition hooks.
 
@@ -55,7 +58,10 @@ innerHTML(document.body, html`<body onattached=${fadeIn}>
 
 ## <a href="#logger">Logger</a>
 
-[https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger](https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger)
+<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger">
+  <i class="fa fa-github" />
+  GitHub repo link
+</a>
 
 Use with diffHTML to `console.log` out render
 [Transaction](https://diffhtml.org/#transaction) operations. This will nest
@@ -87,7 +93,10 @@ flag.
 
 ## <a href="#service-worker">Service Worker</a>
 
-[https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker](https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker)
+<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker">
+  <i class="fa fa-github" />
+  GitHub repo link
+</a>
 
 While this does not really benefit from being a middleware, I made it as such
 since it looks nice in the use and can be disabled if the middleware is
@@ -123,7 +132,10 @@ use(serviceWorker({
 
 ## <a href="#synthetic-events">Synthetic Events</a>
 
-[https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events](https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events)
+<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events">
+  <i class="fa fa-github" />
+  GitHub repo link
+</a>
 
 Changes the event binding from inline event handlers like `onclick = fn` to use
 `addEventListener`. Hooks are attached to the `body` element and coordinated
@@ -161,7 +173,10 @@ inline event handlers is not possible. Supports non-bubbling events via the
 
 ## <a href="#verify-state">Verify State</a>
 
-[https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state](https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state)
+<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state">
+  <i class="fa fa-github" />
+  GitHub repo link
+</a>
 
 Asserts that a render properly updated the old Virtual Tree and the DOM. Will
 recursively search for inconsistencies, displays warnings unless debugging is

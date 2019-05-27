@@ -1,5 +1,4 @@
 # Transitions
-
 <a name="available-states"></a>
 
 ---
@@ -133,3 +132,5 @@ diff.removeTransitionState('attached');
 // Removes states by name and callback reference.
 diff.removeTransitionState('attached', callbackReference);
 ```
+
+---
