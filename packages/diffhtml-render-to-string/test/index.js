@@ -1,5 +1,6 @@
 const { equal } = require('assert');
 const { html } = require('diffhtml');
+const Component = require('diffhtml-components/dist/component');
 const renderToString = require('../');
 
 describe('renderToString', function() {
@@ -46,7 +47,7 @@ describe('renderToString', function() {
   });
 
   it('can render components', () => {
-    class Component {
+    class MyComponent extends Component {
       render() {
         return html`
           <p>Hello world</p>
@@ -56,7 +57,7 @@ describe('renderToString', function() {
 
     const actual = renderToString(html`
       <div>
-        <${Component}  />
+        <${MyComponent}  />
       </div>
     `);
 
