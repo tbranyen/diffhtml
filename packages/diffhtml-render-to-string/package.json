@@ -9,7 +9,14 @@
   },
   "devDependencies": {
     "diffhtml": "^1.0.0-beta.10",
+    "diffhtml-components": "^1.0.0-beta.9",
     "mocha": "^6.1.4"
+  },
+  "peerDependencies": {
+    "diffhtml": "^1.0.0-beta.10"
+  },
+  "dependencies": {
+    "quick-dom-node": "1.0.0"
   },
   "keywords": [
     "diffhtml",

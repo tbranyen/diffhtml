@@ -3,6 +3,8 @@ import process from '../util/process';
 
 const { CreateNodeHookCache } = MiddlewareCache;
 const namespace = 'http://www.w3.org/2000/svg';
+const g = typeof global === 'object' ? global : window;
+const document = g.document || null;
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.

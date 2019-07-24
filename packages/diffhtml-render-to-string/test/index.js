@@ -1,8 +1,37 @@
-const { equal } = require('assert');
+const { equal, throws } = require('assert');
 const { html } = require('diffhtml');
-const renderToString = require('../');
+const { Component } = require('diffhtml-components');
+const { renderToString } = require('../');
 
 describe('renderToString', function() {
+  it('can render simple div string', () => {
+    const actual = renderToString('<div>Hello world</div>');
+    const expected = `<div>Hello world</div>`;
+
+    equal(actual, expected);
+  });
+
+  it('can render pure text, no wrapper element', () => {
+    const actual = renderToString('Hello world');
+    const expected = `Hello world`;
+
+    equal(actual, expected);
+  });
+
+  it('can support strict html parsing, throwing on error', () => {
+    throws(() => {
+      const actual = renderToString('<p>Hello world', { strict: true });
+    }, {
+      name: 'Error',
+      message: `
+
+<p>Hello world
+  ^
+    Possibly invalid markup. <p> is not a self closing tag.
+            `
+    });
+  });
+
   it('can render simple vTree', () => {
     const actual = renderToString(html`<div>Hello world</div>`);
     const expected = `<div>Hello world</div>`;
@@ -46,7 +75,7 @@ describe('renderToString', function() {
   });
 
   it('can render components', () => {
-    class Component {
+    class MyComponent extends Component {
       render() {
         return html`
           <p>Hello world</p>
@@ -56,7 +85,7 @@ describe('renderToString', function() {
 
     const actual = renderToString(html`
       <div>
-        <${Component}  />
+        <${MyComponent}  />
       </div>
     `);
 
@@ -67,8 +96,8 @@ describe('renderToString', function() {
     equal(actual, expected);
   });
 
-  it('can render vanilla components with props', () => {
-    class Component {
+  it('can render components with props', () => {
+    class MyComponent extends Component {
       render({ message }) {
         return html`
           <p>${message}</p>
@@ -78,7 +107,29 @@ describe('renderToString', function() {
 
     const actual = renderToString(html`
       <div>
-        <${Component} message="Hello world" />
+        <${MyComponent} message="Hello world" />
+      </div>
+    `);
+
+    const expected = `<div>
+        <p>Hello world</p>
+      </div>`;
+
+    equal(actual, expected);
+  });
+
+  it('can render components with dynamic props', () => {
+    class MyComponent extends Component {
+      render({ display }) {
+        return html`
+          <p>${display.message}</p>
+        `;
+      }
+    }
+
+    const actual = renderToString(html`
+      <div>
+        <${MyComponent} display=${{ message: 'Hello world' }} />
       </div>
     `);
 
