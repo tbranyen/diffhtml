@@ -15,6 +15,9 @@
   "peerDependencies": {
     "diffhtml": "^1.0.0-beta.10"
   },
+  "dependencies": {
+    "quick-dom-node": "1.0.0"
+  },
   "keywords": [
     "diffhtml",
     "server side rendering"

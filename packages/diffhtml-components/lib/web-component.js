@@ -31,7 +31,7 @@ const createProps = (domNode, props = {}) => {
 // Creates the `component.state` object.
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
-class WebComponent extends HTMLElement {
+class WebComponent extends root.HTMLElement {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
   }
@@ -45,7 +45,7 @@ class WebComponent extends HTMLElement {
   }
 
   constructor(props, context) {
-    if (HTMLElement === nullFunc) {
+    if (root.HTMLElement === nullFunc) {
       throw new Error('Custom Elements require a valid browser environment');
     }
 
