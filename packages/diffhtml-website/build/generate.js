@@ -1,7 +1,7 @@
 const { readFileSync, writeFileSync, existsSync } = require('fs');
 const { join } = require('path');
 const { html } = require('diffhtml');
-const renderToString = require('diffhtml-render-to-string');
+const { renderToString } = require('diffhtml-render-to-string');
 const marked = require('marked');
 const flattenPages = require('./util/flatten-pages');
 const { keys } = Object;
