@@ -1,7 +1,7 @@
 const { equal, throws } = require('assert');
 const { html } = require('diffhtml');
 const { Component } = require('diffhtml-components');
-const renderToString = require('../');
+const { renderToString } = require('../');
 
 describe('renderToString', function() {
   it('can render simple div string', () => {

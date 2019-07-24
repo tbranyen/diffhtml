@@ -56,7 +56,7 @@ tasks.add(function endAsString(transaction) {
  * @param {any} markup Can be a diffHTML VTree object or string of HTML
  * @return {String} of rendered markup representing the input rendered
  */
-module.exports = function renderToString(markup, options = {}) {
+exports.renderToString = function renderToString(markup, options = {}) {
   const parseHTML = options.strict ? html.strict : html;
   const newTree = typeof markup === 'string' ? parseHTML(markup) : markup;
   const oldTree = createTree(newTree.rawNodeName);
