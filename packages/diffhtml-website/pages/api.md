@@ -49,9 +49,9 @@ control the entire tag, use [`outerHTML`](#outer-html).
 | **markup**  | New markup to replace into the `domNode`. 
 | **options** | <ul><li><b>- tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li></ul>
 
-<a name="outer-html"></a>
-
 ### Examples
+
+<a name="outer-html"></a>
 
 ---
 

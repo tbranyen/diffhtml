@@ -356,7 +356,7 @@ transaction when rendering is complete to see what is being attached and
 removed.</p>
 <pre><code class="language-js">use(() =&gt; ({ patches }) =&gt; {
   patches.TREE_OPS.forEach(({ INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD }) =&gt; {
-    if (patch.INSERT_BEFORE) {
+    if (INSERT_BEFORE) {
 
     }
   });

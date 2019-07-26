@@ -247,7 +247,7 @@ removed.
 ``` js
 use(() => ({ patches }) => {
   patches.TREE_OPS.forEach(({ INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD }) => {
-    if (patch.INSERT_BEFORE) {
+    if (INSERT_BEFORE) {
 
     }
   });
