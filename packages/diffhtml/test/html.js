@@ -416,24 +416,24 @@ describe('HTML (Tagged template)', function() {
     it('will clean up after an error', () => {
       throws(() => html.strict`
         <web-component>
-      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
 
       // Test a second time to ensure clean up occured before the failure.
       throws(() => html.strict`
         <web-component>
-      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
     });
 
     it('will error if tags cannot self-close', () => {
       throws(() => html.strict`
         <web-component>
-      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
     });
 
     it('will error if the closing tag does not match', () => {
       throws(() => html.strict`
         <web-component></not-component>
-      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
     });
 
     it('will error if tag is not closed', () => {
@@ -451,13 +451,13 @@ describe('HTML (Tagged template)', function() {
       throws(() => html.strict`
         <web-component
         <proper></proper>
-      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
 
       throws(() => html.strict`
         <proper></proper>
         <web-component
         <proper></proper>
-      `, /Possibly invalid markup. <web-component> is not a self closing tag/);
+      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
     });
 
     it('will error if tag is not opened', () => {
@@ -471,7 +471,7 @@ describe('HTML (Tagged template)', function() {
 
       throws(() => html.strict`
         <${Component}>
-      `, /Possibly invalid markup. <Component> is not a self closing tag/);
+      `, /Possibly invalid markup. <Component> must be closed in strict mode/);
     });
 
     it('will not error on doctype', () => {
@@ -519,13 +519,13 @@ describe('HTML (Tagged template)', function() {
       //throws(() => html.strict`
       //  web-component>
       //  <proper></proper>
-      //`, /Possibly invalid markup. <web-component> is not a self closing tag/);
+      //`, /Possibly invalid markup. <web-component> must be closed in strict mode/);
 
       //throws(() => html.strict`
       //  <proper></proper>
       //  web-component>
       //  <proper></proper>
-      //`, /Possibly invalid markup. <web-component> is not a self closing tag/);
+      //`, /Possibly invalid markup. <web-component> must be closed in strict mode/);
     });
   });
 });

@@ -322,7 +322,7 @@ Possibly invalid markup. Opening tag was not properly closed.
 
             // Craft the warning message and inject it into the markup.
             markup.splice(1, 0, `${caret}
-    Possibly invalid markup. <${name}> is not a self closing tag.
+    Possibly invalid markup. <${name}> must be closed in strict mode.
             `);
 
             // Throw an error message if the markup isn't what we expected.

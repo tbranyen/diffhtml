@@ -27,7 +27,7 @@ describe('renderToString', function() {
 
 <p>Hello world
   ^
-    Possibly invalid markup. <p> is not a self closing tag.
+    Possibly invalid markup. <p> must be closed in strict mode.
             `
     });
   });
