@@ -6,6 +6,9 @@ const marked = require('marked');
 const flattenPages = require('./util/flatten-pages');
 const { keys } = Object;
 
+// Ensure Component middleware is loaded.
+require('diffhtml-components');
+
 function generate() {
   delete require.cache[require.resolve('../components/layout')];
   delete require.cache[require.resolve('../config.json')];

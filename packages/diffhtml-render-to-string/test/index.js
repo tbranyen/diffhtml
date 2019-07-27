@@ -139,4 +139,32 @@ describe('renderToString', function() {
 
     equal(actual, expected);
   });
+
+  it('can render components with nested elements', () => {
+    class MyComponent extends Component {
+      render() {
+        return html`
+          <html>
+            <head>
+              <title>Test</title>
+            </head>
+
+            <body>
+            </body>
+          </html>
+        `;
+      }
+    }
+
+    const actual = renderToString(html`
+      <${MyComponent} />
+    `);
+
+    const expected = `<html><head>
+              <title>Test</title>
+            </head><body>
+            </body></html>`;
+
+    equal(actual, expected);
+  });
 });

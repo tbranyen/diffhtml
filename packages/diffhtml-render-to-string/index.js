@@ -1,4 +1,4 @@
-const { use, html, Internals, createTree, outerHTML } = require('diffhtml');
+const { use, html, Internals, createTree, innerHTML } = require('diffhtml');
 const { makeDOMNode } = require('quick-dom-node');
 const { keys } = Object;
 
@@ -34,7 +34,10 @@ tasks.add(function reconcileTrees(transaction) {
   // operation that would normally occur under `innerHTML`.
   transaction.oldTree = domNode;
 
+  //console.log(transaction.oldTree);
+
   // Create a fake, but fast DOM node, replacing the VTree passed in.
+  // TODO, this is only necessary in Node.
   transaction.domNode = makeDOMNode(domNode);
 });
 
@@ -58,10 +61,11 @@ tasks.add(function endAsString(transaction) {
  */
 exports.renderToString = function renderToString(markup, options = {}) {
   const parseHTML = options.strict ? html.strict : html;
-  const newTree = typeof markup === 'string' ? parseHTML(markup) : markup;
+  const childNodes = typeof markup === 'string' ? parseHTML(markup) : markup;
+  const newTree = createTree('#document-fragment', {}, childNodes);
   const oldTree = createTree(newTree.rawNodeName);
 
-  return outerHTML(oldTree, newTree, { tasks: [...tasks], options });
+  return innerHTML(oldTree, newTree, { tasks: [...tasks], options });
 }
 
 /**
