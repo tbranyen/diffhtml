@@ -1,14 +1,14 @@
 sudo: false
 language: node_js
+dist: xenial
+
+services:
+  - xvfb
 
 addons:
   chrome: stable
 
 before_script:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - "sleep 3"
-  - "cat /etc/init.d/xvfb"
   - "sudo chown root /opt/google/chrome/chrome-sandbox"
   - "sudo chmod 4755 /opt/google/chrome/chrome-sandbox"
 
