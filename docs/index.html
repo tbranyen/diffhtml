@@ -35,6 +35,10 @@
     
       
 
+      <a href="index.html#hello-world" target><li>Hello world</li></a>
+    
+      
+
       <a href="index.html#installing-and-importing" target><li>Installing &#38; importing</li></a>
     
       
@@ -202,13 +206,26 @@ backed by corporations and/or large communities.  </p>
 <hr></hr>
 <h2 id="a-hrefcore-featurescore-featuresa"><a href="#core-features">Core features</a></h2>
 <ul>
-<li><span class="list-icon fa fa-exchange"></span> ES/CJS/UMD module support</li>
+<li><span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD builds</li>
 <li><span class="list-icon fa fa-retweet"></span> Async transition hooks</li>
 <li><span class="list-icon fa fa-link"></span> Middleware</li>
 <li><span class="list-icon fa fa-code"></span> Efficient Virtual DOM</li>
 <li><span class="list-icon fa fa-tree"></span> Virtual tree object pooling</li>
 <li><span class="list-icon fa fa-codiepie"></span> Automatic memory management</li>
 </ul>
+<p><a name="hello-world"></a></p>
+<hr></hr>
+<h2 id="a-hrefhello-worldhello-worlda"><a href="#hello-world">Hello world!</a></h2>
+<pre><code class="language-javascript">import { innerHTML } from &#39;https://diffhtml.org/es&#39;;
+
+innerHTML(document.body, `
+  &lt;div&gt;Hello world!&lt;/div&gt;
+`);</code></pre>
+<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true" title="diffhtml-helloworld on Glitch" allow="geolocation; microphone; camera; midi; vr; encrypted-media" style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
+
 <p><a name="installing-and-importing"></a></p>
 <hr></hr>
 <h2 id="a-hrefinstalling-and-importinginstalling--importinga"><a href="#installing-and-importing">Installing &amp; importing</a></h2>
@@ -314,12 +331,11 @@ external file.</p>
 <p>The Babel plugin is useful after you have a working project and wish to
 optimize it further. The Babel plugin will perform numerous optimizations to
 your code depending on how it is written and structured. For instance, anytime
-you have an element that does not change it will be hoisted and reused instead
-of recreated every time. Any <code>html</code> tagged template calls will be converted to
-<code>createTree</code> calls. After code has been run through this plugin you will be
-able to pair with the runtime build.</p>
-<p>and enable the use of the runtime build
-which decreases the file size further.</p>
+you have an element that does not change, the call will be hoisted and reused
+instead of recreated every time. Any <code>html</code> tagged template calls will be
+converted to <code>createTree</code> calls.</p>
+<p><strong>After your code has been passed through this plugin, you will be able to fully
+utilize the <a href="#latest-runtime-build">runtime build</a>!</strong></p>
 <p>To use, install into your project as a dev dependency.</p>
 <pre><code class="language-sh">npm install -D babel-plugin-transform-diffhtml</code></pre>
 <p>Specify the plugin in the Babel configuration, usually a <code>.babelrc</code> or
