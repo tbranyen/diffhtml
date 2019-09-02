@@ -13,12 +13,35 @@ backed by corporations and/or large communities.
 
 ## <a href="#core-features">Core features</a>
 
-- <span class="list-icon fa fa-exchange"></span> ES/CJS/UMD module support
+- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD builds
 - <span class="list-icon fa fa-retweet"></span> Async transition hooks
 - <span class="list-icon fa fa-link"></span> Middleware
 - <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
 - <span class="list-icon fa fa-tree"></span> Virtual tree object pooling
 - <span class="list-icon fa fa-codiepie"></span> Automatic memory management
+
+<a name="hello-world"></a>
+
+---
+
+## <a href="#hello-world">Hello world!</a>
+
+```javascript
+import { innerHTML } from 'https://diffhtml.org/es';
+
+innerHTML(document.body, `
+  <div>Hello world!</div>
+`);
+```
+
+<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+  <iframe
+    src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true"
+    title="diffhtml-helloworld on Glitch"
+    allow="geolocation; microphone; camera; midi; vr; encrypted-media"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
 
 <a name="installing-and-importing"></a>
 
@@ -183,13 +206,12 @@ external file.
 The Babel plugin is useful after you have a working project and wish to
 optimize it further. The Babel plugin will perform numerous optimizations to
 your code depending on how it is written and structured. For instance, anytime
-you have an element that does not change it will be hoisted and reused instead
-of recreated every time. Any `html` tagged template calls will be converted to
-`createTree` calls. After code has been run through this plugin you will be
-able to pair with the runtime build.
+you have an element that does not change, the call will be hoisted and reused
+instead of recreated every time. Any `html` tagged template calls will be
+converted to `createTree` calls.
 
-and enable the use of the runtime build
-which decreases the file size further.
+**After your code has been passed through this plugin, you will be able to fully
+utilize the [runtime build](#latest-runtime-build)!**
 
 To use, install into your project as a dev dependency.
 

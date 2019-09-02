@@ -3,6 +3,7 @@
   "pages": {
     "Home": ["index.html", {
       "Core features": "#core-features",
+      "Hello world": "#hello-world",
       "Installing & importing": "#installing-and-importing",
       "Optimizing with Babel": "#optimizing-with-babel",
       "Writing middleware": "#writing-middleware"
