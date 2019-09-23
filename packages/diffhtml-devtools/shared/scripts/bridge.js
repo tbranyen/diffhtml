@@ -54,8 +54,8 @@ export default function devTools(Internals) {
       // Polling interval that looks for the diffHTML devtools hook.
       interval = setInterval(() => {
         if (window.__diffHTMLDevTools) {
-          resolve(window.__diffHTMLDevTools);
           clearInterval(interval);
+          resolve(window.__diffHTMLDevTools);
         }
       }, 2000);
     }

@@ -9,13 +9,13 @@ describe('Use (Middleware)', function() {
     this.unsubscribe = use({
       createTreeHook: (...args) => {
         if (this.createTreeHook) {
-          return this.createTreeHook.apply(this, args);
+          return this.createTreeHook(...args);
         }
       },
 
       syncTreeHook: (...args) => {
         if (this.syncTreeHook) {
-          return this.syncTreeHook.apply(this, args);
+          return this.syncTreeHook(...args);
         }
       },
     });
@@ -37,7 +37,6 @@ describe('Use (Middleware)', function() {
   });
 
   it('will allow modifying a vTree during creation', () => {
-    //const Fn = ({ message }) => createTree('marquee', null, message);
     const Fn = ({ message }) => html`<marquee>${message}</marquee>`;
     const oldTree = document.createElement('div');
 
@@ -63,13 +62,13 @@ describe('Use (Middleware)', function() {
     release(oldTree);
   });
 
-  it.skip('will allow modifying a nested vTree during creation', () => {
+  it('will allow modifying a nested vTree during creation', () => {
     const Fn = ({ message }) => html`<marquee>${message}</marquee>`;
 
     const oldTree = document.createElement('div');
     const newTree = html`<div><${Fn} message="Hello world" /></div>`;
 
-    this.createTreeHook = (vTree) => {
+    this.createTreeHook = vTree => {
       if (typeof vTree.rawNodeName === 'function') {
         return vTree.rawNodeName(vTree.attributes);
       }
@@ -77,7 +76,7 @@ describe('Use (Middleware)', function() {
 
     innerHTML(oldTree, newTree);
 
-    equal(oldTree.outerHTML, `<div><marquee>Hello world</marquee></div>`);
+    equal(oldTree.outerHTML, `<div><div><marquee>Hello world</marquee></div></div>`);
 
     release(oldTree);
   });

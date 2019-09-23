@@ -2,11 +2,10 @@
   "output_dir": "../../docs",
   "pages": {
     "Home": ["index.html", {
+      "Hello world!": "#hello-world",
       "Core features": "#core-features",
-      "Hello world": "#hello-world",
-      "Installing & importing": "#installing-and-importing",
-      "Optimizing with Babel": "#optimizing-with-babel",
-      "Writing middleware": "#writing-middleware"
+      "Getting the source": "#getting-the-source",
+      "Optimizing builds": "#optimizing-builds"
     }],
 
     "API": ["api.html", {
@@ -23,12 +22,11 @@
     }],
 
     "Transitions": ["transitions.html", {
-      "Available states": "#available-states",
-      "Add transition": "#add-transition",
-      "Remove transition": "#remove-transition"
+      "Available states": "#available-states"
     }],
 
     "Middleware": ["middleware.html", {
+      "Writing middleware": "#writing-middleware",
       "Inline Transitions": "#inline-transitions",
       "Logger": "#logger",
       "Service Worker": "#service-worker",
@@ -49,9 +47,14 @@
       "Render to String": "#render-to-string"
     }],
 
+    "DevTools": ["devtools.html", {
+
+    }],
+
     "Examples (Glitch)": ["examples.html", {
-      "TodoMVC": "#todomvc",
-      "Clock": "https://glitch.com/edit/#!/diffhtml-clock"
+      "Hello World!": "https://glitch.com/edit/#!/diffhtml-helloworld",
+      "Clock": "https://glitch.com/edit/#!/diffhtml-clock",
+      "TodoMVC": "https://glitch.com/edit/#!/diffhtml-todomvc"
     }]
   }
 }

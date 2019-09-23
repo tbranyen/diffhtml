@@ -8,7 +8,7 @@ import {
 } from 'assert';
 import createTree from '../lib/tree/create';
 import syncTree from '../lib/tree/sync';
-import { MiddlewareCache } from '../lib/util/caches';
+import { SyncTreeHookCache } from '../lib/util/caches';
 import parse from '../lib/util/parse';
 import validateMemory from './util/validateMemory';
 
@@ -722,7 +722,7 @@ describe('Tree', function() {
             oldTree :
             newTree;
 
-        MiddlewareCache.SyncTreeHookCache.add(hook);
+        SyncTreeHookCache.add(hook);
 
         const oldTree = parse(`
           <div class="parent"><div class="child"><span class="text">Hello world!</span></div></div>
@@ -740,7 +740,7 @@ describe('Tree', function() {
           REMOVE_ATTRIBUTE: [],
         });
 
-        MiddlewareCache.SyncTreeHookCache.delete(hook);
+        SyncTreeHookCache.delete(hook);
       });
     });
 

@@ -3,13 +3,9 @@ const { JSDOM } = require('jsdom-wc');
 global.newJSDOMSandbox = () => {
   const instance = new JSDOM(`<!DOCTYPE html>`);
   const { window } = instance;
+  const { document, HTMLElement, customElements } = window;
 
-  Object.assign(global, {
-    document: window.document,
-    HTMLElement: window.HTMLElement,
-    customElements: window.customElements,
-    window,
-  });
+  Object.assign(global, { document, HTMLElement, customElements, window });
 }
 
 newJSDOMSandbox();

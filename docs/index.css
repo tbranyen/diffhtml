@@ -2,12 +2,16 @@
 @import 'https://fonts.googleapis.com/css?family=Lato:300,400,bold';
 @import 'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css';
 
+.glitch-embed-wrap {
+  max-height: 240px;
+}
+
 html, body {
   max-height: 100%;
   margin: 0 auto;
   display: flex;
   font-family: Lato, Arial, Helvetica, sans-serif;
-  background: linear-gradient(to right, #333 50%, #F3F3F3 50%, #F3F3F3 100%);
+  background: linear-gradient(to right, #FCFDF0 50%, #F3F3F3 50%, #F3F3F3 100%);
   touch-action: manipulation;
 }
 
@@ -37,20 +41,42 @@ pre code {
 
 layer#navigation {
   display: flex;
-  background-color: #333333;
+  background-color: #FCFDF0;
   padding: 0 20px;
+  padding-right: 0;
   width: 240px;
   height: 100%;
   flex-direction: column;
   overflow-y: scroll;
   overflow-x: hidden;
+  opacity: 0.3;
+  transition: opacity linear 280ms;
+}
+
+layer#navigation::-webkit-scrollbar {
+  width: 2px;
+}
+
+layer#navigation::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+layer#navigation::-webkit-scrollbar-thumb {
+  border-radius: 0;
+  background: #E8E8E8; 
+}
+
+layer#navigation:focus,
+layer#navigation:hover {
+  opacity: 1;
 }
 
 layer#navigation p.social {
-  padding-left: 12px;
+  padding-right: 14px;
   padding-top: 36px;
   margin-bottom: 0;
   margin-top: 30px;
+  text-align: right;
 }
 
 layer#navigation p.social a {
@@ -61,16 +87,16 @@ layer#navigation p.social a {
 }
 
 layer#navigation p.social a:hover {
-  color: #FFF;
+  color: #2e6698;
 }
 
 layer#navigation a {
-  color: #FFF;
+  color: #333;
   text-decoration: none;
   cursor: pointer;
 }
 layer#navigation a:hover {
-  color: #CCC;
+  color: #2E6698;
 }
 layer#navigation li:not(.header):before {
   opacity: 0;
@@ -87,7 +113,7 @@ layer#navigation ul li:not(.header):hover:before {
   padding-right: 5px;
 }
 layer#navigation a[href*='#'] li {
-  padding-left: 5px;
+  text-align: right;
 }
 
 layer#navigation ul {
@@ -101,8 +127,10 @@ layer#navigation ul {
 }
 
 layer#navigation li.header h4 {
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid #E8E8E8;
   padding-bottom: 3px;
+  color: #444;
+  text-align: right;
 }
 
 layer#main {
@@ -116,14 +144,13 @@ layer#main {
 }
 
 layer#main header {
-  padding: 40px;
-  padding-top: 0;
+  padding: 0 40px;
   box-sizing: border-box;
 }
 
 layer#main section#content {
   padding: 40px;
-  padding-top: 20px;
+  padding-top: 0;
 }
 
 layer#main section#content a {
@@ -133,10 +160,6 @@ layer#main section#content a {
 
 layer#main section#content a:hover {
   color: #dd4b56;
-}
-
-layer#main header {
-  border-bottom: 1px solid #F1F1F1;
 }
 
 layer#main header p {
@@ -165,13 +188,22 @@ layer#main h2 {
   margin-top: 40px;
 }
 
-layer#main h2 span {
-  text-decoration: underline;
+layer#main h2 a {
+  text-decoration: none;
 }
 
-layer#main h3 {
-  color: #0A6990;
+layer#main section#content h1 {
+  padding-top: 0;
+}
+
+layer#main section#content h3 a {
+  color: #c74a4a; 
   font-size: 20px;
+  text-decoration: none;
+}
+
+layer#main section#content h3 a:hover {
+  color: #DD4B56;
 }
 
 layer#main strong {
@@ -212,8 +244,12 @@ layer#main header h1 img {
 layer#main ul {
   margin-left: 0;
   padding-left: 0;
-  list-style: none;
   font-size: 16px;
+  margin-left: 20px;
+}
+
+layer#main table li:not(:first-child) {
+  padding-top: 10px;
 }
 
 layer#main ul .list-icon {
@@ -229,7 +265,7 @@ layer#main ul.methods {
 }
 
 layer#main footer {
-  background-color: #f6ffec;
+  background-color: #38ab70;
   position: relative;
   height: 50px;
   width: 100%;
@@ -237,15 +273,16 @@ layer#main footer {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #FFF;
 }
 
 layer#main footer a {
   cursor: pointer;
-  color: #333;
+  color: #FFF;
 }
 
 layer#main footer a:hover {
-  color: red;
+  color: #FCFDF0;
 }
 
 layer#main table {
@@ -290,19 +327,41 @@ table td {
   border: 1px solid #F0F0F0;
 }
 
+#edit-on-github {
+  text-align: center;
+  color: #333;
+  text-decoration: none;
+  width: 100%;
+  display: inline-block;
+  padding: 40px;
+  background: linear-gradient(to bottom, #FFF, #FFF); 
+  box-sizing: border-box;
+  font-weight: bold;
+  transition: background cubic-bezier(.17,.67,.83,.67) 140ms;
+}
+
+#edit-on-github:hover {
+  color: #FFF; 
+  background: linear-gradient(to bottom, #2E6698, #397db9); 
+}
+
 .open-menu {
   display: none;
 }
 
 /* Tablet */
-@media only screen and (max-width : 1027px) {
+@media only screen and (max-width : 1127px) {
   html, body {
     background-color: #FFF;
     position: relative;
     overflow: visible;
     width: 100%;
     margin-left: 0px;
-    overflow-y: hidden;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-height: 100vh;
+    flex-direction: column;
+    display: block;
   }
 
   body.open {
@@ -329,17 +388,22 @@ table td {
 
   body.open layer#navigation {
     transform: translate3d(0, 0, 0);
-    width: 240px;
+    width: 100%;
     height: 100%;
     padding-right: 80px;
-    position: static;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #333;
+    opacity: 1;
+    z-index: 1;
   }
 
   layer#main {
     width: 100%;
     margin: 0 !important;
-    padding-left: 0px !important;
-    padding-right: 15px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     padding-top: 18px;
   }
 
@@ -355,7 +419,7 @@ table td {
     text-align: left;
     margin-left: 0;
     padding-left: 0;
-    padding-top: 0;
+    padding-top: 20px;
     padding-bottom: 0;
   }
 
@@ -368,7 +432,15 @@ table td {
   }
 
   layer#main header h1 a {
-    margin-bottom: 20px;
+    margin-bottom: 0;
+  }
+
+  layer#navigation li:not(.header):before {
+    display: none;
+  }
+
+  layer#main section#content {
+    padding-top: 0 !important;
   }
 
   body.open layer#main section#content {
@@ -377,34 +449,75 @@ table td {
 
   layer#main section#content {
     padding-left: 20px;
-    padding-right: 10px;
+    padding-right: 20px;
     padding-top: 20px;
     width: 100%;
     box-sizing: border-box;
   }
 
   body.open .open-menu {
-    display: none;
-    color: #646567;
+    background-color: #A0A0A0;
+    color: #333;
+  }
+
+  body.open layer#navigation {
+    padding: 0 18px;
+  }
+
+  body.open layer#navigation a[href*='#'] li {
+    padding: 5px 0;
+    text-align: left;
+    color: #FFF;
+  }
+
+  body.open layer#navigation li.header h4 {
+    color: #A0A0A0; 
+    border-bottom: 1px solid #A0A0A0;
+    text-align: left;
+  }
+
+  layer#navigation p.social {
+    text-align: left;
+    padding-left: 2px;
+  }
+
+  body.open layer#navigation ul {
+    color: #A0A0A0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    line-height: 30px;
+    padding-left: 0;
+    padding-bottom: 40px;
+    width: calc(100% - 34px);
+  }
+
+  body.open layer#navigation ul a {
+    color: #A0A0A0;
+  }
+
+
+  layer#main strong {
+    display: block;
+    margin-top: 10px;
   }
 
   .open-menu {
     display: block;
     position: sticky;
-    color: #FFF;
-    top: 22px;
-    padding: 0;
+    color: #333;
+    top: 0px;
+    padding: 10px 20px;
     cursor: pointer;
     z-index: 100;
-    height: 42px;
+    height: 20px;
     outline: 0 !important;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     text-align: left;
-    height: 100%;
-    padding-top: 20px;
-    width: 40px;
+    width: 100%;
     left: 0;
-    padding-left: 20px;
+    background-color: #FCFDF0;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 3px
   }
 
   .open-menu.hide {
@@ -440,7 +553,7 @@ table td {
     min-height: 200px;
   }
 
-  footer {
+  layer#main footer {
     transform: translate3d(0, 0, 0);
     left: 0 !important;
     max-width: 100% !important;
@@ -448,7 +561,13 @@ table td {
     margin: 0 !important;
     font-size: 16px;
     line-height: 22px;
-    padding-left: 12px;
+    padding: 12px 0;
+    height: inherit;
+    flex-direction: column;
+  }
+
+  layer#main footer > span {
+    opacity: 0;
   }
 
   p.social {
@@ -468,3 +587,44 @@ table td {
     top: -3px;
   }
 }
+
+/* When printing */
+@media print { 
+  html, body {
+    max-height: inherit !important;
+    overflow: visible !important;
+  }
+
+  code {
+    background: #FFF !important;
+    color: #000 !important;
+    border: 1px solid #000;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+
+  layer#main header {
+    padding-left: 0 !important;
+  }
+
+  layer#main section#content {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  layer#navigation {
+    display: none;
+  }
+
+  #edit-on-github {
+    display: none !important;
+  }
+
+  footer {
+    display: none !important;
+  }
+}
+

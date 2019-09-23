@@ -2,7 +2,7 @@
       <meta charset="utf-8"></meta>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-      <title>diffHTML: The easy-to-use HTML Virtual DOM, built for the web!</title>
+      <title>diffHTML: An easy-to-use HTML Virtual DOM built for the web!</title>
       <link rel="stylesheet" href="./index.css"></link>
     </head><body>
       <div class="open-menu">≡</div>
@@ -31,23 +31,19 @@
     
       
 
+      <a href="index.html#hello-world" target><li>Hello world!</li></a>
+    
+      
+
       <a href="index.html#core-features" target><li>Core features</li></a>
     
       
 
-      <a href="index.html#hello-world" target><li>Hello world</li></a>
+      <a href="index.html#getting-the-source" target><li>Getting the source</li></a>
     
       
 
-      <a href="index.html#installing-and-importing" target><li>Installing &#38; importing</li></a>
-    
-      
-
-      <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
-    
-      
-
-      <a href="index.html#writing-middleware" target><li>Writing middleware</li></a>
+      <a href="index.html#optimizing-builds" target><li>Optimizing builds</li></a>
     
       <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
@@ -101,17 +97,13 @@
 
       <a href="transitions.html#available-states" target><li>Available states</li></a>
     
-      
-
-      <a href="transitions.html#add-transition" target><li>Add transition</li></a>
-    
-      
-
-      <a href="transitions.html#remove-transition" target><li>Remove transition</li></a>
-    
       <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
 
       
+    
+      
+
+      <a href="middleware.html#writing-middleware" target><li>Writing middleware</li></a>
     
       
 
@@ -169,17 +161,25 @@
 
       <a href="tools.html#render-to-string" target><li>Render to String</li></a>
     
+      <a href="devtools.html"><li class="header"><h4>DevTools</h4></li></a>
+
+      
+    
       <a href="examples.html"><li class="header"><h4>Examples (Glitch)</h4></li></a>
 
       
     
       
 
-      <a href="examples.html#todomvc" target><li>TodoMVC</li></a>
+      <a href="https://glitch.com/edit/#!/diffhtml-helloworld" target="blank"><li>Hello World!</li></a>
     
       
 
       <a href="https://glitch.com/edit/#!/diffhtml-clock" target="blank"><li>Clock</li></a>
+    
+      
+
+      <a href="https://glitch.com/edit/#!/diffhtml-todomvc" target="blank"><li>TodoMVC</li></a>
     
   </ul>
       </layer>
@@ -190,27 +190,30 @@
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
-              <p>The easy-to-use Virtual DOM, built for the web!</p>
+              <p>An easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
         </header>
 
+        <hr></hr>
+
         <section id="content"><h1 id="api">API</h1>
-<p>The core diffHTML API was designed to be minimal and familiar if you&#39;ve used
-browser DOM APIs such as <code>innerHTML</code> and <code>addEventListener</code>. </p>
+<p>This reference contains all stable API documentation which is up-to-date with
+the latest release. The core was designed to be minimal and familiar if you&#39;ve
+used browser DOM APIs such as <code>innerHTML</code> and <code>addEventListener</code>.</p>
 <p>You can access any of the top-level API methods &amp; properties by directly
 importing or deconstructing.</p>
 <p><strong>Using ES modules</strong></p>
 <pre><code class="language-js">import { innerHTML, VERSION, use } from &#39;diffhtml&#39;;
-// or
+// or import the whole namespace
 import diff from &#39;diffhtml&#39;;</code></pre>
 <p><strong>Using CommonJS</strong></p>
 <pre><code class="language-js">const { innerHTML, VERSION, use } = require(&#39;diffhtml&#39;);
-// or
+// or consolidate under a namespace
 const diff = require(&#39;diffhtml&#39;);</code></pre>
 <p><strong>Using browser globals</strong></p>
 <pre><code class="language-js">const { innerHTML, VERSION, use } = window.diff;
-// or
+// or consolidate under a namespace
 const { diff } = window;</code></pre>
 <p><a name="inner-html"></a></p>
 <hr></hr>
@@ -218,7 +221,9 @@ const { diff } = window;</code></pre>
 <p>Replaces the contents of a DOM node with the passed in markup, but will only
 update changed content and structure. Works like the browser&#39;s <code>innerHTML</code> only
 changing the element&#39;s children, but not the containing element. If you want to
-control the entire tag, use <a href="#outer-html"><code>outerHTML</code></a>.</p>
+control the entire tag, use 
+    <a href="#outer-html" title="null"><code>outerHTML</code></a>
+  .</p>
 <h3 id="arguments">Arguments</h3>
 <table>
 <thead>
@@ -237,7 +242,7 @@ control the entire tag, use <a href="#outer-html"><code>outerHTML</code></a>.</p
 </tr>
 <tr>
 <td><strong>options</strong></td>
-<td><ul><li><b>- tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li></ul></td>
+<td><ul><li><b>tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><b>parser:</b> Settings which influence the HTML parser, not available with the runtime build.</li></ul></td>
 </tr>
 </tbody></table>
 <h3 id="examples">Examples</h3>
@@ -268,14 +273,16 @@ but this isn&#39;t really recommended.</p>
 </tr>
 <tr>
 <td><strong>options</strong></td>
-<td><ul><li><b>- tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li></ul></td>
+<td><ul><li><b>tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><b>parser:</b> Settings which influence the HTML parser, not available with the runtime build.</li></ul></td>
 </tr>
 </tbody></table>
 <p><a name="html"></a></p>
 <hr></hr>
 <h2 id="a-hrefhtmlhtmla-markup"><a href="#html">html</a> <strong><code>(markup)</code></strong></h2>
-<p>A <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates">tagged
+<p>A 
+      <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates" target="_blank" rel="noopener noreferrer" title="null">tagged
 template</a>
+    
 function that parses HTML and creates VTree&#39;s under-the-hood. Can also be used
 like a normal function. Effectively creates the manual <code>createTree(nodeName,
 attributes, children)</code> calls automatically by parsing the HTML. You are allowed
@@ -294,7 +301,9 @@ provide multiple elements, the whitespace becomes </p>
 <pre><code class="language-js">createTree(&#39;body&#39;, null, [
   createTree(&#39;center&#39;, { style: { fontSize: &#39;11px&#39; } }, [&#39;Hello world&#39;]),
 ]);</code></pre>
-<p>To see how to run this example yourself see the <a href="#examples">Examples</a> section
+<p>To see how to run this example yourself see the 
+    <a href="#examples" title="null">Examples</a>
+   section
 below.</p>
 <h3 id="arguments-2">Arguments</h3>
 <p>The two required inputs are a reference element and new element to compare.
@@ -352,42 +361,161 @@ use(someTask);</code></pre>
 <p><a name="add-transition-state"></a></p>
 <hr></hr>
 <h2 id="a-hrefadd-transition-stateaddtransitionstatea-statename-callback"><a href="#add-transition-state">addTransitionState</a> <strong><code>(stateName, callback)</code></strong></h2>
-<p>Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.</p>
-<p>Example:</p>
-<pre><code class="language-js">outerHTML(document.body, &#39;Hello world&#39;);</code></pre>
-<p>To see how to run this example yourself see the <a href="#examples">Examples</a> section
-below.</p>
+<p>Adds global transition listeners, which trigger in reaction to when the DOM is
+patched. If many elements are rendered quickly, this could be an expensive
+operation, so try to limit the amount of listeners added if you&#39;re concerned
+about performance.</p>
+<p>Since the callback triggers with various elements, most of which you probably
+don&#39;t care about, you&#39;ll want to filter.  A good way of filtering is to use the
+DOM <code>matches</code> method.  It&#39;s fairly well supported
+(
+      <a href="http://caniuse.com/#feat=matchesselector" target="_blank" rel="noopener noreferrer" title="null">http://caniuse.com/#feat=matchesselector</a>
+    ) and may suit many projects.  If you
+need backwards compatibility, consider using jQuery&#39;s <code>is</code>.</p>
+<p>You can do fun, highly specific, filters:</p>
+<pre><code class="language-javascript">addTransitionState(&#39;attached&#39;, element =&gt; {
+  // Fade in the main container after it&#39;s attached into the DOM.
+  if (element.matches(&#39;body main.container&#39;)) {
+    $(element).stop(true, true).fadeIn();
+  }
+});</code></pre>
+<p>If you like these transitions and want to declaratively assign them in tagged
+templates, check out the 
+    <a href="middleware.html#inline-transitions" title="null">diffhtml-inline-transitions
+plugin</a>
+  .</p>
 <h3 id="arguments-4">Arguments</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>stateName</strong></td>
+<td>One of the valid transition states: attached | detached | replaced | attributeChanged | textChanged</td>
+</tr>
+<tr>
+<td><strong>callback</strong></td>
+<td>Triggers either an async (returns Promise) or sync function which does something when the specific DOM node has entered a transition state.</td>
+</tr>
+</tbody></table>
+<h3 id="about-detachedreplaced-element-accuracy">About detached/replaced element accuracy</h3>
+<p>When rendering Nodes that contain lists of identical elements, you may not
+receive the elements you expect in the detached and replaced transition state
+hooks. This is a known limitation of string diffing and allows for better
+performance. By default if no key is specified, the last element will be
+removed and the subsequent elements from the one that was removed will be
+mutated via replace.</p>
+<p>What you should do here is add a <code>key</code> attribute with a unique <code>value</code> that
+persists between renders.</p>
+<p>For example, when the following markup...</p>
+<pre><code class="language-html">&lt;ul&gt;
+  &lt;li&gt;Test&lt;/li&gt;
+  &lt;li&gt;This&lt;/li&gt;
+  &lt;li&gt;Out&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+<p>...is changed into...</p>
+<pre><code class="language-html">&lt;ul&gt;
+  &lt;li&gt;Test&lt;/li&gt;
+  &lt;li&gt;Out&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+<p>The transformative operations are:</p>
+<ol>
+<li>Remove the last element</li>
+<li>Replace the text of the second element to &#39;out&#39;</li>
+</ol>
+<p>What we intended, however, was to simply remove the second item. And to achieve
+that, decorate your markup like so...</p>
+<pre><code class="language-html">&lt;ul&gt;
+  &lt;li key=&quot;1&quot;&gt;Test&lt;/li&gt;
+  &lt;li key=&quot;2&quot;&gt;This&lt;/li&gt;
+  &lt;li key=&quot;3&quot;&gt;Out&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+<p>...and update with matching attributes...</p>
+<pre><code class="language-html">&lt;ul&gt;
+  &lt;li key=&quot;1&quot;&gt;Test&lt;/li&gt;
+  &lt;li key=&quot;3&quot;&gt;Out&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+<p>Now the transformative operations are:</p>
+<ol>
+<li>Remove the second element</li>
+</ol>
+<h3 id="arguments-5">Arguments</h3>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
 <p><a name="remove-transition-state"></a></p>
 <hr></hr>
 <h2 id="a-hrefremove-transition-stateremovetransitionstatea-statename-callback"><a href="#remove-transition-state">removeTransitionState</a> <strong><code>(stateName, callback)</code></strong></h2>
-<p>Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.</p>
-<p>Example:</p>
-<pre><code class="language-js">outerHTML(document.body, &#39;Hello world&#39;);</code></pre>
-<p>To see how to run this example yourself see the <a href="#examples">Examples</a> section
-below.</p>
-<h3 id="arguments-5">Arguments</h3>
-<p>The two required inputs are a reference element and new element to compare.
-Although &quot;element&quot; is used, the actual input can be of various input types
-all representing an element (or many elements).</p>
+<p>Removes a global transition listener. When invoked with no arguments, this
+method will remove all transition callbacks. When invoked with the name
+argument it will remove all transition state callbacks matching the name, and
+so on for the callback.</p>
+<pre><code class="language-javascript">// Removes all registered transition states.
+diff.removeTransitionState();
+
+// Removes states by name.
+diff.removeTransitionState(&#39;attached&#39;);
+
+// Removes states by name and callback reference.
+diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
+<h3 id="arguments-6">Arguments</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>stateName</strong></td>
+<td><em>Optional</em> Filter events to remove by a specific state</td>
+</tr>
+<tr>
+<td><strong>callback</strong></td>
+<td><em>Optional</em> Filter events to remove by the callback reference</td>
+</tr>
+</tbody></table>
 <p><a name="create-tree"></a></p>
 <hr></hr>
-<h2 id="a-hrefcreate-treecreatetreea-nodename-attributes-childnodes"><a href="#create-tree">createTree</a> <strong><code>(nodeName, attributes, childNodes)</code></strong></h2>
-<p>Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.</p>
+<h2 id="a-hrefcreate-treecreatetreea-nodename-attributes-childnodes"><a href="#create-tree">createTree</a> <strong><code>(nodeName, attributes, ...childNodes)</code></strong></h2>
+<p>Creates a Virtual Tree which can be interpolated and rendered. This has a
+similar purpose to hyperscript&#39;s <code>h()</code> and React&#39;s <code>createElement</code>.</p>
 <p>Example:</p>
-<pre><code class="language-js">outerHTML(document.body, &#39;Hello world&#39;);</code></pre>
-<p>To see how to run this example yourself see the <a href="#examples">Examples</a> section
-below.</p>
-<h3 id="arguments-6">Arguments</h3>
-<p>The two required inputs are a reference element and new element to compare.
-Although &quot;element&quot; is used, the actual input can be of various input types
-all representing an element (or many elements).</p>
+<pre><code class="language-js">const attributes = {
+  id: &#39;test&#39;,
+  style: &#39;color: red&#39;,
+};
+
+const childNodes = [
+  createTree(&#39;#text&#39;, null, &#39;Hello world&#39;),
+];
+
+// Create a div Virtual Tree.
+const div = createTree(&#39;div&#39;, attributes, childNodes);</code></pre>
+<h3 id="arguments-7">Arguments</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>nodeName</strong></td>
+<td>A string for HTML, or if using components or middleware other types, like functions</td>
+</tr>
+<tr>
+<td><strong>attributes</strong></td>
+<td>An object of DOM attributes or properties key and value or null</td>
+</tr>
+<tr>
+<td><strong>...childNodes</strong></td>
+<td>An array of child nodes, or a single element merged with any additional arguments</td>
+</tr>
+</tbody></table>
 <p><a name="release"></a></p>
 <hr></hr>
 <h2 id="a-hrefreleasereleasea-domnode"><a href="#release">release</a> <strong><code>(domNode)</code></strong></h2>
@@ -395,7 +523,7 @@ all representing an element (or many elements).</p>
 internal to diffHTML associated with your element. This is very useful for unit
 testing and general cleanup when you&#39;re done with an element. Applications will
 probably not use this if the app lives as long as the tab.</p>
-<h3 id="arguments-7">Arguments</h3>
+<h3 id="arguments-8">Arguments</h3>
 <table>
 <thead>
 <tr>
@@ -424,13 +552,21 @@ allocations to verify that memory isn&#39;t causing a problem.</p>
 <p>The internals are exposed for curious developers to write code against.
 Understanding these APIs will give you greater insight into how diffHTML works.</p>
 <h3 id="a-namemiddleware-cache-hrefmiddleware-cachemiddlewarecachea"><a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a></h3>
-<p>An object that contains Sets of functions. You can hook into:</p>
-<ul>
-<li><strong>CreateNodeHookCache</strong> - Whenever a DOM Node is created</li>
-<li><strong>CreateTreeHookCache</strong> - Whenever a VTree is created</li>
-<li><strong>ReleaseHookCache</strong> - Whenever a VTree has been released</li>
-<li><strong>SyncTreeHookCache</strong> - Whenever VTrees are compared</li>
-</ul>
+<p>A JavaScript Set object that contains registered middleware functions that
+trigger whenever transaction state changes.</p>
+<h3 id="a-namecreate-node-hook-cache-hrefcreate-node-hook-cachecreatenodehookcachea"><a name="create-node-hook-cache" href="#create-node-hook-cache">CreateNodeHookCache</a></h3>
+<p>A JavaScript Set object that contains functions that trigger whenever a DOM
+Node is created during the patching process.</p>
+<h3 id="a-namecreate-tree-hook-cache-hrefcreate-tree-hook-cachecreatetreehookcachea"><a name="create-tree-hook-cache" href="#create-tree-hook-cache">CreateTreeHookCache</a></h3>
+<p>A JavaScript Set object that contains functions that trigger whenever a Virtual
+Tree is created through <code>html</code>, <code>createTree</code>, or during the parsing process.</p>
+<h3 id="a-namerelease-hook-cache-hrefrelease-hook-cachereleasehookcachea"><a name="release-hook-cache" href="#release-hook-cache">ReleaseHookCache</a></h3>
+<p>A JavaScript Set object that contains functions that trigger whenever a Virtual
+Tree is cleaned up by diffHTML&#39;s internal garbage collection. You can do
+additional cleanup here.</p>
+<h3 id="a-namesync-tree-hook-cache-hrefsync-tree-hook-cachesynctreehookcachea"><a name="sync-tree-hook-cache" href="#sync-tree-hook-cache">SyncTreeHookCache</a></h3>
+<p>A JavaScript Set object that contains functions that trigger whenever Virtual
+Trees are compared.</p>
 <h3 id="a-namenode-cache-hrefnode-cachenodecachea"><a name="node-cache" href="#node-cache">NodeCache</a></h3>
 <p>A Map that can be used to get access to the DOM Node associated to a VTree.
 This is comparable to <code>findDOMNode</code> in React. Basically if you encounter an
@@ -451,7 +587,7 @@ immediately if you need the DOM node and not save a VTree in between
 re-renders.</p>
 <h3 id="a-nametransaction-hreftransactiontransactiona"><a name="transaction" href="#transaction">Transaction</a></h3>
 <p>A render transaction is scheduled whenever <code>innerHTML</code> or <code>outerHTML</code> are
-called. It is a subclass of a <code>Transaction</code> class that gives it a few methods:
+called. It is an instance of a <code>Transaction</code> class that has a few methods:
 <em>abort</em>, <em>end</em>, <em>onceEnded</em>, and <em>start</em>. This instance is mutable and the
 properties will change by the internals. You should not modify the transaction
 directly unless you know what you&#39;re doing. Reading any property is considered
@@ -494,15 +630,7 @@ asynchronous.</p>
 <pre><code class="language-js">console.log(VERSION);</code></pre>
 <hr></hr></section>
 
-        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/api.md" style="
-            text-align: center;
-            color: #333;
-            text-decoration: none;
-            width: 100%;
-            display: inline-block;
-            padding: 40px;
-            box-sizing: border-box;
-          ">
+        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/api.md" id="edit-on-github">
           Edit on GitHub &nbsp; <span class="fa fa-github"></span>
         </a>
 

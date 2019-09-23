@@ -11,7 +11,8 @@ export const TransitionCache = new Map();
 export const MiddlewareCache = new Set();
 
 // Very specific caches used by middleware.
-MiddlewareCache.CreateTreeHookCache = new Set();
-MiddlewareCache.CreateNodeHookCache = new Set();
-MiddlewareCache.SyncTreeHookCache = new Set();
-MiddlewareCache.ReleaseHookCache = new Set();
+export const CreateTreeHookCache = new Set();
+export const CreateNodeHookCache = new Set();
+export const SyncTreeHookCache = new Set();
+export const ReleaseHookCache = new Set();
+export const ParserHookCache = new Set();

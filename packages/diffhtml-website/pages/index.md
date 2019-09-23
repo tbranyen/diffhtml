@@ -1,30 +1,16 @@
-**Welcome to diffHTML!** A library created for anyone wanting to build a
-reactive web application. Lightweight and easy-to-use, it is authored in
-standards-compliant ES6 JavaScript.
-
-You would use it in the same way as other web frameworks such as:
-[React](https://reactjs.org/), [Vue](https://vuejs.org/), and
-[Svelte](https://svelte.dev/). You may want to look at these first, as they are
-backed by corporations and/or large communities.  
-
-<a name="core-features"></a>
-
----
-
-## <a href="#core-features">Core features</a>
-
-- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD builds
-- <span class="list-icon fa fa-retweet"></span> Async transition hooks
-- <span class="list-icon fa fa-link"></span> Middleware
-- <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
-- <span class="list-icon fa fa-tree"></span> Virtual tree object pooling
-- <span class="list-icon fa fa-codiepie"></span> Automatic memory management
+**Welcome to diffHTML!** An opinionated UI framework designed to create
+reactive user interfaces. You can start using it quickly without much upfront
+knowledge, and opt-into more powerful features as you go.
 
 <a name="hello-world"></a>
 
 ---
 
 ## <a href="#hello-world">Hello world!</a>
+
+With diffHTML, you are able to start building a reactive UI quickly, without
+needing lots of upfront knowledge. You are able to start gracefully and improve
+the integration as your requirements change, and harness more features.
 
 ```javascript
 import { innerHTML } from 'https://diffhtml.org/es';
@@ -43,46 +29,37 @@ innerHTML(document.body, `
   </iframe>
 </div>
 
-<a name="installing-and-importing"></a>
+<a name="core-features"></a>
 
 ---
 
-## <a href="#installing-and-importing">Installing & importing</a>
+## <a href="#core-features">Core features</a>
 
-The source code is authored in valid ES6 and can be run without a transpiler
-in JavaScript runtimes that support the latest specification. The minified
-version can be run in an ES5 environment as it runs through a separate build
-step to make it compatible with UglifyJS.
+- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD builds
+- <span class="list-icon fa fa-retweet"></span> Async transition hooks
+- <span class="list-icon fa fa-link"></span> Middleware
+- <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
+- <span class="list-icon fa fa-tree"></span> Virtual tree object pooling
+- <span class="list-icon fa fa-codiepie"></span> Automatic memory management
 
-<a name="latest-full-version"></a>
+<a name="getting-the-source"></a>
 
-### <a href="#latest-full-version">Latest full version minified endpoints</a>
+---
 
-Using this method will bring in the global minified UMD file. This includes the
-parser so it will be larger than the runtime build weighing at around
-**7.8kb min+gzip**. Access the API through the `window.diff` global.
+## <a href="#getting-the-source">Getting the source</a>
 
-- **Minified** **https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js**
-- **Raw** **https://unpkg.com/diffhtml/dist/diffhtml.min.js**
+There are two builds of diffHTML. The first and most common is the primary
+build which contains a lightweight HTML parser. It is slightly larger than the
+second build, which is referred to as the runtime build. This second build is
+meant for pairing with output that has been optimized with the Babel plugin.
 
-<a name="latest-runtime-version"></a>
+If you are just getting started, ignore the runtime build for now.
 
-### <a href="#latest-runtime-version">Latest runtime version minified endpoints</a>
+<a name="node-module"></a>
 
-If you use the [Babel transform](#optimizing-with-babel), you will be able to
-use the runtime build instead.  This converts `html` tagged template calls into
-`createTree` calls, which take in the Babel converted trees. This greatly
-reduces the bundle sizes. The base bundle size here is just **6kb min+gzip**!
+### <a href="#node-module">npm/yarn</a>
 
-- **Minified** **https://diffhtml.org/master/diffhtml/dist/diffhtml-runtime.min.js**
-- **Raw** **https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js**
-
-<a name="installing-node-modules"></a>
-
-### <a href="#installing-node-modules">Installing into `node_modules`</a>
-
-JavaScript package management uses this folder and there are two many different
-clients that can install into. Two recommended ones are shown below:
+Use a JavaScript package manager to install locally.
 
 * <svg viewBox="0 0 18 7" width="40" style="position: relative; top: 2px;">
     <path fill="#CB3837" d="M0,0v6h5v1h4v-1h9v-6"></path>
@@ -99,25 +76,22 @@ clients that can install into. Two recommended ones are shown below:
   yarn add diffhtml
   ```
 
-This will create the following structure:
+Now tools using the Node module resolution algorithm, like Node and webpack,
+can find diffHTML when it is attempted to be required.
 
+```javascript
+const { innerHTML } = require('diffhtml');
 ```
-node_modules/diffhtml
-├── dist
-│   ├── cjs # where all the CommonJS files are
-│   ├── diffhtml.js
-│   ├── diffhtml.min.js
-│   ├── diffhtml-runtime.js
-│   ├── diffhtml-runtime.min.js
-│   └── es # where all the ESM files are
-├── lib
-├── package.json
-└── README.md
+
+To load the runtime build use:
+
+```javascript
+const { innerHTML } = require('diffhtml/dist/cjs/runtime');
 ```
 
 <a name="using-script-tag"></a>
 
-### <a href="#using-script-tag">Using a script tag</a>
+### <a href="#using-script-tag">Script tag</a>
 
 Use this tag in HTML to load diffHTML globally.
 
@@ -125,15 +99,14 @@ Use this tag in HTML to load diffHTML globally.
 <script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
 
 <script>
-  const { innerHTML } = window.diff;
+  diff.outerHTML(document.body, `<body>Hello world!</body>`);
 </script>
 ```
 
-Loading just the runtime:
-
+To load just the runtime:
 
 ```html
-<script src="https://unpkg.com/diffhtml/dist/diffhtml-runtime.min.js"></script>
+<script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
 ```
 
 <a name="es-modules"></a>
@@ -146,18 +119,22 @@ a new feature that isn't available in all browsers yet, but you can use them
 
 ``` javascript
 import { innerHTML } from 'https://unpkg.com/diffhtml?module';
+// or 
+import { innerHTML } from 'https://diffhtml.org/es';
 ```
 
 To load just the runtime:
 
 ``` javascript
 import { innerHTML } from 'https://unpkg.com/diffhtml/runtime?module';
+// or
+import { innerHTML } from 'https://diffhtml.org/es/runtime';
 ```
 
 ### <a name="using-import-maps" href="#using-import-maps">Using import maps</a>
 
-[Import maps](https://github.com/WICG/import-maps) are a new new feature
-available in modern Chrome that allow you to specify a configuration to import
+[Import maps](https://github.com/WICG/import-maps) are a new new feature only
+available in modern Chrome which allow you to specify a configuration to import
 global names instead of using URLs or file paths directly.
 
 For instance, you can convert:
@@ -192,26 +169,21 @@ Remember this is JSON so you cannot have trailing commas or use single quotes.
 It is also currently limited to being inline with the markup, it cannot be an
 external file.
 
-<a name="optimizing-with-babel"></a>
+<a name="optimizing-builds"></a>
 
 ---
 
-## <a href="#optimizing-with-babel">Optimizing with Babel</a>
-
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml">
-  <i class="fa fa-github" />
-  GitHub repo link
-</a>
+## <a href="#optimizing-builds">Optimizing builds</a>
 
 The Babel plugin is useful after you have a working project and wish to
-optimize it further. The Babel plugin will perform numerous optimizations to
-your code depending on how it is written and structured. For instance, anytime
-you have an element that does not change, the call will be hoisted and reused
-instead of recreated every time. Any `html` tagged template calls will be
-converted to `createTree` calls.
+optimize it at build time. The Babel plugin will perform numerous optimizations
+to your code depending on how it is written and structured. For instance,
+anytime you have an element that does not change, the call will be hoisted and
+reused instead of recreated every time. Any `html` tagged template calls will
+be converted to `createTree` calls.
 
 **After your code has been passed through this plugin, you will be able to fully
-utilize the [runtime build](#latest-runtime-build)!**
+utilize the runtime build!**
 
 To use, install into your project as a dev dependency.
 
@@ -228,52 +200,31 @@ Specify the plugin in the Babel configuration, usually a `.babelrc` or
 }
 ```
 
+Take this code as an example input:
+
+```javascript
+const { innerHTML, html } = require('diffhtml');
+
+function render() {
+  innerHTML(document.body, html`
+    <div>Hello world</div>
+  `);
+}
+```
+
+Without this Babel transformation process, this HTML would need to be parsed
+every time `render()` is called. If you use the runtime build and the parser,
+this will become a cached call. `html` is the same thing as `createTree` in the
+runtime build. So there is no HTML parsing happening.
+
+```javascript
+const { innerHTML, html } = require('diffhtml/dist/cjs/runtime');
+
+function render() {
+  innerHTML(document.body, html('div', {}, [html('#text', null, 'Hello world')]));
+}
+```
+
 [Refer to the configuration documentation.](https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml#-diffhtml-babel-transform-plugin)
-
-<a name="writing-middleware"></a>
-
----
-
-## <a href="#writing-middleware">Writing middleware</a>
-
-You would write middleware when you need to extend diffHTML to do things that
-that were not originally intended. For instance, you could write logic that
-says whenever a specific attribute is present to execute some code on the
-element when it enters and leaves the DOM. You could log whenever diffHTML has
-a render operation scheduled, monitor transitions, and more.
-
-A basic middleware looks as simple as:
-
-``` js
-import { use } from 'diffhtml';
-
-use(() => {
-  console.log('diffHTML render transaction is starting');
-
-  return () => {
-    console.log('diffHTML render transaction is ending');
-  };
-});
-```
-
-There are several core middleware modules already written that you could use as
-a reference. A good starting one to look at is the [Logger](/middleware#logger)
-if you're interested in tracking the render transaction flow.
-
-If you wanted to track when an element enters and leaves the DOM you could use
-the [attached and detached transition
-states](/transitions.html#available-states). You could also check the
-transaction when rendering is complete to see what is being attached and
-removed.
-
-``` js
-use(() => ({ patches }) => {
-  patches.TREE_OPS.forEach(({ INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD }) => {
-    if (INSERT_BEFORE) {
-
-    }
-  });
-});
-```
 
 ---

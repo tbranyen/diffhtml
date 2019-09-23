@@ -14,18 +14,20 @@ class Component {
 
   [$$render]() {
     const vTree = this[$$vTree];
-    let renderTree = this.render();
 
     // Find all previous nodes rendered by this component.
     const childNodes = [...ComponentTreeCache.keys()].filter(key => {
-      if (ComponentTreeCache.get(key) === vTree) {
+      const rootTree = ComponentTreeCache.get(key);
+
+      if (rootTree === vTree) {
+        ComponentTreeCache.delete(key);
         return true;
       }
     });
 
     // By default assume a single top/root-level element, if there are multiple
-    // elements returned at the root-level, then we'll do a diff and replace
-    // a fragment from this root point.
+    // elements returned at the root-level, then we'll do a diff and replace a
+    // fragment from this root point.
     const domNode = NodeCache.get(childNodes[0]);
 
     // If there is no DOM Node association then error out.
@@ -41,12 +43,12 @@ class Component {
       }
     }
 
+    let renderTree = this.render();
+
     // Need to handle multiple top-level rendered elements special, this
     // requires creating two containers, one for the old children and one for
     // the new children.
     if (childNodes.length > 1) {
-      childNodes.forEach(key => ComponentTreeCache.delete(key));
-
       // Create a placeholder to mark where the elements were as we rip them
       // from the connected DOM and into a fragment to work on.
       const placeholder = document.createComment('');
@@ -78,6 +80,12 @@ class Component {
     }
     else {
       outerHTML(domNode, renderTree);
+
+      // FIXME Does `renderTree` we need to be here? Is this association
+      // necessary?
+      [renderTree, ...renderTree.childNodes].forEach(childTree => {
+        ComponentTreeCache.set(childTree, vTree);
+      });
     }
 
     this.componentDidUpdate(this.props, this.state);

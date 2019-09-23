@@ -1,7 +1,6 @@
-import { MiddlewareCache } from '../util/caches';
+import { MiddlewareCache, SyncTreeHookCache } from '../util/caches';
 import process from '../util/process';
 
-const { SyncTreeHookCache } = MiddlewareCache;
 const empty = {};
 const keyNames = ['old', 'new'];
 

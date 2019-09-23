@@ -4,7 +4,7 @@ import { createTree, innerHTML, use } from 'diffhtml';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { $$render } from './util/symbols';
 
-const { setPrototypeOf, assign, keys } = Object;
+const { defineProperty, setPrototypeOf, assign, keys } = Object;
 const root = typeof window !== 'undefined' ? window : global;
 const nullFunc = function() {};
 
@@ -62,12 +62,26 @@ class WebComponent extends root.HTMLElement {
       name,
     } = this.constructor;
 
-    keys(defaultProps).forEach(prop => {
-      if (prop in this.props && this.props[prop] !== undefined) {
+    keys(defaultProps).forEach(propName => {
+      if (propName in this.props && this.props[propName] !== undefined) {
         return;
       }
 
-      this.props[prop] = defaultProps[prop];
+      this.props[propName] = defaultProps[propName];
+    });
+
+    // Handle properties being set.
+    keys(propTypes).forEach(propName => {
+      defineProperty(this, propName, {
+        get: () => {
+          return this.props[propName];
+        },
+
+        set: (value) => {
+          this.props[propName] = value;
+          this[$$render]();
+        }
+      });
     });
 
     if (process.env.NODE_ENV !== 'production') {

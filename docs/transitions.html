@@ -2,7 +2,7 @@
       <meta charset="utf-8"></meta>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-      <title>diffHTML: The easy-to-use HTML Virtual DOM, built for the web!</title>
+      <title>diffHTML: An easy-to-use HTML Virtual DOM built for the web!</title>
       <link rel="stylesheet" href="./index.css"></link>
     </head><body>
       <div class="open-menu">≡</div>
@@ -31,23 +31,19 @@
     
       
 
+      <a href="index.html#hello-world" target><li>Hello world!</li></a>
+    
+      
+
       <a href="index.html#core-features" target><li>Core features</li></a>
     
       
 
-      <a href="index.html#hello-world" target><li>Hello world</li></a>
+      <a href="index.html#getting-the-source" target><li>Getting the source</li></a>
     
       
 
-      <a href="index.html#installing-and-importing" target><li>Installing &#38; importing</li></a>
-    
-      
-
-      <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
-    
-      
-
-      <a href="index.html#writing-middleware" target><li>Writing middleware</li></a>
+      <a href="index.html#optimizing-builds" target><li>Optimizing builds</li></a>
     
       <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
@@ -101,17 +97,13 @@
 
       <a href="transitions.html#available-states" target><li>Available states</li></a>
     
-      
-
-      <a href="transitions.html#add-transition" target><li>Add transition</li></a>
-    
-      
-
-      <a href="transitions.html#remove-transition" target><li>Remove transition</li></a>
-    
       <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
 
       
+    
+      
+
+      <a href="middleware.html#writing-middleware" target><li>Writing middleware</li></a>
     
       
 
@@ -169,17 +161,25 @@
 
       <a href="tools.html#render-to-string" target><li>Render to String</li></a>
     
+      <a href="devtools.html"><li class="header"><h4>DevTools</h4></li></a>
+
+      
+    
       <a href="examples.html"><li class="header"><h4>Examples (Glitch)</h4></li></a>
 
       
     
       
 
-      <a href="examples.html#todomvc" target><li>TodoMVC</li></a>
+      <a href="https://glitch.com/edit/#!/diffhtml-helloworld" target="blank"><li>Hello World!</li></a>
     
       
 
       <a href="https://glitch.com/edit/#!/diffhtml-clock" target="blank"><li>Clock</li></a>
+    
+      
+
+      <a href="https://glitch.com/edit/#!/diffhtml-todomvc" target="blank"><li>TodoMVC</li></a>
     
   </ul>
       </layer>
@@ -190,22 +190,43 @@
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
-              <p>The easy-to-use Virtual DOM, built for the web!</p>
+              <p>An easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
         </header>
 
+        <hr></hr>
+
         <section id="content"><h1 id="transitions">Transitions</h1>
 <p>A unique concept to diffHTML, these transitions are activated as first class
-events whenever elements are added, removed, changed, and when attributes and
+events whenever elements are added, removed, changed, and when attributes or
 text have changed.</p>
 <p>By returning promises you can halt rendering until they have completed. This
 could allow you to easily build keyframe based animations or integrate tools
-like <a href="https://animejs.com/documentation/#finishedPromise">anime.js</a> that
+like 
+      <a href="https://animejs.com/documentation/#finishedPromise" target="_blank" rel="noopener noreferrer" title="null">anime.js</a>
+     that
 support Promises.</p>
 <p><a name="available-states"></a></p>
 <hr></hr>
 <h2 id="a-hrefavailable-statesavailable-statesa"><a href="#available-states">Available states</a></h2>
+<ul>
+<li>
+    <a href="#attached" title="null"><strong>attached</strong></a>
+  </li>
+<li>
+    <a href="#detached" title="null"><strong>detached</strong></a>
+  </li>
+<li>
+    <a href="#replaced" title="null"><strong>replaced</strong></a>
+  </li>
+<li>
+    <a href="#attribute-changed" title="null"><strong>attributeChanged</strong></a>
+  </li>
+<li>
+    <a href="#text-changed" title="null"><strong>textChanged</strong></a>
+  </li>
+</ul>
 <p>There are many states you can listen to, they get added globally and allow you
 to do filtering. You add them using the <code>addTransitionState</code> method.</p>
 <pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;</code></pre>
@@ -232,71 +253,12 @@ and new elements.</p>
 });</code></pre>
 <h3 id="a-nametext-changed-hreftext-changedtext-changeda"><a name="text-changed" href="#text-changed">Text changed</a></h3>
 <p>For when text has changed in either TextNodes or SVG text elements.</p>
-<pre><code class="language-js">addTransitionState(&#39;attributeChanged&#39;, (element, oldValue, newValue) =&gt; {
+<pre><code class="language-js">addTransitionState(&#39;textChanged&#39;, (element, oldValue, newValue) =&gt; {
   console.log(element, oldValue, newValue);
 });</code></pre>
 <p><a name="add-transition"></a></p>
 <hr></hr>
 <h2 id="a-hrefadd-transitionadd-transitiona"><a href="#add-transition">Add transition</a></h2>
-<p>Adds a global transition listener.  With many elements this could be an
-expensive operation, so try to limit the amount of listeners added if you&#39;re
-concerned about performance.</p>
-<p>Since the callback triggers with various elements, most of which you probably
-don&#39;t care about, you&#39;ll want to filter.  A good way of filtering is to use the
-DOM <code>matches</code> method.  It&#39;s fairly well supported
-(<a href="http://caniuse.com/#feat=matchesselector">http://caniuse.com/#feat=matchesselector</a>) and may suit many projects.  If you
-need backwards compatibility, consider using jQuery&#39;s <code>is</code>.</p>
-<p>You can do fun, highly specific, filters:</p>
-<pre><code class="language-javascript">addTransitionState(&#39;attached&#39;, function(element) {
-  // Fade in the main container after it&#39;s attached into the DOM.
-  if (element.matches(&#39;body main.container&#39;)) {
-    $(element).stop(true, true).fadeIn();
-  }
-});</code></pre>
-<p>If you like these transitions and want to declaratively assign them in tagged
-templates, check out the <a href="https://github.com/tbranyen/diffhtml-inline-transitions">diffhtml-inline-transitions
-plugin</a>.</p>
-<h3 id="a-note-about-detachedreplaced-element-accuracy">A note about detached/replaced element accuracy</h3>
-<p>When rendering Nodes that contain lists of identical elements, you may not
-receive the elements you expect in the detached and replaced transition state
-hooks. This is a known limitation of string diffing and allows for better
-performance. By default if no key is specified, the last element will be
-removed and the subsequent elements from the one that was removed will be
-mutated via replace.</p>
-<p>What you should do here is add a <code>key</code> attribute with a unique <code>value</code> that
-persists between renders.</p>
-<p>For example, when the following markup...</p>
-<pre><code class="language-html">&lt;ul&gt;
-  &lt;li&gt;Test&lt;/li&gt;
-  &lt;li&gt;This&lt;/li&gt;
-  &lt;li&gt;Out&lt;/li&gt;
-&lt;/ul&gt;</code></pre>
-<p>...is changed into...</p>
-<pre><code class="language-html">&lt;ul&gt;
-  &lt;li&gt;Test&lt;/li&gt;
-  &lt;li&gt;Out&lt;/li&gt;
-&lt;/ul&gt;</code></pre>
-<p>The transformative operations are:</p>
-<ol>
-<li>Remove the last element</li>
-<li>Replace the text of the second element to &#39;out&#39;</li>
-</ol>
-<p>What we intended, however, was to simply remove the second item. And to achieve
-that, decorate your markup like so...</p>
-<pre><code class="language-html">&lt;ul&gt;
-  &lt;li key=&quot;1&quot;&gt;Test&lt;/li&gt;
-  &lt;li key=&quot;2&quot;&gt;This&lt;/li&gt;
-  &lt;li key=&quot;3&quot;&gt;Out&lt;/li&gt;
-&lt;/ul&gt;</code></pre>
-<p>...and update with matching attributes...</p>
-<pre><code class="language-html">&lt;ul&gt;
-  &lt;li key=&quot;1&quot;&gt;Test&lt;/li&gt;
-  &lt;li key=&quot;3&quot;&gt;Out&lt;/li&gt;
-&lt;/ul&gt;</code></pre>
-<p>Now the transformative operations are:</p>
-<ol>
-<li>Remove the second element</li>
-</ol>
 <p><a name="remove-transition"></a></p>
 <hr></hr>
 <h2 id="a-hrefremove-transitionremove-transitiona"><a href="#remove-transition">Remove transition</a></h2>
@@ -314,15 +276,7 @@ diff.removeTransitionState(&#39;attached&#39;);
 diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
 <hr></hr></section>
 
-        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/transitions.md" style="
-            text-align: center;
-            color: #333;
-            text-decoration: none;
-            width: 100%;
-            display: inline-block;
-            padding: 40px;
-            box-sizing: border-box;
-          ">
+        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/transitions.md" id="edit-on-github">
           Edit on GitHub &nbsp; <span class="fa fa-github"></span>
         </a>
 

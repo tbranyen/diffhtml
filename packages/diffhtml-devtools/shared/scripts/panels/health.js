@@ -1,8 +1,8 @@
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
-import Chartist from 'chartist';
-import ChartistGraph from 'react-chartist';
+//import Chartist from 'chartist';
+//import ChartistGraph from 'react-chartist';
 
 class DevtoolsHealthPanel extends WebComponent {
   static propTypes = {
@@ -32,7 +32,8 @@ class DevtoolsHealthPanel extends WebComponent {
       <div class="ui styled fluid accordion">
         <h3>Object Pools</h3>
 
-        <${ChartistGraph}
+        <!--
+        <ChartistGraph
           type="Line"
           data=${{ labels, series }}
           options=${{
@@ -44,6 +45,7 @@ class DevtoolsHealthPanel extends WebComponent {
             height: '200px',
           }}
         />
+        -->
       </div>
     `;
   }

@@ -1,14 +1,13 @@
-import { MiddlewareCache } from './util/caches';
-import process from './util/process';
-
-const { isArray } = Array;
-
-const {
+import {
+  MiddlewareCache,
   CreateTreeHookCache,
   CreateNodeHookCache,
   SyncTreeHookCache,
   ReleaseHookCache,
-} = MiddlewareCache;
+} from './util/caches';
+import process from './util/process';
+
+const { isArray } = Array;
 
 export default function use(middleware) {
   const isFunction = typeof middleware === 'function';

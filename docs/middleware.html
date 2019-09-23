@@ -2,7 +2,7 @@
       <meta charset="utf-8"></meta>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-      <title>diffHTML: The easy-to-use HTML Virtual DOM, built for the web!</title>
+      <title>diffHTML: An easy-to-use HTML Virtual DOM built for the web!</title>
       <link rel="stylesheet" href="./index.css"></link>
     </head><body>
       <div class="open-menu">≡</div>
@@ -31,23 +31,19 @@
     
       
 
+      <a href="index.html#hello-world" target><li>Hello world!</li></a>
+    
+      
+
       <a href="index.html#core-features" target><li>Core features</li></a>
     
       
 
-      <a href="index.html#hello-world" target><li>Hello world</li></a>
+      <a href="index.html#getting-the-source" target><li>Getting the source</li></a>
     
       
 
-      <a href="index.html#installing-and-importing" target><li>Installing &#38; importing</li></a>
-    
-      
-
-      <a href="index.html#optimizing-with-babel" target><li>Optimizing with Babel</li></a>
-    
-      
-
-      <a href="index.html#writing-middleware" target><li>Writing middleware</li></a>
+      <a href="index.html#optimizing-builds" target><li>Optimizing builds</li></a>
     
       <a href="api.html"><li class="header"><h4>API</h4></li></a>
 
@@ -101,17 +97,13 @@
 
       <a href="transitions.html#available-states" target><li>Available states</li></a>
     
-      
-
-      <a href="transitions.html#add-transition" target><li>Add transition</li></a>
-    
-      
-
-      <a href="transitions.html#remove-transition" target><li>Remove transition</li></a>
-    
       <a href="middleware.html"><li class="header"><h4>Middleware</h4></li></a>
 
       
+    
+      
+
+      <a href="middleware.html#writing-middleware" target><li>Writing middleware</li></a>
     
       
 
@@ -169,17 +161,25 @@
 
       <a href="tools.html#render-to-string" target><li>Render to String</li></a>
     
+      <a href="devtools.html"><li class="header"><h4>DevTools</h4></li></a>
+
+      
+    
       <a href="examples.html"><li class="header"><h4>Examples (Glitch)</h4></li></a>
 
       
     
       
 
-      <a href="examples.html#todomvc" target><li>TodoMVC</li></a>
+      <a href="https://glitch.com/edit/#!/diffhtml-helloworld" target="blank"><li>Hello World!</li></a>
     
       
 
       <a href="https://glitch.com/edit/#!/diffhtml-clock" target="blank"><li>Clock</li></a>
+    
+      
+
+      <a href="https://glitch.com/edit/#!/diffhtml-todomvc" target="blank"><li>TodoMVC</li></a>
     
   </ul>
       </layer>
@@ -190,14 +190,53 @@
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
-              <p>The easy-to-use Virtual DOM, built for the web!</p>
+              <p>An easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
         </header>
 
+        <hr></hr>
+
         <section id="content"><h1 id="middleware">Middleware</h1>
 <p>This concept allows developers to write plugins that augments diffHTML to do
 different things. You can use pre-made middleware or create your own easily.</p>
+<p><a name="writing-middleware"></a></p>
+<hr></hr>
+<h2 id="a-hrefwriting-middlewarewriting-middlewarea"><a href="#writing-middleware">Writing middleware</a></h2>
+<p>You would write middleware when you need to extend diffHTML to do things that
+that were not originally intended. For instance, you could write logic that
+says whenever a specific attribute is present to execute some code on the
+element when it enters and leaves the DOM. You could log whenever diffHTML has
+a render operation scheduled, monitor transitions, and more.</p>
+<p>A basic middleware looks as simple as:</p>
+<pre><code class="language-js">import { use } from &#39;diffhtml&#39;;
+
+use(() =&gt; {
+  console.log(&#39;diffHTML render transaction is starting&#39;);
+
+  return () =&gt; {
+    console.log(&#39;diffHTML render transaction is ending&#39;);
+  };
+});</code></pre>
+<p>There are several core middleware modules already written that you could use as
+a reference. A good starting one to look at is the 
+    <a href="/middleware#logger" title="null">Logger</a>
+  
+if you&#39;re interested in tracking the render transaction flow.</p>
+<p>If you wanted to track when an element enters and leaves the DOM you could use
+the 
+    <a href="/transitions.html#available-states" title="null">attached and detached transition
+states</a>
+  . You could also check the
+transaction when rendering is complete to see what is being attached and
+removed.</p>
+<pre><code class="language-js">use(() =&gt; ({ patches }) =&gt; {
+  patches.TREE_OPS.forEach(({ INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD }) =&gt; {
+    if (INSERT_BEFORE) {
+
+    }
+  });
+});</code></pre>
 <p><a name="inline-transitions"></a></p>
 <hr></hr>
 <h2 id="a-hrefinline-transitionsinline-transitionsa"><a href="#inline-transitions">Inline Transitions</a></h2>
@@ -263,7 +302,9 @@ innerHTML(document.body, html`&lt;body onattached=${fadeIn}&gt;
 </a>
 
 <p>Use with diffHTML to <code>console.log</code> out render
-<a href="https://diffhtml.org/#transaction">Transaction</a> operations. This will nest
+
+      <a href="https://diffhtml.org/#transaction" target="_blank" rel="noopener noreferrer" title="null">Transaction</a>
+     operations. This will nest
 sub-component renders if they happen during a parent render.</p>
 <pre><code class="language-sh">npm install diffhtml-middleware-logger</code></pre>
 <img src="https://cloud.githubusercontent.com/assets/181635/23392088/32cacd8a-fd2e-11e6-9b95-e3124d827eea.png" width="100%"></img>
@@ -355,15 +396,7 @@ import verifyState from &#39;diffhtml-middleware-verify-state&#39;;
 use(verifyState({ debug: location.search.includes(&#39;debug&#39;) }));</code></pre>
 <hr></hr></section>
 
-        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/middleware.md" style="
-            text-align: center;
-            color: #333;
-            text-decoration: none;
-            width: 100%;
-            display: inline-block;
-            padding: 40px;
-            box-sizing: border-box;
-          ">
+        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/middleware.md" id="edit-on-github">
           Edit on GitHub &nbsp; <span class="fa fa-github"></span>
         </a>
 

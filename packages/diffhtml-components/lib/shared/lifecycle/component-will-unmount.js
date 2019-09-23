@@ -1,6 +1,9 @@
 import { Internals, release } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../../util/caches';
-import { releaseHook } from '../hooks';
+
+const { NodeCache } = Internals;
+const root = typeof window !== 'undefined' ? window : global;
+const { customElements } = root;
 
 const hasVTree = (matchTree, vTree) => {
   if (matchTree === vTree) {
@@ -11,15 +14,18 @@ const hasVTree = (matchTree, vTree) => {
 };
 
 export default vTree => {
-  const { NodeCache } = Internals;
-  const root = typeof window !== 'undefined' ? window : global;
-  const { customElements } = root;
   const Constructor = customElements && customElements.get(vTree.nodeName);
   const componentTree = ComponentTreeCache.get(vTree);
   const instance = InstanceCache.get(componentTree);
 
+  // TODO This needs to mirror component-did-mount where the refs map is
+  // updated correctly.
   if (typeof vTree.attributes.ref === 'function') {
     vTree.attributes.ref(null);
+  }
+
+  if (componentTree && typeof componentTree.attributes.ref === 'function') {
+    componentTree.attributes.ref(null);
   }
 
   if (instance) {
@@ -36,7 +42,7 @@ export default vTree => {
     instance.componentWillUnmount();
   }
 
-  // Clean up Shadow DOM.
+  // Clean up Shadow DOM (TODO what if the shadow dom is detached?).
   if (Constructor && NodeCache.has(vTree)) {
     release(NodeCache.get(vTree).shadowRoot);
   }

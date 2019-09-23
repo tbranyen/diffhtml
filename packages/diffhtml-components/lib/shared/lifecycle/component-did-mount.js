@@ -4,15 +4,22 @@ import { $$vTree } from '../../util/symbols';
 
 const { NodeCache } = Internals;
 
-const callRefs = (instance, vTrees) => {
+const callRefs = vTrees => {
   for (let i = 0; i < vTrees.length; i++) {
     const vTree = vTrees[i];
+    const componentTree = ComponentTreeCache.get(vTree);
+    const instance = InstanceCache.get(componentTree);
 
     if (!vTree) continue;
 
-    const { ref } = vTree.attributes;
+    if (vTree.childNodes.length) {
+      callRefs(vTree.childNodes);
+    }
+
+    // Pull the ref off the DOM VTree or Component VTree.
+    const { ref } = (componentTree || vTree).attributes;
     const domNode = NodeCache.get(vTree);
-    const value = typeof vTree.rawNodeName === 'string' ? domNode : instance;
+    const value = !componentTree ? domNode : instance;
 
     if (typeof ref === 'function') {
       ref(value);
@@ -30,7 +37,7 @@ export default function componentDidMount(vTree) {
   const instance = InstanceCache.get(componentTree);
 
   if (instance) {
-    callRefs(instance, [vTree, ...vTree.childNodes]);
+    callRefs([vTree]);
 
     if (instance.componentDidMount) {
       instance.componentDidMount();

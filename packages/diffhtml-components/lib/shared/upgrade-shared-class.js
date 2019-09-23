@@ -27,18 +27,11 @@ export default function upgradeClass(Constructor) {
     InstanceCache.clear();
   };
 
-  // Registers a custom middleware to help map the diffHTML render lifecycle
-  // internals to React-like & Custom Element components.
-  assign(Constructor.prototype, lifecycleHooks, {
-    forceUpdate() {
-      this[$$render]();
-    },
+  // Registers a custom middleware to help map the render lifecycle internals
+  // to React-like & Custom Element components.
+  assign(Constructor.prototype, lifecycleHooks, { setState, forceUpdate });
 
-    setState,
-    forceUpdate,
-  });
-
-  // Automatically subscribe the React Component middleware.
+  // Automatically subscribe the React-like Component middleware.
   Constructor.subscribeMiddleware();
 
   return Constructor;

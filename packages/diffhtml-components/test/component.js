@@ -6,7 +6,7 @@ import validateCaches from './util/validate-caches';
 
 const { process } = Internals;
 
-describe.skip('Component implementation', function() {
+describe('Component implementation', function() {
   beforeEach(() => {
     this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
@@ -221,7 +221,7 @@ describe.skip('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it('can map state changes to componentDidUpdate', () => {
+    it.only('can map state changes from forceUpdate to componentDidUpdate', () => {
       let wasCalled = false;
       let counter = 0;
       let ref = null;
@@ -354,16 +354,17 @@ describe.skip('Component implementation', function() {
 
       class CustomComponent extends Component {
         render() {
-          return html`<div>
-            <div ref=${node => {
-              refNode = node;
-              count++;
-            }} />
-          </div>`;
+          return html`
+            <div>
+              <div ref=${node => { refNode = node; count++; }} />
+            </div>
+          `;
         }
       }
 
+      equal(count, 0);
       innerHTML(this.fixture, html`<${CustomComponent} />`);
+      equal(count, 1);
       ok(refNode);
       equal(refNode.getAttribute('ref'), null);
       equal(this.fixture.nodeName, 'DIV');
@@ -439,7 +440,7 @@ describe.skip('Component implementation', function() {
       class CustomComponent extends Component {
         render() {
           const { message } = this.state;
-          return html`${message}`;
+          return html`<div>${message}</div>`;
         }
 
         constructor(props) {
@@ -455,10 +456,14 @@ describe.skip('Component implementation', function() {
       }
 
       let ref = null;
-      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
-      equal(this.fixture.innerHTML, 'default');
+
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (
+        ref = node
+      )} />`);
+
+      equal(this.fixture.innerHTML, '<div>default</div>');
       ref.setState({ message: 'something' });
-      equal(this.fixture.innerHTML, 'something');
+      equal(this.fixture.innerHTML, '<div>something</div>');
       ok(wasCalled);
       equal(counter, 1);
     });
@@ -517,7 +522,7 @@ describe.skip('Component implementation', function() {
     });
   });
 
-  describe.skip('Context', () => {
+  describe('Context', () => {
     it('can inherit context from a parent component', () => {
       class ChildComponent extends Component {
         render() {
@@ -569,6 +574,5 @@ describe.skip('Component implementation', function() {
       equal(didMount, 1);
       equal(this.fixture.innerHTML, '<span>Hello world</span>');
     });
-
   });
 });
