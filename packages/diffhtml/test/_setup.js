@@ -6,14 +6,13 @@ const { assign } = Object;
 const instance = new JSDOM();
 const { window } = instance;
 
-const _location = { href: 'about:blank', search: '' };
-const location = new Proxy(_location, {
+const location = new Proxy(parse('about:blank'), {
   set(obj, keyName, value) {
     if (keyName === 'href') {
-      assign(_location, parse(value));
+      assign(obj, parse(value));
 
-      if (_location.search === null) {
-        _location.search = '';
+      if (obj.search === null) {
+        obj.search = '';
       }
     }
 
@@ -21,8 +20,8 @@ const location = new Proxy(_location, {
   },
 
   get(obj, keyName) {
-    return _location[keyName];
-  }
+    return obj[keyName] || '';
+  },
 });
 
 assign(global, {
