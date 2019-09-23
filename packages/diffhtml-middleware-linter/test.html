@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Test</title>
+</head>
+<body>
+  <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.js"></script>
+  <script src="dist/linter.js"></script>
+  <script>
+    diff.use(linter({
+      rules: {
+        'attr-value-not-empty': true,
+        'inline-style-disabled': true,
+        'inline-script-disabled': true,
+      },
+
+      renderErrors: true,
+    }));
+
+    setInterval(() => {
+      diff.innerHTML(document.body, `
+        <!doctype html>
+        <H1>Hello world</H1>
+        <span ID="true"></span>
+        <video src="" />
+        <img disabled="" id="true" />
+
+        <head style="font-weight:bold">
+          <script><\/script>
+          <tittle onclick="test()"></tittle>
+        </head>
+      `);
+    }, 1000);
+  </script>
+</body>
+</html>
