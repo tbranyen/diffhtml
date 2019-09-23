@@ -151,6 +151,7 @@ layer#main header {
 layer#main section#content {
   padding: 40px;
   padding-top: 0;
+  padding-bottom: 0;
 }
 
 layer#main section#content a {
@@ -169,6 +170,11 @@ layer#main header p {
 layer#main header p:last-child {
   font-size: 18px;
   font-weight: normal;
+}
+
+layer#main div#install + ul {
+  list-style: none;
+  margin-left: 0;
 }
 
 layer#main p.name {
