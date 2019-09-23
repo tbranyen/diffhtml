@@ -9,6 +9,27 @@ const { keys } = Object;
 // Ensure Component middleware is loaded.
 require('diffhtml-components');
 
+// Do some marked magic to fix the target="blank" security issue.
+const renderer = new marked.Renderer();
+
+// Patch the renderer to allow for better anchor tags to be generated.
+renderer.link = (href, title = text, text) => {
+  if (href.indexOf('http') === 0) {
+    return `
+      <a
+        href="${href}"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="${title}"
+      >${text}</a>
+    `;
+  }
+
+  return `
+    <a href="${href}" title="${title}">${text}</a>
+  `;
+};
+
 function generate() {
   delete require.cache[require.resolve('../components/layout')];
   delete require.cache[require.resolve('../config.json')];
@@ -29,7 +50,7 @@ function generate() {
     const mdPath = toPages(path.replace('.html', '.md'));
 
     if (existsSync(mdPath)) {
-      markup = marked(String(readFileSync(mdPath)));
+      markup = marked(String(readFileSync(mdPath)), { renderer });
     }
 
     const contents = renderToString(html`

@@ -3,6 +3,52 @@
 This concept allows developers to write plugins that augments diffHTML to do
 different things. You can use pre-made middleware or create your own easily.
 
+<a name="writing-middleware"></a>
+
+---
+
+## <a href="#writing-middleware">Writing middleware</a>
+
+You would write middleware when you need to extend diffHTML to do things that
+that were not originally intended. For instance, you could write logic that
+says whenever a specific attribute is present to execute some code on the
+element when it enters and leaves the DOM. You could log whenever diffHTML has
+a render operation scheduled, monitor transitions, and more.
+
+A basic middleware looks as simple as:
+
+``` js
+import { use } from 'diffhtml';
+
+use(() => {
+  console.log('diffHTML render transaction is starting');
+
+  return () => {
+    console.log('diffHTML render transaction is ending');
+  };
+});
+```
+
+There are several core middleware modules already written that you could use as
+a reference. A good starting one to look at is the [Logger](/middleware#logger)
+if you're interested in tracking the render transaction flow.
+
+If you wanted to track when an element enters and leaves the DOM you could use
+the [attached and detached transition
+states](/transitions.html#available-states). You could also check the
+transaction when rendering is complete to see what is being attached and
+removed.
+
+``` js
+use(() => ({ patches }) => {
+  patches.TREE_OPS.forEach(({ INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD }) => {
+    if (INSERT_BEFORE) {
+
+    }
+  });
+});
+```
+
 <a name="inline-transitions"></a>
 
 ---

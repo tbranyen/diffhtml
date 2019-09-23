@@ -7,7 +7,9 @@ let interval = null;
 const domNodes = new Map();
 const SECRET = 'MY BRAIN IBM';
 const transactions = new Map();
-const { use, innerHTML, outerHTML, release, Internals } = (window.diff || diffhtml);
+
+// TODO Pull diffHTML out in other ways.
+const { html, use, innerHTML, outerHTML, release, Internals } = (window.diff || diffhtml);
 
 //diffhtml.addTransitionState('textChanged', (domNode, name, oldValue, newValue) => {
 //  if (domNode.matches('script') &&) {
@@ -104,12 +106,20 @@ function open() {
 
       const path = location.pathname.slice(1) || 'index';
 
-      if (file === true || path === file.split('.').slice(0, -1).join('.')) {
+      if (file === true || path === file || path === file.split('.').slice(0, -1).join('.')) {
         if (!quiet) {
           console.log(`Updated with: ${markup}`);
         }
 
-        outerHTML(document.documentElement, markup || '<html></html>');
+        const children = html(markup);
+
+        if (children.length > 1) {
+          innerHTML(document.documentElement, children);
+        }
+        else {
+          outerHTML(document.documentElement, children);
+        }
+
         /*
           .then(() => {
             Internals.StateCache.forEach((state, domNode) => {
@@ -123,6 +133,7 @@ function open() {
 
       // All other files cause a full page reload.
       else {
+        console.log('here');
         location.reload();
       }
     });

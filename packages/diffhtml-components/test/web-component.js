@@ -19,7 +19,7 @@ describe.skip('Web Component', function() {
     release(this.fixture);
     WebComponent.unsubscribeMiddleware();
     document.body.removeChild(this.fixture);
-    validateCaches();
+    //validateCaches();
   });
 
   it('can make a component', () => {
@@ -140,7 +140,7 @@ describe.skip('Web Component', function() {
   });
 
   describe('Stateful components', () => {
-    it('can rerender with setState', () => {
+    it('can re-render with setState', () => {
       let ref = null;
 
       customElements.define('stateful-test', class extends WebComponent {

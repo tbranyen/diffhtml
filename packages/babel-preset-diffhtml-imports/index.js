@@ -48,7 +48,6 @@ if (NODE_ENV === 'cjs') {
     ObjectRestSpread,
     ClassProperties,
     ElementClasses,
-    Classes,
   ];
 }
 

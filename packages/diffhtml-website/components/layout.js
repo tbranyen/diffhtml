@@ -7,7 +7,7 @@ module.exports = ({ path, pages, content }) => html`
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>diffHTML: The easy-to-use HTML Virtual DOM, built for the web!</title>
+      <title>diffHTML: An easy-to-use HTML Virtual DOM built for the web!</title>
       <link rel="stylesheet" href="./index.css">
     </head>
 
@@ -39,24 +39,18 @@ module.exports = ({ path, pages, content }) => html`
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0</sub>
-              <p>The easy-to-use Virtual DOM, built for the web!</p>
+              <p>An easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
         </header>
+
+        <hr />
 
         <section id="content">${content}</section>
 
         <a
           href=${`https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/${path.replace('.html', '.md')}`}
-          style=${`
-            text-align: center;
-            color: #333;
-            text-decoration: none;
-            width: 100%;
-            display: inline-block;
-            padding: 40px;
-            box-sizing: border-box;
-          `}
+          id="edit-on-github"
         >
           Edit on GitHub &nbsp; <span class="fa fa-github"></span>
         </a>

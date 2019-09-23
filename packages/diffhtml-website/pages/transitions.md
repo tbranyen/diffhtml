@@ -1,7 +1,7 @@
 # Transitions
 
 A unique concept to diffHTML, these transitions are activated as first class
-events whenever elements are added, removed, changed, and when attributes and
+events whenever elements are added, removed, changed, and when attributes or
 text have changed.
 
 By returning promises you can halt rendering until they have completed. This
@@ -14,6 +14,12 @@ support Promises.
 ---
 
 ## <a href="#available-states">Available states</a>
+
+- [**attached**](#attached)
+- [**detached**](#detached)
+- [**replaced**](#replaced)
+- [**attributeChanged**](#attribute-changed)
+- [**textChanged**](#text-changed)
 
 There are many states you can listen to, they get added globally and allow you
 to do filtering. You add them using the `addTransitionState` method.
@@ -68,7 +74,7 @@ addTransitionState('attributeChanged', (element, attrName, oldValue, newValue) =
 For when text has changed in either TextNodes or SVG text elements.
 
 ```js
-addTransitionState('attributeChanged', (element, oldValue, newValue) => {
+addTransitionState('textChanged', (element, oldValue, newValue) => {
   console.log(element, oldValue, newValue);
 });
 ```
@@ -78,91 +84,6 @@ addTransitionState('attributeChanged', (element, oldValue, newValue) => {
 ---
 
 ## <a href="#add-transition">Add transition</a>
-
-Adds a global transition listener.  With many elements this could be an
-expensive operation, so try to limit the amount of listeners added if you're
-concerned about performance.
-
-Since the callback triggers with various elements, most of which you probably
-don't care about, you'll want to filter.  A good way of filtering is to use the
-DOM `matches` method.  It's fairly well supported
-(http://caniuse.com/#feat=matchesselector) and may suit many projects.  If you
-need backwards compatibility, consider using jQuery's `is`.
-
-You can do fun, highly specific, filters:
-
-``` javascript
-addTransitionState('attached', function(element) {
-  // Fade in the main container after it's attached into the DOM.
-  if (element.matches('body main.container')) {
-    $(element).stop(true, true).fadeIn();
-  }
-});
-```
-
-If you like these transitions and want to declaratively assign them in tagged
-templates, check out the [diffhtml-inline-transitions
-plugin](https://github.com/tbranyen/diffhtml-inline-transitions).
-
-### A note about detached/replaced element accuracy
-
-When rendering Nodes that contain lists of identical elements, you may not
-receive the elements you expect in the detached and replaced transition state
-hooks. This is a known limitation of string diffing and allows for better
-performance. By default if no key is specified, the last element will be
-removed and the subsequent elements from the one that was removed will be
-mutated via replace.
-
-What you should do here is add a `key` attribute with a unique `value` that
-persists between renders.
-
-For example, when the following markup...
-
-``` html
-<ul>
-  <li>Test</li>
-  <li>This</li>
-  <li>Out</li>
-</ul>
-```
-
-...is changed into...
-
-``` html
-<ul>
-  <li>Test</li>
-  <li>Out</li>
-</ul>
-```
-
-The transformative operations are:
-
-1. Remove the last element
-2. Replace the text of the second element to 'out'
-
-What we intended, however, was to simply remove the second item. And to achieve
-that, decorate your markup like so...
-
-``` html
-<ul>
-  <li key="1">Test</li>
-  <li key="2">This</li>
-  <li key="3">Out</li>
-</ul>
-```
-
-...and update with matching attributes...
-
-``` html
-<ul>
-  <li key="1">Test</li>
-  <li key="3">Out</li>
-</ul>
-```
-
-Now the transformative operations are:
-
-1. Remove the second element
 
 <a name="remove-transition"></a>
 

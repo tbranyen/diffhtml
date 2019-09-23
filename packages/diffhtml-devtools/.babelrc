@@ -3,8 +3,6 @@
     "add-module-exports",
     "@babel/plugin-proposal-object-rest-spread",
     "@babel/plugin-proposal-class-properties",
-    "transform-custom-element-classes",
-    "@babel/plugin-transform-classes",
     "@babel/plugin-transform-modules-commonjs",
     "@babel/plugin-transform-arrow-functions"
   ]

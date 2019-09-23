@@ -1,7 +1,11 @@
 import Pool from './pool';
-import { NodeCache, StateCache, MiddlewareCache } from './caches';
+import {
+  NodeCache,
+  StateCache,
+  MiddlewareCache,
+  ReleaseHookCache,
+} from './caches';
 
-const { ReleaseHookCache } = MiddlewareCache;
 const { memory, protect, unprotect } = Pool;
 
 /**

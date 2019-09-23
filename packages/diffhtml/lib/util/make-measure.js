@@ -1,7 +1,7 @@
 export const marks = new Map();
 export const prefix = 'diffHTML';
-const DIFF_PERF = 'diff_perf';
 
+const DIFF_PERF = 'diff_perf';
 const hasSearch = typeof location !== 'undefined';
 const hasArguments = typeof process !== 'undefined' && process.argv;
 const nop = () => {};

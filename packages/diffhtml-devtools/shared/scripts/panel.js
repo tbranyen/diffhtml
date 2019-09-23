@@ -39,7 +39,9 @@ const initialState = {
 };
 
 const reactiveBinding = f => ({ set(t, p, v) { t[p] = v; f(); return !0; } });
-const state = new Proxy(initialState, reactiveBinding(() => render()));
+const state = new Proxy(initialState, reactiveBinding(() => {
+  render();
+}));
 
 window.onhashchange = () => state.activeRoute = location.hash;
 
@@ -112,8 +114,6 @@ background.onMessage.addListener(message => {
     case 'end': {
       state.inProgress.shift();
       state.completed = state.completed.concat(message.data);
-
-      debugger;
 
       break;
     }

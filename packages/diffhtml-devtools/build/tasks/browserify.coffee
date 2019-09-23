@@ -27,6 +27,8 @@ module.exports = ->
           ["aliasify", { global: true }]
         ]
 
+        exclude: ['fs']
+
         alias:
           'react': 'diffhtml-react-compat/dist/cjs/index'
           'react-dom': 'diffhtml-react-compat/dist/cjs/index'

@@ -1,7 +1,10 @@
-import { NodeCache, MiddlewareCache } from '../util/caches';
+import {
+  NodeCache,
+  MiddlewareCache,
+  CreateNodeHookCache,
+} from '../util/caches';
 import process from '../util/process';
 
-const { CreateNodeHookCache } = MiddlewareCache;
 const namespace = 'http://www.w3.org/2000/svg';
 const g = typeof global === 'object' ? global : window;
 const document = g.document || null;

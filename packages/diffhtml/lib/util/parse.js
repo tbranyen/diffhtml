@@ -13,15 +13,15 @@ const tokenEx = /__DIFFHTML__([^_]*)__/;
 const { assign } = Object;
 const { isArray } = Array;
 
-const blockText = new Set([
+const blockTextDefaults = [
   'script',
   'noscript',
   'style',
   'code',
   'template',
-]);
+];
 
-const selfClosing = new Set([
+const selfClosingDefaults = [
   'meta',
   'img',
   'link',
@@ -44,7 +44,7 @@ const selfClosing = new Set([
   'source',
   'track',
   'wbr',
-]);
+];
 
 const kElementsClosedByOpening = {
   li: { li: true },
@@ -216,6 +216,9 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  * @return {Object} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
+  const blockText = new Set(options.blockText || blockTextDefaults);
+  const selfClosing = new Set(options.selfClosing || selfClosingDefaults);
+
   const tagEx =
     /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
   const attrEx = /\b([_a-z][_a-z0-9\-:]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;

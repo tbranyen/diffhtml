@@ -1,7 +1,8 @@
 # API
 
-The core diffHTML API was designed to be minimal and familiar if you've used
-browser DOM APIs such as `innerHTML` and `addEventListener`. 
+This reference contains all stable API documentation which is up-to-date with
+the latest release. The core was designed to be minimal and familiar if you've
+used browser DOM APIs such as `innerHTML` and `addEventListener`.
 
 You can access any of the top-level API methods & properties by directly
 importing or deconstructing.
@@ -10,7 +11,7 @@ importing or deconstructing.
 
 ``` js
 import { innerHTML, VERSION, use } from 'diffhtml';
-// or
+// or import the whole namespace
 import diff from 'diffhtml';
 ```
 
@@ -18,7 +19,7 @@ import diff from 'diffhtml';
 
 ``` js
 const { innerHTML, VERSION, use } = require('diffhtml');
-// or
+// or consolidate under a namespace
 const diff = require('diffhtml');
 ```
 
@@ -26,7 +27,7 @@ const diff = require('diffhtml');
 
 ``` js
 const { innerHTML, VERSION, use } = window.diff;
-// or
+// or consolidate under a namespace
 const { diff } = window;
 ```
 
@@ -47,7 +48,7 @@ control the entire tag, use [`outerHTML`](#outer-html).
 | ----------- | -----------
 | **domNode** | The root DOM Node to change the child contents of, but not the element itself.
 | **markup**  | New markup to replace into the `domNode`. 
-| **options** | <ul><li><b>- tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li></ul>
+| **options** | <ul><li><b>tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><b>parser:</b> Settings which influence the HTML parser, not available with the runtime build.</li></ul>
 
 ### Examples
 
@@ -74,7 +75,7 @@ outerHTML(document.body, '<body>Hello world</body>');
 | ----------- | -----------
 | **domNode** | A DOM Node to change.
 | **markup**  | New markup to replace the entire `domNode` with. 
-| **options** | <ul><li><b>- tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li></ul>
+| **options** | <ul><li><b>tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><b>parser:</b> Settings which influence the HTML parser, not available with the runtime build.</li></ul>
 
 
 <a name="html"></a>
@@ -181,17 +182,99 @@ use(someTask);
 
 ## <a href="#add-transition-state">addTransitionState</a> **`(stateName, callback)`**
 
-Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.
+Adds global transition listeners, which trigger in reaction to when the DOM is
+patched. If many elements are rendered quickly, this could be an expensive
+operation, so try to limit the amount of listeners added if you're concerned
+about performance.
 
-Example:
+Since the callback triggers with various elements, most of which you probably
+don't care about, you'll want to filter.  A good way of filtering is to use the
+DOM `matches` method.  It's fairly well supported
+(http://caniuse.com/#feat=matchesselector) and may suit many projects.  If you
+need backwards compatibility, consider using jQuery's `is`.
 
-``` js
-outerHTML(document.body, 'Hello world');
+You can do fun, highly specific, filters:
+
+``` javascript
+addTransitionState('attached', element => {
+  // Fade in the main container after it's attached into the DOM.
+  if (element.matches('body main.container')) {
+    $(element).stop(true, true).fadeIn();
+  }
+});
 ```
 
-To see how to run this example yourself see the [Examples](#examples) section
-below.
+If you like these transitions and want to declaratively assign them in tagged
+templates, check out the [diffhtml-inline-transitions
+plugin](middleware.html#inline-transitions).
+
+### Arguments
+
+| Name        | Description
+| ----------- | -----------
+| **stateName** | One of the valid transition states: attached \| detached \| replaced \| attributeChanged \| textChanged
+| **callback** | Triggers either an async (returns Promise) or sync function which does something when the specific DOM node has entered a transition state.
+
+### About detached/replaced element accuracy
+
+When rendering Nodes that contain lists of identical elements, you may not
+receive the elements you expect in the detached and replaced transition state
+hooks. This is a known limitation of string diffing and allows for better
+performance. By default if no key is specified, the last element will be
+removed and the subsequent elements from the one that was removed will be
+mutated via replace.
+
+What you should do here is add a `key` attribute with a unique `value` that
+persists between renders.
+
+For example, when the following markup...
+
+``` html
+<ul>
+  <li>Test</li>
+  <li>This</li>
+  <li>Out</li>
+</ul>
+```
+
+...is changed into...
+
+``` html
+<ul>
+  <li>Test</li>
+  <li>Out</li>
+</ul>
+```
+
+The transformative operations are:
+
+1. Remove the last element
+2. Replace the text of the second element to 'out'
+
+What we intended, however, was to simply remove the second item. And to achieve
+that, decorate your markup like so...
+
+``` html
+<ul>
+  <li key="1">Test</li>
+  <li key="2">This</li>
+  <li key="3">Out</li>
+</ul>
+```
+
+...and update with matching attributes...
+
+``` html
+<ul>
+  <li key="1">Test</li>
+  <li key="3">Out</li>
+</ul>
+```
+
+Now the transformative operations are:
+
+1. Remove the second element
+
 
 ### Arguments
 
@@ -205,47 +288,61 @@ all representing an element (or many elements).
 
 ## <a href="#remove-transition-state">removeTransitionState</a> **`(stateName, callback)`**
 
-Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.
+Removes a global transition listener. When invoked with no arguments, this
+method will remove all transition callbacks. When invoked with the name
+argument it will remove all transition state callbacks matching the name, and
+so on for the callback.
 
-Example:
+``` javascript
+// Removes all registered transition states.
+diff.removeTransitionState();
 
-``` js
-outerHTML(document.body, 'Hello world');
+// Removes states by name.
+diff.removeTransitionState('attached');
+
+// Removes states by name and callback reference.
+diff.removeTransitionState('attached', callbackReference);
 ```
-
-To see how to run this example yourself see the [Examples](#examples) section
-below.
 
 ### Arguments
 
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
+| Name        | Description
+| ----------- | -----------
+| **stateName** | *Optional* Filter events to remove by a specific state
+| **callback** | *Optional* Filter events to remove by the callback reference
 
 <a name="create-tree"></a>
 
 ---
 
-## <a href="#create-tree">createTree</a> **`(nodeName, attributes, childNodes)`**
+## <a href="#create-tree">createTree</a> **`(nodeName, attributes, ...childNodes)`**
 
-Replaces the contents of a DOM node with the passed in markup, only updates
-what has changed.
+Creates a Virtual Tree which can be interpolated and rendered. This has a
+similar purpose to hyperscript's `h()` and React's `createElement`.
 
 Example:
 
 ``` js
-outerHTML(document.body, 'Hello world');
-```
+const attributes = {
+  id: 'test',
+  style: 'color: red',
+};
 
-To see how to run this example yourself see the [Examples](#examples) section
-below.
+const childNodes = [
+  createTree('#text', null, 'Hello world'),
+];
+
+// Create a div Virtual Tree.
+const div = createTree('div', attributes, childNodes);
+```
 
 ### Arguments
 
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
+| Name        | Description
+| ----------- | -----------
+| **nodeName** | A string for HTML, or if using components or middleware other types, like functions
+| **attributes** | An object of DOM attributes or properties key and value or null 
+| **...childNodes** | An array of child nodes, or a single element merged with any additional arguments
 
 <a name="release"></a>
 
@@ -288,12 +385,29 @@ Understanding these APIs will give you greater insight into how diffHTML works.
 
 ### <a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a>
 
-An object that contains Sets of functions. You can hook into:
+A JavaScript Set object that contains registered middleware functions that
+trigger whenever transaction state changes.
 
-- **CreateNodeHookCache** - Whenever a DOM Node is created
-- **CreateTreeHookCache** - Whenever a VTree is created
-- **ReleaseHookCache** - Whenever a VTree has been released
-- **SyncTreeHookCache** - Whenever VTrees are compared
+### <a name="create-node-hook-cache" href="#create-node-hook-cache">CreateNodeHookCache</a>
+
+A JavaScript Set object that contains functions that trigger whenever a DOM
+Node is created during the patching process.
+
+### <a name="create-tree-hook-cache" href="#create-tree-hook-cache">CreateTreeHookCache</a>
+
+A JavaScript Set object that contains functions that trigger whenever a Virtual
+Tree is created through `html`, `createTree`, or during the parsing process.
+
+### <a name="release-hook-cache" href="#release-hook-cache">ReleaseHookCache</a>
+
+A JavaScript Set object that contains functions that trigger whenever a Virtual
+Tree is cleaned up by diffHTML's internal garbage collection. You can do
+additional cleanup here.
+
+### <a name="sync-tree-hook-cache" href="#sync-tree-hook-cache">SyncTreeHookCache</a>
+
+A JavaScript Set object that contains functions that trigger whenever Virtual
+Trees are compared.
 
 ### <a name="node-cache" href="#node-cache">NodeCache</a>
 
@@ -322,7 +436,7 @@ re-renders.
 ### <a name="transaction" href="#transaction">Transaction</a>
 
 A render transaction is scheduled whenever `innerHTML` or `outerHTML` are
-called. It is a subclass of a `Transaction` class that gives it a few methods:
+called. It is an instance of a `Transaction` class that has a few methods:
 _abort_, _end_, _onceEnded_, and _start_. This instance is mutable and the
 properties will change by the internals. You should not modify the transaction
 directly unless you know what you're doing. Reading any property is considered
