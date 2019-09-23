@@ -256,24 +256,6 @@ and new elements.</p>
 <pre><code class="language-js">addTransitionState(&#39;textChanged&#39;, (element, oldValue, newValue) =&gt; {
   console.log(element, oldValue, newValue);
 });</code></pre>
-<p><a name="add-transition"></a></p>
-<hr></hr>
-<h2 id="a-hrefadd-transitionadd-transitiona"><a href="#add-transition">Add transition</a></h2>
-<p><a name="remove-transition"></a></p>
-<hr></hr>
-<h2 id="a-hrefremove-transitionremove-transitiona"><a href="#remove-transition">Remove transition</a></h2>
-<p>Removes a global transition listener. When invoked with no arguments, this
-method will remove all transition callbacks. When invoked with the name
-argument it will remove all transition state callbacks matching the name, and
-so on for the callback.</p>
-<pre><code class="language-javascript">// Removes all registered transition states.
-diff.removeTransitionState();
-
-// Removes states by name.
-diff.removeTransitionState(&#39;attached&#39;);
-
-// Removes states by name and callback reference.
-diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
 <hr></hr></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/transitions.md" id="edit-on-github">

@@ -79,32 +79,4 @@ addTransitionState('textChanged', (element, oldValue, newValue) => {
 });
 ```
 
-<a name="add-transition"></a>
-
----
-
-## <a href="#add-transition">Add transition</a>
-
-<a name="remove-transition"></a>
-
----
-
-## <a href="#remove-transition">Remove transition</a>
-
-Removes a global transition listener. When invoked with no arguments, this
-method will remove all transition callbacks. When invoked with the name
-argument it will remove all transition state callbacks matching the name, and
-so on for the callback.
-
-``` javascript
-// Removes all registered transition states.
-diff.removeTransitionState();
-
-// Removes states by name.
-diff.removeTransitionState('attached');
-
-// Removes states by name and callback reference.
-diff.removeTransitionState('attached', callbackReference);
-```
-
 ---
