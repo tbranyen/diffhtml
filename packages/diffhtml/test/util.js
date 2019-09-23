@@ -1,4 +1,3 @@
-import { changeURL } from 'jsdom';
 import { ok, equal, deepEqual, throws, doesNotThrow } from 'assert';
 import { spy } from 'sinon';
 import createTree from '../lib/tree/create';
@@ -970,8 +969,7 @@ describe('Util', function() {
     });
   });
 
-  // changeURL is missing in jsdom, must find a different way of doing this.
-  describe.skip('Performance', () => {
+  describe('Performance', () => {
     it(`will return a NOP when the user doesn't have search`, () => {
       const div = document.createElement('div');
       const vTree = createTree(div);
@@ -1006,7 +1004,7 @@ describe('Util', function() {
       const div = document.createElement('div');
       const vTree = createTree(div);
 
-      changeURL(window, 'about:blank?diff_perf')
+      location.href = 'about:blank?diff_perf';
 
       const measure = makeMeasure(div, vTree);
 
@@ -1020,7 +1018,7 @@ describe('Util', function() {
       const div = document.createElement('div');
       const vTree = createTree(div);
 
-      changeURL(window, 'about:blank?diff_perf')
+      location.href = 'about:blank?diff_perf';
 
       const measure = makeMeasure(div, vTree);
 
@@ -1044,7 +1042,7 @@ describe('Util', function() {
       div.host = { constructor: { name: 'Component' } };
       const vTree = createTree(div);
 
-      changeURL(window, 'about:blank?diff_perf')
+      location.href = 'about:blank?diff_perf';
 
       const measure = makeMeasure(div, vTree);
 
@@ -1068,7 +1066,7 @@ describe('Util', function() {
       const div = document.createElement('div');
       const vTree = createTree(Component);
 
-      changeURL(window, 'about:blank?diff_perf')
+      location.href = 'about:blank?diff_perf';
 
       const measure = makeMeasure(div, vTree);
 

@@ -216,8 +216,12 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  * @return {Object} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
-  const blockText = new Set(options.blockText || blockTextDefaults);
-  const selfClosing = new Set(options.selfClosing || selfClosingDefaults);
+  if (!options.parser) {
+    options.parser = {};
+  }
+
+  const blockText = new Set(options.parser.blockText || blockTextDefaults);
+  const selfClosing = new Set(options.parser.selfClosing || selfClosingDefaults);
 
   const tagEx =
     /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
