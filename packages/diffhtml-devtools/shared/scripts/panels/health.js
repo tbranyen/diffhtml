@@ -66,9 +66,9 @@ class DevtoolsHealthPanel extends WebComponent {
         position: sticky;
         top: 0;
         z-index: 100;
-        background: #3E82F7;
+        background: #FFF;
+        color: #333;
         border-radius: 0 !important;
-        color: #FFF;
         user-select: none;
       }
 

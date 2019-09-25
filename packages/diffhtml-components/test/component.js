@@ -5,8 +5,9 @@ import Component from '../lib/component';
 import validateCaches from './util/validate-caches';
 
 const { process } = Internals;
+const { assign } = Object;
 
-describe.skip('Component implementation', function() {
+describe('Component implementation', function() {
   beforeEach(() => {
     this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
@@ -17,6 +18,194 @@ describe.skip('Component implementation', function() {
     release(this.fixture);
     Component.unsubscribeMiddleware();
     validateCaches();
+  });
+
+  describe('Function components', () => {
+    it('can render a virtual tree', () => {
+      const CustomComponent = () => html`
+        <div>Hello world</div>
+      `;
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+    });
+
+    it('can render a dom node', () => {
+      const CustomComponent = () => assign(document.createElement('div'), {
+        innerHTML: 'Hello world',
+      });
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+    });
+
+    it('can render an array of virtual trees', () => {
+      const CustomComponent = () => [
+        html`<div>Hello</div>`, html`<span>world</span>`
+      ];
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div>Hello</div><span>world</span></div>');
+    });
+
+    it('can pass props', () => {
+      const CustomComponent = ({ key }) => html`
+        <div>${key}</div>
+      `;
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
+
+      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+    });
+
+    it('can update props', async () => {
+      const CustomComponent = ({ key }) => html`
+        <div>${key}</div>
+      `;
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
+
+      equal(this.fixture.outerHTML, '<div><div>To you!</div></div>');
+    });
+
+    it('can render a nested component and forward props', async () => {
+      const NestedComponent = ({ key }) => html`${key}`;
+
+      const CustomComponent = props => html`
+        <div><${NestedComponent} ${props} /></div>
+      `;
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
+
+      equal(this.fixture.outerHTML, '<div><div>To you!</div></div>');
+    });
+  });
+
+  describe('Class components', () => {
+    it('can render a virtual tree', () => {
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+    });
+
+    it('can trigger mount for a component', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+
+        componentDidMount() {
+          hit++;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(hit, 1);
+    });
+
+    it('can trigger unmount for a component', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+
+        componentWillUnmount() {
+          hit++;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html``);
+
+      equal(hit, 1);
+    });
+
+    it('can trigger unmount for a component', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+
+        componentWillUnmount() {
+          hit++;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html``);
+
+      equal(hit, 1);
+    });
+
+    it('can trigger should component update for a component', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+
+        shouldComponentUpdate() {
+          hit++;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html`<${CustomComponent} key="value" />`);
+
+      equal(hit, 1);
+    });
+
+    it('can prevent render with should component update', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render(props) {
+          return html`
+            <div>${props.key}</div>
+          `;
+        }
+
+        shouldComponentUpdate() {
+          hit++;
+          //return false;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="right" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} key="wrong" />`);
+
+      equal(hit, 1);
+      equal(this.fixture.innerHTML, 'right');
+    });
   });
 
   it('can render a component', () => {
@@ -221,7 +410,7 @@ describe.skip('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it.only('can map state changes from forceUpdate to componentDidUpdate', () => {
+    it('can map state changes from forceUpdate to componentDidUpdate', () => {
       let wasCalled = false;
       let counter = 0;
       let ref = null;

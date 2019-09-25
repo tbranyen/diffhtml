@@ -32,9 +32,13 @@ code {
   top: -1px;
 }
 
+.hljs {
+  background: #022f46;
+}
+
 pre code {
   margin-right: 1px;
-  background-color: #222;
+  background-color: #022f46;
   line-height: 20px;
   padding: 15px !important;
 }
@@ -321,8 +325,8 @@ table th {
 }
 
 table th {
-  background-color: gainsboro;
-  color: #333;
+  background-color: #2e6698;
+  color: #FFF;
   padding: 10px;
 }
 

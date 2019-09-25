@@ -11,6 +11,7 @@ class DevtoolsNavigation extends WebComponent {
   render() {
     const { version } = this.props;
     const { nav, selected } = this.state;
+    const { reloadUI } = this;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -33,9 +34,16 @@ class DevtoolsNavigation extends WebComponent {
           <strong>Detected diffHTML version: ${version}</strong>
           <hr>
           Created by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
+          <p style=${{ paddingTop: '10px' }}>
+            <button onClick=${reloadUI}>Reload UI</button>
+          </p>
         </div>
       </div>
     `;
+  }
+
+  reloadUI() {
+    location.reload();
   }
 
   styles() {
@@ -45,12 +53,17 @@ class DevtoolsNavigation extends WebComponent {
         height: 100%;
         flex-basis: 200px;
         flex: none;
-        background-color: #F3F3F3;
+        background-color: #FFF;
         border: 0;
-        /*border-right: 1px solid rgb(64%, 64%, 64%);*/
+        border-right: 1px solid rgb(64%, 64%, 64%);
         box-sizing: border-box;
         user-select: none;
         overflow-y: auto;
+      }
+
+      hr {
+        border: none;
+        border-bottom: 1px solid rgb(64%, 64%, 64%);
       }
 
       ol {
@@ -63,7 +76,6 @@ class DevtoolsNavigation extends WebComponent {
       ol li {
         width: 100%;
         height: 40px;
-        background-color: #DDDDDD;
         padding: 20px;
         box-sizing: border-box;
         color: #333;
@@ -78,11 +90,12 @@ class DevtoolsNavigation extends WebComponent {
       }
 
       ol li:hover {
-        background-color: #B4B4B4;
+        color: #25272b;
+        font-weight: bold;
       }
 
       ol li[selected='true'] {
-        background-color: #737373;
+        background-color: #25272b;
         color: #FFF;
       }
 
@@ -118,20 +131,16 @@ class DevtoolsNavigation extends WebComponent {
     `;
   }
 
-  constructor() {
-    super();
+  state = {
+    selected: 0,
 
-    this.state = {
-      selected: 0,
-
-      nav: [
-        { route: '', label: 'Transactions', icon: 'tasks' },
-        { route: 'mounts', label: 'Mounts', icon: 'sitemap' },
-        { route: 'middleware', label: 'Middleware', icon: 'chain' },
-        { route: 'health', label: 'Health', icon: 'heartbeat' },
-        { route: 'settings', label: 'Settings', icon: 'settings' },
-      ],
-    };
+    nav: [
+      { route: '', label: 'Transactions', icon: 'tasks' },
+      { route: 'mounts', label: 'Mounts', icon: 'sitemap' },
+      { route: 'middleware', label: 'Middleware', icon: 'chain' },
+      { route: 'health', label: 'Health', icon: 'heartbeat' },
+      { route: 'settings', label: 'Settings', icon: 'settings' },
+    ],
   }
 
   componentWillReceiveProps(nextProps) {

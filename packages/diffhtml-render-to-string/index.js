@@ -37,7 +37,6 @@ tasks.add(function reconcileTrees(transaction) {
   //console.log(transaction.oldTree);
 
   // Create a fake, but fast DOM node, replacing the VTree passed in.
-  // TODO, this is only necessary in Node.
   transaction.domNode = makeDOMNode(domNode);
 });
 
@@ -66,7 +65,12 @@ exports.renderToString = function renderToString(markup, options = {}) {
   const oldTree = createTree(newTree.rawNodeName);
 
   return innerHTML(oldTree, newTree, { tasks: [...tasks], options });
-}
+};
+
+// Proxy diffHTML API.
+exports.use = use;
+exports.html = html;
+exports.createTree = createTree;
 
 /**
  * serializeAttributes

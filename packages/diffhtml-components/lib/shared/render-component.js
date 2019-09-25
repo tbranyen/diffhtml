@@ -1,4 +1,4 @@
-import { Internals } from 'diffhtml';
+import { Internals, createTree } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../util/caches';
 import { $$vTree } from '../util/symbols';
 
@@ -12,7 +12,10 @@ export default function renderComponent(vTree, context = {}) {
 
   if (InstanceCache.has(vTree)) {
     instance = InstanceCache.get(vTree);
-    instance.componentWillReceiveProps(props);
+
+    if (typeof instance.componentWillReceiveProps === 'function') {
+      instance.componentWillReceiveProps(props);
+    }
 
     // TODO Find a better way of accomplishing this...
     // Wipe out all old references before re-rendering.
@@ -23,14 +26,11 @@ export default function renderComponent(vTree, context = {}) {
     });
 
     if (instance.shouldComponentUpdate()) {
-      renderTree = instance.render(props, instance.state, context);
+      renderTree = createTree(instance.render(props, instance.state, context));
 
       if (instance.componentDidUpdate) {
         instance.componentDidUpdate(instance.props, instance.state);
       }
-    }
-    else {
-      renderTree = oldTree;
     }
   }
   // New class instance.
@@ -39,10 +39,10 @@ export default function renderComponent(vTree, context = {}) {
     InstanceCache.set(vTree, instance);
     instance[$$vTree] = vTree;
 
-    renderTree = instance.render(props, instance.state, context);
+    renderTree = createTree(instance.render(props, instance.state, context));
   }
   else {
-    renderTree = Component(props, context);
+    renderTree = createTree(Component(props, context));
   }
 
   // Associate the children with the parent component that rendered them, this
@@ -62,7 +62,8 @@ export default function renderComponent(vTree, context = {}) {
     }
   };
 
-  //
+  // Maybe this isn't necessary? For now it helps track, but this is costly
+  // and perhaps can be solved in a different way.
   linkTrees([].concat(renderTree));
 
   if (renderTree && Component) {

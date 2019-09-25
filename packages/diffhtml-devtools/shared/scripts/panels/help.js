@@ -28,9 +28,9 @@ class DevtoolsHelpPanel extends WebComponent {
         position: sticky;
         top: 0;
         z-index: 100;
-        background: #3E82F7;
         border-radius: 0 !important;
-        color: #FFF;
+        background: #FFF;
+        color: #333;
         user-select: none;
       }
     `;

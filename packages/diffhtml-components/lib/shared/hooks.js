@@ -3,6 +3,8 @@ import componentWillUnmount from './lifecycle/component-will-unmount';
 import renderComponent from './render-component';
 import getContext from './get-context';
 
+const { assign } = Object;
+
 const render = (oldTree, newTree) => {
   const oldComponentTree = ComponentTreeCache.get(oldTree);
 
@@ -10,6 +12,8 @@ const render = (oldTree, newTree) => {
     return renderComponent(newTree, getContext(newTree));
   }
   else if (oldComponentTree.rawNodeName === newTree.rawNodeName) {
+    assign(oldComponentTree.attributes, newTree.attributes);
+
     return renderComponent(oldComponentTree, getContext(oldTree));
   }
 };

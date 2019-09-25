@@ -15,9 +15,7 @@ class DevtoolsPanels extends WebComponent {
       <style>${this.styles()}</style>
 
       <div class="panel">
-        ${route === activeRoute && html`
-          <slot></slot>
-        `}
+        ${route === activeRoute && html`<slot></slot>`}
       </div>
     `;
   }
