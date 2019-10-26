@@ -72,8 +72,10 @@ const kElementsClosedByClosing = {
  * @param supplemental
  */
 const interpolateValues = (currentParent, string, supplemental = {}) => {
-  // Reset childNodes, as we are paving over them.
-  currentParent.childNodes = [];
+  if ('childNodes' in currentParent.attributes) {
+    // Reset childNodes, as we are paving over them.
+    currentParent.childNodes = [];
+  }
 
   // If this is text and not a doctype, add as a text node.
   if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
