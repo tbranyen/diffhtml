@@ -174,13 +174,13 @@ const linter = ({ rules, renderErrors }) => {
           let failed = null;
 
           if (idClassValue === 'underline') {
-            failed = String(value).match(/^[a-z\d]+(_[a-z\d]+)*$/);
+            failed = !String(value).match(/^[a-z\d]+(_[a-z\d]+)*$/);
           }
           else if (idClassValue === 'dash') {
-            failed = String(value).match(/^[a-z\d]+(-[a-z\d]+)*$/);
+            failed = !String(value).match(/^[a-z\d]+(-[a-z\d]+)*$/);
           }
           else if (idClassValue === 'hump') {
-            failed = String(value).match(/^[a-z][a-zA-Z\d]*([A-Z][a-zA-Z\d]*)*$/);
+            failed = !String(value).match(/^[a-z][a-zA-Z\d]*([A-Z][a-zA-Z\d]*)*$/);
           }
 
           if (failed) {
@@ -197,8 +197,10 @@ const linter = ({ rules, renderErrors }) => {
           console.error(msg);
         }
 
+        const attrLowercase = rules['attr-lowercase'];
+
         // attr-lowercase
-        if (rules['attr-lowercase'] === true || rules['attr-lowercase'].indexOf(nodeName) === -1) {
+        if (attrLowercase === true || isArray(attrLowercase) && attrLowercase.indexOf(nodeName) === -1) {
           if (lowerKey !== key) {
             const msg = `[attr-lowercase] attributes must be lowercase, encountered ${key}`;
             state.warnings.push(msg);

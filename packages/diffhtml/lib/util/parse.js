@@ -72,6 +72,9 @@ const kElementsClosedByClosing = {
  * @param supplemental
  */
 const interpolateValues = (currentParent, string, supplemental = {}) => {
+  // Reset childNodes, as we are paving over them.
+  currentParent.childNodes = [];
+
   // If this is text and not a doctype, add as a text node.
   if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
     return currentParent.childNodes.push(createTree('#text', string));
@@ -204,7 +207,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
     }
   }
 
-  return createTree(nodeName, attributes, []);
+  return createTree(nodeName, attributes, attributes.childNodes || []);
 };
 
 /**

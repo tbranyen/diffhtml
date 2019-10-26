@@ -412,6 +412,20 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
+  it('will allow the use of childNodes as a prop', () => {
+    const vTree = html`<a childNodes=${html`<span>test</span>`} />`;
+
+    equal(vTree.childNodes.length, 1);
+    equal(vTree.childNodes[0].nodeName, 'span');
+  });
+
+  it('will disallow the use of childNodes as a prop', () => {
+    const vTree = html`<a childNodes=${html`<span>test</span>`}>test</a>`;
+
+    equal(vTree.childNodes.length, 1);
+    equal(vTree.childNodes[0].nodeName, '#text');
+  });
+
   describe('Strict mode', () => {
     it('will clean up after an error', () => {
       throws(() => html.strict`

@@ -51,7 +51,7 @@ api.Internals = Internals;
 // Automatically hook up to DevTools if they are present.
 if (typeof devTools !== 'undefined') {
   use(devTools(Internals));
-  console.warn('diffHTML DevTools: Found and Activated...');
+  console.warn('diffHTML DevTools: Found and activated!');
 }
 
 export {
