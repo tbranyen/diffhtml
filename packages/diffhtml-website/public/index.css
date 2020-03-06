@@ -76,7 +76,7 @@ layer#navigation:hover {
 }
 
 layer#navigation p.social {
-  padding-right: 14px;
+  padding-right: 5px;
   padding-top: 36px;
   margin-bottom: 0;
   margin-top: 30px;
@@ -114,10 +114,11 @@ layer#navigation ul a.target li:not(.header):before,
 layer#navigation ul li:not(.header):hover:before {
   opacity: 1;
   left: 0;
-  padding-right: 5px;
+  padding-right: 20px;
 }
 layer#navigation a[href*='#'] li {
   text-align: right;
+  padding-right: 15px;
 }
 
 layer#navigation ul {
@@ -127,7 +128,6 @@ layer#navigation ul {
   line-height: 30px;
   padding-left: 10px;
   padding-bottom: 40px;
-  width: 200px;
 }
 
 layer#navigation li.header h4 {
@@ -135,6 +135,7 @@ layer#navigation li.header h4 {
   padding-bottom: 3px;
   color: #444;
   text-align: right;
+  padding-right: 15px;
 }
 
 layer#main {
@@ -360,14 +361,13 @@ table td {
 }
 
 /* Tablet */
-@media only screen and (max-width : 1127px) {
+@media only screen and (max-width : 1024px) {
   html, body {
     background-color: #FFF;
     position: relative;
     overflow: visible;
     width: 100%;
     margin-left: 0px;
-    overflow-y: scroll;
     overflow-x: hidden;
     max-height: 100vh;
     flex-direction: column;
@@ -415,6 +415,7 @@ table td {
     padding-left: 0 !important;
     padding-right: 0 !important;
     padding-top: 18px;
+    overflow-y: visible;
   }
 
   layer#main header h1 img {

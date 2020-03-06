@@ -43,8 +43,8 @@
     }],
 
     "Additional Packages": ["tools.html", {
-      "Live Reload Server": "#static-sync",
-      "Render to String": "#render-to-string"
+      "Render to String": "#render-to-string",
+      "Live Reload Server": "#static-sync"
     }],
 
     "DevTools": ["devtools.html", {
