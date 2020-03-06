@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-linter",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.11",
   "description": "Lints HTML parsed by diffHTML",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -27,8 +27,8 @@
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.9",
-    "diffhtml": "^1.0.0-beta.10",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.11",
+    "diffhtml": "^1.0.0-beta.11",
     "rollup": "^1.11.3",
     "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-node-resolve": "^4.2.3",
