@@ -82,9 +82,16 @@ webServer.use((req, res, next) => {
     return `${isRoot ? 'index' : url}.${newExt}`;
   };
 
+  // TODO This area needs some work with regards to extension handling.
   new Promise((resolve, reject) => read(path('html')).then(resolve, reject))
     .catch(() => read(path('md')).then(formatMarkdown))
     .catch(() => read(path('markdown')).then(formatMarkdown))
+    .catch(() => read(path('json')).then(resolve, reject))
+    .catch(() => read(path('svg')).then((...args) => {
+      console.log('here');
+      res.header('Content-Type', 'image/svg+xml');
+      resolve(...args);
+    }, reject))
     .then(buffer => res.send(`
       ${String(buffer)}
       <script>${clientScript}</script>

@@ -6,13 +6,22 @@ const yellow = '\x1B[33m';
 const reset = '\x1B[m';
 const quiet = process.argv.includes('--quiet');
 
-module.exports = new Promise(resolve => server.on('connection', socket => {
-  if (!quiet) {
-    console.log(`${yellow}Socket connection established${reset}`);
-  }
+module.exports = new Promise(resolve => {
+  server.on('connection', socket => {
+    socket.on('close', () => sockets.delete(socket));
 
-  sockets.add(socket);
-  resolve(sockets);
-}));
+    if (!quiet) {
+      console.log(`${yellow}Socket connection established${reset}`);
+    }
+
+    // Broadcast client messages.
+    socket.on('message', msg => {
+      [...sockets].filter(x => socket !== x).forEach(socket => socket.send(msg));
+    });
+
+    sockets.add(socket);
+    resolve(sockets);
+  })
+});
 
 process.on('exit', () => server.close());

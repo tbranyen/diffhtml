@@ -26,6 +26,7 @@ const { html, use, innerHTML, outerHTML, release, Internals } = (window.diff || 
 //});
 
 window.staticSyncHandlers = new Set();
+window.staticSyncSocket = undefined;
 
 //use(transaction => {
 //  transactions.set(transaction.domNode, transaction);
@@ -56,13 +57,18 @@ window.staticSyncHandlers = new Set();
 function open() {
   clearInterval(interval);
 
-  const socket = new Socket('ws://localhost:54321');
+  const host = location.host.split(':')[0];
+  const socket = window.staticSyncSocket = new Socket(`ws://${host}:54321`);
 
   socket.on('open', () => {
     console.log('diffhtml-static-sync socket connected');
 
     socket.on('message', message => {
       const { file, markup, quiet = false } = JSON.parse(message);
+
+      if (!file) {
+        return;
+      }
 
       if (!quiet) {
         console.log(`${file} changed`);
@@ -133,7 +139,6 @@ function open() {
 
       // All other files cause a full page reload.
       else {
-        console.log('here');
         location.reload();
       }
     });
