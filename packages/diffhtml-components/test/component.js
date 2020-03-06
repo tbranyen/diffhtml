@@ -7,7 +7,7 @@ import validateCaches from './util/validate-caches';
 const { process } = Internals;
 const { assign } = Object;
 
-describe('Component implementation', function() {
+describe.skip('Component implementation', function() {
   beforeEach(() => {
     this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
