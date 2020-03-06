@@ -3,7 +3,7 @@
 *Compiles your tagged template strings to Virtual Tree objects which reduces
 runtime cost*
 
-Stable Version: 1.0.0-beta.9
+Stable Version: 1.0.0-beta.11
 
 This plugin transforms tagged template strings containing HTML to
 JSX/HyperScript-like function calls. By default it will use `diff.createTree`

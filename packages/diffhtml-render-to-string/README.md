@@ -1,6 +1,6 @@
 # <±/> diffHTML Render to String
 
-Stable Version: 1.0.0-beta.9
+Stable Version: 1.0.0-beta.11
 
 Use with diffHTML to render your Virtual Trees to strings. This is useful for
 server-side rendering and testing. This works very similar to `outerHTML` and
