@@ -9,12 +9,16 @@ visualizations, or anything else that you may want to render in a web browser.
 
 ## <a href="#hello-world">Hello world!</a>
 
-```javascript
-import { innerHTML } from 'https://diffhtml.org/es';
+```html
+<body></body>
 
-innerHTML(document.body, `
-  <div>Hello world!</div>
-`);
+<script type="module">
+  import { innerHTML } from 'https://diffhtml.org/es';
+
+  innerHTML(document.body, `
+    <h1>Hello world!</h1>
+  `);
+</script>
 ```
 
 <a name="core-features"></a>

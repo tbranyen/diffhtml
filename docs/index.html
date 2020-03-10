@@ -203,11 +203,15 @@ visualizations, or anything else that you may want to render in a web browser.</
 <p><a name="hello-world"></a></p>
 <hr></hr>
 <h2 id="a-hrefhello-worldhello-worlda"><a href="#hello-world">Hello world!</a></h2>
-<pre><code class="language-javascript">import { innerHTML } from &#39;https://diffhtml.org/es&#39;;
+<pre><code class="language-html">&lt;body&gt;&lt;/body&gt;
 
-innerHTML(document.body, `
-  &lt;div&gt;Hello world!&lt;/div&gt;
-`);</code></pre>
+&lt;script type=&quot;module&quot;&gt;
+  import { innerHTML } from &#39;https://diffhtml.org/es&#39;;
+
+  innerHTML(document.body, `
+    &lt;h1&gt;Hello world!&lt;/h1&gt;
+  `);
+&lt;/script&gt;</code></pre>
 <p><a name="core-features"></a></p>
 <hr></hr>
 <h2 id="a-hrefcore-featurescore-featuresa"><a href="#core-features">Core features</a></h2>
