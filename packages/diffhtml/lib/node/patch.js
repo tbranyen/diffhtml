@@ -135,33 +135,6 @@ export default function patchNode(patches, state = {}) {
   for (let i = 0; i < TREE_OPS.length; i++) {
     const { INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD } = TREE_OPS[i];
 
-    // Insert/append elements.
-    if (INSERT_BEFORE && INSERT_BEFORE.length) {
-      for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
-        const vTree = INSERT_BEFORE[i];
-        const newTree = INSERT_BEFORE[i + 1];
-        const refTree = INSERT_BEFORE[i + 2];
-
-        const domNode = NodeCache.get(vTree);
-        const refNode = refTree && createNode(refTree, ownerDocument, isSVG);
-        const attached = TransitionCache.get('attached');
-
-        if (refTree) {
-          protectVTree(refTree);
-        }
-
-        const newNode = createNode(newTree, ownerDocument, isSVG);
-        protectVTree(newTree);
-
-        // If refNode is `null` then it will simply append like `appendChild`.
-        domNode.insertBefore(newNode, refNode);
-
-        const attachedPromises = runTransitions('attached', newNode);
-
-        promises.push(...attachedPromises);
-      }
-    }
-
     // Remove elements.
     if (REMOVE_CHILD && REMOVE_CHILD.length) {
       for (let i = 0; i < REMOVE_CHILD.length; i++) {
@@ -224,6 +197,33 @@ export default function patchNode(patches, state = {}) {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
           unprotectVTree(oldTree);
         }
+      }
+    }
+
+    // Insert/append elements.
+    if (INSERT_BEFORE && INSERT_BEFORE.length) {
+      for (let i = 0; i < INSERT_BEFORE.length; i += 3) {
+        const vTree = INSERT_BEFORE[i];
+        const newTree = INSERT_BEFORE[i + 1];
+        const refTree = INSERT_BEFORE[i + 2];
+
+        const domNode = NodeCache.get(vTree);
+        const refNode = refTree && createNode(refTree, ownerDocument, isSVG);
+        const attached = TransitionCache.get('attached');
+
+        if (refTree) {
+          protectVTree(refTree);
+        }
+
+        const newNode = createNode(newTree, ownerDocument, isSVG);
+        protectVTree(newTree);
+
+        // If refNode is `null` then it will simply append like `appendChild`.
+        domNode.insertBefore(newNode, refNode);
+
+        const attachedPromises = runTransitions('attached', newNode);
+
+        promises.push(...attachedPromises);
       }
     }
   }

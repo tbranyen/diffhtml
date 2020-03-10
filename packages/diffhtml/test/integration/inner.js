@@ -33,6 +33,22 @@ describe('Integration: innerHTML', function() {
     assert.equal(this.fixture.querySelector('style').textContent, 'h1 { color: blue; }');
   });
 
+  describe('DOM Nodes', function() {
+    it('can re-render a dom node multiple times when interpolated', function() {
+      const domNode = document.createElement('div');
+      domNode.textContent = 'test';
+
+      diff.innerHTML(this.fixture, diff.html`<div>${domNode}</div>`);
+      assert.equal(this.fixture.innerHTML, '<div><div>test</div></div>');
+
+      diff.innerHTML(this.fixture, diff.html`<div><p>before</p><div>${domNode}</div></div>`);
+      assert.equal(this.fixture.innerHTML, '<div><p>before</p><div><div>test</div></div></div>');
+
+      diff.innerHTML(this.fixture, diff.html`<div>${domNode}<p>after</p></div>`);
+      assert.equal(this.fixture.firstChild.innerHTML, '<div>test</div><p>after</p>');
+    });
+  });
+
   describe('Comments', function() {
     it('ignores comments', function() {
       diff.innerHTML(this.fixture, '<div><p><!-- test --></p></div>');
