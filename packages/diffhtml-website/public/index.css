@@ -53,7 +53,6 @@ layer#navigation {
   flex-direction: column;
   overflow-y: scroll;
   overflow-x: hidden;
-  opacity: 0.3;
   transition: opacity linear 280ms;
 }
 
@@ -68,11 +67,6 @@ layer#navigation::-webkit-scrollbar-track {
 layer#navigation::-webkit-scrollbar-thumb {
   border-radius: 0;
   background: #E8E8E8; 
-}
-
-layer#navigation:focus,
-layer#navigation:hover {
-  opacity: 1;
 }
 
 layer#navigation p.social {
@@ -265,7 +259,7 @@ layer#main table li:not(:first-child) {
 
 layer#main ul .list-icon {
   padding-left: 0;
-  margin-right: 10px;
+  width: 32px;
   color: #024161;
   font-size: 20px;
   line-height: 22px;

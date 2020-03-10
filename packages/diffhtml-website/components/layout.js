@@ -1,4 +1,5 @@
 const { html } = require('diffhtml');
+const { version } = require('../package');
 const Nav = require('./nav');
 
 module.exports = ({ path, pages, content }) => html`
@@ -38,7 +39,7 @@ module.exports = ({ path, pages, content }) => html`
           <h1>
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></a>
             <div>
-              <p class="name">diffHTML</p><sub>v1.0.0</sub>
+              <p class="name">diffHTML</p><sub>v${version}</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>

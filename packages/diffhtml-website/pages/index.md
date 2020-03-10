@@ -1,16 +1,13 @@
-**Welcome to diffHTML!** An opinionated UI framework designed to create
-reactive user interfaces. You can start using it quickly without much upfront
-knowledge, and opt-into more powerful features as you go.
+**Welcome to diffHTML!** A library that assists with creating user interfaces
+using JavaScript. These interfaces can be: applications, games, data
+visualizations, or anything else that you may want to render in a web browser.
+
 
 <a name="hello-world"></a>
 
 ---
 
 ## <a href="#hello-world">Hello world!</a>
-
-With diffHTML, you are able to start building a reactive UI quickly, without
-needing lots of upfront knowledge. You are able to start gracefully and improve
-the integration as your requirements change, and harness more features.
 
 ```javascript
 import { innerHTML } from 'https://diffhtml.org/es';
@@ -19,15 +16,6 @@ innerHTML(document.body, `
   <div>Hello world!</div>
 `);
 ```
-
-<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
-  <iframe
-    src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true"
-    title="diffhtml-helloworld on Glitch"
-    allow="geolocation; microphone; camera; midi; vr; encrypted-media"
-    style="height: 100%; width: 100%; border: 0;">
-  </iframe>
-</div>
 
 <a name="core-features"></a>
 
@@ -48,18 +36,9 @@ innerHTML(document.body, `
 
 ## <a href="#getting-the-source">Getting the source</a>
 
-There are two builds of diffHTML. The first and most common is the primary
-build which contains a lightweight HTML parser. It is slightly larger than the
-second build, which is referred to as the runtime build. This second build is
-meant for pairing with output that has been optimized with the Babel plugin.
-
-If you are just getting started, ignore the runtime build for now.
-
 <a name="node-module"></a>
 
-### <a href="#node-module">npm/yarn</a>
-
-Use a JavaScript package manager to install locally.
+### <a href="#node-module">Package manager</a>
 
 <div id="install"></div>
 
@@ -78,37 +57,13 @@ Use a JavaScript package manager to install locally.
   yarn add diffhtml
   ```
 
-Now tools using the Node module resolution algorithm, like Node and webpack,
-can find diffHTML when it is attempted to be required.
-
-```javascript
-const { innerHTML } = require('diffhtml');
-```
-
-To load the runtime build use:
-
-```javascript
-const { innerHTML } = require('diffhtml/dist/cjs/runtime');
-```
-
 <a name="using-script-tag"></a>
 
 ### <a href="#using-script-tag">Script tag</a>
 
-Use this tag in HTML to load diffHTML globally.
-
 ```html
 <script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
-
-<script>
-  diff.outerHTML(document.body, `<body>Hello world!</body>`);
-</script>
-```
-
-To load just the runtime:
-
-```html
-<script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
+<script>console.log(window.diff);</script>
 ```
 
 <a name="es-modules"></a>
@@ -121,55 +76,9 @@ a new feature that isn't available in all browsers yet, but you can use them
 
 ``` javascript
 import { innerHTML } from 'https://unpkg.com/diffhtml?module';
-// or 
-import { innerHTML } from 'https://diffhtml.org/es';
-```
-
-To load just the runtime:
-
-``` javascript
-import { innerHTML } from 'https://unpkg.com/diffhtml/runtime?module';
 // or
-import { innerHTML } from 'https://diffhtml.org/es/runtime';
-```
-
-### <a name="using-import-maps" href="#using-import-maps">Using import maps</a>
-
-[Import maps](https://github.com/WICG/import-maps) are a new new feature only
-available in modern Chrome which allow you to specify a configuration to import
-global names instead of using URLs or file paths directly.
-
-For instance, you can convert:
-
-```js
 import { innerHTML } from 'https://diffhtml.org/es';
 ```
-
-Into:
-
-```js
-import { innerHTML } from 'diffhtml';
-```
-
-Which will resolve to the same URL.
-
-This is accomplished by adding a script tag to your web application that
-specifies the configuration as JSON. And looks something like this:
-
-```html
-<script type="importmap">
-{
-  "imports": {
-    "diffhtml": "https://diffhtml.org/es",
-    "diffhtml/components": "https://diffhtml.org/master/diffhtml-components/dist/es"
-  }
-}
-</script>
-```
-
-Remember this is JSON so you cannot have trailing commas or use single quotes.
-It is also currently limited to being inline with the markup, it cannot be an
-external file.
 
 <a name="optimizing-builds"></a>
 

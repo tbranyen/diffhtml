@@ -7,30 +7,6 @@ used browser DOM APIs such as `innerHTML` and `addEventListener`.
 You can access any of the top-level API methods & properties by directly
 importing or deconstructing.
 
-**Using ES modules**
-
-``` js
-import { innerHTML, VERSION, use } from 'diffhtml';
-// or import the whole namespace
-import diff from 'diffhtml';
-```
-
-**Using CommonJS**
-
-``` js
-const { innerHTML, VERSION, use } = require('diffhtml');
-// or consolidate under a namespace
-const diff = require('diffhtml');
-```
-
-**Using browser globals**
-
-``` js
-const { innerHTML, VERSION, use } = window.diff;
-// or consolidate under a namespace
-const { diff } = window;
-```
-
 <a name="inner-html"></a>
 
 ---
@@ -47,10 +23,18 @@ control the entire tag, use [`outerHTML`](#outer-html).
 | Name        | Description
 | ----------- | -----------
 | **domNode** | The root DOM Node to change the child contents of, but not the element itself.
-| **markup**  | New markup to replace into the `domNode`. 
-| **options** | <ul><li><b>tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><b>parser:</b> Settings which influence the HTML parser, not available with the runtime build.</li></ul>
+| **markup**  | New markup to replace into **domNode**. 
+| **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><strong>parser:</strong> Settings which influence the HTML parser. No parser settings available in the runtime build.</li></ul>
 
-### Examples
+### Example
+
+``` js
+import { innerHTML } from 'diffhtml';
+
+innerHTML(document.body, `
+  <h1>Hello world!</h1>
+`);
+```
 
 <a name="outer-html"></a>
 
@@ -75,7 +59,7 @@ outerHTML(document.body, '<body>Hello world</body>');
 | ----------- | -----------
 | **domNode** | A DOM Node to change.
 | **markup**  | New markup to replace the entire `domNode` with. 
-| **options** | <ul><li><b>tasks:</b> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><b>parser:</b> Settings which influence the HTML parser, not available with the runtime build.</li></ul>
+| **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><strong>parser:</strong> Settings which influence the HTML parser, not available with the runtime build.</li></ul>
 
 
 <a name="html"></a>

@@ -189,7 +189,7 @@
           <h1>
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
-              <p class="name">diffHTML</p><sub>v1.0.0</sub>
+              <p class="name">diffHTML</p><sub>v1.0.0-beta.11</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
@@ -197,25 +197,17 @@
 
         <hr></hr>
 
-        <section id="content"><p><strong>Welcome to diffHTML!</strong> An opinionated UI framework designed to create
-reactive user interfaces. You can start using it quickly without much upfront
-knowledge, and opt-into more powerful features as you go.</p>
+        <section id="content"><p><strong>Welcome to diffHTML!</strong> A library that assists with creating user interfaces
+using JavaScript. These interfaces can be: applications, games, data
+visualizations, or anything else that you may want to render in a web browser.</p>
 <p><a name="hello-world"></a></p>
 <hr></hr>
 <h2 id="a-hrefhello-worldhello-worlda"><a href="#hello-world">Hello world!</a></h2>
-<p>With diffHTML, you are able to start building a reactive UI quickly, without
-needing lots of upfront knowledge. You are able to start gracefully and improve
-the integration as your requirements change, and harness more features.</p>
 <pre><code class="language-javascript">import { innerHTML } from &#39;https://diffhtml.org/es&#39;;
 
 innerHTML(document.body, `
   &lt;div&gt;Hello world!&lt;/div&gt;
 `);</code></pre>
-<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
-  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true" title="diffhtml-helloworld on Glitch" allow="geolocation; microphone; camera; midi; vr; encrypted-media" style="height: 100%; width: 100%; border: 0;">
-  </iframe>
-</div>
-
 <p><a name="core-features"></a></p>
 <hr></hr>
 <h2 id="a-hrefcore-featurescore-featuresa"><a href="#core-features">Core features</a></h2>
@@ -230,14 +222,8 @@ innerHTML(document.body, `
 <p><a name="getting-the-source"></a></p>
 <hr></hr>
 <h2 id="a-hrefgetting-the-sourcegetting-the-sourcea"><a href="#getting-the-source">Getting the source</a></h2>
-<p>There are two builds of diffHTML. The first and most common is the primary
-build which contains a lightweight HTML parser. It is slightly larger than the
-second build, which is referred to as the runtime build. This second build is
-meant for pairing with output that has been optimized with the Babel plugin.</p>
-<p>If you are just getting started, ignore the runtime build for now.</p>
 <p><a name="node-module"></a></p>
-<h3 id="a-hrefnode-modulenpmyarna"><a href="#node-module">npm/yarn</a></h3>
-<p>Use a JavaScript package manager to install locally.</p>
+<h3 id="a-hrefnode-modulepackage-managera"><a href="#node-module">Package manager</a></h3>
 <div id="install"></div>
 
 <ul>
@@ -253,21 +239,10 @@ meant for pairing with output that has been optimized with the Babel plugin.</p>
 <pre><code class="language-sh">yarn add diffhtml</code></pre>
 </li>
 </ul>
-<p>Now tools using the Node module resolution algorithm, like Node and webpack,
-can find diffHTML when it is attempted to be required.</p>
-<pre><code class="language-javascript">const { innerHTML } = require(&#39;diffhtml&#39;);</code></pre>
-<p>To load the runtime build use:</p>
-<pre><code class="language-javascript">const { innerHTML } = require(&#39;diffhtml/dist/cjs/runtime&#39;);</code></pre>
 <p><a name="using-script-tag"></a></p>
 <h3 id="a-hrefusing-script-tagscript-taga"><a href="#using-script-tag">Script tag</a></h3>
-<p>Use this tag in HTML to load diffHTML globally.</p>
 <pre><code class="language-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml.min.js&quot;&gt;&lt;/script&gt;
-
-&lt;script&gt;
-  diff.outerHTML(document.body, `&lt;body&gt;Hello world!&lt;/body&gt;`);
-&lt;/script&gt;</code></pre>
-<p>To load just the runtime:</p>
-<pre><code class="language-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+&lt;script&gt;console.log(window.diff);&lt;/script&gt;</code></pre>
 <p><a name="es-modules"></a></p>
 <h3 id="a-hrefes-moduleses-modulesa"><a href="#es-modules">ES modules</a></h3>
 <p>You can import diffHTML directly over HTTP using the ES modules syntax. This is
@@ -276,36 +251,8 @@ a new feature that isn&#39;t available in all browsers yet, but you can use them
       <a href="https://caniuse.com/#search=modules" target="_blank" rel="noopener noreferrer" title="null">safely in nearly all modern browsers</a>
     .</p>
 <pre><code class="language-javascript">import { innerHTML } from &#39;https://unpkg.com/diffhtml?module&#39;;
-// or 
-import { innerHTML } from &#39;https://diffhtml.org/es&#39;;</code></pre>
-<p>To load just the runtime:</p>
-<pre><code class="language-javascript">import { innerHTML } from &#39;https://unpkg.com/diffhtml/runtime?module&#39;;
 // or
-import { innerHTML } from &#39;https://diffhtml.org/es/runtime&#39;;</code></pre>
-<h3 id="a-nameusing-import-maps-hrefusing-import-mapsusing-import-mapsa"><a name="using-import-maps" href="#using-import-maps">Using import maps</a></h3>
-<p>
-      <a href="https://github.com/WICG/import-maps" target="_blank" rel="noopener noreferrer" title="null">Import maps</a>
-     are a new new feature only
-available in modern Chrome which allow you to specify a configuration to import
-global names instead of using URLs or file paths directly.</p>
-<p>For instance, you can convert:</p>
-<pre><code class="language-js">import { innerHTML } from &#39;https://diffhtml.org/es&#39;;</code></pre>
-<p>Into:</p>
-<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;</code></pre>
-<p>Which will resolve to the same URL.</p>
-<p>This is accomplished by adding a script tag to your web application that
-specifies the configuration as JSON. And looks something like this:</p>
-<pre><code class="language-html">&lt;script type=&quot;importmap&quot;&gt;
-{
-  &quot;imports&quot;: {
-    &quot;diffhtml&quot;: &quot;https://diffhtml.org/es&quot;,
-    &quot;diffhtml/components&quot;: &quot;https://diffhtml.org/master/diffhtml-components/dist/es&quot;
-  }
-}
-&lt;/script&gt;</code></pre>
-<p>Remember this is JSON so you cannot have trailing commas or use single quotes.
-It is also currently limited to being inline with the markup, it cannot be an
-external file.</p>
+import { innerHTML } from &#39;https://diffhtml.org/es&#39;;</code></pre>
 <p><a name="optimizing-builds"></a></p>
 <hr></hr>
 <h2 id="a-hrefoptimizing-buildsoptimizing-buildsa"><a href="#optimizing-builds">Optimizing builds</a></h2>
