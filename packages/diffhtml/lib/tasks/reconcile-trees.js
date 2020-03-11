@@ -15,6 +15,10 @@ export default function reconcileTrees(transaction) {
       unprotectVTree(state.oldTree);
     }
 
+    // Wipe out the existing root if it exists.
+    NodeCache.delete(state.oldTree);
+
+    // Reset the old tree with the newly created VTree association.
     state.oldTree = createTree(domNode);
     NodeCache.set(state.oldTree, domNode);
     protectVTree(state.oldTree);

@@ -34,6 +34,13 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
   if (input && isObject && 'parentNode' in input) {
+    let test = null;
+    NodeCache.forEach((key, val) => {
+      if (key === input) {
+        test = val;
+      }
+    });
+    if (test) { return test; }
     attributes = {};
     childNodes = [];
 
@@ -67,7 +74,12 @@ export default function createTree(input, attributes, childNodes, ...rest) {
         childNodes = [];
 
         for (let i = 0; i < input.childNodes.length; i++) {
-          childNodes.push(createTree(input.childNodes[i]));
+          if (input.childNodes[i].nodeName === '#text') {
+            childNodes.push(createTree(input.childNodes[i].cloneNode(true)));
+          }
+          else {
+            childNodes.push(createTree(input.childNodes[i]));
+          }
         }
       }
     }

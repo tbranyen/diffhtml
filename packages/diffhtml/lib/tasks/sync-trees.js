@@ -1,4 +1,4 @@
-import syncTree from '../tree/sync';
+import syncTree, { PATCH_TYPE } from '../tree/sync';
 import createNode from '../node/create';
 import { StateCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
@@ -18,13 +18,14 @@ export default function syncTrees(transaction) {
       throw new Error('Unable to replace top level node without a parent');
     }
 
-    transaction.patches = {
-      TREE_OPS: [{ REPLACE_CHILD: [newTree, oldTree] }],
-      SET_ATTRIBUTE: [],
-      REMOVE_ATTRIBUTE: [],
-      NODE_VALUE: [],
-    };
+    // Replace the top level elements.
+    transaction.patches = [
+      PATCH_TYPE.REPLACE_CHILD,
+      newTree,
+      oldTree,
+    ];
 
+    // Clean up the existing old tree, and mount the new tree.
     unprotectVTree(transaction.oldTree);
     transaction.oldTree = transaction.state.oldTree = newTree;
     protectVTree(transaction.oldTree);
@@ -35,7 +36,7 @@ export default function syncTrees(transaction) {
   }
   // Otherwise only diff the children.
   else {
-    transaction.patches = syncTree(oldTree, newTree);
+    transaction.patches = syncTree(oldTree, newTree, []);
   }
 
   measure('sync trees');

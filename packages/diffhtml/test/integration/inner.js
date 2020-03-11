@@ -38,6 +38,20 @@ describe('Integration: innerHTML', function() {
       const domNode = document.createElement('div');
       domNode.textContent = 'test';
 
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+      assert.equal(this.fixture.innerHTML, '<div>test</div>');
+
+      diff.innerHTML(this.fixture, diff.html`<p>before</p>${domNode}`);
+      assert.equal(this.fixture.innerHTML, '<p>before</p><div>test</div>');
+
+      diff.innerHTML(this.fixture, diff.html`${domNode}<p>after</p>`);
+      assert.equal(this.fixture.innerHTML, '<div>test</div><p>after</p>');
+    });
+
+    it('can re-render a wrapped dom node multiple times when interpolated', function() {
+      const domNode = document.createElement('div');
+      domNode.textContent = 'test';
+
       diff.innerHTML(this.fixture, diff.html`<div>${domNode}</div>`);
       assert.equal(this.fixture.innerHTML, '<div><div>test</div></div>');
 
@@ -45,7 +59,7 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.innerHTML, '<div><p>before</p><div><div>test</div></div></div>');
 
       diff.innerHTML(this.fixture, diff.html`<div>${domNode}<p>after</p></div>`);
-      assert.equal(this.fixture.firstChild.innerHTML, '<div>test</div><p>after</p>');
+      assert.equal(this.fixture.innerHTML, '<div><div>test</div><p>after</p></div>');
     });
   });
 

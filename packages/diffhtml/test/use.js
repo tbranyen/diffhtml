@@ -135,10 +135,8 @@ describe('Use (Middleware)', function() {
   it('will not diff children during blackboxing', () => {
     const oldTree = document.createElement('div');
 
-    oldTree.innerHTML = `
-      <h1>Updates</h1>
-      <span key="immutable">Does not update: ever</span>
-    `;
+    oldTree.innerHTML = `<h1>Updates</h1>
+      <span key="immutable">Does not update: ever</span>`;
 
     this.syncTreeHook = (oldTree, newTree) => {
       if (newTree.nodeName === 'span') {

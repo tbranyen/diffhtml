@@ -28,7 +28,9 @@ export default function createNode(vTree, ownerDocument = document, isSVG) {
 
   const existingNode = NodeCache.get(vTree);
 
-  // If the DOM Node was already created, reuse the existing node.
+  // If the DOM Node was already created, reuse the existing node. This is
+  // required to ensure that passed in DOM Nodes are preserved, and to ensure
+  // that elements are not constantly created with the same VTree instance.
   if (existingNode) {
     return existingNode;
   }

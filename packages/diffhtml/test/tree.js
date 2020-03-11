@@ -7,7 +7,7 @@ import {
   doesNotThrow,
 } from 'assert';
 import createTree from '../lib/tree/create';
-import syncTree from '../lib/tree/sync';
+import syncTree, { PATCH_TYPE } from '../lib/tree/sync';
 import { SyncTreeHookCache } from '../lib/util/caches';
 import parse from '../lib/util/parse';
 import validateMemory from './util/validateMemory';
@@ -541,12 +541,7 @@ describe('Tree', function() {
 
       const patches = syncTree(oldTree, newTree);
 
-      deepEqual(patches, {
-        TREE_OPS: [],
-        NODE_VALUE: [],
-        SET_ATTRIBUTE: [],
-        REMOVE_ATTRIBUTE: [],
-      });
+      deepEqual(patches, []);
     });
 
     it('will not error if the new tree is a document fragment', () => {
@@ -556,6 +551,63 @@ describe('Tree', function() {
       doesNotThrow(() =>  syncTree(oldTree, newTree));
     });
 
+    it('will support DOM Node comparisons', () => {
+      const domNode = document.createElement('div');
+      const domTree = createTree(domNode);
+      const fixture = createTree('div');
+      const firstPass = createTree('div', [domTree]);
+
+      const firstPassPatches = syncTree(fixture, firstPass);
+
+      deepEqual(firstPassPatches, [
+        PATCH_TYPE.INSERT_BEFORE,
+        fixture,
+        domTree,
+        null,
+      ]);
+
+      const p = createTree('p', 'before');
+      const secondPass = createTree('div', [p, domTree]);
+      const secondPassPatches = syncTree(fixture, secondPass);
+
+      deepEqual(secondPassPatches, [
+        PATCH_TYPE.REPLACE_CHILD,
+        p,
+        domTree,
+
+        PATCH_TYPE.NODE_VALUE,
+        createTree('#text', 'before'),
+        'before',
+        null,
+
+        PATCH_TYPE.INSERT_BEFORE,
+        fixture,
+        domTree,
+        null,
+      ]);
+
+      const newDomTree = createTree(domNode);
+
+      const thirdPass = createTree('div', [newDomTree, p]);
+      const thirdPassPatches = syncTree(secondPass, thirdPass);
+
+      deepEqual(thirdPassPatches, [
+        PATCH_TYPE.REPLACE_CHILD,
+        newDomTree,
+        p,
+
+        PATCH_TYPE.INSERT_BEFORE,
+        secondPass,
+        p,
+        null,
+
+        PATCH_TYPE.NODE_VALUE,
+        createTree('#text', 'before'),
+        'before',
+        null,
+      ]);
+    });
+
     describe('Attributes', () => {
       it('will detect attribute/prop addition', () => {
         const oldTree = createTree('div');
@@ -563,12 +615,12 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [oldTree, 'id', 'test-id'],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'id',
+          'test-id',
+        ]);
       });
 
       it('will detect multiple attribute/prop additions', () => {
@@ -580,15 +632,17 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [
-            oldTree, 'id', 'test-id',
-            oldTree, 'class', 'test-class',
-          ],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'id',
+          'test-id',
+
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'class',
+          'test-class',
+        ]);
       });
 
       it('will detect multiple mixed type attribute/prop additions', () => {
@@ -600,15 +654,17 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [
-            oldTree, 'id', 'test-id',
-            oldTree, 'style', { fontWeight: 'bold' },
-          ],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'id',
+          'test-id',
+
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'style',
+          { fontWeight: 'bold' },
+        ]);
       });
 
       it('will detect the key attribute and apply to the tree', () => {
@@ -617,14 +673,12 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [
-            oldTree, 'key', 'test-key',
-          ],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'key',
+          'test-key',
+        ]);
 
         equal(newTree.key, 'test-key');
       });
@@ -635,14 +689,12 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [
-            oldTree, 'id', 'test-two',
-          ],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'id',
+          'test-two',
+        ]);
 
         equal(oldTree.attributes.id, 'test-two');
       });
@@ -653,14 +705,12 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [
-            oldTree, 'style', { fontWeight: 'bold' },
-          ],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'style',
+          { fontWeight: 'bold' },
+        ]);
 
         equal(oldTree.attributes.style, newTree.attributes.style);
       });
@@ -671,14 +721,11 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [
-            oldTree, 'style',
-          ],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.REMOVE_ATTRIBUTE,
+          oldTree,
+          'style',
+        ]);
 
         equal(oldTree.attributes.hasOwnProperty('style'), false);
       });
@@ -689,15 +736,15 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [
-            oldTree, 'id',
-            oldTree, 'style',
-          ],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.REMOVE_ATTRIBUTE,
+          oldTree,
+          'id',
+
+          PATCH_TYPE.REMOVE_ATTRIBUTE,
+          oldTree,
+          'style',
+        ]);
 
         equal(oldTree.attributes.hasOwnProperty('style'), false);
         equal(oldTree.attributes.hasOwnProperty('id'), false);
@@ -708,12 +755,12 @@ describe('Tree', function() {
         const newTree = createTree('div', { autofocus: '' });
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [oldTree, 'autofocus', ''],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.SET_ATTRIBUTE,
+          oldTree,
+          'autofocus',
+          '',
+        ]);
       });
 
       it('will not generate patches when returning old element', () => {
@@ -733,12 +780,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, []);
 
         SyncTreeHookCache.delete(hook);
       });
@@ -781,20 +823,17 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: [
-                oldTree, newTree.childNodes[0], referenceNode,
-              ],
-              REMOVE_CHILD: null,
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [
-              newTree.childNodes[0], 'key', '1',
-            ],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.SET_ATTRIBUTE,
+            newTree.childNodes[0],
+            'key',
+            '1',
+
+            PATCH_TYPE.INSERT_BEFORE,
+            oldTree,
+            newTree.childNodes[0],
+            referenceNode,
+          ]);
         });
 
         it('will prepend elements', () => {
@@ -808,22 +847,27 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: [
-                oldTree, newTree.childNodes[0], referenceNode,
-                oldTree, newTree.childNodes[1], referenceNode,
-              ],
-              REMOVE_CHILD: null,
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [
-              newTree.childNodes[0], 'key', '1',
-              newTree.childNodes[1], 'key', '2',
-            ],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.SET_ATTRIBUTE,
+            newTree.childNodes[0],
+            'key',
+            '1',
+
+            PATCH_TYPE.INSERT_BEFORE,
+            oldTree,
+            newTree.childNodes[0],
+            referenceNode,
+
+            PATCH_TYPE.SET_ATTRIBUTE,
+            newTree.childNodes[1],
+            'key',
+            '2',
+
+            PATCH_TYPE.INSERT_BEFORE,
+            oldTree,
+            newTree.childNodes[1],
+            referenceNode,
+          ]);
         });
 
         it('will append an element if no reference node is available', () => {
@@ -834,20 +878,17 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: [
-                oldTree, newTree.childNodes[0], null,
-              ],
-              REMOVE_CHILD: null,
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [
-              newTree.childNodes[0], 'key', '0',
-            ],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.INSERT_BEFORE,
+            oldTree,
+            newTree.childNodes[0],
+            null,
+
+            PATCH_TYPE.SET_ATTRIBUTE,
+            newTree.childNodes[0],
+            'key',
+            '0',
+          ]);
         });
 
         it('will prepend and append elements', () => {
@@ -861,22 +902,27 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: [
-                oldTree, newTree.childNodes[0], referenceNode,
-                oldTree, newTree.childNodes[2], null,
-              ],
-              REMOVE_CHILD: null,
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [
-              newTree.childNodes[0], 'key', '0',
-              newTree.childNodes[2], 'key', '2',
-            ],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.SET_ATTRIBUTE,
+            newTree.childNodes[0],
+            'key',
+            '0',
+
+            PATCH_TYPE.INSERT_BEFORE,
+            oldTree,
+            newTree.childNodes[0],
+            referenceNode,
+
+            PATCH_TYPE.INSERT_BEFORE,
+            oldTree,
+            newTree.childNodes[2],
+            null,
+
+            PATCH_TYPE.SET_ATTRIBUTE,
+            newTree.childNodes[2],
+            'key',
+            '2',
+          ]);
         });
       });
 
@@ -889,20 +935,16 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: null,
-              REMOVE_CHILD: null,
-              REPLACE_CHILD: [
-                b, a,
-              ],
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [
-              b, 'key', 'b'
-            ],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.REPLACE_CHILD,
+            b,
+            a,
+
+            PATCH_TYPE.SET_ATTRIBUTE,
+            b,
+            'key',
+            'b',
+          ]);
         });
 
         it('will replace multiple elements if keys are different', () => {
@@ -915,22 +957,25 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: null,
-              REMOVE_CHILD: null,
-              REPLACE_CHILD: [
-                c, a,
-                d, b,
-              ],
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [
-              c, 'key', 'c',
-              d, 'key', 'd',
-            ],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.REPLACE_CHILD,
+            c,
+            a,
+
+            PATCH_TYPE.SET_ATTRIBUTE,
+            c,
+            'key',
+            'c',
+
+            PATCH_TYPE.REPLACE_CHILD,
+            d,
+            b,
+
+            PATCH_TYPE.SET_ATTRIBUTE,
+            d,
+            'key',
+            'd',
+          ]);
         });
 
         it('will replace elements if they are of different types', () => {
@@ -941,16 +986,16 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: null,
-              REMOVE_CHILD: null,
-              REPLACE_CHILD: [b, a],
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [b, 'key', 'a'],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.REPLACE_CHILD,
+            b,
+            a,
+
+            PATCH_TYPE.SET_ATTRIBUTE,
+            b,
+            'key',
+            'a',
+          ]);
         });
       });
 
@@ -967,16 +1012,10 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: null,
-              REMOVE_CHILD: [toRemove],
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemove,
+          ]);
         });
 
         it('will remove elements from the top', () => {
@@ -993,16 +1032,13 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: null,
-              REMOVE_CHILD: [toRemoveOne, toRemoveTwo],
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemoveOne,
+
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemoveTwo,
+          ]);
         });
 
         it('will remove an element between nodes', () => {
@@ -1019,16 +1055,10 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: null,
-              REMOVE_CHILD: [toRemove],
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemove,
+          ]);
         });
 
         it('will remove elements from between nodes', () => {
@@ -1047,16 +1077,13 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: null,
-              REMOVE_CHILD: [toRemoveOne, toRemoveTwo],
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemoveOne,
+
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemoveTwo,
+          ]);
         });
 
         it('will remove and reorder elements', () => {
@@ -1073,16 +1100,15 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, {
-            TREE_OPS: [{
-              INSERT_BEFORE: [oldTree, first, second],
-              REMOVE_CHILD: [toRemove],
-              REPLACE_CHILD: null,
-            }],
-            NODE_VALUE: [],
-            SET_ATTRIBUTE: [],
-            REMOVE_ATTRIBUTE: [],
-          });
+          deepEqual(patches, [
+            PATCH_TYPE.INSERT_BEFORE,
+            oldTree,
+            first,
+            second,
+
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemove,
+          ]);
         });
       });
     });
@@ -1094,16 +1120,12 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [{
-            INSERT_BEFORE: [oldTree, newTree.childNodes[0], null],
-            REMOVE_CHILD: null,
-            REPLACE_CHILD: null,
-          }],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.INSERT_BEFORE,
+          oldTree,
+          newTree.childNodes[0],
+          null
+        ]);
       });
 
       it('will detect multiple new elements', () => {
@@ -1115,19 +1137,17 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [{
-            INSERT_BEFORE: [
-              oldTree, newTree.childNodes[0], null,
-              oldTree, newTree.childNodes[1], null,
-            ],
-            REMOVE_CHILD: null,
-            REPLACE_CHILD: null,
-          }],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.INSERT_BEFORE,
+          oldTree,
+          newTree.childNodes[0],
+          null,
+
+          PATCH_TYPE.INSERT_BEFORE,
+          oldTree,
+          newTree.childNodes[1],
+          null,
+        ]);
       });
 
       it('will remove old elements', () => {
@@ -1142,16 +1162,10 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [{
-            INSERT_BEFORE: null,
-            REMOVE_CHILD: [toRemove],
-            REPLACE_CHILD: null,
-          }],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.REMOVE_CHILD,
+          toRemove,
+        ]);
       });
 
       it('will replace changed elements', () => {
@@ -1165,16 +1179,11 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [{
-            INSERT_BEFORE: null,
-            REMOVE_CHILD: null,
-            REPLACE_CHILD: [newTree.childNodes[0], toReplace],
-          }],
-          NODE_VALUE: [],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.REPLACE_CHILD,
+          newTree.childNodes[0],
+          toReplace,
+        ]);
       });
     });
 
@@ -1185,12 +1194,12 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [oldTree, 'test-text-two', 'test-test'],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.NODE_VALUE,
+          oldTree,
+          'test-text-two',
+          'test-test',
+        ]);
       });
 
       it('will not decode entities until patch', () => {
@@ -1199,12 +1208,12 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, {
-          TREE_OPS: [],
-          NODE_VALUE: [oldTree, '&gla;', 'test-test'],
-          SET_ATTRIBUTE: [],
-          REMOVE_ATTRIBUTE: [],
-        });
+        deepEqual(patches, [
+          PATCH_TYPE.NODE_VALUE,
+          oldTree,
+          '&gla;',
+          'test-test',
+        ]);
       });
     });
   });

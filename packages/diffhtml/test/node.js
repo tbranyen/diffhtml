@@ -1,6 +1,7 @@
 import { ok, equal, throws } from 'assert';
 import createNode from '../lib/node/create';
 import patchNode from '../lib/node/patch';
+import { PATCH_TYPE } from '../lib/tree/sync';
 import html from '../lib/html';
 import validateMemory from './util/validateMemory';
 
@@ -112,12 +113,12 @@ describe('Node', function() {
       const vTree = html`<div />`;
       const domNode = createNode(vTree);
 
-      const patches = {
-        TREE_OPS: [],
-        NODE_VALUE: [],
-        SET_ATTRIBUTE: [vTree, 'style', styles],
-        REMOVE_ATTRIBUTE: [],
-      };
+      const patches = [
+        PATCH_TYPE.SET_ATTRIBUTE,
+        vTree,
+        'style',
+        styles,
+      ];
 
       patchNode(patches);
 
@@ -128,12 +129,12 @@ describe('Node', function() {
       const vTree = html`<div />`;
       const domNode = createNode(vTree);
 
-      const patches = {
-        TREE_OPS: [],
-        NODE_VALUE: [],
-        SET_ATTRIBUTE: [vTree, 'autofocus', ''],
-        REMOVE_ATTRIBUTE: [],
-      };
+      const patches = [
+        PATCH_TYPE.SET_ATTRIBUTE,
+        vTree,
+        'autofocus',
+        '',
+      ];
 
       patchNode(patches);
 
