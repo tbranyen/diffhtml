@@ -198,9 +198,9 @@ export default function syncTree(
 
       // If there is no old element to compare to, this is a simple addition.
       if (!oldChildNode) {
-        patches.push(PATCH_TYPE.INSERT_BEFORE, oldTree, newChildNode, null);
         oldChildNodes.push(newChildNode);
         syncTree(null, newChildNode, patches, newTree);
+        patches.push(PATCH_TYPE.INSERT_BEFORE, oldTree, newChildNode, null);
 
         continue;
       }
@@ -216,10 +216,10 @@ export default function syncTree(
 
       // Remove the old Node and insert the new node (aka replace).
       if (!oldInNew && !newInOld) {
-        // FIXME Ensure we are only comparing elements with actual keys.
-        patches.push(PATCH_TYPE.REPLACE_CHILD, newChildNode, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
         syncTree(null, newChildNode, patches, newTree);
+
+        patches.push(PATCH_TYPE.REPLACE_CHILD, newChildNode, oldChildNode);
 
         continue;
       }
@@ -255,6 +255,7 @@ export default function syncTree(
           optimalNewNode,
           oldChildNode,
         );
+
         oldChildNodes.splice(i, 0, optimalNewNode);
         continue;
       }
@@ -262,15 +263,15 @@ export default function syncTree(
       // If the element we're replacing is totally different from the previous
       // replace the entire element, don't bother investigating children.
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
+        oldTree.childNodes[i] = newChildNode;
+
+        syncTree(null, newChildNode, patches, newTree);
+
         patches.push(
           PATCH_TYPE.REPLACE_CHILD,
           newChildNode,
           oldChildNode,
         );
-
-        oldTree.childNodes[i] = newChildNode;
-
-        syncTree(null, newChildNode, patches, newTree);
 
         continue;
       }
@@ -288,6 +289,12 @@ export default function syncTree(
 
       // If there is no old element to compare to, this is a simple addition.
       if (!oldChildNode) {
+        if (oldChildNodes) {
+          oldChildNodes.push(newChildNode);
+        }
+
+        syncTree(oldChildNode, newChildNode, patches, oldTree);
+
         patches.push(
           PATCH_TYPE.INSERT_BEFORE,
           oldTree,
@@ -295,24 +302,12 @@ export default function syncTree(
           null,
         );
 
-        if (oldChildNodes) {
-          oldChildNodes.push(newChildNode);
-        }
-
-        syncTree(oldChildNode, newChildNode, patches, oldTree);
-
         continue;
       }
 
       // If the element we're replacing is totally different from the previous
       // replace the entire element, don't bother investigating children.
       if (oldChildNode.nodeName !== newChildNode.nodeName) {
-        patches.push(
-          PATCH_TYPE.REPLACE_CHILD,
-          newChildNode,
-          oldChildNode,
-        );
-
         // FIXME Calling this out specifically as a special case since we
         // have conflicting requirements between synchronization and how
         // components handle reconcilation. We basically don't want to dig
@@ -333,6 +328,12 @@ export default function syncTree(
         }
 
         syncTree(null, newChildNode, patches, oldTree, oldChildNodes[i]);
+
+        patches.push(
+          PATCH_TYPE.REPLACE_CHILD,
+          newChildNode,
+          oldChildNode,
+        );
 
         continue;
       }
