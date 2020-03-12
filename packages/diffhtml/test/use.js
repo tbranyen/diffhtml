@@ -135,13 +135,15 @@ describe('Use (Middleware)', function() {
   it('will not diff children during blackboxing', () => {
     const oldTree = document.createElement('div');
 
-    oldTree.innerHTML = `<h1>Updates</h1>
-      <span key="immutable">Does not update: ever</span>`;
+    // Issue with text element during diff, this test will pass if the whitespace
+    // is removed.
+    oldTree.innerHTML = `
+      <h1>Updates</h1>
+      <span key="immutable">Does not update: ever</span>
+    `;
 
     this.syncTreeHook = (oldTree, newTree) => {
-      if (newTree.nodeName === 'span') {
-        return oldTree;
-      }
+      return newTree.nodeName === 'span' ? oldTree : undefined;
     };
 
     innerHTML(oldTree, html`
@@ -149,8 +151,10 @@ describe('Use (Middleware)', function() {
       <span key="immutable">Does not update: ${new Date().getSeconds()}</span>
     `);
 
-    equal(oldTree.outerHTML, `<div><h1>Updates</h1>
-      <span key="immutable">Does not update: ever</span></div>`);
+    equal(oldTree.innerHTML, `
+      <h1>Updates</h1>
+      <span key="immutable">Does not update: ever</span>
+    `);
 
     release(oldTree);
   });

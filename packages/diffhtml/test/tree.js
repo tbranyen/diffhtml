@@ -10,6 +10,7 @@ import createTree from '../lib/tree/create';
 import syncTree, { PATCH_TYPE } from '../lib/tree/sync';
 import { SyncTreeHookCache } from '../lib/util/caches';
 import parse from '../lib/util/parse';
+import html from '../lib/html';
 import validateMemory from './util/validateMemory';
 
 describe('Tree', function() {
@@ -606,6 +607,28 @@ describe('Tree', function() {
         'before',
         null,
       ]);
+    });
+
+    it('will support dom element comparisons with whitespace, should have no diff', () => {
+      const domNode = document.createElement('div');
+
+      // Issue with text element during diff, this test will pass if the whitespace
+      // is removed.
+      domNode.innerHTML = `
+        <h1>Element 1</h1>
+        <span>Element 2</span>
+      `;
+
+      const oldTree = createTree(domNode);
+
+      const newTree = html`
+        <h1>Element 1</h1>
+        <span>Element 2</span>
+      `;
+
+      const patches = syncTree(oldTree, newTree);
+
+      deepEqual(patches, []);
     });
 
     describe('Attributes', () => {

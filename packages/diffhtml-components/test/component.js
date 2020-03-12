@@ -20,8 +20,8 @@ describe.skip('Component implementation', function() {
     validateCaches();
   });
 
-  describe('Function components', () => {
-    it('can render a virtual tree', () => {
+  describe.skip('Function components', () => {
+    it('will render a virtual tree', () => {
       const CustomComponent = () => html`
         <div>Hello world</div>
       `;
@@ -31,7 +31,7 @@ describe.skip('Component implementation', function() {
       equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
     });
 
-    it('can render a dom node', () => {
+    it('will render a dom node', () => {
       const CustomComponent = () => assign(document.createElement('div'), {
         innerHTML: 'Hello world',
       });
@@ -41,7 +41,7 @@ describe.skip('Component implementation', function() {
       equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
     });
 
-    it('can render an array of virtual trees', () => {
+    it('will render an array of virtual trees', () => {
       const CustomComponent = () => [
         html`<div>Hello</div>`, html`<span>world</span>`
       ];
@@ -51,7 +51,7 @@ describe.skip('Component implementation', function() {
       equal(this.fixture.outerHTML, '<div><div>Hello</div><span>world</span></div>');
     });
 
-    it('can pass props', () => {
+    it('will pass props', () => {
       const CustomComponent = ({ key }) => html`
         <div>${key}</div>
       `;
@@ -61,7 +61,7 @@ describe.skip('Component implementation', function() {
       equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
     });
 
-    it('can update props', async () => {
+    it('will update props', async () => {
       const CustomComponent = ({ key }) => html`
         <div>${key}</div>
       `;
@@ -72,7 +72,7 @@ describe.skip('Component implementation', function() {
       equal(this.fixture.outerHTML, '<div><div>To you!</div></div>');
     });
 
-    it('can render a nested component and forward props', async () => {
+    it('will render a nested component and forward props', async () => {
       const NestedComponent = ({ key }) => html`${key}`;
 
       const CustomComponent = props => html`
@@ -84,10 +84,88 @@ describe.skip('Component implementation', function() {
 
       equal(this.fixture.outerHTML, '<div><div>To you!</div></div>');
     });
+
+    it.skip('will render a component tree: component / component / component', () => {
+      function parent() {
+        return html`<${self} />`;
+      }
+
+      function self() {
+        return html`<${child} />`;
+      }
+
+      function child() {
+        return html`<${nested} />`;
+      }
+
+      function nested() {
+        return html`
+          <div>Hello world</div>
+        `;
+      }
+
+      innerHTML(this.fixture, html`<${parent} />`);
+
+      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+    });
+
+    it.skip('will render a component tree: component / component / dom', () => {
+      function parent() {
+        return html`<${self} />`;
+      }
+
+      function self() {
+        return html`<${child} />`;
+      }
+
+      function child() {
+        return html`<div>Hello world</div>`;
+      }
+
+      innerHTML(this.fixture, html`<${parent} />`);
+
+      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+    });
+
+    it('will render a component tree: component / dom / dom', () => {
+      function parent() {
+        return html`<${self} />`;
+      }
+
+      function self() {
+        return html`<div><${child} /></div>`;
+      }
+
+      function child() {
+        return html`<div>Hello world</div>`;
+      }
+
+      innerHTML(this.fixture, html`<${parent} />`);
+
+      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+    });
+
+    it('will render a component tree: dom / dom / dom', () => {
+      function parent() {
+        return html`<div><${self} /></div>`;
+      }
+
+      function self() {
+        return html`<div><${child} /></div>`;
+      }
+
+      function child() {
+        return html`<div>Hello world</div>`;
+      }
+
+      innerHTML(this.fixture, html`<${parent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div><div><div>Hello world</div></div></div></div>');
+    });
   });
 
   describe('Class components', () => {
-    it('can render a virtual tree', () => {
+    it('will render a virtual tree', () => {
       class CustomComponent {
         render() {
           return html`
@@ -101,7 +179,7 @@ describe.skip('Component implementation', function() {
       equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
     });
 
-    it('can trigger mount for a component', () => {
+    it('will trigger mount for a component', () => {
       let hit = 0;
 
       class CustomComponent {
@@ -121,7 +199,7 @@ describe.skip('Component implementation', function() {
       equal(hit, 1);
     });
 
-    it('can trigger unmount for a component', () => {
+    it('will trigger unmount for a component', () => {
       let hit = 0;
 
       class CustomComponent {
@@ -142,7 +220,7 @@ describe.skip('Component implementation', function() {
       equal(hit, 1);
     });
 
-    it('can trigger unmount for a component', () => {
+    it('will trigger unmount for a component', () => {
       let hit = 0;
 
       class CustomComponent {
@@ -163,7 +241,7 @@ describe.skip('Component implementation', function() {
       equal(hit, 1);
     });
 
-    it('can trigger should component update for a component', () => {
+    it('will trigger should component update for a component', () => {
       let hit = 0;
 
       class CustomComponent {
@@ -184,7 +262,7 @@ describe.skip('Component implementation', function() {
       equal(hit, 1);
     });
 
-    it('can prevent render with should component update', () => {
+    it('will prevent render with should component update', () => {
       let hit = 0;
 
       class CustomComponent {
@@ -208,7 +286,7 @@ describe.skip('Component implementation', function() {
     });
   });
 
-  it('can render a component', () => {
+  it('will render a component', () => {
     class CustomComponent extends Component {
       render() {
         return html`
@@ -222,7 +300,7 @@ describe.skip('Component implementation', function() {
     equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
   });
 
-  it('can return multiple top level elements', () => {
+  it('will return multiple top level elements', () => {
     class CustomComponent extends Component {
       render() {
         return html`
@@ -237,7 +315,7 @@ describe.skip('Component implementation', function() {
     equal(this.fixture.innerHTML, `<div>Hello world</div>\n          <p>Test</p>`);
   });
 
-  it('can have a component return a component aka HoC', () => {
+  it('will have a component return a component aka HoC', () => {
     class CustomComponent extends Component {
       render({ message }) {
         return html`${message}`;
@@ -259,7 +337,7 @@ describe.skip('Component implementation', function() {
     equal(this.fixture.outerHTML, '<div><b>Hello world</b></div>');
   });
 
-  it('can have a series of HoC', () => {
+  it('will have a series of HoC', () => {
     class CustomComponent extends Component {
       render({ message }) {
         return html`${message}`;
@@ -290,7 +368,7 @@ describe.skip('Component implementation', function() {
   });
 
   describe('Lifecycle', () => {
-    it('can map to componentDidMount', () => {
+    it('will map to componentDidMount', () => {
       let wasCalled = false;
 
       class CustomComponent extends Component {
@@ -308,7 +386,7 @@ describe.skip('Component implementation', function() {
       ok(wasCalled);
     });
 
-    it('can map to componentWillUnmount', () => {
+    it('will map to componentWillUnmount', () => {
       let wasCalled = false;
 
       class CustomComponent extends Component {
@@ -327,7 +405,7 @@ describe.skip('Component implementation', function() {
       ok(wasCalled);
     });
 
-    it('can block rendering with shouldComponentUpdate', () => {
+    it('will block rendering with shouldComponentUpdate', () => {
       let wasCalled = false;
       let counter = 0;
 
@@ -358,7 +436,7 @@ describe.skip('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it('can map to componentWillReceiveProps', () => {
+    it('will map to componentWillReceiveProps', () => {
       let wasCalled = false;
       let counter = 0;
 
@@ -384,7 +462,7 @@ describe.skip('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it('can map root changes to componentDidUpdate', () => {
+    it('will map root changes to componentDidUpdate', () => {
       let wasCalled = false;
       let counter = 0;
 
@@ -410,7 +488,7 @@ describe.skip('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it('can map state changes from forceUpdate to componentDidUpdate', () => {
+    it('will map state changes from forceUpdate to componentDidUpdate', () => {
       let wasCalled = false;
       let counter = 0;
       let ref = null;
@@ -444,7 +522,7 @@ describe.skip('Component implementation', function() {
   });
 
   describe('Props', () => {
-    it('can set simple string', () => {
+    it('will set simple string', () => {
       class CustomComponent extends Component {
         render() {
           return html`<div />`;
@@ -456,7 +534,7 @@ describe.skip('Component implementation', function() {
       equal(vTree.attributes.test, 'true');
     });
 
-    it('can set complex object', () => {
+    it('will set complex object', () => {
       class CustomComponent extends Component {
         render() {
           return html`<div />`;
@@ -469,7 +547,7 @@ describe.skip('Component implementation', function() {
       equal(vTree.attributes.test, ref);
     });
 
-    it('can warn if missing proptypes in development', () => {
+    it('will warn if missing proptypes in development', () => {
       class CustomComponent extends Component {
         render() {
           return html`<div />`;
@@ -490,7 +568,7 @@ describe.skip('Component implementation', function() {
       ok(logCalled);
     });
 
-    it('cannot throw if missing proptypes in production', () => {
+    it('willnot throw if missing proptypes in production', () => {
       process.env.NODE_ENV = 'production';
 
       class CustomComponent extends Component {
@@ -506,7 +584,7 @@ describe.skip('Component implementation', function() {
       doesNotThrow(() => innerHTML(this.fixture, html`<${CustomComponent} />`));
     });
 
-    it('can interpolate an object', () => {
+    it('will interpolate an object', () => {
       class CustomComponent extends Component {
         render(props) {
           return html`<div ${props} />`;
@@ -521,7 +599,7 @@ describe.skip('Component implementation', function() {
   });
 
   describe('Refs', () => {
-    it('can invoke a ref attribute on a Component', () => {
+    it('will invoke a ref attribute on a Component', () => {
       let refNode = null;
 
       class CustomComponent extends Component {
@@ -537,7 +615,7 @@ describe.skip('Component implementation', function() {
       ok(refNode);
     });
 
-    it('can invoke a ref attribute on a DOM Node', () => {
+    it('will invoke a ref attribute on a DOM Node', () => {
       let refNode = null;
       let count = 0;
 
@@ -583,7 +661,7 @@ describe.skip('Component implementation', function() {
       equal(typeof state, 'object');
     });
 
-    it('can set state in constructor', () => {
+    it('will set state in constructor', () => {
       class CustomComponent extends Component {
         render() {
           const { message } = this.state;
@@ -600,7 +678,7 @@ describe.skip('Component implementation', function() {
       equal(this.fixture.innerHTML, 'default');
     });
 
-    it('can call setState to re-render the component', () => {
+    it('will call setState to re-render the component', () => {
       class CustomComponent extends Component {
         render() {
           const { message } = this.state;
@@ -622,7 +700,7 @@ describe.skip('Component implementation', function() {
       equal(this.fixture.innerHTML, 'something');
     });
 
-    it('can update with setState', () => {
+    it('will update with setState', () => {
       let wasCalled = false;
       let counter = 0;
 
@@ -657,7 +735,7 @@ describe.skip('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it.skip('can update multiple top level elements with setState', () => {
+    it.skip('will update multiple top level elements with setState', () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -687,7 +765,7 @@ describe.skip('Component implementation', function() {
   });
 
   describe('forceUpdate', () => {
-    it('can set state manually and call forceUpdate', () => {
+    it('will set state manually and call forceUpdate', () => {
       class CustomComponent extends Component {
         render() {
           const { message } = this.state;
@@ -712,7 +790,7 @@ describe.skip('Component implementation', function() {
   });
 
   describe('Context', () => {
-    it('can inherit context from a parent component', () => {
+    it('will inherit context from a parent component', () => {
       class ChildComponent extends Component {
         render() {
           return html`${this.context.message}`;
@@ -738,7 +816,7 @@ describe.skip('Component implementation', function() {
   });
 
   describe.skip('HOC', () => {
-    it('can support a component that returns a new component', () => {
+    it('will support a component that returns a new component', () => {
       let didMount = 0;
 
       class CustomComponent extends Component {

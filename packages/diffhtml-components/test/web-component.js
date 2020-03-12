@@ -19,10 +19,10 @@ describe.skip('Web Component', function() {
     release(this.fixture);
     WebComponent.unsubscribeMiddleware();
     document.body.removeChild(this.fixture);
-    //validateCaches();
+    validateCaches();
   });
 
-  it('can make a component', () => {
+  it('will make a component', () => {
     class CustomComponent extends WebComponent {
       render() {
         return html`
@@ -41,7 +41,7 @@ describe.skip('Web Component', function() {
   });
 
   describe('Props', () => {
-    it('can pass properties to constructor', () => {
+    it('will pass properties to constructor', () => {
       let ctorMessage = null;
 
       class CustomComponent extends WebComponent {
@@ -64,7 +64,7 @@ describe.skip('Web Component', function() {
       equal(ctorMessage, 'Test');
     });
 
-    it('can pass children in properties to constructor', () => {
+    it('will pass children in properties to constructor', () => {
       let children = null;
 
       class CustomComponent extends WebComponent {
@@ -96,7 +96,7 @@ describe.skip('Web Component', function() {
   });
 
   describe('JSX Compatibility', () => {
-    it('can render JSX', () => {
+    it('will render JSX', () => {
       customElements.define('jsx-test', class extends WebComponent {
         render() {
           return (
@@ -114,7 +114,7 @@ describe.skip('Web Component', function() {
       equal(this.fixture.innerHTML, '<jsx-test></jsx-test>');
     });
 
-    it('can render JSX with props', () => {
+    it('will render JSX with props', () => {
       customElements.define('jsx-test', class extends WebComponent {
         render() {
           const { message } = this.props;
@@ -139,8 +139,8 @@ describe.skip('Web Component', function() {
     });
   });
 
-  describe('Stateful components', () => {
-    it('can re-render with setState', () => {
+  describe.skip('Stateful components', () => {
+    it('will re-render with setState', () => {
       let ref = null;
 
       customElements.define('stateful-test', class extends WebComponent {

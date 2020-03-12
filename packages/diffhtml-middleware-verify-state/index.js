@@ -127,7 +127,7 @@ const compareTrees = (options, transaction, oldTree, newTree, verifyTree) => {
 
     for (let i = 0; i < oldTree.childNodes.length; i++) {
       if (oldTree.childNodes[i] && newTree.childNodes[i]) {
-        compareTrees(options, transaction, oldTree.childNodes[i], newTree.childNodes[i]);
+        compareTrees(options, transaction, oldTree.childNodes[i], newTree.childNodes[i], verifyTree);
       }
     }
   }
