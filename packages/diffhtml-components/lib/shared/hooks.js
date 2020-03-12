@@ -5,7 +5,7 @@ import getContext from './get-context';
 
 const { assign } = Object;
 
-const render = (oldTree, newTree) => {
+function render(oldTree, newTree) {
   const oldComponentTree = ComponentTreeCache.get(oldTree);
 
   if (!oldComponentTree) {
@@ -16,7 +16,7 @@ const render = (oldTree, newTree) => {
 
     return renderComponent(oldComponentTree, getContext(oldTree));
   }
-};
+}
 
 export const releaseHook = vTree => componentWillUnmount(vTree);
 
@@ -32,20 +32,21 @@ export const createNodeHook = vTree => {
 };
 
 export const syncTreeHook = (oldTree, newTree) => {
+  // When child is a Component
   if (typeof newTree.rawNodeName === 'function') {
     return render(oldTree, newTree);
   }
-  else {
-    for (let i = 0; i < newTree.childNodes.length; i++) {
-      const newChildNode = newTree.childNodes[i];
 
-      if (typeof newChildNode.rawNodeName === 'function') {
-        const oldChildNode = oldTree.childNodes && oldTree.childNodes[i];
-        const renderTree = render(oldChildNode, newChildNode);
+  // When child is a VTree or DOM Node that has children.
+  for (let i = 0; i < newTree.childNodes.length; i++) {
+    const newChildNode = newTree.childNodes[i];
 
-        if (renderTree && renderTree !== newChildNode) {
-          newTree.childNodes[i] = renderTree;
-        }
+    if (typeof newChildNode.rawNodeName === 'function') {
+      const oldChildNode = oldTree.childNodes && oldTree.childNodes[i];
+      const renderTree = render(oldChildNode, newChildNode);
+
+      if (renderTree && renderTree !== newChildNode) {
+        newTree.childNodes[i] = renderTree;
       }
     }
   }
