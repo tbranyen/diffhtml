@@ -5,23 +5,17 @@ const empty = {};
 const keyNames = ['old', 'new'];
 
 export const PATCH_TYPE = {
-  SET_ATTRIBUTE: 'Set Attribute (new, old)',
-  REMOVE_ATTRIBUTE: 'Remove Attribute (new old)',
-  NODE_VALUE: 'Set Node Value (new, old)',
-  INSERT_BEFORE: 'Insert Before (parent, new, reference)',
-  REPLACE_CHILD: 'Replace Child (new, old)',
-  REMOVE_CHILD: 'Remove Child (old)',
+  'SET_ATTRIBUTE': 0,
+  'REMOVE_ATTRIBUTE': 1,
+  'NODE_VALUE': 2,
+  'INSERT_BEFORE': 3,
+  'REPLACE_CHILD': 4,
+  'REMOVE_CHILD': 5,
 };
 
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
-export default function syncTree(
-  oldTree,
-  newTree,
-  patches = [],
-  parentTree,
-  specialCase,
-) {
+export default function syncTree(oldTree, newTree, patches = [], parentTree) {
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 
@@ -73,9 +67,6 @@ export default function syncTree(
   // `newTree`. Pass along the `keysLookup` object so that middleware can make
   // smart decisions when dealing with keys.
   SyncTreeHookCache.forEach(fn => {
-    // FIXME Document the special case better or remove entirely
-    oldTree = specialCase || oldTree;
-
     // Call the user provided middleware function for a single root node. Allow
     // the consumer to specify a return value of a different VTree (useful for
     // components).
@@ -163,7 +154,7 @@ export default function syncTree(
 
   // If we somehow end up comparing two totally different kinds of elements,
   // we'll want to raise an error to let the user know something is wrong.
-  // FIXME
+  // FIXME This should never occur, right?
   if (process.env.NODE_ENV !== 'production') {
     if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
       throw new Error(
@@ -186,44 +177,47 @@ export default function syncTree(
 
   const oldChildNodes = oldTree.childNodes;
 
-  // If we are working with keys, we can follow an optimized path.
-  if (keysLookup.old.size || keysLookup.new.size) {
-    const values = keysLookup.old.values();
+  // Do a single pass over the new child nodes.
+  for (let i = 0; i < newChildNodes.length; i++) {
+    const oldChildNode = oldChildNodes && oldChildNodes[i];
+    const newChildNode = newChildNodes[i];
+    const newKey = newChildNode.key;
 
-    // Do a single pass over the new child nodes.
-    for (let i = 0; i < newChildNodes.length; i++) {
-      const oldChildNode = oldChildNodes[i];
-      const newChildNode = newChildNodes[i];
-      const newKey = newChildNode.key;
-
-      // If there is no old element to compare to, this is a simple addition.
-      if (!oldChildNode) {
+    // If there is no old element to compare to, this is a simple addition.
+    if (!oldChildNode) {
+      if (oldChildNodes) {
         oldChildNodes.push(newChildNode);
-        syncTree(null, newChildNode, patches, newTree);
-        patches.push(PATCH_TYPE.INSERT_BEFORE, oldTree, newChildNode, null);
-
-        continue;
       }
 
-      const oldKey = oldChildNode.key;
-      const oldInNew = keysLookup.new.has(oldKey);
-      const newInOld = keysLookup.old.has(newKey);
+      syncTree(oldChildNode, newChildNode, patches, oldTree);
 
-      // If we aren't comparing any keys, just continue.
-      if (!oldKey || !newKey) {
-        continue;
-      }
+      patches.push(
+        PATCH_TYPE.INSERT_BEFORE,
+        oldTree,
+        newChildNode,
+        null,
+      );
 
-      // Remove the old Node and insert the new node (aka replace).
+      continue;
+    }
+
+    const oldKey = oldChildNode.key;
+    const oldInNew = keysLookup.new.has(oldKey);
+    const newInOld = keysLookup.old.has(newKey);
+
+    // If we are working with keys, we can follow an optimized path.
+    if (oldKey || newKey) {
+      // Remove the old node instead of replacing.
       if (!oldInNew && !newInOld) {
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
         syncTree(null, newChildNode, patches, newTree);
 
         patches.push(PATCH_TYPE.REPLACE_CHILD, newChildNode, oldChildNode);
 
+        i = i - 1;
+
         continue;
       }
-      // Remove the old node instead of replacing.
       else if (!oldInNew) {
         patches.push(PATCH_TYPE.REMOVE_CHILD, oldChildNode);
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1);
@@ -259,97 +253,41 @@ export default function syncTree(
         oldChildNodes.splice(i, 0, optimalNewNode);
         continue;
       }
-
-      // If the element we're replacing is totally different from the previous
-      // replace the entire element, don't bother investigating children.
-      if (oldChildNode.nodeName !== newChildNode.nodeName) {
-        oldTree.childNodes[i] = newChildNode;
-
-        syncTree(null, newChildNode, patches, newTree);
-
-        patches.push(
-          PATCH_TYPE.REPLACE_CHILD,
-          newChildNode,
-          oldChildNode,
-        );
-
-        continue;
-      }
-
-      syncTree(oldChildNode, newChildNode, patches, newTree);
     }
-  }
 
-  // No keys used on this level, so we will do easier transformations.
-  else {
-    // Do a single pass over the new child nodes.
-    for (let i = 0; i < newChildNodes.length; i++) {
-      const oldChildNode = oldChildNodes && oldChildNodes[i];
-      const newChildNode = newChildNodes[i];
+    // If the element we're replacing is totally different from the previous
+    // replace the entire element, don't bother investigating children.
+    if (oldChildNode.nodeName !== newChildNode.nodeName) {
+      oldChildNodes[i] = newChildNode;
 
-      // If there is no old element to compare to, this is a simple addition.
-      if (!oldChildNode) {
-        if (oldChildNodes) {
-          oldChildNodes.push(newChildNode);
-        }
+      // If we are replacing an element that still exists in the tree,
+      // prune it from the remaining child nodes.
+      const existingIndex = oldChildNodes.lastIndexOf(newChildNode);
 
-        syncTree(oldChildNode, newChildNode, patches, oldTree);
-
-        patches.push(
-          PATCH_TYPE.INSERT_BEFORE,
-          oldTree,
-          newChildNode,
-          null,
-        );
-
-        continue;
+      if (existingIndex !== -1 && existingIndex !== i) {
+        // Remove directly from the array.
+        oldChildNodes.splice(existingIndex, 1);
       }
 
-      // If the element we're replacing is totally different from the previous
-      // replace the entire element, don't bother investigating children.
-      if (oldChildNode.nodeName !== newChildNode.nodeName) {
-        // FIXME Calling this out specifically as a special case since we
-        // have conflicting requirements between synchronization and how
-        // components handle reconcilation. We basically don't want to dig
-        // deeper into the component at the diffHTML level, but want to let
-        // the middleware have access to the old child.
-        //
-        // This avoids sync semantics of oldTree/newTree while still providing
-        // the oldTree to middleware.
-        oldChildNodes[i] = newChildNode;
+      syncTree(null, newChildNode, patches, newTree);
 
-        // If we are replacing an element that still exists in the tree,
-        // prune it from the remaining child nodes.
-        const existingIndex = oldChildNodes.lastIndexOf(newChildNode);
+      patches.push(
+        PATCH_TYPE.REPLACE_CHILD,
+        newChildNode,
+        oldChildNode,
+      );
 
-        if (existingIndex !== -1 && existingIndex !== i) {
-          // Remove directly from the array.
-          oldChildNodes.splice(existingIndex, 1);
-        }
-
-        syncTree(null, newChildNode, patches, oldTree, oldChildNodes[i]);
-
-        patches.push(
-          PATCH_TYPE.REPLACE_CHILD,
-          newChildNode,
-          oldChildNode,
-        );
-
-        continue;
-      }
-
-      syncTree(oldChildNode, newChildNode, patches, oldTree);
+      continue;
     }
+
+    syncTree(oldChildNode, newChildNode, patches, oldTree);
   }
 
   // We've reconciled new changes, so we can remove any old nodes and adjust
   // lengths to be equal.
   if (oldChildNodes.length !== newChildNodes.length) {
     for (let i = newChildNodes.length; i < oldChildNodes.length; i++) {
-      patches.push(
-        PATCH_TYPE.REMOVE_CHILD,
-        oldChildNodes[i],
-      );
+      patches.push(PATCH_TYPE.REMOVE_CHILD, oldChildNodes[i]);
     }
 
     oldChildNodes.length = newChildNodes.length;

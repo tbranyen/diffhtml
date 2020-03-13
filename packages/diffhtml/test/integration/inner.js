@@ -33,6 +33,23 @@ describe('Integration: innerHTML', function() {
     assert.equal(this.fixture.querySelector('style').textContent, 'h1 { color: blue; }');
   });
 
+  it('can render multiple top level elements to single element', function() {
+    diff.innerHTML(this.fixture, html`
+      <div></div>
+    `);
+    //console.log(this.fixture.innerHTML);
+    diff.innerHTML(this.fixture, html`
+      <h1></h1>
+
+      <h3></h3>
+
+      <input />
+    `);
+    console.log(this.fixture.innerHTML);
+    //console.log(this.fixture.innerHTML);
+    diff.innerHTML(this.fixture, html`<div></div>`);
+  });
+
   describe('DOM Nodes', function() {
     it('can re-render a dom node multiple times when interpolated', function() {
       const domNode = document.createElement('div');

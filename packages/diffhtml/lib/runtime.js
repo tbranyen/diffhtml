@@ -1,5 +1,5 @@
 import createTree from './tree/create';
-import syncTree from './tree/create';
+import syncTree, { PATCH_TYPE } from './tree/sync';
 import createNode from './node/create';
 import internals from './util/internals';
 import innerHTML from './inner-html';
@@ -36,6 +36,7 @@ const Internals = assign(internals, api, {
   tasks,
   createNode,
   syncTree,
+  PATCH_TYPE,
 });
 
 // Attach a circular reference to `Internals` for ES/CJS builds.

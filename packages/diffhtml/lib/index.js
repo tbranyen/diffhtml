@@ -1,5 +1,5 @@
 import createTree from './tree/create';
-import syncTree from './tree/create';
+import syncTree, { PATCH_TYPE } from './tree/sync';
 import createNode from './node/create';
 import parseNewTree from './tasks/parse-new-tree';
 import reconcileTrees from './tasks/reconcile-trees';
@@ -43,6 +43,7 @@ const Internals = assign(internals, api, {
   tasks,
   createNode,
   syncTree,
+  PATCH_TYPE,
 });
 
 // Attach a circular reference to `Internals` for ES/CJS builds.

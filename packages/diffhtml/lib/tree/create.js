@@ -77,9 +77,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
           // Strip out leading and trailing empty text nodes.
           if (
             (i === 0 || i === input.childNodes.length - 1) &&
-            input.childNodes[i].nodeValue &&
+            input.childNodes[i] &&
+            input.childNodes[i].nodeName === '#text' &&
             !input.childNodes[i].nodeValue.trim()
-          ) { continue; }
+          ) continue;
 
           if (input.childNodes[i].nodeName === '#text') {
             childNodes.push(createTree(input.childNodes[i].cloneNode(true)));
