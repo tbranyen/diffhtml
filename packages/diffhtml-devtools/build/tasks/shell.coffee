@@ -7,7 +7,6 @@ module.exports = ->
   env = process.env
 
   chrome = 'echo Skipping Chrome'
-  s3 = 'echo Skipping S3'
 
   # https://code.google.com/p/selenium/wiki/ChromeDriver#Requirements
   if process.platform is 'linux'
@@ -20,11 +19,6 @@ module.exports = ->
     if not fs.existsSync chrome
       chrome = '"' + 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' + '"'
 
-  # Only run the s3 task if Travis is building master and not in a pull
-  # request.
-  if env.TRAVIS_PULL_REQUEST is 'false' and env.TRAVIS_BRANCH is 'master'
-    s3 = 'grunt s3-sync'
-
   @config 'shell',
     'chrome-extension':
       command: [
@@ -32,7 +26,5 @@ module.exports = ->
         '--pack-extension=' + path.resolve('chrome-extension/dist/extension')
         '--pack-extension-key=' + path.resolve('chrome-extension/key.pem')
         '--no-message-box'
+        '--headless'
       ].join(' ')
-
-    's3':
-      command: s3
