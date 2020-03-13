@@ -2,7 +2,7 @@
 
 *A suite of JavaScript user interface tooling, built for the web.*
 
-Stable version: 1.0.0-beta.11
+Stable version: 1.0.0-beta.12
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Coverage

@@ -1,6 +1,6 @@
 # <±/> diffHTML Synthetic Events Middleware
 
-Stable Version: 1.0.0-beta.11
+Stable Version: 1.0.0-beta.12
 
 Changes the event binding from inline event handlers like `onclick = fn` to use
 `addEventListener`. Hooks are attached to the `body` element and coordinated

@@ -19,8 +19,11 @@ sed -i -e 's/1.0.0-beta.8/1.0.0-beta.9/g' **/README.md
 # Update all JavaScript files.
 sed -i -e 's/1.0.0-beta.8/1.0.0-beta.9/g' **/lib/*.js
 
+# Update the root package version.
+sed -i -e 's/1.0.0-beta.8/1.0.0-beta.9/g' ./package.json
+
 # Make a descriptive commit.
-git commit -m"Update JavaScript and REAMDE files to 1.0.0-beta.9"
+git commit -am"Update JavaScript and REAMDE files to 1.0.0-beta.9"
 ```
 
 ### Build and test!
