@@ -4,7 +4,7 @@
   "version": "1.0.0-beta.12",
   "description": "Build web user interfaces with JavaScript",
   "scripts": {
-    "build": "lerna run build && lerna run build-min",
+    "build": "lerna run build && lerna run build-min && lerna run generate",
     "test": "lerna run test",
     "test-cov": "lerna run test-cov",
     "postinstall": "lerna bootstrap --no-ci"
