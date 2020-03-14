@@ -7,9 +7,10 @@ import {
   doesNotThrow,
 } from 'assert';
 import createTree from '../lib/tree/create';
-import syncTree, { PATCH_TYPE } from '../lib/tree/sync';
+import syncTree from '../lib/tree/sync';
 import { SyncTreeHookCache } from '../lib/util/caches';
 import parse from '../lib/util/parse';
+import { PATCH_TYPE } from '../lib/util/types';
 import html from '../lib/html';
 import validateMemory from './util/validateMemory';
 
@@ -519,7 +520,7 @@ describe('Tree', function() {
 
       process.env.NODE_ENV = 'production';
 
-      throws(() => syncTree(oldTree, newTree), /Cannot read property 'length'/);
+      doesNotThrow(() => syncTree(oldTree, newTree), /Cannot read property 'length'/);
     });
 
     it('will throw an error if top level elements are different', () => {

@@ -1,7 +1,7 @@
 import { ok, equal, throws } from 'assert';
 import createNode from '../lib/node/create';
 import patchNode from '../lib/node/patch';
-import { PATCH_TYPE } from '../lib/tree/sync';
+import { PATCH_TYPE } from '../lib/util/types';
 import html from '../lib/html';
 import validateMemory from './util/validateMemory';
 
@@ -10,11 +10,13 @@ describe('Node', function() {
 
   describe('create', () => {
     it('will throw an error if called without a vTree', () => {
-      throws(() => createNode());
-      throws(() => createNode(null));
-      throws(() => createNode(undefined));
-      throws(() => createNode(false));
-      throws(() => createNode(''));
+      const invalidCreateNode = /** @type {any} */ (createNode);
+
+      throws(() => invalidCreateNode());
+      throws(() => invalidCreateNode(null));
+      throws(() => invalidCreateNode(undefined));
+      throws(() => invalidCreateNode(false));
+      throws(() => invalidCreateNode(''));
     });
 
     it('will create a DOM Node from a vTree', () => {

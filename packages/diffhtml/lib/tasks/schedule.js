@@ -7,8 +7,8 @@ import { StateCache } from '../util/caches';
  * buffer, if necessary, which serves as a Boolean determination later to
  * `bufferSet`.
  *
- * @param {Object} nextTransaction - The Transaction instance to schedule
- * @return {Boolean} - Value used to terminate a transaction render flow
+ * @param {Transaction} transaction
+ * @return {Promise<Boolean>}
  */
 export default function schedule(transaction) {
   // The state is a global store which is shared by all like-transactions.

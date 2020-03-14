@@ -1,20 +1,19 @@
-import { MiddlewareCache, SyncTreeHookCache } from '../util/caches';
+import { SyncTreeHookCache } from '../util/caches';
 import process from '../util/process';
+import { PATCH_TYPE, VTree } from '../util/types';
 
-const empty = {};
+const empty = VTree;
 const keyNames = ['old', 'new'];
-
-export const PATCH_TYPE = {
-  'SET_ATTRIBUTE': 0,
-  'REMOVE_ATTRIBUTE': 1,
-  'NODE_VALUE': 2,
-  'INSERT_BEFORE': 3,
-  'REPLACE_CHILD': 4,
-  'REMOVE_CHILD': 5,
-};
 
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
+/**
+ *
+ * @param {VTree=} oldTree
+ * @param {VTree=} newTree
+ * @param {*=} patches
+ * @param {VTree=} parentTree
+ */
 export default function syncTree(oldTree, newTree, patches = [], parentTree) {
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;

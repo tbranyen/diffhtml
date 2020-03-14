@@ -1,9 +1,13 @@
+import { VTree } from "./types";
+
 // A modest size.
 const size = 10000;
 
 const free = new Set();
 const allocate = new Set();
 const protect = new Set();
+
+
 const shape = () => ({
   rawNodeName: '',
   nodeName: '',
@@ -31,6 +35,9 @@ export default {
   size,
   memory,
 
+  /**
+   * @return {VTree}
+   */
   get() {
     const { value = shape(), done } = freeValues.next();
 
@@ -45,15 +52,21 @@ export default {
     return value;
   },
 
-  protect(value) {
-    allocate.delete(value);
-    protect.add(value);
+  /**
+   * @param {VTree} vTree - Virtual Tree to protect 
+   */
+  protect(vTree) {
+    allocate.delete(vTree);
+    protect.add(vTree);
   },
 
-  unprotect(value) {
-    if (protect.has(value)) {
-      protect.delete(value);
-      free.add(value);
+  /**
+   * @param {VTree} vTree - Virtual Tree to unprotect 
+   */
+  unprotect(vTree) {
+    if (protect.has(vTree)) {
+      protect.delete(vTree);
+      free.add(vTree);
     }
   },
 };

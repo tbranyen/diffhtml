@@ -8,6 +8,7 @@ import reconcileTrees from './tasks/reconcile-trees';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
+import { VTree } from './util/types';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -18,10 +19,20 @@ export const tasks = {
 };
 
 export default class Transaction {
+  /**
+   *
+   * @param {HTMLElement} domNode
+   * @param {VTree | string} markup
+   * @param {*} options
+   */
   static create(domNode, markup, options) {
     return new Transaction(domNode, markup, options);
   }
 
+  /**
+   * @param {Transaction} transaction
+   * @param {any} tasks
+   */
   static flow(transaction, tasks) {
     let retVal = transaction;
 
@@ -47,6 +58,10 @@ export default class Transaction {
     }
   }
 
+  /**
+   *
+   * @param {Transaction} transaction
+   */
   static assert(transaction) {
     if (process.env.NODE_ENV !== 'production') {
       if (typeof transaction.domNode !== 'object') {
@@ -63,6 +78,10 @@ export default class Transaction {
     }
   }
 
+  /**
+   *
+   * @param {Transaction} transaction
+   */
   static invokeMiddleware(transaction) {
     const { tasks } = transaction;
 
@@ -78,6 +97,12 @@ export default class Transaction {
     });
   }
 
+  /**
+   * @constructor
+   * @param {HTMLElement} domNode
+   * @param {VTree | string} markup
+   * @param {any} options
+   */
   constructor(domNode, markup, options) {
     this.domNode = domNode;
     this.markup = markup;
@@ -100,7 +125,7 @@ export default class Transaction {
       Transaction.assert(this);
     }
 
-    const { domNode, state: { measure }, tasks } = this;
+    const { state: { measure }, tasks } = this;
     const takeLastTask = tasks.pop();
 
     this.aborted = false;
@@ -112,16 +137,20 @@ export default class Transaction {
     measure('render');
 
     // Push back the last task as part of ending the flow.
-    tasks.push(takeLastTask);
+    takeLastTask && tasks.push(takeLastTask);
 
     return Transaction.flow(this, tasks);
   }
 
-  // This will immediately call the last flow task and terminate the flow. We
-  // call the last task to ensure that the control flow completes. This should
-  // end psuedo-synchronously. Think `Promise.resolve()`, `callback()`, and
-  // `return someValue` to provide the most accurate performance reading. This
-  // doesn't matter practically besides that.
+  /**
+   * This will immediately call the last flow task and terminate the flow. We
+   * call the last task to ensure that the control flow completes. This should
+   * end psuedo-synchronously. Think `Promise.resolve()`, `callback()`, and
+   * `return someValue` to provide the most accurate performance reading. This
+   * doesn't matter practically besides that.
+   *
+   * @param {boolean=} isReturn
+   */
   abort(isReturn) {
     const { state } = this;
 
@@ -134,6 +163,9 @@ export default class Transaction {
     }
   }
 
+  /**
+   * @return {Transaction}
+   */
   end() {
     const { state, domNode, options } = this;
     const { measure } = state;
@@ -165,7 +197,28 @@ export default class Transaction {
     return this;
   }
 
+  /**
+   * @param {Function} callback
+   */
   onceEnded(callback) {
     this.endedCallbacks.add(callback);
   }
+
+  /** @type {VTree} */
+  oldTree = undefined;
+
+  /** @type {VTree} */
+  newTree = undefined;
+
+  /** @type {any} */
+  promise = undefined
+
+  /** @type {any} */
+  promises = undefined
+
+  /** @type {Function[]} */
+  tasks = []
+
+  /** @type any */
+  patches = []
 }

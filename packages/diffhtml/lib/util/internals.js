@@ -6,13 +6,13 @@ import * as memory from './memory';
 import Pool from './pool';
 import process from './process';
 
-const { assign } = Object;
-
-export default assign({
+export default {
   decodeEntities,
   escape,
   makeMeasure,
   memory,
   Pool,
   process,
-}, caches);
+
+  ...caches,
+};

@@ -1,7 +1,12 @@
 import { NodeCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import createTree from '../tree/create';
+import Transaction from '../transaction';
 
+/**
+ *
+ * @param {Transaction} transaction
+ */
 export default function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
   const { previousMarkup } = state;

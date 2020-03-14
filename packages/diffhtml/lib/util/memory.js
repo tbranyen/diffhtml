@@ -2,7 +2,6 @@ import Pool from './pool';
 import {
   NodeCache,
   StateCache,
-  MiddlewareCache,
   ReleaseHookCache,
 } from './caches';
 

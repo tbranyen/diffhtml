@@ -1,13 +1,14 @@
+import globalThis from './global';
+
 // Support loading diffHTML in non-browser environments.
-const g = typeof global === 'object' ? global : window;
-const element = g.document ? document.createElement('div') : null;
+const element = /** @type {any} */ (globalThis).document ? document.createElement('div') : null;
 
 /**
  * Decodes HTML strings.
  *
  * @see http://stackoverflow.com/a/5796718
- * @param string
- * @return unescaped HTML
+ * @param {string} string - Incoming string HTML
+ * @return {string} Unescaped HTML
  */
 export default function decodeEntities(string) {
   // If there are no HTML entities, we can safely pass the string through.

@@ -1,10 +1,10 @@
 import patchNode from '../node/patch';
+import Transaction from '../transaction';
 
 /**
  * Processes a set of patches onto a tracked DOM Node.
  *
- * @param {Object} node - DOM Node to process patchs on
- * @param {Array} patches - Contains patch objects
+ * @param {Transaction} transaction
  */
 export default function patch(transaction) {
   const { domNode, state, state: { measure }, patches } = transaction;

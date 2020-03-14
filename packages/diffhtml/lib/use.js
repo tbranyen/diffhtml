@@ -6,9 +6,14 @@ import {
   ReleaseHookCache,
 } from './util/caches';
 import process from './util/process';
+import { Middleware } from './util/types';
 
 const { isArray } = Array;
 
+/**
+ *
+ * @param {Middleware} middleware
+ */
 export default function use(middleware) {
   const isFunction = typeof middleware === 'function';
   const isObject = typeof middleware === 'object';
@@ -33,7 +38,7 @@ export default function use(middleware) {
 
   // Call the subscribe method if it was defined, passing in the full public
   // API we have access to at this point.
-  subscribe && middleware.subscribe();
+  subscribe && subscribe();
 
   // Add the hyper-specific create hooks.
   createTreeHook && CreateTreeHookCache.add(createTreeHook);

@@ -1,27 +1,32 @@
 import createNode from './create';
 import { runTransitions } from '../transition';
-import { PATCH_TYPE } from '../tree/sync';
 import { NodeCache, TransitionCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
 import escape from '../util/escape';
+import { PATCH_TYPE } from '../util/types';
 
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 const blacklist = new Set();
 const whitelist = new Set();
 
+/**
+ *
+ * @param {unknown} domNode
+ * @param {string} name
+ */
 const removeAttribute = (domNode, name) => {
-  domNode.removeAttribute(name);
+  /** @type {HTMLElement} */ (domNode).removeAttribute(name);
 
   // Runtime checking if the property can be set.
-  const blacklistName = domNode.nodeName + '-' + name;
+  const blacklistName = /** @type {HTMLElement} */ (domNode).nodeName + '-' + name;
 
   if (whitelist.has(blacklistName)) {
-    domNode[name] = undefined;
+    /** @type {object} */ (domNode)[name] = undefined;
   }
   else if (!blacklist.has(blacklistName)) {
     try {
-      domNode[name] = undefined;
+      /** @type {object} */ (domNode)[name] = undefined;
       whitelist.add(blacklistName);
     } catch (unhandledException) {
       blacklist.add(blacklistName);

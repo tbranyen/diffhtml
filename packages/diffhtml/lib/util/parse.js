@@ -216,8 +216,8 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  * Parses HTML and returns a root element
  *
  * @param {String} html - String of HTML markup to parse into a Virtual Tree
- * @param {Object} supplemental - Dynamic interpolated data values
- * @param {Object} options - Contains options like silencing warnings
+ * @param {Object=} supplemental - Dynamic interpolated data values
+ * @param {Object=} options - Contains options like silencing warnings
  * @return {Object} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
@@ -348,7 +348,7 @@ Possibly invalid markup. Opening tag was not properly closed.
         else {
           lastTextPos = index + closeMarkup.length;
           tagEx.lastIndex = lastTextPos;
-          match[1] = true;
+          match[1] = ' ';
         }
 
         const newText = html.slice(match.index + match[0].length, index);

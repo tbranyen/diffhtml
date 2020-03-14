@@ -1,23 +1,20 @@
-import {
-  NodeCache,
-  MiddlewareCache,
-  CreateNodeHookCache,
-} from '../util/caches';
+import { NodeCache, CreateNodeHookCache } from '../util/caches';
 import process from '../util/process';
+import globalThis from '../util/global';
+import { VTree } from '../util/types';
 
 const namespace = 'http://www.w3.org/2000/svg';
-const g = typeof global === 'object' ? global : window;
-const document = g.document || null;
+const document = /** @type {any} */ (globalThis).document || null;
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
  * Sets the node into the Node cache. If this VTree already has an
  * associated node, it will reuse that.
  *
- * @param {Object} - A Virtual Tree Element or VTree-like element
- * @param {Object} - Document to create Nodes in
- * @param {Boolean} - Is their a root SVG element?
- * @return {Object} - A DOM Node matching the vTree
+ * @param {VTree} vTree - A Virtual Tree Element or VTree-like element
+ * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
+ * @param {Boolean=} isSVG - Is their a root SVG element?
+ * @return {Object} A DOM Node matching the vTree
  */
 export default function createNode(vTree, ownerDocument = document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {

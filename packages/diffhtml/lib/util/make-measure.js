@@ -6,7 +6,12 @@ const hasSearch = typeof location !== 'undefined';
 const hasArguments = typeof process !== 'undefined' && process.argv;
 const nop = () => {};
 
-export default (domNode, vTree) => {
+/**
+ *
+ * @param {HTMLElement} domNode
+ * @param {any} vTree
+ */
+export default function makeMeasure(domNode, vTree) {
   // Check for these changes on every check.
   const wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
   const wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
@@ -17,9 +22,11 @@ export default (domNode, vTree) => {
   if (!wantsPerfChecks) { return nop; }
 
   return name => {
+    const host = /** @type any */ (domNode).host;
+
     // Use the Web Component name if it's available.
-    if (domNode && domNode.host) {
-      name = `${domNode.host.constructor.name} ${name}`;
+    if (domNode && host) {
+      name = `${host.constructor.name} ${name}`;
     }
     else if (typeof vTree.rawNodeName === 'function') {
       name = `${vTree.rawNodeName.name} ${name}`;
@@ -40,4 +47,4 @@ export default (domNode, vTree) => {
       performance.measure(`${prefix} ${name} (${totalMs}ms)`, name, endName);
     }
   };
-};
+}

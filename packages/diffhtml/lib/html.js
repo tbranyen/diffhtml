@@ -2,6 +2,7 @@ import createTree from './tree/create';
 import parse from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
+import { VTree } from './util/types';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
@@ -14,16 +15,26 @@ const nextValue = values => {
   return typeof value === 'string' ? escape(decodeEntities(value)) : value;
 };
 
+/**
+ * Processes a tagged template, or process a string and interpolate
+ * associated values. These values can be of any type and can be
+ * put in various parts of the markup, such as tag names, attributes,
+ * and node values.
+ *
+ * @param {string|string[]|TemplateStringsArray} strings
+ * @param  {...any} values - test
+ * @return {VTree | null} VTree object or null if no input strings
+ */
 export default function handleTaggedTemplate(strings, ...values) {
-  // If this function is used outside of a tagged template, ensure that flat
-  // strings are coerced to arrays, simulating a tagged template call.
-  if (typeof strings === 'string') {
-    strings = [strings];
-  }
-
   // Do not attempt to parse empty strings.
   if (!strings) {
     return null;
+  }
+
+  // If this function is used outside of a tagged template, ensure that flat
+  // strings are coerced to arrays, simulating a tagged template call.
+  else if (typeof strings === 'string') {
+    strings = [strings];
   }
 
   // Parse only the text, no dynamic bits.
@@ -99,10 +110,13 @@ export default function handleTaggedTemplate(strings, ...values) {
   return childNodes.length === 1 ? childNodes[0] : createTree(childNodes);
 }
 
+// Default to loose-mode.
+handleTaggedTemplate.isStrict = false;
+
 // Use a strict mode similar to XHTML/JSX where tags must be properly closed
 // and malformed markup is treated as an error. The default is to silently fail
 // just like HTML.
-handleTaggedTemplate.strict = (...args) => {
+handleTaggedTemplate.strict = (markup, ...args) => {
   handleTaggedTemplate.isStrict = true;
-  return handleTaggedTemplate(...args);
+  return handleTaggedTemplate(markup, ...args);
 };

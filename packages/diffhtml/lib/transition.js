@@ -13,6 +13,12 @@ const stateNames = [
 // Sets up the states up so we can add and remove events from the sets.
 stateNames.forEach(stateName => TransitionCache.set(stateName, new Set()));
 
+/**
+ *
+ * @param {string} stateName
+ * @param {Function} callback
+ * @return {void}
+ */
 export function addTransitionState(stateName, callback) {
   if (process.env.NODE_ENV !== 'production') {
     if (!stateName || !stateNames.includes(stateName)) {
@@ -27,6 +33,12 @@ export function addTransitionState(stateName, callback) {
   TransitionCache.get(stateName).add(callback);
 }
 
+/**
+ *
+ * @param {string} stateName
+ * @param {Function} callback
+ * @return {void}
+ */
 export function removeTransitionState(stateName, callback) {
   if (process.env.NODE_ENV !== 'production') {
     // Only validate the stateName if the caller provides one.
@@ -55,12 +67,9 @@ export function runTransitions(setName, ...args) {
   const set = TransitionCache.get(setName);
   const promises = [];
 
-  if (!set.size) {
+  if (!set.size || setName !== 'textChanged' && args[0].nodeType === 3) {
     return promises;
   }
-
-  // Ignore text nodes.
-  if (setName !== 'textChanged' && args[0].nodeType === 3) { return promises; }
 
   // Run each transition callback, if on the attached/detached.
   set.forEach(callback => {
