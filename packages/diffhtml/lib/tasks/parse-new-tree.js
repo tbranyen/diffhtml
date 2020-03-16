@@ -1,4 +1,3 @@
-import { NodeCache } from '../util/caches';
 import parse from '../util/parse';
 import createTree from '../tree/create';
 

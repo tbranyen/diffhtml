@@ -1,5 +1,4 @@
 import Transaction from '../transaction';
-import { StateCache } from '../util/caches';
 
 /**
  * If diffHTML is rendering anywhere asynchronously, we need to wait until it

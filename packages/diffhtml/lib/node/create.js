@@ -11,7 +11,7 @@ const document = /** @type {any} */ (globalThis).document || null;
  * Sets the node into the Node cache. If this VTree already has an
  * associated node, it will reuse that.
  *
- * @param {VTree} vTree - A Virtual Tree Element or VTree-like element
+ * @param {Partial<VTree>} vTree - A Virtual Tree Element or VTree-like element
  * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
  * @param {Boolean=} isSVG - Is their a root SVG element?
  * @return {Object} A DOM Node matching the vTree

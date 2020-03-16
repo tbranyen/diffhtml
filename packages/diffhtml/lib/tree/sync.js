@@ -9,10 +9,10 @@ const keyNames = ['old', 'new'];
 // while recording the changes along the way.
 /**
  *
- * @param {VTree=} oldTree
- * @param {VTree=} newTree
+ * @param {Partial<VTree>=} oldTree
+ * @param {Partial<VTree>=} newTree
  * @param {*=} patches
- * @param {VTree=} parentTree
+ * @param {Partial<VTree>=} parentTree
  */
 export default function syncTree(oldTree, newTree, patches = [], parentTree) {
   if (!oldTree) oldTree = empty;

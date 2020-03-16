@@ -18,7 +18,7 @@ export const PATCH_TYPE = {
  * @property {string} nodeValue - defines the text value associated
  * @property {number} nodeType - the type of Node this is representing
  * @property {string} key - A unique identifier for the children
- * @property {VTree[]} childNodes - Any nested elements
+ * @property {Partial<VTree>[]} childNodes - Any nested elements
  * @property {any} attributes - Any key/val attributes for the Node
  */
 

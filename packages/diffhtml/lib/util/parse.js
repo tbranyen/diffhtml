@@ -2,7 +2,6 @@
 // https://github.com/ashi009/node-fast-html-parser
 
 import createTree from '../tree/create';
-import Pool from './pool';
 import process from './process';
 
 const hasNonWhitespaceEx = /\S/;
@@ -74,7 +73,7 @@ const kElementsClosedByClosing = {
 const interpolateValues = (currentParent, string, supplemental = {}) => {
   if ('childNodes' in currentParent.attributes) {
     // Reset childNodes, as we are paving over them.
-    currentParent.childNodes = [];
+    currentParent.childNodes.length = 0;
   }
 
   // If this is text and not a doctype, add as a text node.
@@ -84,7 +83,6 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
 
   const childNodes = [];
   const parts = string.split(tokenEx);
-  let { length } = parts;
 
   for (let i = 0; i < parts.length; i++) {
     const value = parts[i];
@@ -315,11 +313,9 @@ Possibly invalid markup. Opening tag was not properly closed.
         // A little test to find next </script> or </style> ...
         const closeMarkup = '</' + match[2] + '>';
         const index = html.indexOf(closeMarkup, tagEx.lastIndex);
-        const { length } = match[2];
 
         if (process.env.NODE_ENV !== 'production') {
           if (index === -1 && options.strict) {
-            const nodeName = currentParent.rawNodeName;
 
             // Find a subset of the markup passed in to validate.
             const markup = html
@@ -342,17 +338,19 @@ Possibly invalid markup. Opening tag was not properly closed.
           }
         }
 
-        if (index === -1) {
-          lastTextPos = tagEx.lastIndex = html.length + 1;
-        }
-        else {
-          lastTextPos = index + closeMarkup.length;
-          tagEx.lastIndex = lastTextPos;
-          match[1] = ' ';
-        }
+        if (blockText.has(match[2])) {
+          if (index === -1) {
+            lastTextPos = tagEx.lastIndex = html.length + 1;
+          }
+          else {
+            lastTextPos = index + closeMarkup.length;
+            tagEx.lastIndex = lastTextPos;
+            match[1] = ' ';
+          }
 
-        const newText = html.slice(match.index + match[0].length, index);
-        interpolateValues(currentParent, newText, supplemental);
+          const newText = html.slice(match.index + match[0].length, index);
+          interpolateValues(currentParent, newText, supplemental);
+        }
       }
     }
 

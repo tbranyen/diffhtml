@@ -13,7 +13,7 @@ import validateMemory from './util/validateMemory';
 
 describe('Util', function() {
   beforeEach(() => {
-    global.performance = {
+    /** @type {any} **/ (global).performance = {
       now: () => Date.now(),
       mark: spy(),
       measure: spy(),
@@ -163,25 +163,25 @@ describe('Util', function() {
       equal(vTrees[1].childNodes[0].nodeValue, 'Hello world');
     });
 
-    it('will throw on invalid markup, when in strict mode', () => {
-      throws(e => {
-        parse(`
-          <span></span><div><div></div>
-          <ul>
-            <li>test</p>
-          </ul>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        `, null, { strict: true }).childNodes[0];
+    it('will throw on invalid closing tag when in strict mode', () => {
+      const opts = { strict: true };
+      const markup = `
+        <span></span><div><div></div>
+        <ul>
+          <li>test</p>
+        </ul>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      `;
 
-        equal(ex.message,
-          "</p>\n^\nPossibly invalid markup. Saw p, expected li...\n        \n      </ul>\n      <div></div>"
-        );
-      });
+      throws(
+        () => parse(markup, null, opts),
+        '</p>\n^\nPossibly invalid markup. Saw p, expected li...\n        \n      </ul>\n      <div></div>',
+      );
     });
 
     it('will not throw on invalid markup when strict mode is false', () => {
