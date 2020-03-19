@@ -4,7 +4,7 @@ import { VTree } from './util/types';
 /**
  *
  * @param {HTMLElement} domNode
- * @param {string | VTree} markup
+ * @param {string | Partial<VTree> | HTMLElement} markup
  * @param {*} options
  */
 export default function innerHTML(domNode, markup = '', options = {}) {

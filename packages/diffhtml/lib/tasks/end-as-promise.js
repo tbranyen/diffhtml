@@ -1,13 +1,15 @@
+import Transaction from "../transaction";
+
 // End flow, this terminates the transaction and returns a Promise that
 // resolves when completed. If you want to make diffHTML return streams or
 // callbacks replace this function.
-export default function endAsPromise(transaction) {
-  const { promises = [] } = transaction;
+export default function endAsPromise(/** @type {Transaction} */ transaction) {
+  const { promises } = transaction;
 
   // Operate synchronously unless opted into a Promise-chain. Doesn't matter
   // if they are actually Promises or not, since they will all resolve
   // eventually with `Promise.all`.
-  if (promises.length) {
+  if (promises && promises.length) {
     return transaction.promise = Promise.all(promises).then(() => transaction.end());
   }
 

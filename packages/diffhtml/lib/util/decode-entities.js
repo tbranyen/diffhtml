@@ -17,5 +17,5 @@ export default function decodeEntities(string) {
   }
 
   element.innerHTML = string;
-  return element.textContent;
+  return element.textContent || '';
 }

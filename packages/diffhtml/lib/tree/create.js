@@ -1,12 +1,24 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
+import { VTree } from '../util/types';
 
 const { assign } = Object;
 const { isArray } = Array;
 const fragmentName = '#document-fragment';
 
+/**
+ *
+ * @param {any[] | HTMLElement | string | object} input
+ * @param {any=} attributes
+ * @param {any=} childNodes
+ * @param  {...any} rest
+ *
+ * @return {VTree | null}
+ */
 export default function createTree(input, attributes, childNodes, ...rest) {
   // If no input was provided then we return an indication as such.
+  // FIXME Can we ensure a consistent return type by changing this to be an
+  // empty fragment?
   if (!input) { return null; }
 
   // If the first argument is an array, we assume this is a DOM fragment and
@@ -93,7 +105,11 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     }
 
     const vTree = createTree(input.nodeName, attributes, childNodes);
-    NodeCache.set(vTree, input);
+
+    if (vTree) {
+      NodeCache.set(vTree, input);
+    }
+
     return vTree;
   }
 
@@ -209,7 +225,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       // Cover generate cases where a user has indicated they do not want a
       // node from appearing.
       else if (newNode) {
-        entry.childNodes.push(createTree('#text', null, newNode));
+        entry.childNodes.push(/** @type {VTree} **/ (createTree('#text', null, newNode)));
       }
     }
   }

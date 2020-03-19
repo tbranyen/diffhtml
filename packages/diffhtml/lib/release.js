@@ -1,6 +1,11 @@
 import { StateCache } from './util/caches';
 import { cleanMemory, unprotectVTree } from './util/memory';
 
+/**
+ *
+ * @param {HTMLElement} domNode
+ * @return {void}
+ */
 export default function release(domNode) {
   // Try and find a state object for this DOM Node.
   const state = StateCache.get(domNode);

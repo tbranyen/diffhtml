@@ -18,7 +18,7 @@ export const PATCH_TYPE = {
  * @property {string} nodeValue - defines the text value associated
  * @property {number} nodeType - the type of Node this is representing
  * @property {string} key - A unique identifier for the children
- * @property {Partial<VTree>[]} childNodes - Any nested elements
+ * @property {VTree[]} childNodes - Any nested elements
  * @property {any} attributes - Any key/val attributes for the Node
  */
 
@@ -50,3 +50,31 @@ export const VTree = {
  * @type {Middleware} implements Middleware
  */
 export const Middleware = {};
+
+/**
+ * @typedef {Object} Supplemental - defines Supplemental
+ *
+ * @property {{ [key: string]: any }} tags
+ * @property {{ [key: string]: any }} attributes
+ * @property {{ [key: string]: any }} children
+ */
+
+/**
+ * @type {Supplemental} implements Supplemental
+ */
+export const Supplemental = {
+  attributes: {},
+  tags: {},
+  children: {},
+};
+
+/**
+ * @typedef {Object} ParserOptions - defines ParserOptions
+ *
+ * @property {Boolean=} strict
+ */
+
+/**
+ * @type {ParserOptions} implements ParserOptions
+ */
+export const ParserOptions = {};

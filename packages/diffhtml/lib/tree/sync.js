@@ -9,8 +9,8 @@ const keyNames = ['old', 'new'];
 // while recording the changes along the way.
 /**
  *
- * @param {Partial<VTree>=} oldTree
- * @param {Partial<VTree>=} newTree
+ * @param {Partial<VTree> | null=} oldTree
+ * @param {Partial<VTree> | null=} newTree
  * @param {*=} patches
  * @param {Partial<VTree>=} parentTree
  */
@@ -21,6 +21,7 @@ export default function syncTree(oldTree, newTree, patches = [], parentTree) {
   const oldNodeName = oldTree.nodeName;
   const isFragment = newTree.nodeType === 11;
   const isEmpty = oldTree === empty;
+  /** @type {any} */
   const keysLookup = { old: new Map(), new: new Map() };
 
   if (process.env.NODE_ENV !== 'production') {
@@ -162,7 +163,7 @@ export default function syncTree(oldTree, newTree, patches = [], parentTree) {
     }
   }
 
-  const newChildNodes = newTree.childNodes;
+  const newChildNodes = newTree.childNodes || [];
 
   // Scan all childNodes for attribute changes.
   if (isEmpty) {
@@ -174,7 +175,7 @@ export default function syncTree(oldTree, newTree, patches = [], parentTree) {
     return patches;
   }
 
-  const oldChildNodes = oldTree.childNodes;
+  const oldChildNodes = oldTree.childNodes || [];
 
   // Do a single pass over the new child nodes.
   for (let i = 0; i < newChildNodes.length; i++) {

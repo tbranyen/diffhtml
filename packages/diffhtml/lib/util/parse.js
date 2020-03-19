@@ -3,6 +3,7 @@
 
 import createTree from '../tree/create';
 import process from './process';
+import { VTree, Supplemental } from './types';
 
 const hasNonWhitespaceEx = /\S/;
 const doctypeEx = /<!.*>/i;
@@ -66,11 +67,11 @@ const kElementsClosedByClosing = {
  * Interpolate dynamic supplemental values from the tagged template into the
  * tree.
  *
- * @param currentParent
- * @param string
- * @param supplemental
+ * @param {VTree} currentParent
+ * @param {string} string
+ * @param {Supplemental} supplemental - Dynamic interpolated data values
  */
-const interpolateValues = (currentParent, string, supplemental = {}) => {
+const interpolateValues = (currentParent, string, supplemental = Supplemental) => {
   if ('childNodes' in currentParent.attributes) {
     // Reset childNodes, as we are paving over them.
     currentParent.childNodes.length = 0;
@@ -78,7 +79,7 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
 
   // If this is text and not a doctype, add as a text node.
   if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
-    return currentParent.childNodes.push(createTree('#text', string));
+    return currentParent.childNodes.push(/** @type {VTree} */ (createTree('#text', string)));
   }
 
   const childNodes = [];
@@ -119,9 +120,10 @@ const interpolateValues = (currentParent, string, supplemental = {}) => {
  * provided (no parentNode, nextSibling, previousSibling etc).
  *
  * @param {String} nodeName - DOM Node name
- * @param {Object} rawAttrs - DOM Node Attributes
- * @param {Object} supplemental - Interpolated data from a tagged template
- * @return {Object} vTree
+ * @param {String} rawAttrs - DOM Node Attributes
+ * @param {Supplemental} supplemental - Interpolated data from a tagged template
+ * @param {any=} options
+ * @return {VTree | null} vTree
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   let match = null;
@@ -137,6 +139,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
     );
   }
 
+  /** @type {{ [key: string]: any }} */
   const attributes = {};
 
   // Migrate raw attributes into the attributes object used by the VTree.
@@ -214,9 +217,9 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  * Parses HTML and returns a root element
  *
  * @param {String} html - String of HTML markup to parse into a Virtual Tree
- * @param {Object=} supplemental - Dynamic interpolated data values
- * @param {Object=} options - Contains options like silencing warnings
- * @return {Object} - Parsed Virtual Tree Element
+ * @param {Supplemental | null} supplemental - Dynamic interpolated data values
+ * @param {any} options - Contains options like silencing warnings
+ * @return {VTree | null} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
   if (!options.parser) {
@@ -466,6 +469,7 @@ Possibly invalid markup. Opening tag was not properly closed.
   // body or head.
   if (root.childNodes.length && root.childNodes[0].nodeName === 'html') {
     // Store elements from before body end and after body end.
+    /** @type {{ [name: string]: VTree[] }} */
     const head = { before: [], after: [] };
     const body = { after: [] };
     const HTML = root.childNodes[0];
@@ -494,11 +498,14 @@ Possibly invalid markup. Opening tag was not properly closed.
     // Ensure the first element is the HEAD tag.
     if (!HTML.childNodes[0] || HTML.childNodes[0].nodeName !== 'head') {
       const headInstance = createTree('head', null, []);
-      const existing = headInstance.childNodes;
 
-      existing.unshift.apply(existing, head.before);
-      existing.push.apply(existing, head.after);
-      HTML.childNodes.unshift(headInstance);
+      if (headInstance) {
+        const existing = headInstance.childNodes;
+
+        existing.unshift.apply(existing, head.before);
+        existing.push.apply(existing, head.after);
+        HTML.childNodes.unshift(headInstance);
+      }
     }
     else {
       const existing = HTML.childNodes[0].childNodes;
@@ -510,10 +517,13 @@ Possibly invalid markup. Opening tag was not properly closed.
     // Ensure the second element is the body tag.
     if (!HTML.childNodes[1] || HTML.childNodes[1].nodeName !== 'body') {
       const bodyInstance = createTree('body', null, []);
-      const existing = bodyInstance.childNodes;
 
-      existing.push.apply(existing, body.after);
-      HTML.childNodes.push(bodyInstance);
+      if (bodyInstance) {
+        const existing = bodyInstance.childNodes;
+
+        existing.push.apply(existing, body.after);
+        HTML.childNodes.push(bodyInstance);
+      }
     }
     else {
       const existing = HTML.childNodes[1].childNodes;

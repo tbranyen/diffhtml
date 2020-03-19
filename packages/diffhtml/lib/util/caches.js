@@ -1,7 +1,13 @@
+import { VTree } from "./types";
+
 // Associates DOM Nodes with state objects.
 export const StateCache = new Map();
 
-// Associates Virtual Tree Elements with DOM Nodes.
+/**
+ * Associates Virtual Tree Elements with DOM Nodes.
+ *
+ * @type {Map<VTree, HTMLElement>}
+ */
 export const NodeCache = new Map();
 
 // Cache transition functions.

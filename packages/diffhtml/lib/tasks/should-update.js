@@ -1,4 +1,6 @@
-export default function shouldUpdate(transaction) {
+import Transaction from "../transaction";
+
+export default function shouldUpdate(/** @type {Transaction} */ transaction) {
   const { domNode, markup, state, state: { measure }, options } = transaction;
   const prop = options.inner ? 'innerHTML' : 'outerHTML';
 

@@ -22,7 +22,7 @@ export default class Transaction {
   /**
    *
    * @param {HTMLElement} domNode
-   * @param {VTree | string} markup
+   * @param {string | Partial<VTree> | HTMLElement} markup
    * @param {*} options
    */
   static create(domNode, markup, options) {
@@ -100,7 +100,7 @@ export default class Transaction {
   /**
    * @constructor
    * @param {HTMLElement} domNode
-   * @param {VTree | string} markup
+   * @param {string | Partial<VTree> | HTMLElement} markup
    * @param {any} options
    */
   constructor(domNode, markup, options) {
@@ -204,16 +204,16 @@ export default class Transaction {
     this.endedCallbacks.add(callback);
   }
 
-  /** @type {VTree} */
+  /** @type {VTree=} */
   oldTree = undefined;
 
-  /** @type {VTree} */
+  /** @type {VTree=} */
   newTree = undefined;
 
-  /** @type {any} */
+  /** @type {Promise<any>=} */
   promise = undefined
 
-  /** @type {any} */
+  /** @type {Promise<any>[]=} */
   promises = undefined
 
   /** @type {Function[]} */

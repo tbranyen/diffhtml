@@ -11,10 +11,10 @@ const document = /** @type {any} */ (globalThis).document || null;
  * Sets the node into the Node cache. If this VTree already has an
  * associated node, it will reuse that.
  *
- * @param {Partial<VTree>} vTree - A Virtual Tree Element or VTree-like element
+ * @param {VTree} vTree - A Virtual Tree Element or VTree-like element
  * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
  * @param {Boolean=} isSVG - Is their a root SVG element?
- * @return {Object} A DOM Node matching the vTree
+ * @return {HTMLElement} A DOM Node matching the vTree
  */
 export default function createNode(vTree, ownerDocument = document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {
@@ -32,7 +32,7 @@ export default function createNode(vTree, ownerDocument = document, isSVG) {
     return existingNode;
   }
 
-  const { nodeName, rawNodeName = nodeName, childNodes = [] } = vTree;
+  const { nodeName, rawNodeName = nodeName, childNodes = [] } = /** @type {any} */(vTree);
   isSVG = isSVG || nodeName === 'svg';
 
   // Will vary based on the properties of the VTree.
@@ -50,7 +50,7 @@ export default function createNode(vTree, ownerDocument = document, isSVG) {
     // Create empty text elements. They will get filled in during the patch
     // process.
     if (nodeName === '#text') {
-      domNode = ownerDocument.createTextNode(vTree.nodeValue);
+      domNode = ownerDocument.createTextNode(vTree.nodeValue || '');
     }
     // Support dynamically creating document fragments.
     else if (nodeName === '#document-fragment') {

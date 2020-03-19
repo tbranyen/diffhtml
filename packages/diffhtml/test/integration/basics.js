@@ -25,11 +25,11 @@ describe('Integration: Basics', function() {
   describe('Call API', function() {
     it('will error if element is missing', function() {
       assert.throws(function() {
-        diff.innerHTML();
+        /** @type {any} */ (diff).innerHTML();
       });
 
       assert.throws(function() {
-        diff.outerHTML();
+        /** @type {any} */ (diff).outerHTML();
       });
     });
 

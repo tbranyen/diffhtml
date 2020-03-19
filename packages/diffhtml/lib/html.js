@@ -2,7 +2,7 @@ import createTree from './tree/create';
 import parse from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
-import { VTree } from './util/types';
+import { VTree, Supplemental } from './util/types';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
@@ -10,7 +10,7 @@ const TOKEN = '__DIFFHTML__';
 
 // Get the next value from the list. If the next value is a string, make sure
 // it is escaped.
-const nextValue = values => {
+const nextValue = (/** @type {any[]} */ values) => {
   const value = values.shift();
   return typeof value === 'string' ? escape(decodeEntities(value)) : value;
 };
@@ -40,7 +40,7 @@ export default function handleTaggedTemplate(strings, ...values) {
   // Parse only the text, no dynamic bits.
   if (strings.length === 1 && !values.length) {
     const strict = handleTaggedTemplate.isStrict;
-    handleTaggedTemplate.isStrict = undefined;
+    handleTaggedTemplate.isStrict = false;
     const { childNodes } = parse(strings[0], null, { strict });
     return childNodes.length > 1 ? createTree(childNodes) : childNodes[0];
   }
@@ -50,7 +50,12 @@ export default function handleTaggedTemplate(strings, ...values) {
 
   // We filter the supplemental values by where they are used. Values are
   // either, children, or tags (for components).
-  const supplemental = { attributes: {}, children: {}, tags: {} };
+  /** @type {Supplemental} */
+  const supplemental = {
+    attributes: {},
+    children: {},
+    tags: {},
+   };
 
   // Loop over the static strings, each break correlates to an interpolated
   // value. As these values can be dynamic, we cannot pass them to the HTML
@@ -65,7 +70,6 @@ export default function handleTaggedTemplate(strings, ...values) {
     // If there are values, figure out where in the markup they were injected.
     if (values.length) {
       const value = nextValue(values);
-      const lastSegment = string.split(' ').pop();
       const lastCharacter = HTML.trim().slice(-1);
       const isAttribute = HTML.lastIndexOf('>') < HTML.lastIndexOf('<');
       const isTag = Boolean(lastCharacter.match(isTagEx));
@@ -100,7 +104,7 @@ export default function handleTaggedTemplate(strings, ...values) {
   // Determine if we are in strict mode and immediately reset for the next
   // call.
   const strict = handleTaggedTemplate.isStrict;
-  handleTaggedTemplate.isStrict = undefined;
+  handleTaggedTemplate.isStrict = false;
 
   // Parse the instrumented markup to get the Virtual Tree.
   const { childNodes } = parse(HTML, supplemental, { strict });
@@ -116,7 +120,7 @@ handleTaggedTemplate.isStrict = false;
 // Use a strict mode similar to XHTML/JSX where tags must be properly closed
 // and malformed markup is treated as an error. The default is to silently fail
 // just like HTML.
-handleTaggedTemplate.strict = (markup, ...args) => {
+handleTaggedTemplate.strict = (/** @type {string} */ markup, /** @type {any[]} */ ...args) => {
   handleTaggedTemplate.isStrict = true;
   return handleTaggedTemplate(markup, ...args);
 };

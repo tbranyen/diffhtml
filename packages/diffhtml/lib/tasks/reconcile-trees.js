@@ -36,18 +36,21 @@ export default function reconcileTrees(transaction) {
   // then reconcile trees will attempt to create a tree based on the incoming
   // markup (JSX/html/etc).
   if (!transaction.newTree) {
-    transaction.newTree = createTree(markup);
+    const newTree = createTree(markup);
+    newTree && (transaction.newTree = newTree);
   }
 
   // If we are diffing only the parent's childNodes, then adjust the newTree to
   // be a replica of the oldTree except with the childNodes changed.
-  if (inner) {
-    const { oldTree, newTree } = transaction;
-    const { rawNodeName, nodeName, attributes } = oldTree;
+  const { oldTree, newTree } = transaction;
+
+  if (inner && oldTree && newTree) {
+    const { nodeName, attributes } = oldTree;
     const isUnknown = typeof newTree.rawNodeName !== 'string';
     const isFragment = newTree.nodeType === 11;
     const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
 
-    transaction.newTree = createTree(nodeName, attributes, children);
+    const replaceTree = createTree(nodeName, attributes, children);
+    replaceTree && (transaction.newTree = replaceTree);
   }
 }

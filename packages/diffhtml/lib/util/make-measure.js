@@ -21,7 +21,7 @@ export default function makeMeasure(domNode, vTree) {
   // function.
   if (!wantsPerfChecks) { return nop; }
 
-  return name => {
+  return (/** @type {string} */ name) => {
     const host = /** @type any */ (domNode).host;
 
     // Use the Web Component name if it's available.

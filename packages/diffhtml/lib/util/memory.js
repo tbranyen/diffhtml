@@ -4,13 +4,14 @@ import {
   StateCache,
   ReleaseHookCache,
 } from './caches';
+import { VTree } from './types';
 
 const { memory, protect, unprotect } = Pool;
 
 /**
  * Ensures that an vTree is not recycled during a render cycle.
  *
- * @param vTree
+ * @param {VTree} vTree
  * @return vTree
  */
 export function protectVTree(vTree) {
@@ -26,7 +27,7 @@ export function protectVTree(vTree) {
 /**
  * Allows an vTree to be recycled during a render cycle.
  *
- * @param vTree
+ * @param {VTree} vTree
  * @return
  */
 export function unprotectVTree(vTree) {

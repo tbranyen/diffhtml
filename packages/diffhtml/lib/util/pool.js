@@ -53,7 +53,7 @@ export default {
   },
 
   /**
-   * @param {VTree} vTree - Virtual Tree to protect 
+   * @param {VTree} vTree - Virtual Tree to protect
    */
   protect(vTree) {
     allocate.delete(vTree);
@@ -61,7 +61,7 @@ export default {
   },
 
   /**
-   * @param {VTree} vTree - Virtual Tree to unprotect 
+   * @param {VTree} vTree - Virtual Tree to unprotect
    */
   unprotect(vTree) {
     if (protect.has(vTree)) {

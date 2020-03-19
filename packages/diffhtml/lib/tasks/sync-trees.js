@@ -3,11 +3,20 @@ import createNode from '../node/create';
 import { StateCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import { PATCH_TYPE } from '../util/types';
+import Transaction from '../transaction';
 
-export default function syncTrees(transaction) {
+export default function syncTrees(/** @type {Transaction} */ transaction) {
   const { state: { measure }, oldTree, newTree, domNode } = transaction;
 
   measure('sync trees');
+
+  if (!oldTree) {
+    throw new Error('Missing old tree during synchronization');
+  }
+
+  if (!newTree) {
+    throw new Error('Missing old tree during synchronization');
+  }
 
   // Do a global replace of the element, unable to do this at a lower level.
   // Ignore this for document fragments, they don't appear in the DOM and we
@@ -27,7 +36,7 @@ export default function syncTrees(transaction) {
     ];
 
     // Clean up the existing old tree, and mount the new tree.
-    unprotectVTree(transaction.oldTree);
+    unprotectVTree(oldTree);
     transaction.oldTree = transaction.state.oldTree = newTree;
     protectVTree(transaction.oldTree);
 

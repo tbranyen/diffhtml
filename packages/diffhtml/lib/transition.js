@@ -35,8 +35,8 @@ export function addTransitionState(stateName, callback) {
 
 /**
  *
- * @param {string} stateName
- * @param {Function} callback
+ * @param {string=} stateName
+ * @param {Function=} callback
  * @return {void}
  */
 export function removeTransitionState(stateName, callback) {
@@ -63,8 +63,18 @@ export function removeTransitionState(stateName, callback) {
   }
 }
 
+/**
+ *
+ * @param {string} setName
+ * @param  {...any} args
+ *
+ * @return {Promise<any>[]}
+ */
 export function runTransitions(setName, ...args) {
+  /** @type {Set<Function>} */
   const set = TransitionCache.get(setName);
+
+  /** @type {Promise<any>[]} */
   const promises = [];
 
   if (!set.size || setName !== 'textChanged' && args[0].nodeType === 3) {

@@ -1,11 +1,12 @@
 import createNode from './create';
 import { runTransitions } from '../transition';
-import { NodeCache, TransitionCache } from '../util/caches';
+import { NodeCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
 import escape from '../util/escape';
 import { PATCH_TYPE } from '../util/types';
 
+const { keys } = Object;
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
 const blacklist = new Set();
 const whitelist = new Set();
@@ -34,6 +35,11 @@ const removeAttribute = (domNode, name) => {
   }
 };
 
+/**
+ *
+ * @param {*} patches
+ * @param {*} state
+ */
 export default function patchNode(patches, state = {}) {
   const promises = [];
   const { isSVG, ownerDocument } = state;
@@ -78,11 +84,11 @@ export default function patchNode(patches, state = {}) {
           const noValue = value === null || value === undefined;
 
           if (whitelist.has(blacklistName)) {
-            domNode[name] = value;
+            /** @type {any} */ (domNode)[name] = value;
           }
           else if (!blacklist.has(blacklistName)) {
             try {
-              domNode[name] = value;
+              /** @type {any} */ (domNode)[name] = value;
               whitelist.add(blacklistName);
             } catch (unhandledException) {
               blacklist.add(blacklistName);
@@ -95,20 +101,20 @@ export default function patchNode(patches, state = {}) {
         }
         // Support patching an object representation of the style object.
         else if (isObject && name === 'style') {
-          const keys = Object.keys(value);
+          const valueKeys = /** @type {any} */ (keys(value));
 
-          for (let i = 0; i < keys.length; i++) {
-            domNode.style[keys[i]] = value[keys[i]];
+          for (let i = 0; i < valueKeys.length; i++) {
+            /** @type {any} */ (domNode.style)[valueKeys[i]] = value[valueKeys[i]];
           }
         }
         else if (typeof value !== 'string') {
           // Since this is a property value it gets set directly on the node.
           if (whitelist.has(blacklistName)) {
-            domNode[name] = value;
+            /** @type {any} */ (domNode)[name] = value;
           }
           else if (!blacklist.has(blacklistName)) {
             try {
-              domNode[name] = value;
+              /** @type {any} */ (domNode)[name] = value;
               whitelist.add(blacklistName);
             } catch (unhandledException) {
               blacklist.add(blacklistName);
@@ -130,8 +136,6 @@ export default function patchNode(patches, state = {}) {
         i += 3;
 
         const domNode = NodeCache.get(vTree);
-        const attributeChanged = TransitionCache.get('attributeChanged');
-
         const oldValue = domNode.getAttribute(name);
         const newPromises = runTransitions(
           'attributeChanged', domNode, name, oldValue, null
@@ -156,7 +160,6 @@ export default function patchNode(patches, state = {}) {
         i += 4;
 
         const domNode = createNode(vTree);
-        const textChanged = TransitionCache.get('textChanged');
         const textChangedPromises = runTransitions(
           'textChanged', domNode, oldValue, nodeValue
         );
@@ -190,7 +193,6 @@ export default function patchNode(patches, state = {}) {
 
         const domNode = NodeCache.get(vTree);
         const refNode = refTree && createNode(refTree, ownerDocument, isSVG);
-        const attached = TransitionCache.get('attached');
 
         if (refTree) {
           protectVTree(refTree);
@@ -217,9 +219,6 @@ export default function patchNode(patches, state = {}) {
 
         const oldDomNode = NodeCache.get(oldTree);
         const newDomNode = createNode(newTree, ownerDocument, isSVG);
-        const attached = TransitionCache.get('attached');
-        const detached = TransitionCache.get('detached');
-        const replaced = TransitionCache.get('replaced');
 
         // Always insert before to allow the element to transition.
         // FIXME only do this if transitions exist
@@ -241,6 +240,7 @@ export default function patchNode(patches, state = {}) {
           Promise.all(allPromises).then(() => {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
             unprotectVTree(oldTree);
+            NodeCache.delete(oldTree);
           });
 
           promises.push(...allPromises);
@@ -248,6 +248,7 @@ export default function patchNode(patches, state = {}) {
         else {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
           unprotectVTree(oldTree);
+          NodeCache.delete(oldTree);
         }
 
         break;
@@ -259,13 +260,13 @@ export default function patchNode(patches, state = {}) {
         i += 2;
 
         const domNode = NodeCache.get(vTree);
-        const detached = TransitionCache.get('detached');
         const detachedPromises = runTransitions('detached', domNode);
 
         if (detachedPromises.length) {
           Promise.all(detachedPromises).then(() => {
             domNode.parentNode.removeChild(domNode);
             unprotectVTree(vTree);
+            NodeCache.delete(vTree);
           });
 
           promises.push(...detachedPromises);
@@ -273,6 +274,7 @@ export default function patchNode(patches, state = {}) {
         else {
           domNode.parentNode.removeChild(domNode);
           unprotectVTree(vTree);
+          NodeCache.delete(vTree);
         }
 
         break;

@@ -7,7 +7,7 @@ import Transaction from '../transaction';
  * `bufferSet`.
  *
  * @param {Transaction} transaction
- * @return {Promise<Boolean>}
+ * @return {Promise<Boolean> | void}
  */
 export default function schedule(transaction) {
   // The state is a global store which is shared by all like-transactions.
