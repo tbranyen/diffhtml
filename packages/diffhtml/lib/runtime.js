@@ -3,6 +3,7 @@ import syncTree from './tree/sync';
 import createNode from './node/create';
 import internals from './util/internals';
 import { PATCH_TYPE } from './util/types';
+import globalThis from './util/global';
 import innerHTML from './inner-html';
 import outerHTML from './outer-html';
 import { defaultTasks, tasks } from './transaction';
@@ -39,11 +40,11 @@ api.html = createTree;
 // Attach a circular reference to `Internals` for ES/CJS builds.
 api.Internals = Internals;
 
-// Automatically hook up to DevTools if they are present.
 /** @type {any} */
-const global = window;
+const global = globalThis;
 
-if (typeof global !== 'undefined' && typeof global.devTools === 'function') {
+// Automatically hook up to DevTools if they are present.
+if (global.devTools) {
   use(global.devTools(Internals));
   console.warn('diffHTML DevTools: Found and activated!');
 }
