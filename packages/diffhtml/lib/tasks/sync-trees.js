@@ -1,7 +1,7 @@
 import syncTree from '../tree/sync';
 import createNode from '../node/create';
 import { StateCache } from '../util/caches';
-import { protectVTree, unprotectVTree } from '../util/memory';
+import { protectVTree } from '../util/memory';
 import { PATCH_TYPE } from '../util/types';
 import Transaction from '../transaction';
 
@@ -36,7 +36,6 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     ];
 
     // Clean up the existing old tree, and mount the new tree.
-    unprotectVTree(oldTree);
     transaction.oldTree = transaction.state.oldTree = newTree;
     protectVTree(transaction.oldTree);
 
