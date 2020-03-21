@@ -1,10 +1,10 @@
 import Transaction, { defaultTasks } from './transaction';
-import { VTree } from './util/types';
+import { VTreeLike } from './util/types';
 
 /**
  *
  * @param {HTMLElement} domNode
- * @param {string | Partial<VTree> | HTMLElement} markup
+ * @param {any[] | HTMLElement | string | VTreeLike | VTreeLike[]} markup
  * @param {*} options
  */
 export default function outerHTML(domNode, markup='', options={}) {

@@ -54,7 +54,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   const isObject = typeof input === 'object';
 
   // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
-  if (input && isObject && 'parentNode' in input) {
+  if (input && isObject && 'parentNode' in /** @type {HTMLElement} */ (input)) {
     let test = null;
     NodeCache.forEach((key, val) => {
       if (key === input) {
@@ -81,7 +81,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
         // If the attribute's value is empty, seek out the property instead.
         if (value === '' && name in input) {
-          attributes[name] = input[name];
+          attributes[name] = /** @type {any} */ (input)[name];
           continue;
         }
 
@@ -100,15 +100,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
             (i === 0 || i === input.childNodes.length - 1) &&
             input.childNodes[i] &&
             input.childNodes[i].nodeName === '#text' &&
-            !input.childNodes[i].nodeValue.trim()
+            !(input.childNodes[i].nodeValue || '').trim()
           ) continue;
 
-          if (input.childNodes[i].nodeName === '#text') {
-            childNodes.push(createTree(input.childNodes[i].cloneNode(true)));
-          }
-          else {
-            childNodes.push(createTree(input.childNodes[i]));
-          }
+          childNodes.push(createTree(/** @type {HTMLElement} */ (input.childNodes[i])));
         }
       }
     }

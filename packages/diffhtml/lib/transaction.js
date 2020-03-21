@@ -8,7 +8,7 @@ import reconcileTrees from './tasks/reconcile-trees';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
-import { VTree } from './util/types';
+import { VTree, VTreeLike } from './util/types';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -22,7 +22,7 @@ export default class Transaction {
   /**
    *
    * @param {HTMLElement} domNode
-   * @param {string | Partial<VTree> | HTMLElement} markup
+   * @param {any[] | HTMLElement | string | VTreeLike | VTreeLike[]} markup
    * @param {*} options
    */
   static create(domNode, markup, options) {
@@ -100,7 +100,7 @@ export default class Transaction {
   /**
    * @constructor
    * @param {HTMLElement} domNode
-   * @param {string | Partial<VTree> | HTMLElement} markup
+   * @param {any[] | HTMLElement | string | VTreeLike | VTreeLike[]} markup
    * @param {any} options
    */
   constructor(domNode, markup, options) {
