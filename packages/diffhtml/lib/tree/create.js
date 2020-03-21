@@ -1,7 +1,6 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
 import { VTree, VTreeLike } from '../util/types';
-import { createNoSubstitutionTemplateLiteral } from '../../node_modules/typescript/lib/typescript';
 
 const { assign } = Object;
 const { isArray } = Array;
