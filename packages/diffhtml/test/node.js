@@ -4,22 +4,39 @@ import patchNode from '../lib/node/patch';
 import { PATCH_TYPE } from '../lib/util/types';
 import html from '../lib/html';
 import validateMemory from './util/validateMemory';
+import release from '../lib/release';
+import createTree from '../lib/tree/create';
 
 describe('Node', function() {
   afterEach(() => validateMemory());
 
   describe('create', () => {
-    it('will throw an error if called without a vTree', () => {
-      const invalidCreateNode = /** @type {any} */ (createNode);
+    it('will throw an error if called without a VTree', () => {
+      /** @type {any} */
+      const invalidCreateNode = createNode;
+      const expectedException = /Missing VTree when trying to create DOM Node/;
 
-      throws(() => invalidCreateNode());
-      throws(() => invalidCreateNode(null));
-      throws(() => invalidCreateNode(undefined));
-      throws(() => invalidCreateNode(false));
-      throws(() => invalidCreateNode(''));
+      throws(() => invalidCreateNode(), expectedException);
+      throws(() => invalidCreateNode(null), expectedException);
+      throws(() => invalidCreateNode(undefined), expectedException);
+      throws(() => invalidCreateNode(false), expectedException);
+      throws(() => invalidCreateNode(''), expectedException);
     });
 
-    it('will create a DOM Node from a vTree', () => {
+    it('will create a DOM Node from a VTree', () => {
+      const domNode = createNode(
+        createTree('div', [
+          createTree('#text', 'test'),
+        ])
+      );
+
+      ok(domNode instanceof Element);
+      equal(domNode.textContent, 'test');
+
+      release(domNode);
+    });
+
+    it('will create a DOM Node from a VTree-like object', () => {
       const domNode = createNode({
         nodeName: 'div',
         childNodes: [{
@@ -33,7 +50,7 @@ describe('Node', function() {
     });
 
     it('will get a DOM Node from existing vTree', () => {
-      let descriptor = {
+      const descriptor = {
         nodeName: 'div',
         childNodes: [{
           nodeName: '#text',
@@ -43,7 +60,7 @@ describe('Node', function() {
 
       createNode(descriptor);
 
-      var retVal = createNode(descriptor);
+      const retVal = createNode(descriptor);
 
       ok(retVal instanceof Element);
       equal(retVal.textContent, 'test');

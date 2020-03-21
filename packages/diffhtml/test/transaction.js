@@ -4,6 +4,7 @@ import Transaction from '../lib/transaction';
 import use from '../lib/use';
 import release from '../lib/release';
 import validateMemory from './util/validateMemory';
+import createNode from '../lib/node/create';
 
 describe('Transaction', function() {
   const suite = /** @type {any} */(this);
@@ -17,7 +18,6 @@ describe('Transaction', function() {
   });
 
   afterEach(() => {
-    release(null);
     release(suite.domNode);
     validateMemory();
   });
@@ -95,8 +95,6 @@ describe('Transaction', function() {
     });
 
     it('will pass initial value as arguments to all functions', () => {
-      const valueOne = {};
-      const valueTwo = {};
       const testFnOne = spy();
       const testFnTwo = spy();
 
@@ -109,12 +107,14 @@ describe('Transaction', function() {
       equal(testFnTwo.calledWith(this), true);
     });
 
-    it('will force abort the flow', () => {
+    it('will force abort the flow, the last task will still execute', () => {
       const testFnOne = transaction => transaction.abort(true);
       const testFnTwo = spy();
       const testFnThree = spy();
 
-      const transaction = Transaction.create(null, null, {
+      suite.domNode = createNode({ nodeName: 'div' });
+
+      const transaction = Transaction.create(suite.domNode, null, {
         tasks: [testFnOne, testFnTwo, testFnThree],
       });
 
@@ -130,7 +130,9 @@ describe('Transaction', function() {
       const testFnTwo = spy();
       const testFnThree = spy();
 
-      const transaction = Transaction.create(null, null, {
+      suite.domNode = createNode({ nodeName: 'div' });
+
+      const transaction = Transaction.create(suite.domNode, null, {
         tasks: [testFnOne, testFnTwo, testFnThree],
       });
 

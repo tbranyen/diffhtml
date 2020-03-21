@@ -18,10 +18,10 @@ export default function reconcileTrees(transaction) {
   if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
     if (state.oldTree) {
       unprotectVTree(state.oldTree);
-    }
 
-    // Wipe out the existing root if it exists.
-    NodeCache.delete(state.oldTree);
+      // Wipe out the existing root if it exists.
+      NodeCache.delete(state.oldTree);
+    }
 
     // Reset the old tree with the newly created VTree association.
     state.oldTree = createTree(domNode);

@@ -36,6 +36,26 @@ export const VTree = {
 };
 
 /**
+ * @typedef {Object} VTreeLike - defines a valid or loosely shaped VTree
+
+ * @property {any=} rawNodeName - unaltered extracted nodeName
+ * @property {string} nodeName - lowercased, string, nodeName, only required value
+ * @property {string=} elementName - lowercased, string, elementName
+ * @property {string=} nodeValue - defines the text value associated
+ * @property {number=} nodeType - the type of Node this is representing
+ * @property {string=} key - A unique identifier for the children
+ * @property {VTreeLike[]=} childNodes - Any nested elements
+ * @property {VTreeLike[]=} children - Any nested elements
+ * @property {any=} attributes - Any key/val attributes for the Node */
+
+/**
+ * @type {VTreeLike} implements VTreeLike
+ */
+export const VTreeLike = {
+  nodeName: '',
+};
+
+/**
  * @typedef {Object} Middleware - defines Middleware
  *
  * @property {Function=} subscribe

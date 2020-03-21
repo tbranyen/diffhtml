@@ -364,8 +364,10 @@ This argument is overloaded. Can be one of many types:
 
 ## <a href="#internals">Internals</a>
 
-The internals are exposed for curious developers to write code against.
-Understanding these APIs will give you greater insight into how diffHTML works.
+These internals are deemed public API and may be relied upon once the library
+has reached a stable version. The intention is to allow developers to tweak
+the library, observe and influence internal memory, and build tooling around
+the runtime.
 
 ### <a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a>
 

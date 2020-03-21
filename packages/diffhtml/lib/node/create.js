@@ -1,7 +1,8 @@
 import { NodeCache, CreateNodeHookCache } from '../util/caches';
 import process from '../util/process';
 import globalThis from '../util/global';
-import { VTree } from '../util/types';
+import { VTreeLike } from '../util/types';
+import createTree from '../tree/create';
 
 const namespace = 'http://www.w3.org/2000/svg';
 const document = /** @type {any} */ (globalThis).document || null;
@@ -11,18 +12,19 @@ const document = /** @type {any} */ (globalThis).document || null;
  * Sets the node into the Node cache. If this VTree already has an
  * associated node, it will reuse that.
  *
- * @param {VTree} vTree - A Virtual Tree Element or VTree-like element
+ * @param {VTreeLike} vTreeLike - A Virtual Tree Element or VTree-like element
  * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
  * @param {Boolean=} isSVG - Is their a root SVG element?
  * @return {HTMLElement} A DOM Node matching the vTree
  */
-export default function createNode(vTree, ownerDocument = document, isSVG) {
+export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {
-    if (!vTree) {
+    if (!vTreeLike) {
       throw new Error('Missing VTree when trying to create DOM Node');
     }
   }
 
+  const vTree = createTree(vTreeLike);
   const existingNode = NodeCache.get(vTree);
 
   // If the DOM Node was already created, reuse the existing node. This is

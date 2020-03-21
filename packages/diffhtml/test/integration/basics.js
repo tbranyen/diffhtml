@@ -126,7 +126,7 @@ describe('Integration: Basics', function() {
         />
       `, /Arrays are not allowed to be spread in strict mode/);
 
-      diff.Internals.memory.cleanMemory();
+      diff.Internals.memory.gc();
     });
   });
 

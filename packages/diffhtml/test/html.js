@@ -7,16 +7,20 @@ describe('HTML (Tagged template)', function() {
   afterEach(() => validateMemory());
 
   it('will return null when passed a falsy value', () => {
-    equal(html(), null);
-    equal(html(null), null);
-    equal(html(undefined), null);
-    equal(html(0), null);
-    equal(html(NaN), null);
-    equal(html(false), null);
+    /** @type {any} */
+    const invalidHtml = html;
+
+    equal(invalidHtml(), null);
+    equal(invalidHtml(null), null);
+    equal(invalidHtml(undefined), null);
+    equal(invalidHtml(0), null);
+    equal(invalidHtml(NaN), null);
+    equal(invalidHtml(false), null);
   });
 
   it('will support running as a standalone function', () => {
-    equal(html('<div/>').nodeName, 'div');
+    const vTree = html('<div/>');
+    equal(vTree.nodeName, 'div');
   });
 
   it('will interpolate a single string value in an attribute', function() {

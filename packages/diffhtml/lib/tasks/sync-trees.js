@@ -1,7 +1,6 @@
 import syncTree from '../tree/sync';
 import createNode from '../node/create';
 import { StateCache } from '../util/caches';
-import { protectVTree } from '../util/memory';
 import { PATCH_TYPE } from '../util/types';
 import Transaction from '../transaction';
 
@@ -37,7 +36,6 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
 
     // Clean up the existing old tree, and mount the new tree.
     transaction.oldTree = transaction.state.oldTree = newTree;
-    protectVTree(transaction.oldTree);
 
     // Update the StateCache since we are changing the top level element.
     StateCache.delete(domNode);

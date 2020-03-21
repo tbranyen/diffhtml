@@ -6,7 +6,7 @@ import decodeEntities from '../lib/util/decode-entities';
 import escape from '../lib/util/escape';
 import parse from '../lib/util/parse';
 import _process from '../lib/util/process';
-import { protectVTree, unprotectVTree, cleanMemory } from '../lib/util/memory';
+import { protectVTree, unprotectVTree, gc } from '../lib/util/memory';
 import makeMeasure from '../lib/util/make-measure';
 import Pool from '../lib/util/pool';
 import validateMemory from './util/validateMemory';
@@ -886,7 +886,7 @@ describe('Util', function() {
       equal(Pool.memory.free.size, 0);
       equal(Pool.memory.allocated.size, Pool.size + 1);
 
-      cleanMemory();
+      gc();
 
       equal(Pool.memory.free.size, Pool.size + 1);
       equal(Pool.memory.allocated.size, 0);
@@ -902,13 +902,13 @@ describe('Util', function() {
       const vTree = createTree('div');
 
       protectVTree(vTree);
-      cleanMemory();
+      gc();
 
       equal(Pool.memory.free.size, Pool.size - 1);
       equal(Pool.memory.protected.size, 1);
 
       unprotectVTree(vTree);
-      cleanMemory();
+      gc();
 
       equal(Pool.memory.free.size, Pool.size);
       equal(Pool.memory.protected.size, 0);
@@ -918,13 +918,13 @@ describe('Util', function() {
       const vTree = createTree('div', null, createTree('span'));
 
       protectVTree(vTree);
-      cleanMemory();
+      gc();
 
       equal(Pool.memory.free.size, Pool.size - 2);
       equal(Pool.memory.protected.size, 2);
 
       unprotectVTree(vTree);
-      cleanMemory();
+      gc();
 
       equal(Pool.memory.free.size, Pool.size);
       equal(Pool.memory.protected.size, 0);
@@ -935,14 +935,14 @@ describe('Util', function() {
 
       protectVTree(vTree);
       unprotectVTree(vTree.childNodes[0]);
-      cleanMemory();
+      gc();
 
       equal(Pool.memory.free.size, Pool.size - 1);
       equal(Pool.memory.protected.size, 1);
       equal(Pool.memory.free.has(vTree.childNodes[0]), true);
 
       unprotectVTree(vTree);
-      cleanMemory();
+      gc();
 
       equal(Pool.memory.free.size, Pool.size);
       equal(Pool.memory.protected.size, 0);
@@ -957,13 +957,13 @@ describe('Util', function() {
       equal(Pool.memory.free.size, Pool.size - 1);
       equal(Pool.memory.protected.has(vTree), true);
 
-      cleanMemory();
+      gc();
 
       equal(Pool.memory.free.size, Pool.size - 1);
       equal(Pool.memory.protected.has(vTree), true);
 
       unprotectVTree(vTree);
-      cleanMemory();
+      gc();
 
       equal(NodeCache.has(domNode), false);
     });

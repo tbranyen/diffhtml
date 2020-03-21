@@ -123,7 +123,7 @@ const interpolateValues = (currentParent, string, supplemental = Supplemental) =
  * @param {String} rawAttrs - DOM Node Attributes
  * @param {Supplemental} supplemental - Interpolated data from a tagged template
  * @param {any=} options
- * @return {VTree | null} vTree
+ * @return {VTree} vTree
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   let match = null;
@@ -143,7 +143,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   const attributes = {};
 
   // Migrate raw attributes into the attributes object used by the VTree.
-  for (let match; match = attrEx.exec(rawAttrs || ''); ) {
+  for (let match; match = attrEx.exec(rawAttrs || '');) {
     const name = match[1];
     const value = match[6] || match[5] || match[4] || match[1];
     let tokenMatch = value.match(tokenEx);
@@ -152,8 +152,6 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
     // flatten to a string. There are no other valid options.
     if (tokenMatch && tokenMatch.length) {
       const parts = value.split(tokenEx);
-      let { length } = parts;
-
       const hasToken = tokenEx.exec(name);
       const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
 
@@ -219,7 +217,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  * @param {String} html - String of HTML markup to parse into a Virtual Tree
  * @param {Supplemental | null} supplemental - Dynamic interpolated data values
  * @param {any} options - Contains options like silencing warnings
- * @return {VTree | null} - Parsed Virtual Tree Element
+ * @return {VTree} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
   if (!options.parser) {
@@ -231,7 +229,6 @@ export default function parse(html, supplemental, options = {}) {
 
   const tagEx =
     /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
-  const attrEx = /\b([_a-z][_a-z0-9\-:]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
   const root = createTree('#document-fragment', null, []);
   const stack = [root];
   let currentParent = root;

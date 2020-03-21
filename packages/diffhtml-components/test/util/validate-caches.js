@@ -15,7 +15,7 @@ export default function validateCaches() {
 
 const {
   Pool: { memory },
-  memory: { cleanMemory },
+  memory: { gc },
   StateCache,
   NodeCache,
   MiddlewareCache,
@@ -27,7 +27,7 @@ const {
 } = Internals;
 
 function validateCore() {
-  cleanMemory();
+  gc();
 
   assert.equal(memory.protected.size, 0,
     'Should not leave leftover protected elements in memory');

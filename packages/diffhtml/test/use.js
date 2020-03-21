@@ -1,8 +1,6 @@
 import { equal, throws } from 'assert';
-import { createTree, html, innerHTML, outerHTML, use, release } from '../lib/index';
+import { html, innerHTML, outerHTML, use, release } from '../lib/index';
 import validateMemory from './util/validateMemory';
-
-const { assign } = Object;
 
 describe('Use (Middleware)', function() {
   beforeEach(() => {

@@ -1,5 +1,6 @@
-import { StateCache } from './util/caches';
-import { cleanMemory, unprotectVTree } from './util/memory';
+import { StateCache, NodeCache } from './util/caches';
+import { unprotectVTree } from './util/memory';
+import createTree from './tree/create';
 
 /**
  *
@@ -10,14 +11,18 @@ export default function release(domNode) {
   // Try and find a state object for this DOM Node.
   const state = StateCache.get(domNode);
 
-  // If there is a Virtual Tree element, recycle all objects allocated for it.
-  if (state && state.oldTree) {
-    unprotectVTree(state.oldTree);
+  // If this was a top-level rendered element, deallocate the VTree
+  // and remove the StateCache reference.
+  if (state) {
+    unprotectVTree(createTree(state.oldTree));
+    StateCache.delete(domNode);
   }
-
-  // Remove the DOM Node's state object from the cache.
-  StateCache.delete(domNode);
-
-  // Recycle all unprotected objects.
-  cleanMemory();
+  else {
+    // If there is a Virtual Tree element, recycle all objects allocated for it.
+    NodeCache.forEach((value, key) => {
+      if (value === domNode) {
+        unprotectVTree(key);
+      }
+    });
+  }
 }

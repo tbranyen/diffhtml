@@ -240,7 +240,6 @@ export default function patchNode(patches, state = {}) {
           Promise.all(allPromises).then(() => {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
             unprotectVTree(oldTree);
-            NodeCache.delete(oldTree);
           });
 
           promises.push(...allPromises);
@@ -248,7 +247,6 @@ export default function patchNode(patches, state = {}) {
         else {
           oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
           unprotectVTree(oldTree);
-          NodeCache.delete(oldTree);
         }
 
         break;
@@ -266,7 +264,6 @@ export default function patchNode(patches, state = {}) {
           Promise.all(detachedPromises).then(() => {
             domNode.parentNode.removeChild(domNode);
             unprotectVTree(vTree);
-            NodeCache.delete(vTree);
           });
 
           promises.push(...detachedPromises);
@@ -274,7 +271,6 @@ export default function patchNode(patches, state = {}) {
         else {
           domNode.parentNode.removeChild(domNode);
           unprotectVTree(vTree);
-          NodeCache.delete(vTree);
         }
 
         break;

@@ -7,7 +7,6 @@ const free = new Set();
 const allocate = new Set();
 const protect = new Set();
 
-
 const shape = () => ({
   rawNodeName: '',
   nodeName: '',
@@ -39,6 +38,8 @@ export default {
    * @return {VTree}
    */
   get() {
+    // This will create a new VTree and add to the pool if
+    // we do not get one from the freeValues.
     const { value = shape(), done } = freeValues.next();
 
     // This extra bit of work allows us to avoid calling `free.values()` every
@@ -61,9 +62,11 @@ export default {
   },
 
   /**
-   * @param {VTree} vTree - Virtual Tree to unprotect
+   * @param {VTree} vTree - Virtual Tree to unprotect and deallocate
    */
   unprotect(vTree) {
+    allocate.delete(vTree);
+
     if (protect.has(vTree)) {
       protect.delete(vTree);
       free.add(vTree);

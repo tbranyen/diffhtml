@@ -10,7 +10,7 @@ import {
   ReleaseHookCache,
 } from '../../lib/util/caches';
 import Pool from '../../lib/util/pool';
-import { cleanMemory } from '../../lib/util/memory';
+import { gc } from '../../lib/util/memory';
 
 const { memory } = Pool;
 
@@ -18,7 +18,8 @@ const { memory } = Pool;
  * Validates that the memory has been successfully cleaned per render.
  */
 export default function validateMemory() {
-  cleanMemory();
+  // Run garbage collection after each test.
+  gc();
 
   assert.equal(memory.protected.size, 0,
     'Should not leave leftover protected elements in memory');

@@ -1,25 +1,35 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
-import { VTree } from '../util/types';
+import { VTree, VTreeLike } from '../util/types';
+import { createNoSubstitutionTemplateLiteral } from '../../node_modules/typescript/lib/typescript';
 
 const { assign } = Object;
 const { isArray } = Array;
+const { memory } = Pool;
 const fragmentName = '#document-fragment';
 
 /**
+ * Typically passed either a single or list of DOM Nodes or a VTreeLike object.
  *
- * @param {any[] | HTMLElement | string | object} input
+ * @param {any[] | HTMLElement | string | VTreeLike | VTreeLike[]} input
  * @param {any=} attributes
  * @param {any=} childNodes
  * @param  {...any} rest
  *
- * @return {VTree | null}
+ * @return {VTree}
  */
 export default function createTree(input, attributes, childNodes, ...rest) {
-  // If no input was provided then we return an indication as such.
-  // FIXME Can we ensure a consistent return type by changing this to be an
-  // empty fragment?
-  if (!input) { return null; }
+  // Reuse a VTree if it has already been created and in the pool. This
+  // is an optimization to make it safer to call `createTree` whenever
+  // necessary.
+  if (memory.protected.has(input) || memory.allocated.has(input)) {
+    return /** @type {VTree} */ (input);
+  }
+
+  // If no input was provided, return an empty fragment.
+  if (!input) {
+    return createTree(fragmentName, null, []);
+  }
 
   // If the first argument is an array, we assume this is a DOM fragment and
   // the array are the childNodes.
@@ -28,7 +38,6 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     for (let i = 0; i < input.length; i++) {
       const newTree = createTree(input[i]);
-      if (!newTree) { continue; }
       const isFragment = newTree.nodeType === 11;
 
       if (typeof newTree.rawNodeName === 'string' && isFragment) {
@@ -115,45 +124,24 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   // Assume any object value is a valid VTree object.
   if (isObject) {
-    // Support JSX-like object shape.
-    if ('children' in input && !('childNodes' in input)) {
-      const nodeName = input.nodeName || input.elementName;
-      return createTree(nodeName, input.attributes, input.children);
+    const inputAsVTreeLike = /** @type {VTreeLike} */ (input);
+    const nodeName = String(inputAsVTreeLike.nodeName || inputAsVTreeLike.elementName);
+
+    // The priority of a VTreeLike input is nodeValue above all else. If this value is
+    // present, we assume a text-based element and that the intentions are setting the
+    // children to this value.
+    const vTree = createTree(
+      nodeName,
+      inputAsVTreeLike.attributes || null,
+      inputAsVTreeLike.children || inputAsVTreeLike.childNodes,
+    );
+
+    // Ensure nodeValue is properly copied over.
+    if (inputAsVTreeLike.nodeValue) {
+      vTree.nodeValue = inputAsVTreeLike.nodeValue;
     }
 
-    const visited = new Set();
-
-    if (CreateTreeHookCache.size) {
-      for (let i = 0; i < input.childNodes.length; i++) {
-        const entry = input.childNodes[i];
-
-        CreateTreeHookCache.forEach((fn, retVal) => {
-          if (visited.has(entry)) {
-            return;
-          }
-
-          // Invoke all the `createNodeHook` functions passing along this transaction
-          // as the only argument. These functions must return valid vTree values.
-          if (retVal = fn(entry)) {
-            assign(entry, retVal);
-          }
-
-          visited.add(entry);
-        });
-
-        input.childNodes[i] = createTree(entry);
-      }
-    }
-
-    CreateTreeHookCache.forEach((fn, retVal) => {
-      // Invoke all the `createNodeHook` functions passing along this transaction
-      // as the only argument. These functions must return valid vTree values.
-      if (retVal = fn(input)) {
-        assign(input, retVal);
-      }
-    });
-
-    return input;
+    return vTree;
   }
 
   // Support JSX-style children being passed.
@@ -164,11 +152,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   // Allocate a new VTree from the pool.
   const entry = Pool.get();
   const isTextNode = input === '#text';
-  const isString = typeof input === 'string';
 
   entry.key = '';
   entry.rawNodeName = input;
-  entry.nodeName = isString ? input.toLowerCase() : '#document-fragment';
+  entry.nodeName = typeof input === 'string' ? input.toLowerCase() : fragmentName
   entry.childNodes.length = 0;
   entry.nodeValue = '';
   entry.attributes = {};
@@ -220,7 +207,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       }
       // Assume objects are vTrees.
       else if (newNode && typeof newNode === 'object') {
-        entry.childNodes.push(newNode);
+        entry.childNodes.push(createTree(newNode));
       }
       // Cover generate cases where a user has indicated they do not want a
       // node from appearing.

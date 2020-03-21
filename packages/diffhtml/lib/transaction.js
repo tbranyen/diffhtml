@@ -1,5 +1,5 @@
 import { StateCache, MiddlewareCache } from './util/caches';
-import { cleanMemory, protectVTree } from './util/memory';
+import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
 import schedule from './tasks/schedule';
@@ -152,8 +152,6 @@ export default class Transaction {
    * @param {boolean=} isReturn
    */
   abort(isReturn) {
-    const { state } = this;
-
     this.aborted = true;
 
     // Grab the last task in the flow and return, this task will be responsible
@@ -167,9 +165,8 @@ export default class Transaction {
    * @return {Transaction}
    */
   end() {
-    const { state, domNode, options } = this;
+    const { state, domNode } = this;
     const { measure } = state;
-    const { inner } = options;
 
     measure('finalize');
 
@@ -192,7 +189,7 @@ export default class Transaction {
     // Clean up memory before rendering the next transaction, however if
     // another transaction is running concurrently this will be delayed until
     // the last render completes.
-    cleanMemory();
+    gc();
 
     return this;
   }

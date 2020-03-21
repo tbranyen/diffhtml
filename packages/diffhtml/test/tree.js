@@ -22,13 +22,17 @@ describe('Tree', function() {
   afterEach(() => validateMemory());
 
   describe('create', () => {
-    it('will return null for falsy values', () => {
-      equal(createTree(), null);
-      equal(createTree(null), null);
-      equal(createTree(undefined), null);
-      equal(createTree(''), null);
-      equal(createTree(0), null);
-      equal(createTree(NaN), null);
+    it('will return an empty fragment for falsy values', () => {
+      /** @type {any} */
+      const invalidCreateTree = createTree;
+      const fragment = createTree('#document-fragment');
+
+      deepEqual(invalidCreateTree(), fragment);
+      deepEqual(invalidCreateTree(null), fragment);
+      deepEqual(invalidCreateTree(undefined), fragment);
+      deepEqual(invalidCreateTree(''), fragment);
+      deepEqual(invalidCreateTree(0), fragment);
+      deepEqual(invalidCreateTree(NaN), fragment);
     });
 
     it('will create an empty div', () => {

@@ -3,6 +3,7 @@ import parse from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 import { VTree, Supplemental } from './util/types';
+import { unprotectVTree } from './util/memory';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
@@ -41,7 +42,9 @@ export default function handleTaggedTemplate(strings, ...values) {
   if (strings.length === 1 && !values.length) {
     const strict = handleTaggedTemplate.isStrict;
     handleTaggedTemplate.isStrict = false;
-    const { childNodes } = parse(strings[0], null, { strict });
+
+    const vTree = parse(strings[0], null, { strict });
+    const { childNodes } = vTree;
     return childNodes.length > 1 ? createTree(childNodes) : childNodes[0];
   }
 
