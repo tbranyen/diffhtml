@@ -226,6 +226,7 @@ export default function patchNode(patches, state = {}) {
         const oldDomNode = /** @type {HTMLElement} */ (
           NodeCache.get(oldTree)
         );
+
         const newDomNode = createNode(newTree, ownerDocument, isSVG);
 
         if (process.env.NODE_ENV !== 'production') {

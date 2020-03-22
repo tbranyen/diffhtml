@@ -1,7 +1,7 @@
 import { NodeCache, CreateNodeHookCache } from '../util/caches';
 import process from '../util/process';
 import globalThis from '../util/global';
-import { VTreeLike } from '../util/types';
+import { VTreeLike, VTree } from '../util/types';
 import createTree from '../tree/create';
 
 const namespace = 'http://www.w3.org/2000/svg';
@@ -15,7 +15,7 @@ const document = /** @type {any} */ (globalThis).document || null;
  * @param {VTreeLike} vTreeLike - A Virtual Tree Element or VTree-like element
  * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
  * @param {Boolean=} isSVG - Is their a root SVG element?
- * @return {HTMLElement | DocumentFragment} A DOM Node matching the vTree
+ * @return {HTMLElement | DocumentFragment | Text | Comment} A DOM Node matching the vTree
  */
 export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {
@@ -37,8 +37,8 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
   const {
     nodeName,
     rawNodeName = nodeName,
-    childNodes = [],
-  } = /** @type {any} */(vTree);
+    childNodes = /** @type {VTree[]} */ ([]),
+  } = vTree;
 
   isSVG = isSVG || nodeName === 'svg';
 

@@ -594,13 +594,12 @@ describe('Tree', function() {
         domTree,
 
         PATCH_TYPE.INSERT_BEFORE,
-        fixture,
+        secondPass,
         domTree,
         null,
       ]);
 
       const newDomTree = createTree(domNode);
-
       const thirdPass = createTree('div', [newDomTree, p]);
       const thirdPassPatches = syncTree(secondPass, thirdPass);
 
@@ -615,33 +614,41 @@ describe('Tree', function() {
         null,
 
         PATCH_TYPE.INSERT_BEFORE,
-        secondPass,
+        thirdPass,
         p,
         null,
       ]);
     });
 
-    it('will not diff into a DOM Node children', () => {
+    it('will diff into changed DOM Node children', () => {
       const domNode = document.createElement('div');
-      const domTree = createTree(domNode);
-      const fixture = createTree('div');
-      const firstPass = createTree('div', [domTree]);
+      const firstTree = createTree(domNode);
+      const firstFixture = createTree('div');
 
-      const firstPassPatches = syncTree(fixture, firstPass);
+      const firstPass = createTree('div', [firstTree]);
+      const firstPassPatches = syncTree(firstFixture, firstPass);
 
       deepEqual(firstPassPatches, [
         PATCH_TYPE.INSERT_BEFORE,
-        fixture,
-        domTree,
+        firstFixture,
+        firstTree,
         null,
       ]);
 
       domNode.appendChild(document.createElement('div'));
 
-      const secondPass = createTree('div', [createTree(domNode)]);
-      const secondPassPatches = syncTree(fixture, secondPass);
+      const secondFixture = createTree('div');
 
-      deepEqual(secondPassPatches, []);
+      const secondTree = createTree(domNode);
+      const secondPass = createTree('div', [secondTree]);
+      const secondPassPatches = syncTree(secondFixture, secondPass);
+
+      deepEqual(secondPassPatches, [
+        PATCH_TYPE.INSERT_BEFORE,
+        secondFixture,
+        secondTree,
+        null,
+      ]);
     });
 
     it('will support dom element comparisons with whitespace, should have no diff', () => {

@@ -21,7 +21,7 @@ const nextValue = (/** @type {any[]} */ values) => {
  * put in various parts of the markup, such as tag names, attributes,
  * and node values.
  *
- * @param {string|string[]|TemplateStringsArray} strings
+ * @param {string | string[] | TemplateStringsArray} strings
  * @param  {...any} values - test
  * @return {VTree | null} VTree object or null if no input strings
  */
@@ -42,7 +42,7 @@ export default function handleTaggedTemplate(strings, ...values) {
     const strict = handleTaggedTemplate.isStrict;
     handleTaggedTemplate.isStrict = false;
 
-    const vTree = parse(strings[0], null, { strict });
+    const vTree = parse(strings[0], undefined, { parser: { strict } });
     const { childNodes } = vTree;
     return childNodes.length > 1 ? createTree(childNodes) : childNodes[0];
   }
@@ -109,7 +109,7 @@ export default function handleTaggedTemplate(strings, ...values) {
   handleTaggedTemplate.isStrict = false;
 
   // Parse the instrumented markup to get the Virtual Tree.
-  const { childNodes } = parse(HTML, supplemental, { strict });
+  const { childNodes } = parse(HTML, supplemental, { parser: { strict } });
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
@@ -119,10 +119,18 @@ export default function handleTaggedTemplate(strings, ...values) {
 // Default to loose-mode.
 handleTaggedTemplate.isStrict = false;
 
-// Use a strict mode similar to XHTML/JSX where tags must be properly closed
-// and malformed markup is treated as an error. The default is to silently fail
-// just like HTML.
-handleTaggedTemplate.strict = (/** @type {string} */ markup, /** @type {any[]} */ ...args) => {
+
+/**
+ * Use a strict mode similar to XHTML/JSX where tags must be properly closed
+ * and malformed markup is treated as an error. The default is to silently fail
+ * just like HTML.
+ *
+ * @param {string | string[] | TemplateStringsArray} markup
+ * @param  {any[]} args
+ */
+function setStrictMode(markup, ...args) {
   handleTaggedTemplate.isStrict = true;
   return handleTaggedTemplate(markup, ...args);
-};
+}
+
+handleTaggedTemplate.strict = setStrictMode;

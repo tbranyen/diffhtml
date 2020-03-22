@@ -10,7 +10,7 @@ export default function parseNewTree(/** @type {Transaction} */ transaction) {
   if (typeof markup === 'string') {
     measure('parsing markup for new tree');
 
-    const { childNodes } = parse(markup, null, options);
+    const { childNodes } = parse(markup, undefined, options);
 
     // If we are dealing with innerHTML, use all the Nodes. If we're dealing
     // with outerHTML, we can only support diffing against a single element,

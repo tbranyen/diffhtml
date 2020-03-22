@@ -30,6 +30,18 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     return createTree(fragmentName, null, []);
   }
 
+  let domBound = null;
+
+  NodeCache.forEach((node, vTree) => {
+    if (node === input) {
+      domBound = vTree;
+    }
+  });
+
+  if (domBound) {
+    return domBound;
+  }
+
   // If the first argument is an array, we assume this is a DOM fragment and
   // the array are the childNodes.
   if (isArray(input)) {
@@ -107,28 +119,44 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       }
     }
 
-    const vTree = createTree(input.nodeName, attributes, childNodes);
+    const vTree = createTree(
+      input.nodeName,
+      attributes,
+      childNodes,
+    );
+
     NodeCache.set(vTree, input);
+
     return vTree;
   }
 
   // Assume any object value is a valid VTree object.
   if (isObject) {
-    const inputAsVTreeLike = /** @type {VTreeLike} */ (input);
-    const nodeName = String(inputAsVTreeLike.nodeName || inputAsVTreeLike.elementName);
+    /** @type {VTreeLike} */
+    const {
+      rawNodeName,
+      nodeName,
+      elementName,
+      nodeValue,
+      attributes,
+      childNodes,
+      children,
+    } = (input);
+
+    const treeName = rawNodeName || nodeName || elementName;
 
     // The priority of a VTreeLike input is nodeValue above all else. If this value is
     // present, we assume a text-based element and that the intentions are setting the
     // children to this value.
     const vTree = createTree(
-      nodeName,
-      inputAsVTreeLike.attributes || null,
-      inputAsVTreeLike.children || inputAsVTreeLike.childNodes,
+      treeName,
+      attributes || null,
+      children || childNodes,
     );
 
     // Ensure nodeValue is properly copied over.
-    if (inputAsVTreeLike.nodeValue) {
-      vTree.nodeValue = inputAsVTreeLike.nodeValue;
+    if (nodeValue) {
+      vTree.nodeValue = nodeValue;
     }
 
     return vTree;

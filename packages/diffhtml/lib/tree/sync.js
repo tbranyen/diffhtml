@@ -1,4 +1,4 @@
-import { SyncTreeHookCache } from '../util/caches';
+import { SyncTreeHookCache, NodeCache } from '../util/caches';
 import process from '../util/process';
 import { PATCH_TYPE, VTree } from '../util/types';
 
@@ -260,6 +260,12 @@ export default function syncTree(oldTree, newTree, patches = [], parentTree) {
     // replace the entire element, don't bother investigating children.
     if (oldChildNode.nodeName !== newChildNode.nodeName) {
       oldChildNodes[i] = newChildNode;
+
+      const lookupIndex = oldChildNodes.lastIndexOf(newChildNode);
+
+      if (lookupIndex > i) {
+        oldChildNodes.splice(lookupIndex, 1);
+      }
 
       syncTree(null, newChildNode, patches, newTree);
 

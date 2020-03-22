@@ -3,15 +3,16 @@
 
 import createTree from '../tree/create';
 import process from './process';
-import { VTree, Supplemental } from './types';
+import { VTree, Supplemental, Options, ParserOptions } from './types';
 
 const hasNonWhitespaceEx = /\S/;
 const doctypeEx = /<!.*>/i;
 const spaceEx = /[^ ]/;
 const tokenEx = /__DIFFHTML__([^_]*)__/;
+
 /** @type {Supplemental} */
 const defaultSupplemental = {
-  tags: {},
+  tags: [],
   attributes: {},
   children: {},
 }
@@ -102,8 +103,6 @@ const interpolateValues = (currentParent, string, supplemental) => {
     // the token's position. So all we do is ensure that we're on an odd
     // index and then we can source the correct value.
     if (i % 2 === 1) {
-      if (!supplemental) continue;
-
       const innerTree = supplemental.children[value];
 
       if (!innerTree) continue;
@@ -185,7 +184,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
             if (isObject && !isArray(newName) && newName) {
               assign(attributes, newName);
             }
-            else if (isObject && options.strict) {
+            else if (isObject && options.parser.strict) {
               if (process.env.NODE_ENV !== 'production') {
                 throw new Error(
                   'Arrays are not allowed to be spread in strict mode'
@@ -227,12 +226,13 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  * Parses HTML and returns a root element
  *
  * @param {String} html - String of HTML markup to parse into a Virtual Tree
- * @param {Supplemental | null} supplemental - Dynamic interpolated data values
- * @param {any} options - Contains options like silencing warnings
+ * @param {Supplemental=} supplemental - Dynamic interpolated data values
+ * @param {Options=} options - Contains options like silencing warnings
  * @return {VTree} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
   if (!options.parser) {
+    /** @type {ParserOptions} */
     options.parser = {};
   }
 
@@ -240,7 +240,7 @@ export default function parse(html, supplemental, options = {}) {
     supplemental = defaultSupplemental;
   }
 
-  const blockText = new Set(options.parser.blockText || blockTextDefaults);
+  const blockText = new Set(options.parser.blockText ? options.parser.blockText : blockTextDefaults);
   const selfClosing = new Set(options.parser.selfClosing || selfClosingDefaults);
 
   const tagEx =
@@ -253,7 +253,7 @@ export default function parse(html, supplemental, options = {}) {
   if (process.env.NODE_ENV !== 'production') {
     const markup = [html];
 
-    if (!html.includes('<') && options.strict) {
+    if (!html.includes('<') && options.parser.strict) {
       markup.splice(1, 0, `
 Possibly invalid markup. Opening tag was not properly opened.
       `);
@@ -261,7 +261,7 @@ Possibly invalid markup. Opening tag was not properly opened.
       throw new Error(`\n\n${markup.join('\n')}`);
     }
 
-    if (!html.includes('>') && options.strict) {
+    if (!html.includes('>') && options.parser.strict) {
       markup.splice(1, 0, `
 Possibly invalid markup. Opening tag was not properly closed.
       `);
@@ -323,13 +323,13 @@ Possibly invalid markup. Opening tag was not properly closed.
 
       stack.push(currentParent);
 
-      if (options.strict || blockText.has(match[2])) {
+      if (options.parser.strict || blockText.has(match[2])) {
         // A little test to find next </script> or </style> ...
         const closeMarkup = '</' + match[2] + '>';
         const index = html.indexOf(closeMarkup, tagEx.lastIndex);
 
         if (process.env.NODE_ENV !== 'production') {
-          if (index === -1 && options.strict) {
+          if (index === -1 && options.parser.strict) {
 
             // Find a subset of the markup passed in to validate.
             const markup = html
@@ -343,7 +343,7 @@ Possibly invalid markup. Opening tag was not properly closed.
               (lookup ? lookup.index : 0) + closeMarkup.length - 1
             ).join(' ') + '^';
 
-            const name = supplemental ? supplemental.tags[0].name : match[2];
+            const name = supplemental.tags[0] ? supplemental.tags[0].name : match[2];
 
             // Craft the warning message and inject it into the markup.
             markup.splice(1, 0, `${caret}
@@ -373,7 +373,7 @@ Possibly invalid markup. Opening tag was not properly closed.
 
     if (match[1] || match[4] || selfClosing.has(match[2])) {
       if (process.env.NODE_ENV !== 'production') {
-        if (currentParent && match[2] !== currentParent.rawNodeName && options.strict) {
+        if (currentParent && match[2] !== currentParent.rawNodeName && options.parser.strict) {
           const nodeName = currentParent.rawNodeName;
 
           // Find a subset of the markup passed in to validate.
@@ -448,7 +448,7 @@ Possibly invalid markup. Opening tag was not properly closed.
   const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
 
   if (process.env.NODE_ENV !== 'production') {
-    if ((remainingText.includes('>') || remainingText.includes('<')) && options.strict) {
+    if ((remainingText.includes('>') || remainingText.includes('<')) && options.parser.strict) {
       // Find a subset of the markup passed in to validate.
       const markup = [remainingText];
 

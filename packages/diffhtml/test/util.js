@@ -164,7 +164,7 @@ describe('Util', function() {
     });
 
     it('will throw on invalid closing tag when in strict mode', () => {
-      const opts = { strict: true };
+      const opts = { parser: { strict: true } };
       const markup = `
         <span></span><div><div></div>
         <ul>
@@ -197,7 +197,7 @@ describe('Util', function() {
           <div></div>
           <div></div>
           <div></div>
-        `, null, { strict: false }).childNodes[0];
+        `, null, { parser: { strict: false } }).childNodes[0];
       });
     });
 

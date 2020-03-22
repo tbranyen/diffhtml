@@ -56,7 +56,7 @@ export const VTreeLike = {
 };
 
 /**
- * @typedef {HTMLElement | DocumentFragment | string | VTreeLike | VTreeLike[]} ValidInput
+ * @typedef {HTMLElement | Text | Comment | DocumentFragment | string | string[] | VTreeLike | VTreeLike[]} ValidInput
  */
 
  /**
@@ -87,8 +87,9 @@ export const ValidInput = '';
  /**
  * @typedef {Object} ParserOptions - defines ParserOptions type
  *
- * @property {Boolean=} blockText - Set of block element tagNames, empty is all
- * @property {Boolean=} selfClosing - Set of self closing element tagNames, empty is all
+ * @property {Boolean=} strict - Should the parser operate in strict mode
+ * @property {string[]=} blockText - Set of block element tagNames, empty is all
+ * @property {string[]=} selfClosing - Set of self closing element tagNames, empty is all
  */
 
 /**

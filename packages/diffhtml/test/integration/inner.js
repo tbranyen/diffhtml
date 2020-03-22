@@ -51,7 +51,7 @@ describe('Integration: innerHTML', function() {
   });
 
   describe('DOM Nodes', function() {
-    it.only('can re-render a dom node multiple times when interpolated', function() {
+    it('can re-render a dom node multiple times when interpolated', function() {
       const domNode = document.createElement('div');
       domNode.textContent = 'test';
 
@@ -65,8 +65,6 @@ describe('Integration: innerHTML', function() {
 
       diff.innerHTML(this.fixture, diff.html`<p>before</p>${domNode}`);
       assert.equal(this.fixture.innerHTML, '<p>before</p><div>test</div>');
-
-      //diff.use(() => t => console.log(t.patches));
 
       diff.innerHTML(this.fixture, diff.html`${domNode}<p>after</p>`);
       assert.equal(this.fixture.innerHTML, '<div>test</div><p>after</p>');
