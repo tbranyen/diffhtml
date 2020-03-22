@@ -121,12 +121,15 @@ A function is useful when you want to follow the transactions (which are
 started and run a series of tasks), and passing an object can be cleaner when
 you want to modify the Virtual Tree or automatically add properties.
 
+[**Refer to the Middleware documentation for more in-depth
+information.**](/middleware.html#writing-middleware)
+
 ### Arguments
 
 | Name        | Description
 | ----------- | -----------
 | **middlewareFunction** | Use this when you want total control over the task flow. Return inner functions to delve deeper into the flow. Any of the middleware object properties may be attached the function and used together.
-| **middlewareObject** | Use this when you don't care about the transaction start/stop, and want a cleaner way to monitor the VTree lifecycle. <p><b>- createTreeHook</b></p><p><b>- syncTreeHook</b></p> <p><b>- releaseHook</b></p>
+| **middlewareObject** | Use this when you don't care about the transaction start/stop, and want a cleaner way to monitor the VTree lifecycle. <p><b>- createTreeHook</b></p><p><b>- syncTreeHook</b></p> <p><b>- releaseHook</b></p><p><b>- subscribe</b></p><p><b>- unsubscribe</b></p>
 
 ### Examples
 

@@ -70,7 +70,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     attributes = {};
     childNodes = [];
 
-    const inputAttributes = inputAsHTMLEl.attributes;
+    const inputAttrs = inputAsHTMLEl.attributes;
 
     // When working with a text node, simply save the nodeValue as the
     // initial value.
@@ -80,11 +80,11 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     // Element types are the only kind of DOM node we care about attributes
     // from. Shadow DOM, Document Fragments, Text, Comment nodes, etc. can
     // ignore this.
-    else if (input.nodeType === 1 && inputAttributes && inputAttributes.length) {
+    else if (input.nodeType === 1 && inputAttrs && inputAttrs.length) {
       attributes = {};
 
-      for (let i = 0; i < inputAttributes.length; i++) {
-        const { name, value } = inputAttributes[i];
+      for (let i = 0; i < inputAttrs.length; i++) {
+        const { name, value } = inputAttrs[i];
 
         // If the attribute's value is empty, seek out the property instead.
         if (value === '' && name in input) {

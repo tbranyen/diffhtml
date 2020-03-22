@@ -31,6 +31,6 @@ export const output = [{
 export const plugins = [
   NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   babel(),
-  nodeResolve({ jsnext: true }),
+  nodeResolve({ mainFields: ['module'] }),
   NODE_ENV === 'umd' && Visualizer({ filename: './dist/build-size.html' }),
 ];

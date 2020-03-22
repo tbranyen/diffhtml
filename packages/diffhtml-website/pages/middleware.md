@@ -1,7 +1,8 @@
 # Middleware
 
-This concept allows developers to write plugins that augments diffHTML to do
-different things. You can use pre-made middleware or create your own easily.
+This concept allows developers to write plugins that hooks into and possibly
+augments diffHTML. You can find pre-made middleware or create your own easily
+using this guide as a reference.
 
 <a name="writing-middleware"></a>
 
@@ -9,29 +10,46 @@ different things. You can use pre-made middleware or create your own easily.
 
 ## <a href="#writing-middleware">Writing middleware</a>
 
-You would write middleware when you need to extend diffHTML to do things that
-that were not originally intended. For instance, you could write logic that
-says whenever a specific attribute is present to execute some code on the
-element when it enters and leaves the DOM. You could log whenever diffHTML has
-a render operation scheduled, monitor transitions, and more.
+Authoring middleware with diffHTML should not feel daunting; it was designed to
+be straightforward for simple things like tracking when renders occur, what the
+previous and next (X)HTML trees look like, and what the given set of DOM
+updates were for the render.
 
-A basic middleware looks as simple as:
+While simple things are easy to access, the API allows for significantly more
+complex operations, such as:
+
+- Creating new elements
+- Changing the DOM synchronization logic
+- Adopt elements/components from other frameworks
+- XML transformations
+- React to DevTools changes
+
+Lastly, middleware can be loaded with the [Render to
+String](https://diffhtml.org/tools.html#render-to-string) module in NodeJS. So
+if you are extra ambitious you can get your middleware to be fully
+cross-platform even during Server-Side-Rendering.
+
+The code for a basic middleware looks as simple as:
 
 ``` js
 import { use } from 'diffhtml';
 
-use(() => {
-  console.log('diffHTML render transaction is starting');
+use(transaction => {
+  console.log('Render transaction is starting');
 
   return () => {
-    console.log('diffHTML render transaction is ending');
+    console.log('Render transaction is ending');
+
+    transaction.onceEnded(() => {
+      console.log('Render transaction has completed');
+    });
   };
 });
 ```
 
 There are several core middleware modules already written that you could use as
 a reference. A good starting one to look at is the [Logger](/middleware#logger)
-if you're interested in tracking the render transaction flow.
+if you're interested in logging the render transaction flow.
 
 If you wanted to track when an element enters and leaves the DOM you could use
 the [attached and detached transition
@@ -41,11 +59,7 @@ removed.
 
 ``` js
 use(() => ({ patches }) => {
-  patches.TREE_OPS.forEach(({ INSERT_BEFORE, REMOVE_CHILD, REPLACE_CHILD }) => {
-    if (INSERT_BEFORE) {
-
-    }
-  });
+  console.log(patches);
 });
 ```
 

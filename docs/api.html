@@ -311,6 +311,10 @@ reconciler during a render call such as <code>innerHTML</code> or <code>outerHTM
 <p>A function is useful when you want to follow the transactions (which are
 started and run a series of tasks), and passing an object can be cleaner when
 you want to modify the Virtual Tree or automatically add properties.</p>
+<p>
+    <a href="/middleware.html#writing-middleware" title="null"><strong>Refer to the Middleware documentation for more in-depth
+information.</strong></a>
+  </p>
 <h3 id="arguments-3">Arguments</h3>
 <table>
 <thead>
@@ -325,7 +329,7 @@ you want to modify the Virtual Tree or automatically add properties.</p>
 </tr>
 <tr>
 <td><strong>middlewareObject</strong></td>
-<td>Use this when you don&#39;t care about the transaction start/stop, and want a cleaner way to monitor the VTree lifecycle. <p><b>- createTreeHook</b></p><p><b>- syncTreeHook</b></p> <p><b>- releaseHook</b></p></td>
+<td>Use this when you don&#39;t care about the transaction start/stop, and want a cleaner way to monitor the VTree lifecycle. <p><b>- createTreeHook</b></p><p><b>- syncTreeHook</b></p> <p><b>- releaseHook</b></p><p><b>- subscribe</b></p><p><b>- unsubscribe</b></p></td>
 </tr>
 </tbody></table>
 <h3 id="examples">Examples</h3>

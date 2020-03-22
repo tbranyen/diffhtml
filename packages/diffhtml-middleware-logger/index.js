@@ -164,7 +164,7 @@ const log = (message, method, color, date, transaction, completed) => {
   }
 
   if (patches) {
-    console.log('%cpatches %O', 'font-weight: bold; color: #333', patches);
+    console.log('%cpatches %O', 'font-weight: bold; color: #333', format(patches));
   }
 
   // Don't clutter the output if there aren't any promises.
@@ -180,7 +180,7 @@ const logger = ({ minimize = false }) => function loggerTask(transaction) {
 
   log(
     '%cdiffHTML...render transaction started',
-    minimize ? 'groupCollapsed' : 'group',
+    'groupCollapsed',
     'color: #FF0066',
     start,
     transaction
@@ -208,7 +208,7 @@ const logger = ({ minimize = false }) => function loggerTask(transaction) {
    * Transaction is effectively done, but we need to listen for it to actually
    * be finished.
    */
-  return () => {
+  return assign(() => {
     // Transaction has fully completed.
     transaction.onceEnded(() => {
       console.groupEnd();
@@ -224,7 +224,11 @@ const logger = ({ minimize = false }) => function loggerTask(transaction) {
 
       console.groupEnd();
     });
-  };
+  }, {
+    subscribe(args) {
+      console.log('Logger initialized with', args);
+    }
+  });
 };
 
 export default (opts = {}) => logger(opts);

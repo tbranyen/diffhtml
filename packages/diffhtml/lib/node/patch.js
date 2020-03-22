@@ -201,7 +201,7 @@ export default function patchNode(patches, state = {}) {
         i += 4;
 
         const domNode = /** @type {HTMLElement} */ (
-          NodeCache.get(vTree)
+          createNode(vTree)
         );
         const refNode = NodeCache.get(refTree);
         const newNode = createNode(newTree, ownerDocument, isSVG);
