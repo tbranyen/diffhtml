@@ -34,7 +34,12 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
     return existingNode;
   }
 
-  const { nodeName, rawNodeName = nodeName, childNodes = [] } = /** @type {any} */(vTree);
+  const {
+    nodeName,
+    rawNodeName = nodeName,
+    childNodes = [],
+  } = /** @type {any} */(vTree);
+
   isSVG = isSVG || nodeName === 'svg';
 
   // Will vary based on the properties of the VTree.

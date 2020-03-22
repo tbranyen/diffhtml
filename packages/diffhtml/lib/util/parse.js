@@ -9,6 +9,12 @@ const hasNonWhitespaceEx = /\S/;
 const doctypeEx = /<!.*>/i;
 const spaceEx = /[^ ]/;
 const tokenEx = /__DIFFHTML__([^_]*)__/;
+/** @type {Supplemental} */
+const defaultSupplemental = {
+  tags: {},
+  attributes: {},
+  children: {},
+}
 
 const { assign } = Object;
 const { isArray } = Array;
@@ -46,6 +52,7 @@ const selfClosingDefaults = [
   'wbr',
 ];
 
+/** @type {any} */
 const kElementsClosedByOpening = {
   li: { li: true },
   p: { p: true, div: true },
@@ -53,6 +60,7 @@ const kElementsClosedByOpening = {
   th: { td: true, th: true },
 };
 
+/** @type {any} */
 const kElementsClosedByClosing = {
   li: { ul: true, ol: true },
   a: { div: true },
@@ -71,7 +79,7 @@ const kElementsClosedByClosing = {
  * @param {string} string
  * @param {Supplemental} supplemental - Dynamic interpolated data values
  */
-const interpolateValues = (currentParent, string, supplemental = Supplemental) => {
+const interpolateValues = (currentParent, string, supplemental) => {
   if ('childNodes' in currentParent.attributes) {
     // Reset childNodes, as we are paving over them.
     currentParent.childNodes.length = 0;
@@ -94,8 +102,12 @@ const interpolateValues = (currentParent, string, supplemental = Supplemental) =
     // the token's position. So all we do is ensure that we're on an odd
     // index and then we can source the correct value.
     if (i % 2 === 1) {
+      if (!supplemental) continue;
+
       const innerTree = supplemental.children[value];
-      if (!innerTree) { continue; }
+
+      if (!innerTree) continue;
+
       const isFragment = innerTree.nodeType === 11;
 
       if (typeof innerTree.rawNodeName === 'string' && isFragment) {
@@ -224,6 +236,10 @@ export default function parse(html, supplemental, options = {}) {
     options.parser = {};
   }
 
+  if (!supplemental) {
+    supplemental = defaultSupplemental;
+  }
+
   const blockText = new Set(options.parser.blockText || blockTextDefaults);
   const selfClosing = new Set(options.parser.selfClosing || selfClosingDefaults);
 
@@ -292,8 +308,6 @@ Possibly invalid markup. Opening tag was not properly closed.
 
     if (!match[1]) {
       // not </ tags
-      const attrs = {};
-
       if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
         if (kElementsClosedByOpening[currentParent.rawNodeName][match[2]]) {
           stack.pop();
@@ -324,7 +338,10 @@ Possibly invalid markup. Opening tag was not properly closed.
               .slice(0, 3);
 
             // Position the caret next to the first non-whitespace character.
-            const caret = Array(spaceEx.exec(markup[0]).index + closeMarkup.length - 1).join(' ') + '^';
+            const lookup = spaceEx.exec(markup[0]);
+            const caret = Array(
+              (lookup ? lookup.index : 0) + closeMarkup.length - 1
+            ).join(' ') + '^';
 
             const name = supplemental ? supplemental.tags[0].name : match[2];
 
@@ -365,7 +382,8 @@ Possibly invalid markup. Opening tag was not properly closed.
           ).split('\n').slice(0, 3);
 
           // Position the caret next to the first non-whitespace character.
-          const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
+          const lookup = spaceEx.exec(markup[0]);
+          const caret = Array(lookup ? lookup.index : 0).join(' ') + '^';
 
           // Craft the warning message and inject it into the markup.
           markup.splice(1, 0, `${caret}
@@ -431,13 +449,12 @@ Possibly invalid markup. Opening tag was not properly closed.
 
   if (process.env.NODE_ENV !== 'production') {
     if ((remainingText.includes('>') || remainingText.includes('<')) && options.strict) {
-      const nodeName = currentParent.rawNodeName;
-
       // Find a subset of the markup passed in to validate.
       const markup = [remainingText];
 
       // Position the caret next to the first non-whitespace character.
-      const caret = Array(spaceEx.exec(markup[0]).index).join(' ') + '^';
+      const lookup = spaceEx.exec(markup[0]);
+      const caret = Array(lookup ? lookup.index : 0).join(' ') + '^';
 
       // Craft the warning message and inject it into the markup.
       if (remainingText.includes('>')) {
@@ -468,6 +485,7 @@ Possibly invalid markup. Opening tag was not properly closed.
     // Store elements from before body end and after body end.
     /** @type {{ [name: string]: VTree[] }} */
     const head = { before: [], after: [] };
+    /** @type {{ [name: string]: VTree[] }} */
     const body = { after: [] };
     const HTML = root.childNodes[0];
 

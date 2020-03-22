@@ -23,11 +23,11 @@ const removeAttribute = (domNode, name) => {
   const blacklistName = /** @type {HTMLElement} */ (domNode).nodeName + '-' + name;
 
   if (whitelist.has(blacklistName)) {
-    /** @type {object} */ (domNode)[name] = undefined;
+    /** @type {any} */ (domNode)[name] = undefined;
   }
   else if (!blacklist.has(blacklistName)) {
     try {
-      /** @type {object} */ (domNode)[name] = undefined;
+      /** @type {any} */ (domNode)[name] = undefined;
       whitelist.add(blacklistName);
     } catch (unhandledException) {
       blacklist.add(blacklistName);
@@ -228,11 +228,27 @@ export default function patchNode(patches, state = {}) {
         );
         const newDomNode = createNode(newTree, ownerDocument, isSVG);
 
+        if (process.env.NODE_ENV !== 'production') {
+          if (!oldDomNode) {
+            throw new Error('Missing old DOM node for replace patch operation');
+          }
+
+          if (!newDomNode) {
+            throw new Error('Missing new DOM node for replace patch operation');
+          }
+        }
+
+        // Nothing to do...
+        if (!oldDomNode && !newDomNode) {
+          continue;
+        }
+
         // Always insert before to allow the element to transition.
         // FIXME only do this if transitions exist
         if (oldDomNode.parentNode) {
           oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
         }
+
         protectVTree(newTree);
 
         const attachedPromises = runTransitions('attached', newDomNode);
@@ -248,14 +264,18 @@ export default function patchNode(patches, state = {}) {
 
         if (allPromises.length) {
           Promise.all(allPromises).then(() => {
-            oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+            if (oldDomNode.parentNode) {
+              oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+            }
             unprotectVTree(oldTree);
           });
 
           promises.push(...allPromises);
         }
         else {
-          oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+          if (oldDomNode.parentNode) {
+            oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+          }
           unprotectVTree(oldTree);
         }
 
@@ -268,18 +288,33 @@ export default function patchNode(patches, state = {}) {
         i += 2;
 
         const domNode = NodeCache.get(vTree);
+
+        if (process.env.NODE_ENV !== 'production') {
+          if (!domNode) {
+            throw new Error('Missing DOM node for remove patch operation');
+          }
+        }
+
+        if (!domNode) {
+          continue;
+        }
+
         const detachedPromises = runTransitions('detached', domNode);
 
         if (detachedPromises.length) {
           Promise.all(detachedPromises).then(() => {
-            domNode.parentNode.removeChild(domNode);
+            if (domNode.parentNode) {
+              domNode.parentNode.removeChild(domNode);
+            }
             unprotectVTree(vTree);
           });
 
           promises.push(...detachedPromises);
         }
         else {
-          domNode.parentNode.removeChild(domNode);
+          if (domNode.parentNode) {
+            domNode.parentNode.removeChild(domNode);
+          }
           unprotectVTree(vTree);
         }
 
