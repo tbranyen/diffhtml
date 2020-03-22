@@ -2,6 +2,7 @@ import syncTree from '../tree/sync';
 import createNode from '../node/create';
 import { StateCache } from '../util/caches';
 import { PATCH_TYPE } from '../util/types';
+import process from '../util/process';
 import Transaction from '../transaction';
 
 export default function syncTrees(/** @type {Transaction} */ transaction) {

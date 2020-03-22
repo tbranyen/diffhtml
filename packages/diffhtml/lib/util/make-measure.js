@@ -1,11 +1,12 @@
 import { Mount, ValidInput, VTree } from "./types";
+import process from './process';
 
 export const marks = new Map();
 export const prefix = 'diffHTML';
 
 const DIFF_PERF = 'diff_perf';
 const hasSearch = typeof location !== 'undefined';
-const hasArguments = typeof process !== 'undefined' && process.argv;
+const hasArguments = process.argv;
 const nop = () => {};
 
 /**

@@ -4,6 +4,7 @@ import { NodeCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
 import escape from '../util/escape';
+import process from '../util/process';
 import { PATCH_TYPE } from '../util/types';
 
 const { keys } = Object;
