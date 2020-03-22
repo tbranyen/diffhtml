@@ -8,7 +8,7 @@ import reconcileTrees from './tasks/reconcile-trees';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
-import { VTree, VTreeLike } from './util/types';
+import { VTree, VTreeLike, ValidInput, Mount, Options } from './util/types';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -21,12 +21,12 @@ export const tasks = {
 export default class Transaction {
   /**
    *
-   * @param {HTMLElement} domNode
-   * @param {any[] | HTMLElement | string | VTreeLike | VTreeLike[]} markup
+   * @param {Mount} domNode
+   * @param {ValidInput} input
    * @param {*} options
    */
-  static create(domNode, markup, options) {
-    return new Transaction(domNode, markup, options);
+  static create(domNode, input, options) {
+    return new Transaction(domNode, input, options);
   }
 
   /**
@@ -99,20 +99,23 @@ export default class Transaction {
 
   /**
    * @constructor
-   * @param {HTMLElement} domNode
-   * @param {any[] | HTMLElement | string | VTreeLike | VTreeLike[]} markup
-   * @param {any} options
+   * @param {Mount} domNode
+   * @param {ValidInput} input
+   * @param {Options} options
    */
-  constructor(domNode, markup, options) {
+  constructor(domNode, input, options) {
     this.domNode = domNode;
-    this.markup = markup;
+    // TODO: Rename this to input.
+    this.markup = input;
     this.options = options;
 
     this.state = StateCache.get(domNode) || {
-      measure: makeMeasure(domNode, markup),
+      measure: makeMeasure(domNode, input),
     };
 
-    this.tasks = [].concat(options.tasks);
+    if (options.tasks && options.tasks.length) {
+      this.tasks = [...options.tasks];
+    }
 
     // Store calls to trigger after the transaction has ended.
     this.endedCallbacks = new Set();
@@ -183,7 +186,9 @@ export default class Transaction {
 
     // Cache the markup and text for the DOM node to allow for short-circuiting
     // future render transactions.
-    state.previousMarkup = domNode.outerHTML;
+    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
+
+    // Rendering is complete.
     state.isRendering = false;
 
     // Clean up memory before rendering the next transaction, however if
@@ -200,6 +205,12 @@ export default class Transaction {
   onceEnded(callback) {
     this.endedCallbacks.add(callback);
   }
+
+  /** @type {Mount} */
+  domNode = '';
+
+  /** @type {ValidInput} */
+  markup = '';
 
   /** @type {VTree=} */
   oldTree = undefined;

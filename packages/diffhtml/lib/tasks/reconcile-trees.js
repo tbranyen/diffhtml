@@ -11,7 +11,7 @@ export default function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
   const { previousMarkup } = state;
   const { inner } = options;
-  const { outerHTML } = domNode;
+  const { outerHTML } = /** @type {any} */ (domNode);
 
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
@@ -25,7 +25,7 @@ export default function reconcileTrees(transaction) {
 
     // Reset the old tree with the newly created VTree association.
     state.oldTree = createTree(domNode);
-    NodeCache.set(state.oldTree, domNode);
+    NodeCache.set(state.oldTree, /** @type {any} */ (domNode));
     protectVTree(state.oldTree);
   }
 
@@ -36,8 +36,7 @@ export default function reconcileTrees(transaction) {
   // then reconcile trees will attempt to create a tree based on the incoming
   // markup (JSX/html/etc).
   if (!transaction.newTree) {
-    const newTree = createTree(markup);
-    newTree && (transaction.newTree = newTree);
+    transaction.newTree = createTree(markup);
   }
 
   // If we are diffing only the parent's childNodes, then adjust the newTree to
@@ -50,7 +49,6 @@ export default function reconcileTrees(transaction) {
     const isFragment = newTree.nodeType === 11;
     const children = isFragment && !isUnknown ? newTree.childNodes : newTree;
 
-    const replaceTree = createTree(nodeName, attributes, children);
-    replaceTree && (transaction.newTree = replaceTree);
+    transaction.newTree = createTree(nodeName, attributes, children);
   }
 }

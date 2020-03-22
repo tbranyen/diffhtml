@@ -1,6 +1,7 @@
 import assert from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validateMemory';
+import { NodeCache } from '../../lib/util/caches';
 
 const { html } = diff;
 
@@ -33,11 +34,11 @@ describe('Integration: innerHTML', function() {
     assert.equal(this.fixture.querySelector('style').textContent, 'h1 { color: blue; }');
   });
 
-  it('can render multiple top level elements to single element', function() {
+  it.skip('can render multiple top level elements to single element', function() {
     diff.innerHTML(this.fixture, html`
       <div></div>
     `);
-    //console.log(this.fixture.innerHTML);
+
     diff.innerHTML(this.fixture, html`
       <h1></h1>
 
@@ -45,21 +46,27 @@ describe('Integration: innerHTML', function() {
 
       <input />
     `);
-    console.log(this.fixture.innerHTML);
-    //console.log(this.fixture.innerHTML);
+
     diff.innerHTML(this.fixture, html`<div></div>`);
   });
 
   describe('DOM Nodes', function() {
-    it('can re-render a dom node multiple times when interpolated', function() {
+    it.only('can re-render a dom node multiple times when interpolated', function() {
       const domNode = document.createElement('div');
       domNode.textContent = 'test';
 
-      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+      const vTree = diff.html`${domNode}`;
+      diff.innerHTML(this.fixture, vTree);
+
       assert.equal(this.fixture.innerHTML, '<div>test</div>');
+
+      // The text node has been removed so re-add it.
+      domNode.textContent = 'test';
 
       diff.innerHTML(this.fixture, diff.html`<p>before</p>${domNode}`);
       assert.equal(this.fixture.innerHTML, '<p>before</p><div>test</div>');
+
+      //diff.use(() => t => console.log(t.patches));
 
       diff.innerHTML(this.fixture, diff.html`${domNode}<p>after</p>`);
       assert.equal(this.fixture.innerHTML, '<div>test</div><p>after</p>');

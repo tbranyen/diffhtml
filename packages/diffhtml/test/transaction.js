@@ -4,7 +4,6 @@ import Transaction from '../lib/transaction';
 import use from '../lib/use';
 import release from '../lib/release';
 import validateMemory from './util/validateMemory';
-import createNode from '../lib/node/create';
 
 describe('Transaction', function() {
   const suite = /** @type {any} */(this);
@@ -112,8 +111,6 @@ describe('Transaction', function() {
       const testFnTwo = spy();
       const testFnThree = spy();
 
-      suite.domNode = createNode({ nodeName: 'div' });
-
       const transaction = Transaction.create(suite.domNode, null, {
         tasks: [testFnOne, testFnTwo, testFnThree],
       });
@@ -129,8 +126,6 @@ describe('Transaction', function() {
       const testFnOne = transaction => transaction.abort(false);
       const testFnTwo = spy();
       const testFnThree = spy();
-
-      suite.domNode = createNode({ nodeName: 'div' });
 
       const transaction = Transaction.create(suite.domNode, null, {
         tasks: [testFnOne, testFnTwo, testFnThree],

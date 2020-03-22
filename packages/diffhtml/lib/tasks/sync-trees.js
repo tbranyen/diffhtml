@@ -23,8 +23,10 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
   if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
     // If there is no `parentNode` for the replace operation, we will need to
     // throw an error and prevent the `StateCache` from being updated.
-    if (!domNode.parentNode) {
-      throw new Error('Unable to replace top level node without a parent');
+    if (process.env.NODE_ENV !== 'production') {
+      if (!/** @type {HTMLElement} */ (domNode).parentNode) {
+        throw new Error('Unable to replace top level node without a parent');
+      }
     }
 
     // Replace the top level elements.

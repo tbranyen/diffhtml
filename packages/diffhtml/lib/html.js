@@ -3,7 +3,6 @@ import parse from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 import { VTree, Supplemental } from './util/types';
-import { unprotectVTree } from './util/memory';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;

@@ -1,14 +1,14 @@
 import Transaction, { defaultTasks } from './transaction';
-import { VTreeLike } from './util/types';
+import { ValidInput, Options, Mount } from './util/types';
 
 /**
  *
- * @param {HTMLElement} domNode
- * @param {any[] | HTMLElement | string | VTreeLike | VTreeLike[]} markup
- * @param {*} options
+ * @param {Mount} domNode
+ * @param {ValidInput} input
+ * @param {Options} options
  */
-export default function innerHTML(domNode, markup = '', options = {}) {
+export default function innerHTML(domNode, input = '', options = {}) {
   options.inner = true;
   options.tasks = options.tasks || defaultTasks;
-  return Transaction.create(domNode, markup, options).start();
+  return Transaction.create(domNode, input, options).start();
 }

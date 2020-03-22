@@ -8,7 +8,7 @@ import {
 } from 'assert';
 import createTree from '../lib/tree/create';
 import syncTree from '../lib/tree/sync';
-import { SyncTreeHookCache } from '../lib/util/caches';
+import { SyncTreeHookCache, NodeCache } from '../lib/util/caches';
 import parse from '../lib/util/parse';
 import { PATCH_TYPE } from '../lib/util/types';
 import html from '../lib/html';
@@ -335,6 +335,13 @@ describe('Tree', function() {
       equal(vTree.key, vTree.attributes.key);
     });
 
+    it('will associate an incoming DOM Node to the NodeCache and VTree', () => {
+      const div = document.createElement('div');
+      const vTree = createTree(div);
+
+      equal(NodeCache.get(vTree), div);
+    });
+
     it('will mirror an empty div dom node', () => {
       const div = document.createElement('div');
       const vTree = createTree(div);
@@ -612,6 +619,29 @@ describe('Tree', function() {
         p,
         null,
       ]);
+    });
+
+    it('will not diff into a DOM Node children', () => {
+      const domNode = document.createElement('div');
+      const domTree = createTree(domNode);
+      const fixture = createTree('div');
+      const firstPass = createTree('div', [domTree]);
+
+      const firstPassPatches = syncTree(fixture, firstPass);
+
+      deepEqual(firstPassPatches, [
+        PATCH_TYPE.INSERT_BEFORE,
+        fixture,
+        domTree,
+        null,
+      ]);
+
+      domNode.appendChild(document.createElement('div'));
+
+      const secondPass = createTree('div', [createTree(domNode)]);
+      const secondPassPatches = syncTree(fixture, secondPass);
+
+      deepEqual(secondPassPatches, []);
     });
 
     it('will support dom element comparisons with whitespace, should have no diff', () => {

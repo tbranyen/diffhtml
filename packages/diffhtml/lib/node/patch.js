@@ -45,10 +45,11 @@ export default function patchNode(patches, state = {}) {
   const { isSVG, ownerDocument } = state;
   const { length } = patches;
 
+
   let i = 0;
 
   while (true) {
-    const patchType = patches[i]
+    const patchType = patches[i];
 
     if (i === length) {
       break;
@@ -62,7 +63,10 @@ export default function patchNode(patches, state = {}) {
 
         i += 4;
 
-        const domNode = createNode(vTree, ownerDocument, isSVG);
+
+        const domNode = /** @type {HTMLElement} */ (
+          createNode(vTree, ownerDocument, isSVG)
+        );
         const oldValue = domNode.getAttribute(_name);
         const newPromises = runTransitions(
           'attributeChanged', domNode, _name, oldValue, value
@@ -135,7 +139,9 @@ export default function patchNode(patches, state = {}) {
 
         i += 3;
 
-        const domNode = NodeCache.get(vTree);
+        const domNode = /** @type {HTMLElement} */ (
+          NodeCache.get(vTree)
+        );
         const oldValue = domNode.getAttribute(name);
         const newPromises = runTransitions(
           'attributeChanged', domNode, name, oldValue, null
@@ -159,7 +165,9 @@ export default function patchNode(patches, state = {}) {
 
         i += 4;
 
-        const domNode = createNode(vTree);
+        const domNode = /** @type {HTMLElement} */ (
+          createNode(vTree)
+        );
         const textChangedPromises = runTransitions(
           'textChanged', domNode, oldValue, nodeValue
         );
@@ -191,18 +199,16 @@ export default function patchNode(patches, state = {}) {
 
         i += 4;
 
-        const domNode = NodeCache.get(vTree);
-        const refNode = refTree && createNode(refTree, ownerDocument, isSVG);
-
-        if (refTree) {
-          protectVTree(refTree);
-        }
-
+        const domNode = /** @type {HTMLElement} */ (
+          NodeCache.get(vTree)
+        );
+        const refNode = NodeCache.get(refTree);
         const newNode = createNode(newTree, ownerDocument, isSVG);
+
         protectVTree(newTree);
 
-        // If refNode is `null` then it will simply append like `appendChild`.
-        domNode.insertBefore(newNode, refNode);
+        // If refNode is `undefined` then it will simply append like `appendChild`.
+        domNode.insertBefore(newNode, refNode || null);
 
         const attachedPromises = runTransitions('attached', newNode);
 
@@ -217,12 +223,16 @@ export default function patchNode(patches, state = {}) {
 
         i += 3;
 
-        const oldDomNode = NodeCache.get(oldTree);
+        const oldDomNode = /** @type {HTMLElement} */ (
+          NodeCache.get(oldTree)
+        );
         const newDomNode = createNode(newTree, ownerDocument, isSVG);
 
         // Always insert before to allow the element to transition.
         // FIXME only do this if transitions exist
-        oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
+        if (oldDomNode.parentNode) {
+          oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
+        }
         protectVTree(newTree);
 
         const attachedPromises = runTransitions('attached', newDomNode);

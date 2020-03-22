@@ -27,6 +27,8 @@ const Internals = assign(internals, {
   PATCH_TYPE,
 });
 
+const api = {};
+
 api.VERSION = VERSION;
 api.addTransitionState = addTransitionState;
 api.removeTransitionState = removeTransitionState;

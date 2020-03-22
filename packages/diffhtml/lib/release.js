@@ -1,10 +1,11 @@
 import { StateCache, NodeCache } from './util/caches';
 import { unprotectVTree } from './util/memory';
 import createTree from './tree/create';
+import { ValidInput } from './util/types';
 
 /**
  *
- * @param {HTMLElement} domNode
+ * @param {ValidInput} domNode
  * @return {void}
  */
 export default function release(domNode) {

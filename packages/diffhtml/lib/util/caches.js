@@ -6,7 +6,7 @@ export const StateCache = new Map();
 /**
  * Associates Virtual Tree Elements with DOM Nodes.
  *
- * @type {Map<VTree, HTMLElement>}
+ * @type {Map<VTree, HTMLElement | DocumentFragment>}
  */
 export const NodeCache = new Map();
 

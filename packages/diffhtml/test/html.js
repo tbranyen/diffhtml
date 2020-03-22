@@ -2,6 +2,7 @@ import { equal, deepEqual, doesNotThrow, throws } from 'assert';
 import html from '../lib/html';
 import createTree from '../lib/tree/create';
 import validateMemory from './util/validateMemory';
+import { NodeCache } from '../lib/util/caches';
 
 describe('HTML (Tagged template)', function() {
   afterEach(() => validateMemory());
@@ -288,8 +289,17 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('will interpolate a DOM Node', function() {
-    const span = html`<span>${document.createTextNode('foo')}</span>`;
+  it('will associate a passed in DOM Node to the created VTree', () => {
+    const domNode = document.createElement('div');
+    const vTree = html`${domNode}`;
+
+    equal(NodeCache.get(vTree), domNode);
+  });
+
+  it('will interpolate a Text Node', function() {
+    const textNode = document.createTextNode('foo');
+    const span = html`<span>${textNode}</span>`;
+    const vTree = createTree(textNode);
 
     deepEqual(span.childNodes[0], {
       rawNodeName: '#text',
@@ -300,6 +310,26 @@ describe('HTML (Tagged template)', function() {
       attributes: {},
       childNodes: [],
     });
+
+    equal(NodeCache.get(vTree), textNode);
+  });
+
+  it('will interpolate a DOM Node', function() {
+    const domNode = document.createElement('div');
+    const span = html`<span>${domNode}</span>`;
+    const vTree = createTree(domNode);
+
+    deepEqual(span.childNodes[0], {
+      rawNodeName: 'DIV',
+      nodeName: 'div',
+      nodeType: 1,
+      nodeValue: '',
+      key: '',
+      attributes: {},
+      childNodes: [],
+    });
+
+    equal(NodeCache.get(vTree), domNode);
   });
 
   it('will interpolate an array of children', function() {

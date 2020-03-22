@@ -15,7 +15,7 @@ const document = /** @type {any} */ (globalThis).document || null;
  * @param {VTreeLike} vTreeLike - A Virtual Tree Element or VTree-like element
  * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
  * @param {Boolean=} isSVG - Is their a root SVG element?
- * @return {HTMLElement} A DOM Node matching the vTree
+ * @return {HTMLElement | DocumentFragment} A DOM Node matching the vTree
  */
 export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {

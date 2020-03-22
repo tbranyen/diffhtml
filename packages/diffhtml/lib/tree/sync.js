@@ -2,7 +2,7 @@ import { SyncTreeHookCache } from '../util/caches';
 import process from '../util/process';
 import { PATCH_TYPE, VTree } from '../util/types';
 
-const empty = VTree;
+const empty = {};
 const keyNames = ['old', 'new'];
 
 // Compares how the new state should look to the old state and mutates it,
@@ -189,6 +189,7 @@ export default function syncTree(oldTree, newTree, patches = [], parentTree) {
         oldChildNodes.push(newChildNode);
       }
 
+      // FIXME Why do we sync again here?
       syncTree(oldChildNode, newChildNode, patches, oldTree);
 
       patches.push(
@@ -259,15 +260,6 @@ export default function syncTree(oldTree, newTree, patches = [], parentTree) {
     // replace the entire element, don't bother investigating children.
     if (oldChildNode.nodeName !== newChildNode.nodeName) {
       oldChildNodes[i] = newChildNode;
-
-      // If we are replacing an element that still exists in the tree,
-      // prune it from the remaining child nodes.
-      const existingIndex = oldChildNodes.lastIndexOf(newChildNode);
-
-      if (existingIndex !== -1 && existingIndex !== i) {
-        // Remove directly from the array.
-        oldChildNodes.splice(existingIndex, 1);
-      }
 
       syncTree(null, newChildNode, patches, newTree);
 

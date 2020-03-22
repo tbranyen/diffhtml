@@ -1,3 +1,5 @@
+import { Mount, ValidInput, VTree } from "./types";
+
 export const marks = new Map();
 export const prefix = 'diffHTML';
 
@@ -8,10 +10,10 @@ const nop = () => {};
 
 /**
  *
- * @param {HTMLElement} domNode
- * @param {any} vTree
+ * @param {Mount} domNode
+ * @param {ValidInput=} input
  */
-export default function makeMeasure(domNode, vTree) {
+export default function makeMeasure(domNode, input) {
   // Check for these changes on every check.
   const wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
   const wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
@@ -21,6 +23,8 @@ export default function makeMeasure(domNode, vTree) {
   // function.
   if (!wantsPerfChecks) { return nop; }
 
+  const inputAsVTree = /** @type {VTree} */ (input);
+
   return (/** @type {string} */ name) => {
     const host = /** @type any */ (domNode).host;
 
@@ -28,8 +32,8 @@ export default function makeMeasure(domNode, vTree) {
     if (domNode && host) {
       name = `${host.constructor.name} ${name}`;
     }
-    else if (typeof vTree.rawNodeName === 'function') {
-      name = `${vTree.rawNodeName.name} ${name}`;
+    else if (inputAsVTree && typeof inputAsVTree.rawNodeName === 'function') {
+      name = `${inputAsVTree.rawNodeName.name} ${name}`;
     }
 
     const endName = `${name}-end`;

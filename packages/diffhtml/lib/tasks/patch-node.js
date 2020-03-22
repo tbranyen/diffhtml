@@ -9,12 +9,13 @@ import Transaction from '../transaction';
  */
 export default function patch(transaction) {
   const { domNode, state, state: { measure }, patches } = transaction;
-  const { nodeName } = domNode;
+  /** @type {HTMLElement | DocumentFragment} */
+  const { nodeName, namespaceURI, ownerDocument } = (domNode);
   const promises = transaction.promises || [];
-  const namespaceURI = domNode.namespaceURI || '';
+  const namespaceURIString = namespaceURI || '';
 
-  state.isSVG = nodeName.toLowerCase() === 'svg' || namespaceURI.includes('svg');
-  state.ownerDocument = domNode.ownerDocument || document;
+  state.isSVG = nodeName.toLowerCase() === 'svg' || namespaceURIString.includes('svg');
+  state.ownerDocument = ownerDocument || document;
 
   measure('patch node');
   promises.push(...patchNode(patches, state));

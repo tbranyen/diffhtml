@@ -1,6 +1,6 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
-import { VTree, VTreeLike } from '../util/types';
+import { VTree, VTreeLike, ValidInput } from '../util/types';
 
 const { assign } = Object;
 const { isArray } = Array;
@@ -10,7 +10,7 @@ const fragmentName = '#document-fragment';
 /**
  * Typically passed either a single or list of DOM Nodes or a VTreeLike object.
  *
- * @param {any[] | HTMLElement | string | VTreeLike | VTreeLike[]} input
+ * @param {ValidInput} input
  * @param {any=} attributes
  * @param {any=} childNodes
  * @param  {...any} rest
@@ -51,18 +51,14 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   }
 
   const isObject = typeof input === 'object';
+  const inputAsHTMLEl = /** @type {HTMLElement} */ (input);
 
   // Crawl an HTML or SVG Element/Text Node etc. for attributes and children.
-  if (input && isObject && 'parentNode' in /** @type {HTMLElement} */ (input)) {
-    let test = null;
-    NodeCache.forEach((key, val) => {
-      if (key === input) {
-        test = val;
-      }
-    });
-    if (test) { return test; }
+  if (input && isObject && 'ownerDocument' in /** @type {HTMLElement} */ (input)) {
     attributes = {};
     childNodes = [];
+
+    const inputAttributes = inputAsHTMLEl.attributes;
 
     // When working with a text node, simply save the nodeValue as the
     // initial value.
@@ -72,11 +68,11 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     // Element types are the only kind of DOM node we care about attributes
     // from. Shadow DOM, Document Fragments, Text, Comment nodes, etc. can
     // ignore this.
-    else if (input.nodeType === 1 && input.attributes.length) {
+    else if (input.nodeType === 1 && inputAttributes && inputAttributes.length) {
       attributes = {};
 
-      for (let i = 0; i < input.attributes.length; i++) {
-        const { name, value } = input.attributes[i];
+      for (let i = 0; i < inputAttributes.length; i++) {
+        const { name, value } = inputAttributes[i];
 
         // If the attribute's value is empty, seek out the property instead.
         if (value === '' && name in input) {
@@ -102,17 +98,17 @@ export default function createTree(input, attributes, childNodes, ...rest) {
             !(input.childNodes[i].nodeValue || '').trim()
           ) continue;
 
-          childNodes.push(createTree(/** @type {HTMLElement} */ (input.childNodes[i])));
+          /** @type {HTMLElement} */
+          const childNodeElement = (input.childNodes[i]);
+          const vTree = createTree(childNodeElement);
+          NodeCache.set(vTree, childNodeElement);
+          childNodes.push(vTree);
         }
       }
     }
 
     const vTree = createTree(input.nodeName, attributes, childNodes);
-
-    if (vTree) {
-      NodeCache.set(vTree, input);
-    }
-
+    NodeCache.set(vTree, input);
     return vTree;
   }
 

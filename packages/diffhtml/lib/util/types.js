@@ -56,6 +56,24 @@ export const VTreeLike = {
 };
 
 /**
+ * @typedef {HTMLElement | DocumentFragment | string | VTreeLike | VTreeLike[]} ValidInput
+ */
+
+ /**
+  * @type {ValidInput}
+  */
+export const ValidInput = '';
+
+/**
+ * @typedef {HTMLElement | DocumentFragment | string} Mount
+ */
+
+ /**
+  * @type {Mount}
+  */
+ export const Mount = '';
+
+/**
  * @typedef {Object} Middleware - defines Middleware
  *
  * @property {Function=} subscribe
@@ -65,6 +83,31 @@ export const VTreeLike = {
  * @property {Function=} syncTreeHook
  * @property {Function=} releaseHook
  */
+
+ /**
+ * @typedef {Object} ParserOptions - defines ParserOptions type
+ *
+ * @property {Boolean=} blockText - Set of block element tagNames, empty is all
+ * @property {Boolean=} selfClosing - Set of self closing element tagNames, empty is all
+ */
+
+/**
+ * @type {ParserOptions} implements ParserOptions
+ */
+export const ParserOptions = {};
+
+ /**
+ * @typedef {Object} Options - defines Options type
+ *
+ * @property {Boolean=} inner - to diff children or root
+ * @property {Function[]=} tasks - to override tasks
+ * @property {ParserOptions=} parser - override parser options
+ */
+
+/**
+ * @type {Options} implements VTree
+ */
+export const Options = {};
 
 /**
  * @type {Middleware} implements Middleware
@@ -87,14 +130,3 @@ export const Supplemental = {
   tags: {},
   children: {},
 };
-
-/**
- * @typedef {Object} ParserOptions - defines ParserOptions
- *
- * @property {Boolean=} strict
- */
-
-/**
- * @type {ParserOptions} implements ParserOptions
- */
-export const ParserOptions = {};
