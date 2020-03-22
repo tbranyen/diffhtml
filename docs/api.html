@@ -542,8 +542,10 @@ allocations to verify that memory isn&#39;t causing a problem.</p>
 <p><a name="internals"></a></p>
 <hr></hr>
 <h2 id="a-hrefinternalsinternalsa"><a href="#internals">Internals</a></h2>
-<p>The internals are exposed for curious developers to write code against.
-Understanding these APIs will give you greater insight into how diffHTML works.</p>
+<p>These internals are deemed public API and may be relied upon once the library
+has reached a stable version. The intention is to allow developers to tweak
+the library, observe and influence internal memory, and build tooling around
+the runtime.</p>
 <h3 id="a-namemiddleware-cache-hrefmiddleware-cachemiddlewarecachea"><a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a></h3>
 <p>A JavaScript Set object that contains registered middleware functions that
 trigger whenever transaction state changes.</p>
