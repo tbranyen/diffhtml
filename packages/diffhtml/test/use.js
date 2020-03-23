@@ -55,7 +55,9 @@ describe('Use (Middleware)', function() {
       <${Fn} message="Hello world" />
     `);
 
-    equal(oldTree.outerHTML, `<div><marquee>Hello world</marquee></div>`);
+    equal(oldTree.outerHTML, `<div>
+      <marquee>Hello world</marquee>
+    </div>`);
 
     release(oldTree);
   });

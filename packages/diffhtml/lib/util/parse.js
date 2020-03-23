@@ -5,7 +5,6 @@ import createTree from '../tree/create';
 import process from './process';
 import { VTree, Supplemental, Options, ParserOptions } from './types';
 
-const hasNonWhitespaceEx = /\S/;
 const doctypeEx = /<!.*>/i;
 const spaceEx = /[^ ]/;
 const tokenEx = /__DIFFHTML__([^_]*)__/;
@@ -294,7 +293,7 @@ Possibly invalid markup. Opening tag was not properly closed.
     if (lastTextPos === -1 && matchOffset > 0) {
       const string = html.slice(0, matchOffset);
 
-      if (string && hasNonWhitespaceEx.test(string) && !doctypeEx.exec(string)) {
+      if (string && !doctypeEx.exec(string)) {
         interpolateValues(currentParent, string, supplemental);
       }
     }
@@ -445,7 +444,7 @@ Possibly invalid markup. Opening tag was not properly closed.
   }
 
   // Find any last remaining text after the parsing completes over tags.
-  const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos).trim();
+  const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos);
 
   if (process.env.NODE_ENV !== 'production') {
     if ((remainingText.includes('>') || remainingText.includes('<')) && options.parser.strict) {

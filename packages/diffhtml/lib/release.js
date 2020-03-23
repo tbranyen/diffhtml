@@ -6,7 +6,7 @@ import { ValidInput } from './util/types';
 /**
  *
  * @param {ValidInput} domNode
- * @return {void}
+ * @return {ValidInput}
  */
 export default function release(domNode) {
   // Try and find a state object for this DOM Node.
@@ -26,4 +26,6 @@ export default function release(domNode) {
       }
     });
   }
+
+  return domNode;
 }

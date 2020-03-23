@@ -12,6 +12,7 @@ import { SyncTreeHookCache, NodeCache } from '../lib/util/caches';
 import parse from '../lib/util/parse';
 import { PATCH_TYPE } from '../lib/util/types';
 import html from '../lib/html';
+import release from '../lib/release';
 import validateMemory from './util/validateMemory';
 
 describe('Tree', function() {
@@ -342,6 +343,49 @@ describe('Tree', function() {
       equal(NodeCache.get(vTree), div);
     });
 
+    it('will associate incoming DOM Node children to the NodeCache and VTree', () => {
+      const div = document.createElement('div');
+      const span = document.createElement('span');
+      div.appendChild(span);
+
+      const vTree = createTree(div);
+
+      equal(NodeCache.get(vTree), div);
+      equal(NodeCache.get(vTree.childNodes[0]), span);
+    });
+
+    it('will not disassociate incoming DOM Node children to the NodeCache and VTree if not released', () => {
+      const div = document.createElement('div');
+      const span = document.createElement('span');
+      div.appendChild(span);
+
+      const spanTree = createTree(div).childNodes[0];
+
+      div.removeChild(span);
+
+      const vTree = createTree(div);
+
+      equal(NodeCache.get(vTree), div);
+      equal(NodeCache.get(spanTree), span);
+    });
+
+    it('will disassociate incoming DOM Node children to the NodeCache and VTree if released', () => {
+      const div = document.createElement('div');
+      const span = document.createElement('span');
+      div.appendChild(span);
+
+      const spanTree = createTree(div).childNodes[0];
+
+      div.removeChild(span);
+      // It's expensive to recrawl every time, so only do it if released
+      release(div);
+
+      const vTree = createTree(div);
+
+      equal(NodeCache.get(vTree), div);
+      equal(NodeCache.get(spanTree), null);
+    });
+
     it('will mirror an empty div dom node', () => {
       const div = document.createElement('div');
       const vTree = createTree(div);
@@ -669,7 +713,6 @@ describe('Tree', function() {
       `;
 
       const patches = syncTree(oldTree, newTree);
-
       deepEqual(patches, []);
     });
 

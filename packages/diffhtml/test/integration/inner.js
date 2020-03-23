@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validateMemory';
-import { NodeCache } from '../../lib/util/caches';
+import release from '../../lib/release';
 
 const { html } = diff;
 
@@ -34,10 +34,14 @@ describe('Integration: innerHTML', function() {
     assert.equal(this.fixture.querySelector('style').textContent, 'h1 { color: blue; }');
   });
 
-  it.skip('can render multiple top level elements to single element', function() {
+  it('can render multiple top level elements from a single element', function() {
     diff.innerHTML(this.fixture, html`
       <div></div>
     `);
+
+    assert.equal(this.fixture.outerHTML, `<div>
+      <div></div>
+    </div>`);
 
     diff.innerHTML(this.fixture, html`
       <h1></h1>
@@ -47,11 +51,146 @@ describe('Integration: innerHTML', function() {
       <input />
     `);
 
+    assert.equal(this.fixture.outerHTML, `<div>
+      <h1></h1>
+
+      <h3></h3>
+
+      <input>
+    </div>`);
+
     diff.innerHTML(this.fixture, html`<div></div>`);
+
+    assert.equal(this.fixture.outerHTML, `<div><div></div></div>`);
   });
 
   describe('DOM Nodes', function() {
-    it('can re-render a dom node multiple times when interpolated', function() {
+    it('will use the existing Node if the elements do not change', function() {
+      const domNode = document.createElement('div');
+      const fixtureFirstChild = this.fixture.firstChild;
+
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+
+      assert.equal(this.fixture.innerHTML, '<div></div>');
+      assert.equal(this.fixture.firstChild, fixtureFirstChild);
+    });
+
+    it('will replace the existing Node if the elements share a tag name, but the new one has a key', function() {
+      const domNode = document.createElement('div');
+      domNode.setAttribute('key', 'test');
+
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+
+      assert.equal(this.fixture.innerHTML, '<div key="test"></div>');
+      assert.equal(this.fixture.firstChild, domNode);
+    });
+
+    it('will render a dom node with a different tagName', function() {
+      const domNode = document.createElement('p');
+
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+
+      assert.equal(this.fixture.innerHTML, '<p></p>');
+      assert.equal(this.fixture.firstChild, domNode);
+    });
+
+    it('will support a nested tag name DOM node value', function() {
+      const domNode = document.createElement('p');
+
+      diff.innerHTML(this.fixture, diff.html`${diff.html`${domNode}`}`);
+
+      assert.equal(this.fixture.innerHTML, '<p></p>');
+      assert.equal(this.fixture.firstChild, domNode);
+    });
+
+    it('will support updating nested elements with a top-level key', function() {
+      const domNode = document.createElement('div');
+      domNode.setAttribute('key', 'test');
+      const nestedNode = document.createElement('video');
+
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+
+      assert.equal(this.fixture.innerHTML, '<div key="test"></div>');
+
+      domNode.appendChild(nestedNode);
+      diff.release(domNode);
+
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+
+      assert.equal(this.fixture.innerHTML, '<div key="test"><video></video></div>');
+      assert.equal(this.fixture.querySelector('video'), nestedNode);
+
+      nestedNode.setAttribute('src', 'test');
+      diff.release(domNode);
+
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+
+      assert.equal(this.fixture.innerHTML, '<div key="test"><video src="test"></video></div>');
+      assert.equal(this.fixture.querySelector('video'), nestedNode);
+    });
+
+    it('will keep updated dom children the same', function() {
+      const domNode = document.createElement('div');
+      domNode.setAttribute('key', 'test');
+      const nestedNode = document.createElement('video');
+
+      domNode.appendChild(nestedNode);
+
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
+
+      assert.equal(this.fixture.innerHTML, '<div key="test"><video></video></div>');
+      assert.equal(this.fixture.querySelector('video'), nestedNode);
+
+      nestedNode.setAttribute('src', 'test');
+
+      diff.innerHTML(this.fixture, diff.html`${release(domNode)}`);
+
+      assert.equal(this.fixture.innerHTML, `<div key="test"><video src="test"></video></div>`);
+      assert.equal(this.fixture.querySelector('video'), nestedNode);
+    });
+
+    it('will keep updated dom children the same when using a nested tag name DOM Node value', function() {
+      const domNode = document.createElement('div');
+      const nestedNode = document.createElement('video');
+      const originalFixtureFirstChild = this.fixture.firstChild;
+
+      domNode.appendChild(nestedNode);
+
+      diff.innerHTML(this.fixture, diff.html`${diff.html`${domNode}`}`);
+
+      assert.equal(this.fixture.innerHTML, '<div><video></video></div>');
+      assert.notEqual(originalFixtureFirstChild, domNode);
+      assert.equal(this.fixture.firstChild, originalFixtureFirstChild);
+      assert.equal(this.fixture.querySelector('video'), nestedNode);
+
+      diff.innerHTML(this.fixture, diff.html`${diff.html`${domNode}`}`);
+
+      assert.equal(this.fixture.innerHTML, `<div></div>`);
+    });
+
+    it('will keep updated dom children the same when using a nested tag name DOM Node value with a key', function() {
+      const domNode = document.createElement('div');
+      const nestedNode = document.createElement('video');
+
+      domNode.setAttribute('key', 'keep');
+
+      domNode.appendChild(nestedNode);
+
+      diff.innerHTML(this.fixture, diff.html`${diff.html`${domNode}`}`);
+
+      assert.equal(this.fixture.innerHTML, '<div key="keep"><video></video></div>');
+      assert.equal(this.fixture.firstChild, domNode);
+      assert.equal(this.fixture.querySelector('video'), nestedNode);
+
+      nestedNode.setAttribute('src', 'test');
+
+      diff.innerHTML(this.fixture, diff.html`${diff.html`${release(domNode)}`}`);
+
+      assert.equal(this.fixture.innerHTML, `<div key="keep"><video src="test"></video></div>`);
+      assert.equal(this.fixture.querySelector('video'), nestedNode);
+    });
+
+    it('will re-render a dom node multiple times when interpolated', function() {
       const domNode = document.createElement('div');
       domNode.textContent = 'test';
 
@@ -70,7 +209,7 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.innerHTML, '<div>test</div><p>after</p>');
     });
 
-    it('can re-render a wrapped dom node multiple times when interpolated', function() {
+    it('will re-render a wrapped dom node multiple times when interpolated', function() {
       const domNode = document.createElement('div');
       domNode.textContent = 'test';
 

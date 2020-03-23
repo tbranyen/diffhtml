@@ -39,6 +39,7 @@
     "@babel/cli": "^7.6.0",
     "@babel/core": "^7.6.0",
     "@babel/register": "^7.6.0",
+    "@types/mocha": "^7.0.2",
     "babel-plugin-istanbul": "^5.2.0",
     "babel-preset-diffhtml-imports": "^1.0.0-beta.11",
     "coveralls": "^3.0.6",

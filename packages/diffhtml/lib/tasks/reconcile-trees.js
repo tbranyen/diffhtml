@@ -4,6 +4,8 @@ import createTree from '../tree/create';
 import Transaction from '../transaction';
 
 /**
+ * This task ensures that the Virtual DOM matches the Browser DOM. If any of the
+ * markup changes between renders, the old tree is recalculated to ensure accuracy.
  *
  * @param {Transaction} transaction
  */
@@ -17,27 +19,28 @@ export default function reconcileTrees(transaction) {
   // time we patch a DOM Node.
   if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
     if (state.oldTree) {
+      // This removes all previous VDOM/DOM assocations.
       unprotectVTree(state.oldTree);
 
       // Wipe out the existing root if it exists.
       NodeCache.delete(state.oldTree);
     }
 
-    // Reset the old tree with the newly created VTree association.
     state.oldTree = createTree(domNode);
     NodeCache.set(state.oldTree, /** @type {any} */ (domNode));
     protectVTree(state.oldTree);
   }
 
-  // Associate the old tree with this brand new transaction.
-  transaction.oldTree = state.oldTree;
-
   // If we are in a render transaction where no markup was previously parsed
   // then reconcile trees will attempt to create a tree based on the incoming
   // markup (JSX/html/etc).
   if (!transaction.newTree) {
+    // Reset the old tree with the newly created VTree association.
     transaction.newTree = createTree(markup);
   }
+
+  // Associate the old tree with this brand new transaction.
+  transaction.oldTree = state.oldTree;
 
   // If we are diffing only the parent's childNodes, then adjust the newTree to
   // be a replica of the oldTree except with the childNodes changed.

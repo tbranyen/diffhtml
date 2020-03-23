@@ -25,7 +25,7 @@ module.exports = (originalPath, filePath) => {
       newPath = `diffhtml${sub}/${file}`;
     }
     else if (file) {
-      newPath = `../../../../diffhtml/${file}`;
+      newPath = `diffhtml/${file}`;
     }
     else if (sub2) {
       const [ name, ...path ] = sub2.split('/');
@@ -34,23 +34,6 @@ module.exports = (originalPath, filePath) => {
     else {
       newPath = 'diffhtml';
     }
-
-    newPath = relative(dirname(filePath), join(path, newPath));
-
-    // TODO Remove me...
-    //if (newPath[0] !== '.') {
-    //  newPath = `${newPath}`;
-    //}
-
-    // Ensure folders get a trailing slash.
-    //if (!newPath.includes('.js') && newPath[--newPath.length] !== '/' && newPath.slice(-5) !== 'index') {
-    //  newPath += '/index.js';
-    //}
-
-    // Lastly ensure an extension has been added or is a path.
-    //if (!extname(newPath)) {
-    //  newPath += '.js';
-    //}
 
     return newPath;
   });

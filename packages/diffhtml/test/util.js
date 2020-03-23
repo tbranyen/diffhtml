@@ -74,7 +74,7 @@ describe('Util', function() {
           <body></body>
           <script></script>
         </html>
-      `).childNodes[0];
+      `.trim()).childNodes[0];
 
       equal(vTree.childNodes.length, 2);
       equal(vTree.childNodes[0].nodeName, 'head');
@@ -93,7 +93,7 @@ describe('Util', function() {
           <body></body>
           <p></p>
         </html>
-      `).childNodes[0];
+      `.trim()).childNodes[0];
 
       equal(vTree.childNodes.length, 2);
       equal(vTree.childNodes[0].nodeName, 'head');
@@ -118,7 +118,7 @@ describe('Util', function() {
 
       equal(vTrees[0].nodeName, 'div');
       equal(vTrees[1].nodeName, '#text');
-      equal(vTrees[1].nodeValue, 'Hello world');
+      equal(vTrees[1].nodeValue, ' Hello world');
     });
 
     it('will support parsing text before element', () => {
@@ -295,7 +295,7 @@ describe('Util', function() {
       const Div = () => {};
       const vTree = parse(`
         <__DIFFHTML__0__></__DIFFHTML__1__>
-      `, { tags: { 0: Div, 1: Div } });
+      `.trim(), { tags: { 0: Div, 1: Div } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -353,7 +353,7 @@ describe('Util', function() {
       const text = createTree('#text', 'Hello world');
       const vTree = parse(`
         <div>__DIFFHTML__0__</div>
-      `, { children: { 0: text } });
+      `.trim(), { children: { 0: text } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -389,7 +389,7 @@ describe('Util', function() {
 
       const vTree = parse(`
         <div>__DIFFHTML__0__</div>
-      `, { children: { 0: fragment } });
+      `.trim(), { children: { 0: fragment } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -430,7 +430,7 @@ describe('Util', function() {
       const text = createTree('#text', 'world');
       const vTree = parse(`
         <div>Hello __DIFFHTML__0__</div>
-      `, { children: { 0: text } });
+      `.trim(), { children: { 0: text } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -470,7 +470,7 @@ describe('Util', function() {
     it('will ignore empty children', () => {
       const vTree = parse(`
         <div>Hello __DIFFHTML__0__</div>
-      `, { children: { 0: undefined } });
+      `.trim(), { children: { 0: undefined } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -503,7 +503,7 @@ describe('Util', function() {
       const className = 'test';
       const vTree = parse(`
         <div class=__DIFFHTML__0__></div>
-      `, { attributes: { 0: className } });
+      `.trim(), { attributes: { 0: className } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -530,7 +530,7 @@ describe('Util', function() {
       const checked = 'checked';
       const vTree = parse(`
         <div __DIFFHTML__0__></div>
-      `, { attributes: { 0: checked } });
+      `.trim(), { attributes: { 0: checked } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -558,7 +558,7 @@ describe('Util', function() {
       const dataTest = 'fixture';
       const vTree = parse(`
         <div class=__DIFFHTML__0__ data-test=__DIFFHTML__1__></div>
-      `, { attributes: { 0: className, 1: dataTest } });
+      `.trim(), { attributes: { 0: className, 1: dataTest } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -587,7 +587,7 @@ describe('Util', function() {
       const world = 'world';
       const vTree = parse(`
         <div class="__DIFFHTML__0__-__DIFFHTML__1__"></div>
-      `, { attributes: { 0: hello, 1: world } });
+      `.trim(), { attributes: { 0: hello, 1: world } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -614,7 +614,7 @@ describe('Util', function() {
       const value = 'value';
       const vTree = parse(`
         <div __DIFFHTML__0__=""></div>
-      `, { attributes: { 0: value } });
+      `.trim(), { attributes: { 0: value } });
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -663,7 +663,7 @@ describe('Util', function() {
       const vTree = parse(`
         <li>Hello
         <li>World
-      `);
+      `.trim());
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -712,7 +712,7 @@ describe('Util', function() {
       const vTree = parse(`
         <li>Hello</ol>
         <li>World</ol>
-      `);
+      `.trim());
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',

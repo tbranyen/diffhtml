@@ -46,7 +46,6 @@ export default function patchNode(patches, state = {}) {
   const { isSVG, ownerDocument } = state;
   const { length } = patches;
 
-
   let i = 0;
 
   while (true) {

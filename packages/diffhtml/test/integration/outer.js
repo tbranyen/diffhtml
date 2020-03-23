@@ -135,13 +135,11 @@ describe('Integration: outerHTML', function() {
     });
 
     it('will properly escape markup being injected into script tags', function() {
-      diff.outerHTML(this.fixture, `
-        <div>
-          <script test>
-            var test = "<p></p>";
-          </script>
-        </div>
-      `);
+      diff.outerHTML(this.fixture, `<div>
+        <script test>
+          var test = "<p></p>";
+        </script>
+      </div>`);
 
       assert.equal(this.fixture.querySelector('p'), null);
       assert.equal(this.fixture.childNodes[1].innerHTML.trim(), `

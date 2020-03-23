@@ -241,7 +241,7 @@ describe('Integration: Tagged template', function() {
       />
     `);
 
-    assert.equal(this.fixture.firstChild.checked, true);
+    assert.equal(this.fixture.childNodes[1].checked, true);
     task.done = false;
 
     diff.innerHTML(this.fixture, html`
@@ -253,6 +253,6 @@ describe('Integration: Tagged template', function() {
       />
     `);
 
-    assert.equal(this.fixture.firstChild.checked, false);
+    assert.equal(this.fixture.childNodes[1].checked, false);
   });
 });

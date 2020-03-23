@@ -9,12 +9,11 @@ const keyNames = ['old', 'new'];
 // while recording the changes along the way.
 /**
  *
- * @param {Partial<VTree> | null=} oldTree
- * @param {Partial<VTree> | null=} newTree
- * @param {*=} patches
- * @param {Partial<VTree>=} parentTree
+ * @param {Partial<VTree> | null} oldTree
+ * @param {Partial<VTree> | null} newTree
+ * @param {any[]} patches
  */
-export default function syncTree(oldTree, newTree, patches = [], parentTree) {
+export default function syncTree(oldTree, newTree, patches = []) {
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 
@@ -70,7 +69,7 @@ export default function syncTree(oldTree, newTree, patches = [], parentTree) {
     // Call the user provided middleware function for a single root node. Allow
     // the consumer to specify a return value of a different VTree (useful for
     // components).
-    let retVal = fn(oldTree, newTree, keysLookup, parentTree);
+    let retVal = fn(oldTree, newTree, keysLookup);
 
     // If the value returned matches the original element, then short circuit
     // and do not dig further.
@@ -189,8 +188,8 @@ export default function syncTree(oldTree, newTree, patches = [], parentTree) {
         oldChildNodes.push(newChildNode);
       }
 
-      // FIXME Why do we sync again here?
-      syncTree(oldChildNode, newChildNode, patches, oldTree);
+      // Crawl this Node for any changes to apply.
+      syncTree(null, newChildNode, patches, oldTree);
 
       patches.push(
         PATCH_TYPE.INSERT_BEFORE,

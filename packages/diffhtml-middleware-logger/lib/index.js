@@ -23,75 +23,128 @@ const cloneTree = tree => assign({}, tree, {
   childNodes: tree.childNodes.map(vTree => cloneTree(vTree))
 });
 
-const format = patches => {
-  const newPatches = {
-    ELEMENT: {
-      INSERT_BEFORE: [],
-      REMOVE_CHILD: [],
-      REPLACE_CHILD: [],
-      NODE_VALUE: [],
-    },
+const state = {
+  Internals: null,
+};
 
-    ATTRIBUTE: {
-      SET: [],
-      REMOVE: [],
-    },
+const format = (patches) => {
+  const { Internals } = state;
+
+  if (!Internals) {
+    return {};
+  }
+
+  const { decodeEntities, PATCH_TYPE } = Internals;
+
+  const newPatches = {
+    'Node (Insert)': [],
+    'Node (Remove)': [],
+    'Node (Replace)': [],
+    'Node value (Set)': [],
+    'Attribute (Set)': [],
+    'Attribute (Remove)': [],
   };
 
-  const { ELEMENT, ATTRIBUTE } = newPatches;
+  const { length } = patches;
 
-  patches.forEach(changeset => {
-    const INSERT_BEFORE = changeset[0];
-    const REMOVE_CHILD = changeset[1];
-    const REPLACE_CHILD = changeset[2];
-    const NODE_VALUE = changeset[3];
-    const SET_ATTRIBUTE = changeset[4];
-    const REMOVE_ATTRIBUTE = changeset[5];
+  let i = 0;
+  let uniquePatches = 0;
 
-    INSERT_BEFORE.forEach(patch => {
-      const [ vTree, fragment, referenceNode ] = patch;
-      ELEMENT.INSERT_BEFORE.push({ vTree, fragment, referenceNode });
-    });
+  while (true) {
+    const patchType = patches[i];
 
-    REMOVE_CHILD.forEach(patch => {
-      const [ vTree, childNode ] = patch;
-      ELEMENT.REMOVE_CHILD.push({ vTree, childNode });
-    });
+    if (i === length) {
+      break;
+    }
 
-    REPLACE_CHILD.forEach(patch => {
-      const [ vTree, newChildNode, oldChildNode ] = patch;
-      ELEMENT.REPLACE_CHILD.push({ vTree, newChildNode, oldChildNode });
-    });
+    uniquePatches += 1;
 
-    SET_ATTRIBUTE.forEach(patch => {
-      const [ vTree, attributesList ] = patch;
-      const attributes = {};
+    switch(patchType) {
+      case PATCH_TYPE.SET_ATTRIBUTE: {
+        const vTree = patches[i + 1];
+        const name = patches[i + 2];
+        const value = decodeEntities(patches[i + 3]);
 
-      for (let i = 0; i < attributesList.length; i++) {
-        const [name, value] = attributesList[i];
-        attributes[name] = value;
+        newPatches['Attribute (Set)'].push({
+          'Node': Internals.NodeCache.get(vTree),
+          'Name': name,
+          'Value': value,
+        });
+
+        i += 4;
+        break;
       }
 
-      ATTRIBUTE.SET.push({ vTree, attributes });
-    });
+      case PATCH_TYPE.REMOVE_ATTRIBUTE: {
+        const vTree = patches[i + 1];
+        const name = patches[i + 2];
 
-    REMOVE_ATTRIBUTE.forEach(patch => {
-      const [ vTree, attributesList ] = patch;
-      const attributes = {};
+        newPatches['Attribute (Remove)'].push({
+          'Node': Internals.NodeCache.get(vTree),
+          'Name': name,
+        });
 
-      for (let i = 0; i < attributesList.length; i++) {
-        const list = attributesList[i];
-
-        for (let i = 0; i < list.length; i++) {
-          attributes[list[i].name] = list[i].value;
-        }
+        i += 3;
+        break;
       }
 
-      ATTRIBUTE.REMOVE.push({ vTree, attributes });
-    });
-  });
+      case PATCH_TYPE.NODE_VALUE: {
+        const vTree = patches[i + 1];
+        const nodeValue = patches[i + 2];
+        const oldValue = patches[i + 3];
 
-  return newPatches;
+        newPatches['Node value (Set)'].push({
+          'Node': Internals.NodeCache.get(vTree),
+          'Value': nodeValue,
+          'Old value': oldValue,
+        });
+
+        i += 4;
+        break;
+      }
+
+      case PATCH_TYPE.INSERT_BEFORE: {
+        const vTree = patches[i + 1];
+        const newTree = patches[i + 2];
+        const refTree = patches[i + 3];
+
+        newPatches['Node (Insert)'].push({
+          'Container': Internals.NodeCache.get(vTree),
+          'Node': Internals.NodeCache.get(newTree),
+          'Insert Before': Internals.NodeCache.get(refTree),
+        });
+
+        i += 4;
+        break;
+      }
+
+      case PATCH_TYPE.REPLACE_CHILD: {
+        const newTree = patches[i + 1];
+        const oldTree = patches[i + 2];
+
+        newPatches['Node (Replace)'].push({
+          'New node': Internals.NodeCache.get(newTree),
+          'Old tree': oldTree,
+        });
+
+        i += 3;
+        break;
+      }
+
+      case PATCH_TYPE.REMOVE_CHILD: {
+        const vTree = patches[i + 1];
+
+        newPatches['Node (Remove)'].push({
+          'Tree': vTree,
+        });
+
+        i += 2;
+        break;
+      }
+    }
+  }
+
+  return [newPatches, uniquePatches];
 };
 
 /**
@@ -154,7 +207,7 @@ const log = (message, method, color, date, transaction, completed) => {
     );
   }
 
-  if (oldTree || newTree) {
+  if (transaction._cloneOldTree || newTree) {
     console.log(
       '%coldTree %O newTree %O',
       'font-weight: bold; color: #333',
@@ -163,8 +216,14 @@ const log = (message, method, color, date, transaction, completed) => {
     );
   }
 
-  if (patches) {
-    console.log('%cpatches %O', 'font-weight: bold; color: #333', format(patches));
+  if (patches && patches.length) {
+    const [ formattedPatches, uniqueCount ] = format(patches);
+
+    console.log(
+      '%cpatches (%d) %O', 'font-weight: bold; color: #333',
+      uniqueCount,
+      formattedPatches,
+    );
   }
 
   // Don't clutter the output if there aren't any promises.
@@ -175,7 +234,7 @@ const log = (message, method, color, date, transaction, completed) => {
   }
 };
 
-const logger = ({ minimize = false }) => function loggerTask(transaction) {
+const logger = ({ minimize = false }) => assign(function loggerTask(transaction) {
   const start = new Date();
 
   log(
@@ -208,7 +267,7 @@ const logger = ({ minimize = false }) => function loggerTask(transaction) {
    * Transaction is effectively done, but we need to listen for it to actually
    * be finished.
    */
-  return assign(() => {
+  return () => {
     // Transaction has fully completed.
     transaction.onceEnded(() => {
       console.groupEnd();
@@ -224,11 +283,14 @@ const logger = ({ minimize = false }) => function loggerTask(transaction) {
 
       console.groupEnd();
     });
-  }, {
-    subscribe(args) {
-      console.log('Logger initialized with', args);
-    }
-  });
-};
+  };
+}, {
+  subscribe(Internals) {
+    state.Internals = Internals;
+  },
+  unsubscribe() {
+    state.Internals = null;
+  },
+});
 
 export default (opts = {}) => logger(opts);

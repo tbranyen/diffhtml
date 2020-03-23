@@ -64,8 +64,8 @@ describe('Integration: Basics', function() {
         <div ${{ a: 1, b: false }} />
       `;
 
-      assert.equal(vTree.attributes.a, 1);
-      assert.equal(vTree.attributes.b, false);
+      assert.equal(vTree.childNodes[1].attributes.a, 1);
+      assert.equal(vTree.childNodes[1].attributes.b, false);
     });
 
     it('can "spread" inline objects into attributes', function() {
@@ -77,10 +77,10 @@ describe('Integration: Basics', function() {
         />
       `;
 
-      assert.equal(vTree.attributes.class, 'test');
-      assert.equal(vTree.attributes.a, 1);
-      assert.equal(vTree.attributes.b, false);
-      assert.equal(vTree.attributes.id, 'example');
+      assert.equal(vTree.childNodes[1].attributes.class, 'test');
+      assert.equal(vTree.childNodes[1].attributes.a, 1);
+      assert.equal(vTree.childNodes[1].attributes.b, false);
+      assert.equal(vTree.childNodes[1].attributes.id, 'example');
     });
 
     it('can "spread" objects into attributes', function() {
@@ -93,10 +93,10 @@ describe('Integration: Basics', function() {
         />
       `;
 
-      assert.equal(vTree.attributes.class, 'test');
-      assert.equal(vTree.attributes.a, 1);
-      assert.equal(vTree.attributes.b, false);
-      assert.equal(vTree.attributes.id, 'example');
+      assert.equal(vTree.childNodes[1].attributes.class, 'test');
+      assert.equal(vTree.childNodes[1].attributes.a, 1);
+      assert.equal(vTree.childNodes[1].attributes.b, false);
+      assert.equal(vTree.childNodes[1].attributes.id, 'example');
     });
 
     it('will silently ignore arrays that are attempted to be spread', function() {
@@ -109,7 +109,7 @@ describe('Integration: Basics', function() {
         />
       `;
 
-      assert.deepEqual(vTree.attributes, {
+      assert.deepEqual(vTree.childNodes[1].attributes, {
         class: 'test',
         id: 'example',
       });
@@ -155,8 +155,8 @@ describe('Integration: Basics', function() {
         <p>Supports DocumentFragments</p>
       `);
 
-      assert.equal(fragment.childNodes[0].nodeName.toLowerCase(), 'p');
-      assert.equal(fragment.childNodes[0].childNodes[0].nodeValue, 'Supports DocumentFragments');
+      assert.equal(fragment.childNodes[1].nodeName.toLowerCase(), 'p');
+      assert.equal(fragment.childNodes[1].childNodes[0].nodeValue, 'Supports DocumentFragments');
 
       diff.release(fragment);
     });
@@ -172,8 +172,8 @@ describe('Integration: Basics', function() {
 
       diff.innerHTML(this.fixture, fragment);
 
-      assert.equal(this.fixture.childNodes[0].nodeName.toLowerCase(), 'h1');
-      assert.equal(this.fixture.childNodes[0].childNodes[0].nodeValue, 'It works');
+      assert.equal(this.fixture.childNodes[1].nodeName.toLowerCase(), 'h1');
+      assert.equal(this.fixture.childNodes[1].childNodes[0].nodeValue, 'It works');
 
       diff.release(fragment);
     });

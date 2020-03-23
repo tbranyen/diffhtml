@@ -1,8 +1,5 @@
 import createTree from './tree/create';
-import syncTree from './tree/sync';
-import createNode from './node/create';
 import internals from './util/internals';
-import { PATCH_TYPE } from './util/types';
 import globalThis from './util/global';
 import innerHTML from './inner-html';
 import outerHTML from './outer-html';
@@ -22,9 +19,6 @@ const VERSION = `${__VERSION__}-runtime`;
 const Internals = assign(internals, {
   defaultTasks,
   tasks,
-  createNode,
-  syncTree,
-  PATCH_TYPE,
 });
 
 const api = {};

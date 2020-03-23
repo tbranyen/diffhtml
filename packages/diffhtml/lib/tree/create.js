@@ -32,6 +32,8 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   let domBound = null;
 
+  // FIXME This is going to hurt performance. Can we introduce a better way to find
+  // a VTree from a DOM Node?
   NodeCache.forEach((node, vTree) => {
     if (node === input) {
       domBound = vTree;
@@ -102,31 +104,15 @@ export default function createTree(input, attributes, childNodes, ...rest) {
         childNodes = [];
 
         for (let i = 0; i < input.childNodes.length; i++) {
-          // Strip out leading and trailing empty text nodes.
-          if (
-            (i === 0 || i === input.childNodes.length - 1) &&
-            input.childNodes[i] &&
-            input.childNodes[i].nodeName === '#text' &&
-            !(input.childNodes[i].nodeValue || '').trim()
-          ) continue;
-
           /** @type {HTMLElement} */
           const childNodeElement = (input.childNodes[i]);
-          const vTree = createTree(childNodeElement);
-          NodeCache.set(vTree, childNodeElement);
-          childNodes.push(vTree);
+          childNodes.push(createTree(childNodeElement));
         }
       }
     }
 
-    const vTree = createTree(
-      input.nodeName,
-      attributes,
-      childNodes,
-    );
-
+    const vTree = createTree(input.nodeName, attributes, childNodes);
     NodeCache.set(vTree, input);
-
     return vTree;
   }
 

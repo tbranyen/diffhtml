@@ -81,14 +81,10 @@ describe('HTML (Tagged template)', function() {
 
   it('will flatten nested fragments', () => {
     const array = [1];
-    const vTree = html`
-      <div>
-        ${array.map(i => html`
-          <p>Some label</p>
-          <span>${i}</span>
-        `)}
-      </div>
-    `;
+    const vTree = html`<div>
+        ${array.map(i => html`<p>Some label</p>
+          <span>${i}</span>`)}
+      </div>`;
 
     deepEqual(vTree, {
       rawNodeName: 'div',
@@ -230,7 +226,7 @@ describe('HTML (Tagged template)', function() {
       " />
     `;
 
-    equal(multipleValues.attributes.class.trim(), 'foo\n        bar');
+    equal(multipleValues.childNodes[1].attributes.class.trim(), 'foo\n        bar');
   });
 
   it('will support empty string attributes', () => {
@@ -365,10 +361,7 @@ describe('HTML (Tagged template)', function() {
 
   it('will not mess up interpolation if HTML comments are used', () => {
     const fixtures = ['test', 'this'];
-    const span = html`<!--
-      <span>${fixtures[0]}</span>
-      --><span>${fixtures[1]}</span>
-    `;
+    const span = html`<!--<span>${fixtures[0]}</span>--><span>${fixtures[1]}</span>`;
 
     deepEqual(span, {
       rawNodeName: 'span',
@@ -406,10 +399,8 @@ describe('HTML (Tagged template)', function() {
 
   it('supports mixing custom elements and custom components', () => {
     const React = () => {};
-    const vTree = html`
-      <${React} />
-      <web-component />
-    `;
+    const vTree = html`<${React} />
+      <web-component />`;
 
     deepEqual(vTree, {
       rawNodeName: '#document-fragment',
@@ -528,10 +519,8 @@ describe('HTML (Tagged template)', function() {
         <html></html>
       `);
 
-      const actual = html.strict`
-        <!doctype>
-        <html></html>
-      `;
+      const actual = html.strict`<!doctype>
+        <html></html>`;
 
       deepEqual(actual, {
         rawNodeName: 'html',
