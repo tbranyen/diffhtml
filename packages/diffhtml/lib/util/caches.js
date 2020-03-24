@@ -1,4 +1,4 @@
-import { VTree } from "./types";
+import { VTree, ValidNode } from "./types";
 
 // Associates DOM Nodes with state objects.
 export const StateCache = new Map();
@@ -6,7 +6,7 @@ export const StateCache = new Map();
 /**
  * Associates Virtual Tree Elements with DOM Nodes.
  *
- * @type {Map<VTree, HTMLElement | DocumentFragment | Text | Comment>}
+ * @type {Map<VTree, ValidNode>}
  */
 export const NodeCache = new Map();
 

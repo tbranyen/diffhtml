@@ -65,6 +65,15 @@ export const VTreeLike = {
 export const ValidInput = '';
 
 /**
+ * @typedef {HTMLElement | Text | DocumentFragment | unknown} ValidNode
+ */
+
+ /**
+  * @type {ValidNode}
+  */
+ export const ValidNode = null;
+
+/**
  * @typedef {HTMLElement | DocumentFragment | string} Mount
  */
 

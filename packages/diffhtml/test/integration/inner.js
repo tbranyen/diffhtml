@@ -113,7 +113,6 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.innerHTML, '<div key="test"></div>');
 
       domNode.appendChild(nestedNode);
-      diff.release(domNode);
 
       diff.innerHTML(this.fixture, diff.html`${domNode}`);
 
@@ -121,7 +120,6 @@ describe('Integration: innerHTML', function() {
       assert.equal(this.fixture.querySelector('video'), nestedNode);
 
       nestedNode.setAttribute('src', 'test');
-      diff.release(domNode);
 
       diff.innerHTML(this.fixture, diff.html`${domNode}`);
 
@@ -143,7 +141,7 @@ describe('Integration: innerHTML', function() {
 
       nestedNode.setAttribute('src', 'test');
 
-      diff.innerHTML(this.fixture, diff.html`${release(domNode)}`);
+      diff.innerHTML(this.fixture, diff.html`${domNode}`);
 
       assert.equal(this.fixture.innerHTML, `<div key="test"><video src="test"></video></div>`);
       assert.equal(this.fixture.querySelector('video'), nestedNode);
@@ -184,7 +182,7 @@ describe('Integration: innerHTML', function() {
 
       nestedNode.setAttribute('src', 'test');
 
-      diff.innerHTML(this.fixture, diff.html`${diff.html`${release(domNode)}`}`);
+      diff.innerHTML(this.fixture, diff.html`${diff.html`${domNode}`}`);
 
       assert.equal(this.fixture.innerHTML, `<div key="keep"><video src="test"></video></div>`);
       assert.equal(this.fixture.querySelector('video'), nestedNode);
@@ -327,6 +325,8 @@ describe('Integration: innerHTML', function() {
 
       diff.innerHTML(fragment, '<div></div><p></p>');
       fragment.appendChild(document.createElement('span'));
+
+      diff.use(t => () => console.log(t.patches));
       diff.innerHTML(fragment, '<div></div><p></p>');
 
       assert.equal(fragment.childNodes[2], undefined);

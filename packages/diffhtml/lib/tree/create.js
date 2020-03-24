@@ -1,6 +1,7 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
 import { VTree, VTreeLike, ValidInput } from '../util/types';
+import release from '../release';
 
 const { assign } = Object;
 const { isArray } = Array;
@@ -110,6 +111,8 @@ export default function createTree(input, attributes, childNodes, ...rest) {
         }
       }
     }
+
+    release(input);
 
     const vTree = createTree(input.nodeName, attributes, childNodes);
     NodeCache.set(vTree, input);

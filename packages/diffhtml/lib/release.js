@@ -1,12 +1,11 @@
 import { StateCache, NodeCache } from './util/caches';
 import { unprotectVTree } from './util/memory';
 import createTree from './tree/create';
-import { ValidInput } from './util/types';
+import { ValidNode } from './util/types';
 
 /**
  *
- * @param {ValidInput} domNode
- * @return {ValidInput}
+ * @param {ValidNode} domNode
  */
 export default function release(domNode) {
   // Try and find a state object for this DOM Node.
@@ -18,14 +17,11 @@ export default function release(domNode) {
     unprotectVTree(createTree(state.oldTree));
     StateCache.delete(domNode);
   }
-  else {
-    // If there is a Virtual Tree element, recycle all objects allocated for it.
-    NodeCache.forEach((value, key) => {
-      if (value === domNode) {
-        unprotectVTree(key);
-      }
-    });
-  }
 
-  return domNode;
+  // If there is a Virtual Tree element, recycle all objects allocated for it.
+  NodeCache.forEach((value, key) => {
+    if (value === domNode) {
+      unprotectVTree(key);
+    }
+  });
 }

@@ -76,7 +76,7 @@ describe('Tasks', function() {
 
       reconcileTrees(secondTransaction);
 
-      equal(oldTree, secondTransaction.oldTree);
+      deepEqual(oldTree, secondTransaction.oldTree);
     });
 
     it('will upgrade the domNode if it is not the exact same as before', () => {
@@ -87,12 +87,7 @@ describe('Tasks', function() {
       transaction.state.previousMarkup = this.fixture.outerHTML;
       transaction.state.oldTree = transaction.oldTree;
 
-      // Change the markup slightly.
-      this.fixture.appendChild(document.createElement('span'));
-
-      const { oldTree } = transaction;
-
-      deepEqual(oldTree, {
+      deepEqual(transaction.oldTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -102,8 +97,10 @@ describe('Tasks', function() {
         attributes: {},
       });
 
-      const secondTransaction = Transaction.create(this.fixture, html`<div/>`, {});
+      // Change the markup slightly.
+      this.fixture.appendChild(document.createElement('span'));
 
+      const secondTransaction = Transaction.create(this.fixture, html`<div/>`, {});
       reconcileTrees(secondTransaction);
 
       deepEqual(secondTransaction.oldTree, {

@@ -3,6 +3,7 @@ import parse from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 import { VTree, Supplemental } from './util/types';
+import release from './release';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
@@ -77,7 +78,6 @@ export default function handleTaggedTemplate(strings, ...values) {
       const isTag = Boolean(lastCharacter.match(isTagEx));
       const isString = typeof value === 'string';
       const isObject = typeof value === 'object';
-      const _isArray = isArray(value);
       const token = `${TOKEN}${i}__`;
 
       // Injected as a tag.
@@ -91,7 +91,7 @@ export default function handleTaggedTemplate(strings, ...values) {
         HTML += token;
       }
       // Injected as a child node.
-      else if (_isArray || isObject) {
+      else if (isArray(value) || isObject) {
         supplemental.children[i] = createTree(value);
         HTML += token;
       }

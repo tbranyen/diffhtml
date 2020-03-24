@@ -2,6 +2,7 @@ import { NodeCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import createTree from '../tree/create';
 import Transaction from '../transaction';
+import release from '../release';
 
 /**
  * This task ensures that the Virtual DOM matches the Browser DOM. If any of the
@@ -18,16 +19,7 @@ export default function reconcileTrees(transaction) {
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
   if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
-    if (state.oldTree) {
-      // This removes all previous VDOM/DOM assocations.
-      unprotectVTree(state.oldTree);
-
-      // Wipe out the existing root if it exists.
-      NodeCache.delete(state.oldTree);
-    }
-
     state.oldTree = createTree(domNode);
-    NodeCache.set(state.oldTree, /** @type {any} */ (domNode));
     protectVTree(state.oldTree);
   }
 

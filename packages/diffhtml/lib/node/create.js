@@ -1,7 +1,7 @@
 import { NodeCache, CreateNodeHookCache } from '../util/caches';
 import process from '../util/process';
 import globalThis from '../util/global';
-import { VTreeLike, VTree } from '../util/types';
+import { VTreeLike, VTree, ValidNode } from '../util/types';
 import createTree from '../tree/create';
 
 const namespace = 'http://www.w3.org/2000/svg';
@@ -15,7 +15,7 @@ const document = /** @type {any} */ (globalThis).document || null;
  * @param {VTreeLike} vTreeLike - A Virtual Tree Element or VTree-like element
  * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
  * @param {Boolean=} isSVG - Is their a root SVG element?
- * @return {HTMLElement | DocumentFragment | Text | Comment} A DOM Node matching the vTree
+ * @return {ValidNode} A DOM Node matching the vTree
  */
 export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {
@@ -42,7 +42,10 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
 
   isSVG = isSVG || nodeName === 'svg';
 
-  // Will vary based on the properties of the VTree.
+  /**
+   * Will vary based on the properties of the VTree.
+   * @type {ValidNode | unknown}
+   */
   let domNode = null;
 
   CreateNodeHookCache.forEach((fn, retVal) => {
@@ -53,7 +56,7 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
     }
   });
 
-  if (!domNode) {
+  if (domNode === null) {
     // Create empty text elements. They will get filled in during the patch
     // process.
     if (nodeName === '#text') {
@@ -73,14 +76,21 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
     }
   }
 
+  /** @type {HTMLElement | DocumentFragment | Text} */
+  const validNode = (domNode);
+
   // Add to the domNodes cache.
-  NodeCache.set(vTree, domNode);
+  NodeCache.set(vTree, validNode);
 
   // Append all the children into the domNode, making sure to run them
   // through this `createNode` function as well.
   for (let i = 0; i < childNodes.length; i++) {
-    domNode.appendChild(createNode(childNodes[i], ownerDocument, isSVG));
+    /** @type {HTMLElement | DocumentFragment | Text} */
+    const validChildNode = (
+      createNode(childNodes[i], ownerDocument, isSVG)
+    );
+    validNode.appendChild(validChildNode);
   }
 
-  return domNode;
+  return validNode;
 }

@@ -1,11 +1,10 @@
 import createNode from './create';
 import { runTransitions } from '../transition';
-import { NodeCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
 import escape from '../util/escape';
 import process from '../util/process';
-import { PATCH_TYPE } from '../util/types';
+import { PATCH_TYPE, ValidNode } from '../util/types';
 
 const { keys } = Object;
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
@@ -14,7 +13,7 @@ const whitelist = new Set();
 
 /**
  *
- * @param {unknown} domNode
+ * @param {ValidNode} domNode
  * @param {string} name
  */
 const removeAttribute = (domNode, name) => {
@@ -140,7 +139,7 @@ export default function patchNode(patches, state = {}) {
         i += 3;
 
         const domNode = /** @type {HTMLElement} */ (
-          NodeCache.get(vTree)
+          createNode(vTree, ownerDocument, isSVG)
         );
         const oldValue = domNode.getAttribute(name);
         const newPromises = runTransitions(
@@ -165,9 +164,10 @@ export default function patchNode(patches, state = {}) {
 
         i += 4;
 
-        const domNode = /** @type {HTMLElement} */ (
-          createNode(vTree)
-        );
+        const domNode = /** @type {Text} */ (
+          createNode(vTree, ownerDocument, isSVG))
+        ;
+
         const textChangedPromises = runTransitions(
           'textChanged', domNode, oldValue, nodeValue
         );
@@ -200,10 +200,16 @@ export default function patchNode(patches, state = {}) {
         i += 4;
 
         const domNode = /** @type {HTMLElement} */ (
-          createNode(vTree)
+          createNode(vTree, ownerDocument, isSVG)
         );
-        const refNode = NodeCache.get(refTree);
-        const newNode = createNode(newTree, ownerDocument, isSVG);
+
+        const refNode = refTree && /** @type {HTMLElement} */ (
+          createNode(refTree, ownerDocument, isSVG)
+        );
+
+        const newNode = /** @type {HTMLElement} */ (
+          createNode(newTree, ownerDocument, isSVG)
+        );
 
         protectVTree(newTree);
 
@@ -224,10 +230,12 @@ export default function patchNode(patches, state = {}) {
         i += 3;
 
         const oldDomNode = /** @type {HTMLElement} */ (
-          NodeCache.get(oldTree)
+          createNode(oldTree, ownerDocument, isSVG)
         );
 
-        const newDomNode = createNode(newTree, ownerDocument, isSVG);
+        const newDomNode = /** @type {HTMLElement} */ (
+          createNode(newTree, ownerDocument, isSVG)
+        );
 
         if (process.env.NODE_ENV !== 'production') {
           if (!oldDomNode) {
@@ -288,7 +296,9 @@ export default function patchNode(patches, state = {}) {
 
         i += 2;
 
-        const domNode = NodeCache.get(vTree);
+        const domNode = /** @type {HTMLElement} */ (
+          createNode(vTree, ownerDocument, isSVG)
+        );
 
         if (process.env.NODE_ENV !== 'production') {
           if (!domNode) {
