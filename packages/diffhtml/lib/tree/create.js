@@ -99,6 +99,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       }
     }
 
+    /** @type {VTree | null} */
     let domBound = null;
 
     // FIXME This is going to hurt performance. Can we introduce a better way to find
@@ -109,17 +110,12 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       }
     });
 
-    // As we are re-creating this DOM node and it has possibly changed
-    // we want to release the existing knowledge of it.
-    //release(input);
+    /** @type {VTree} */
+    let vTree = domBound || createTree(input.nodeName, attributes, childNodes);
 
-    /** @type {VTree | null} */
-    let vTree = domBound;
-
-    if (!vTree) {
-      vTree = createTree(input.nodeName, attributes, childNodes);
-    }
-    else {
+    // If no VTree was previously bound this to DOM Node, create a brand new tree.
+    if (domBound) {
+      // FIXME Should it be easier to update a VTree than this?
       assign(vTree.attributes, attributes);
       vTree.childNodes.length = 0;
       vTree.childNodes.push(...childNodes);
