@@ -6,7 +6,7 @@ Stable version: 1.0.0-beta.12
 
 [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
 [![Coverage
-  Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master) 
+  Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
 
 diffHTML is a library that assists with creating user interfaces using
 JavaScript. These interfaces can be: applications, games, data visualizations,
@@ -136,8 +136,8 @@ level or any specific nested package level.
   npm install diffhtml-static-sync
   ```
 
-  A work-in-progress static HTML server that automatically reloads your markup
-  as you save using Web Sockets.
+  **Highly Experimental:** A work-in-progress static HTML server that automatically
+  reloads your markup as you save using Web Sockets.
 
 * [diffhtml-devtools](/packages/diffhtml-devtools)
 
@@ -147,5 +147,4 @@ level or any specific nested package level.
 
 * [diffhtml-website](/packages/diffhtml-website)
 
-  The source for the [www.diffhtml.org](https://www.diffhtml.org) website,
-  powered by: [Node](https://nodejs.com/) and [NodeGit](http://nodegit.org).
+  The source for the [www.diffhtml.org](https://www.diffhtml.org) website.
