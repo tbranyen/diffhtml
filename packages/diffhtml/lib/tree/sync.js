@@ -260,6 +260,7 @@ export default function syncTree(oldTree, newTree, patches = []) {
     if (oldChildNode.nodeName !== newChildNode.nodeName) {
       oldChildNodes[i] = newChildNode;
 
+      // This only works if VTrees are identical...
       const lookupIndex = oldChildNodes.lastIndexOf(newChildNode);
 
       if (lookupIndex > i) {

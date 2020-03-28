@@ -16,21 +16,11 @@ BASICS: {
 
 QUASIS: {
 
-  exports.renderSimpleQuasi = () => html`
-    <div>Hello world</div>
-  `;
+  exports.renderSimpleQuasi = () => html`<div>Hello world</div>`;
 
-  exports.renderNestedQuasi = () => html`
-    ${html`
-      <div>Hello world</div>
-    `}
-  `;
+  exports.renderNestedQuasi = () => html`${html`<div>Hello world</div>`}`;
 
-  exports.renderNestedQuasiConcat = () => html`
-    ${html`
-       Text Node <div>Hello world</div>
-    `}
-  `;
+  exports.renderNestedQuasiConcat = () => html`${html`Text Node <div>Hello world</div>`}`;
 
 }
 
@@ -51,9 +41,7 @@ EXPRESSIONS: {
 
   exports.renderNestedInterpolatedMixedExpression = () => {
     const text = () => html`world`;
-    return html`<div>
-      <div>Hello ${text()}!</div>
-    </div>`;
+    return html`<div><div>Hello ${text()}!</div></div>`;
   };
 
   exports.renderNestedTemplateInterpolatedMixedExpression = () => {

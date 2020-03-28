@@ -32,10 +32,8 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
       assert.equal(this.fixture.innerHTML.trim(), 'Hello world');
     });
 
-    it.skip('can render a nested quasi literal', () => {
-      console.log(fixtures.renderNestedQuasi());
+    it('can render a nested quasi literal', () => {
       diff.outerHTML(this.fixture, fixtures.renderNestedQuasi());
-      console.log(this.fixture.outerHTML);
       assert.equal(this.fixture.innerHTML.trim(), 'Hello world');
     });
 
@@ -67,21 +65,18 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
     it('can render a nested interpolated mixed expression', () => {
       const vTree = fixtures.renderNestedInterpolatedMixedExpression();
       diff.innerHTML(this.fixture, vTree);
-      assert.equal(this.fixture.innerHTML.trim(), `<div>
-      <div>Hello world!</div>
-    </div>`);
+      assert.equal(this.fixture.innerHTML.trim(), `<div><div>Hello world!</div></div>`);
     });
 
     it('can render a nested template interpolated mixed expression', () => {
       const vTree = fixtures.renderNestedTemplateInterpolatedMixedExpression();
       diff.innerHTML(this.fixture, vTree);
-      assert.equal(this.fixture.innerHTML.trim().replace(/\n/g, ''), '<div>      <div>Hello world!</div>    </div>');
+      assert.equal(this.fixture.innerHTML.trim(), '<div>\n      \n        <div>Hello world!</div>\n      \n    </div>');
     });
 
-    it.skip('can render a trailing interpolated mixed expression', () => {
+    it('can render a trailing interpolated mixed expression', () => {
       const vTree = fixtures.renderTrailingExpression();
       diff.outerHTML(this.fixture, vTree);
-      assert.equal(this.fixture.childNodes.length, 2);
 
       // This does work, but is missing the space between the div and the text.
       assert.equal(this.fixture.innerHTML.trim(), '<div></div> Hello world');

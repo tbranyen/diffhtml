@@ -8,7 +8,7 @@
     "watch-chrome": "grunt chrome-extension watch:chrome-extension",
     "build": "grunt",
     "build-chrome": "grunt chrome-extension",
-    "test": "grunt && grunt mochaTest && grunt shell:s3",
+    "test": "grunt && grunt mochaTest",
     "test-chrome": "grunt mochaTest:chrome-extension",
     "cjs": "compile-modules convert -f commonjs shared/scripts/**/*.js -o cjs/"
   },
@@ -43,7 +43,6 @@
     "grunt-contrib-stylus": "^1.2.0",
     "grunt-contrib-watch": "^1.1.0",
     "grunt-mocha-test": "^0.13.3",
-    "grunt-s3-sync": "^0.4.3",
     "grunt-shell": "^3.0.1",
     "grunt-targethtml": "^0.2.6",
     "knox": "^0.9.2",

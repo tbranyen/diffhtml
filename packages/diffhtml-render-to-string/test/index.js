@@ -3,6 +3,8 @@ const { html } = require('diffhtml');
 const { Component } = require('diffhtml-components');
 const { renderToString } = require('../');
 
+const whitespaceEx = /[ ]{2,}|\n/g;
+
 describe('renderToString', function() {
   it('can render simple div string', () => {
     const actual = renderToString('<div>Hello world</div>');
@@ -89,11 +91,9 @@ describe('renderToString', function() {
       </div>
     `);
 
-    const expected = `<div>
-        <p>Hello world</p>
-      </div>`;
+    const expected = '<div><p>Hello world</p></div>';
 
-    equal(actual, expected);
+    equal(actual.replace(whitespaceEx, ''), expected);
   });
 
   it('can render components with props', () => {
@@ -111,11 +111,9 @@ describe('renderToString', function() {
       </div>
     `);
 
-    const expected = `<div>
-        <p>Hello world</p>
-      </div>`;
+    const expected = `<div><p>Hello world</p></div>`;
 
-    equal(actual, expected);
+    equal(actual.replace(whitespaceEx, ''), expected);
   });
 
   it('can render components with dynamic props', () => {
@@ -133,11 +131,9 @@ describe('renderToString', function() {
       </div>
     `);
 
-    const expected = `<div>
-        <p>Hello world</p>
-      </div>`;
+    const expected = `<div><p>Hello world</p></div>`;
 
-    equal(actual, expected);
+    equal(actual.replace(whitespaceEx, ''), expected);
   });
 
   it('can render components with nested elements', () => {
@@ -160,11 +156,8 @@ describe('renderToString', function() {
       <${MyComponent} />
     `);
 
-    const expected = `<html><head>
-              <title>Test</title>
-            </head><body>
-            </body></html>`;
+    const expected = `<html><head><title>Test</title></head><body></body></html>`;
 
-    equal(actual, expected);
+    equal(actual.replace(whitespaceEx, ''), expected);
   });
 });

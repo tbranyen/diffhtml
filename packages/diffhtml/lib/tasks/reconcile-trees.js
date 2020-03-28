@@ -1,4 +1,4 @@
-import { NodeCache } from '../util/caches';
+import { NodeCache, StateCache } from '../util/caches';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import createTree from '../tree/create';
 import Transaction from '../transaction';
@@ -19,8 +19,11 @@ export default function reconcileTrees(transaction) {
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
   if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
+    release(domNode);
     state.oldTree = createTree(domNode);
     protectVTree(state.oldTree);
+    // Reset the state cache after releasing.
+    StateCache.set(domNode, state);
   }
 
   // If we are in a render transaction where no markup was previously parsed
@@ -34,10 +37,10 @@ export default function reconcileTrees(transaction) {
   // Associate the old tree with this brand new transaction.
   transaction.oldTree = state.oldTree;
 
-  // If we are diffing only the parent's childNodes, then adjust the newTree to
-  // be a replica of the oldTree except with the childNodes changed.
   const { oldTree, newTree } = transaction;
 
+  // If we are diffing only the parent's childNodes, then adjust the newTree to
+  // be a replica of the oldTree except with the childNodes changed.
   if (inner && oldTree && newTree) {
     const { nodeName, attributes } = oldTree;
     const isUnknown = typeof newTree.rawNodeName !== 'string';

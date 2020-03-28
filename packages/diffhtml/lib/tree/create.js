@@ -2,6 +2,7 @@ import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
 import { VTree, VTreeLike, ValidInput } from '../util/types';
 import release from '../release';
+import { unprotectVTree, protectVTree } from '../util/memory';
 
 const { assign } = Object;
 const { isArray } = Array;
@@ -29,20 +30,6 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   // If no input was provided, return an empty fragment.
   if (!input) {
     return createTree(fragmentName, null, []);
-  }
-
-  let domBound = null;
-
-  // FIXME This is going to hurt performance. Can we introduce a better way to find
-  // a VTree from a DOM Node?
-  NodeCache.forEach((node, vTree) => {
-    if (node === input) {
-      domBound = vTree;
-    }
-  });
-
-  if (domBound) {
-    return domBound;
   }
 
   // If the first argument is an array, we assume this is a DOM fragment and
@@ -75,17 +62,17 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     const inputAttrs = inputAsHTMLEl.attributes;
 
-    // When working with a text node, simply save the nodeValue as the
-    // initial value.
+    // When working with a text node, migrate the nodeValue into
     if (input.nodeType === 3) {
-      childNodes = input.nodeValue;
+      release(input);
+      const vTree = createTree('#text', null, input.nodeValue);
+      NodeCache.set(vTree, input);
+      return vTree;
     }
     // Element types are the only kind of DOM node we care about attributes
     // from. Shadow DOM, Document Fragments, Text, Comment nodes, etc. can
     // ignore this.
     else if (input.nodeType === 1 && inputAttrs && inputAttrs.length) {
-      attributes = {};
-
       for (let i = 0; i < inputAttrs.length; i++) {
         const { name, value } = inputAttrs[i];
 
@@ -112,9 +99,32 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       }
     }
 
-    release(input);
+    let domBound = null;
 
-    const vTree = createTree(input.nodeName, attributes, childNodes);
+    // FIXME This is going to hurt performance. Can we introduce a better way to find
+    // a VTree from a DOM Node?
+    NodeCache.forEach((node, vTree) => {
+      if (node === input) {
+        domBound = vTree;
+      }
+    });
+
+    // As we are re-creating this DOM node and it has possibly changed
+    // we want to release the existing knowledge of it.
+    //release(input);
+
+    /** @type {VTree | null} */
+    let vTree = domBound;
+
+    if (!vTree) {
+      vTree = createTree(input.nodeName, attributes, childNodes);
+    }
+    else {
+      assign(vTree.attributes, attributes);
+      vTree.childNodes.length = 0;
+      vTree.childNodes.push(...childNodes);
+    }
+
     NodeCache.set(vTree, input);
     return vTree;
   }

@@ -326,7 +326,6 @@ describe('Integration: innerHTML', function() {
       diff.innerHTML(fragment, '<div></div><p></p>');
       fragment.appendChild(document.createElement('span'));
 
-      diff.use(t => () => console.log(t.patches));
       diff.innerHTML(fragment, '<div></div><p></p>');
 
       assert.equal(fragment.childNodes[2], undefined);
