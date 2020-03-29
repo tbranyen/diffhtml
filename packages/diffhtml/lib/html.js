@@ -54,11 +54,11 @@ export default function handleTaggedTemplate(strings, ...values) {
   // We filter the supplemental values by where they are used. Values are
   // either, children, or tags (for components).
   /** @type {Supplemental} */
-  const supplemental = {
+  const supplemental = ({
     attributes: {},
     children: {},
     tags: {},
-   };
+   });
 
   // Loop over the static strings, each break correlates to an interpolated
   // value. As these values can be dynamic, we cannot pass them to the HTML

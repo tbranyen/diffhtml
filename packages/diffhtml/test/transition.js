@@ -1,6 +1,6 @@
 import { throws, doesNotThrow } from 'assert';
 import { removeTransitionState } from '../lib/transition';
-import validateMemory from './util/validateMemory';
+import validateMemory from './util/validate-memory';
 
 describe('Transition', function() {
   afterEach(() => validateMemory());

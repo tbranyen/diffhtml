@@ -10,7 +10,6 @@
     </head>
 
     <body>
-      <div class="open-menu">≡</div>
       <layer id="navigation">
 
         <p class="social">
@@ -125,6 +124,36 @@
 
       
         <a href="api.html#version" target><li>VERSION</li></a>
+      
+    
+      
+        <a href="parser.html"><li class="header"><h4>Parser</h4></li></a>
+      
+
+      
+    
+      
+
+      
+        <a href="parser.html#dynamic-values" target><li>Dynamic values</li></a>
+      
+    
+      
+
+      
+        <a href="parser.html#strict-mode" target><li>Strict mode</li></a>
+      
+    
+      
+
+      
+        <a href="parser.html#block-elements" target><li>Customize block elements</li></a>
+      
+    
+      
+
+      
+        <a href="parser.html#self-closing" target><li>Self closing</li></a>
       
     
       
@@ -270,6 +299,7 @@
       </layer>
 
       <layer id="main">
+        <div class="open-menu">≡</div>
         <header>
           <h1>
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
@@ -286,8 +316,10 @@
 <p>This reference contains all stable API documentation which is up-to-date with
 the latest release. The core was designed to be minimal and familiar if you&#39;ve
 used browser DOM APIs such as <code>innerHTML</code> and <code>addEventListener</code>.</p>
-<p>You can access any of the top-level API methods &amp; properties by directly
-importing or deconstructing.</p>
+<p>Your input will be parsed using the built-in smart HTML parser. This logic will
+not run under the 
+    <a href title="null">release build</a>
+  .</p>
 <p><a name="inner-html"></a></p>
 <hr></hr>
 <h2 id="a-hrefinner-htmlinnerhtmla-domnode-markup-options"><a href="#inner-html">innerHTML</a> <strong><code>(domNode, markup, options)</code></strong></h2>
@@ -310,7 +342,7 @@ control the entire tag, use
 <td>The root DOM Node to change the child contents of, but not the element itself.</td>
 </tr>
 <tr>
-<td><strong>markup</strong></td>
+<td><strong>input</strong></td>
 <td>New markup to replace into <strong>domNode</strong>.</td>
 </tr>
 <tr>
@@ -368,7 +400,7 @@ to &quot;interpolate&quot; or mix dynamic values with the HTML string content. T
 useful when working with Web Components, DOM events,</p>
 <p>When you pass a single element and provide newlines and whitespace before and
 after it, like the example below, it will be automatically trimmed. If you
-provide multiple elements, the whitespace becomes </p>
+provide multiple elements, the whitespace becomes</p>
 <p>A simple example of its usage along with interpolation.</p>
 <pre><code class="language-js">html`
   &lt;body&gt;
@@ -732,6 +764,7 @@ asynchronous.</p>
         </footer>
       </layer>
 
+      
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
       <script>
         try {

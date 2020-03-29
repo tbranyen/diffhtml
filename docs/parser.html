@@ -312,76 +312,41 @@
 
         <hr></hr>
 
-        <section id="content"><h1 id="transitions">Transitions</h1>
-<p>A unique concept to diffHTML, these transitions are activated as first class
-events whenever elements are added, removed, changed, and when attributes or
-text have changed.</p>
-<p>By returning promises you can halt rendering until they have completed. This
-could allow you to easily build keyframe based animations or integrate tools
-like 
-      <a href="https://animejs.com/documentation/#finishedPromise" target="_blank" rel="noopener noreferrer" title="null">anime.js</a>
-     that
-support Promises.</p>
-<p><a name="available-states"></a></p>
-<hr></hr>
-<h2 id="a-hrefavailable-statesavailable-statesa"><a href="#available-states">Available states</a></h2>
-<ul>
-<li>
-    <a href="#attached" title="null"><strong>attached</strong></a>
-  </li>
-<li>
-    <a href="#detached" title="null"><strong>detached</strong></a>
-  </li>
-<li>
-    <a href="#replaced" title="null"><strong>replaced</strong></a>
-  </li>
-<li>
-    <a href="#attribute-changed" title="null"><strong>attributeChanged</strong></a>
-  </li>
-<li>
-    <a href="#text-changed" title="null"><strong>textChanged</strong></a>
-  </li>
-</ul>
-<p>There are many states you can listen to, they get added globally and allow you
-to do filtering. You add them using the <code>addTransitionState</code> method.</p>
-<pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;</code></pre>
-<h3 id="a-nameattached-hrefattachedattacheda"><a name="attached" href="#attached">Attached</a></h3>
-<p>This triggers whenever an element gets added into the DOM. Text and comment
-nodes are not included.</p>
-<div id="attached"></div>
+        <section id="content"><h1 id="parser">Parser</h1>
+<p>The parser built into diffHTML supports loose and strict HTML, XML, and SVG. It
+includes a token based syntax that can be used to interpolate dynamic values.
+This is used by the 
+    <a href="/api.html#html" title="null">html</a>
+   function/tagged template and can be
+leveraged to integrate template engines.</p>
+<p>The parser can read full HTML documents including doctype, html/head/body/title
+etc tags, unwrapped fragments, and more!</p>
+<pre><code class="language-js">import { html } from &#39;diffhtml&#39;;
 
-<script>
-  console.log(diff);
-</script>
-
-<pre><code class="language-js">addTransitionState(&#39;attached&#39;, (element) =&gt; {
-  console.log(element);
-});</code></pre>
-<h3 id="a-namedetached-hrefdetacheddetacheda"><a name="detached" href="#detached">Detached</a></h3>
-<p>For when an element leaves the DOM.</p>
-<pre><code class="language-js">addTransitionState(&#39;detached&#39;, (element) =&gt; {
-  console.log(element);
-});</code></pre>
-<h3 id="a-namereplaced-hrefreplacedreplaceda"><a name="replaced" href="#replaced">Replaced</a></h3>
-<p>Whenever two elements are replaced at render time this is called with the old
-and new elements.</p>
-<pre><code class="language-js">addTransitionState(&#39;replaced&#39;, (oldElement, newElement) =&gt; {
-  console.log(oldElement, newElement);
-});</code></pre>
-<h3 id="a-nameattribute-changed-hrefattribute-changedattribute-changeda"><a name="attribute-changed" href="#attribute-changed">Attribute changed</a></h3>
-<p>For when attributes have changed.</p>
-<pre><code class="language-js">addTransitionState(&#39;attributeChanged&#39;, (element, attrName, oldValue, newValue) =&gt; {
-  console.log(element, attrName, oldValue, newValue);
-});</code></pre>
-<h3 id="a-nametext-changed-hreftext-changedtext-changeda"><a name="text-changed" href="#text-changed">Text changed</a></h3>
-<p>For when text has changed in either TextNodes or SVG text elements.</p>
-<pre><code class="language-js">addTransitionState(&#39;textChanged&#39;, (element, oldValue, newValue) =&gt; {
-  console.log(element, oldValue, newValue);
-});</code></pre>
+console.log(html`
+  &lt;div&gt;Hello world&lt;/div&gt;
+`);</code></pre>
+<p><a name="dynamic-values"></a></p>
 <hr></hr>
+<h2 id="a-hrefdynamic-valuesdynamic-valuesa"><a href="#dynamic-values">Dynamic values</a></h2>
+<p>The parser allows you to use dynamic values for many different parts of the
+HTML syntax.</p>
+<pre><code>&lt;TAG ATTR ATTR_NAME=ATTR_VALUE&gt;CHILD&lt;/TAG&gt;</code></pre><p><a name="strict-mode"></a></p>
+<hr></hr>
+<h2 id="a-hrefstrict-modestrict-modea"><a href="#strict-mode">Strict mode</a></h2>
+<p>By default the parser operates in loose-mode which is forgiving of missing
+closing tags, poor markup, and other common issues. When opting into strict
+mode you will receive errors if you don&#39;t properly self close tags, or have
+mismatched tag names. It will also error if you passing invalid values.</p>
+<p><a name="block-elements"></a></p>
+<hr></hr>
+<h2 id="a-hrefblock-elementscustomize-block-elementsa"><a href="#block-elements">Customize block elements</a></h2>
+<p><a name="self-closing"></a></p>
+<hr></hr>
+<h2 id="a-hrefself-closingcustomize-self-closing-elementsa"><a href="#self-closing">Customize self closing elements</a></h2>
 </section>
 
-        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/transitions.md" id="edit-on-github">
+        <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/parser.md" id="edit-on-github">
           Edit on GitHub &nbsp; <span class="fa fa-github"></span>
         </a>
 

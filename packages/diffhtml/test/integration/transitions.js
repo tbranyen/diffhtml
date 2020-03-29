@@ -1,7 +1,6 @@
-import { ok, equal, throws, doesNotThrow } from 'assert';
+import { ok, equal, throws } from 'assert';
 import * as diff from '../../lib/index';
-import { StateCache }  from '../../lib/util/caches';
-import validateMemory from '../util/validateMemory';
+import validateMemory from '../util/validate-memory';
 
 describe('Integration: Transitions', function() {
   beforeEach(() => {

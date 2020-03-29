@@ -3,7 +3,7 @@ import createNode from '../lib/node/create';
 import patchNode from '../lib/node/patch';
 import { PATCH_TYPE } from '../lib/util/types';
 import html from '../lib/html';
-import validateMemory from './util/validateMemory';
+import validateMemory from './util/validate-memory';
 import release from '../lib/release';
 import createTree from '../lib/tree/create';
 

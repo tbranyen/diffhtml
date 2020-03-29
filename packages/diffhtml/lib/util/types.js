@@ -56,31 +56,31 @@ export const VTreeLike = {
 };
 
 /**
- * @typedef {HTMLElement | Text | Comment | DocumentFragment | string | string[] | VTreeLike | VTreeLike[]} ValidInput
+ * @typedef {HTMLElement | Text | Comment | DocumentFragment | Function | string | string[] | VTreeLike | VTreeLike[]} ValidInput
  */
 
- /**
-  * @type {ValidInput}
-  */
+/**
+ * @type {ValidInput}
+ */
 export const ValidInput = '';
 
 /**
  * @typedef {HTMLElement | Text | DocumentFragment | unknown} ValidNode
  */
 
- /**
-  * @type {ValidNode}
-  */
- export const ValidNode = null;
+/**
+ * @type {ValidNode}
+ */
+export const ValidNode = null;
 
 /**
  * @typedef {HTMLElement | DocumentFragment | string} Mount
  */
 
- /**
-  * @type {Mount}
-  */
- export const Mount = '';
+/**
+ * @type {Mount}
+ */
+export const Mount = '';
 
 /**
  * @typedef {Object} Middleware - defines Middleware
@@ -93,7 +93,7 @@ export const ValidInput = '';
  * @property {Function=} releaseHook
  */
 
- /**
+/**
  * @typedef {Object} ParserOptions - defines ParserOptions type
  *
  * @property {Boolean=} strict - Should the parser operate in strict mode

@@ -13,7 +13,7 @@ import parse from '../lib/util/parse';
 import { PATCH_TYPE } from '../lib/util/types';
 import html from '../lib/html';
 import release from '../lib/release';
-import validateMemory from './util/validateMemory';
+import validateMemory from './util/validate-memory';
 
 describe('Tree', function() {
   beforeEach(() => {

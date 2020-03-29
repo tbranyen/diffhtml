@@ -1,7 +1,7 @@
 import { equal, deepEqual, doesNotThrow, throws } from 'assert';
 import html from '../lib/html';
 import createTree from '../lib/tree/create';
-import validateMemory from './util/validateMemory';
+import validateMemory from './util/validate-memory';
 import { NodeCache } from '../lib/util/caches';
 
 describe('HTML (Tagged template)', function() {
@@ -437,18 +437,21 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('will allow the use of childNodes as a prop', () => {
+  it('will allow the use of childNodes as a prop when there are no existing children', () => {
     const vTree = html`<a childNodes=${html`<span>test</span>`} />`;
 
     equal(vTree.childNodes.length, 1);
     equal(vTree.childNodes[0].nodeName, 'span');
   });
 
-  it('will disallow the use of childNodes as a prop', () => {
-    const vTree = html`<a childNodes=${html`<span>test</span>`}>test</a>`;
+  it('will allow the use of childNodes as a prop to pave over existing children', () => {
+    const vTree = html`<a childNodes=${html`<span>inner</span>`}>outer</a>`;
 
     equal(vTree.childNodes.length, 1);
-    equal(vTree.childNodes[0].nodeName, '#text');
+    equal(vTree.childNodes[0].nodeName, 'span');
+    equal(vTree.childNodes[0].childNodes.length, 1);
+    equal(vTree.childNodes[0].childNodes[0].nodeName, '#text');
+    equal(vTree.childNodes[0].childNodes[0].nodeValue, 'inner');
   });
 
   describe('Strict mode', () => {

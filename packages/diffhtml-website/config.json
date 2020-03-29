@@ -21,6 +21,13 @@
       "VERSION": "#version"
     }],
 
+    "Parser": ["parser.html", {
+      "Dynamic values": "#dynamic-values",
+      "Strict mode": "#strict-mode",
+      "Customize block elements": "#block-elements",
+      "Self closing": "#self-closing"
+    }],
+
     "Transitions": ["transitions.html", {
       "Available states": "#available-states"
     }],

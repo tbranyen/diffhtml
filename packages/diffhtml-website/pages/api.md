@@ -4,8 +4,8 @@ This reference contains all stable API documentation which is up-to-date with
 the latest release. The core was designed to be minimal and familiar if you've
 used browser DOM APIs such as `innerHTML` and `addEventListener`.
 
-You can access any of the top-level API methods & properties by directly
-importing or deconstructing.
+Your input will be parsed using the built-in smart HTML parser. This logic will
+not run under the [release build]().
 
 <a name="inner-html"></a>
 
@@ -23,7 +23,7 @@ control the entire tag, use [`outerHTML`](#outer-html).
 | Name        | Description
 | ----------- | -----------
 | **domNode** | The root DOM Node to change the child contents of, but not the element itself.
-| **markup**  | New markup to replace into **domNode**. 
+| **input**   | New markup to replace into **domNode**.
 | **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><strong>parser:</strong> Settings which influence the HTML parser. No parser settings available in the runtime build.</li></ul>
 
 ### Example
@@ -58,7 +58,7 @@ outerHTML(document.body, '<body>Hello world</body>');
 | Name        | Description
 | ----------- | -----------
 | **domNode** | A DOM Node to change.
-| **markup**  | New markup to replace the entire `domNode` with. 
+| **markup**  | New markup to replace the entire `domNode` with.
 | **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><strong>parser:</strong> Settings which influence the HTML parser, not available with the runtime build.</li></ul>
 
 
@@ -78,7 +78,7 @@ useful when working with Web Components, DOM events,
 
 When you pass a single element and provide newlines and whitespace before and
 after it, like the example below, it will be automatically trimmed. If you
-provide multiple elements, the whitespace becomes 
+provide multiple elements, the whitespace becomes
 
 A simple example of its usage along with interpolation.
 
@@ -328,7 +328,7 @@ const div = createTree('div', attributes, childNodes);
 | Name        | Description
 | ----------- | -----------
 | **nodeName** | A string for HTML, or if using components or middleware other types, like functions
-| **attributes** | An object of DOM attributes or properties key and value or null 
+| **attributes** | An object of DOM attributes or properties key and value or null
 | **...childNodes** | An array of child nodes, or a single element merged with any additional arguments
 
 <a name="release"></a>

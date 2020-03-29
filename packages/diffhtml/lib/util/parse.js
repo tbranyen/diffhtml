@@ -72,26 +72,24 @@ const kElementsClosedByClosing = {
 };
 
 /**
- * Interpolate dynamic supplemental values from the tagged template into the
- * tree.
+ * Interpolates children from dynamic supplemental values into the parent node.
  *
- * @param {VTree} currentParent
- * @param {string} string
+ * @param {VTree} currentParent - Active element VTree
+ * @param {string} markup - Incoming partial HTML markup
  * @param {Supplemental} supplemental - Dynamic interpolated data values
  */
-const interpolateValues = (currentParent, string, supplemental) => {
+const interpolateChildNodes = (currentParent, markup, supplemental) => {
   if ('childNodes' in currentParent.attributes) {
-    // Reset childNodes, as we are paving over them.
-    currentParent.childNodes.length = 0;
+    return;
   }
 
   // If this is text and not a doctype, add as a text node.
-  if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
-    return currentParent.childNodes.push(/** @type {VTree} */ (createTree('#text', string)));
+  if (markup && !doctypeEx.test(markup) && !tokenEx.test(markup)) {
+    return currentParent.childNodes.push(/** @type {VTree} */ (createTree('#text', markup)));
   }
 
   const childNodes = [];
-  const parts = string.split(tokenEx);
+  const parts = markup.split(tokenEx);
 
   for (let i = 0; i < parts.length; i++) {
     const value = parts[i];
@@ -132,7 +130,7 @@ const interpolateValues = (currentParent, string, supplemental) => {
  * @param {String} nodeName - DOM Node name
  * @param {String} rawAttrs - DOM Node Attributes
  * @param {Supplemental} supplemental - Interpolated data from a tagged template
- * @param {any=} options
+ * @param {Options} options
  * @return {VTree} vTree
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
@@ -156,11 +154,11 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   for (let match; match = attrEx.exec(rawAttrs || '');) {
     const name = match[1];
     const value = match[6] || match[5] || match[4] || match[1];
-    let tokenMatch = value.match(tokenEx);
+    let valueMatchesToken = value.match(tokenEx);
 
     // If we have multiple interpolated values in an attribute, we must
     // flatten to a string. There are no other valid options.
-    if (tokenMatch && tokenMatch.length) {
+    if (valueMatchesToken && valueMatchesToken.length) {
       const parts = value.split(tokenEx);
       const hasToken = tokenEx.exec(name);
       const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
@@ -174,47 +172,41 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
         // replace the token's position. So all we do is ensure that we're on
         // an odd index and then we can source the correct value.
         if (i % 2 === 1) {
+          const isObject = typeof newName === 'object';
+
+          // Allow interpolating multiple values into a single attribute.
           if (attributes[newName]) {
             attributes[newName] += supplemental.attributes[value];
           }
-          else {
-            const isObject = typeof newName === 'object';
-
-            if (isObject && !isArray(newName) && newName) {
+          // Merge object attributes directly into the existing attributes.
+          else if (isObject) {
+            if (newName && !isArray(newName)) {
               assign(attributes, newName);
             }
-            else if (isObject && options.parser.strict) {
+            else {
               if (process.env.NODE_ENV !== 'production') {
-                throw new Error(
-                  'Arrays are not allowed to be spread in strict mode'
-                );
+                throw new Error('Arrays cannot be spread as attributes');
               }
             }
-            else if (newName && typeof newName !== 'object') {
-              attributes[newName] = supplemental.attributes[value];
-            }
+          }
+          else if (newName) {
+            attributes[newName] = supplemental.attributes[value];
           }
         }
-        // Otherwise this is a static iteration, simply concat in the raw value.
-        else {
-          if (attributes[newName]) {
-            attributes[newName] += value;
-          }
-          else {
-            attributes[newName] = value;
-          }
+        // Otherwise this is a static iteration, simply concat the raw value into the attribute.
+        else if (attributes[newName]) {
+          attributes[newName] += value;
         }
       }
     }
-    else if (tokenMatch = tokenEx.exec(name)) {
-      const nameAndValue = supplemental.attributes[tokenMatch[1]];
-      const hasToken = tokenEx.exec(value);
-      const getValue = hasToken ? supplemental.attributes[hasToken[1]] : value;
-
-      attributes[nameAndValue] = value === '""' ? '' : getValue;
+    // This attribute has no value, so set to an empty string.
+    else if (valueMatchesToken = tokenEx.exec(name)) {
+      const nameAndValue = supplemental.attributes[valueMatchesToken[1]];
+      attributes[nameAndValue] = '';
     }
+    // If the remaining value is a string, directly assign to the attribute name.
     else {
-      attributes[name] = value === '""' ? '' : value;
+      attributes[name] = value === `''` || value === `""` ? '' : value;
     }
   }
 
@@ -239,7 +231,10 @@ export default function parse(html, supplemental, options = {}) {
     supplemental = defaultSupplemental;
   }
 
-  const blockText = new Set(options.parser.blockText ? options.parser.blockText : blockTextDefaults);
+  const blockText = new Set(
+    options.parser.blockText ? options.parser.blockText : blockTextDefaults
+  );
+
   const selfClosing = new Set(options.parser.selfClosing || selfClosingDefaults);
 
   const tagEx =
@@ -272,7 +267,7 @@ Possibly invalid markup. Opening tag was not properly closed.
   // If there are no HTML elements, treat the passed in html as a single
   // text node.
   if (!html.includes('<') && html) {
-    interpolateValues(currentParent, html, supplemental);
+    interpolateChildNodes(currentParent, html, supplemental);
     return root;
   }
 
@@ -283,7 +278,7 @@ Possibly invalid markup. Opening tag was not properly closed.
         text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
 
         if (text) {
-          interpolateValues(currentParent, text, supplemental);
+          interpolateChildNodes(currentParent, text, supplemental);
         }
       }
     }
@@ -294,7 +289,7 @@ Possibly invalid markup. Opening tag was not properly closed.
       const string = html.slice(0, matchOffset);
 
       if (string && !doctypeEx.exec(string)) {
-        interpolateValues(currentParent, string, supplemental);
+        interpolateChildNodes(currentParent, string, supplemental);
       }
     }
 
@@ -304,6 +299,13 @@ Possibly invalid markup. Opening tag was not properly closed.
     if (match[0][1] === '!') {
       continue;
     }
+
+    // Get the tag index.
+    const tokenTagMatch = tokenEx.exec(match[2]);
+
+    // Normalized name, use either the tag extracted from the supplemental
+    // tags, or use match[2].
+    const normalizedTagName = tokenTagMatch ? tokenTagMatch[1] : match[2];
 
     if (!match[1]) {
       // not </ tags
@@ -328,8 +330,11 @@ Possibly invalid markup. Opening tag was not properly closed.
         const index = html.indexOf(closeMarkup, tagEx.lastIndex);
 
         if (process.env.NODE_ENV !== 'production') {
-          if (index === -1 && options.parser.strict) {
+          // FIXME Why are we only pulling the first?
+          const tag = supplemental.tags[0];
+          const name = tag ? tag.name || tag : match[2];
 
+          if (index === -1 && options.parser.strict && !selfClosing.has(name)) {
             // Find a subset of the markup passed in to validate.
             const markup = html
               .slice(tagEx.lastIndex - match[0].length)
@@ -341,8 +346,6 @@ Possibly invalid markup. Opening tag was not properly closed.
             const caret = Array(
               (lookup ? lookup.index : 0) + closeMarkup.length - 1
             ).join(' ') + '^';
-
-            const name = supplemental.tags[0] ? supplemental.tags[0].name : match[2];
 
             // Craft the warning message and inject it into the markup.
             markup.splice(1, 0, `${caret}
@@ -365,7 +368,7 @@ Possibly invalid markup. Opening tag was not properly closed.
           }
 
           const newText = html.slice(match.index + match[0].length, index);
-          interpolateValues(currentParent, newText, supplemental);
+          interpolateChildNodes(currentParent, newText, supplemental);
         }
       }
     }
@@ -394,20 +397,18 @@ Possibly invalid markup. Opening tag was not properly closed.
         }
       }
 
-      const tokenMatch = tokenEx.exec(match[2]);
-
       // </ or /> or <br> etc.
       while (currentParent) {
         // Self closing dynamic nodeName.
-        if (match[4] === '/' && tokenMatch) {
+        if (match[4] === '/' && tokenTagMatch) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
           break;
         }
         // Not self-closing, so seek out the next match.
-        else if (tokenMatch) {
-          const value = supplemental.tags[tokenMatch[1]];
+        else if (tokenTagMatch) {
+          const value = supplemental.tags[tokenTagMatch[1]];
 
           if (currentParent.rawNodeName === value) {
             stack.pop();
@@ -475,7 +476,7 @@ Possibly invalid markup. Opening tag was not properly closed.
   // Ensure that all values are properly interpolated through the remaining
   // markup after parsing.
   if (remainingText) {
-    interpolateValues(currentParent, remainingText, supplemental);
+    interpolateChildNodes(currentParent, remainingText, supplemental);
   }
 
   // This is an entire document, so only allow the HTML children to be

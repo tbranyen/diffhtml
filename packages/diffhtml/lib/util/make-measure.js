@@ -13,6 +13,7 @@ const nop = () => {};
  *
  * @param {Mount} domNode
  * @param {ValidInput=} input
+ * @return {(name: string) => void}
  */
 export default function makeMeasure(domNode, input) {
   // Check for these changes on every check.
@@ -26,7 +27,7 @@ export default function makeMeasure(domNode, input) {
 
   const inputAsVTree = /** @type {VTree} */ (input);
 
-  return (/** @type {string} */ name) => {
+  return name => {
     const host = /** @type any */ (domNode).host;
 
     // Use the Web Component name if it's available.

@@ -30,7 +30,14 @@ import { addTransitionState } from 'diffhtml';
 
 ### <a name="attached" href="#attached">Attached</a>
 
-For when an element is attached to the DOM.
+This triggers whenever an element gets added into the DOM. Text and comment
+nodes are not included.
+
+<div id="attached"></div>
+
+<script>
+  console.log(diff);
+</script>
 
 ```js
 addTransitionState('attached', (element) => {

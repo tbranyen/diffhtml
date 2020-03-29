@@ -1,6 +1,6 @@
 import assert from 'assert';
 import * as diff from '../../lib/index';
-import validateMemory from '../util/validateMemory';
+import validateMemory from '../util/validate-memory';
 
 describe('Integration: Basics', function() {
   beforeEach(function() {
@@ -99,7 +99,7 @@ describe('Integration: Basics', function() {
       assert.equal(vTree.childNodes[1].attributes.id, 'example');
     });
 
-    it('will silently ignore arrays that are attempted to be spread', function() {
+    it.skip('will silently ignore arrays that are attempted to be spread in production', function() {
       const obj = [1, false];
       const vTree = diff.html`
         <div
@@ -124,7 +124,7 @@ describe('Integration: Basics', function() {
           ${obj}
           id="example"
         />
-      `, /Arrays are not allowed to be spread in strict mode/);
+      `, /Arrays cannot be spread as attributes/);
 
       diff.Internals.memory.gc();
     });

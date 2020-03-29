@@ -7,7 +7,5 @@
     "outDir": "./dist/typings",
     "lib": ["es2017", "dom"]
   },
-  "include": [
-    "lib/**/*"
-  ]
+  "include": ["lib/**/*"]
 }

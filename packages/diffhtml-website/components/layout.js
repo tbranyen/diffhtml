@@ -13,7 +13,6 @@ module.exports = ({ path, pages, content }) => html`
     </head>
 
     <body>
-      <div class="open-menu">≡</div>
       <layer id="navigation">
 
         <p class="social">
@@ -35,6 +34,7 @@ module.exports = ({ path, pages, content }) => html`
       </layer>
 
       <layer id="main">
+        <div class="open-menu">≡</div>
         <header>
           <h1>
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></a>
@@ -69,6 +69,7 @@ module.exports = ({ path, pages, content }) => html`
         </footer>
       </layer>
 
+      <!--<script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js"></script>-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
       <script>
         try {

@@ -1,7 +1,6 @@
 import assert from 'assert';
 import * as diff from '../../lib/index';
-import validateMemory from '../util/validateMemory';
-import release from '../../lib/release';
+import validateMemory from '../util/validate-memory';
 
 const { html } = diff;
 

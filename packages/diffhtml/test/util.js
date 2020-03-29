@@ -1,3 +1,5 @@
+/// <reference types="mocha" />
+
 import { ok, equal, deepEqual, throws, doesNotThrow } from 'assert';
 import { spy } from 'sinon';
 import createTree from '../lib/tree/create';
@@ -9,14 +11,20 @@ import _process from '../lib/util/process';
 import { protectVTree, unprotectVTree, gc } from '../lib/util/memory';
 import makeMeasure from '../lib/util/make-measure';
 import Pool from '../lib/util/pool';
-import validateMemory from './util/validateMemory';
+import validateMemory from './util/validate-memory';
+import createSupplemental from './util/create-supplemental';
 
 describe('Util', function() {
+  let performance;
+
   beforeEach(() => {
-    /** @type {any} **/ (global).performance = {
+    const mark = spy();
+    const measure = spy();
+
+    performance = /** @type {any} */(global).performance = {
       now: () => Date.now(),
-      mark: spy(),
-      measure: spy(),
+      mark,
+      measure,
     };
   });
 
@@ -49,7 +57,7 @@ describe('Util', function() {
     });
   });
 
-  describe('Parse', () => {
+  describe.only('Parse', () => {
     it('will support empty attributes', () => {
       const vTree = parse('<option value="test" selected></option>').childNodes[0];
 
@@ -66,6 +74,22 @@ describe('Util', function() {
       const vTree = parse('<html>\n</html>').childNodes[0];
 
       equal(vTree.childNodes.length, 2);
+    });
+
+    it('will support simple text attributes alongside an empty attribute', () => {
+      const vTree = parse('<option value="test" selected=""></option>').childNodes[0];
+
+      equal(vTree.attributes.value, 'test');
+      equal(vTree.attributes.selected, '');
+    });
+
+    it('will support spreading interpolated attribute objects', () => {
+      const supplemental = createSupplemental({
+        attributes: [{ value: 'test' }]
+      })
+      const vTree = parse('<option __DIFFHTML__0__></option>', supplemental).childNodes[0];
+
+      equal(vTree.attributes.value, 'test');
     });
 
     it('will move elements found between the ends of body and html', () => {
@@ -139,16 +163,60 @@ describe('Util', function() {
     });
 
     it('will parse out full token attributes', () => {
-      var token = '__DIFFHTML_BABEL__';
+      const token = '__DIFFHTML_BABEL__';
       const vTrees = parse(`<input ${token}/>`).childNodes;
 
       equal(vTrees[0].nodeName, 'input');
       deepEqual(vTrees[0].attributes, { [token]: token });
     });
 
+    it('will parse out partial attributes', () => {
+      const token = '__DIFFHTML__0__';
+      const supplemental = {
+        attributes: ['test'],
+        tags: [],
+        children: [],
+      };
+      const vTrees = parse(`<input value=${token}/>`, supplemental).childNodes;
+
+      equal(vTrees[0].nodeName, 'input');
+      deepEqual(vTrees[0].attributes, { value: 'test' });
+    });
+
+    it('will parse a key-only attribute', () => {
+      const token = '__DIFFHTML__0__';
+      const supplemental = {
+        tags: [],
+        attributes: ['disabled'],
+        children: [],
+      };
+      const vTrees = parse(`<input ${token}/>`, supplemental).childNodes;
+
+      equal(vTrees[0].nodeName, 'input');
+      deepEqual(vTrees[0].attributes, { disabled: 'disabled' });
+    });
+
+    it('will support passing childNodes as an attribute', () => {
+      const supplemental = createSupplemental({
+        attributes: ['hello world']
+      })
+      const vTrees = parse(`<div childNodes=__DIFFHTML__0__ />`, supplemental).childNodes;
+
+      deepEqual(vTrees[0].childNodes, [createTree('#text', 'hello world')]);
+    });
+
+    it('will support passing childNodes as an attribute to pave over existing children', () => {
+      const supplemental = createSupplemental({
+        attributes: ['hello world']
+      });
+      const vTrees = parse(`<div childNodes=__DIFFHTML__0__>test</div>`, supplemental).childNodes;
+
+      deepEqual(vTrees[0].childNodes, [createTree('#text', 'hello world')]);
+    });
+
     it('will ignore parsing doctypes', () => {
-      const vTrees = parse(`<!doctype html>`).childNodes[0];
-      equal(vTrees, undefined);
+      const vTree = parse(`<!doctype html>`).childNodes[0];
+      equal(vTree, undefined);
     });
 
     it('will support mixed cased elements being self closed', () => {
@@ -161,6 +229,43 @@ describe('Util', function() {
       equal(vTrees[1].nodeName, 'div');
       equal(vTrees[1].childNodes[0].nodeName, '#text');
       equal(vTrees[1].childNodes[0].nodeValue, 'Hello world');
+    });
+
+    it('will support passing custom self closing elements', () => {
+      const vTrees = parse(`<div childNodes="test" />`, null, {
+        parser: {
+          strict: true,
+          selfClosing: ['div'],
+        }
+      }).childNodes;
+
+      equal(vTrees.length, 1);
+      equal(vTrees[0].nodeName, 'div');
+      equal(vTrees[0].childNodes[0].nodeName, '#text');
+      equal(vTrees[0].childNodes[0].nodeValue, 'test');
+    });
+
+    it('will support passing custom block elements', () => {
+      const vTrees = parse(`<div><p></p></div>`, null, {
+        parser: {
+          strict: true,
+          blockText: ['div'],
+        }
+      }).childNodes;
+
+      equal(vTrees.length, 1);
+      equal(vTrees[0].nodeName, 'div');
+      equal(vTrees[0].childNodes[0].nodeName, '#text');
+      equal(vTrees[0].childNodes[0].nodeValue, '<p></p>');
+    });
+
+    it('will throw if arrays are tried to be spread as attributes', () => {
+      const supplemental = createSupplemental({ attributes: [[]] })
+
+      throws(
+        () => parse(`<div __DIFFHTML__0__ />`, supplemental),
+        /Arrays cannot be spread as attributes/
+      );
     });
 
     it('will throw on invalid closing tag when in strict mode', () => {
@@ -180,7 +285,59 @@ describe('Util', function() {
 
       throws(
         () => parse(markup, null, opts),
-        '</p>\n^\nPossibly invalid markup. Saw p, expected li...\n        \n      </ul>\n      <div></div>',
+        /Possibly invalid markup. <li> must be closed in strict mode./,
+      );
+    });
+
+    it('will throw on invalid interpolated closing tag when in strict mode', () => {
+      const opts = { parser: { strict: true } };
+      const supplemental = createSupplemental({
+        tags: ['li'],
+      });
+      const markup = `
+        <span></span><div><div></div>
+        <ul>
+          <__DIFFHTML__0__>test</p>
+        </ul>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      `;
+
+      throws(
+        () => parse(markup, supplemental, opts),
+        /Possibly invalid markup. <li> must be closed in strict mode./,
+      );
+    });
+
+    it.skip('will throw on invalid interpolated closing tag when in strict mode', () => {
+      const opts = { parser: { strict: true } };
+      const supplemental = createSupplemental({
+        attributes: ['test'],
+        tags: ['li', 'p'],
+      });
+      const markup = `
+        <span class=__DIFFHTML__0__></span><div><div></div>
+        <ul>
+          <__DIFFHTML__1__></li>
+          <__DIFFHTML__2__>test</li>
+        </ul>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      `;
+
+      parse(markup, supplemental, opts)
+
+      throws(
+        () => parse(markup, supplemental, opts),
+        /Possibly invalid markup. <p> must be closed in strict mode./,
       );
     });
 
@@ -268,9 +425,10 @@ describe('Util', function() {
       equal(vTrees.length, 7);
     });
 
-    it('will support custom tag names, treating as fragment', () => {
-      const Div = () => {};
-      const vTree = parse('<__DIFFHTML__0__ />', { tags: { 0: Div } });
+    it('will support top-level interpolated string tag names', () => {
+      const div = 'div';
+      const supplemental = createSupplemental({ tags: [div] });
+      const vTree = parse('<__DIFFHTML__0__ />', supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -279,7 +437,65 @@ describe('Util', function() {
         nodeType: 11,
         key: '',
         childNodes: [{
-          rawNodeName: Div,
+          rawNodeName: div,
+          nodeName: div,
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [],
+          attributes: {},
+        }],
+        attributes: {},
+      });
+    });
+
+    it('will support nested interpolated string tag names', () => {
+      const div = 'div';
+      const p = 'p';
+      const supplemental = createSupplemental({ tags: [div, p] });
+      const vTree = parse('<__DIFFHTML__0__><__DIFFHTML__1__ /></__DIFFHTML__0__>', supplemental);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: div,
+          nodeName: div,
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [{
+            rawNodeName: p,
+            nodeName: p,
+            nodeValue: '',
+            nodeType: 1,
+            key: '',
+            attributes: {},
+            childNodes: [],
+          }],
+          attributes: {},
+        }],
+        attributes: {},
+      });
+    });
+
+
+    it('will support function tag names, treating as fragment', () => {
+      const Empty = () => {};
+      const supplemental = createSupplemental({ tags: [Empty] });
+      const vTree = parse('<__DIFFHTML__0__ />', supplemental);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: Empty,
           nodeName: '#document-fragment',
           nodeValue: '',
           nodeType: 11,
@@ -293,9 +509,10 @@ describe('Util', function() {
 
     it('will support closing custom tag names', () => {
       const Div = () => {};
+      const supplemental = createSupplemental({ tags: [Div, Div] })
       const vTree = parse(`
         <__DIFFHTML__0__></__DIFFHTML__1__>
-      `.trim(), { tags: { 0: Div, 1: Div } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -318,9 +535,10 @@ describe('Util', function() {
 
     it('will allow dynamic components to be closed', () => {
       const Component = () => {};
-      const vTree = parse('<__DIFFHTML__0__>Hello world</__DIFFHTML__1__>', {
-        tags: { 0: Component, 1: Component },
+      const supplemental = createSupplemental({
+        tags: [Component, Component],
       });
+      const vTree = parse('<__DIFFHTML__0__>Hello world</__DIFFHTML__1__>', supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -351,9 +569,12 @@ describe('Util', function() {
 
     it('will support interpolating children', () => {
       const text = createTree('#text', 'Hello world');
+      const supplemental = createSupplemental({
+        children: [text],
+      })
       const vTree = parse(`
         <div>__DIFFHTML__0__</div>
-      `.trim(), { children: { 0: text } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -386,10 +607,10 @@ describe('Util', function() {
       const fragment = createTree('#document-fragment', null,
         createTree('span', null, 'Hello world')
       );
-
+      const supplemental = createSupplemental({ children: [fragment] });
       const vTree = parse(`
         <div>__DIFFHTML__0__</div>
-      `.trim(), { children: { 0: fragment } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -428,9 +649,12 @@ describe('Util', function() {
 
     it('will support interpolating between text', () => {
       const text = createTree('#text', 'world');
+      const supplemental = createSupplemental({
+        children: [text],
+      })
       const vTree = parse(`
         <div>Hello __DIFFHTML__0__</div>
-      `.trim(), { children: { 0: text } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -468,9 +692,10 @@ describe('Util', function() {
     });
 
     it('will ignore empty children', () => {
+      const supplemental = createSupplemental({ children: [undefined] })
       const vTree = parse(`
         <div>Hello __DIFFHTML__0__</div>
-      `.trim(), { children: { 0: undefined } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -501,9 +726,12 @@ describe('Util', function() {
 
     it('will interpolate a single attribute', () => {
       const className = 'test';
+      const supplemental = createSupplemental({
+        attributes: [className],
+      })
       const vTree = parse(`
         <div class=__DIFFHTML__0__></div>
-      `.trim(), { attributes: { 0: className } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -528,9 +756,12 @@ describe('Util', function() {
 
     it('will interpolate an attribute without a value', () => {
       const checked = 'checked';
+      const supplemental = createSupplemental({
+        attributes: [checked],
+      })
       const vTree = parse(`
         <div __DIFFHTML__0__></div>
-      `.trim(), { attributes: { 0: checked } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -556,9 +787,12 @@ describe('Util', function() {
     it('will interpolate multiple attributes', () => {
       const className = 'test';
       const dataTest = 'fixture';
+      const supplemental = createSupplemental({
+        attributes: [className, dataTest],
+      })
       const vTree = parse(`
         <div class=__DIFFHTML__0__ data-test=__DIFFHTML__1__></div>
-      `.trim(), { attributes: { 0: className, 1: dataTest } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -582,12 +816,15 @@ describe('Util', function() {
       });
     });
 
-    it('will interpolate multiple attributes', () => {
+    it('will interpolate multiple values into a single attribute', () => {
       const hello = 'hello';
       const world = 'world';
+      const supplemental = createSupplemental({
+        attributes: [hello, world],
+      })
       const vTree = parse(`
         <div class="__DIFFHTML__0__-__DIFFHTML__1__"></div>
-      `.trim(), { attributes: { 0: hello, 1: world } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -611,10 +848,13 @@ describe('Util', function() {
     });
 
     it('will interpolate an attribute with an empty string', () => {
-      const value = 'value';
+      const key = 'key';
+      const supplemental = createSupplemental({
+        attributes: [key],
+      })
       const vTree = parse(`
         <div __DIFFHTML__0__=""></div>
-      `.trim(), { attributes: { 0: value } });
+      `.trim(), supplemental);
 
       deepEqual(vTree, {
         rawNodeName: '#document-fragment',
@@ -630,7 +870,68 @@ describe('Util', function() {
           key: '',
           childNodes: [],
           attributes: {
-            value: '',
+            [key]: '',
+          },
+        }],
+        attributes: {},
+      });
+    });
+
+    it('will interpolate an attribute with empty single quotes', () => {
+      const key = 'key';
+      const supplemental = createSupplemental({
+        attributes: [key],
+      })
+      const vTree = parse(`
+        <div __DIFFHTML__0__=''></div>
+      `.trim(), supplemental);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: 'div',
+          nodeName: 'div',
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [],
+          attributes: {
+            [key]: '',
+          },
+        }],
+        attributes: {},
+      });
+    });
+
+    it('will interpolate an attribute with an empty value', () => {
+      const key = 'key';
+      const value = '';
+      const supplemental = createSupplemental({
+        attributes: [key, value],
+      })
+      const vTree = parse(`
+        <div __DIFFHTML__0__=__DIFFHTML__1__></div>
+      `.trim(), supplemental);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: 'div',
+          nodeName: 'div',
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [],
+          attributes: {
+            [key]: '',
           },
         }],
         attributes: {},
@@ -965,7 +1266,15 @@ describe('Util', function() {
       unprotectVTree(vTree);
       gc();
 
-      equal(NodeCache.has(domNode), false);
+      let cacheHasNode = false;
+
+      NodeCache.forEach((/** @type {HTMLElement} */node) => {
+        if (node === domNode) {
+          cacheHasNode = true;
+        }
+      })
+
+      equal(cacheHasNode, false);
     });
   });
 
@@ -1039,7 +1348,7 @@ describe('Util', function() {
 
     it('will log out web component names', () => {
       const div = document.createElement('div');
-      div.host = { constructor: { name: 'Component' } };
+      /** @type {any} */ (div).host = { constructor: { name: 'Component' } };
       const vTree = createTree(div);
 
       location.href = 'about:blank?diff_perf';

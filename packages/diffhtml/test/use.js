@@ -1,6 +1,6 @@
 import { equal, throws } from 'assert';
 import { html, innerHTML, outerHTML, use, release } from '../lib/index';
-import validateMemory from './util/validateMemory';
+import validateMemory from './util/validate-memory';
 
 describe('Use (Middleware)', function() {
   beforeEach(() => {

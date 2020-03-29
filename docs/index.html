@@ -10,7 +10,6 @@
     </head>
 
     <body>
-      <div class="open-menu">≡</div>
       <layer id="navigation">
 
         <p class="social">
@@ -125,6 +124,36 @@
 
       
         <a href="api.html#version" target><li>VERSION</li></a>
+      
+    
+      
+        <a href="parser.html"><li class="header"><h4>Parser</h4></li></a>
+      
+
+      
+    
+      
+
+      
+        <a href="parser.html#dynamic-values" target><li>Dynamic values</li></a>
+      
+    
+      
+
+      
+        <a href="parser.html#strict-mode" target><li>Strict mode</li></a>
+      
+    
+      
+
+      
+        <a href="parser.html#block-elements" target><li>Customize block elements</li></a>
+      
+    
+      
+
+      
+        <a href="parser.html#self-closing" target><li>Self closing</li></a>
       
     
       
@@ -270,6 +299,7 @@
       </layer>
 
       <layer id="main">
+        <div class="open-menu">≡</div>
         <header>
           <h1>
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
@@ -288,25 +318,22 @@ visualizations, or anything else that you may want to render in a web browser.</
 <p><a name="hello-world"></a></p>
 <hr></hr>
 <h2 id="a-hrefhello-worldhello-worlda"><a href="#hello-world">Hello world!</a></h2>
-<pre><code class="language-html">&lt;body&gt;&lt;/body&gt;
+<pre><code class="language-js">import { innerHTML } from &#39;//diffhtml.org/es&#39;;
 
-&lt;script type=&quot;module&quot;&gt;
-  import { innerHTML } from &#39;https://diffhtml.org/es&#39;;
-
-  innerHTML(document.body, `
-    &lt;h1&gt;Hello world!&lt;/h1&gt;
-  `);
-&lt;/script&gt;</code></pre>
+innerHTML(document.body, `
+  &lt;h1&gt;Hello world!&lt;/h1&gt;
+`);</code></pre>
 <p><a name="core-features"></a></p>
 <hr></hr>
 <h2 id="a-hrefcore-featurescore-featuresa"><a href="#core-features">Core features</a></h2>
 <ul>
-<li><span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD builds</li>
+<li><span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified builds</li>
 <li><span class="list-icon fa fa-retweet"></span> Async transition hooks</li>
 <li><span class="list-icon fa fa-link"></span> Middleware</li>
 <li><span class="list-icon fa fa-code"></span> Efficient Virtual DOM</li>
-<li><span class="list-icon fa fa-tree"></span> Virtual tree object pooling</li>
+<li><span class="list-icon fa fa-recycle"></span> Object pooling to optimize GC</li>
 <li><span class="list-icon fa fa-codiepie"></span> Automatic memory management</li>
+<li><span class="list-icon fa fa-pencil"></span> Strict mode TypeScript via checkJS</li>
 </ul>
 <p><a name="getting-the-source"></a></p>
 <hr></hr>
@@ -400,6 +427,7 @@ function render() {
         </footer>
       </layer>
 
+      
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
       <script>
         try {

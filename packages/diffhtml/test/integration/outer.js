@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as diff from '../../lib/index';
 import html from '../../lib/html';
-import validateMemory from '../util/validateMemory';
+import validateMemory from '../util/validate-memory';
 
 describe('Integration: outerHTML', function() {
   beforeEach(function() {

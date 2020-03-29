@@ -9,16 +9,12 @@ visualizations, or anything else that you may want to render in a web browser.
 
 ## <a href="#hello-world">Hello world!</a>
 
-```html
-<body></body>
+```js
+import { innerHTML } from '//diffhtml.org/es';
 
-<script type="module">
-  import { innerHTML } from 'https://diffhtml.org/es';
-
-  innerHTML(document.body, `
-    <h1>Hello world!</h1>
-  `);
-</script>
+innerHTML(document.body, `
+  <h1>Hello world!</h1>
+`);
 ```
 
 <a name="core-features"></a>
@@ -27,12 +23,13 @@ visualizations, or anything else that you may want to render in a web browser.
 
 ## <a href="#core-features">Core features</a>
 
-- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD builds
+- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified builds
 - <span class="list-icon fa fa-retweet"></span> Async transition hooks
 - <span class="list-icon fa fa-link"></span> Middleware
 - <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
-- <span class="list-icon fa fa-tree"></span> Virtual tree object pooling
+- <span class="list-icon fa fa-recycle"></span> Object pooling to optimize GC
 - <span class="list-icon fa fa-codiepie"></span> Automatic memory management
+- <span class="list-icon fa fa-pencil"></span> Strict mode TypeScript via checkJS
 
 <a name="getting-the-source"></a>
 

@@ -1,6 +1,6 @@
 import assert from 'assert';
 import * as diff from '../../lib/index.js';
-import validateMemory from '../util/validateMemory';
+import validateMemory from '../util/validate-memory';
 
 describe('Integration: SVG', function() {
   beforeEach(function() {

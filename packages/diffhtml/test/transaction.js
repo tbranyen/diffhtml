@@ -3,7 +3,7 @@ import { spy, stub, SinonSpy } from 'sinon';
 import Transaction from '../lib/transaction';
 import use from '../lib/use';
 import release from '../lib/release';
-import validateMemory from './util/validateMemory';
+import validateMemory from './util/validate-memory';
 
 describe('Transaction', function() {
   const suite = /** @type {any} */(this);
