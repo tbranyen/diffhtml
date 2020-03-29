@@ -99,7 +99,9 @@ describe('Integration: Basics', function() {
       assert.equal(vTree.childNodes[1].attributes.id, 'example');
     });
 
-    it.skip('will silently ignore arrays that are attempted to be spread in production', function() {
+    it('will silently ignore arrays that are attempted to be spread in production', function() {
+      process.env.NODE_ENV = 'production';
+
       const obj = [1, false];
       const vTree = diff.html`
         <div
@@ -108,6 +110,8 @@ describe('Integration: Basics', function() {
           id="example"
         />
       `;
+
+      process.env.NODE_ENV = 'development';
 
       assert.deepEqual(vTree.childNodes[1].attributes, {
         class: 'test',

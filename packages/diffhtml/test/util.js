@@ -57,7 +57,7 @@ describe('Util', function() {
     });
   });
 
-  describe.only('Parse', () => {
+  describe('Parse', () => {
     it('will support empty attributes', () => {
       const vTree = parse('<option value="test" selected></option>').childNodes[0];
 
@@ -292,32 +292,8 @@ describe('Util', function() {
     it('will throw on invalid interpolated closing tag when in strict mode', () => {
       const opts = { parser: { strict: true } };
       const supplemental = createSupplemental({
-        tags: ['li'],
-      });
-      const markup = `
-        <span></span><div><div></div>
-        <ul>
-          <__DIFFHTML__0__>test</p>
-        </ul>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-      `;
-
-      throws(
-        () => parse(markup, supplemental, opts),
-        /Possibly invalid markup. <li> must be closed in strict mode./,
-      );
-    });
-
-    it.skip('will throw on invalid interpolated closing tag when in strict mode', () => {
-      const opts = { parser: { strict: true } };
-      const supplemental = createSupplemental({
-        attributes: ['test'],
-        tags: ['li', 'p'],
+        attributes: { 0: 'test' },
+        tags: { 1: 'li', 2: 'p' },
       });
       const markup = `
         <span class=__DIFFHTML__0__></span><div><div></div>
@@ -332,8 +308,6 @@ describe('Util', function() {
         <div></div>
         <div></div>
       `;
-
-      parse(markup, supplemental, opts)
 
       throws(
         () => parse(markup, supplemental, opts),

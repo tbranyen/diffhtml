@@ -301,16 +301,17 @@ Possibly invalid markup. Opening tag was not properly closed.
     }
 
     // Get the tag index.
-    const tokenTagMatch = tokenEx.exec(match[2]);
+    const tokenMatch = tokenEx.exec(match[2]);
 
     // Normalized name, use either the tag extracted from the supplemental
     // tags, or use match[2].
-    const normalizedTagName = tokenTagMatch ? tokenTagMatch[1] : match[2];
+    const supTag = tokenMatch && supplemental.tags[tokenMatch[1]];
+    const name = supTag ? supTag.name || supTag : match[2];
 
     if (!match[1]) {
       // not </ tags
       if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
-        if (kElementsClosedByOpening[currentParent.rawNodeName][match[2]]) {
+        if (kElementsClosedByOpening[currentParent.rawNodeName][name]) {
           stack.pop();
           currentParent = stack[stack.length - 1];
         }
@@ -324,27 +325,31 @@ Possibly invalid markup. Opening tag was not properly closed.
 
       stack.push(currentParent);
 
-      if (options.parser.strict || blockText.has(match[2])) {
+      if (options.parser.strict || blockText.has(name)) {
         // A little test to find next </script> or </style> ...
-        const closeMarkup = '</' + match[2] + '>';
+        const closeMarkup = `</${name}>`;
         const index = html.indexOf(closeMarkup, tagEx.lastIndex);
 
         if (process.env.NODE_ENV !== 'production') {
-          // FIXME Why are we only pulling the first?
-          const tag = supplemental.tags[0];
-          const name = tag ? tag.name || tag : match[2];
-
           if (index === -1 && options.parser.strict && !selfClosing.has(name)) {
             // Find a subset of the markup passed in to validate.
             const markup = html
               .slice(tagEx.lastIndex - match[0].length)
               .split('\n')
+              .map(line => line.replace(tokenEx, (value, index) => {
+                if (!supplemental) {
+                  return value;
+                }
+
+                const { tags, children, attributes } = supplemental;
+                return tags[index] || children[index] || attributes[index];
+              }))
               .slice(0, 3);
 
             // Position the caret next to the first non-whitespace character.
             const lookup = spaceEx.exec(markup[0]);
             const caret = Array(
-              (lookup ? lookup.index : 0) + closeMarkup.length - 1
+              (lookup ? lookup.index - 1 : 0) + closeMarkup.length - 1
             ).join(' ') + '^';
 
             // Craft the warning message and inject it into the markup.
@@ -357,7 +362,7 @@ Possibly invalid markup. Opening tag was not properly closed.
           }
         }
 
-        if (blockText.has(match[2])) {
+        if (blockText.has(name)) {
           if (index === -1) {
             lastTextPos = tagEx.lastIndex = html.length + 1;
           }
@@ -373,15 +378,24 @@ Possibly invalid markup. Opening tag was not properly closed.
       }
     }
 
-    if (match[1] || match[4] || selfClosing.has(match[2])) {
+    if (match[1] || match[4] || selfClosing.has(name)) {
       if (process.env.NODE_ENV !== 'production') {
-        if (currentParent && match[2] !== currentParent.rawNodeName && options.parser.strict) {
+        if (currentParent && name !== currentParent.rawNodeName && options.parser.strict) {
           const nodeName = currentParent.rawNodeName;
 
           // Find a subset of the markup passed in to validate.
-          const markup = html.slice(
-            tagEx.lastIndex - match[0].length
-          ).split('\n').slice(0, 3);
+          const markup = html
+            .slice(tagEx.lastIndex - match[0].length)
+            .split('\n')
+            .map(line => line.replace(tokenEx, (value, index) => {
+              if (!supplemental) {
+                return value;
+              }
+
+              const { tags, children, attributes } = supplemental;
+              return tags[index] || children[index] || attributes[index];
+            }))
+            .slice(0, 3);
 
           // Position the caret next to the first non-whitespace character.
           const lookup = spaceEx.exec(markup[0]);
@@ -389,7 +403,7 @@ Possibly invalid markup. Opening tag was not properly closed.
 
           // Craft the warning message and inject it into the markup.
           markup.splice(1, 0, `${caret}
-  Possibly invalid markup. Saw ${match[2]}, expected ${nodeName}...
+  Possibly invalid markup. Saw ${name}, expected ${nodeName}...
           `);
 
           // Throw an error message if the markup isn't what we expected.
@@ -400,17 +414,15 @@ Possibly invalid markup. Opening tag was not properly closed.
       // </ or /> or <br> etc.
       while (currentParent) {
         // Self closing dynamic nodeName.
-        if (match[4] === '/' && tokenTagMatch) {
+        if (match[4] === '/' && tokenMatch) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
           break;
         }
         // Not self-closing, so seek out the next match.
-        else if (tokenTagMatch) {
-          const value = supplemental.tags[tokenTagMatch[1]];
-
-          if (currentParent.rawNodeName === value) {
+        else if (supTag) {
+          if (currentParent.rawNodeName === name) {
             stack.pop();
             currentParent = stack[stack.length - 1];
 
@@ -418,7 +430,7 @@ Possibly invalid markup. Opening tag was not properly closed.
           }
         }
 
-        if (currentParent.rawNodeName === match[2]) {
+        if (currentParent.rawNodeName === name) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
@@ -429,7 +441,7 @@ Possibly invalid markup. Opening tag was not properly closed.
 
           // Trying to close current tag, and move on
           if (tag) {
-            if (tag[match[2]]) {
+            if (tag[name]) {
               stack.pop();
               currentParent = stack[stack.length - 1];
 
