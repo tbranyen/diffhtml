@@ -3,7 +3,7 @@
 *The core diffHTML library. Parses HTML, reconciles changes, applies
 middleware, handles transitions, and keeps the DOM in sync.*
 
-Stable version: 1.0.0-beta.12
+Stable version: 1.0.0-beta.13
 
 Refer to the website [https://diffhtml.org/](https://diffhtml.org/) for
 documentation.
