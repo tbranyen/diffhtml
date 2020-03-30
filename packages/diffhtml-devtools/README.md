@@ -1,3 +1,3 @@
-diffHTML DevTools Extension
+# <±/> diffHTML DevTools
 
 WIP

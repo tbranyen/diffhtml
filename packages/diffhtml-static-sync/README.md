@@ -1,6 +1,7 @@
 # <±/> diffHTML Static Sync
 
 *Static server that livereloads using VDOM on the entire page along with CSS.*
+
 Stable Version: 1.0.0-beta.13
 
 Provides a static HTTP server that monitors the folder it was executed in for
