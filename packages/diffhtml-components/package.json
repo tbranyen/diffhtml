@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-components",
-  "version": "1.0.0-beta.12",
+  "version": "1.0.0-beta.13",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
   "jsnext:main": "dist/es/index",
@@ -16,8 +16,8 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-custom-element-classes": "^0.1.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.11",
-    "diffhtml": "^1.0.0-beta.12",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.13",
+    "diffhtml": "^1.0.0-beta.13",
     "jsdom": "^16.2.1",
     "mocha": "^6.2.0",
     "rollup": "^1.21.4",
