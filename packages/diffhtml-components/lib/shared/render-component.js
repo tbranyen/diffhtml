@@ -1,4 +1,4 @@
-import { Internals, createTree } from 'diffhtml';
+import { createTree } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../util/caches';
 import { $$vTree } from '../util/symbols';
 
@@ -39,7 +39,9 @@ export default function renderComponent(vTree, context = {}) {
     InstanceCache.set(vTree, instance);
     instance[$$vTree] = vTree;
 
-    renderTree = createTree(instance.render(props, instance.state, context));
+    renderTree = createTree([
+      createTree(instance.render(props, instance.state, context))
+    ]);
   }
   else {
     renderTree = createTree(Component(props, context));

@@ -9,7 +9,7 @@
       <link rel="stylesheet" href="./index.css"></link>
     </head>
 
-    <body>
+    <body class="middleware">
       <layer id="navigation">
 
         <p class="social">
@@ -135,25 +135,13 @@
       
 
       
+        <a href="parser.html#options" target><li>Options</li></a>
+      
+    
+      
+
+      
         <a href="parser.html#dynamic-values" target><li>Dynamic values</li></a>
-      
-    
-      
-
-      
-        <a href="parser.html#strict-mode" target><li>Strict mode</li></a>
-      
-    
-      
-
-      
-        <a href="parser.html#block-elements" target><li>Customize block elements</li></a>
-      
-    
-      
-
-      
-        <a href="parser.html#self-closing" target><li>Self closing</li></a>
       
     
       
@@ -208,6 +196,12 @@
 
       
         <a href="middleware.html#verify-state" target><li>Verify State</li></a>
+      
+    
+      
+
+      
+        <a href="middleware.html#html-linter" target><li>HTML Linter</li></a>
       
     
       
@@ -524,6 +518,43 @@ import verifyState from &#39;diffhtml-middleware-verify-state&#39;;
 
 // Throw when debug is truthy (when location.search has `?debug`)
 use(verifyState({ debug: location.search.includes(&#39;debug&#39;) }));</code></pre>
+<hr></hr>
+<p><a name="html-linter"></a></p>
+<hr></hr>
+<h2 id="a-hrefhtml-linterhtml-lintera"><a href="#html-linter">HTML Linter</a></h2>
+<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter">
+  <i class="fa fa-github"></i>
+  GitHub repo link
+</a>
+
+<p>Validates your passed in markup against rules established in the 
+      <a href="https://htmlhint.com/" target="_blank" rel="noopener noreferrer" title="null">HTMLHint</a>
+     project.</p>
+<pre><code class="language-sh">npm install diffhtml-middleware-linter</code></pre>
+<h3 id="example-5">Example</h3>
+<pre><code class="language-js">import { use } from &#39;diffhtml&#39;;
+import linter from &#39;diffhtml-middleware-linter&#39;;
+
+use(linter({
+  // Supported rules and their defaults.
+  rules: {
+    &quot;tagname-lowercase&quot;: true,
+    &quot;attr-lowercase&quot;: true,
+    &quot;attr-value-not-empty&quot;: false,
+    &quot;id-unique&quot;: true,
+    &quot;src-not-empty&quot;: true,
+    &quot;title-require&quot;: true,
+    &quot;alt-require&quot;: true,
+    &quot;id-class-value&quot;: &quot;dash&quot;,
+    &quot;style-disabled&quot;: false,
+    &quot;inline-style-disabled&quot;: false,
+    &quot;inline-script-disabled&quot;: false,
+    &quot;attr-unsafe-chars&quot;: true,
+    &quot;head-script-disabled&quot;: true,
+  },
+
+  renderErrors: true // by default is false
+}));</code></pre>
 <hr></hr>
 </section>
 

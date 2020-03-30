@@ -1,5 +1,3 @@
-/// <reference types="mocha" />
-
 import { ok, equal, deepEqual, throws, doesNotThrow } from 'assert';
 import { spy } from 'sinon';
 import createTree from '../lib/tree/create';
@@ -235,7 +233,7 @@ describe('Util', function() {
       const vTrees = parse(`<div childNodes="test" />`, null, {
         parser: {
           strict: true,
-          selfClosing: ['div'],
+          selfClosingElements: ['div'],
         }
       }).childNodes;
 
@@ -245,11 +243,11 @@ describe('Util', function() {
       equal(vTrees[0].childNodes[0].nodeValue, 'test');
     });
 
-    it('will support passing custom block elements', () => {
+    it('will support passing custom raw elements', () => {
       const vTrees = parse(`<div><p></p></div>`, null, {
         parser: {
           strict: true,
-          blockText: ['div'],
+          rawElements: ['div'],
         }
       }).childNodes;
 
@@ -257,6 +255,22 @@ describe('Util', function() {
       equal(vTrees[0].nodeName, 'div');
       equal(vTrees[0].childNodes[0].nodeName, '#text');
       equal(vTrees[0].childNodes[0].nodeValue, '<p></p>');
+    });
+
+    it('will leave tokens in the children if no value is found', () => {
+      const vTrees = parse('__DIFFHTML__0__', null).childNodes;
+
+      equal(vTrees.length, 1);
+      equal(vTrees[0].nodeName, '#text');
+      equal(vTrees[0].nodeValue, '__DIFFHTML__0__');
+    });
+
+    it('will leave tokens in the attributes if no value is found', () => {
+      const vTrees = parse('<a href=__DIFFHTML__0__>test</a>', null).childNodes;
+
+      equal(vTrees.length, 1);
+      equal(vTrees[0].nodeName, 'a');
+      deepEqual(vTrees[0].attributes, { href: '__DIFFHTML__0__' });
     });
 
     it('will throw if arrays are tried to be spread as attributes', () => {

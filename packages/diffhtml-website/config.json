@@ -22,10 +22,8 @@
     }],
 
     "Parser": ["parser.html", {
-      "Dynamic values": "#dynamic-values",
-      "Strict mode": "#strict-mode",
-      "Customize block elements": "#block-elements",
-      "Self closing": "#self-closing"
+      "Options": "#options",
+      "Dynamic values": "#dynamic-values"
     }],
 
     "Transitions": ["transitions.html", {
@@ -38,7 +36,8 @@
       "Logger": "#logger",
       "Service Worker": "#service-worker",
       "Synthetic Events": "#synthetic-events",
-      "Verify State": "#verify-state"
+      "Verify State": "#verify-state",
+      "HTML Linter": "#html-linter"
     }],
 
     "Components": ["components.html", {

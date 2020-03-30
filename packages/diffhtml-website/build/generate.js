@@ -5,7 +5,8 @@ const marked = require('marked');
 const flattenPages = require('./util/flatten-pages');
 const { keys } = Object;
 
-// Ensure Component middleware is loaded.
+// Ensure Components middleware is loaded since Layout is a class
+// component and render-to-string will pick it up automatically.
 require('diffhtml-components');
 
 // Do some marked magic to fix the target="blank" security issue.
@@ -53,7 +54,12 @@ function generate() {
     }
 
     const contents = renderToString(html`
-      <${Layout} path=${path} pages=${pages} content=${html(markup)} />
+      <${Layout}
+        path=${path}
+        page=${name}
+        pages=${pages}
+        content=${html(markup)}
+      />
     `);
 
     const publicPath = toPublic(path);

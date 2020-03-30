@@ -97,8 +97,8 @@ export const Mount = '';
  * @typedef {Object} ParserOptions - defines ParserOptions type
  *
  * @property {Boolean=} strict - Should the parser operate in strict mode
- * @property {string[]=} blockText - Set of block element tagNames, empty is all
- * @property {string[]=} selfClosing - Set of self closing element tagNames, empty is all
+ * @property {string[]=} rawElements - Set of raw tagNames, empty is all
+ * @property {string[]=} selfClosingElements - Set of self closing element tagNames, empty is all
  */
 
 /**

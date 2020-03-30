@@ -1,13 +1,16 @@
-import { ok, equal, throws, doesNotThrow } from 'assert';
-import { innerHTML, html, use, release, Internals } from 'diffhtml';
+/// <reference types="mocha" />
+
+import { ok, equal, doesNotThrow } from 'assert';
+import { innerHTML, html, release, Internals } from 'diffhtml';
 import PropTypes from 'prop-types';
 import Component from '../lib/component';
 import validateCaches from './util/validate-caches';
 
 const { process } = Internals;
 const { assign } = Object;
+const whitespaceEx = /[ ]{2,}|\n/g;
 
-describe.skip('Component implementation', function() {
+describe('Component implementation', function() {
   beforeEach(() => {
     this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
@@ -18,272 +21,6 @@ describe.skip('Component implementation', function() {
     release(this.fixture);
     Component.unsubscribeMiddleware();
     validateCaches();
-  });
-
-  describe.skip('Function components', () => {
-    it('will render a virtual tree', () => {
-      const CustomComponent = () => html`
-        <div>Hello world</div>
-      `;
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
-    });
-
-    it('will render a dom node', () => {
-      const CustomComponent = () => assign(document.createElement('div'), {
-        innerHTML: 'Hello world',
-      });
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
-    });
-
-    it('will render an array of virtual trees', () => {
-      const CustomComponent = () => [
-        html`<div>Hello</div>`, html`<span>world</span>`
-      ];
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(this.fixture.outerHTML, '<div><div>Hello</div><span>world</span></div>');
-    });
-
-    it('will pass props', () => {
-      const CustomComponent = ({ key }) => html`
-        <div>${key}</div>
-      `;
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
-
-      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
-    });
-
-    it('will update props', async () => {
-      const CustomComponent = ({ key }) => html`
-        <div>${key}</div>
-      `;
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
-      innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
-
-      equal(this.fixture.outerHTML, '<div><div>To you!</div></div>');
-    });
-
-    it('will render a nested component and forward props', async () => {
-      const NestedComponent = ({ key }) => html`${key}`;
-
-      const CustomComponent = props => html`
-        <div><${NestedComponent} ${props} /></div>
-      `;
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
-      innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
-
-      equal(this.fixture.outerHTML, '<div><div>To you!</div></div>');
-    });
-
-    it.skip('will render a component tree: component / component / component', () => {
-      function parent() {
-        return html`<${self} />`;
-      }
-
-      function self() {
-        return html`<${child} />`;
-      }
-
-      function child() {
-        return html`<${nested} />`;
-      }
-
-      function nested() {
-        return html`
-          <div>Hello world</div>
-        `;
-      }
-
-      innerHTML(this.fixture, html`<${parent} />`);
-
-      equal(this.fixture.outerHTML, '<div>Hello world</div>');
-    });
-
-    it.skip('will render a component tree: component / component / dom', () => {
-      function parent() {
-        return html`<${self} />`;
-      }
-
-      function self() {
-        return html`<${child} />`;
-      }
-
-      function child() {
-        return html`<div>Hello world</div>`;
-      }
-
-      innerHTML(this.fixture, html`<${parent} />`);
-
-      equal(this.fixture.outerHTML, '<div>Hello world</div>');
-    });
-
-    it('will render a component tree: component / dom / dom', () => {
-      function parent() {
-        return html`<${self} />`;
-      }
-
-      function self() {
-        return html`<div><${child} /></div>`;
-      }
-
-      function child() {
-        return html`<div>Hello world</div>`;
-      }
-
-      innerHTML(this.fixture, html`<${parent} />`);
-
-      equal(this.fixture.outerHTML, '<div>Hello world</div>');
-    });
-
-    it('will render a component tree: dom / dom / dom', () => {
-      function parent() {
-        return html`<div><${self} /></div>`;
-      }
-
-      function self() {
-        return html`<div><${child} /></div>`;
-      }
-
-      function child() {
-        return html`<div>Hello world</div>`;
-      }
-
-      innerHTML(this.fixture, html`<${parent} />`);
-
-      equal(this.fixture.outerHTML, '<div><div><div><div>Hello world</div></div></div></div>');
-    });
-  });
-
-  describe('Class components', () => {
-    it('will render a virtual tree', () => {
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
-    });
-
-    it('will trigger mount for a component', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-
-        componentDidMount() {
-          hit++;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(hit, 1);
-    });
-
-    it('will trigger unmount for a component', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-
-        componentWillUnmount() {
-          hit++;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      innerHTML(this.fixture, html``);
-
-      equal(hit, 1);
-    });
-
-    it('will trigger unmount for a component', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-
-        componentWillUnmount() {
-          hit++;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      innerHTML(this.fixture, html``);
-
-      equal(hit, 1);
-    });
-
-    it('will trigger should component update for a component', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-
-        shouldComponentUpdate() {
-          hit++;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      innerHTML(this.fixture, html`<${CustomComponent} key="value" />`);
-
-      equal(hit, 1);
-    });
-
-    it('will prevent render with should component update', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render(props) {
-          return html`
-            <div>${props.key}</div>
-          `;
-        }
-
-        shouldComponentUpdate() {
-          hit++;
-          //return false;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="right" />`);
-      innerHTML(this.fixture, html`<${CustomComponent} key="wrong" />`);
-
-      equal(hit, 1);
-      equal(this.fixture.innerHTML, 'right');
-    });
   });
 
   it('will render a component', () => {
@@ -297,7 +34,10 @@ describe.skip('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-    equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+    equal(
+      this.fixture.outerHTML.replace(whitespaceEx, ''),
+      '<div><div>Hello world</div></div>',
+    );
   });
 
   it('will return multiple top level elements', () => {
@@ -312,7 +52,10 @@ describe.skip('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-    equal(this.fixture.innerHTML, `<div>Hello world</div>\n          <p>Test</p>`);
+    equal(
+      this.fixture.innerHTML.replace(whitespaceEx, ''),
+      `<div>Hello world</div><p>Test</p>`,
+    );
   });
 
   it('will have a component return a component aka HoC', () => {
@@ -334,7 +77,10 @@ describe.skip('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${BoldCustomComponent} />`);
 
-    equal(this.fixture.outerHTML, '<div><b>Hello world</b></div>');
+    equal(
+      this.fixture.outerHTML.replace(whitespaceEx, ''),
+      '<div><b>Hello world</b></div>',
+    );
   });
 
   it('will have a series of HoC', () => {
@@ -364,7 +110,10 @@ describe.skip('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${BoldAndSpanned} message="Hello world" />`);
 
-    equal(this.fixture.outerHTML, '<div><span><b>Hello world</b></span></div>');
+    equal(
+      this.fixture.outerHTML.replace(whitespaceEx, ''),
+      '<div><span><b>Hello world</b></span></div>',
+    );
   });
 
   describe('Lifecycle', () => {
@@ -492,10 +241,11 @@ describe.skip('Component implementation', function() {
       let wasCalled = false;
       let counter = 0;
       let ref = null;
+      let i = 0;
 
       class CustomComponent extends Component {
         render() {
-          return html`<div />`;
+          return html`<div>${++i}</div>`;
         }
 
         constructor(props) {
@@ -518,6 +268,7 @@ describe.skip('Component implementation', function() {
       ok(wasCalled);
       ok(ref);
       equal(counter, 1);
+      equal(i, 2);
     });
   });
 
@@ -547,28 +298,7 @@ describe.skip('Component implementation', function() {
       equal(vTree.attributes.test, ref);
     });
 
-    it('will warn if missing proptypes in development', () => {
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-      }
-
-      CustomComponent.propTypes = {
-        customProperty: PropTypes.string.isRequired,
-      };
-
-      const oldConsoleError = console.error;
-
-      let logCalled = false;
-      console.error = () => logCalled = true;
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      console.error = oldConsoleError;
-      ok(logCalled);
-    });
-
-    it('willnot throw if missing proptypes in production', () => {
+    it('will not throw if missing proptypes in production', () => {
       process.env.NODE_ENV = 'production';
 
       class CustomComponent extends Component {
@@ -735,7 +465,7 @@ describe.skip('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it.skip('will update multiple top level elements with setState', () => {
+    it('will update multiple top level elements with setState', () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -753,12 +483,27 @@ describe.skip('Component implementation', function() {
 
       let ref = null;
 
-      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
+
       const { firstChild } = this.fixture;
-      equal(this.fixture.innerHTML.trim(), '<div>0</div><div>1</div>');
+
+      equal(
+        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
+        '<div>0</div><div>1</div>',
+      );
+
       ref.setState({ count: 3 });
-      equal(this.fixture.innerHTML.trim(), '<div>0</div><div>1</div><div>2</div>');
+
+      equal(
+        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
+        '<div>0</div><div>1</div><div>2</div>',
+      );
+
       ref.setState({ count: 1 });
+
       equal(this.fixture.innerHTML.trim(), '<div>0</div>');
       equal(this.fixture.firstChild, firstChild);
     });
@@ -780,7 +525,10 @@ describe.skip('Component implementation', function() {
 
       let ref = null;
 
-      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
 
       equal(this.fixture.innerHTML, 'default');
       ref.state.message = 'something';
@@ -789,7 +537,7 @@ describe.skip('Component implementation', function() {
     });
   });
 
-  describe('Context', () => {
+  describe.skip('Context', () => {
     it('will inherit context from a parent component', () => {
       class ChildComponent extends Component {
         render() {
@@ -815,7 +563,7 @@ describe.skip('Component implementation', function() {
     });
   });
 
-  describe.skip('HOC', () => {
+  describe('HOC', () => {
     it('will support a component that returns a new component', () => {
       let didMount = 0;
 
@@ -840,6 +588,287 @@ describe.skip('Component implementation', function() {
 
       equal(didMount, 1);
       equal(this.fixture.innerHTML, '<span>Hello world</span>');
+    });
+  });
+
+  describe('Function components', () => {
+    it('will render a virtual tree', () => {
+      const CustomComponent = () => html`<div>Hello world</div>`;
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+    });
+
+    it('will render a dom node', () => {
+      const CustomComponent = () => assign(document.createElement('div'), {
+        innerHTML: 'Hello world',
+      });
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+    });
+
+    it('will render an array of virtual trees', () => {
+      const CustomComponent = () => [
+        html`<div>Hello</div>`, html`<span>world</span>`
+      ];
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div>Hello</div><span>world</span></div>');
+    });
+
+    it('will pass props', () => {
+      const CustomComponent = ({ key }) => html`
+        <div>${key}</div>
+      `;
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
+
+      equal(
+        this.fixture.outerHTML.replace(whitespaceEx, ''),
+        '<div><div>Hello world</div></div>',
+      );
+    });
+
+    it('will update props', async () => {
+      const CustomComponent = ({ key }) => html`
+        <div>${key}</div>
+      `;
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
+
+      equal(
+        this.fixture.outerHTML.replace(whitespaceEx, ''),
+        '<div><div>To you!</div></div>',
+      );
+    });
+
+    it('will render a nested component and forward props', async () => {
+      const NestedComponent = ({ key }) => html`${key}`;
+
+      const CustomComponent = props => html`
+        <div><${NestedComponent} ${props} /></div>
+      `;
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
+
+      equal(
+        this.fixture.outerHTML.replace(whitespaceEx, ''),
+        '<div><div>To you!</div></div>',
+      );
+    });
+
+    it.skip('will render a component tree: component / component / component', () => {
+      function parent() {
+        return html`<${self} />`;
+      }
+
+      function self() {
+        return html`<${child} />`;
+      }
+
+      function child() {
+        return html`<${nested} />`;
+      }
+
+      function nested() {
+        return html`
+          <div>Hello world</div>
+        `;
+      }
+
+      innerHTML(this.fixture, html`<${parent} />`);
+
+      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+    });
+
+    it.skip('will render a component tree: component / component / dom', () => {
+      function parent() {
+        return html`<${self} />`;
+      }
+
+      function self() {
+        return html`<${child} />`;
+      }
+
+      function child() {
+        return html`<div>Hello world</div>`;
+      }
+
+      innerHTML(this.fixture, html`<${parent} />`);
+
+      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+    });
+
+    it.skip('will render a component tree: component / dom / dom', () => {
+      function parent() {
+        return html`<${self} />`;
+      }
+
+      function self() {
+        return html`<div><${child} /></div>`;
+      }
+
+      function child() {
+        return html`<div>Hello world</div>`;
+      }
+
+      innerHTML(this.fixture, html`<${parent} />`);
+
+      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+    });
+
+    it.skip('will render a component tree: dom / dom / dom', () => {
+      function parent() {
+        return html`<div><${self} /></div>`;
+      }
+
+      function self() {
+        return html`<div><${child} /></div>`;
+      }
+
+      function child() {
+        return html`<div>Hello world</div>`;
+      }
+
+      innerHTML(this.fixture, html`<${parent} />`);
+
+      equal(this.fixture.outerHTML, '<div><div><div><div>Hello world</div></div></div></div>');
+    });
+  });
+
+  describe('Class components', () => {
+    it('will render a virtual tree', () => {
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(
+        this.fixture.outerHTML.replace(whitespaceEx, ''),
+        '<div><div>Hello world</div></div>',
+      );
+    });
+
+    it('will trigger mount for a component', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+
+        componentDidMount() {
+          hit++;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(hit, 1);
+    });
+
+    it('will trigger unmount for a component', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+
+        componentWillUnmount() {
+          hit++;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html``);
+
+      equal(hit, 1);
+    });
+
+    it('will trigger unmount for a component', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+
+        componentWillUnmount() {
+          hit++;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html``);
+
+      equal(hit, 1);
+    });
+
+    it('will trigger should component update for a component', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+
+        shouldComponentUpdate() {
+          hit++;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      equal(hit, 0);
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="value" />`);
+
+      equal(hit, 1);
+    });
+
+    it('will prevent render with should component update', () => {
+      let hit = 0;
+
+      class CustomComponent {
+        render(props) {
+          return html`
+            <div>${props.key}</div>
+          `;
+        }
+
+        shouldComponentUpdate() {
+          hit++;
+          return false;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} key="right" />`);
+      innerHTML(this.fixture, html`<${CustomComponent} key="wrong" />`);
+
+      equal(hit, 1);
+      equal(
+        this.fixture.innerHTML.replace(whitespaceEx, ''),
+        '<div>right</div>',
+      );
     });
   });
 });

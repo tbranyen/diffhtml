@@ -61,12 +61,12 @@ layer#navigation::-webkit-scrollbar {
 }
 
 layer#navigation::-webkit-scrollbar-track {
-  background: transparent;
+  background: #e8e8e8;
 }
 
 layer#navigation::-webkit-scrollbar-thumb {
   border-radius: 0;
-  background: #E8E8E8; 
+  background: #CACACA;
 }
 
 layer#navigation p.social {
@@ -201,7 +201,7 @@ layer#main section#content h1 {
 }
 
 layer#main section#content h3 a {
-  color: #c74a4a; 
+  color: #c74a4a;
   font-size: 20px;
   text-decoration: none;
 }
@@ -246,10 +246,14 @@ layer#main header h1 img {
 }
 
 layer#main ul {
-  margin-left: 0;
   padding-left: 0;
   font-size: 16px;
   margin-left: 20px;
+}
+
+body.home layer#main ul {
+  margin-left: 0;
+  list-style: none;
 }
 
 layer#main table li:not(:first-child) {
@@ -338,14 +342,14 @@ table td {
   width: 100%;
   display: inline-block;
   padding: 40px;
-  background: linear-gradient(to bottom, #FFF, #FFF); 
+  background: linear-gradient(to bottom, #FFF, #FFF);
   box-sizing: border-box;
   font-weight: bold;
   transition: background cubic-bezier(.17,.67,.83,.67) 140ms;
 }
 
 #edit-on-github:hover {
-  color: #FFF; 
+  color: #FFF;
   background: linear-gradient(to bottom, #38ab70, #397db9);
 }
 
@@ -572,7 +576,7 @@ table td {
 }
 
 /* When printing */
-@media print { 
+@media print {
   html, body {
     max-height: inherit !important;
     overflow: visible !important;
@@ -610,4 +614,3 @@ table td {
     display: none !important;
   }
 }
-

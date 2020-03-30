@@ -100,7 +100,11 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
     // the token's position. So all we do is ensure that we're on an odd
     // index and then we can source the correct value.
     if (i % 2 === 1) {
-      const innerTree = supplemental.children[value];
+      const supValue = supplemental.children[value];
+      const innerTree = value in supplemental.children ? supValue : createTree(
+        '#text',
+        `__DIFFHTML__${value}__`,
+      );
 
       if (!innerTree) continue;
 
@@ -173,10 +177,12 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
         // an odd index and then we can source the correct value.
         if (i % 2 === 1) {
           const isObject = typeof newName === 'object';
+          const supValue = supplemental.attributes[value];
+          const fallback = `__DIFFHTML__${value}__`;
 
           // Allow interpolating multiple values into a single attribute.
           if (attributes[newName]) {
-            attributes[newName] += supplemental.attributes[value];
+            attributes[newName] += value in supplemental.attributes ? supValue : fallback;
           }
           // Merge object attributes directly into the existing attributes.
           else if (isObject) {
@@ -190,7 +196,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
             }
           }
           else if (newName) {
-            attributes[newName] = supplemental.attributes[value];
+            attributes[newName] = value in supplemental.attributes ? supValue : fallback;
           }
         }
         // Otherwise this is a static iteration, simply concat the raw value into the attribute.
@@ -232,10 +238,10 @@ export default function parse(html, supplemental, options = {}) {
   }
 
   const blockText = new Set(
-    options.parser.blockText ? options.parser.blockText : blockTextDefaults
+    options.parser.rawElements ? options.parser.rawElements : blockTextDefaults
   );
 
-  const selfClosing = new Set(options.parser.selfClosing || selfClosingDefaults);
+  const selfClosing = new Set(options.parser.selfClosingElements || selfClosingDefaults);
 
   const tagEx =
     /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;

@@ -1,5 +1,5 @@
 import Pool from './pool';
-import { NodeCache } from './caches';
+import { NodeCache, ReleaseHookCache } from './caches';
 import { VTree } from './types';
 
 const { protect, unprotect, memory } = Pool;
@@ -29,6 +29,8 @@ export function protectVTree(vTree) {
  */
 export function unprotectVTree(vTree) {
   unprotect(vTree);
+
+  ReleaseHookCache.forEach(fn => fn(vTree));
 
   for (let i = 0; i < vTree.childNodes.length; i++) {
     unprotectVTree(vTree.childNodes[i]);

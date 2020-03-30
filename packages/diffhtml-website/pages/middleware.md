@@ -260,3 +260,50 @@ use(verifyState({ debug: location.search.includes('debug') }));
 ```
 
 ---
+
+<a name="html-linter"></a>
+
+---
+
+## <a href="#html-linter">HTML Linter</a>
+
+<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter">
+  <i class="fa fa-github" />
+  GitHub repo link
+</a>
+
+Validates your passed in markup against rules established in the [HTMLHint](https://htmlhint.com/) project.
+
+``` sh
+npm install diffhtml-middleware-linter
+```
+
+### Example
+
+``` js
+import { use } from 'diffhtml';
+import linter from 'diffhtml-middleware-linter';
+
+use(linter({
+  // Supported rules and their defaults.
+  rules: {
+    "tagname-lowercase": true,
+    "attr-lowercase": true,
+    "attr-value-not-empty": false,
+    "id-unique": true,
+    "src-not-empty": true,
+    "title-require": true,
+    "alt-require": true,
+    "id-class-value": "dash",
+    "style-disabled": false,
+    "inline-style-disabled": false,
+    "inline-script-disabled": false,
+    "attr-unsafe-chars": true,
+    "head-script-disabled": true,
+  },
+
+  renderErrors: true // by default is false
+}));
+```
+
+---

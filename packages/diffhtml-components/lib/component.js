@@ -1,11 +1,11 @@
 import process from './util/process';
 import PropTypes from './util/prop-types';
-import { use, outerHTML, createTree, release, Internals } from 'diffhtml';
+import { outerHTML, createTree, Internals, release } from 'diffhtml';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { ComponentTreeCache } from './util/caches';
 import { $$render, $$vTree } from './util/symbols';
 
-const { NodeCache, createNode, syncTree } = Internals;
+const { NodeCache, createNode, memory } = Internals;
 const { keys, assign } = Object;
 const FRAGMENT = '#document-fragment';
 
@@ -39,7 +39,7 @@ class Component {
       // Throw an error if we are not connected, cannot use stateful components
       // if they are rendered shallow.
       if (!domNode.parentNode) {
-        throw new Error('Cannot use stateful features when rendered shallow');
+        throw new Error('Cannot use stateful features when shallow rendered');
       }
     }
 
@@ -68,23 +68,22 @@ class Component {
       }
 
       // Diff the fragments together.
-      outerHTML(fragment, renderTree);
+      outerHTML(fragment, renderTree).then(() => release(fragment));
 
-      // Remap the new elements into the system.
-      [].slice.apply(fragment.childNodes).forEach(childNode => {
-        ComponentTreeCache.set(createTree(childNode), vTree);
+      [].slice.apply(fragment.childNodes).forEach(childTree => {
+        ComponentTreeCache.set(createTree(childTree), vTree);
       });
 
-      // Replace the fragments back in.
+      // Replace the comment placeholder with the fragment.
       placeholder.parentNode.replaceChild(fragment, placeholder);
     }
     else {
-      outerHTML(domNode, renderTree);
-
-      // FIXME Does `renderTree` we need to be here? Is this association
-      // necessary?
-      [renderTree, ...renderTree.childNodes].forEach(childTree => {
-        ComponentTreeCache.set(childTree, vTree);
+      outerHTML(domNode, renderTree).then(transaction => {
+        // FIXME Does `renderTree` we need to be here? Is this association
+        // necessary?
+        //[renderTree, ...renderTree.childNodes].forEach(childTree => {
+        //  ComponentTreeCache.set(childTree, vTree);
+        //});
       });
     }
 
@@ -95,7 +94,7 @@ class Component {
     initialProps && (initialProps.refs || (initialProps.refs = {}));
 
     const props = this.props = assign({}, initialProps);
-    const state = this.state = {};
+    this.state = {};
     const context = this.context = assign({}, initialContext);
 
     if (props.refs) {
@@ -105,7 +104,6 @@ class Component {
     const {
       defaultProps = {},
       propTypes = {},
-      childContextTypes = {},
       contextTypes = {},
       name,
     } = this.constructor;

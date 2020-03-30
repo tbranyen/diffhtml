@@ -3,6 +3,6 @@ import * as hooks from './hooks';
 
 const { assign } = Object;
 
-export default options => assign(function componentTask(transaction) {
+export default () => assign(function componentTask(transaction) {
   transaction.onceEnded(onceEnded);
 }, hooks);

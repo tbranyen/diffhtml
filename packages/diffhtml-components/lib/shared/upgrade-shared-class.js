@@ -3,7 +3,6 @@ import lifecycleHooks from './lifecycle-hooks';
 import setState from './set-state';
 import forceUpdate from './force-update';
 import componentTask from './middleware';
-import { $$render } from '../util/symbols';
 import { ComponentTreeCache, InstanceCache } from '../util/caches';
 
 const { assign } = Object;
@@ -13,12 +12,12 @@ const { assign } = Object;
 let unsubscribe = null;
 
 export default function upgradeClass(Constructor) {
-  Constructor.subscribeMiddleware = options => {
+  Constructor.subscribeMiddleware = () => {
     if (unsubscribe) {
       unsubscribe();
     }
 
-    unsubscribe = use(componentTask(options));
+    unsubscribe = use(componentTask());
   };
 
   Constructor.unsubscribeMiddleware = () => {

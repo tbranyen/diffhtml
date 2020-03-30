@@ -1,10 +1,10 @@
 import process from './util/process';
 import PropTypes from './util/prop-types';
-import { createTree, innerHTML, use } from 'diffhtml';
+import { createTree, innerHTML } from 'diffhtml';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { $$render } from './util/symbols';
 
-const { defineProperty, setPrototypeOf, assign, keys } = Object;
+const { defineProperty, assign, keys } = Object;
 const root = typeof window !== 'undefined' ? window : global;
 const nullFunc = function() {};
 
@@ -21,7 +21,8 @@ const createProps = (domNode, props = {}) => {
   };
 
   const incoming = observedAttributes.reduce((props, attr) => ({
-    [attr]: attr in domNode ? domNode[attr] : domNode.getAttribute(attr) || initialProps[attr],
+    [attr]: (
+      (domNode.hasAttribute(attr) ? domNode.getAttribute(attr) : domNode[attr]) || initialProps[attr]),
     ...props,
   }), initialProps);
 
@@ -39,6 +40,7 @@ class WebComponent extends root.HTMLElement {
   [$$render]() {
     const oldProps = this.props;
     const oldState = this.state;
+
     this.props = createProps(this, this.props);
     innerHTML(this.shadowRoot, this.render(this.props, this.state));
     this.componentDidUpdate(oldProps, oldState);
@@ -57,8 +59,8 @@ class WebComponent extends root.HTMLElement {
     const {
       defaultProps = {},
       propTypes = {},
-      childContextTypes = {},
-      contextTypes = {},
+      //childContextTypes = {},
+      //contextTypes = {},
       name,
     } = this.constructor;
 
@@ -102,12 +104,6 @@ class WebComponent extends root.HTMLElement {
   }
 
   disconnectedCallback() {
-    // TODO Figure out a better place for `willUnmount`, use the detached
-    // transition to determine if a Node is removed would be very accurate
-    // as this fires just before an element is removed, also if the user
-    // is using a detached animation this would allow them to do something
-    // before the animation completes, giving you two nice callbacks to use
-    // for detaching.
     this.componentWillUnmount();
   }
 

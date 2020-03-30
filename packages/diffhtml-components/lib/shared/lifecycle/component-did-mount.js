@@ -1,6 +1,5 @@
 import { Internals } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../../util/caches';
-import { $$vTree } from '../../util/symbols';
 
 const { NodeCache } = Internals;
 
@@ -36,13 +35,11 @@ export default function componentDidMount(vTree) {
   const componentTree = ComponentTreeCache.get(vTree);
   const instance = InstanceCache.get(componentTree);
 
-  if (instance) {
-    callRefs([vTree]);
+  callRefs([vTree]);
 
+  if (instance) {
     if (instance.componentDidMount) {
       instance.componentDidMount();
     }
   }
-
-  vTree.childNodes.forEach(vTree => componentDidMount(vTree));
 }

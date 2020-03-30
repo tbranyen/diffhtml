@@ -32,8 +32,14 @@ export const createNodeHook = vTree => {
 };
 
 export const syncTreeHook = (oldTree, newTree) => {
-  // When child is a Component
-  if (typeof newTree.rawNodeName === 'function') {
+  // Render components during synchronization.
+  if (
+    // When child is a Component
+    typeof newTree.rawNodeName === 'function' &&
+    // If there is an oldTree and it's not the existing element, trigger a
+    // render.
+    (oldTree ? newTree.rawNodeName !== oldTree.rawNodeName : true)
+  ) {
     return render(oldTree, newTree);
   }
 

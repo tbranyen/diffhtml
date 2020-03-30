@@ -2,7 +2,7 @@ const { html } = require('diffhtml');
 const { version } = require('../package');
 const Nav = require('./nav');
 
-module.exports = ({ path, pages, content }) => html`
+module.exports = ({ path, page, pages, content }) => html`
   <html>
     <head>
       <meta charset="utf-8">
@@ -12,7 +12,7 @@ module.exports = ({ path, pages, content }) => html`
       <link rel="stylesheet" href="./index.css">
     </head>
 
-    <body>
+    <body class=${page.toLowerCase().replace(/\s/g, '-')}>
       <layer id="navigation">
 
         <p class="social">

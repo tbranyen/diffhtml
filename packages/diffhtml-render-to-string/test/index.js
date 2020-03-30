@@ -22,13 +22,13 @@ describe('renderToString', function() {
 
   it('can support strict html parsing, throwing on error', () => {
     throws(() => {
-      const actual = renderToString('<p>Hello world', { strict: true });
+      renderToString('<p>Hello world', { strict: true });
     }, {
       name: 'Error',
       message: `
 
 <p>Hello world
-  ^
+ ^
     Possibly invalid markup. <p> must be closed in strict mode.
             `
     });
@@ -65,6 +65,20 @@ describe('renderToString', function() {
   it('can render top level document fragments', () => {
     const actual = renderToString(html`<div/><p/>`);
     const expected = `<div></div><p></p>`;
+
+    equal(actual, expected);
+  });
+
+  it('can render top level single adjacent document fragments', () => {
+    const actual = renderToString(html`<div/>${html`<div/><p/>`}`);
+    const expected = `<div></div><div></div><p></p>`;
+
+    equal(actual, expected);
+  });
+
+  it('can render top level document fragments adjacent single', () => {
+    const actual = renderToString(html`${html`<div/><p/>`}<div/>`);
+    const expected = `<div></div><p></p><div></div>`;
 
     equal(actual, expected);
   });

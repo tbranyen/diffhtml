@@ -1,4 +1,4 @@
-import { SyncTreeHookCache, NodeCache } from '../util/caches';
+import { SyncTreeHookCache } from '../util/caches';
 import process from '../util/process';
 import { PATCH_TYPE, VTree } from '../util/types';
 

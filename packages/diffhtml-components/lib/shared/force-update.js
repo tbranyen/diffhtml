@@ -1,5 +1,5 @@
 import { $$render } from '../util/symbols';
 
-export default function forceUpdate(state) {
+export default function forceUpdate() {
   this[$$render]();
 }

@@ -1,4 +1,4 @@
-const { JSDOM } = require('jsdom-wc');
+const { JSDOM } = require('jsdom');
 const { window } = new JSDOM('<!doctype html>');
 
 Object.assign(global, {

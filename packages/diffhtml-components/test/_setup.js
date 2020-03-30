@@ -1,4 +1,4 @@
-const { JSDOM } = require('jsdom-wc');
+const { JSDOM } = require('jsdom');
 
 global.newJSDOMSandbox = () => {
   const instance = new JSDOM(`<!DOCTYPE html>`);

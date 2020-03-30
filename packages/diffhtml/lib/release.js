@@ -15,13 +15,36 @@ export default function release(domNode) {
   // If this was a top-level rendered element, deallocate the VTree
   // and remove the StateCache reference.
   if (state) {
-    unprotectVTree(createTree(state.oldTree));
+    if (state.oldTree) {
+      unprotectVTree(createTree(state.oldTree));
+    }
+
     StateCache.delete(domNode);
   }
 
-  // If there is a Virtual Tree element, recycle all objects allocated for it.
+  // The rest of this function only pertains to real HTML element nodes. If
+  // this is undefined, then it isn't one.
+  if (!domNode) {
+    return;
+  }
+
+  const asHTMLElement = /** @type {HTMLElement} */(domNode);
+
+  // Crawl the childNodes if this is an HTMLElement for state trees.
+  if ('ownerDocument' in asHTMLElement) {
+    for (let i = 0; i < asHTMLElement.childNodes.length; i++) {
+      release(asHTMLElement.childNodes[i]);
+    }
+
+    // If there is a shadowRoot attached to the DOM node, attempt
+    // to release this as well.
+    release(asHTMLElement.shadowRoot);
+  }
+
+  // Do a thorough check within the NodeCache to fully deallocate all
+  // references to the associated trees.
   NodeCache.forEach((value, key) => {
-    if (value === domNode) {
+    if (value === asHTMLElement) {
       unprotectVTree(key);
     }
   });

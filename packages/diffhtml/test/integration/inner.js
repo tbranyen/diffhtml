@@ -26,6 +26,31 @@ describe('Integration: innerHTML', function() {
     assert.equal(this.fixture.firstChild.textContent, 'this');
   });
 
+  it('can share dom nodes between separate renders', function() {
+    diff.innerHTML(this.fixture, '<div><span></span></div>');
+    diff.innerHTML(this.fixture.querySelector('span'), '<p>this</p>');
+    diff.innerHTML(this.fixture, '<div><span><p>this</p></span></div>');
+  });
+
+  it('can render a web component', function() {
+    class CustomElement extends HTMLElement {
+      constructor() {
+        super();
+        // This callback gets called during replace operations, there is no point
+        // in re-rendering or creating a new shadow root due to this.
+        this.attachShadow({ mode: 'open' });
+      }
+    }
+
+    customElements.define('custom-element', CustomElement);
+
+    const newEl = new CustomElement();
+
+    this.fixture.appendChild(newEl);
+
+    diff.innerHTML(newEl.shadowRoot, '<div></div>');
+  });
+
   it('can swap out style text', function() {
     diff.innerHTML(this.fixture, '<style>h1 { color: red; }</style>');
     diff.innerHTML(this.fixture, '<style>h1 { color: blue; }</style>');

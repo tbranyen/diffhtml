@@ -1,3 +1,5 @@
+/// <reference types="mocha" />
+
 import { JSDOM } from 'jsdom';
 import { parse } from 'url';
 
@@ -25,8 +27,10 @@ const location = new Proxy(parse('about:blank'), {
 });
 
 assign(global, {
+  customElements: window.customElements,
   document: window.document,
   Element: window.Element,
+  HTMLElement: window.HTMLElement,
   location,
   window,
 });

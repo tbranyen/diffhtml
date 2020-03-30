@@ -9,7 +9,7 @@
       <link rel="stylesheet" href="./index.css"></link>
     </head>
 
-    <body>
+    <body class="parser">
       <layer id="navigation">
 
         <p class="social">
@@ -135,25 +135,13 @@
       
 
       
+        <a href="parser.html#options" target><li>Options</li></a>
+      
+    
+      
+
+      
         <a href="parser.html#dynamic-values" target><li>Dynamic values</li></a>
-      
-    
-      
-
-      
-        <a href="parser.html#strict-mode" target><li>Strict mode</li></a>
-      
-    
-      
-
-      
-        <a href="parser.html#block-elements" target><li>Customize block elements</li></a>
-      
-    
-      
-
-      
-        <a href="parser.html#self-closing" target><li>Self closing</li></a>
       
     
       
@@ -208,6 +196,12 @@
 
       
         <a href="middleware.html#verify-state" target><li>Verify State</li></a>
+      
+    
+      
+
+      
+        <a href="middleware.html#html-linter" target><li>HTML Linter</li></a>
       
     
       
@@ -316,34 +310,145 @@
 <p>The parser built into diffHTML supports loose and strict HTML, XML, and SVG. It
 includes a token based syntax that can be used to interpolate dynamic values.
 This is used by the 
+    <a href="/api.html#inner-html" title="null">innerHTML</a>
+  , 
+    <a href="/api.html#outer-html" title="null">outerHTML</a>
+  , and 
     <a href="/api.html#html" title="null">html</a>
-   function/tagged template and can be
-leveraged to integrate template engines.</p>
+   APIs and advanced use cases.</p>
 <p>The parser can read full HTML documents including doctype, html/head/body/title
 etc tags, unwrapped fragments, and more!</p>
+<p><strong>Using with innerHTML:</strong></p>
+<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
+
+// Using innerHTML will parse the HTML markup and apply inside the element.
+innerHTML(document.body, `
+  &lt;div&gt;Hello world&lt;/div&gt;
+`);</code></pre>
+<p><strong>Using with outerHTML:</strong></p>
+<pre><code class="language-js">import { outerHTML } from &#39;diffhtml&#39;;
+
+// Using outerHTML will parse the HTML markup and apply around the element.
+outerHTML(document.body, `
+  &lt;body&gt;Hello world&lt;/body&gt;
+`);</code></pre>
+<p><strong>Using with html:</strong></p>
 <pre><code class="language-js">import { html } from &#39;diffhtml&#39;;
 
+// The tagged template will parse HTML in the same way, and also handle
+// dynamic values directly.
 console.log(html`
   &lt;div&gt;Hello world&lt;/div&gt;
 `);</code></pre>
+<p><strong>Using directly from Internals:</strong></p>
+<pre><code class="language-js">import { Internals } from &#39;diffhtml&#39;;
+
+// This is the raw parse function which allows you to map dynamic values
+// to either a TAG, ATTRIBUTE, or CHILD. You can find more information
+// about this in the dynamic values section below.
+console.log(Internals.parse(`
+  &lt;div&gt;Hello world&lt;/div&gt;
+`));</code></pre>
+<p><a name="options"></a></p>
+<hr></hr>
+<h2 id="a-hrefoptionsoptionsa"><a href="#options">Options</a></h2>
+<p>The parser is somewhat configurable, allowing you to opt into a strict-mode for
+erroring if invalid markup is passed. This could be useful to pair with the
+
+    <a href="/middleware.html#html-linter" title="null">HTML Linter Middleware</a>
+  .</p>
+<ul>
+<li>
+    <a href="#strict-mode" title="null"><code>strict</code></a>
+   - Toggle strict mode parsing</li>
+<li>
+    <a href="#block-elements" title="null"><code>rawElements</code></a>
+   - Modify the list of elements that have raw values</li>
+<li>
+    <a href="#self-closing" title="null"><code>selfClosingElements</code></a>
+   - Modify the list of elements that can self close</li>
+</ul>
+<p><a name="strict-mode"></a></p>
+<hr></hr>
+<h3 id="a-hrefstrict-modestrict-modea"><a href="#strict-mode">Strict mode</a></h3>
+<p>By default the parser operates in loose-mode which is forgiving of missing
+closing tags, poor markup, and other common issues. When opting into strict
+mode you will receive errors if you don&#39;t properly self close tags, have
+mismatched tag names, etc.</p>
+<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
+
+const options = {
+  parser: {
+    strict: true,
+  }
+};
+
+// Will be fine since the elements match
+innerHTML(document.body, `
+  &lt;h1&gt;Hello world&lt;/h1&gt;
+`, options);
+
+// Will throw since the elements do not match
+innerHTML(document.body, `
+  &lt;h1&gt;Hello world&lt;/h2&gt;
+`, options);</code></pre>
+<p>Unlike the other two options below, this feature can be configured using the
+tagged template 
+    <a href="/api.html#html" title="null"><code>html</code></a>
+   directly.</p>
+<pre><code class="language-js">import { html } from &#39;diffhtml&#39;;
+
+// Will throw an error due to the tag mismatch
+html.strict`
+  &lt;p&gt;&lt;/div&gt;
+`;</code></pre>
+<p><a name="block-elements"></a></p>
+<hr></hr>
+<h3 id="a-hrefraw-elementsraw-elementsa"><a href="#raw-elements">Raw elements</a></h3>
+<p>A list of elements that have their contents treated as raw text, rather than
+parsed as HTML. You can provide your own list of element names to allow this
+feature.</p>
+<p>Examples of these kinds of elements are: <code>&lt;pre&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;style&gt;</code></p>
+<p><a name="self-closing-elements"></a></p>
+<hr></hr>
+<h3 id="a-hrefself-closing-elementsself-closing-elementsa"><a href="#self-closing-elements">Self closing elements</a></h3>
+<p>A list of elements that are allowed to self close. You can provide your own list of
+element names to allow this feature.</p>
+<p>Examples of these kinds of elements are: <code>&lt;meta/&gt;</code>, <code>&lt;hr/&gt;</code>, <code>&lt;img/&gt;</code></p>
 <p><a name="dynamic-values"></a></p>
 <hr></hr>
 <h2 id="a-hrefdynamic-valuesdynamic-valuesa"><a href="#dynamic-values">Dynamic values</a></h2>
 <p>The parser allows you to use dynamic values for many different parts of the
 HTML syntax.</p>
-<pre><code>&lt;TAG ATTR ATTR_NAME=ATTR_VALUE&gt;CHILD&lt;/TAG&gt;</code></pre><p><a name="strict-mode"></a></p>
-<hr></hr>
-<h2 id="a-hrefstrict-modestrict-modea"><a href="#strict-mode">Strict mode</a></h2>
-<p>By default the parser operates in loose-mode which is forgiving of missing
-closing tags, poor markup, and other common issues. When opting into strict
-mode you will receive errors if you don&#39;t properly self close tags, or have
-mismatched tag names. It will also error if you passing invalid values.</p>
-<p><a name="block-elements"></a></p>
-<hr></hr>
-<h2 id="a-hrefblock-elementscustomize-block-elementsa"><a href="#block-elements">Customize block elements</a></h2>
-<p><a name="self-closing"></a></p>
-<hr></hr>
-<h2 id="a-hrefself-closingcustomize-self-closing-elementsa"><a href="#self-closing">Customize self closing elements</a></h2>
+<p>You can put dynamic values in either: <em>tag</em>, <em>attribute</em>, or <em>children</em> locations.
+This makes it incredibly easy to compose dynamic template-driven UIs from your
+JavaScript view layer.</p>
+<pre><code>&lt;TAG ATTRIBUTE&gt;CHILDREN&lt;/TAG&gt;</code></pre><p>Internally diffHTML has the notion of a Supplemental object. This object contains
+three keys: <code>tags</code>, <code>attributes</code>, <code>children</code>.</p>
+<p>In order to indicate that a given position should be swapped with a dynamic value
+simply use the syntax: <strong>&#95;&#95;DIFFHTML&#95;&#95;TOKEN&#95;&#95;</strong>. Where the <strong>TOKEN</strong> value is an arbitrary
+string value that will correlate to a value provided to the parser. Every token
+must be completely unique. You cannot guarentee that the parser won&#39;t try to
+determine automatically what type the token belongs to. If a value is not found for the token, it
+will be left in your source.</p>
+<p><strong>An example setting each type of injection:</strong></p>
+<pre><code class="language-js">import { Internals, innerHTML } from &#39;diffhtml&#39;;
+
+const vTree = Internals.parse(`
+  &lt;__DIFFHTML__TOKEN_0__ style=__DIFFHTML__TOKEN_1__&gt;__DIFFHTML__TOKEN_2__&lt;/div&gt;
+`, {
+  tags: {
+    &#39;TOKEN_0&#39;: &#39;div&#39;,
+  },
+  attributes: {
+    &#39;TOKEN_1&#39;: { fontWeight: &#39;bold&#39; },
+  },
+  children: {
+    &#39;TOKEN_2&#39;: &#39;Custom style object&#39;,
+  },
+});
+
+innerHTML(document.body, vTree);</code></pre>
 </section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/parser.md" id="edit-on-github">

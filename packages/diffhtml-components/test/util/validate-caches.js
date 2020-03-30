@@ -10,7 +10,7 @@ export default function validateCaches() {
   assert.equal(InstanceCache.size, 0, 'The instance cache should be empty');
 
   // Validate that core diffHTML is in a clean state.
-  validateCore();
+   validateMemory();
 }
 
 const {
@@ -26,7 +26,8 @@ const {
   ReleaseHookCache,
 } = Internals;
 
-function validateCore() {
+function validateMemory() {
+  // Run garbage collection after each test.
   gc();
 
   assert.equal(memory.protected.size, 0,
@@ -48,6 +49,5 @@ function validateCore() {
   // Check all transition caches.
   TransitionCache.forEach((cache, name) => {
     assert.equal(cache.size, 0, `The ${name} transition cache should be empty`);
-  })
+  });
 }
-

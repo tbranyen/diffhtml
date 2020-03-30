@@ -1,12 +1,18 @@
-import { deepEqual, equal, throws, doesNotThrow } from 'assert';
-import { innerHTML, html, createTree, use, release } from 'diffhtml';
+/// <reference types="mocha" />
+
+import { deepEqual, equal } from 'assert';
+import { innerHTML, html, createTree, release } from 'diffhtml';
 import PropTypes from 'prop-types';
-import WebComponent from '../lib/web-component';
 import validateCaches from './util/validate-caches';
 
-describe.skip('Web Component', function() {
+describe('Web Component', function() {
+  let WebComponent = null;
+
   beforeEach(() => {
     newJSDOMSandbox();
+
+    delete require.cache[require.resolve('../lib/web-component')];
+    WebComponent = require('../lib/web-component');
 
     this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
@@ -15,7 +21,6 @@ describe.skip('Web Component', function() {
   });
 
   afterEach(() => {
-    release(this.fixture.firstChild);
     release(this.fixture);
     WebComponent.unsubscribeMiddleware();
     document.body.removeChild(this.fixture);
@@ -36,7 +41,7 @@ describe.skip('Web Component', function() {
 
     const instance = this.fixture.querySelector('custom-component');
 
-    equal(instance.shadowRoot.firstChild.outerHTML, '<div>Hello world</div>');
+    equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
     equal(this.fixture.innerHTML, '<custom-component></custom-component>');
   });
 
@@ -134,12 +139,19 @@ describe.skip('Web Component', function() {
 
       innerHTML(domNode, <jsx-test message="Hello world!" />);
 
-      equal(domNode.firstChild.shadowRoot.firstChild.outerHTML, '<div>Hello world!</div>');
-      equal(domNode.outerHTML, '<div><jsx-test message="Hello world!"></jsx-test></div>');
+      equal(
+        domNode.firstChild.shadowRoot.querySelector('div').outerHTML,
+        '<div>Hello world!</div>',
+      );
+
+      equal(
+        domNode.outerHTML,
+        '<div><jsx-test message="Hello world!"></jsx-test></div>',
+      );
     });
   });
 
-  describe.skip('Stateful components', () => {
+  describe('Stateful components', () => {
     it('will re-render with setState', () => {
       let ref = null;
 
@@ -157,12 +169,22 @@ describe.skip('Web Component', function() {
         }
       });
 
-      innerHTML(this.fixture, html`<stateful-test ref=${node => ref = node} />`);
-      equal(this.fixture.firstChild.shadowRoot.firstChild.outerHTML, '<div>default</div>');
+      innerHTML(
+        this.fixture,
+        html`<stateful-test ref=${node => ref = node} />`,
+      );
+
+      equal(
+        this.fixture.firstChild.shadowRoot.childNodes[1].outerHTML,
+        '<div>default</div>',
+      );
 
       ref.setState({ msg: 'it works' });
 
-      equal(this.fixture.firstChild.shadowRoot.firstChild.outerHTML, '<div>it works</div>');
+      equal(
+        this.fixture.firstChild.shadowRoot.childNodes[1].outerHTML,
+        '<div>it works</div>',
+      );
     });
   });
 });
