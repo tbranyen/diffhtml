@@ -102,7 +102,7 @@ export default function devTools(Internals) {
 
   function devToolsTask(transaction) {
     const {
-      domNode, markup, options, state: { oldTree, newTree }, state
+      domNode, markup, options, state: { newTree }, state
     } = transaction;
 
     const selector = unique(domNode);
@@ -126,7 +126,7 @@ export default function devTools(Internals) {
 
     selectors.set(selector, newTree);
 
-    return function(transaction) {
+    return function() {
       const endDate = performance.now();
       const patches = JSON.parse(JSON.stringify(transaction.patches));
       const promises = transaction.promises.slice();

@@ -1209,6 +1209,11 @@ describe('Tree', function() {
           const patches = syncTree(oldTree, newTree);
 
           deepEqual(patches, [
+            PATCH_TYPE.SET_ATTRIBUTE,
+            first,
+            'key',
+            '2',
+
             PATCH_TYPE.INSERT_BEFORE,
             oldTree,
             first,

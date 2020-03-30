@@ -1,1 +1,1 @@
-export * from './lib/runtime';
+export * from './dist/es/runtime.js';

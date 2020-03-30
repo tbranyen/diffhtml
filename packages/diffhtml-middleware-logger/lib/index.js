@@ -1,4 +1,3 @@
-const identity = x => x;
 const { assign } = Object;
 
 const humanize = ms => {

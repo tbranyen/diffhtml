@@ -36,6 +36,7 @@ const initialState = {
   middleware: [],
   memory: [],
   theme: chrome.devtools.panels.themeName,
+  version: undefined,
 };
 
 const reactiveBinding = f => ({ set(t, p, v) { t[p] = v; f(); return !0; } });

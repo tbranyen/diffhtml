@@ -1,6 +1,6 @@
 import { Internals } from 'diffhtml';
 
-const { NodeCache, createNode } = Internals;
+const { PATCH_TYPE, NodeCache, createNode, decodeEntities } = Internals;
 
 const useCapture = [
   'onload', 'onunload', 'onscroll', 'onfocus', 'onblur', 'onloadstart',
@@ -111,61 +111,91 @@ const bindEventsTo = domNode => {
   }, useCapture.includes(eventName) ? true : false));
 }
 
-const syntheticEvents = (options = {}) => {
+const syntheticEvents = () => {
   function syntheticEventsTask() {
-    return ({ state, patches }) => {
-      const { SET_ATTRIBUTE, REMOVE_ATTRIBUTE } = patches;
+    return ({ patches }) => {
+      const { length } = patches;
 
-      if (SET_ATTRIBUTE.length) {
-        for (let i = 0; i < SET_ATTRIBUTE.length; i += 3) {
-          const vTree = SET_ATTRIBUTE[i];
-          const name = SET_ATTRIBUTE[i + 1];
-          const value = SET_ATTRIBUTE[i + 2];
+      let i = 0;
 
-          const domNode = createNode(vTree);
-          const eventName = name.toLowerCase();
+      while (true) {
+        const patchType = patches[i];
 
-          // Remove inline event binding from element and add to handlers.
-          if (eventNames.includes(eventName)) {
-            const handler = value;
-            domNode[eventName] = undefined;
-
-            const newHandlers = handlers.get(domNode) || {};
-
-            // If the value passed is a function, that's what we're looking for.
-            if (typeof handler === 'function') {
-              newHandlers[eventName] = handler;
-            }
-            // If the value passed is a string name for a global function, use
-            // that.
-            else if (typeof window[handler] === 'function') {
-              newHandlers[eventName] = window[handler];
-            }
-            // Remove the event association if the value passed was not a
-            // function.
-            else {
-              delete newHandlers[eventName];
-            }
-
-            handlers.set(domNode, newHandlers);
-            bindEventsTo(domNode);
-          }
+        if (i === length) {
+          break;
         }
-      }
 
-      if (REMOVE_ATTRIBUTE.length) {
-        for (let i = 0; i < REMOVE_ATTRIBUTE.length; i += 2) {
-          const vTree = REMOVE_ATTRIBUTE[i];
-          const name = REMOVE_ATTRIBUTE[i + 1];
+        switch(patchType) {
+          case PATCH_TYPE.SET_ATTRIBUTE: {
+            const vTree = patches[i + 1];
+            const name = patches[i + 2];
+            const value = decodeEntities(patches[i + 3]);
 
-          const domNode = NodeCache.get(vTree);
-          const eventName = name.toLowerCase();
+            const domNode = createNode(vTree);
+            const eventName = name.toLowerCase();
 
-          // Remove event binding from element and instead add to handlers.
-          if (eventNames.includes(eventName)) {
-            const newHandlers = handlers.get(domNode) || {};
-            delete newHandlers[eventName];
-            handlers.set(domNode, newHandlers);
+            // Remove inline event binding from element and add to handlers.
+            if (eventNames.includes(eventName)) {
+              const handler = value;
+              domNode[eventName] = undefined;
+
+              const newHandlers = handlers.get(domNode) || {};
+
+              // If the value passed is a function, that's what we're looking for.
+              if (typeof handler === 'function') {
+                newHandlers[eventName] = handler;
+              }
+              // If the value passed is a string name for a global function, use
+              // that.
+              else if (typeof window[handler] === 'function') {
+                newHandlers[eventName] = window[handler];
+              }
+              // Remove the event association if the value passed was not a
+              // function.
+              else {
+                delete newHandlers[eventName];
+              }
+
+              handlers.set(domNode, newHandlers);
+              bindEventsTo(domNode);
+            }
+
+            i += 4;
+            break;
+          }
+
+          case PATCH_TYPE.REMOVE_ATTRIBUTE: {
+            const vTree = patches[i + 1];
+            const name = patches[i + 2];
+
+            const domNode = NodeCache.get(vTree);
+            const eventName = name.toLowerCase();
+
+            // Remove event binding from element and instead add to handlers.
+            if (eventNames.includes(eventName)) {
+              const newHandlers = handlers.get(domNode) || {};
+              delete newHandlers[eventName];
+              handlers.set(domNode, newHandlers);
+            }
+
+            i += 3;
+            break;
+          }
+
+          case PATCH_TYPE.NODE_VALUE:
+          case PATCH_TYPE.INSERT_BEFORE: {
+            i += 4;
+            break;
+          }
+
+          case PATCH_TYPE.REPLACE_CHILD: {
+            i += 3;
+            break;
+          }
+
+          case PATCH_TYPE.REMOVE_CHILD: {
+            i += 2;
+            break;
           }
         }
       }

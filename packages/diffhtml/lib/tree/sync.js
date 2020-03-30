@@ -238,10 +238,10 @@ export default function syncTree(oldTree, newTree, patches = []) {
         }
         else if (newKey) {
           optimalNewNode = newChildNode;
-
-          // Find attribute changes for this Node.
-          syncTree(null, newChildNode, patches, newTree);
         }
+
+        // Crawl this Node for any changes to apply.
+        syncTree(null, optimalNewNode, patches, oldTree);
 
         patches.push(
           PATCH_TYPE.INSERT_BEFORE,

@@ -21,7 +21,7 @@ class DevtoolsMountsPanel extends WebComponent {
   render() {
     const { mounts = [] } = this.props;
     const { index } = this.state;
-    const { styles, changeIndex, renderVTree } = this;
+    const { styles, changeIndex } = this;
 
     const options = mounts.map(({ selector }) => ({
       text: selector,
@@ -61,7 +61,7 @@ class DevtoolsMountsPanel extends WebComponent {
 
       ${mounts[index] && html`
         <div class="wrapper">
-          ${renderVTree(mounts[index].tree)}
+          ${this.renderVTree(mounts[index].tree)}
         </div>
       `}
     `;

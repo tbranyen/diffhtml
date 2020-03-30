@@ -19,6 +19,7 @@ const VERSION = `${__VERSION__}-runtime`;
 const Internals = assign(internals, {
   defaultTasks,
   tasks,
+  VERSION,
 });
 
 const api = {};

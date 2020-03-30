@@ -28,6 +28,7 @@ const Internals = assign(internals, {
   parse,
   defaultTasks,
   tasks,
+  VERSION,
 });
 
 const api = {};
