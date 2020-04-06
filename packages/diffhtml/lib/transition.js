@@ -1,5 +1,8 @@
 import { TransitionCache } from './util/caches';
 import process from './util/process';
+import createTree from './tree/create';
+import createNode from './node/create';
+import { VTree } from './util/types';
 
 // Available transition states.
 const stateNames = [
@@ -77,13 +80,17 @@ export function runTransitions(setName, ...args) {
   /** @type {Promise<any>[]} */
   const promises = [];
 
+  // Do not pass text nodes to anything but textChanged.
   if (!set.size || setName !== 'textChanged' && args[0].nodeType === 3) {
     return promises;
   }
 
-  // Run each transition callback, if on the attached/detached.
+  const [ vTree, ...rest ] = args;
+
+  // Run each transition callback, but only if the passed args are an
+  // Element.
   set.forEach(callback => {
-    const retVal = callback(...args);
+    const retVal = callback(createNode(vTree), ...rest);
 
     // Is a `thennable` object or Native Promise.
     if (typeof retVal === 'object' && retVal.then) {
@@ -92,10 +99,8 @@ export function runTransitions(setName, ...args) {
   });
 
   if (setName === 'attached' || setName === 'detached') {
-    const element = args[0];
-
-    [...element.childNodes].forEach(childNode => {
-      promises.push(...runTransitions(setName, childNode, ...args.slice(1)));
+    vTree.childNodes.forEach((/** @type {VTree} */ childTree) => {
+      promises.push(...runTransitions(setName, createNode(childTree), ...rest));
     });
   }
 

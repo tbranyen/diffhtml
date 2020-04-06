@@ -24,12 +24,14 @@ const nextValue = (/** @type {any[]} */ values) => {
  *
  * @param {string | string[] | TemplateStringsArray} strings
  * @param  {...any} values - test
- * @return {VTree | null} VTree object or null if no input strings
+ * @return {VTree} VTree object or null if no input strings
  */
 export default function handleTaggedTemplate(strings, ...values) {
+  const empty = createTree('#text', '');
+
   // Do not attempt to parse empty strings.
   if (!strings) {
-    return null;
+    return empty;
   }
 
   // If this function is used outside of a tagged template, ensure that flat
@@ -42,6 +44,10 @@ export default function handleTaggedTemplate(strings, ...values) {
   if (strings.length === 1 && !values.length) {
     const strict = handleTaggedTemplate.isStrict;
     handleTaggedTemplate.isStrict = false;
+
+    if (!strings[0]) {
+      return empty;
+    }
 
     const vTree = parse(strings[0], undefined, { parser: { strict } });
     const { childNodes } = vTree;
@@ -102,6 +108,11 @@ export default function handleTaggedTemplate(strings, ...values) {
       }
     }
   });
+
+  // If no markup was supplied, treat this as an empty text node.
+  if (!HTML) {
+    return empty;
+  }
 
   // Determine if we are in strict mode and immediately reset for the next
   // call.

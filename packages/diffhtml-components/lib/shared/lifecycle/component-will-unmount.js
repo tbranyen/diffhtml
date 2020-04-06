@@ -13,7 +13,7 @@ const hasVTree = (matchTree, vTree) => {
 
 export default function willUnmount(vTree) {
   const componentTree = ComponentTreeCache.get(vTree);
-  const instance = InstanceCache.get(componentTree);
+  const instances = InstanceCache.get(componentTree);
   const domNode = NodeCache.get(vTree);
 
   // TODO This needs to mirror component-did-mount where the refs map is
@@ -26,11 +26,13 @@ export default function willUnmount(vTree) {
     componentTree.attributes.ref(null);
   }
 
-  // Ensure this is a stateful component. Stateless components do not get
-  // lifecycle events yet.
-  if (instance && instance.componentWillUnmount) {
-    instance.componentWillUnmount();
-  }
+  instances && instances.forEach(instance => {
+    // Ensure this is a stateful component. Stateless components do not get
+    // lifecycle events yet.
+    if (instance && instance.componentWillUnmount) {
+      instance.componentWillUnmount();
+    }
+  });
 
   // Clean up Shadow DOM (TODO what if the shadow dom is detached?).
   if (domNode && domNode.shadowRoot) {
@@ -39,4 +41,5 @@ export default function willUnmount(vTree) {
 
   ComponentTreeCache.delete(vTree);
   InstanceCache.delete(componentTree);
+  InstanceCache.delete(vTree);
 }

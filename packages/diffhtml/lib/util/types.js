@@ -56,7 +56,7 @@ export const VTreeLike = {
 };
 
 /**
- * @typedef {HTMLElement | Text | Comment | DocumentFragment | Function | string | string[] | VTreeLike | VTreeLike[]} ValidInput
+ * @typedef {HTMLElement | Text | Comment | DocumentFragment | Function | string | string[] | VTree | VTree[] | VTreeLike | VTreeLike[]} ValidInput
  */
 
 /**
@@ -74,7 +74,7 @@ export const ValidInput = '';
 export const ValidNode = null;
 
 /**
- * @typedef {HTMLElement | DocumentFragment | string} Mount
+ * @typedef {HTMLElement | DocumentFragment | string | VTree | VTree[] | VTreeLike | VTreeLike[]} Mount
  */
 
 /**

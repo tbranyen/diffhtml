@@ -1,26 +1,27 @@
 import { InstanceCache, ComponentTreeCache } from '../util/caches';
 
 const { assign } = Object;
-const ContextCache = new Map();
 
 export default function getContext(vTree) {
-  if (ContextCache.has(vTree)) {
-    return ContextCache.get(vTree);
-  }
-  else if (ComponentTreeCache.has(vTree)) {
-    const componentTree = ComponentTreeCache.get(vTree);
-    const instance = InstanceCache.get(componentTree);
-    const context = getContext(componentTree);
+  if (InstanceCache.has(vTree)) {
+    const context = {};
+    const instances = InstanceCache.get(vTree);
 
-    if (instance) {
-      const child = instance.getChildContext && instance.getChildContext();
-      assign(context, child);
+    // If instances were set and the length is not zero, process all of the
+    // getChildContext functions.
+    if (instances && instances.length) {
+      for (let i = 0; i < instances.length; i++) {
+        const instance = instances[i];
+        const child = instance.getChildContext && instance.getChildContext();
+
+        if (child) {
+          assign(context, child);
+        }
+      }
     }
 
     return context;
   }
 
-  const context = {};
-  ContextCache.set(vTree, context);
-  return context;
+  return context || {};
 }

@@ -244,7 +244,7 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
     transaction
   );
 
-  const { state: { oldTree } } = transaction;
+  const { oldTree } = transaction;
 
   if (transaction.state.isRendering) {
     console.groupEnd();

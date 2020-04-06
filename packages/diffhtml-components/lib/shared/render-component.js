@@ -1,49 +1,108 @@
 import { createTree } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../util/caches';
 import { $$vTree } from '../util/symbols';
+import getContext from './get-context';
 
-export default function renderComponent(vTree, context = {}) {
+/**
+ * Used during a synchronization flow. Takes in a vTree and a context object
+ * and renders the component as a class or a function. Calls standard lifecycle
+ * methods.
+ */
+export default function renderComponent(vTree, context) {
   const Component = vTree.rawNodeName;
   const props = vTree.attributes;
   const isNewable = Component.prototype && Component.prototype.render;
 
-  let instance = null;
+  let instances = null;
   let renderTree = null;
 
+  // Existing component.
   if (InstanceCache.has(vTree)) {
-    instance = InstanceCache.get(vTree);
+    instances = InstanceCache.get(vTree);
 
-    if (typeof instance.componentWillReceiveProps === 'function') {
-      instance.componentWillReceiveProps(props);
-    }
+    // If a component chain can early, return, bail out. This happens with
+    // HoC.
+    let earlyReturn = false;
 
-    // TODO Find a better way of accomplishing this...
-    // Wipe out all old references before re-rendering.
-    ComponentTreeCache.forEach((_vTree, childNode) => {
-      if (_vTree === vTree) {
-        ComponentTreeCache.delete(childNode);
+    // Loop over all the instances and bail out early if possible.
+    instances && instances.forEach(instance => {
+      if (earlyReturn) {
+        return;
+      }
+
+      if (typeof instance.componentWillReceiveProps === 'function') {
+        instance.componentWillReceiveProps(props);
+      }
+
+      // TODO Find a better way of accomplishing this...
+      // Wipe out all old references before re-rendering.
+      ComponentTreeCache.forEach((_vTree, childNode) => {
+        if (_vTree === vTree) {
+          ComponentTreeCache.delete(childNode);
+        }
+      });
+
+      if (instance.shouldComponentUpdate()) {
+        renderTree = createTree(instance.render(props, instance.state, context));
+
+        if (instance.componentDidUpdate) {
+          instance.componentDidUpdate(instance.props, instance.state);
+        }
+      }
+      else {
+        earlyReturn = true;
       }
     });
-
-    if (instance.shouldComponentUpdate()) {
-      renderTree = createTree(instance.render(props, instance.state, context));
-
-      if (instance.componentDidUpdate) {
-        instance.componentDidUpdate(instance.props, instance.state);
-      }
-    }
   }
   // New class instance.
   else if (isNewable) {
-    instance = new Component(props, context);
-    InstanceCache.set(vTree, instance);
-    instance[$$vTree] = vTree;
+    const instance = new Component(props, context);
 
-    renderTree = createTree([
-      createTree(instance.render(props, instance.state, context))
-    ]);
+    // Associate the instance to the vTree.
+    InstanceCache.set(vTree, [instance]);
+
+    // Now that the instance is associated, we can look up context.
+    context = getContext(vTree);
+
+    // Initial render of the class component.
+    renderTree = createTree(instance.render(props, instance.state, context));
+
+    // Ensure at least a single element was returned, unless this is a dynamic
+    // component that needs to be rendered.
+    if (
+      renderTree.nodeType === 11 &&
+      renderTree.childNodes.length === 0 &&
+      typeof renderTree.rawNodeName !== 'function'
+    ) {
+      throw new Error('Must return at least one element from render');
+    }
+
+    const isHOC = typeof renderTree.rawNodeName === 'function';
+
+    // If the component returned is a function, treat as a HoC and inject
+    // the parent class into it (if it's newable).
+    if (isHOC) {
+      // Render the nested component.
+      const retVal = renderComponent(renderTree, context);
+
+      // Get the newly created instance.
+      const renderedInstances = InstanceCache.get(renderTree);
+
+      // Push the parent to the front, so long as a child instance was created.
+      if (renderedInstances) renderedInstances.unshift(instance);
+
+      return retVal;
+    }
+    else {
+      // We are dealing with a higher-order-component, which means a function
+      // which returns a component instance, instead of a rendered component.
+      InstanceCache.set(renderTree, [instance]);
+    }
+
+    instance[$$vTree] = vTree;
   }
   else {
+    context = context || getContext(vTree);
     renderTree = createTree(Component(props, context));
   }
 
@@ -58,19 +117,19 @@ export default function renderComponent(vTree, context = {}) {
       if (newTree && newTree.nodeType !== 11) {
         ComponentTreeCache.set(newTree, vTree);
       }
-      else if (newTree) {
-        linkTrees(newTree.childNodes);
-      }
+      // FIXME When does a fragment occur, should we account for this?
     }
   };
 
   // Maybe this isn't necessary? For now it helps track, but this is costly
   // and perhaps can be solved in a different way.
-  linkTrees([].concat(renderTree));
-
-  if (renderTree && Component) {
-    // Need to update the NodeCache now.
+  if (renderTree && renderTree.nodeType === 11) {
+    linkTrees(renderTree.childNodes);
+    // Ensure the fragment is linked as well.
     ComponentTreeCache.set(renderTree, vTree);
+  }
+  else if (renderTree) {
+    linkTrees([].concat(renderTree));
   }
 
   return renderTree;

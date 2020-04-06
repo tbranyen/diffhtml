@@ -6,6 +6,8 @@ import { ValidInput, Options, Mount } from './util/types';
  * @param {Mount} domNode
  * @param {ValidInput} input
  * @param {Options} options
+ *
+ * @return {Promise<Transaction | unknown>}
  */
 export default function innerHTML(domNode, input = '', options = {}) {
   options.inner = true;

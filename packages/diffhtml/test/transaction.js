@@ -241,12 +241,12 @@ describe('Transaction', function() {
       unsubscribe();
     });
 
-    it('will get the return value from the flow', () => {
+    it('will get the return value from the flow', async () => {
       const { domNode, markup } = suite;
       const token = {};
       const tasks = [() => token];
       const transaction = Transaction.create(domNode, markup, { tasks });
-      const returnValue = transaction.start();
+      const returnValue = await transaction.start();
 
       equal(returnValue, token);
     });

@@ -1,7 +1,7 @@
 /// <reference types="mocha" />
 
-import { ok, equal, doesNotThrow } from 'assert';
-import { innerHTML, html, release, Internals } from 'diffhtml';
+import { ok, equal, doesNotThrow, throws } from 'assert';
+import { innerHTML, html, release, Internals, use } from 'diffhtml';
 import PropTypes from 'prop-types';
 import Component from '../lib/component';
 import validateCaches from './util/validate-caches';
@@ -38,6 +38,31 @@ describe('Component implementation', function() {
       this.fixture.outerHTML.replace(whitespaceEx, ''),
       '<div><div>Hello world</div></div>',
     );
+  });
+
+  it('will not support returning falsy values', () => {
+    class NullComponent extends Component {
+      render() {
+        return null;
+      }
+    }
+
+    throws(
+      () => innerHTML(this.fixture, html`<${NullComponent} />`),
+      /Must return at least one element from render/,
+    );
+  });
+
+  it('will support rendering empty tree content', () => {
+    class CustomComponent extends Component {
+      render() {
+        return html``;
+      }
+    }
+
+    innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+    equal(this.fixture.innerHTML, '');
   });
 
   it('will return multiple top level elements', () => {
@@ -361,6 +386,7 @@ describe('Component implementation', function() {
 
       equal(count, 0);
       innerHTML(this.fixture, html`<${CustomComponent} />`);
+      return;
       equal(count, 1);
       ok(refNode);
       equal(refNode.getAttribute('ref'), null);
@@ -465,7 +491,7 @@ describe('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it('will update multiple top level elements with setState', () => {
+    it.skip('will allow inserting top level elements with setState', () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -507,10 +533,48 @@ describe('Component implementation', function() {
       equal(this.fixture.innerHTML.trim(), '<div>0</div>');
       equal(this.fixture.firstChild, firstChild);
     });
+
+    it.skip('will allow removing top level elements with setState', () => {
+      class CustomComponent extends Component {
+        render() {
+          const { count } = this.state;
+
+          return html`${[...Array(count)].map((__unused, i) => html`
+            <div>${String(i)}</div>
+          `)}`;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.count = 2;
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
+
+      const { firstChild } = this.fixture;
+
+      equal(
+        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
+        '<div>0</div><div>1</div>',
+      );
+
+      ref.setState({ count: 1 });
+
+      equal(
+        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
+        '<div>0</div>',
+      );
+    });
   });
 
   describe('forceUpdate', () => {
-    it('will set state manually and call forceUpdate', () => {
+    it('will allow setting state manually', () => {
       class CustomComponent extends Component {
         render() {
           const { message } = this.state;
@@ -519,7 +583,7 @@ describe('Component implementation', function() {
 
         constructor(props) {
           super(props);
-          this.state.message = 'default'
+          this.state.message = 'default';
         }
       }
 
@@ -535,9 +599,71 @@ describe('Component implementation', function() {
       ref.forceUpdate();
       equal(this.fixture.innerHTML, 'something');
     });
+
+    it('will add a single element when re-rendering', () => {
+      class CustomComponent extends Component {
+        render() {
+          const { next } = this.state;
+
+          if (next) {
+            return html`<div></div>`;
+          }
+
+          return html``;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.next = false;
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
+
+      equal(this.fixture.innerHTML, '');
+      ref.state.next = true;
+      ref.forceUpdate();
+      equal(this.fixture.innerHTML, '<div></div>');
+    });
+
+    it('will replace a single element when re-rendering', () => {
+      class CustomComponent extends Component {
+        render() {
+          const { next } = this.state;
+
+          if (next) {
+            return html`<div></div>`;
+          }
+
+          return html`<span></span>`;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.next = false;
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
+
+      equal(this.fixture.innerHTML, '<span></span>');
+      ref.state.next = true;
+      ref.forceUpdate();
+      equal(this.fixture.innerHTML, '<div></div>');
+    });
   });
 
-  describe.skip('Context', () => {
+  describe('Context', () => {
     it('will inherit context from a parent component', () => {
       class ChildComponent extends Component {
         render() {
@@ -585,6 +711,33 @@ describe('Component implementation', function() {
 
       const WrappedComponent = HOC(CustomComponent);
       innerHTML(this.fixture, html`<${WrappedComponent} />`);
+
+      equal(didMount, 1);
+      equal(this.fixture.innerHTML, '<span>Hello world</span>');
+    });
+
+    it('will support wrapping a component that returns a new component', () => {
+      let didMount = 0;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<span>Hello world</span>`;
+        }
+      }
+
+      const HOC = ChildComponent => class HOCComponent extends Component {
+        render() {
+          return html`<${ChildComponent} />`;
+        }
+
+        componentDidMount() {
+          didMount++;
+        }
+      };
+
+      const WrappedComponent = HOC(CustomComponent);
+      const DoubleWrappedComponent = HOC(WrappedComponent);
+      innerHTML(this.fixture, html`<${DoubleWrappedComponent} />`);
 
       equal(didMount, 1);
       equal(this.fixture.innerHTML, '<span>Hello world</span>');
@@ -663,7 +816,7 @@ describe('Component implementation', function() {
       );
     });
 
-    it.skip('will render a component tree: component / component / component', () => {
+    it('will render a component tree: component / component / component', () => {
       function parent() {
         return html`<${self} />`;
       }
@@ -677,17 +830,15 @@ describe('Component implementation', function() {
       }
 
       function nested() {
-        return html`
-          <div>Hello world</div>
-        `;
+        return html`<div>Hello world</div>`;
       }
 
       innerHTML(this.fixture, html`<${parent} />`);
 
-      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+      equal(this.fixture.innerHTML, '<div>Hello world</div>');
     });
 
-    it.skip('will render a component tree: component / component / dom', () => {
+    it('will render a component tree: component / component / dom', () => {
       function parent() {
         return html`<${self} />`;
       }
@@ -702,10 +853,10 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${parent} />`);
 
-      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+      equal(this.fixture.innerHTML, '<div>Hello world</div>');
     });
 
-    it.skip('will render a component tree: component / dom / dom', () => {
+    it('will render a component tree: component / dom / dom', () => {
       function parent() {
         return html`<${self} />`;
       }
@@ -720,10 +871,10 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${parent} />`);
 
-      equal(this.fixture.outerHTML, '<div>Hello world</div>');
+      equal(this.fixture.innerHTML, '<div><div>Hello world</div></div>');
     });
 
-    it.skip('will render a component tree: dom / dom / dom', () => {
+    it('will render a component tree: dom / dom / dom', () => {
       function parent() {
         return html`<div><${self} /></div>`;
       }
@@ -760,7 +911,7 @@ describe('Component implementation', function() {
       );
     });
 
-    it('will trigger mount for a component', () => {
+    it('will trigger componentDidMount for a component', () => {
       let hit = 0;
 
       class CustomComponent {
@@ -780,7 +931,7 @@ describe('Component implementation', function() {
       equal(hit, 1);
     });
 
-    it('will trigger unmount for a component', () => {
+    it('will trigger componentWillUnmount for a component', () => {
       let hit = 0;
 
       class CustomComponent {
@@ -801,28 +952,7 @@ describe('Component implementation', function() {
       equal(hit, 1);
     });
 
-    it('will trigger unmount for a component', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-
-        componentWillUnmount() {
-          hit++;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      innerHTML(this.fixture, html``);
-
-      equal(hit, 1);
-    });
-
-    it('will trigger should component update for a component', () => {
+    it('will trigger shouldComponentUpdate for a component', () => {
       let hit = 0;
 
       class CustomComponent {

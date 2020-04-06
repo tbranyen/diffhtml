@@ -32,6 +32,8 @@ export default class Transaction {
   /**
    * @param {Transaction} transaction
    * @param {any} tasks
+   *
+   * @return {Promise<Transaction | unknown>}
    */
   static flow(transaction, tasks) {
     let retVal = transaction;
@@ -41,7 +43,7 @@ export default class Transaction {
     for (let i = 0; i < tasks.length; i++) {
       // If aborted, don't execute any more tasks.
       if (transaction.aborted) {
-        return retVal;
+        return Promise.resolve(retVal);
       }
 
       // Run the task.
@@ -53,9 +55,11 @@ export default class Transaction {
       // mechanism to know when the transaction completes. Something like
       // callbacks or a Promise.
       if (retVal !== undefined && retVal !== transaction) {
-        return retVal;
+        return Promise.resolve(retVal);
       }
     }
+
+    return Promise.resolve(retVal);
   }
 
   /**
@@ -123,6 +127,9 @@ export default class Transaction {
     StateCache.set(domNode, this.state);
   }
 
+  /**
+   * @return {Promise<Transaction | unknown>}
+   */
   start() {
     if (process.env.NODE_ENV !== 'production') {
       Transaction.assert(this);

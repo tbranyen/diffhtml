@@ -18,10 +18,8 @@ export default function syncTree(oldTree, newTree, patches = []) {
   if (!newTree) newTree = empty;
 
   const oldNodeName = oldTree.nodeName;
-  const isFragment = newTree.nodeType === 11;
+  const isFragment = newTree.nodeType === 11 || oldTree.nodeType === 11;
   const isEmpty = oldTree === empty;
-  /** @type {any} */
-  const keysLookup = { old: new Map(), new: new Map() };
 
   if (process.env.NODE_ENV !== 'production') {
     if (newTree === empty) {
@@ -35,6 +33,38 @@ export default function syncTree(oldTree, newTree, patches = []) {
       );
     }
   }
+
+  let shortCircuit = false;
+
+  // Invoke the SyncTree hooks which allow middleware to do their own custom
+  // sync logic. This may mean short-circuiting the sync completely by
+  // returning the previous tree. This effectively sandboxes an element in the
+  // DOM from changes or diffs. Another useful way to use these hooks are to
+  // take the new tree, and convert it into something else. This is how
+  // components are implemented.
+  SyncTreeHookCache.forEach(fn => {
+    // Call the user provided middleware function for a single root node. Allow
+    // the consumer to specify a return value of a different VTree (useful for
+    // components).
+    const retVal = fn(oldTree, newTree);
+
+    // If the value returned matches the original element, then short circuit
+    // and do not dig further.
+    if (retVal && retVal === oldTree) {
+      shortCircuit = true;
+    }
+    // If the user has returned a value, treat it as the new tree.
+    else if (retVal) {
+      newTree = retVal;
+    }
+  });
+
+  if (shortCircuit) {
+    return patches;
+  }
+
+  /** @type {any} */
+  const keysLookup = { old: new Map(), new: new Map() };
 
   // Reduce duplicate logic by condensing old and new operations in a loop.
   for (let i = 0; i < keyNames.length; i++) {
@@ -58,34 +88,6 @@ export default function syncTree(oldTree, newTree, patches = []) {
         }
       }
     }
-  }
-
-  let shortCircuit = false;
-
-  // Invoke any middleware hooks, allow the middleware to replace the
-  // `newTree`. Pass along the `keysLookup` object so that middleware can make
-  // smart decisions when dealing with keys.
-  SyncTreeHookCache.forEach(fn => {
-    // Call the user provided middleware function for a single root node. Allow
-    // the consumer to specify a return value of a different VTree (useful for
-    // components).
-    let retVal = fn(oldTree, newTree, keysLookup);
-
-    // If the value returned matches the original element, then short circuit
-    // and do not dig further.
-    if (retVal && retVal === oldTree) {
-      shortCircuit = true;
-    }
-    // If the consumer returned a value and it doesn't equal the existing tree,
-    // then splice it into the parent (if it exists) and run a sync.
-    else if (retVal && retVal !== newTree) {
-      // Synchronize this new tree.
-      newTree = retVal;
-    }
-  });
-
-  if (shortCircuit) {
-    return patches;
   }
 
   const newNodeName = newTree.nodeName;

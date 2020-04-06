@@ -5,7 +5,8 @@ import upgradeSharedClass from './shared/upgrade-shared-class';
 import { ComponentTreeCache } from './util/caches';
 import { $$render, $$vTree } from './util/symbols';
 
-const { NodeCache, createNode, memory } = Internals;
+const { NodeCache, createNode } = Internals;
+const { from } = Array;
 const { keys, assign } = Object;
 const FRAGMENT = '#document-fragment';
 
@@ -15,8 +16,9 @@ class Component {
   [$$render]() {
     const vTree = this[$$vTree];
 
-    // Find all previous nodes rendered by this component.
-    const childNodes = [...ComponentTreeCache.keys()].filter(key => {
+    // Find all previous nodes rendered by this component and remove them
+    // from the cache.
+    const childNodes = from(ComponentTreeCache.keys()).filter(key => {
       const rootTree = ComponentTreeCache.get(key);
 
       if (rootTree === vTree) {
@@ -28,7 +30,8 @@ class Component {
     // By default assume a single top/root-level element, if there are multiple
     // elements returned at the root-level, then we'll do a diff and replace a
     // fragment from this root point.
-    const domNode = NodeCache.get(childNodes[0]);
+    /** @type {HTMLElement | any} */
+    let domNode = (NodeCache.get(childNodes[0]));
 
     // If there is no DOM Node association then error out.
     if (process.env.NODE_ENV !== 'production') {
@@ -43,48 +46,43 @@ class Component {
       }
     }
 
+    // Render directly from the Component.
     let renderTree = this.render();
 
     // Need to handle multiple top-level rendered elements special, this
     // requires creating two containers, one for the old children and one for
     // the new children.
     if (childNodes.length > 1) {
-      // Create a placeholder to mark where the elements were as we rip them
-      // from the connected DOM and into a fragment to work on.
-      const placeholder = document.createComment('');
-
-      // Replace one of the original references with the placeholder, so that
-      // when elements are taken out of the page (with a fragment below) we'll
-      // know where to put the new elements.
-      domNode.parentNode.replaceChild(placeholder, domNode);
-
-      // Pull the previously rendered DOM nodes out of the page and into a
-      // container fragment for diffing.
-      const fragment = createNode({ nodeName: FRAGMENT, childNodes });
+      // Put all the nodes together into a fragment for diffing.
+      const fragment = createTree(FRAGMENT, null, childNodes);
 
       // Ensure a fragment is always used.
       if (renderTree.nodeType !== 11) {
         renderTree = createTree(FRAGMENT, null, renderTree);
       }
 
-      // Diff the fragments together.
-      outerHTML(fragment, renderTree).then(() => release(fragment));
+      // TODO Need to figure out how to support diffing fragment to fragment.
+      const prevLength = fragment.childNodes.length;
 
-      [].slice.apply(fragment.childNodes).forEach(childTree => {
-        ComponentTreeCache.set(createTree(childTree), vTree);
+      childNodes.slice(1).forEach(childNode => {
+        const domNode = NodeCache.get(childNode);
+        domNode.parentNode && domNode.parentNode.removeChild(domNode);
       });
 
-      // Replace the comment placeholder with the fragment.
-      placeholder.parentNode.replaceChild(fragment, placeholder);
+      outerHTML(fragment, renderTree);
+
+      domNode.parentNode.replaceChild(createNode(fragment), domNode);
+
+      // Loop over the nodes created
+      fragment.childNodes.forEach(childTree => {
+        ComponentTreeCache.set(childTree, vTree);
+      });
+
+      release(fragment);
     }
     else {
-      outerHTML(domNode, renderTree).then(transaction => {
-        // FIXME Does `renderTree` we need to be here? Is this association
-        // necessary?
-        //[renderTree, ...renderTree.childNodes].forEach(childTree => {
-        //  ComponentTreeCache.set(childTree, vTree);
-        //});
-      });
+      outerHTML(domNode, renderTree);
+      ComponentTreeCache.set(renderTree, vTree);
     }
 
     this.componentDidUpdate(this.props, this.state);

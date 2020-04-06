@@ -22,6 +22,7 @@ export default function reconcileTrees(transaction) {
     release(domNode);
     state.oldTree = createTree(domNode);
     protectVTree(state.oldTree);
+
     // Reset the state cache after releasing.
     StateCache.set(domNode, state);
   }

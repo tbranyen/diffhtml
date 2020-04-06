@@ -6,8 +6,6 @@ const { NodeCache } = Internals;
 const callRefs = vTrees => {
   for (let i = 0; i < vTrees.length; i++) {
     const vTree = vTrees[i];
-    const componentTree = ComponentTreeCache.get(vTree);
-    const instance = InstanceCache.get(componentTree);
 
     if (!vTree) continue;
 
@@ -15,16 +13,33 @@ const callRefs = vTrees => {
       callRefs(vTree.childNodes);
     }
 
-    // Pull the ref off the DOM VTree or Component VTree.
+    const componentTree = ComponentTreeCache.get(vTree);
+    const instances = InstanceCache.get(componentTree);
+
+    // Pull the ref off the componentTree, or fall back to the DOM tree. This
+    // allows DOM nodes to have refs called.
     const { ref } = (componentTree || vTree).attributes;
     const domNode = NodeCache.get(vTree);
-    const value = !componentTree ? domNode : instance;
 
-    if (typeof ref === 'function') {
-      ref(value);
-    }
-    else if (typeof ref === 'string') {
-      instance.refs = { ...instance.refs, [ref]: value };
+    instances && instances.forEach(instance => {
+      if (typeof ref === 'function') {
+        ref(instance);
+      }
+      else if (typeof ref === 'string') {
+        instance.refs = { ...instance.refs, [ref]: instance };
+      }
+    });
+
+    // Support web components/dom elements.
+    if (!instances || !instances.length) {
+      const value = domNode;
+
+      if (typeof ref === 'function') {
+        ref(value);
+      }
+      else if (typeof ref === 'string') {
+        instance.refs = { ...instance.refs, [ref]: value };
+      }
     }
   }
 }
@@ -33,13 +48,13 @@ export default function componentDidMount(vTree) {
   // Ensure this is a stateful component. Stateless components do not get
   // lifecycle events yet.
   const componentTree = ComponentTreeCache.get(vTree);
-  const instance = InstanceCache.get(componentTree);
+  const instances = InstanceCache.get(componentTree || vTree);
 
   callRefs([vTree]);
 
-  if (instance) {
+  instances && instances.forEach(instance => {
     if (instance.componentDidMount) {
       instance.componentDidMount();
     }
-  }
+  });
 }

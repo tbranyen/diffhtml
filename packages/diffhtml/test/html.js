@@ -7,16 +7,18 @@ import { NodeCache } from '../lib/util/caches';
 describe('HTML (Tagged template)', function() {
   afterEach(() => validateMemory());
 
-  it('will return null when passed a falsy value', () => {
+  it('will return an empty text node when passed a falsy value', () => {
     /** @type {any} */
     const invalidHtml = html;
+    const empty = createTree('#text', '');
 
-    equal(invalidHtml(), null);
-    equal(invalidHtml(null), null);
-    equal(invalidHtml(undefined), null);
-    equal(invalidHtml(0), null);
-    equal(invalidHtml(NaN), null);
-    equal(invalidHtml(false), null);
+    deepEqual(invalidHtml``, empty);
+    deepEqual(invalidHtml(), empty);
+    deepEqual(invalidHtml(null), empty);
+    deepEqual(invalidHtml(undefined), empty);
+    deepEqual(invalidHtml(0), empty);
+    deepEqual(invalidHtml(NaN), empty);
+    deepEqual(invalidHtml(false), empty);
   });
 
   it('will support running as a standalone function', () => {

@@ -11,7 +11,7 @@ html, body {
   margin: 0 auto;
   display: flex;
   font-family: Lato, Arial, Helvetica, sans-serif;
-  background: linear-gradient(to right, #FCFDF0 50%, #F3F3F3 50%, #F3F3F3 100%);
+  background: linear-gradient(to right, #F3F3F3 0%, #FCFDF0 calc(50% - 650px), #F3F3F3 50%, #F3F3F3 100%);
   touch-action: manipulation;
 }
 

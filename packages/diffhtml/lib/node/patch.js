@@ -68,7 +68,7 @@ export default function patchNode(patches, state = {}) {
         );
         const oldValue = domNode.getAttribute(_name);
         const newPromises = runTransitions(
-          'attributeChanged', domNode, _name, oldValue, value
+          'attributeChanged', vTree, _name, oldValue, value
         );
 
         // Triggered either synchronously or asynchronously depending on if a
@@ -143,7 +143,7 @@ export default function patchNode(patches, state = {}) {
         );
         const oldValue = domNode.getAttribute(name);
         const newPromises = runTransitions(
-          'attributeChanged', domNode, name, oldValue, null
+          'attributeChanged', vTree, name, oldValue, null
         );
 
         if (newPromises.length) {
@@ -169,7 +169,7 @@ export default function patchNode(patches, state = {}) {
         ;
 
         const textChangedPromises = runTransitions(
-          'textChanged', domNode, oldValue, nodeValue
+          'textChanged', vTree, oldValue, nodeValue
         );
 
         const { parentNode } = domNode;
@@ -216,9 +216,7 @@ export default function patchNode(patches, state = {}) {
         // If refNode is `undefined` then it will simply append like `appendChild`.
         domNode.insertBefore(newNode, refNode || null);
 
-        const attachedPromises = runTransitions('attached', newNode);
-
-        promises.push(...attachedPromises);
+        promises.push(...runTransitions('attached', newTree));
 
         break;
       }
@@ -260,10 +258,10 @@ export default function patchNode(patches, state = {}) {
 
         protectVTree(newTree);
 
-        const attachedPromises = runTransitions('attached', newDomNode);
-        const detachedPromises = runTransitions('detached', oldDomNode);
+        const attachedPromises = runTransitions('attached', newTree);
+        const detachedPromises = runTransitions('detached', oldTree);
         const replacedPromises = runTransitions(
-          'replaced', oldDomNode, newDomNode
+          'replaced', oldTree, newDomNode
         );
         const allPromises = [
           ...attachedPromises,
@@ -310,7 +308,7 @@ export default function patchNode(patches, state = {}) {
           continue;
         }
 
-        const detachedPromises = runTransitions('detached', domNode);
+        const detachedPromises = runTransitions('detached', vTree);
 
         if (detachedPromises.length) {
           Promise.all(detachedPromises).then(() => {
