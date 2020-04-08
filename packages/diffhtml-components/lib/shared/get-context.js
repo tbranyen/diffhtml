@@ -3,8 +3,9 @@ import { InstanceCache, ComponentTreeCache } from '../util/caches';
 const { assign } = Object;
 
 export default function getContext(vTree) {
+  const context = {};
+
   if (InstanceCache.has(vTree)) {
-    const context = {};
     const instances = InstanceCache.get(vTree);
 
     // If instances were set and the length is not zero, process all of the
@@ -19,9 +20,7 @@ export default function getContext(vTree) {
         }
       }
     }
-
-    return context;
   }
 
-  return context || {};
+  return context;
 }

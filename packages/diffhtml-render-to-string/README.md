@@ -2,12 +2,12 @@
 
 Stable Version: 1.0.0-beta.13
 
-Use with diffHTML to render your Virtual Trees to strings. This is useful for
-server-side rendering and testing. This works very similar to `outerHTML` and
-will even accept all the same markup inputs as that API.
+Allows you to render diffHTML markup to string. This is useful for server-side
+rendering, compiling to static HTML, and testing.
 
-All middleware should work if it can run under Node.js. For instnace you can
-use React-like Components by importing from diffhtml-components.
+All middleware should work if it can run under Node.js. For instance you can
+use Components by importing from diffhtml-components or get logging by
+importing diffhtml-middleware-logger.
 
 ##### Installation
 
@@ -26,7 +26,7 @@ const markup = renderToString(html`
 `);
 
 // Use with something like express to send to the client.
-res.send(markup);
+//res.send(markup);
 ```
 
 ##### Example components

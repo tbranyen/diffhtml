@@ -34,8 +34,6 @@ tasks.add(function reconcileTrees(transaction) {
   // operation that would normally occur under `innerHTML`.
   transaction.oldTree = domNode;
 
-  //console.log(transaction.oldTree);
-
   // Create a fake, but fast DOM node, replacing the VTree passed in.
   transaction.domNode = makeDOMNode(domNode);
 });

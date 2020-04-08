@@ -281,6 +281,10 @@ describe('Component implementation', function() {
         componentDidUpdate() {
           wasCalled = true;
         }
+
+        componentWillUnmount() {
+          //console.log(new Error().stack);
+        }
       }
 
       innerHTML(this.fixture, html`<${CustomComponent}
@@ -491,7 +495,7 @@ describe('Component implementation', function() {
       equal(counter, 1);
     });
 
-    it.skip('will allow inserting top level elements with setState', () => {
+    it('will allow inserting top level elements with setState', () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -534,7 +538,7 @@ describe('Component implementation', function() {
       equal(this.fixture.firstChild, firstChild);
     });
 
-    it.skip('will allow removing top level elements with setState', () => {
+    it('will allow removing top level elements with setState', () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -660,6 +664,68 @@ describe('Component implementation', function() {
       ref.state.next = true;
       ref.forceUpdate();
       equal(this.fixture.innerHTML, '<div></div>');
+    });
+
+    it('will remove a single element when re-rendering', () => {
+      class CustomComponent extends Component {
+        render() {
+          const { next } = this.state;
+
+          if (next) {
+            return html``;
+          }
+
+          return html`<span></span>`;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.next = false;
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
+
+      equal(this.fixture.innerHTML, '<span></span>');
+      ref.state.next = true;
+      ref.forceUpdate();
+      equal(this.fixture.innerHTML, '');
+    });
+
+    it('will add multiple elements when re-rendering', () => {
+      class CustomComponent extends Component {
+        render() {
+          const { next } = this.state;
+
+          if (next) {
+            return html`<div></div><div></div>`;
+          }
+
+          return html``;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.next = false;
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
+
+      equal(this.fixture.innerHTML, '');
+      ref.state.next = true;
+      ref.forceUpdate();
+      equal(this.fixture.innerHTML, '<div></div><div></div>');
     });
   });
 

@@ -7,7 +7,7 @@ import { ValidInput, Options, Mount } from './util/types';
  * @param {ValidInput} input
  * @param {Options} options
  *
- * @return {Promise<Transaction | unknown>}
+ * @return {Promise<Transaction> | unknown}
  */
 export default function outerHTML(domNode, input = '', options = {}) {
   options.inner = false;

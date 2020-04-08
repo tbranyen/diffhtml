@@ -23,15 +23,19 @@ class Component {
 
       if (rootTree === vTree) {
         ComponentTreeCache.delete(key);
-        return true;
+
+        if (key.nodeType !== 11) {
+          return true;
+        }
       }
     });
 
     // By default assume a single top/root-level element, if there are multiple
     // elements returned at the root-level, then we'll do a diff and replace a
     // fragment from this root point.
-    /** @type {HTMLElement | any} */
-    let domNode = (NodeCache.get(childNodes[0]));
+    const domNode = /** @type {HTMLElement | any} */ (
+      NodeCache.get(childNodes[0])
+    );
 
     // If there is no DOM Node association then error out.
     if (process.env.NODE_ENV !== 'production') {
@@ -46,44 +50,36 @@ class Component {
       }
     }
 
+    const { parentNode } = domNode;
+
     // Render directly from the Component.
     let renderTree = this.render();
 
-    // Need to handle multiple top-level rendered elements special, this
-    // requires creating two containers, one for the old children and one for
-    // the new children.
-    if (childNodes.length > 1) {
-      // Put all the nodes together into a fragment for diffing.
-      const fragment = createTree(FRAGMENT, null, childNodes);
+    // Put all the nodes together into a fragment for diffing.
+    const fragment = createTree(FRAGMENT, null, childNodes);
 
-      // Ensure a fragment is always used.
-      if (renderTree.nodeType !== 11) {
-        renderTree = createTree(FRAGMENT, null, renderTree);
-      }
+    // Replace the first node with a placeholder text node.
+    const text = createNode({ nodeName: '#text' });
+    parentNode.replaceChild(text, domNode);
 
-      // TODO Need to figure out how to support diffing fragment to fragment.
-      const prevLength = fragment.childNodes.length;
-
-      childNodes.slice(1).forEach(childNode => {
-        const domNode = NodeCache.get(childNode);
-        domNode.parentNode && domNode.parentNode.removeChild(domNode);
-      });
-
-      outerHTML(fragment, renderTree);
-
-      domNode.parentNode.replaceChild(createNode(fragment), domNode);
-
-      // Loop over the nodes created
-      fragment.childNodes.forEach(childTree => {
-        ComponentTreeCache.set(childTree, vTree);
-      });
-
-      release(fragment);
+    // Ensure a fragment is always used.
+    if (renderTree.nodeType !== 11) {
+      renderTree = createTree(FRAGMENT, null, renderTree);
     }
-    else {
-      outerHTML(domNode, renderTree);
-      ComponentTreeCache.set(renderTree, vTree);
-    }
+
+    outerHTML(fragment, renderTree);
+
+    // This is hacky and needs some work.
+    parentNode.replaceChild(createNode(fragment), text);
+
+    // Loop over the nodes created and associate with the original VTree.
+    fragment.childNodes.forEach(childTree => {
+      ComponentTreeCache.set(childTree, vTree);
+    });
+
+    // Empty the fragment after using.
+    fragment.childNodes.length = 0;
+    release(fragment);
 
     this.componentDidUpdate(this.props, this.state);
   }
