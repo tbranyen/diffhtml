@@ -1,5 +1,5 @@
 import createTree from './tree/create';
-import parse from './util/parse';
+import parse, { TOKEN } from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 import { VTree, Supplemental } from './util/types';
@@ -7,7 +7,6 @@ import release from './release';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
-const TOKEN = '__DIFFHTML__';
 
 // Get the next value from the list. If the next value is a string, make sure
 // it is escaped.

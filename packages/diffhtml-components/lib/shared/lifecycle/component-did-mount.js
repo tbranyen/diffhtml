@@ -14,14 +14,15 @@ const callRefs = vTrees => {
     }
 
     const componentTree = ComponentTreeCache.get(vTree);
-    const instances = InstanceCache.get(componentTree);
+    const instances = InstanceCache.get(componentTree || vTree);
 
     // Pull the ref off the componentTree, or fall back to the DOM tree. This
     // allows DOM nodes to have refs called.
-    const { ref } = (componentTree || vTree).attributes;
     const domNode = NodeCache.get(vTree);
 
     instances && instances.forEach(instance => {
+      const { ref } = (instance.props || instance);
+
       if (typeof ref === 'function') {
         ref(instance);
       }
@@ -32,6 +33,7 @@ const callRefs = vTrees => {
 
     // Support web components/dom elements.
     if (!instances || !instances.length) {
+      const { ref } = vTree.attributes;
       const value = domNode;
 
       if (typeof ref === 'function') {

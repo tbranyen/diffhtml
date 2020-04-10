@@ -252,7 +252,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       return;
     }
 
-    // Invoke all the `createNodeHook` functions passing along this transaction
+    // Invoke all the `createTreeHook` functions passing along this transaction
     // as the only argument. These functions must return valid vTree values.
     if (retVal = fn(entry)) {
       assign(entry, retVal);

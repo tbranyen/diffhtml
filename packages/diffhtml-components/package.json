@@ -20,6 +20,7 @@
     "diffhtml": "^1.0.0-beta.13",
     "jsdom": "^16.2.1",
     "mocha": "^6.2.0",
+    "nyc": "^15.0.1",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",
@@ -49,7 +50,8 @@
     "watch-web-component": "NODE_ENV=umd rollup -c rollup.web-component.config.js -w",
     "test": "NODE_ENV=test mocha test/_setup test",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test",
-    "test:ci": "npm run test"
+    "test:ci": "npm run test",
+    "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test"
   },
   "peerDependencies": {
     "diffhtml": "^1.0.0-beta.10"

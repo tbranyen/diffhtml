@@ -13,8 +13,6 @@ import use from './use';
 import { addTransitionState, removeTransitionState } from './transition';
 import { __VERSION__ as VERSION } from './version';
 
-const { assign } = Object;
-
 // At startup inject the HTML parser into the default set of tasks.
 defaultTasks.splice(defaultTasks.indexOf(reconcileTrees), 0, parseNewTree);
 
@@ -24,12 +22,14 @@ defaultTasks.splice(defaultTasks.indexOf(reconcileTrees), 0, parseNewTree);
 // changes and will supply fallbacks when APIs change.
 //
 // Note: The HTML parser is only available in this mode.
-const Internals = assign(internals, {
+const Internals = {
+  ...internals,
+
   parse,
   defaultTasks,
   tasks,
   VERSION,
-});
+};
 
 const api = {};
 
@@ -52,7 +52,6 @@ const global = globalThis;
 // Automatically hook up to DevTools if they are present.
 if (global.devTools) {
   use(global.devTools(Internals));
-  console.warn('diffHTML DevTools: Found and activated!');
 }
 
 export {

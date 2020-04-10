@@ -9,18 +9,19 @@ import use from './use';
 import { addTransitionState, removeTransitionState } from './transition';
 import { __VERSION__ } from './version';
 
-const { assign } = Object;
 const VERSION = `${__VERSION__}-runtime`;
 
 // This is an internal API exported purely for middleware and extensions to
 // leverage internal APIs that are not part of the public API. There are no
 // promises that this will not break in the future. We will attempt to minimize
 // changes and will supply fallbacks when APIs change.
-const Internals = assign(internals, {
+const Internals = {
+  ...internals,
+
   defaultTasks,
   tasks,
   VERSION,
-});
+};
 
 const api = {};
 
@@ -43,7 +44,6 @@ const global = globalThis;
 // Automatically hook up to DevTools if they are present.
 if (global.devTools) {
   use(global.devTools(Internals));
-  console.warn('diffHTML DevTools: Found and activated!');
 }
 
 export {

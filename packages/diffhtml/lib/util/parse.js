@@ -5,9 +5,12 @@ import createTree from '../tree/create';
 import process from './process';
 import { VTree, Supplemental, Options, ParserOptions } from './types';
 
+// Magic token used for interpolation.
+export const TOKEN = '__DIFFHTML__';
+
 const doctypeEx = /<!.*>/i;
 const spaceEx = /[^ ]/;
-const tokenEx = /__DIFFHTML__([^_]*)__/;
+const tokenEx = new RegExp(`${TOKEN}([^_]*)__`);
 
 /** @type {Supplemental} */
 const defaultSupplemental = {
@@ -43,7 +46,6 @@ const selfClosingDefaults = [
   'hr',
   'img',
   'input',
-  'keygen',
   'link',
   'meta',
   'param',
@@ -103,7 +105,7 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
       const supValue = supplemental.children[value];
       const innerTree = value in supplemental.children ? supValue : createTree(
         '#text',
-        `__DIFFHTML__${value}__`,
+        `${TOKEN}${value}__`,
       );
 
       if (!innerTree) continue;
@@ -178,7 +180,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
         if (i % 2 === 1) {
           const isObject = typeof newName === 'object';
           const supValue = supplemental.attributes[value];
-          const fallback = `__DIFFHTML__${value}__`;
+          const fallback = `${TOKEN}${value}__`;
 
           // Allow interpolating multiple values into a single attribute.
           if (attributes[newName]) {

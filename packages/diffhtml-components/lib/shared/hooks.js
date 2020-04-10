@@ -6,7 +6,17 @@ import getContext from './get-context';
 const { assign } = Object;
 
 function render(oldTree, newTree) {
-  const oldComponentTree = ComponentTreeCache.get(oldTree);
+  let oldComponentTree = null;
+
+  if (oldTree) {
+    // First try and lookup the old tree as a component.
+    oldComponentTree = ComponentTreeCache.get(oldTree);
+
+    // If that fails, try looking up it's first child.
+    if (!oldComponentTree) {
+      oldComponentTree = ComponentTreeCache.get(oldTree.childNodes[0]);
+    }
+  }
 
   if (!oldComponentTree) {
     return renderComponent(newTree, getContext(newTree));

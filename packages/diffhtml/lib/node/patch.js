@@ -5,6 +5,7 @@ import decodeEntities from '../util/decode-entities';
 import escape from '../util/escape';
 import process from '../util/process';
 import { PATCH_TYPE, ValidNode } from '../util/types';
+import { NodeCache } from '../util/caches';
 
 const { keys } = Object;
 const blockText = new Set(['script', 'noscript', 'style', 'code', 'template']);
@@ -199,9 +200,17 @@ export default function patchNode(patches, state = {}) {
 
         i += 4;
 
-        const domNode = /** @type {HTMLElement} */ (
-          createNode(vTree, ownerDocument, isSVG)
+        // First attempt to locate a pre-existing DOM Node. If one hasn't been
+        // created there could be a few reasons.
+        let domNode = /** @type {HTMLElement} */ (
+          NodeCache.get(vTree)
         );
+
+        // Patching without an existing DOM Node is a mistake, so we should not
+        // attempt to do anything in this case.
+        if (!domNode) {
+          continue;
+        }
 
         const refNode = refTree && /** @type {HTMLElement} */ (
           createNode(refTree, ownerDocument, isSVG)

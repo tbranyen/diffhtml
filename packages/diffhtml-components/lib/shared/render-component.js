@@ -85,17 +85,22 @@ export default function renderComponent(vTree, context) {
       // Render the nested component.
       const retVal = renderComponent(renderTree, context);
 
-      // Get the newly created instance.
+      // Get the newly created instance, if it exists.
       const renderedInstances = InstanceCache.get(renderTree);
 
       // Push the parent to the front, so long as a child instance was created.
-      if (renderedInstances) renderedInstances.unshift(instance);
+      if (renderedInstances) {
+        renderedInstances.unshift(instance);
+      }
+      else {
+        InstanceCache.set(retVal, [instance]);
+      }
 
+      instance[$$vTree] = vTree;
+      ComponentTreeCache.set(retVal, vTree);
       return retVal;
     }
     else {
-      // We are dealing with a higher-order-component, which means a function
-      // which returns a component instance, instead of a rendered component.
       InstanceCache.set(renderTree, [instance]);
     }
 
@@ -104,6 +109,7 @@ export default function renderComponent(vTree, context) {
   else {
     context = context || getContext(vTree);
     renderTree = createTree(Component(props, context));
+    return renderTree;
   }
 
   // Associate the children with the parent component that rendered them, this
@@ -117,19 +123,14 @@ export default function renderComponent(vTree, context) {
       if (newTree && newTree.nodeType !== 11) {
         ComponentTreeCache.set(newTree, vTree);
       }
-      // FIXME When does a fragment occur, should we account for this?
+      // FIXME When does a fragment occur, and should we account for this?
     }
   };
 
   // Maybe this isn't necessary? For now it helps track, but this is costly
   // and perhaps can be solved in a different way.
-  if (renderTree && renderTree.nodeType === 11) {
-    linkTrees(renderTree.childNodes);
-    // Ensure the fragment is linked as well.
-    ComponentTreeCache.set(renderTree, vTree);
-  }
-  else if (renderTree) {
-    linkTrees([].concat(renderTree));
+  if (renderTree) {
+    linkTrees(renderTree.nodeType === 11 ? renderTree.childNodes : [renderTree]);
   }
 
   return renderTree;

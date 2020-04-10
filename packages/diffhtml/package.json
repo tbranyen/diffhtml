@@ -46,7 +46,7 @@
     "jsdom": "^16.2.1",
     "jshint": "^2.10.2",
     "mocha": "^6.2.0",
-    "nyc": "^14.1.1",
+    "nyc": "^15.0.1",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-hypothetical": "^2.1.0",
