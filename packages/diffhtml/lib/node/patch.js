@@ -58,18 +58,17 @@ export default function patchNode(patches, state = {}) {
     switch(patchType) {
       case PATCH_TYPE.SET_ATTRIBUTE: {
         const vTree = patches[i + 1];
-        const _name = patches[i + 2];
+        const name = patches[i + 2];
         const value = decodeEntities(patches[i + 3]);
 
         i += 4;
 
-
         const domNode = /** @type {HTMLElement} */ (
           createNode(vTree, ownerDocument, isSVG)
         );
-        const oldValue = domNode.getAttribute(_name);
+        const oldValue = domNode.getAttribute(name);
         const newPromises = runTransitions(
-          'attributeChanged', vTree, _name, oldValue, value
+          'attributeChanged', vTree, name, oldValue, value
         );
 
         // Triggered either synchronously or asynchronously depending on if a
@@ -78,21 +77,21 @@ export default function patchNode(patches, state = {}) {
         const isFunction = typeof value === 'function';
 
         // Events must be lowercased otherwise they will not be set correctly.
-        const name = _name.indexOf('on') === 0 ? _name.toLowerCase() : _name;
+        const lowerName = name.indexOf('on') === 0 ? name.toLowerCase() : name;
 
         // Runtime checking if the property can be set.
-        const blacklistName = vTree.nodeName + '-' + name;
+        const blacklistName = vTree.nodeName + '-' + lowerName;
 
         // Normal attribute value.
-        if (!isObject && !isFunction && name) {
+        if (!isObject && !isFunction && lowerName) {
           const noValue = value === null || value === undefined;
 
           if (whitelist.has(blacklistName)) {
-            /** @type {any} */ (domNode)[name] = value;
+            /** @type {any} */ (domNode)[lowerName] = value;
           }
           else if (!blacklist.has(blacklistName)) {
             try {
-              /** @type {any} */ (domNode)[name] = value;
+              /** @type {any} */ (domNode)[lowerName] = value;
               whitelist.add(blacklistName);
             } catch (unhandledException) {
               blacklist.add(blacklistName);
@@ -101,10 +100,10 @@ export default function patchNode(patches, state = {}) {
 
           // Set the actual attribute, this will ensure attributes like
           // `autofocus` aren't reset by the property call above.
-          domNode.setAttribute(name, noValue ? '' : value);
+          domNode.setAttribute(lowerName, noValue ? '' : value);
         }
         // Support patching an object representation of the style object.
-        else if (isObject && name === 'style') {
+        else if (isObject && lowerName === 'style') {
           const valueKeys = /** @type {any} */ (keys(value));
 
           for (let i = 0; i < valueKeys.length; i++) {
@@ -114,11 +113,11 @@ export default function patchNode(patches, state = {}) {
         else if (typeof value !== 'string') {
           // Since this is a property value it gets set directly on the node.
           if (whitelist.has(blacklistName)) {
-            /** @type {any} */ (domNode)[name] = value;
+            /** @type {any} */ (domNode)[lowerName] = value;
           }
           else if (!blacklist.has(blacklistName)) {
             try {
-              /** @type {any} */ (domNode)[name] = value;
+              /** @type {any} */ (domNode)[lowerName] = value;
               whitelist.add(blacklistName);
             } catch (unhandledException) {
               blacklist.add(blacklistName);
@@ -212,6 +211,8 @@ export default function patchNode(patches, state = {}) {
           continue;
         }
 
+        protectVTree(newTree);
+
         const refNode = refTree && /** @type {HTMLElement} */ (
           createNode(refTree, ownerDocument, isSVG)
         );
@@ -219,8 +220,6 @@ export default function patchNode(patches, state = {}) {
         const newNode = /** @type {HTMLElement} */ (
           createNode(newTree, ownerDocument, isSVG)
         );
-
-        protectVTree(newTree);
 
         // If refNode is `undefined` then it will simply append like `appendChild`.
         domNode.insertBefore(newNode, refNode || null);
@@ -279,10 +278,12 @@ export default function patchNode(patches, state = {}) {
         ];
 
         if (allPromises.length) {
+          // Do full replace and cleanup once transitions have completed.
           Promise.all(allPromises).then(() => {
             if (oldDomNode.parentNode) {
               oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
             }
+
             unprotectVTree(oldTree);
           });
 
@@ -292,6 +293,7 @@ export default function patchNode(patches, state = {}) {
           if (oldDomNode.parentNode) {
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
           }
+
           unprotectVTree(oldTree);
         }
 

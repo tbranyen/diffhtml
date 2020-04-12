@@ -16,9 +16,9 @@
     "build-umd": "NODE_ENV=umd rollup -c rollup.config.js",
     "build-min": "NODE_ENV=min rollup -c rollup.config.js && uglifyjs dist/inline-transitions.min.js -o dist/inline-transitions.min.js -m -c",
     "watch": "NODE_ENV=umd rollup -c rollup.config.js -w",
-    "mocha": "NODE_ENV=test mocha test/_setup test/*.js",
-    "test": "NODE_ENV=test istanbul cover _mocha -- -- test/_setup test/*.js",
-    "test:ci": "npm run test"
+    "test-watch": "NODE_ENV=test mocha -w test/_setup test",
+    "test:ci": "npm run test-cov",
+    "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test"
   },
   "keywords": [
     "diffhtml",
@@ -33,7 +33,7 @@
     "babel-preset-diffhtml-imports": "^1.0.0-beta.13",
     "coveralls": "^3.0.6",
     "diffhtml": "^1.0.0-beta.13",
-    "istanbul": "^1.1.0-alpha.1",
+    "nyc": "^15.0.1",
     "jsdom": "^16.2.1",
     "mocha": "^6.2.0",
     "rollup": "^1.21.4",

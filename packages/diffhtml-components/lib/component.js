@@ -104,7 +104,7 @@ class Component {
     const { parentNode } = domNode;
 
     // Render directly from the Component.
-    let renderTree = this.render();
+    let renderTree = this.render(this.props, this.state, this.context);
 
     // Do not render.
     if (!renderTree) {

@@ -21,7 +21,7 @@ describe('Basics', function() {
     innerHTML(this.fixture, html`<div onattached=${attached}></div>`);
   });
 
-  it('can stop listening for hooks', () => {
+  it('can stop listening for hooks', async () => {
     let count = 0;
 
     const attached = el => {
@@ -29,11 +29,11 @@ describe('Basics', function() {
       count++;
     };
 
-    innerHTML(this.fixture, html`<div onattached=${attached}></div>`);
+    await innerHTML(this.fixture, html`<div onattached=${attached}></div>`);
 
     this.unsubscribeInlineTransitions();
 
-    innerHTML(this.fixture, html`<div onattached=${attached}>
+    await innerHTML(this.fixture, html`<div onattached=${attached}>
       <div></div>
     </div>`);
 

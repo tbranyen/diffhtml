@@ -1,6 +1,6 @@
-**Welcome to diffHTML!** A library that assists with creating user interfaces
-using JavaScript. These interfaces can be: applications, games, data
-visualizations, or anything else that you may want to render in a web browser.
+**Welcome to diffHTML!** A lightweight library for creating fast and reactive
+user interfaces using JavaScript. With diffHTML you can create applications,
+games, data visualizations, and much more in you web browser.
 
 
 <a name="hello-world"></a>
@@ -80,63 +80,3 @@ import { innerHTML } from 'https://unpkg.com/diffhtml?module';
 // or
 import { innerHTML } from 'https://diffhtml.org/es';
 ```
-
-<a name="optimizing-builds"></a>
-
----
-
-## <a href="#optimizing-builds">Optimizing builds</a>
-
-The Babel plugin is useful after you have a working project and wish to
-optimize it at build time. The Babel plugin will perform numerous optimizations
-to your code depending on how it is written and structured. For instance,
-anytime you have an element that does not change, the call will be hoisted and
-reused instead of recreated every time. Any `html` tagged template calls will
-be converted to `createTree` calls.
-
-**After your code has been passed through this plugin, you will be able to fully
-utilize the runtime build!**
-
-To use, install into your project as a dev dependency.
-
-``` sh
-npm install -D babel-plugin-transform-diffhtml
-```
-
-Specify the plugin in the Babel configuration, usually a `.babelrc` or
-`babel.config.js` file:
-
-```json
-{
-  "plugins": ["babel-plugin-transform-diffhtml"]
-}
-```
-
-Take this code as an example input:
-
-```javascript
-const { innerHTML, html } = require('diffhtml');
-
-function render() {
-  innerHTML(document.body, html`
-    <div>Hello world</div>
-  `);
-}
-```
-
-Without this Babel transformation process, this HTML would need to be parsed
-every time `render()` is called. If you use the runtime build and the parser,
-this will become a cached call. `html` is the same thing as `createTree` in the
-runtime build. So there is no HTML parsing happening.
-
-```javascript
-const { innerHTML, html } = require('diffhtml/dist/cjs/runtime');
-
-function render() {
-  innerHTML(document.body, html('div', {}, [html('#text', null, 'Hello world')]));
-}
-```
-
-[Refer to the configuration documentation.](https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml#-diffhtml-babel-transform-plugin)
-
----

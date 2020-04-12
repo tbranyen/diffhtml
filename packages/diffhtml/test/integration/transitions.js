@@ -34,7 +34,7 @@ describe('Integration: Transitions', function() {
       }, /Invalid state name 'added'/);
     });
 
-    it('can add the attached state', () => {
+    it('will trigger the added attached state', () => {
       var hit = 0;
 
       diff.addTransitionState('attached', () => { hit++; });
@@ -43,7 +43,16 @@ describe('Integration: Transitions', function() {
       equal(hit, 1);
     });
 
-    it('can add the detached state', () => {
+    it('will trigger the added attached state for nested', () => {
+      var hit = 0;
+
+      diff.addTransitionState('attached', () => { hit++; });
+      diff.innerHTML(this.fixture, '<div><p><span></span></p></div>');
+
+      equal(hit, 2);
+    });
+
+    it('will trigger the added detached state', () => {
       var hit = 0;
 
       diff.addTransitionState('detached', () => { hit++; });
@@ -53,7 +62,7 @@ describe('Integration: Transitions', function() {
       equal(hit, 1);
     });
 
-    it('can add the replaced state', () => {
+    it('will trigger the added replaced state', () => {
       var hit = 0;
 
       diff.addTransitionState('replaced', () => { hit++; });
@@ -63,7 +72,7 @@ describe('Integration: Transitions', function() {
       equal(hit, 1);
     });
 
-    it('can add the attributeChanged state', () => {
+    it('will trigger the added attributeChanged state', () => {
       var hit = 0;
 
       diff.addTransitionState('attributeChanged', () => { hit++; });
@@ -73,7 +82,7 @@ describe('Integration: Transitions', function() {
       equal(hit, 1);
     });
 
-    it('can add the textChanged state', () => {
+    it('will trigger the added textChanged state', () => {
       var hit = 0;
 
       diff.addTransitionState('textChanged', () => { hit++; });
@@ -537,6 +546,78 @@ describe('Integration: Transitions', function() {
           equal(fixture.querySelector('p').textContent, 'test3');
         });
       });
+    });
+  });
+
+  describe.skip('Attached state', () => {
+    it('will trigger the added attached state', () => {
+      var hit = 0;
+
+      diff.addTransitionState('attached', () => { hit++; });
+      diff.innerHTML(this.fixture, '<div><p></p></div>');
+
+      equal(hit, 1);
+    });
+  });
+
+  describe('TextChanged state', () => {
+    it('will correctly handle memory with text changed promise', async () => {
+      diff.addTransitionState('textChanged', () => Promise.resolve());
+
+      await diff.innerHTML(this.fixture, '<div><p>test</p></div>');
+      equal(this.fixture.innerHTML, '<div><p>test</p></div>');
+
+      const transaction = await diff.innerHTML(this.fixture, '<div><p>test 123</p></div>');
+      equal(this.fixture.innerHTML, '<div><p>test 123</p></div>');
+
+      let match = 0;
+
+      const { firstChild } = this.fixture.querySelector('p');
+      const textNode = transaction.state.oldTree.childNodes[0].childNodes[0].childNodes[0];
+
+      // Look up both DOM Node and vTree association in NodeCache.
+      diff.Internals.NodeCache.forEach((value, key) => {
+        if (value === firstChild) {
+          match += 1;
+        }
+
+        if (key === textNode) {
+          match += 1;
+        }
+      });
+
+      equal(match, 2);
+    });
+
+    it('will correctly handle memory with attached and textchanged promises', async () => {
+      diff.addTransitionState('attached', () => {});
+      diff.addTransitionState('textChanged', () => {
+        return new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      await diff.innerHTML(this.fixture, '<div><p>test</p></div>');
+      equal(this.fixture.innerHTML, '<div><p>test</p></div>');
+
+      const transaction = await diff.innerHTML(this.fixture, '<div><p>test 123</p></div>');
+      equal(this.fixture.innerHTML, '<div><p>test 123</p></div>');
+
+      let match = 0;
+
+      const { firstChild } = this.fixture.querySelector('p');
+      const textNode = transaction.state.oldTree.childNodes[0].childNodes[0].childNodes[0];
+
+      // Look up both DOM Node and vTree association in NodeCache.
+      diff.Internals.NodeCache.forEach((value, key) => {
+        if (value === firstChild) {
+          match += 1;
+        }
+
+        if (key === textNode) {
+          match += 1;
+        }
+      });
+
+      equal(match, 2);
     });
   });
 });

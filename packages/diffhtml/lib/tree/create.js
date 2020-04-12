@@ -1,7 +1,6 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
 import { VTree, VTreeLike, ValidInput } from '../util/types';
-import release from '../release';
 import { unprotectVTree, protectVTree } from '../util/memory';
 
 const { assign } = Object;
@@ -64,7 +63,6 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     // When working with a text node, migrate the nodeValue into
     if (input.nodeType === 3) {
-      release(input);
       const vTree = createTree('#text', null, input.nodeValue);
       NodeCache.set(vTree, input);
       return vTree;

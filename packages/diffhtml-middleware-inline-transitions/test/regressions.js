@@ -1,6 +1,8 @@
-const assert = require('assert');
+const { equal } = require('assert');
 const { use, html, innerHTML } = require('diffhtml');
 const inlineTransitions = require('../index');
+
+const whitespaceEx = /[ ]{2,}|\n/g;
 
 describe('Regressions', function() {
   beforeEach(() => {
@@ -12,7 +14,7 @@ describe('Regressions', function() {
     this.unsubscribeInlineTransitions();
   });
 
-  it('does not error when non-Promises are returned', () => {
+  it('will not error when non-Promises are returned', () => {
     var count = 0;
 
     const onattached = el => {
@@ -26,6 +28,34 @@ describe('Regressions', function() {
       </div>
     `);
 
-    assert.equal(count, 2);
+    equal(count, 1);
+  });
+
+  it('will support nested text changes', async () => {
+    var count = 0;
+
+    const ontextchanged = el => {
+      count++;
+      return Promise.resolve();
+    };
+
+    await innerHTML(this.fixture, html`
+      <div>
+        <div ontextchanged=${ontextchanged}>test</div>
+      </div>
+    `);
+
+    await innerHTML(this.fixture, html`
+      <div>
+        <div ontextchanged=${ontextchanged}>test this</div>
+      </div>
+    `);
+
+    equal(
+      this.fixture.innerHTML.replace(whitespaceEx, ''),
+      '<div><div>test this</div></div>',
+    );
+
+    equal(count, 2);
   });
 });

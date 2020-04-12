@@ -55,13 +55,7 @@
       
     
       
-
-      
-        <a href="index.html#optimizing-builds" target><li>Optimizing builds</li></a>
-      
-    
-      
-        <a href="api.html"><li class="header"><h4>API</h4></li></a>
+        <a href="api.html"><li class="header"><h4>Core API</h4></li></a>
       
 
       
@@ -249,6 +243,12 @@
       
 
       
+        <a href="tools.html#babel-transform" target><li>Babel Transform</li></a>
+      
+    
+      
+
+      
         <a href="tools.html#render-to-string" target><li>Render to String</li></a>
       
     
@@ -306,9 +306,9 @@
 
         <hr></hr>
 
-        <section id="content"><p><strong>Welcome to diffHTML!</strong> A library that assists with creating user interfaces
-using JavaScript. These interfaces can be: applications, games, data
-visualizations, or anything else that you may want to render in a web browser.</p>
+        <section id="content"><p><strong>Welcome to diffHTML!</strong> A lightweight library for creating fast and reactive
+user interfaces using JavaScript. With diffHTML you can create applications,
+games, data visualizations, and much more in you web browser.</p>
 <p><a name="hello-world"></a></p>
 <hr></hr>
 <h2 id="a-hrefhello-worldhello-worlda"><a href="#hello-world">Hello world!</a></h2>
@@ -363,45 +363,6 @@ a new feature that isn&#39;t available in all browsers yet, but you can use them
 <pre><code class="language-javascript">import { innerHTML } from &#39;https://unpkg.com/diffhtml?module&#39;;
 // or
 import { innerHTML } from &#39;https://diffhtml.org/es&#39;;</code></pre>
-<p><a name="optimizing-builds"></a></p>
-<hr></hr>
-<h2 id="a-hrefoptimizing-buildsoptimizing-buildsa"><a href="#optimizing-builds">Optimizing builds</a></h2>
-<p>The Babel plugin is useful after you have a working project and wish to
-optimize it at build time. The Babel plugin will perform numerous optimizations
-to your code depending on how it is written and structured. For instance,
-anytime you have an element that does not change, the call will be hoisted and
-reused instead of recreated every time. Any <code>html</code> tagged template calls will
-be converted to <code>createTree</code> calls.</p>
-<p><strong>After your code has been passed through this plugin, you will be able to fully
-utilize the runtime build!</strong></p>
-<p>To use, install into your project as a dev dependency.</p>
-<pre><code class="language-sh">npm install -D babel-plugin-transform-diffhtml</code></pre>
-<p>Specify the plugin in the Babel configuration, usually a <code>.babelrc</code> or
-<code>babel.config.js</code> file:</p>
-<pre><code class="language-json">{
-  &quot;plugins&quot;: [&quot;babel-plugin-transform-diffhtml&quot;]
-}</code></pre>
-<p>Take this code as an example input:</p>
-<pre><code class="language-javascript">const { innerHTML, html } = require(&#39;diffhtml&#39;);
-
-function render() {
-  innerHTML(document.body, html`
-    &lt;div&gt;Hello world&lt;/div&gt;
-  `);
-}</code></pre>
-<p>Without this Babel transformation process, this HTML would need to be parsed
-every time <code>render()</code> is called. If you use the runtime build and the parser,
-this will become a cached call. <code>html</code> is the same thing as <code>createTree</code> in the
-runtime build. So there is no HTML parsing happening.</p>
-<pre><code class="language-javascript">const { innerHTML, html } = require(&#39;diffhtml/dist/cjs/runtime&#39;);
-
-function render() {
-  innerHTML(document.body, html(&#39;div&#39;, {}, [html(&#39;#text&#39;, null, &#39;Hello world&#39;)]));
-}</code></pre>
-<p>
-      <a href="https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml#-diffhtml-babel-transform-plugin" target="_blank" rel="noopener noreferrer" title="null">Refer to the configuration documentation.</a>
-    </p>
-<hr></hr>
 </section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/index.md" id="edit-on-github">

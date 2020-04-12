@@ -28,16 +28,14 @@ to do filtering. You add them using the `addTransitionState` method.
 import { addTransitionState } from 'diffhtml';
 ```
 
-### <a name="attached" href="#attached">Attached</a>
+<a name="attached"></a>
+
+---
+
+### <a href="#attached">Attached</a>
 
 This triggers whenever an element gets added into the DOM. Text and comment
 nodes are not included.
-
-<div id="attached"></div>
-
-<script>
-  console.log(diff);
-</script>
 
 ```js
 addTransitionState('attached', (element) => {
@@ -45,7 +43,11 @@ addTransitionState('attached', (element) => {
 });
 ```
 
-### <a name="detached" href="#detached">Detached</a>
+<a name="detached"></a>
+
+---
+
+### <a href="#detached">Detached</a>
 
 For when an element leaves the DOM.
 
@@ -55,7 +57,11 @@ addTransitionState('detached', (element) => {
 });
 ```
 
-### <a name="replaced" href="#replaced">Replaced</a>
+<a name="replaced"></a>
+
+---
+
+### <a href="#replaced">Replaced</a>
 
 Whenever two elements are replaced at render time this is called with the old
 and new elements.
@@ -66,7 +72,11 @@ addTransitionState('replaced', (oldElement, newElement) => {
 });
 ```
 
-### <a name="attribute-changed" href="#attribute-changed">Attribute changed</a>
+<a name="attribute-changed"></a>
+
+---
+
+### <a href="#attribute-changed">Attribute changed</a>
 
 For when attributes have changed.
 
@@ -76,7 +86,11 @@ addTransitionState('attributeChanged', (element, attrName, oldValue, newValue) =
 });
 ```
 
-### <a name="text-changed" href="#text-changed">Text changed</a>
+<a name="text-changed"></a>
+
+---
+
+### <a href="#text-changed">Text changed</a>
 
 For when text has changed in either TextNodes or SVG text elements.
 

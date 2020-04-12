@@ -17,7 +17,7 @@ const transitionsMap = {
 };
 
 // Internal global transition state handlers, allows us to bind once and match.
-const boundHandlers = [];
+const boundHandlers = {};
 
 /**
  * Binds inline transitions to the parent element and triggers for any matching
@@ -34,7 +34,7 @@ export default function inlineTransitions(options = {}) {
       return;
     }
 
-    // Normalize the event name to
+    // Normalize the event name to lowercase and without `on`.
     name = name.toLowerCase().slice(2);
 
     const map = transitionsMap[name];
@@ -58,42 +58,30 @@ export default function inlineTransitions(options = {}) {
       const map = transitionsMap[name];
       const transitionName = eventsToTransitionName[name] || name;
 
-      const handler = function(child, ...rest) {
-        // If there are no elements to match here, abort.
-        if (!map.size) {
-          return;
-        }
-
+      // This handler is bound for every possible transition to help limit the
+      // amount of transitions bound.
+      const handler = (childNode, ...rest) => {
         // If the child element triggered in the transition is the root
         // element, this is an easy lookup for the handler.
-        if (map.has(child)) {
-          return map.get(child)(child, child, ...rest);
+        if (map.has(childNode)) {
+          return map.get(childNode)(childNode, childNode, ...rest);
         }
-        // The last resort is looping through all the registered elements to
-        // see if the child is contained within. If so, it aggregates all the
-        // valid handlers and if they return Promises return them into a
-        // `Promise.all`.
-        else {
+        // Text nodes are looked up on the parent.
+        else if (transitionName === 'textChanged') {
           const retVal = [];
+          const { parentNode } = childNode;
 
-          // Last resort check for child.
-          map.forEach((fn, element) => {
-            if (element.contains(child)) {
-              retVal.push(fn.apply(child, [element].concat(child, rest)));
-            }
-          });
-
-          const hasPromise = retVal.some(ret => Boolean(ret && ret.then));
-
-          // This is the only time the return value matters.
-          if (hasPromise) {
-            return Promise.all(retVal);
+          if (map.has(parentNode)) {
+            return map.get(parentNode).apply(
+              childNode,
+              [parentNode].concat(childNode, ...rest),
+            );
           }
         }
       };
 
       // Save the handler for later unbinding.
-      boundHandlers.push(handler);
+      boundHandlers[transitionName] = handler;
 
       // Add the state handler.
       addTransitionState(transitionName, handler);
@@ -111,7 +99,8 @@ export default function inlineTransitions(options = {}) {
       const transitionName = eventsToTransitionName[name] || name;
 
       // Unbind the associated global handler.
-      removeTransitionState(transitionName, boundHandlers.shift());
+      const handler = boundHandlers[transitionName];
+      removeTransitionState(transitionName, handler);
 
       // Empty the associated element set.
       map.clear();

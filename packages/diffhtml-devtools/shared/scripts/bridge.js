@@ -5,34 +5,62 @@ const selectors = new Map();
 const { assign } = Object;
 const toggleMiddleware = {};
 const placeholders = new Set();
+const anon = 'anonymous_';
 
+function getMiddlewareName(userMiddleware, i) {
+  const raw = userMiddleware.displayName || userMiddleware.name || anon + i;
+
+  return [raw, raw
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, str => str.toUpperCase())
+    .split(' ').slice(0, -1).join(' ')];
+}
+
+// Called by diffHTML index/runtime entry points.
 export default function devTools(Internals) {
   let extension = null;
   let interval = null;
 
+  // Toggle if a middleware is enabled/disabled.
   document.addEventListener('diffHTML:toggleMiddleware', ev => {
     const { detail } = ev;
 
-    [...Internals.MiddlewareCache].forEach(userMiddleware => {
-      const name = userMiddleware.displayName || userMiddleware.name
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/^./, str => str.toUpperCase())
-        .split(' ').slice(0, -1).join(' ');
+    Internals.MiddlewareCache.forEach((userMiddleware, i) => {
+      const [ raw, name ] = getMiddlewareName(userMiddleware);
 
-      if (detail.name === name) {
-        if (detail.enabled && toggleMiddleware[name]) {
-          Internals.MiddlewareCache.add(toggleMiddleware[name]);
-          delete toggleMiddleware[name];
-        }
-        else if (!detail.enabled) {
-          toggleMiddleware[name] = userMiddleware;
+      // Ignore Middleware names that don't match.
+      if (detail.name !== name) {
+        return;
+      }
 
-          Internals.MiddlewareCache.add(assign(() => {}, { displayName: name }));
-        }
-
+      // If we are enabling, and have previously disabled, remove the
+      // placeholder and add back the original.
+      if (detail.enabled && toggleMiddleware[name]) {
+        const middleware = toggleMiddleware[name];
         Internals.MiddlewareCache.delete(userMiddleware);
+        Internals.MiddlewareCache.add(middleware);
+        delete toggleMiddleware[name];
+
+        if (middleware.subscribe) {
+          middleware.subscribe(Internals);
+        }
+      }
+      // Otherwise if we are disabling, and have not previously disabled, cache
+      // the current middleware, and replace with a placeholder.
+      else if (!detail.enabled && !toggleMiddleware[name]) {
+        Internals.MiddlewareCache.delete(userMiddleware);
+        toggleMiddleware[name] = userMiddleware;
+        Internals.MiddlewareCache.add(assign(() => {}, { displayName: raw }));
+
+        if (userMiddleware.unsubscribe) {
+          userMiddleware.unsubscribe();
+        }
       }
     });
+  });
+
+  document.addEventListener('diffHTML:gc', () => {
+    Internals.memory.gc();
   });
 
   const filterVTree = vTree => {
@@ -66,14 +94,7 @@ export default function devTools(Internals) {
     const middleware = [];
 
     MiddlewareCache.forEach(userMiddleware => {
-      if (userMiddleware.displayName) {
-        return middleware.push(userMiddleware.displayName);
-      }
-
-      const name = userMiddleware.name
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/^./, str => str.toUpperCase())
-        .split(' ').slice(0, -1).join(' ');
+      const [ raw, name ] = getMiddlewareName(userMiddleware);
 
       middleware.push(name);
     });
@@ -165,6 +186,8 @@ export default function devTools(Internals) {
       });
 
       // Every two seconds refresh the internal state.
+      // FIXME This is so that internals are properly updated over time, but
+      // should probably be updated to only trigger when necessary.
       setInterval(() => {
         extension.activate(getInternals());
       }, 2000);

@@ -26,9 +26,14 @@ class DevtoolsMiddlewarePanel extends WebComponent {
 
       <form>
         ${middleware.sort().map(name => html`
-          <div class="middleware">
-            <div class="ui toggle checkbox" onclick=${toggleMiddleware(name)}>
-              <input checked type="checkbox" ${name === 'Dev Tools' && 'disabled'} />
+          <div class="middleware" key=${name}>
+            <div class="ui toggle checkbox" >
+              <input
+                checked
+                type="checkbox"
+                ${name === 'Dev Tools' && 'disabled'}
+                onclick=${toggleMiddleware(name)}
+              />
               <label>${name}</label>
             </div>
           </div>
@@ -64,10 +69,10 @@ class DevtoolsMiddlewarePanel extends WebComponent {
     `;
   }
 
-  toggleMiddleware = name => ({ currentTarget }) => {
-    const enabled = Boolean(currentTarget.querySelector('input').checked);
+  toggleMiddleware = name => ({ target }) => {
+    const enabled = Boolean(target.checked);
 
-    chrome.tabs.query({ active:true, currentWindow:true }, tabs => {
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, { name, enabled }));
     });
   }

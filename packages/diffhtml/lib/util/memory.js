@@ -30,6 +30,7 @@ export function protectVTree(vTree) {
 export function unprotectVTree(vTree) {
   unprotect(vTree);
 
+  // FIXME Why is this not in lib/release?
   ReleaseHookCache.forEach(fn => fn(vTree));
 
   for (let i = 0; i < vTree.childNodes.length; i++) {

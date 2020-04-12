@@ -50,7 +50,7 @@
     "watch-web-component": "NODE_ENV=umd rollup -c rollup.web-component.config.js -w",
     "test": "NODE_ENV=test mocha test/_setup test",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test",
-    "test:ci": "npm run test",
+    "test:ci": "npm run test-cov",
     "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test"
   },
   "peerDependencies": {

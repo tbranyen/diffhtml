@@ -32,6 +32,9 @@ class DevtoolsTransactionRow extends WebComponent {
       stateName,
       isExpanded,
     } = this.props;
+
+    return;
+
     const stats = this.calculateStats(this.props);
 
     const {

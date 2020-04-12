@@ -88,7 +88,6 @@ webServer.use((req, res, next) => {
     .catch(() => read(path('markdown')).then(formatMarkdown))
     .catch(() => read(path('json')).then(resolve, reject))
     .catch(() => read(path('svg')).then((...args) => {
-      console.log('here');
       res.header('Content-Type', 'image/svg+xml');
       resolve(...args);
     }, reject))

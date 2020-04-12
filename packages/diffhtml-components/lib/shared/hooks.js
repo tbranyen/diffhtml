@@ -49,12 +49,11 @@ export const syncTreeHook = (oldTree, newTree) => {
   if (
     // When child is a Component
     typeof newTree.rawNodeName === 'function' &&
-    // If there is an oldTree and it's not the existing element, trigger a
+    // If there is an oldTree and it's not the existing component, trigger a
     // render.
     (oldTree ? newTree.rawNodeName !== oldTree.rawNodeName : true)
   ) {
-    const renderTree = render(oldTree, newTree) || oldTree;
-    return renderTree;
+    return render(oldTree, newTree) || oldTree;
   }
 
   // Loop through childNodes seeking out components to render.

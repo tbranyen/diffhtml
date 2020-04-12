@@ -69,10 +69,7 @@ use(() => ({ patches }) => {
 
 ## <a href="#inline-transitions">Inline Transitions</a>
 
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions">
-  <i class="fa fa-github" />
-  GitHub repo link
-</a>
+<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions"><i class="fa fa-github"></i></a>
 
 Tiny module to support binding/unbinding declarative diffHTML transition hooks.
 
@@ -120,7 +117,7 @@ innerHTML(document.body, html`<body onattached=${fadeIn}>
 
 <a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger">
   <i class="fa fa-github" />
-  GitHub repo link
+  GitHub
 </a>
 
 Use with diffHTML to `console.log` out render
@@ -155,7 +152,7 @@ flag.
 
 <a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker">
   <i class="fa fa-github" />
-  GitHub repo link
+  GitHub
 </a>
 
 While this does not really benefit from being a middleware, I made it as such
@@ -194,7 +191,7 @@ use(serviceWorker({
 
 <a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events">
   <i class="fa fa-github" />
-  GitHub repo link
+  GitHub
 </a>
 
 Changes the event binding from inline event handlers like `onclick = fn` to use
@@ -235,7 +232,7 @@ inline event handlers is not possible. Supports non-bubbling events via the
 
 <a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state">
   <i class="fa fa-github" />
-  GitHub repo link
+  GitHub
 </a>
 
 Asserts that a render properly updated the old Virtual Tree and the DOM. Will
@@ -269,7 +266,7 @@ use(verifyState({ debug: location.search.includes('debug') }));
 
 <a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter">
   <i class="fa fa-github" />
-  GitHub repo link
+  GitHub
 </a>
 
 Validates your passed in markup against rules established in the [HTMLHint](https://htmlhint.com/) project.

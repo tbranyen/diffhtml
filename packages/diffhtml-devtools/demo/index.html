@@ -17,6 +17,7 @@
   <script>
     const { use, html, innerHTML } = diff;
 
+    // Current broken and not letting text update for some reason...
     use(inlineTransitions());
     use(logger());
 
@@ -24,15 +25,15 @@
       ...args
     ).onfinish = () => resolve());
 
-    const attached = el => animate(el, [{ opacity: 0 }, { opacity: 1 }], {
+    const fade = el => animate(el, [{ opacity: 0 }, { opacity: 1 }], {
       duration: 1000,
     });
 
     const render = () => {
       innerHTML(document.querySelector('main'), html`
-        <div ontextchanged=${attached}>
+        <div>
           <span>Current date: </span>
-          <span>${new Date().toLocaleString()}</span>
+          <span ontextchanged=${fade}>${new Date().toLocaleString()}</span>
 
           <p>
             <button onClick=${render}>Re-render</button>
@@ -40,9 +41,9 @@
         </div>
       `)
 
-      innerHTML(document.querySelector('footer'), html`
-        Testing out footer
-      `);
+      //innerHTML(document.querySelector('footer'), html`
+      //  Testing out footer
+      //`);
 
       return render;
     };

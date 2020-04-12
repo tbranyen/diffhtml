@@ -55,13 +55,7 @@
       
     
       
-
-      
-        <a href="index.html#optimizing-builds" target><li>Optimizing builds</li></a>
-      
-    
-      
-        <a href="api.html"><li class="header"><h4>API</h4></li></a>
+        <a href="api.html"><li class="header"><h4>Core API</h4></li></a>
       
 
       
@@ -249,6 +243,12 @@
       
 
       
+        <a href="tools.html#babel-transform" target><li>Babel Transform</li></a>
+      
+    
+      
+
+      
         <a href="tools.html#render-to-string" target><li>Render to String</li></a>
       
     
@@ -339,35 +339,39 @@ support Promises.</p>
 <p>There are many states you can listen to, they get added globally and allow you
 to do filtering. You add them using the <code>addTransitionState</code> method.</p>
 <pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;</code></pre>
-<h3 id="a-nameattached-hrefattachedattacheda"><a name="attached" href="#attached">Attached</a></h3>
+<p><a name="attached"></a></p>
+<hr></hr>
+<h3 id="a-hrefattachedattacheda"><a href="#attached">Attached</a></h3>
 <p>This triggers whenever an element gets added into the DOM. Text and comment
 nodes are not included.</p>
-<div id="attached"></div>
-
-<script>
-  console.log(diff);
-</script>
-
 <pre><code class="language-js">addTransitionState(&#39;attached&#39;, (element) =&gt; {
   console.log(element);
 });</code></pre>
-<h3 id="a-namedetached-hrefdetacheddetacheda"><a name="detached" href="#detached">Detached</a></h3>
+<p><a name="detached"></a></p>
+<hr></hr>
+<h3 id="a-hrefdetacheddetacheda"><a href="#detached">Detached</a></h3>
 <p>For when an element leaves the DOM.</p>
 <pre><code class="language-js">addTransitionState(&#39;detached&#39;, (element) =&gt; {
   console.log(element);
 });</code></pre>
-<h3 id="a-namereplaced-hrefreplacedreplaceda"><a name="replaced" href="#replaced">Replaced</a></h3>
+<p><a name="replaced"></a></p>
+<hr></hr>
+<h3 id="a-hrefreplacedreplaceda"><a href="#replaced">Replaced</a></h3>
 <p>Whenever two elements are replaced at render time this is called with the old
 and new elements.</p>
 <pre><code class="language-js">addTransitionState(&#39;replaced&#39;, (oldElement, newElement) =&gt; {
   console.log(oldElement, newElement);
 });</code></pre>
-<h3 id="a-nameattribute-changed-hrefattribute-changedattribute-changeda"><a name="attribute-changed" href="#attribute-changed">Attribute changed</a></h3>
+<p><a name="attribute-changed"></a></p>
+<hr></hr>
+<h3 id="a-hrefattribute-changedattribute-changeda"><a href="#attribute-changed">Attribute changed</a></h3>
 <p>For when attributes have changed.</p>
 <pre><code class="language-js">addTransitionState(&#39;attributeChanged&#39;, (element, attrName, oldValue, newValue) =&gt; {
   console.log(element, attrName, oldValue, newValue);
 });</code></pre>
-<h3 id="a-nametext-changed-hreftext-changedtext-changeda"><a name="text-changed" href="#text-changed">Text changed</a></h3>
+<p><a name="text-changed"></a></p>
+<hr></hr>
+<h3 id="a-hreftext-changedtext-changeda"><a href="#text-changed">Text changed</a></h3>
 <p>For when text has changed in either TextNodes or SVG text elements.</p>
 <pre><code class="language-js">addTransitionState(&#39;textChanged&#39;, (element, oldValue, newValue) =&gt; {
   console.log(element, oldValue, newValue);

@@ -4,11 +4,10 @@
     "Home": ["index.html", {
       "Hello world!": "#hello-world",
       "Core features": "#core-features",
-      "Getting the source": "#getting-the-source",
-      "Optimizing builds": "#optimizing-builds"
+      "Getting the source": "#getting-the-source"
     }],
 
-    "API": ["api.html", {
+    "Core API": ["api.html", {
       "innerHTML": "#inner-html",
       "outerHTML": "#outer-html",
       "html": "#html",
@@ -49,6 +48,7 @@
     }],
 
     "Additional Packages": ["tools.html", {
+      "Babel Transform": "#babel-transform",
       "Render to String": "#render-to-string",
       "Live Reload Server": "#static-sync"
     }],

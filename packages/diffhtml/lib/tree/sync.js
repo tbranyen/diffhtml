@@ -96,15 +96,9 @@ export default function syncTree(oldTree, newTree, patches = []) {
   // Text nodes are low level and frequently change, so this path is accounted
   // for first.
   if (newTree.nodeName === '#text') {
-    // If there was no previous element to compare to, simply set the value
-    // on the new node.
-    if (oldTree.nodeName !== '#text') {
-      //FIXME Why is this here?
-      patches.push(PATCH_TYPE.NODE_VALUE, newTree, newTree.nodeValue, null);
-    }
+    if (oldTree.nodeName === '#text' && oldTree.nodeValue !== newTree.nodeValue) {
     // If both VTrees are text nodes and the values are different, change the
     // `Element#nodeValue`.
-    else if (!isEmpty && oldTree.nodeValue !== newTree.nodeValue) {
       patches.push(
         PATCH_TYPE.NODE_VALUE,
         oldTree,
@@ -113,9 +107,20 @@ export default function syncTree(oldTree, newTree, patches = []) {
       );
 
       oldTree.nodeValue = newTree.nodeValue;
-    }
 
-    return patches;
+      return patches;
+    }
+    // Ensure new text nodes have decoded entities.
+    else if (isEmpty) {
+      patches.push(
+        PATCH_TYPE.NODE_VALUE,
+        newTree,
+        newTree.nodeValue,
+        null,
+      );
+
+      return patches;
+    }
   }
 
   // Seek out attribute changes first, but only from element Nodes.

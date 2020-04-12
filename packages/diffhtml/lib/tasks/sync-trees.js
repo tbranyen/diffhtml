@@ -10,18 +10,25 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
 
   measure('sync trees');
 
-  if (!oldTree) {
-    throw new Error('Missing old tree during synchronization');
-  }
+  if (process.env.NODE_ENV !== 'production') {
+    if (!oldTree) {
+      throw new Error('Missing old tree during synchronization');
+    }
 
-  if (!newTree) {
-    throw new Error('Missing old tree during synchronization');
+    if (!newTree) {
+      throw new Error('Missing new tree during synchronization');
+    }
   }
 
   // Do a global replace of the element, unable to do this at a lower level.
   // Ignore this for document fragments, they don't appear in the DOM and we
   // treat them as transparent containers.
-  if (oldTree.nodeName !== newTree.nodeName && newTree.nodeType !== 11) {
+  if (
+    oldTree &&
+    newTree &&
+    oldTree.nodeName !== newTree.nodeName &&
+    newTree.nodeType !== 11
+  ) {
     // If there is no `parentNode` for the replace operation, we will need to
     // throw an error and prevent the `StateCache` from being updated.
     if (process.env.NODE_ENV !== 'production') {
@@ -45,8 +52,8 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     StateCache.set(createNode(newTree), transaction.state);
   }
   // Otherwise only diff the children.
-  else {
-    transaction.patches = syncTree(oldTree, newTree, []);
+  else if (newTree) {
+    transaction.patches = syncTree(oldTree || null, newTree, []);
   }
 
   measure('sync trees');

@@ -1,3 +1,9 @@
+// The content script is used by the extension to communicate with the UI
+// layer.
+// Check injector.js for how to communicate from the UI layer to the extension.
+
+// This uses browserify fs to embed. It's pretty buggy and not ideal. There is
+// a better way to do this, but I haven't looked into it yet.
 var path = require('path');
 var fs = require('fs');
 var bridgeModule = fs.readFileSync(path.join(__dirname, '/../../chrome-extension/dist/extension/js/bridge.js'), 'utf8');

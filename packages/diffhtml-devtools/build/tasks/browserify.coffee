@@ -15,7 +15,7 @@ module.exports = ->
 
     'chrome-extension':
       files:
-        'chrome-extension/dist/extension/js/panel.js': ['shared/scripts/panel.js']
+        'chrome-extension/dist/extension/js/index.js': ['shared/scripts/index.js']
         'chrome-extension/dist/extension/js/contentscript.js': ['shared/scripts/contentscript.js']
         'chrome-extension/dist/extension/js/devtools.js': ['shared/scripts/devtools.js']
         'chrome-extension/dist/extension/js/background.js': ['shared/scripts/background.js']

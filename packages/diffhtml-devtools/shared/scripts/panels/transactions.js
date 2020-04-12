@@ -20,7 +20,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
 
       <div class="ui tall segment">
         <div class="content">
-          <h3>Transactions</h3>
+          <h3>&#8963; Transactions &#8964;</h3>
           <p>
             This panel shows you when a render occured and what was patched.
             Set the sampling rate in <a href="#settings">Settings</a>.
@@ -123,18 +123,19 @@ class DevtoolsTransactionsPanel extends WebComponent {
         align-self: center;
       }
 
-      .ui.segment .controls .ui.toggle.checkbox input:checked~label {
-        color: #FFF !important;
+      .ui.table {
+        border-left: 0;
+        border-right: 0;
       }
 
       a {
-        color: #FFF;
+        color: #4183C4;
         font-weight: bold !important;
         text-decoration: underline;
       }
 
       a:hover {
-        color: #FFF;
+        color: #333;
         text-decoration: underline;
       }
 

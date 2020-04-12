@@ -1,6 +1,5 @@
-import React from 'react'
-import { Dropdown } from 'semantic-ui-react'
-
+//import React from 'react'
+//import { Dropdown } from 'semantic-ui-react'
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
@@ -56,7 +55,9 @@ class DevtoolsMountsPanel extends WebComponent {
 
 
       ${!options.length && html`
-        <strong>No mounts found, this is most likely an error</strong>
+        <div class="ui segment">
+          <strong>No mounts found, have you rendered anything?</strong>
+        </div>
       `}
 
       ${mounts[index] && html`

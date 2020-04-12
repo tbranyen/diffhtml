@@ -1,4 +1,4 @@
-import { TransitionCache } from './util/caches';
+import { TransitionCache, NodeCache } from './util/caches';
 import process from './util/process';
 import createTree from './tree/create';
 import createNode from './node/create';
@@ -90,7 +90,7 @@ export function runTransitions(setName, ...args) {
   // Run each transition callback, but only if the passed args are an
   // Element.
   set.forEach(callback => {
-    const retVal = callback(createNode(vTree), ...rest);
+    const retVal = callback(NodeCache.get(vTree), ...rest);
 
     // Is a `thennable` object or Native Promise.
     if (typeof retVal === 'object' && retVal.then) {
@@ -100,7 +100,7 @@ export function runTransitions(setName, ...args) {
 
   if (setName === 'attached' || setName === 'detached') {
     vTree.childNodes.forEach((/** @type {VTree} */ childTree) => {
-      promises.push(...runTransitions(setName, createNode(childTree), ...rest));
+      promises.push(...runTransitions(setName, childTree, ...rest));
     });
   }
 

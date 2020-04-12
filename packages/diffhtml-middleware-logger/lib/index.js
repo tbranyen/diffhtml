@@ -123,6 +123,7 @@ const format = (patches) => {
 
         newPatches['Node (Replace)'].push({
           'New node': Internals.NodeCache.get(newTree),
+          'New tree': newTree,
           'Old tree': oldTree,
         });
 
@@ -266,7 +267,7 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
    * Transaction is effectively done, but we need to listen for it to actually
    * be finished.
    */
-  return () => {
+  return (Internals) => {
     // Transaction has fully completed.
     transaction.onceEnded(() => {
       console.groupEnd();

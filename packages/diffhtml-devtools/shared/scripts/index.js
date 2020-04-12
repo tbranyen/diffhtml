@@ -44,15 +44,21 @@ const state = new Proxy(initialState, reactiveBinding(() => {
   render();
 }));
 
+window.state = state;
 window.onhashchange = () => state.activeRoute = location.hash;
 
 const inspect = selector => chrome.devtools.inspectedWindow.eval(
   `inspect($$('${selector}')[0])`
 );
 
-const render = () => innerHTML(document.body, html`
+const refresh = () => location.reload();
+
+const render = () => innerHTML(main, html`
   ${!state.version && html`
-    <h1 id="not-found">&lt;/&gt; diffHTML middleware was <span class="not">not</span> found</h1>
+    <h1 id="not-found">
+      Could not locate &lt;&#xB1;/&gt; diffHTML
+      <i onclick=${refresh} class="icon sync"></i>
+    </h1>
   `}
 
   ${state.version && html`
@@ -90,8 +96,9 @@ const render = () => innerHTML(document.body, html`
       </devtools-panels>
     </devtools-split-view>
   `}
-`)
-.catch(ex => { throw ex; });
+`).catch(ex => {
+  throw ex;
+});
 
 background.onMessage.addListener(message => {
   switch (message.action) {

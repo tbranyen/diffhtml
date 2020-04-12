@@ -1,8 +1,8 @@
+import { createTree, innerHTML } from 'diffhtml';
 import process from './util/process';
 import PropTypes from './util/prop-types';
-import { createTree, innerHTML } from 'diffhtml';
 import upgradeSharedClass from './shared/upgrade-shared-class';
-import { $$render } from './util/symbols';
+import { $$render, $$vTree } from './util/symbols';
 
 const { defineProperty, assign, keys } = Object;
 const root = typeof window !== 'undefined' ? window : global;
@@ -17,7 +17,7 @@ const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
 const createProps = (domNode, props = {}) => {
   const observedAttributes = getObserved(domNode.constructor);
   const initialProps = {
-    children: [].map.call(domNode.childNodes, createTree),
+    //children: [].map.call(domNode.childNodes, createTree),
   };
 
   const incoming = observedAttributes.reduce((props, attr) => ({
@@ -35,15 +35,6 @@ const createState = (domNode, newState) => assign({}, domNode.state, newState);
 class WebComponent extends root.HTMLElement {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
-  }
-
-  [$$render]() {
-    const oldProps = this.props;
-    const oldState = this.state;
-
-    this.props = createProps(this, this.props);
-    innerHTML(this.shadowRoot, this.render(this.props, this.state));
-    this.componentDidUpdate(oldProps, oldState);
   }
 
   constructor(props, context) {
@@ -72,20 +63,6 @@ class WebComponent extends root.HTMLElement {
       this.props[propName] = defaultProps[propName];
     });
 
-    // Handle properties being set.
-    keys(propTypes).forEach(propName => {
-      defineProperty(this, propName, {
-        get: () => {
-          return this.props[propName];
-        },
-
-        set: (value) => {
-          this.props[propName] = value;
-          this[$$render]();
-        }
-      });
-    });
-
     if (process.env.NODE_ENV !== 'production') {
       if (PropTypes.checkPropTypes) {
         PropTypes.checkPropTypes(propTypes, this.props, 'prop', name);
@@ -94,10 +71,27 @@ class WebComponent extends root.HTMLElement {
   }
 
   connectedCallback() {
+    const { propTypes = {} } = this.constructor;
+
+    // Handle properties being set after appended into the DOM, only mark those
+    // set in `propTypes`.
+    keys(propTypes).forEach(propName => {
+      defineProperty(this, propName, {
+        get: () => this.props[propName],
+        set: (value) => {
+          this.props[propName] = value;
+          this[$$render]();
+        },
+      });
+    });
+
     // This callback gets called during replace operations, there is no point
     // in re-rendering or creating a new shadow root due to this.
     if (!this.shadowRoot) {
       this.attachShadow({ mode: 'open' });
+      // fixme
+      // this nested render calls gc() which removes the parent reference
+      // must protect before it happens
       this[$$render]();
       this.componentDidMount();
     }
@@ -118,6 +112,17 @@ class WebComponent extends root.HTMLElement {
         this[$$render]();
       }
     }
+  }
+
+  [$$vTree] = null;
+
+  [$$render]() {
+    const oldProps = this.props;
+    const oldState = this.state;
+
+    this.props = createProps(this, this.props);
+    innerHTML(this.shadowRoot, this.render(this.props, this.state, this.context));
+    this.componentDidUpdate(oldProps, oldState);
   }
 }
 
