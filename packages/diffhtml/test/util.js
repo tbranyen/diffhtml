@@ -804,6 +804,68 @@ describe('Util', function() {
       });
     });
 
+    it('will prepend a value into a single attribute', () => {
+      const hello = 'hello';
+      const world = 'world';
+      const supplemental = createSupplemental({
+        attributes: [hello],
+      })
+      const vTree = parse(`
+        <div class="__DIFFHTML__0__ ui"></div>
+      `.trim(), supplemental);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: 'div',
+          nodeName: 'div',
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [],
+          attributes: {
+            class: 'hello ui',
+          },
+        }],
+        attributes: {},
+      });
+    });
+
+    it('will append a value into a single attribute', () => {
+      const hello = 'hello';
+      const world = 'world';
+      const supplemental = createSupplemental({
+        attributes: [hello],
+      })
+      const vTree = parse(`
+        <div class="ui __DIFFHTML__0__"></div>
+      `.trim(), supplemental);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        childNodes: [{
+          rawNodeName: 'div',
+          nodeName: 'div',
+          nodeValue: '',
+          nodeType: 1,
+          key: '',
+          childNodes: [],
+          attributes: {
+            class: 'ui hello',
+          },
+        }],
+        attributes: {},
+      });
+    });
+
     it('will interpolate multiple values into a single attribute', () => {
       const hello = 'hello';
       const world = 'world';

@@ -1,16 +1,13 @@
 # <±/> diffHTML
 
-*A suite of JavaScript user interface tooling, built for the web.*
+*A suite of JavaScript user interface tooling built for the web.*
 
 Stable version: 1.0.0-beta.14
 
-[![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
-[![Coverage
-  Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
-
-diffHTML is a library that assists with creating user interfaces using
-JavaScript. These interfaces can be: applications, games, data visualizations,
-or anything else that you may want to render in a web browser.
+At its core, diffHTML is an extremely lightweight and optimized HTML parser and
+Virtual DOM specifically designed for modern web UIs. These interfaces can be
+applications, games, data visualizations, or anything else that you may want to
+render in a web browser or Node.
 
 This repository is a mono-repo structured with the [Lerna](https://lernajs.io/)
 CLI tool. This makes it easier to support continuous integration, consistent
@@ -21,11 +18,11 @@ versioning, and working on the various diffHTML tools.
 ## Features
 
 - Parses real **HTML** and supports **JSX & Tagged Templates**.
-- Efficient minimal rendering that utilizes **object pooling**.
+- Memory efficient VDOM rendering that utilizes **object pooling**.
+- **Transitions** for animations and hooking into DOM changes.
+- Powerful **middleware** extends diffHTML with additional features.
 - **Web** and **React**-compatible stateful components.
 - View and debug your code using the **Chrome DevTools extension**.
-- **Transition hooks** monitor DOM changes an are similar to mutation events.
-- Powerful **middleware** extends diffHTML with additional features.
 
 ## Packages
 
@@ -34,6 +31,10 @@ be tested globally or independently by using `npm test` at the root directory
 level or any specific nested package level.
 
 * **[diffhtml](/packages/diffhtml)**
+
+  [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
+  [![Coverage
+    Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
 
   ``` sh
   npm install diffhtml

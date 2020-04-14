@@ -120,14 +120,6 @@ class Component {
       renderTree = createTree(FRAGMENT, null, renderTree);
     }
 
-    // Remove existing nodes, before comparing, since we already know we don't
-    // need them.
-    if (fragment.childNodes.length < childNodes.length) {
-      childNodes.slice(fragment.childNodes.length).forEach((childNode, i) => {
-        childNode && parentNode.removeChild(childNode);
-      });
-    }
-
     // Compare the existing component node(s) to the new node(s).
     outerHTML(fragment, renderTree);
 
@@ -141,7 +133,8 @@ class Component {
       NodeCache.set(childTree, newNode);
       const oldNode = NodeCache.get(childTrees[i]);
 
-      if (newNode && oldNode) {
+      // Replace if the nodes are different.
+      if (newNode && oldNode && childTrees[i] !== childTree) {
         parentNode.replaceChild(
           newNode,
           oldNode,
@@ -149,16 +142,34 @@ class Component {
 
         // Reset last node, since it has been replaced.
         lastNode = newNode;
+
+        ComponentTreeCache.set(childTree, vTree);
+        memory.protectVTree(childTree);
       }
-      else {
+      // Add if there is no missing Node.
+      else if (!oldNode) {
         lastNode.after(newNode);
         lastNode = newNode;
+
+        ComponentTreeCache.set(childTree, vTree);
+        memory.protectVTree(childTree);
       }
-
-      memory.protectVTree(childTree);
-
-      ComponentTreeCache.set(childTree, vTree);
+      // Keep the old node.
+      else {
+        ComponentTreeCache.set(childTrees[i], vTree);
+        lastNode = oldNode;
+        memory.protectVTree(childTrees[i]);
+      }
     });
+
+    // Remove existing nodes, before comparing, since we already know we don't
+    // need them.
+    if (fragment.childNodes.length < childNodes.length) {
+      childNodes.slice(fragment.childNodes.length).forEach((childNode, i) => {
+        childNode && childNode.parentNode && parentNode.removeChild(childNode);
+        release(childNode);
+      });
+    }
 
     // Empty the fragment after using.
     fragment.childNodes.length = 0;

@@ -11,6 +11,13 @@ class DevtoolsHelpPanel extends WebComponent {
       <div class="ui tall segment">
         <h3>Help</h3>
       </div>
+
+      <script>
+        ((window.gitter = {}).chat = {}).options = {
+          room: 'tbranyen/diffhtml'
+        };
+      </script>
+      <script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
     `;
   }
 

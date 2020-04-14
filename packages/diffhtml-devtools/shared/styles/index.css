@@ -12,6 +12,10 @@ body, main {
   font-size: 100%;
 }
 
+main[data-theme="dark"] {
+  background-color: #131313;
+}
+
 body::-webkit-scrollbar {
   width: 5px;
   position: absolute;
@@ -27,7 +31,6 @@ body::-webkit-scrollbar-thumb {
 
 h1:first-child {
   border-bottom: 1px solid #CCCCCC;
-  background-color: #FFF;
   font-size: 16px;
   font-weight: normal;
   padding: 10px;
@@ -38,15 +41,23 @@ h1:first-child {
   user-select: none;
 }
 
+[data-theme="dark"] h1:first-child {
+  border-bottom: none;
+}
+
 #not-found {
   text-align: center;
-  background-color: #FFF;
   font-size: 20px;
   font-weight: normal;
   box-sizing: border-box;
   margin: 0;
   user-select: none;
   line-height: 100vh;
+}
+
+[data-theme="dark"] #not-found {
+  color: #FFF;
+  background: transparent;
 }
 
 .retry button {

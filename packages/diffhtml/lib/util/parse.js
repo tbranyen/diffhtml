@@ -205,6 +205,10 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
         else if (attributes[newName]) {
           attributes[newName] += value;
         }
+        // Set the initial attribute value.
+        else {
+          attributes[newName] = value;
+        }
       }
     }
     // This attribute has no value, so set to an empty string.

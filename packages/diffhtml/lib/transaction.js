@@ -68,7 +68,7 @@ export default class Transaction {
    */
   static assert(transaction) {
     if (process.env.NODE_ENV !== 'production') {
-      if (typeof transaction.domNode !== 'object') {
+      if (typeof transaction.domNode !== 'object' || !transaction.domNode) {
         throw new Error('Transaction requires a DOM Node mount point');
       }
 

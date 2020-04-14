@@ -30,22 +30,22 @@ export default function renderComponent(vTree, context) {
         return;
       }
 
-      if (typeof instance.componentWillReceiveProps === 'function') {
+      if (instance.componentWillReceiveProps) {
         instance.componentWillReceiveProps(props);
       }
 
-      // TODO Find a better way of accomplishing this...
       // Wipe out all old references before re-rendering.
       ComponentTreeCache.forEach((_vTree, childNode) => {
         if (_vTree === vTree) {
+          debugger;
           ComponentTreeCache.delete(childNode);
         }
       });
 
-      if (instance.shouldComponentUpdate()) {
+      if (instance.shouldComponentUpdate && instance.shouldComponentUpdate()) {
         renderTree = createTree(instance.render(props, instance.state, context));
 
-        if (instance.componentDidUpdate) {
+        if (instance.componentDidUpdate && instance.componentDidUpdate) {
           instance.componentDidUpdate(instance.props, instance.state);
         }
       }
@@ -123,7 +123,6 @@ export default function renderComponent(vTree, context) {
       if (newTree && newTree.nodeType !== 11) {
         ComponentTreeCache.set(newTree, vTree);
       }
-      // FIXME When does a fragment occur, and should we account for this?
     }
   };
 

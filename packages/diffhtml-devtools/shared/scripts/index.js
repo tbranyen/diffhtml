@@ -1,4 +1,4 @@
-import { innerHTML, html, use } from 'diffhtml';
+import { outerHTML, html, use } from 'diffhtml';
 import logger from 'diffhtml-middleware-logger';
 import verifyState from 'diffhtml-middleware-verify-state';
 
@@ -15,12 +15,29 @@ import './panels/mounts';
 import './panels/middleware';
 import './panels/health';
 import './panels/settings';
+import './panels/help';
 
+const { stringify, parse } = JSON;
 const { assign } = Object;
 const background = chrome.runtime.connect({ name: 'devtools-page' });
 
 //use(logger());
 //use(verifyState());
+
+use({
+  // When dark mode is set, automatically add Semantic UI `inverted` class.
+  createTreeHook(vTree) {
+    if (state.theme === 'dark') {
+      if (vTree.attributes && vTree.attributes.class) {
+        const attributes = vTree.attributes;
+
+        if (attributes.class.includes('ui ') || attributes.class.includes(' ui')) {
+          attributes.class += `${attributes.class} inverted`;
+        }
+      }
+    }
+  }
+});
 
 // Relay the tab ID to the background page
 background.postMessage({
@@ -39,9 +56,15 @@ const initialState = {
   version: undefined,
 };
 
+let timeout = null;
+
 const reactiveBinding = f => ({ set(t, p, v) { t[p] = v; f(); return !0; } });
 const state = new Proxy(initialState, reactiveBinding(() => {
-  render();
+  clearTimeout(timeout);
+
+  timeout = setTimeout(() => {
+    render();
+  }, 0);
 }));
 
 window.state = state;
@@ -53,7 +76,14 @@ const inspect = selector => chrome.devtools.inspectedWindow.eval(
 
 const refresh = () => location.reload();
 
-const render = () => innerHTML(main, html`
+const clearEntries = () => {
+  assign(state, {
+    inProgress: [],
+    completed: [],
+  });
+};
+
+const render = () => outerHTML(main, html`<main id="main" data-theme=${state.theme}>
   ${!state.version && html`
     <h1 id="not-found">
       Could not locate &lt;&#xB1;/&gt; diffHTML
@@ -73,11 +103,12 @@ const render = () => innerHTML(main, html`
           inProgress=${state.inProgress}
           completed=${state.completed}
           inspect=${inspect}
+          clearEntries=${clearEntries}
         />
       </devtools-panels>
 
       <devtools-panels route="#mounts" activeRoute=${state.activeRoute}>
-        <devtools-mounts-panel mounts=${state.mounts} />
+        <devtools-mounts-panel mounts=${state.mounts} inspect=${inspect} />
       </devtools-panels>
 
       <devtools-panels route="#middleware" activeRoute=${state.activeRoute}>
@@ -95,33 +126,37 @@ const render = () => innerHTML(main, html`
         <devtools-settings-panel />
       </devtools-panels>
     </devtools-split-view>
-  `}
+  </main>`}
 `).catch(ex => {
   throw ex;
 });
 
+const clone = x => parse(stringify(x));
+
 background.onMessage.addListener(message => {
   switch (message.action) {
     case 'activated': {
+      const clonedData = clone(message.data);
+
       assign(state, {
-        ...message.data,
-        inProgress: message.data.inProgress || state.inProgress,
-        completed: message.data.completed || state.completed,
-        memory: (state.memory.concat(message.data.memory)).slice(-20),
+        ...clonedData,
+        inProgress: clonedData.inProgress || state.inProgress,
+        completed: clonedData.completed || state.completed,
+        memory: state.memory.concat(clonedData.memory).filter(Boolean).slice(-1),
       });
 
       break;
     }
 
     case 'start': {
-      state.inProgress = state.inProgress.concat(message.data);
+      state.inProgress = state.inProgress.concat(clone(message.data));
 
       break;
     }
 
     case 'end': {
       state.inProgress.shift();
-      state.completed = state.completed.concat(message.data);
+      state.completed = state.completed.concat(clone(message.data));
 
       break;
     }

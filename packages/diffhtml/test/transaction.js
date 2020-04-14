@@ -214,6 +214,17 @@ describe('Transaction', function() {
   });
 
   describe('start', () => {
+    it('will error in development if trying to start a transaction without a dom node', () => {
+      const { domNode, markup, options } = suite;
+      const transaction = Transaction.create(domNode, markup, options);
+
+      transaction.domNode = null;
+
+      throws(() => {
+        transaction.start();
+      }, / /);
+    });
+
     it('will start a transaction', () => {
       const { domNode, markup, options } = suite;
       const transaction = Transaction.create(domNode, markup, options);

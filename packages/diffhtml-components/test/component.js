@@ -1,7 +1,15 @@
 /// <reference types="mocha" />
 
 import { ok, equal, doesNotThrow, throws } from 'assert';
-import { innerHTML, html, release, Internals, use } from 'diffhtml';
+import {
+  use,
+  innerHTML,
+  html,
+  release,
+  Internals,
+  addTransitionState,
+  removeTransitionState,
+} from 'diffhtml';
 import PropTypes from 'prop-types';
 import Component from '../lib/component';
 import validateCaches from './util/validate-caches';
@@ -18,6 +26,9 @@ describe('Component implementation', function() {
   });
 
   afterEach(() => {
+    ['attached', 'detached', 'replaced', 'textChanged', 'attributeChanged']
+      .forEach(transitionName => removeTransitionState(transitionName));
+
     release(this.fixture);
     Component.unsubscribeMiddleware();
     validateCaches();
@@ -826,6 +837,40 @@ describe('Component implementation', function() {
       equal(this.fixture.innerHTML, '<div></div>');
     });
 
+    it('will add a single element when re-rendering in succession', async () => {
+      class CustomComponent extends Component {
+        render() {
+          const { next } = this.state;
+
+          if (next) {
+            return html`<div></div>`;
+          }
+
+          return html``;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.next = false;
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
+
+      equal(this.fixture.innerHTML, '');
+      ref.state.next = true;
+      const promises = [];
+      promises.push(ref.forceUpdate());
+      promises.push(ref.forceUpdate());
+      await Promise.all(promises);
+      equal(this.fixture.innerHTML, '<div></div>');
+    });
+
     it('will replace a single element when re-rendering', () => {
       class CustomComponent extends Component {
         render() {
@@ -917,6 +962,40 @@ describe('Component implementation', function() {
       equal(this.fixture.childNodes.length, 1);
       ref.state.next = true;
       ref.forceUpdate();
+      equal(this.fixture.innerHTML, '<div></div><div></div>');
+    });
+
+    it('will add multiple elements when re-rendering in succession', async () => {
+      class CustomComponent extends Component {
+        render() {
+          const { next } = this.state;
+
+          if (next) {
+            return html`<div></div><div></div>`;
+          }
+
+          return html``;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.next = false;
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(
+        this.fixture,
+        html`<${CustomComponent} ref=${node => (ref = node)} />`,
+      );
+
+      equal(this.fixture.innerHTML, '');
+      ref.state.next = true;
+      const promises = [];
+      promises.push(ref.forceUpdate());
+      promises.push(ref.forceUpdate());
+      await Promise.all(promises);
       equal(this.fixture.innerHTML, '<div></div><div></div>');
     });
 
@@ -1274,6 +1353,7 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html``);
 
       equal(hit, 1);
+      equal(this.fixture.innerHTML, '');
     });
 
     it('will trigger shouldComponentUpdate for a component', () => {
@@ -1322,6 +1402,113 @@ describe('Component implementation', function() {
       equal(
         this.fixture.innerHTML.replace(whitespaceEx, ''),
         '<div>right</div>',
+      );
+    });
+  });
+
+  describe('Transitions', () => {
+    it('will render a virtual tree with attached transition (no promise)', () => {
+      let attachedCalledWith = null;
+
+      addTransitionState('attached', el => {
+        attachedCalledWith = el;
+      });
+
+      class CustomComponent extends Component {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(
+        this.fixture.outerHTML.replace(whitespaceEx, ''),
+        '<div><div>Hello world</div></div>',
+      );
+
+      equal(
+        attachedCalledWith,
+        this.fixture.childNodes[1],
+      );
+    });
+
+    it('will re-render a virtual tree with attached transition (no promise)', () => {
+      let attachedCalledWith = null;
+      let calledCount = 0;
+
+      addTransitionState('attached', el => {
+        calledCount += 1;
+        attachedCalledWith = el;
+      });
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(
+        this.fixture.outerHTML.replace(whitespaceEx, ''),
+        '<div><div>Hello world</div></div>',
+      );
+
+      equal(attachedCalledWith, this.fixture.childNodes[1]);
+      equal(calledCount, 1);
+    });
+
+    it('will render a virtual tree with attached transition (with promise)', async () => {
+      addTransitionState('attached', el => {
+        return new Promise(resolve => {
+          el.textContent = 'Goodbye world';
+          resolve();
+        });
+      });
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      await innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(
+        this.fixture.outerHTML.replace(whitespaceEx, ''),
+        '<div><div>Goodbye world</div></div>',
+      );
+    });
+
+    it('will re-render a virtual tree with attached transition (with promise)', async () => {
+      addTransitionState('attached', el => {
+        return new Promise(resolve => {
+          el.textContent = 'Goodbye world';
+          resolve();
+        });
+      });
+
+      class CustomComponent {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      await innerHTML(this.fixture, html`<${CustomComponent} />`);
+
+      equal(
+        this.fixture.outerHTML.replace(whitespaceEx, ''),
+        '<div><div>Goodbye world</div></div>',
       );
     });
   });

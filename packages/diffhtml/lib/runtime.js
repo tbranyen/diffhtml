@@ -43,7 +43,7 @@ const global = globalThis;
 
 // Automatically hook up to DevTools if they are present.
 if (global.devTools) {
-  use(global.devTools(Internals));
+  global.unsubscribeDevTools = use(global.devTools(Internals));
 }
 
 export {

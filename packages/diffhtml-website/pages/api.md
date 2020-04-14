@@ -379,7 +379,8 @@ the runtime.
 ### <a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a>
 
 A JavaScript Set object that contains registered middleware functions that
-trigger whenever transaction state changes.
+trigger whenever transaction state changes. Use this to help enable/disable
+middleware functions from running during renders.
 
 ### <a name="create-node-hook-cache" href="#create-node-hook-cache">CreateNodeHookCache</a>
 
@@ -469,6 +470,10 @@ Transactions have a number of properties available to access:
 - **promises** - All promises attached to the transaction from transitions
 - **state** - Internal state object for the transaction
 - **tasks** - Array of functions that were executed when rendering
+
+### <a name="internals-version" href="#internals-version">VERSION</a>
+
+See [VERSION](#version)
 
 <a name="version"></a>
 

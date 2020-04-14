@@ -1,4 +1,3 @@
-//import React from 'react'
 //import { Dropdown } from 'semantic-ui-react'
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
@@ -9,17 +8,19 @@ const hasNonWhitespaceEx = /\S/;
 class DevtoolsMountsPanel extends WebComponent {
   static propTypes = {
     mounts: PropTypes.array,
+    inspect: PropTypes.func,
   }
 
   state = {
     index: 0,
+    isExpanded: false,
   }
 
   changeIndex = ({ target }) => this.setState({ index: target.selectedIndex })
 
   render() {
-    const { mounts = [] } = this.props;
-    const { index } = this.state;
+    const { mounts = [] } = window.state;
+    const { index, isExpanded } = this.state;
     const { styles, changeIndex } = this;
 
     const options = mounts.map(({ selector }) => ({
@@ -32,35 +33,37 @@ class DevtoolsMountsPanel extends WebComponent {
       <style>${styles()}</style>
 
       <div class="ui tall segment">
-        <h3>Mounts</h3>
+        <h3 onclick=${() => this.setState({ isExpanded: !isExpanded })}>
+          <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Elements
+        </h3>
 
-        ${options.length && html`
-          <select oninput=${changeIndex}>
-            ${options.map(option => html`
-              <option value=${option.value}>${option.text}</option>
-            `)}
-          </select>
-        `}
+        ${isExpanded && html`
+          ${false && html`<${Dropdown}
+            placeholder='Select DOM Node'
+            fluid
+            selection
+            value=${options[0] && options[0].value}
+            options=${options}
+          />`}
 
-        <!--
-        <Dropdown
-          placeholder='Select DOM Node'
-          fluid
-          selection
-          value=${options[0] && options[0].value}
-          options=${options}
-        />
-        -->
-      </div>
-
-
-      ${!options.length && html`
-        <div class="ui segment">
-          <strong>No mounts found, have you rendered anything?</strong>
+          ${options.length && html`
+            <select oninput=${changeIndex}>
+              ${options.map(option => html`
+                <option value=${option.value}>${option.text}</option>
+              `)}
+            </select>
+          `}
         </div>
       `}
 
-      ${mounts[index] && html`
+      ${!options.length && html`
+        <p>
+          <i class="icon exclamation circle"></i>
+          <strong>No mounts found, have you rendered anything?</strong>
+        </p>
+      `}
+
+      ${mounts[index] && mounts[index].tree && html`
         <div class="wrapper">
           ${this.renderVTree(mounts[index].tree)}
         </div>
@@ -71,11 +74,11 @@ class DevtoolsMountsPanel extends WebComponent {
   renderVTree(vTree) {
     return html`
       <div class="vtree" data-nodetype=${vTree.nodeType}>
-        <h2 class="vtree-header">&lt;${vTree.nodeName} /&gt;</h2>
+        <h2 class="vtree-header">&lt;${vTree.nodeName}&gt;</h2>
 
         ${Boolean(vTree.childNodes.length) && html`
           <div class="vtree-children">
-            ${vTree.childNodes.map(vTree => {
+            ${vTree.childNodes.filter(vTree => vTree && vTree.nodeType !== 3).map(vTree => {
               const hasNonWhitespace = hasNonWhitespaceEx.test(vTree.nodeValue);
 
               if (vTree.nodeType !== 3 || hasNonWhitespace) {
@@ -95,6 +98,14 @@ class DevtoolsMountsPanel extends WebComponent {
       }
 
       * { box-sizing: border-box; }
+
+      h2 {
+        font-size: 13px;
+      }
+
+      h3 {
+        cursor: pointer;
+      }
 
       .ui.segment {
         border-left: 0;
@@ -121,16 +132,30 @@ class DevtoolsMountsPanel extends WebComponent {
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
-        min-height: 48px;
         padding: 20px;
+        padding-top: 0px;
+        padding-bottom: 0px;
         width: 100%;
         border: 1px solid #F1F1F1;
         border-top: none;
-        border-left: none;
+        border-bottom: none;
+      }
+
+      .vtree:not(:first-child) {
+        padding-top: 10px;
       }
 
       .vtree:first-child {
-        border-left: 1px solid #F1F1F1;
+        padding-top: 20px;
+      }
+
+      .vtree:last-child {
+        padding-bottom: 20px;
+      }
+
+      .wrapper > .vtree {
+        border: none;
+        padding: 0;
       }
 
       .vtree-header {
@@ -156,6 +181,8 @@ class DevtoolsMountsPanel extends WebComponent {
         display: flex;
         flex-direction: row;
         width: 100%;
+        flex-wrap: wrap;
+        border: 2px solid #F1F1F1;
       }
     `;
   }

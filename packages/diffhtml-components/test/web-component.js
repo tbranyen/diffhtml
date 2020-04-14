@@ -13,6 +13,9 @@ describe('Web Component', function() {
   beforeEach(() => {
     newJSDOMSandbox();
 
+    // Make setTimeout synchronous.
+    window.setTimeout = fn => fn();
+
     delete require.cache[require.resolve('../lib/web-component')];
     WebComponent = require('../lib/web-component');
 
@@ -85,7 +88,7 @@ describe('Web Component', function() {
     equal(this.fixture.innerHTML, '<custom-component></custom-component>');
   });
 
-  it('will re-render a component with props', () => {
+  it('will re-render a component with string props', () => {
     class CustomComponent extends WebComponent {
       render() {
         return html`
@@ -105,8 +108,90 @@ describe('Web Component', function() {
 
     const instance = this.fixture.querySelector('custom-component');
 
+    instance.forceUpdate();
+
     equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>world</div>');
     equal(this.fixture.innerHTML, '<custom-component message="world"></custom-component>');
+  });
+
+  it('will re-render a component with object props', () => {
+    class CustomComponent extends WebComponent {
+      render() {
+        return html`
+          <div>${this.props.message.contents}</div>
+        `;
+      }
+
+      static propTypes = {
+        message: PropTypes.object,
+      }
+    }
+
+    customElements.define('custom-component', CustomComponent);
+
+    const message = { contents: 'hello' };
+
+    innerHTML(this.fixture, html`<custom-component message=${{ ...message }} />`);
+
+    message.contents = 'world';
+
+    innerHTML(this.fixture, html`<custom-component message=${{ ...message }} />`);
+
+    const instance = this.fixture.querySelector('custom-component');
+
+    instance.forceUpdate();
+
+    equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>world</div>');
+    equal(this.fixture.innerHTML, '<custom-component></custom-component>');
+  });
+
+  it('will re-render a nested component with object props', () => {
+    class InnerComponent extends WebComponent {
+      render() {
+        return html`
+          <div>${this.props.message.contents}</div>
+        `;
+      }
+
+      static propTypes = {
+        message: PropTypes.object,
+      }
+    }
+
+    class OuterComponent extends WebComponent {
+      render() {
+        return html`
+          <inner-component message=${this.props.message}></inner-component>
+        `;
+      }
+
+      static propTypes = {
+        message: PropTypes.object,
+      }
+    }
+
+    customElements.define('outer-component', OuterComponent);
+    customElements.define('inner-component', InnerComponent);
+
+    const message = { contents: 'hello' };
+
+    innerHTML(this.fixture, html`<outer-component message=${{ ...message }} />`);
+
+    const outer = this.fixture.querySelector('outer-component');
+    const inner = outer.shadowRoot.querySelector('inner-component');
+
+    equal(inner.shadowRoot.childNodes[1].outerHTML, '<div>hello</div>');
+    equal(this.fixture.innerHTML, '<outer-component></outer-component>');
+
+    message.contents = 'world';
+
+    innerHTML(this.fixture, html`<outer-component message=${{ ...message }} />`);
+
+    outer.forceUpdate();
+    inner.forceUpdate();
+
+    equal(inner.shadowRoot.childNodes[1].outerHTML, '<div>world</div>');
+    equal(this.fixture.innerHTML, '<outer-component></outer-component>');
   });
 
   it('will re-render a nested component', () => {
@@ -276,6 +361,24 @@ describe('Web Component', function() {
         createTree('span', null, 'Testing'),
         createTree('#text', '\n      '),
       ]);
+    });
+
+    it('will pass objects as props', () => {
+      class CustomComponent extends WebComponent {
+        render({ data }) {
+          return html`
+            <div>${data.message}</div>
+          `;
+        }
+      }
+
+      const data = { message: 'Test' };
+      customElements.define('custom-component', CustomComponent);
+      innerHTML(this.fixture, html`<custom-component data=${data} />`);
+
+      const instance = this.fixture.querySelector('custom-component').shadowRoot;
+
+      equal(instance.innerHTML.replace(whitespaceEx, ''), '<div>Test</div>');
     });
   });
 

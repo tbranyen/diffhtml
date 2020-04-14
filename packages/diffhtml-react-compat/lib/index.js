@@ -24,43 +24,48 @@ if (typeof document !== 'undefined') {
 
 const REACT_ELEMENT_TYPE = Symbol.for('react.element') || 0xeac7;
 
-const createElement = (...args) => {
-  const tree = createTree(...args);
+use({
+  displayName: 'reactCompatTask',
 
-  tree.$$typeof = REACT_ELEMENT_TYPE;
+  createTreeHook(tree) {
+    tree.$$typeof = REACT_ELEMENT_TYPE;
 
-  const attributes = keys(tree.attributes);
+    const attributes = keys(tree.attributes);
 
-  if (attributes.includes('className')) {
-    tree.attributes.class = tree.attributes.className;
-  }
-
-  if (attributes.includes('htmlFor')) {
-    tree.attributes.for = tree.attributes.htmlFor;
-  }
-
-  if (attributes.includes('children')) {
-    const childNodes = tree.childNodes.length ? tree.childNodes : Children.toArray(tree.attributes.children);
-    const newNodes = childNodes.map(createTree);
-
-    tree.childNodes = newNodes;
-  }
-
-  attributes.forEach(name => {
-    if (name.indexOf('on') === 0) {
-      tree.attributes[name.toLowerCase()] = tree.attributes[name];
+    // Merge className into class
+    if (attributes.includes('className')) {
+      tree.attributes.class = `${tree.attributes.class} ${tree.attributes.className}`;
     }
-  });
 
-  return tree;
-};
+    if (attributes.includes('htmlFor')) {
+      tree.attributes.for = tree.attributes.htmlFor;
+    }
+
+    if (attributes.includes('children')) {
+      const childNodes = tree.childNodes.length ? tree.childNodes : Children.toArray(tree.attributes.children);
+      const newNodes = childNodes.map(createTree);
+
+      tree.childNodes = newNodes;
+    }
+
+    attributes.forEach(name => {
+      if (name.indexOf('on') === 0) {
+        tree.attributes[name.toLowerCase()] = tree.attributes[name];
+      }
+    });
+  },
+});
+
+const createRef = () => ({
+  current: null,
+});
 
 const render = (component, mount, opts) => innerHTML(mount, component, opts);
 
 const isValidElement = object => (
   typeof object === 'object' &&
   object !== null &&
-  object.$$typeof === Symbol.for('react.element')
+  object.$$typeof === REACT_ELEMENT_TYPE
 );
 
 const createFactory = ctor => createTree.bind(null, ctor);
@@ -71,14 +76,18 @@ const cloneElement = ({ rawNodeName, attributes }, props, ...children) => {
 
 const findDOMNode = vTree => NodeCache.get(vTree) || null;
 
+const internals = {};
+
 export {
+  internals as __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
   cloneElement,
   createFactory,
-  createElement,
+  createTree as createElement,
+  createRef,
   Component,
   PureComponent,
   Children,
-  createElement as h,
+  createTree as h,
   render,
   isValidElement,
   PropTypes,
@@ -97,11 +106,13 @@ export {
 export default {
   cloneElement,
   createFactory,
-  createElement,
+  createRef,
+  createElement: createTree,
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: internals,
   Component,
   PureComponent,
   Children,
-  h: createElement,
+  h: createTree,
   render,
   isValidElement,
   PropTypes,

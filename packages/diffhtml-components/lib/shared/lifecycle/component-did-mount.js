@@ -26,6 +26,9 @@ const callRefs = vTrees => {
       if (typeof ref === 'function') {
         ref(instance);
       }
+      else if (typeof ref === 'object' && ref) {
+        ref.current = instance;
+      }
       else if (typeof ref === 'string') {
         instance.refs = { ...instance.refs, [ref]: instance };
       }
@@ -39,6 +42,9 @@ const callRefs = vTrees => {
       if (typeof ref === 'function') {
         ref(value);
       }
+      else if (typeof ref === 'object' && ref) {
+        ref.current = instance;
+      }
       else if (typeof ref === 'string') {
         instance.refs = { ...instance.refs, [ref]: value };
       }
@@ -50,11 +56,24 @@ export default function componentDidMount(vTree) {
   // Ensure this is a stateful component. Stateless components do not get
   // lifecycle events yet.
   const componentTree = ComponentTreeCache.get(vTree);
+  const childTrees = [];
+
+  ComponentTreeCache.forEach((rootTree, vTree) => {
+    if (rootTree === componentTree) {
+      childTrees.push(vTree);
+    }
+  });
+
+  // Only trigger a mount for the first element.
+  if (childTrees.length > 1 && childTrees.indexOf(vTree) !== 0) {
+    return;
+  }
+
   const instances = InstanceCache.get(componentTree || vTree);
 
-  callRefs([vTree]);
+  callRefs([componentTree, vTree, ...childTrees.slice(1)]);
 
-  instances && instances.forEach(instance => {
+  instances && instances.forEach((instance, i) => {
     if (instance.componentDidMount) {
       instance.componentDidMount();
     }

@@ -80,16 +80,20 @@ export function runTransitions(setName, ...args) {
   /** @type {Promise<any>[]} */
   const promises = [];
 
+  const [ vTree, ...rest ] = args;
+
   // Do not pass text nodes to anything but textChanged.
-  if (!set.size || setName !== 'textChanged' && args[0].nodeType === 3) {
+  if (!set.size || (setName !== 'textChanged' && vTree.nodeType === 3)) {
     return promises;
   }
-
-  const [ vTree, ...rest ] = args;
 
   // Run each transition callback, but only if the passed args are an
   // Element.
   set.forEach(callback => {
+    if (setName !== 'textChanged' && vTree.nodeType !== 1) {
+      return;
+    }
+
     const retVal = callback(NodeCache.get(vTree), ...rest);
 
     // Is a `thennable` object or Native Promise.
@@ -98,6 +102,8 @@ export function runTransitions(setName, ...args) {
     }
   });
 
+  // For attached and detached transitions, dig into children to ensure
+  // all are run with this.
   if (setName === 'attached' || setName === 'detached') {
     vTree.childNodes.forEach((/** @type {VTree} */ childTree) => {
       promises.push(...runTransitions(setName, childTree, ...rest));

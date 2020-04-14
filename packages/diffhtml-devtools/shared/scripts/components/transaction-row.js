@@ -1,4 +1,4 @@
-import { html } from 'diffhtml';
+import { html, Internals } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 import SemanticUITable from '../semantic-ui/table';
@@ -6,15 +6,7 @@ import SemanticUITable from '../semantic-ui/table';
 class DevtoolsTransactionRow extends WebComponent {
   static propTypes = {
     index: PropTypes.number,
-    transaction: PropTypes.shape({
-      aborted: PropTypes.bool,
-      patches: PropTypes.shape({
-        TREE_OPS: PropTypes.array,
-        SET_ATTRIBUTE: PropTypes.array,
-        REMOVE_ATTRIBUTE: PropTypes.array,
-        NODE_VALUE: PropTypes.array,
-      }),
-    }),
+    transaction: PropTypes.object,
     stateName: PropTypes.string,
     inspect: PropTypes.func,
     isExpanded: PropTypes.bool,
@@ -33,21 +25,13 @@ class DevtoolsTransactionRow extends WebComponent {
       isExpanded,
     } = this.props;
 
-    return;
-
-    const stats = this.calculateStats(this.props);
+    const stats = this.calculateStats();
 
     const {
       domNode = '',
       markup = {},
       aborted = false,
       promises = [],
-      patches = {
-        TREE_OPS: [],
-        SET_ATTRIBUTE: [],
-        REMOVE_ATTRIBUTE: [],
-        NODE_VALUE: [],
-      },
     } = transaction;
 
     let unnecessaryRender = true;
@@ -87,7 +71,7 @@ class DevtoolsTransactionRow extends WebComponent {
       </td>
 
       <td class="center aligned">
-        <span>${new Date().toLocaleTimeString()}</span>
+        <span>${endTime ? `${(endTime - startTime).toFixed(1)}ms` : ''}</span>
       </td>
 
       <td class="center aligned">
@@ -100,13 +84,7 @@ class DevtoolsTransactionRow extends WebComponent {
 
       <td class="center aligned" onclick=${this.inspectNode}>
         <div class="node">
-          &lt;${domNode} /&gt;
-        </div>
-      </td>
-
-      <td class="center aligned" onclick=${this.inspectNode}>
-        <div class="node">
-          &lt;${markup.rawNodeName} /&gt;
+          &lt;${domNode}&gt;
         </div>
       </td>
 
@@ -138,7 +116,7 @@ class DevtoolsTransactionRow extends WebComponent {
         <strong><a href="#transaction-remove-attribute">${stats.removeAttribute}</a></strong>
       </td>
 
-      ${isExpanded && html`
+      ${false && html`
         <div>
           <h3>Transaction #${index + 1} Summary</h3>
           <p>Was aborted? ${String(aborted)}</p>
@@ -206,8 +184,9 @@ class DevtoolsTransactionRow extends WebComponent {
         display: inline-block;
       }
 
-      td:nth-of-type(1) { width: 40px; }
+      td:nth-of-type(1) { width: 40px; border-left: 0; }
       td:nth-of-type(2) { width: 80px; }
+      td:nth-of-type(13) { border-right: 0; }
 
       :host(:hover) td {
         background-color: #FFF4D3;
@@ -231,8 +210,8 @@ class DevtoolsTransactionRow extends WebComponent {
     `;
   }
 
-  calculateStats(nextProps) {
-    const { transaction } = nextProps;
+  calculateStats() {
+    const { transaction } = this.props;
     const stats = {
       insert: 0,
       replace: 0,
@@ -247,33 +226,61 @@ class DevtoolsTransactionRow extends WebComponent {
     }
 
     const { patches } = transaction;
-    const { TREE_OPS, SET_ATTRIBUTE, REMOVE_ATTRIBUTE, NODE_VALUE } = patches;
+    const { length } = patches;
+    const { PATCH_TYPE } = Internals;
 
+    let i = 0;
 
-    TREE_OPS.forEach(patchset => {
-      if (patchset.INSERT_BEFORE) {
-        stats.insert += patchset.INSERT_BEFORE.length;
+    while (true) {
+      const patchType = patches[i];
+
+      if (i === length) {
+        break;
       }
 
-      if (patchset.REPLACE_CHILD) {
-        stats.replace += patchset.REPLACE_CHILD.length;
+      switch(patchType) {
+        case PATCH_TYPE.SET_ATTRIBUTE: {
+          stats.setAttribute += 1;
+
+          i += 4;
+          break;
+        }
+
+        case PATCH_TYPE.REMOVE_ATTRIBUTE: {
+          stats.removeAttribute += 1;
+
+          i += 3;
+          break;
+        }
+
+        case PATCH_TYPE.NODE_VALUE: {
+          stats.nodeValue += 1;
+
+          i += 4;
+          break;
+        }
+
+        case PATCH_TYPE.INSERT_BEFORE: {
+          stats.insert += 1;
+
+          i += 4;
+          break;
+        }
+
+        case PATCH_TYPE.REPLACE_CHILD: {
+          stats.replace += 1;
+
+          i += 3;
+          break;
+        }
+
+        case PATCH_TYPE.REMOVE_CHILD: {
+          stats.remove += 1;
+
+          i += 2;
+          break;
+        }
       }
-
-      if (patchset.REMOVE_CHILD) {
-        stats.remove += patchset.REMOVE_CHILD.length;
-      }
-    });
-
-    if (NODE_VALUE) {
-      stats.nodeValue = NODE_VALUE.length / 3;
-    }
-
-    if (SET_ATTRIBUTE) {
-      stats.setAttribute = SET_ATTRIBUTE.length / 3;
-    }
-
-    if (REMOVE_ATTRIBUTE) {
-      stats.removeAttribute = REMOVE_ATTRIBUTE.length / 2;
     }
 
     return stats;

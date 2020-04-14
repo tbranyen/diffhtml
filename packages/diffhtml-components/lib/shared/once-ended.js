@@ -26,7 +26,7 @@ export default transaction => {
       case PATCH_TYPE.SET_ATTRIBUTE: {
         const vTree = patches[i + 1];
         const name = patches[i + 2];
-        const value = decodeEntities(patches[i + 3]);
+        const value = patches[i + 3];
 
         uppercaseEx.lastIndex = 0;
 
@@ -40,7 +40,11 @@ export default transaction => {
           );
 
           if (value && typeof value === 'string') {
-            NodeCache.get(vTree).setAttribute(newName, value);
+            const decodedValue = decodeEntities(value);
+
+            if (NodeCache.has(vTree)) {
+              NodeCache.get(vTree).setAttribute(newName, decodedValue);
+            }
           }
         }
 

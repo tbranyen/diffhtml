@@ -188,9 +188,9 @@ export default function devTools(Internals) {
       // Every two seconds refresh the internal state.
       // FIXME This is so that internals are properly updated over time, but
       // should probably be updated to only trigger when necessary.
-      setInterval(() => {
-        extension.activate(getInternals());
-      }, 2000);
+      //setInterval(() => {
+      //  extension.activate(getInternals());
+      //}, 1000);
 
       if (cacheTask.length) {
         setTimeout(() => {

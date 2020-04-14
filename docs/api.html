@@ -298,7 +298,7 @@
           <h1>
             <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
-              <p class="name">diffHTML</p><sub>v1.0.0-beta.13</sub>
+              <p class="name">diffHTML</p><sub>v1.0.0-beta.14</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
             </div>
           </h1>
@@ -667,7 +667,8 @@ the library, observe and influence internal memory, and build tooling around
 the runtime.</p>
 <h3 id="a-namemiddleware-cache-hrefmiddleware-cachemiddlewarecachea"><a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a></h3>
 <p>A JavaScript Set object that contains registered middleware functions that
-trigger whenever transaction state changes.</p>
+trigger whenever transaction state changes. Use this to help enable/disable
+middleware functions from running during renders.</p>
 <h3 id="a-namecreate-node-hook-cache-hrefcreate-node-hook-cachecreatenodehookcachea"><a name="create-node-hook-cache" href="#create-node-hook-cache">CreateNodeHookCache</a></h3>
 <p>A JavaScript Set object that contains functions that trigger whenever a DOM
 Node is created during the patching process.</p>
@@ -736,6 +737,10 @@ asynchronous.</p>
 <li><strong>state</strong> - Internal state object for the transaction</li>
 <li><strong>tasks</strong> - Array of functions that were executed when rendering</li>
 </ul>
+<h3 id="a-nameinternals-version-hrefinternals-versionversiona"><a name="internals-version" href="#internals-version">VERSION</a></h3>
+<p>See 
+    <a href="#version" title="null">VERSION</a>
+  </p>
 <p><a name="version"></a></p>
 <hr></hr>
 <h2 id="a-hrefversionversiona"><a href="#version">VERSION</a></h2>

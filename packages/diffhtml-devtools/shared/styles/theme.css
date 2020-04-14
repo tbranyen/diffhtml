@@ -1,2 +1,31 @@
 @import '/node_modules/semantic-ui-css/semantic.min.css';
 @import '/node_modules/semantic-ui-icon/icon.min.css';
+
+
+/* Patch in missing Semantic UI inverted styles */
+
+.ui.styled.accordion {
+  background: inherit;
+}
+
+.ui.styled.accordion.inverted {
+  color: #C5C5C5;
+}
+
+.ui.toggle.checkbox.inverted .box, .ui.toggle.checkbox.inverted label {
+  color: #FFF;
+}
+
+.ui.toggle.checkbox.inverted input:checked~.box,
+.ui.toggle.checkbox.inverted input:checked~label {
+  color: #FFF !important;
+}
+
+.ui.table {
+  border-radius: 0;
+  margin: 0;
+}
+
+.ui.table thead tr th {
+  border-radius: 0;
+}

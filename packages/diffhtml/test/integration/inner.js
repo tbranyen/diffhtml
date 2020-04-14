@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert, { ok } from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validate-memory';
 
@@ -285,7 +285,8 @@ describe('Integration: innerHTML', function() {
 
     it('will not replace a previous span', function() {
       diff.innerHTML(this.fixture, '<div><span class="test"></span></div>');
-      var span = this.fixture.querySelector('.test');
+      const span = this.fixture.querySelector('.test');
+
       diff.innerHTML(this.fixture, '<div><span>whatever</span></div>');
 
       assert.equal(this.fixture.firstChild.innerHTML, '<span>whatever</span>');

@@ -10,8 +10,13 @@ class DevtoolsHealthPanel extends WebComponent {
     memory: PropTypes.array,
   }
 
+  state = {
+    isExpanded: false,
+  }
+
   render() {
     const { memory = [] } = this.props;
+    const { isExpanded } = this.state;
 
     const labels = memory.map(mem => new Date(mem.time).toLocaleTimeString());
 
@@ -26,36 +31,35 @@ class DevtoolsHealthPanel extends WebComponent {
       <style>${this.styles()}</style>
 
       <div class="ui tall segment">
-        <h3>Health</h3>
+        <h3 onclick=${() => this.setState({ isExpanded: !isExpanded })}>
+          <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Health
+        </h3>
       </div>
 
       <div class="ui styled fluid accordion">
         <h3>Object Pools</h3>
 
-        <!--
-        <ChartistGraph
-          type="Line"
-          data=${{ labels, series }}
-          options=${{
-            low: 0,
-            high: 10000,
-            showArea: true,
-            showPoint: false,
-            fullWidth: true,
-            height: '200px',
-          }}
-        />
-        -->
+        <ul>
+          ${series.map((count, i) => html`
+            <li>
+              ${i === 0 ? `Free: ${count}` : ''}
+              ${i === 1 ? `Allocated: ${count}` : ''}
+              ${i === 2 ? `Protected: ${count}` : ''}
+            </li>
+          `)}
+        </ul>
       </div>
     `;
   }
 
   styles() {
     return `
-      @import '/node_modules/chartist/dist/chartist.min.css';
-
       :host {
         display: block;
+      }
+
+      h3 {
+        cursor: pointer;
       }
 
       .ui.segment {

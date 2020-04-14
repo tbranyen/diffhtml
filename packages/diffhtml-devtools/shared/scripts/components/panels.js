@@ -29,7 +29,6 @@ class DevtoolsPanels extends WebComponent {
         display: ${isActive ? 'flex' : 'none'};
         flex: auto;
         position: relative;
-        background-color: #FFFFFF;
         overflow-y: auto;
       }
 

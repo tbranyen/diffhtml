@@ -76,6 +76,9 @@ export const syncTreeHook = (oldTree, newTree) => {
           if (typeof renderTree.rawNodeName === 'function') {
             i = i - 1;
           }
+          else {
+            newTree.childNodes.splice(i, 1, ...renderTree.childNodes);
+          }
         }
       }
       else {

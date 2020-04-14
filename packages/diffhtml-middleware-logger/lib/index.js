@@ -184,17 +184,17 @@ const log = (message, method, color, date, transaction, completed) => {
   }
 
   if (!completed && domNode) {
-    console.log('%cdomNode %O', 'font-weight: bold; color: #333', domNode);
+    console.log('%cdomNode %O', 'font-weight: bold; color: #868686', domNode);
   }
 
   if (!completed && markup) {
-    console.log('%cmarkup %O', 'font-weight: bold; color: #333', markup);
+    console.log('%cmarkup %O', 'font-weight: bold; color: #868686', markup);
   }
 
   if (!completed && options) {
     console.log(
       '%coptions',
-      'font-weight: bold; color: #333',
+      'font-weight: bold; color: #868686',
       options
     );
   }
@@ -202,7 +202,7 @@ const log = (message, method, color, date, transaction, completed) => {
   if (state) {
     console.log(
       '%cstate %O',
-      'font-weight: bold; color: #333',
+      'font-weight: bold; color: #868686',
       state,
     );
   }
@@ -210,7 +210,7 @@ const log = (message, method, color, date, transaction, completed) => {
   if (transaction._cloneOldTree || newTree) {
     console.log(
       '%coldTree %O newTree %O',
-      'font-weight: bold; color: #333',
+      'font-weight: bold; color: #868686',
       transaction._cloneOldTree,
       cloneTree(newTree)
     );
@@ -220,7 +220,7 @@ const log = (message, method, color, date, transaction, completed) => {
     const [ formattedPatches, uniqueCount ] = format(patches);
 
     console.log(
-      '%cpatches (%d) %O', 'font-weight: bold; color: #333',
+      '%cpatches (%d) %O', 'font-weight: bold; color: #868686',
       uniqueCount,
       formattedPatches,
     );
@@ -229,16 +229,18 @@ const log = (message, method, color, date, transaction, completed) => {
   // Don't clutter the output if there aren't any promises.
   if (promises && promises.length) {
     console.log(
-      '%ctransition promises %O', 'font-weight: bold; color: #333', promises
+      '%ctransition promises %O', 'font-weight: bold; color: #868686', promises
     );
   }
 };
 
 const logger = ({ minimize = false }) => assign(function loggerTask(transaction) {
   const start = new Date();
+  const { domNode } = transaction;
+  const name = domNode.name || domNode.displayName || domNode.nodeName;
 
   log(
-    '%cdiffHTML...render transaction started',
+    `%c<${transaction.domNode.nodeName}> render started  `,
     'groupCollapsed',
     'color: #FF0066',
     start,
@@ -251,7 +253,7 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
     console.groupEnd();
 
     log(
-      '%cdiffHTML...render transaction aborted  ',
+      `%c<${name}> render aborted  `,
       minimize ? 'groupCollapsed' : 'group',
       'color: #FF78B2',
       new Date(),
@@ -273,7 +275,7 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
       console.groupEnd();
 
       log(
-        '%cdiffHTML...render transaction ended  ',
+        `%c<${name}> render ended  `,
         minimize ? 'groupCollapsed' : 'group',
         'color: #FF78B2',
         new Date(),

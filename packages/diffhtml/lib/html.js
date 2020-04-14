@@ -108,11 +108,6 @@ export default function handleTaggedTemplate(strings, ...values) {
     }
   });
 
-  // If no markup was supplied, treat this as an empty text node.
-  if (!HTML) {
-    return empty;
-  }
-
   // Determine if we are in strict mode and immediately reset for the next
   // call.
   const strict = handleTaggedTemplate.isStrict;

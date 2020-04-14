@@ -31,15 +31,13 @@ export default function release(domNode) {
   const asHTMLElement = /** @type {HTMLElement} */(domNode);
 
   // Crawl the childNodes if this is an HTMLElement for state trees.
-  if ('ownerDocument' in asHTMLElement) {
-    for (let i = 0; i < asHTMLElement.childNodes.length; i++) {
-      release(asHTMLElement.childNodes[i]);
-    }
-
-    // If there is a shadowRoot attached to the DOM node, attempt
-    // to release this as well.
-    release(asHTMLElement.shadowRoot);
+  for (let i = 0; i < asHTMLElement.childNodes.length; i++) {
+    release(asHTMLElement.childNodes[i]);
   }
+
+  // If there is a shadowRoot attached to the DOM node, attempt
+  // to release this as well.
+  release(asHTMLElement.shadowRoot);
 
   // Do a thorough check within the NodeCache to fully deallocate all
   // references to the associated trees.

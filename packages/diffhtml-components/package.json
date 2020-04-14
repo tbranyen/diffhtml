@@ -11,6 +11,7 @@
   "devDependencies": {
     "@babel/cli": "^7.6.0",
     "@babel/core": "^7.6.0",
+    "@babel/plugin-transform-classes": "^7.9.5",
     "@babel/register": "^7.6.0",
     "@types/mocha": "^7.0.2",
     "babel-plugin-transform-class-properties": "^6.24.1",

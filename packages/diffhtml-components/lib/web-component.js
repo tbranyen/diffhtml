@@ -7,6 +7,7 @@ import { $$render, $$vTree } from './util/symbols';
 const { defineProperty, assign, keys } = Object;
 const root = typeof window !== 'undefined' ? window : global;
 const nullFunc = function() {};
+const debounce = new Set();
 
 root.HTMLElement = root.HTMLElement || nullFunc;
 
@@ -32,6 +33,8 @@ const createProps = (domNode, props = {}) => {
 // Creates the `component.state` object.
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
+const $$timeout = Symbol.for('$$timeout');
+
 class WebComponent extends root.HTMLElement {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
@@ -44,14 +47,16 @@ class WebComponent extends root.HTMLElement {
 
     super();
 
+    this.attachShadow({ mode: 'open' });
+
     this.props = createProps(this, props);
     this.state = createState(this);
 
     const {
       defaultProps = {},
       propTypes = {},
-      //childContextTypes = {},
-      //contextTypes = {},
+      childContextTypes = {},
+      contextTypes = {},
       name,
     } = this.constructor;
 
@@ -73,47 +78,55 @@ class WebComponent extends root.HTMLElement {
   connectedCallback() {
     const { propTypes = {} } = this.constructor;
 
+    // This callback gets called during replace operations, there is no point
+    // in re-rendering or creating a new shadow root due to this.
+
+    // Always do a full render when mounting.
+    // Why do we always do a full render on mount?
+    this[$$render]();
+
+    this.componentDidMount();
+
     // Handle properties being set after appended into the DOM, only mark those
     // set in `propTypes`.
+    let timeout = null;
+
     keys(propTypes).forEach(propName => {
       defineProperty(this, propName, {
         get: () => this.props[propName],
         set: (value) => {
+          root.clearTimeout(timeout);
+
           this.props[propName] = value;
-          this[$$render]();
+
+          timeout = root.setTimeout(() => {
+            this[$$render]();
+          }, 0);
         },
       });
     });
-
-    // This callback gets called during replace operations, there is no point
-    // in re-rendering or creating a new shadow root due to this.
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-      // fixme
-      // this nested render calls gc() which removes the parent reference
-      // must protect before it happens
-      this[$$render]();
-      this.componentDidMount();
-    }
   }
 
   disconnectedCallback() {
     this.componentWillUnmount();
   }
 
-  attributeChangedCallback(name, value) {
-    if (value !== null) {
-      const nextProps = createProps(this, this.props);
-      const nextState = this.state;
+  attributeChangedCallback() {
+    const nextProps = createProps(this, this.props);
+    const nextState = this.state;
 
-      this.componentWillReceiveProps(nextProps);
+    this.componentWillReceiveProps(nextProps);
 
-      if (this.shouldComponentUpdate(nextProps, nextState)) {
+    if (this.shouldComponentUpdate(nextProps, nextState)) {
+      root.clearTimeout(this[$$timeout]);
+
+      this[$$timeout] = root.setTimeout(() => {
         this[$$render]();
-      }
+      }, 0);
     }
   }
 
+  [$$timeout] = null;
   [$$vTree] = null;
 
   [$$render]() {

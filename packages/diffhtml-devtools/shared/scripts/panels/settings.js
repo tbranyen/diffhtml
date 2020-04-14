@@ -3,17 +3,28 @@ import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 
 class DevtoolsSettingsPanel extends WebComponent {
+  state = {
+    isExpanded: false,
+  }
+
   render() {
+    const { isExpanded } = this.state;
+
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
       <style>${this.styles()}</style>
 
       <div class="ui tall segment">
-        <h3>Settings</h3>
-        <p>
-          Alter the internals of diffHTML. Useful for toggling performance and
-          changing how sampling transactions works.
-        </p>
+        <h3 onclick=${() => this.setState({ isExpanded: !isExpanded })}>
+          <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Settings
+        </h3>
+
+        ${isExpanded && html`
+          <p>
+            Alter the internals of diffHTML. Useful for toggling performance and
+            changing how sampling transactions works.
+          </p>
+        `}
       </div>
 
       <div class="ui styled fluid accordion">
@@ -49,6 +60,10 @@ class DevtoolsSettingsPanel extends WebComponent {
     return `
       :host {
         display: block;
+      }
+
+      h3 {
+        cursor: pointer;
       }
 
       .ui.segment {

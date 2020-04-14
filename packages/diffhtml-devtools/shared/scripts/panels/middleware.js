@@ -7,8 +7,13 @@ class DevtoolsMiddlewarePanel extends WebComponent {
     middleware: PropTypes.array
   }
 
+  state = {
+    isExpanded: false,
+  }
+
   render() {
     const { middleware = [] } = this.props;
+    const { isExpanded } = this.state;
     const { toggleMiddleware } = this;
 
     return html`
@@ -16,12 +21,16 @@ class DevtoolsMiddlewarePanel extends WebComponent {
       <style>${this.styles()}</style>
 
       <div class="ui tall segment">
-        <h3>Middleware</h3>
+        <h3 onclick=${() => this.setState({ isExpanded: !isExpanded })}>
+          <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Middleware
+        </h3>
 
-        <p>
-          View and enable/disable the various middleware registered in the
-          application.
-        </p>
+        ${isExpanded && html`
+          <p>
+            View and enable/disable the various middleware registered in the
+            application.
+          </p>
+        `}
       </div>
 
       <form>
@@ -46,6 +55,10 @@ class DevtoolsMiddlewarePanel extends WebComponent {
     return `
       :host {
         display: block;
+      }
+
+      h3 {
+        cursor: pointer;
       }
 
       .middleware {

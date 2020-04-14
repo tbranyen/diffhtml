@@ -11,7 +11,6 @@ class DevtoolsNavigation extends WebComponent {
   render() {
     const { version } = this.props;
     const { nav, selected } = this.state;
-    const { reloadUI } = this;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -31,19 +30,12 @@ class DevtoolsNavigation extends WebComponent {
         </ol>
 
         <div class="credit">
-          <strong>Detected diffHTML version: ${version}</strong>
+          <strong>Detected diffHTML: ${version}</strong>
           <hr>
           Created by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
-          <p style=${{ paddingTop: '10px' }}>
-            <button onClick=${reloadUI}>Reload UI</button>
-          </p>
         </div>
       </div>
     `;
-  }
-
-  reloadUI() {
-    location.reload();
   }
 
   styles() {
@@ -53,9 +45,10 @@ class DevtoolsNavigation extends WebComponent {
         height: 100%;
         flex-basis: 200px;
         flex: none;
-        background-color: #FFF;
+        background-color: #222;
+        color: #FEFEFE;
         border: 0;
-        border-right: 1px solid rgb(64%, 64%, 64%);
+        border-right: 1px solid rgb(76, 76, 76);
         box-sizing: border-box;
         user-select: none;
         overflow-y: auto;
@@ -63,7 +56,7 @@ class DevtoolsNavigation extends WebComponent {
 
       hr {
         border: none;
-        border-bottom: 1px solid rgb(64%, 64%, 64%);
+        border-bottom: 1px solid rgb(76, 76, 76);
       }
 
       ol {
@@ -78,10 +71,11 @@ class DevtoolsNavigation extends WebComponent {
         height: 40px;
         padding: 20px;
         box-sizing: border-box;
-        color: #333;
+        color: #bdbdbd;
         line-height: 2px;
         cursor: pointer;
         margin-bottom: 0;
+        transition: color cubic-bezier(.17,.67,.83,.67) 140ms;
       }
 
       ol li span.label i {
@@ -90,8 +84,15 @@ class DevtoolsNavigation extends WebComponent {
       }
 
       ol li:hover {
-        color: #25272b;
-        font-weight: bold;
+        color: #FEFEFE;
+      }
+
+      ol li:hover i.icon {
+        color: #FEFEFE;
+      }
+
+      ol li[selected='true']:hover {
+        font-weight: inherit;
       }
 
       ol li[selected='true'] {
@@ -135,11 +136,12 @@ class DevtoolsNavigation extends WebComponent {
     selected: 0,
 
     nav: [
-      { route: '', label: 'Transactions', icon: 'tasks' },
-      { route: 'mounts', label: 'Mounts', icon: 'sitemap' },
+      { route: '', label: 'Renders', icon: 'tasks' },
+      { route: 'mounts', label: 'Elements', icon: 'sitemap' },
       { route: 'middleware', label: 'Middleware', icon: 'chain' },
       { route: 'health', label: 'Health', icon: 'heartbeat' },
       { route: 'settings', label: 'Settings', icon: 'settings' },
+      //{ route: 'help', label: 'Help', icon: 'help' },
     ],
   }
 
@@ -148,7 +150,7 @@ class DevtoolsNavigation extends WebComponent {
     const routes = this.state.nav.map(nav => nav.route);
     const selected = routes.indexOf(route);
 
-    this.setState({ selected });
+    this.state.selected = selected;
   }
 
   onClick = selected => {

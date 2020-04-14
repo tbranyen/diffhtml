@@ -10,9 +10,15 @@ class DevtoolsTransactionsPanel extends WebComponent {
     inspect: PropTypes.func,
   }
 
+  state = {
+    isExpanded: false,
+    expandedIndex: -1,
+    autoScroll: true,
+  }
+
   render() {
-    const { inProgress = [], completed = [], inspect } = this.props;
-    const { expandedIndex } = this.state;
+    const { inspect, clearEntries, inProgress, completed } = this.props;
+    const { expandedIndex, isExpanded } = this.state;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -20,18 +26,30 @@ class DevtoolsTransactionsPanel extends WebComponent {
 
       <div class="ui tall segment">
         <div class="content">
-          <h3>&#8963; Transactions &#8964;</h3>
-          <p>
-            This panel shows you when a render occured and what was patched.
-            Set the sampling rate in <a href="#settings">Settings</a>.
-          </p>
-        </div>
+          <h3 onclick=${() => this.setState({ isExpanded: !isExpanded })}>
+            <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Renders
+          </h3>
 
-        <div class="controls">
-          <div class="ui toggle checkbox">
-            <input checked type="checkbox" />
-            <label>Autoscroll</label>
-          </div>
+          ${isExpanded && html`
+            <p>
+              This panel shows you when a render occured and what was patched.
+              Set the sampling rate in <a href="#settings">Settings</a>.
+            </p>
+
+            <div class="ui toggle checkbox">
+              <input type="checkbox" />
+              <label>Autoscroll</label>
+            </div>
+
+            <div class="ui toggle checkbox" style="margin-left: 14px">
+              <input type="checkbox" />
+              <label>Hide empty renders</label>
+            </div>
+
+            <button class="ui basic button" style="margin-left: 14px" onclick=${clearEntries}>
+              <i class="icon archive"></i> Clear
+            </button>
+          `}
         </div>
       </div>
 
@@ -44,7 +62,6 @@ class DevtoolsTransactionsPanel extends WebComponent {
               <th class="center aligned" rowspan="2">Time</th>
               <th class="center aligned" rowspan="2">Status</th>
               <th class="center aligned" rowspan="2">Mount</th>
-              <th class="center aligned" rowspan="2">VTree</th>
               <th class="center aligned" rowspan="2">Transitions</th>
               <th class="center aligned" colspan="4">DOM Tree Changes</th>
               <th class="center aligned" colspan="2">Attribute Changes</th>
@@ -62,19 +79,23 @@ class DevtoolsTransactionsPanel extends WebComponent {
         </table>
 
         <table class="ui fixed celled sortable selectable structured table striped">
-          ${completed.map((transaction, index) => html`
-            <devtools-transaction-row
-              key=${String(transaction.startDate)}
-              index=${index}
-              stateName="completed"
-              transaction=${transaction.args}
-              startTime=${transaction.startDate}
-              endTime=${transaction.endDate}
-              isExpanded=${expandedIndex === index}
-              inspect=${inspect}
-              onclick=${this.toggleExpanded}
-            />
-          `)}
+          ${completed
+            .sort(transaction => {
+              return transaction.startDate;
+            })
+            .map((transaction, index) => html`
+              <devtools-transaction-row
+                key=${'completed-' + String(transaction.startDate)}
+                index=${index}
+                stateName="completed"
+                transaction=${transaction.args}
+                startTime=${transaction.startDate}
+                endTime=${transaction.endDate}
+                isExpanded=${expandedIndex === index}
+                inspect=${inspect}
+                onclick=${this.toggleExpanded}
+              />
+            `)}
 
           ${!completed.length && html`
             <tbody>
@@ -94,6 +115,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
     return `
       :host {
         display: block;
+        height: 1;
       }
 
       .ui.segment {
@@ -128,6 +150,10 @@ class DevtoolsTransactionsPanel extends WebComponent {
         border-right: 0;
       }
 
+      h3 {
+        cursor: pointer;
+      }
+
       a {
         color: #4183C4;
         font-weight: bold !important;
@@ -148,7 +174,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
 
       table.header {
         position: sticky;
-        top: 85px;
+        top: 0px;
         z-index: 1000;
         font-size: 1em !important;
         margin-bottom: 0 !important;
@@ -161,35 +187,39 @@ class DevtoolsTransactionsPanel extends WebComponent {
       thead {
         position: sticky;
         top: -1px;
-        background-color: #f3f3f3;
         z-index: 100;
         user-select: none;
       }
 
       thead th {
         position: relative;
+        border-radius: 0;
+      }
+
+      .ui.table thead tr:first-child>th:last-child {
+        border-radius: 0;
+      }
+
+      .ui.celled.table tr td:first-child, .ui.celled.table tr th:first-child {
+        border-right: none;
+      }
+
+      tbody tr td:first-child,
+      thead tr th:first-child {
+        border-left: none;
+      }
+
+      tbody tr td:last-child,
+      thead tr th:last-child {
+        border-right: none;
       }
 
       thead th:nth-child(1) { width: 40px; }
       thead th:nth-child(2) { width: 80px; }
+      thead th:nth-child(8) { border-right: 0; }
 
-      thead th:before {
-        content: '';
-        display: block;
-        position: absolute;
-        top: -1px;
-        bottom: -1px;
-        left: -1px;
-        right: -1px;
-        border: 1px solid #B1B1B1;
-      }
-
-      thead th:first-child:before {
-        border-left: none;
-      }
-
-      thead th:last-child:before {
-        border-right: none;
+      tbody tr td:last-child {
+        border-right: 0;
       }
 
       tr.missing {
@@ -199,19 +229,12 @@ class DevtoolsTransactionsPanel extends WebComponent {
     `;
   }
 
-  constructor() {
-    super();
-
-    this.state = { expandedIndex: -1, autoScroll: true };
-    this.toggleExpanded = this.toggleExpanded.bind(this);
-  }
-
   componentDidUpdate() {
     const { expandedIndex, autoScroll } = this.state;
 
     // TODO Have more intelligent locking for scrolling.
     if (expandedIndex === -1 && autoScroll) {
-      this.parentNode.scrollTop = this.parentNode.scrollHeight;
+      //this.parentNode.scrollTop = this.parentNode.scrollHeight;
     }
   }
 

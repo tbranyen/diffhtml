@@ -242,21 +242,12 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     entry.key = String(entry.attributes.key);
   }
 
-  // Only pass a vTree through once.
-  const visited = new Set();
-
   CreateTreeHookCache.forEach((fn, retVal) => {
-    if (visited.has(entry)) {
-      return;
-    }
-
     // Invoke all the `createTreeHook` functions passing along this transaction
     // as the only argument. These functions must return valid vTree values.
     if (retVal = fn(entry)) {
       assign(entry, retVal);
     }
-
-    visited.add(entry);
   });
 
   return entry;
