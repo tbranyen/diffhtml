@@ -36,18 +36,55 @@ class DevtoolsHealthPanel extends WebComponent {
         </h3>
       </div>
 
-      <div class="ui styled fluid accordion">
-        <h3>Object Pools</h3>
+      <div class="ui attached tabular menu">
+        <div class="active item">VDOM Memory Usage</div>
+      </div>
 
-        <ul>
+      <div class="ui bottom attached active tab segment">
+        <p style="margin-left: 15px; margin-top: 0px; margin-bottom: 20px">
           ${series.map((count, i) => html`
-            <li>
-              ${i === 0 ? `Free: ${count}` : ''}
-              ${i === 1 ? `Allocated: ${count}` : ''}
-              ${i === 2 ? `Protected: ${count}` : ''}
-            </li>
+            ${i === 0 && html`
+              <strong>${String(count)} free</strong>
+            `}
+
+            ${i === 2 && html`
+              <strong style="margin-left: 5px; padding: 4px; color: #4A8209; background: #BFFB86">
+                ${String(count)} used
+              </strong>
+            `}
           `)}
-        </ul>
+        </p>
+
+        <svg
+          height="20"
+          width="20"
+          viewBox="0 0 20 20"
+          style=${{
+            zoom: 6,
+            marginLeft: '2px',
+          }}
+        >
+          ${series.map((count, i) => html`
+            <!-- Free -->
+            ${i === 0 && html`
+              <circle r="10" cx="10" cy="10" fill="#2185D0" />
+            `}
+
+            <!-- Protected -->
+            ${i === 2 && html`
+              <circle
+                r="5"
+                cx="10"
+                cy="10"
+                fill="transparent"
+                stroke="#BFFB86"
+                stroke-width="10"
+                stroke-dasharray="calc(${(series[2][0] / series[0][0]) * 100} * 31.4 / 100) 31.4"
+                transform="rotate(-90) translate(-20)"
+              />
+            `}
+          `)}
+        </svg>
       </div>
     `;
   }
@@ -56,6 +93,7 @@ class DevtoolsHealthPanel extends WebComponent {
     return `
       :host {
         display: block;
+        box-sizing: border-box;
       }
 
       h3 {
@@ -80,8 +118,23 @@ class DevtoolsHealthPanel extends WebComponent {
         box-shadow: none !important;
       }
 
-      .ui.accordion h3 {
-        padding: 14px;
+      .ui.attached {
+        margin: 0px 10px !important;
+      }
+
+      .ui.menu {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: calc(100% - 40px) !important;
+        margin-left: 20px !important;
+      }
+
+      .ui.bottom {
+        padding: 20px !important;
+        margin: 0 !important;
+        width: calc(100% - 40px) !important;
+        margin-left: 20px !important;
+        box-sizing: border-box !important;
       }
     `;
   }

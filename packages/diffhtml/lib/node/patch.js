@@ -63,7 +63,9 @@ const setAttribute = (vTree, domNode, name, value) => {
     const noValue = value === null || value === undefined;
 
     // If we cannot set the value as a property, try as an attribute.
-    htmlElement.setAttribute(lowerName, noValue ? '' : value);
+    if (lowerName) {
+      htmlElement.setAttribute(lowerName, noValue ? '' : value);
+    }
   }
   // Support patching an object representation of the style object.
   else if (isObject && lowerName === 'style') {
@@ -257,7 +259,9 @@ export default function patchNode(patches, state = {}) {
 
         // First attempt to locate a pre-existing DOM Node. If one hasn't been
         // created there could be a few reasons.
-        let domNode = /** @type {HTMLElement} */ (NodeCache.get(vTree));
+        let domNode = /** @type {HTMLElement} */ (
+          NodeCache.get(vTree)
+        );
 
         // Patching without an existing DOM Node is a mistake, so we should not
         // attempt to do anything in this case.
@@ -275,7 +279,8 @@ export default function patchNode(patches, state = {}) {
           createNode(newTree, ownerDocument, isSVG)
         );
 
-        // If refNode is `undefined` then it will simply append like `appendChild`.
+        // If refNode is `undefined` then it will simply append like
+        // `appendChild`.
         domNode.insertBefore(newNode, refNode || null);
 
         promises.push(...runTransitions('attached', newTree));
@@ -366,7 +371,9 @@ export default function patchNode(patches, state = {}) {
           promises.push(...detachedPromises);
         }
         else {
-          domNode.parentNode.removeChild(domNode);
+          if (domNode.parentNode) {
+            domNode.parentNode.removeChild(domNode);
+          }
           unprotectVTree(vTree);
         }
 

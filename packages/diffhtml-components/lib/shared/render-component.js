@@ -37,7 +37,6 @@ export default function renderComponent(vTree, context) {
       // Wipe out all old references before re-rendering.
       ComponentTreeCache.forEach((_vTree, childNode) => {
         if (_vTree === vTree) {
-          debugger;
           ComponentTreeCache.delete(childNode);
         }
       });

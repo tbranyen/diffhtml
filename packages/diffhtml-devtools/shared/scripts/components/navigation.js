@@ -42,7 +42,7 @@ class DevtoolsNavigation extends WebComponent {
     return `
       :host {
         display: flex;
-        height: 100%;
+        height: 100vh;
         flex-basis: 200px;
         flex: none;
         background-color: #222;
@@ -137,7 +137,7 @@ class DevtoolsNavigation extends WebComponent {
 
     nav: [
       { route: '', label: 'Renders', icon: 'tasks' },
-      { route: 'mounts', label: 'Elements', icon: 'sitemap' },
+      { route: 'mounts', label: 'Mounts', icon: 'sitemap' },
       { route: 'middleware', label: 'Middleware', icon: 'chain' },
       { route: 'health', label: 'Health', icon: 'heartbeat' },
       { route: 'settings', label: 'Settings', icon: 'settings' },

@@ -186,11 +186,6 @@ export default class Transaction {
     measure('finalize');
     measure('render');
 
-    // Trigger all `onceEnded` callbacks, so that middleware can know the
-    // transaction has ended.
-    this.endedCallbacks.forEach(callback => callback(this));
-    this.endedCallbacks.clear();
-
     // Cache the markup and text for the DOM node to allow for short-circuiting
     // future render transactions.
     state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
@@ -202,6 +197,11 @@ export default class Transaction {
     // another transaction is running concurrently this will be delayed until
     // the last render completes.
     gc();
+
+    // Trigger all `onceEnded` callbacks, so that middleware can know the
+    // transaction has ended.
+    this.endedCallbacks.forEach(callback => callback(this));
+    this.endedCallbacks.clear();
 
     return this;
   }

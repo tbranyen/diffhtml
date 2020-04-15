@@ -72,10 +72,22 @@ export default function inlineTransitions(options = {}) {
           const { parentNode } = childNode;
 
           if (map.has(parentNode)) {
-            return map.get(parentNode).apply(
-              childNode,
-              [parentNode].concat(childNode, ...rest),
-            );
+            return map.get(parentNode)(parentNode, childNode, ...rest);
+          }
+        }
+        // Search if a parent is bound to this.
+        else {
+          let promises = [];
+
+          map.forEach((_, parentNode) => {
+            if (parentNode.contains(childNode)) {
+              const ret = map.get(parentNode)(parentNode, childNode, ...rest);
+              ret && promises.push(ret);
+            }
+          });
+
+          if (promises.length) {
+            return Promise.all(promises);
           }
         }
       };

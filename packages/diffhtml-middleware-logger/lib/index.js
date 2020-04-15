@@ -287,9 +287,12 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
     });
   };
 }, {
+  displayName: 'loggerTask',
+
   subscribe(Internals) {
     state.Internals = Internals;
   },
+
   unsubscribe() {
     state.Internals = null;
   },

@@ -772,7 +772,7 @@ describe('Component implementation', function() {
       equal(this.fixture.innerHTML, 'something');
     });
 
-    it('will call componentDidUpdate once updated', () => {
+    it('will call componentDidUpdate once updated', async () => {
       let wasCalled = false;
       let counter = 0;
       let ref = null;
@@ -798,7 +798,7 @@ describe('Component implementation', function() {
         someProp="true"
       />`);
 
-      ref.forceUpdate();
+      await ref.forceUpdate();
 
       ok(wasCalled);
       ok(ref);

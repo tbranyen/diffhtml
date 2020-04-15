@@ -121,13 +121,13 @@ class Component {
     }
 
     // Compare the existing component node(s) to the new node(s).
-    outerHTML(fragment, renderTree);
+    const promise = outerHTML(fragment, renderTree)
 
     // Track the last known node so when insertions happen they are easily
     // executed adjacent to this element.
     let lastNode = domNode;
 
-    // Reconcile all replacements and additions.
+    // Reconcile all top-level replacements and additions.
     fragment.childNodes.forEach((childTree, i) => {
       const newNode = createNode(childTree);
       NodeCache.set(childTree, newNode);
@@ -162,20 +162,13 @@ class Component {
       }
     });
 
-    // Remove existing nodes, before comparing, since we already know we don't
-    // need them.
-    if (fragment.childNodes.length < childNodes.length) {
-      childNodes.slice(fragment.childNodes.length).forEach((childNode, i) => {
-        childNode && childNode.parentNode && parentNode.removeChild(childNode);
-        release(childNode);
-      });
-    }
+    promise.then(() => {
+      // Empty the fragment after using.
+      fragment.childNodes.length = 0;
+      release(fragment);
 
-    // Empty the fragment after using.
-    fragment.childNodes.length = 0;
-    release(fragment);
-
-    this.componentDidUpdate(this.props, this.state);
+      this.componentDidUpdate(this.props, this.state);
+    });
   }
 }
 

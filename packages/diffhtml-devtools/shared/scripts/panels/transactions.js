@@ -148,6 +148,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
       .ui.table {
         border-left: 0;
         border-right: 0;
+        font-size: 12px;
       }
 
       h3 {
@@ -176,7 +177,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
         position: sticky;
         top: 0px;
         z-index: 1000;
-        font-size: 1em !important;
+        font-size: 12px !important;
         margin-bottom: 0 !important;
       }
 
@@ -234,7 +235,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
 
     // TODO Have more intelligent locking for scrolling.
     if (expandedIndex === -1 && autoScroll) {
-      //this.parentNode.scrollTop = this.parentNode.scrollHeight;
+      this.parentNode.scrollTop = this.parentNode.scrollHeight;
     }
   }
 

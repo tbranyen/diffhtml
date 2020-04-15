@@ -3,6 +3,7 @@ import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 
+const { stringify } = JSON;
 const hasNonWhitespaceEx = /\S/;
 
 class DevtoolsMountsPanel extends WebComponent {
@@ -14,13 +15,14 @@ class DevtoolsMountsPanel extends WebComponent {
   state = {
     index: 0,
     isExpanded: false,
+    activeVTree: null,
   }
 
   changeIndex = ({ target }) => this.setState({ index: target.selectedIndex })
 
   render() {
-    const { mounts = [] } = window.state;
-    const { index, isExpanded } = this.state;
+    const { mounts = [] } = this.props;
+    const { index, isExpanded, activeVTree } = this.state;
     const { styles, changeIndex } = this;
 
     const options = mounts.map(({ selector }) => ({
@@ -34,18 +36,10 @@ class DevtoolsMountsPanel extends WebComponent {
 
       <div class="ui tall segment">
         <h3 onclick=${() => this.setState({ isExpanded: !isExpanded })}>
-          <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Elements
+          <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Mounts
         </h3>
 
         ${isExpanded && html`
-          ${false && html`<${Dropdown}
-            placeholder='Select DOM Node'
-            fluid
-            selection
-            value=${options[0] && options[0].value}
-            options=${options}
-          />`}
-
           ${options.length && html`
             <select oninput=${changeIndex}>
               ${options.map(option => html`
@@ -53,7 +47,17 @@ class DevtoolsMountsPanel extends WebComponent {
               `)}
             </select>
           `}
-        </div>
+        `}
+      </div>
+
+      ${false && html`
+        <${Dropdown}
+          placeholder='Select DOM Node'
+          fluid
+          selection
+          value=${options[0] && options[0].value}
+          options=${options}
+        />
       `}
 
       ${!options.length && html`
@@ -63,27 +67,68 @@ class DevtoolsMountsPanel extends WebComponent {
         </p>
       `}
 
+      ${Boolean(options.length) && html`
+        <div class="ui mini icon input">
+          <input type="text" placeholder="Filter nodes">
+          <i class="search icon"></i>
+        </div>
+      `}
+
       ${mounts[index] && mounts[index].tree && html`
         <div class="wrapper">
           ${this.renderVTree(mounts[index].tree)}
+
+          ${activeVTree && html`
+            <div class="vtree-sidepanel">
+              <h4>Raw NodeName</h4>
+
+              ${activeVTree && html`
+                <pre><code>${activeVTree.rawNodeName.toString()}</code></pre>
+              `}
+
+              <h4>Attributes</h4>
+
+              ${activeVTree && html`
+                <pre><code>${stringify(activeVTree.attributes, null, 2)}</code></pre>
+              `}
+            </div>
+          `}
         </div>
       `}
     `;
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (!this.state.activeVTree && nextProps.mounts[this.state.index]) {
+      this.state.activeVTree = nextProps.mounts[this.state.index].tree;
+    }
+  }
+
   renderVTree(vTree) {
+    const isTextNode = vTree && vTree.nodeType === 3;
+    const { activeVTree } = this.state;
+
+    if (isTextNode) {
+      return html``;
+    }
+
     return html`
-      <div class="vtree" data-nodetype=${vTree.nodeType}>
-        <h2 class="vtree-header">&lt;${vTree.nodeName}&gt;</h2>
+      <div
+        class="vtree"
+        data-nodetype=${vTree.nodeType}
+      >
+        <h2
+          onClick=${() => this.setState({ activeVTree: vTree })}
+          class="vtree-header ${vTree === activeVTree ? 'active' : ''}"
+        >
+          ${`&lt;${vTree.nodeName}&gt;`}
+        </h2>
 
         ${Boolean(vTree.childNodes.length) && html`
           <div class="vtree-children">
-            ${vTree.childNodes.filter(vTree => vTree && vTree.nodeType !== 3).map(vTree => {
+            ${vTree.childNodes.filter(vTree => vTree).map(vTree => {
               const hasNonWhitespace = hasNonWhitespaceEx.test(vTree.nodeValue);
-
-              if (vTree.nodeType !== 3 || hasNonWhitespace) {
-                return this.renderVTree(vTree);
-              }
+              return this.renderVTree(vTree);
             })}
           </div>
         `}
@@ -94,7 +139,10 @@ class DevtoolsMountsPanel extends WebComponent {
   styles() {
     return `
       :host {
-        display: block;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        flex-direction: column;
       }
 
       * { box-sizing: border-box; }
@@ -113,18 +161,27 @@ class DevtoolsMountsPanel extends WebComponent {
         border-top: 0;
         margin-top: 0;
         margin-bottom: 0;
-        position: sticky;
         top: 0;
         z-index: 100;
         border-radius: 0 !important;
-        background: #FFF;
         color: #333;
         user-select: none;
+      }
+
+      .ui.mini.icon.input input {
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        border-top: 0;
       }
 
       select {
         width: 100%;
         padding: 10px;
+      }
+
+      pre {
+        white-space: pre-wrap;
       }
 
       .vtree {
@@ -136,45 +193,42 @@ class DevtoolsMountsPanel extends WebComponent {
         padding-top: 0px;
         padding-bottom: 0px;
         width: 100%;
-        border: 1px solid #F1F1F1;
-        border-top: none;
-        border-bottom: none;
+        border: none;
       }
 
-      .vtree:not(:first-child) {
-        padding-top: 10px;
-      }
-
-      .vtree:first-child {
-        padding-top: 20px;
-      }
-
-      .vtree:last-child {
-        padding-bottom: 20px;
+      .wrapper {
+        display: flex;
+        font-size: 11px;
+        padding: 10px;
+        overflow: hidden;
       }
 
       .wrapper > .vtree {
         border: none;
-        padding: 0;
+        display: inline-block;
+        overflow-y: auto;
+        height: 100%;
+        padding-left: 0px;
       }
 
       .vtree-header {
         margin-bottom: 0;
-        padding: 5px 21px;
-        background: #f1f1f1;
-        border-radius: 0;
+        padding: 5px;
         cursor: pointer;
-        transition: all linear 240ms;
         user-select: none;
         flex: 1;
         display: block;
         width: 100%;
+        border-size: 2px solid transparent;
       }
 
       .vtree.active .vtree-header,
       .vtree-header:hover {
         color: #FFF;
-        background-color: #737373;
+      }
+
+      .vtree-children:hover {
+        border-left: 2px solid #E8F4FF;
       }
 
       .vtree-children {
@@ -182,7 +236,20 @@ class DevtoolsMountsPanel extends WebComponent {
         flex-direction: row;
         width: 100%;
         flex-wrap: wrap;
-        border: 2px solid #F1F1F1;
+        border-left: 2px solid transparent;
+      }
+
+      .vtree-header.active,
+      .vtree-header:hover {
+        color: #1E70BF;
+        background-color: #E8F4FF;
+      }
+
+      .vtree-sidepanel {
+        width: 30%;
+        display: inline-block;
+        border-left: 1px solid #E0E0E0;
+        padding-left: 20px;
       }
     `;
   }

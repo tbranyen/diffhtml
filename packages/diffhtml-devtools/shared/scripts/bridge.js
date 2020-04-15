@@ -126,7 +126,7 @@ export default function devTools(Internals) {
       domNode, markup, options, state: { newTree }, state
     } = transaction;
 
-    const selector = unique(domNode);
+    const selector = unique(domNode) || `${markup.rawNodeName.name}`;
     const startDate = performance.now();
     const start = function() {
       return extension.startTransaction({
@@ -172,6 +172,10 @@ export default function devTools(Internals) {
           aborted,
         });
 
+        if (extension) {
+          extension.activate(getInternals());
+        }
+
         if (!extension) { cacheTask.push(() => stop()); } else { stop(); }
       });
     };
@@ -184,13 +188,6 @@ export default function devTools(Internals) {
         completed: [],
         ...getInternals()
       });
-
-      // Every two seconds refresh the internal state.
-      // FIXME This is so that internals are properly updated over time, but
-      // should probably be updated to only trigger when necessary.
-      //setInterval(() => {
-      //  extension.activate(getInternals());
-      //}, 1000);
 
       if (cacheTask.length) {
         setTimeout(() => {

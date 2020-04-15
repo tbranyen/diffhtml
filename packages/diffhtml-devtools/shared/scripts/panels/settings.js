@@ -42,7 +42,7 @@ class DevtoolsSettingsPanel extends WebComponent {
           </p>
         </div>
 
-        <div class="title">
+        <div class="title active">
           <i class="dropdown icon"></i>
           Transaction Sampling
         </div>
