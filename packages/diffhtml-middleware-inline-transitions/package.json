@@ -16,6 +16,7 @@
     "build-umd": "NODE_ENV=umd rollup -c rollup.config.js",
     "build-min": "NODE_ENV=min rollup -c rollup.config.js && uglifyjs dist/inline-transitions.min.js -o dist/inline-transitions.min.js -m -c",
     "watch": "NODE_ENV=umd rollup -c rollup.config.js -w",
+    "test": "NODE_ENV=test mocha test/_setup test",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test",
     "test:ci": "npm run test-cov",
     "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test"

@@ -28,7 +28,7 @@ describe('Regressions', function() {
       </div>
     `);
 
-    equal(count, 1);
+    equal(count, 2);
   });
 
   it('will support nested text changes', async () => {
