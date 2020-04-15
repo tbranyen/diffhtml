@@ -1,6 +1,8 @@
 # <±/> diffHTML
 
-*A suite of JavaScript user interface tooling built for the web.*
+[![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
+[![Coverage
+  Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
 
 Stable version: 1.0.0-beta.14
 
@@ -31,10 +33,6 @@ be tested globally or independently by using `npm test` at the root directory
 level or any specific nested package level.
 
 * **[diffhtml](/packages/diffhtml)**
-
-  [![Build Status](https://travis-ci.org/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.org/tbranyen/diffhtml)
-  [![Coverage
-    Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
 
   ``` sh
   npm install diffhtml
