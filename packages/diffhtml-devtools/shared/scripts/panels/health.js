@@ -34,10 +34,18 @@ class DevtoolsHealthPanel extends WebComponent {
         <h3 onclick=${() => this.setState({ isExpanded: !isExpanded })}>
           <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Health
         </h3>
+
+        ${isExpanded && html`
+          <p>
+            Test
+          </p>
+        `}
       </div>
 
       <div class="ui attached tabular menu">
         <div class="active item">VDOM Memory Usage</div>
+        <div class="item">FPS</div>
+        <div class="item">Profiler</div>
       </div>
 
       <div class="ui bottom attached active tab segment">

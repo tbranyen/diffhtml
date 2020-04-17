@@ -112,12 +112,12 @@ class Component {
     }
 
     // Put all the nodes together into a fragment for diffing.
-    const fragment = createTree(FRAGMENT, null, childTrees);
+    const fragment = createTree(this.constructor, null, childTrees);
 
     // Always compare a fragment to a fragment. If the renderTree was not
     // wrapped, ensure it is here.
     if (renderTree.nodeType !== 11) {
-      renderTree = createTree(FRAGMENT, null, renderTree);
+      renderTree = createTree(this.constructor, null, renderTree);
     }
 
     // Compare the existing component node(s) to the new node(s).

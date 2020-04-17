@@ -216,7 +216,7 @@ export default function({ types: t }) {
             if (isProp) {
               supplemental.attributes[i] = expression;
             }
-            else {
+            else if (i) {
               supplemental.children[i] = expression;
             }
           }

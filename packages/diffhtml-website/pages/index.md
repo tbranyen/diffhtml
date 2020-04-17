@@ -2,12 +2,7 @@
 user interfaces using JavaScript. With diffHTML you can create applications,
 games, data visualizations, and much more in you web browser.
 
-
-<a name="hello-world"></a>
-
----
-
-## <a href="#hello-world">Hello world!</a>
+Here's a simple example to show what it's all about:
 
 ```js
 import { innerHTML } from '//diffhtml.org/es';
@@ -31,11 +26,11 @@ innerHTML(document.body, `
 - <span class="list-icon fa fa-codiepie"></span> Automatic memory management
 - <span class="list-icon fa fa-pencil"></span> Strict mode TypeScript via checkJS
 
-<a name="getting-the-source"></a>
+<a name="getting-started"></a>
 
 ---
 
-## <a href="#getting-the-source">Getting the source</a>
+## <a href="#getting-started">Getting started</a>
 
 <a name="node-module"></a>
 
@@ -80,3 +75,39 @@ import { innerHTML } from 'https://unpkg.com/diffhtml?module';
 // or
 import { innerHTML } from 'https://diffhtml.org/es';
 ```
+
+<a name="examples"></a>
+
+---
+
+## <a href="#examples">Examples</a>
+
+### Hello World
+
+<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+  <iframe
+    src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=40&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
+    title="diffhtml-helloworld on Glitch"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
+
+### Clock
+
+<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+  <iframe
+    src="https://glitch.com/embed/#!/embed/diffhtml-clock?path=script.js&previewSize=40&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
+    title="diffhtml-clock on Glitch"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
+
+### TodoMVC
+
+<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+  <iframe
+    src="https://glitch.com/embed/#!/embed/diffhtml-todomvc?path=lib/index.js&previewSize=40&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
+    title="diffhtml-todomvc on Glitch"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>

@@ -84,9 +84,14 @@ class DevtoolsMiddlewarePanel extends WebComponent {
 
   toggleMiddleware = name => ({ target }) => {
     const enabled = Boolean(target.checked);
+    const type = 'toggleMiddleware';
 
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, { name, enabled }));
+      tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, {
+        type,
+        name,
+        enabled,
+      }));
     });
   }
 }

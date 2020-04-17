@@ -3,6 +3,18 @@ import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 import SemanticUITable from '../semantic-ui/table';
 
+const fadeIn = el => {
+  el.style.opacity = 0;
+
+  return new Promise(resolve => el.animate([
+    { opacity: 0 },
+    { opacity: 1 },
+  ], { duration: 500 }).onfinish = resolve)
+    .then(() => {
+      el.style.opacity = 1;
+    });
+};
+
 class DevtoolsTransactionsPanel extends WebComponent {
   static propTypes = {
     inProgress: PropTypes.array,
@@ -54,59 +66,72 @@ class DevtoolsTransactionsPanel extends WebComponent {
       </div>
 
       <div class="rows">
-        <table class="header ui fixed celled sortable selectable structured table striped">
-          <thead>
-            <tr>
-              <th rowspan="2"></th>
-              <th class="center aligned" rowspan="2">FPS</th>
-              <th class="center aligned" rowspan="2">Time</th>
-              <th class="center aligned" rowspan="2">Status</th>
-              <th class="center aligned" rowspan="2">Mount</th>
-              <th class="center aligned" rowspan="2">Transitions</th>
-              <th class="center aligned" colspan="4">DOM Tree Changes</th>
-              <th class="center aligned" colspan="2">Attribute Changes</th>
-            </tr>
-
-            <tr>
-              <th class="center aligned">Insert</th>
-              <th class="center aligned">Replace</th>
-              <th class="center aligned">Remove</th>
-              <th class="center aligned">Node Value</th>
-              <th class="center aligned">Set Attribute</th>
-              <th class="center aligned">Remove Attribute</th>
-            </tr>
-          </thead>
-        </table>
-
-        <table class="ui fixed celled sortable selectable structured table striped">
-          ${completed
-            .sort(transaction => {
-              return transaction.startDate;
-            })
-            .map((transaction, index) => html`
-              <devtools-transaction-row
-                key=${'completed-' + String(transaction.startDate)}
-                index=${index}
-                stateName="completed"
-                transaction=${transaction.args}
-                startTime=${transaction.startDate}
-                endTime=${transaction.endDate}
-                isExpanded=${expandedIndex === index}
-                inspect=${inspect}
-                onclick=${this.toggleExpanded}
-              />
-            `)}
-
-          ${!completed.length && html`
-            <tbody>
-              <tr class="missing">
-                <td colspan="13">
-                  No transactions
-                </td>
+        ${expandedIndex === -1 && html`
+          <table class="header ui fixed celled sortable selectable structured table striped">
+            <thead>
+              <tr>
+                <th rowspan="2"></th>
+                <th class="center aligned" rowspan="2">Time</th>
+                <th class="center aligned" rowspan="2">Status</th>
+                <th class="center aligned" rowspan="2">Mount</th>
+                <th class="center aligned" rowspan="2">Transitions</th>
+                <th class="center aligned" colspan="4">DOM Tree Changes</th>
+                <th class="center aligned" colspan="2">Attribute Changes</th>
               </tr>
-            </tbody>
-          `}
-        </table>
+
+              <tr>
+                <th class="center aligned">Insert</th>
+                <th class="center aligned">Replace</th>
+                <th class="center aligned">Remove</th>
+                <th class="center aligned">Node Value</th>
+                <th class="center aligned">Set Attribute</th>
+                <th class="center aligned">Remove Attribute</th>
+              </tr>
+            </thead>
+          </table>
+
+          <table class="ui fixed celled sortable selectable structured table striped">
+            ${completed
+              .sort(transaction => transaction.startDate)
+              .map((transaction, index) => html`
+                <devtools-transaction-row
+                  key=${'completed-' + String(transaction.startDate)}
+                  index=${index}
+                  stateName="completed"
+                  transaction=${transaction.args}
+                  startTime=${transaction.startDate}
+                  endTime=${transaction.endDate}
+                  onClick=${this.toggleExpanded(index)}
+                  onattached=${fadeIn}
+                />
+              `)}
+
+            ${inProgress
+              .sort(transaction => transaction.startDate)
+              .map((transaction, index) => html`
+                <devtools-transaction-row
+                  key=${'progress-' + String(transaction.startDate)}
+                  index=${index}
+                  stateName="progress"
+                  transaction=${transaction.args}
+                  startTime=${transaction.startDate}
+                  endTime=${transaction.endDate}
+                  onClick=${this.toggleExpanded(index)}
+                  onattached=${fadeIn}
+                />
+              `)}
+
+            ${(!completed.length && !inProgress.length) && html`
+              <tbody>
+                <tr class="missing">
+                  <td colspan="11">
+                    No transactions
+                  </td>
+                </tr>
+              </tbody>
+            `}
+          </table>
+        `}
       </div>
     `;
   }
@@ -231,17 +256,19 @@ class DevtoolsTransactionsPanel extends WebComponent {
   }
 
   componentDidUpdate() {
-    const { expandedIndex, autoScroll } = this.state;
+    const { isExpanded, expandedIndex, autoScroll } = this.state;
 
     // TODO Have more intelligent locking for scrolling.
     if (expandedIndex === -1 && autoScroll) {
-      this.parentNode.scrollTop = this.parentNode.scrollHeight;
+      //this.parentNode.scrollTop = this.parentNode.scrollHeight;
     }
   }
 
   toggleExpanded(index) {
-    const expandedIndex = this.state.expandedIndex === index ? -1 : index;
-    this.setState({ autoScroll: false, expandedIndex });
+    return () => {
+      const expandedIndex = this.state.expandedIndex === index ? -1 : index;
+      this.setState({ autoScroll: false, expandedIndex });
+    };
   }
 }
 

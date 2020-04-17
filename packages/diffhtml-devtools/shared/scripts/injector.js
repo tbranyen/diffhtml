@@ -4,32 +4,31 @@ if (!window.__diffHTMLDevTools) {
   // This file gets loaded into the browser where the application is running.
   // It provides the bridge into the extension.
   const triggerEvent = (action, data) => {
-    const evt = new CustomEvent(`diffHTML:${action}`, {
+    document.dispatchEvent(new CustomEvent(`diffHTML:${action}`, {
       detail: JSON.stringify({ action, data })
-    });
-
-    document.dispatchEvent(evt);
+    }));
   };
 
   // A global hook for the devtools which is picked up by the application.
-  window.__diffHTMLDevTools = () => {
-    const state = {
-      activate(args={}) {
-        triggerEvent('activated', args);
-        return state;
-      },
+  window.__diffHTMLDevTools = () => ({
+    activate(args={}) {
+      triggerEvent('activated', args);
+      return this;
+    },
 
-      startTransaction(args={}) {
-        triggerEvent('start', { args });
-        return state;
-      },
+    startTransaction(startDate, args={}) {
+      triggerEvent('start', { startDate, args });
+      return this;
+    },
 
-      endTransaction(startDate, endDate, args={}) {
-        triggerEvent('end', { startDate, endDate, args });
-        return state;
-      },
-    };
+    endTransaction(startDate, endDate, args={}) {
+      triggerEvent('end', { startDate, endDate, args });
+      return this;
+    },
 
-    return state;
-  };
+    ping() {
+      triggerEvent('ping');
+      return this;
+    },
+  });
 }

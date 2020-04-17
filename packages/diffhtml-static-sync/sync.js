@@ -111,8 +111,17 @@ function open() {
       }
 
       const path = location.pathname.slice(1) || 'index';
+      const ext = file.split('.').slice(-1);
 
-      if (file === true || path === file || path === file.split('.').slice(0, -1).join('.')) {
+      if (
+        file === true ||
+        path === file ||
+        (
+          path === file.split('.').slice(0, -1).join('.') &&
+          ext === 'html' ||
+          ext === 'md'
+        )
+      ) {
         if (!quiet) {
           console.log(`Updated with: ${markup}`);
         }

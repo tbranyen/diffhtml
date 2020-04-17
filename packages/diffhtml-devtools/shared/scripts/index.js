@@ -1,6 +1,7 @@
 import { outerHTML, html, use } from 'diffhtml';
 import logger from 'diffhtml-middleware-logger';
 import verifyState from 'diffhtml-middleware-verify-state';
+import inlineTransitions from 'diffhtml-middleware-inline-transitions';
 
 // Components
 import './components/panels';
@@ -21,6 +22,7 @@ const { stringify, parse } = JSON;
 const { assign } = Object;
 const background = chrome.runtime.connect({ name: 'devtools-page' });
 
+//use(inlineTransitions());
 //use(logger());
 //use(verifyState());
 
@@ -83,6 +85,18 @@ const clearEntries = () => {
   });
 };
 
+const fadeIn = el => {
+  el.style.opacity = 0;
+
+  return new Promise(resolve => el.animate([
+    { opacity: 0 },
+    { opacity: 1 },
+  ], { duration: 240 }).onfinish = resolve)
+    .then(() => {
+      el.style.opacity = 1;
+    });
+};
+
 const render = () => outerHTML(main, html`<main id="main" data-theme=${state.theme}>
   ${!state.version && html`
     <h1 id="not-found">
@@ -92,7 +106,7 @@ const render = () => outerHTML(main, html`<main id="main" data-theme=${state.the
   `}
 
   ${state.version && html`
-    <devtools-split-view>
+    <devtools-split-view onattached=${fadeIn}>
       <devtools-navigation
         version=${state.version}
         activeRoute=${state.activeRoute}
@@ -104,6 +118,7 @@ const render = () => outerHTML(main, html`<main id="main" data-theme=${state.the
           completed=${state.completed}
           inspect=${inspect}
           clearEntries=${clearEntries}
+          onattached=${fadeIn}
         />
       </devtools-panels>
 
@@ -155,8 +170,23 @@ background.onMessage.addListener(message => {
     }
 
     case 'end': {
-      state.inProgress.shift();
-      state.completed = state.completed.concat(clone(message.data));
+      const completeData = clone(message.data);
+
+      state.inProgress = state.inProgress.filter(transaction => {
+        return transaction.startDate !== completeData.startDate;
+      });
+
+      state.completed = state.completed.concat(completeData);
+
+      break;
+    }
+
+    case 'ping': {
+      const type = 'pong';
+
+      chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, { type }));
+      });
 
       break;
     }

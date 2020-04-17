@@ -2,9 +2,9 @@
   "output_dir": "../../docs",
   "pages": {
     "Home": ["index.html", {
-      "Hello world!": "#hello-world",
       "Core features": "#core-features",
-      "Getting the source": "#getting-the-source"
+      "Getting started": "#getting-started",
+      "Examples": "#examples"
     }],
 
     "Core API": ["api.html", {
@@ -26,7 +26,7 @@
     }],
 
     "Transitions": ["transitions.html", {
-      "Available states": "#available-states"
+      "States": "#states"
     }],
 
     "Middleware": ["middleware.html", {
@@ -54,13 +54,8 @@
     }],
 
     "DevTools": ["devtools.html", {
-
-    }],
-
-    "Examples (Glitch)": ["examples.html", {
-      "Hello World!": "https://glitch.com/edit/#!/diffhtml-helloworld",
-      "Clock": "https://glitch.com/edit/#!/diffhtml-clock",
-      "TodoMVC": "https://glitch.com/edit/#!/diffhtml-todomvc"
+      "Install": "#install",
+      "Panels": "#panels"
     }]
   }
 }

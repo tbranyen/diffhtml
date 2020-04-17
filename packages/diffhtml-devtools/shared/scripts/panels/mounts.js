@@ -51,6 +51,24 @@ class DevtoolsMountsPanel extends WebComponent {
       </div>
 
       ${false && html`
+        <${Dropdown} text='File'>
+          <${Dropdown.Menu}>
+            <${Dropdown.Item} text='New' />
+            <${Dropdown.Item} text='Open...' description='ctrl + o' />
+            <${Dropdown.Item} text='Save as...' description='ctrl + s' />
+            <${Dropdown.Item} text='Rename' description='ctrl + r' />
+            <${Dropdown.Item} text='Make a copy' />
+            <${Dropdown.Item} icon='folder' text='Move to folder' />
+            <${Dropdown.Item} icon='trash' text='Move to trash' />
+            <${Dropdown.Divider} />
+            <${Dropdown.Item} text='Download As...' />
+            <${Dropdown.Item} text='Publish To Web' />
+            <${Dropdown.Item} text='E-mail Collaborators' />
+          </${Dropdown.Menu}>
+        </${Dropdown}>
+      `}
+
+      ${false && html`
         <${Dropdown}
           placeholder='Select DOM Node'
           fluid
@@ -80,10 +98,10 @@ class DevtoolsMountsPanel extends WebComponent {
 
           ${activeVTree && html`
             <div class="vtree-sidepanel">
-              <h4>Raw NodeName</h4>
+              <h4>Node name</h4>
 
               ${activeVTree && html`
-                <pre><code>${activeVTree.rawNodeName.toString()}</code></pre>
+                <pre><code>${activeVTree.nodeName.toString()}</code></pre>
               `}
 
               <h4>Attributes</h4>

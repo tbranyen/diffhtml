@@ -121,18 +121,37 @@ export default function devTools(Internals) {
     };
   };
 
+  let surpressedCount = 0;
+  let lastRun = 0;
+
   function devToolsTask(transaction) {
     const {
       domNode, markup, options, state: { newTree }, state
     } = transaction;
 
-    const selector = unique(domNode) || `${markup.rawNodeName.name}`;
+    const isFunction = typeof domNode.rawNodeName === 'function';
+    const selector = unique(domNode) ||
+      `${isFunction ? domNode.rawNodeName.name : domNode.rawNodeName}`;
     const startDate = performance.now();
-    const start = function() {
-      return extension.startTransaction({
+
+    // If we are getting renders too quickly, restrict them from being sent.
+    //if (lastRun !== 0 && (startDate - lastRun) < 1000) {
+    //  surpressedCount += 1;
+    //  return;
+    //}
+    //else {
+    //  lastRun = startDate;
+    //}
+
+    const cachedSurpressedCount = surpressedCount;
+    surpressedCount = 0;
+
+    const start = () => {
+      return extension.startTransaction(startDate, {
         domNode: selector,
         markup,
         options,
+        surpressedCount: cachedSurpressedCount,
         state: assign({}, state, state.nextTransaction && {
           nextTransaction: undefined,
         }, {
@@ -141,18 +160,22 @@ export default function devTools(Internals) {
       });
     };
 
-    if (extension) {
+    // Start task.
+    if (!extension) {
+      cacheTask.push(() => start());
+    } else {
       start();
     }
 
     selectors.set(selector, newTree);
 
     return function() {
-      const endDate = performance.now();
       const patches = JSON.parse(JSON.stringify(transaction.patches));
       const promises = transaction.promises.slice();
 
       transaction.onceEnded(() => {
+        const endDate = performance.now();
+
         // Update with the newTree after a render has completed.
         selectors.set(selector, transaction.oldTree);
 
@@ -161,6 +184,7 @@ export default function devTools(Internals) {
           domNode: selector,
           markup,
           options,
+          surpressedCount: cachedSurpressedCount,
           state: assign({}, state, state.nextTransaction && {
             nextTransaction: undefined,
           }, {
@@ -172,31 +196,61 @@ export default function devTools(Internals) {
           aborted,
         });
 
-        if (extension) {
+        if (!extension) {
+          cacheTask.push(() => stop());
+        } else {
           extension.activate(getInternals());
+          stop();
         }
-
-        if (!extension) { cacheTask.push(() => stop()); } else { stop(); }
       });
     };
   }
 
-  devToolsTask.subscribe = () => {
-    pollForFunction().then(devToolsExtension => {
-      extension = devToolsExtension().activate({
-        inProgress: [],
-        completed: [],
-        ...getInternals()
-      });
+  async function setExtension(initial) {
+    const devToolsExtension = await pollForFunction();
 
-      if (cacheTask.length) {
-        setTimeout(() => {
-          cacheTask.forEach(cb => cb());
-          cacheTask.length = 0;
-        }, 250);
-      }
-    })
-    .catch(console.log);
+    extension = devToolsExtension().activate({
+      // TODO Use these instead of cacheTask
+      inProgress: initial ? [] : null,
+      completed: initial ? [] : null,
+      ...getInternals(),
+    });
+  }
+
+  // Send a ping every 2 seconds. If we do not receive a response and time out,
+  // reconnect.
+  function keepAlive() {
+    extension.ping();
+
+    let primaryTimeout = null;
+    let scheduleTimeout = null;
+
+    const schedule = () => {
+      clearTimeout(primaryTimeout);
+      scheduleTimeout = setTimeout(keepAlive, 5000);
+    };
+
+    document.addEventListener('diffHTML:pong', schedule, { once: true });
+
+    // If we do not receive a response after 1 second, try and reconnect.
+    primaryTimeout = setTimeout(async () => {
+      document.removeEventListener('diffHTML:pong', schedule);
+      clearTimeout(scheduleTimeout);
+      await setExtension();
+    }, 1000);
+  }
+
+  devToolsTask.subscribe = async () => {
+    await setExtension(true);
+
+    // Start keep-alive in case we disconnect.
+    //keepAlive();
+
+    // Call existing cached tasks.
+    if (cacheTask.length) {
+      cacheTask.forEach(cb => cb());
+      cacheTask.length = 0;
+    }
   };
 
   return devToolsTask;

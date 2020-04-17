@@ -50,7 +50,7 @@ export default function inlineTransitions(options = {}) {
     map[isFunction ? 'set' : 'delete'](domNode, newVal);
   };
 
-  const subscribe = () => {
+  const subscribe = (Internals) => {
     addTransitionState('attributeChanged', attributeChanged);
 
     // Add a transition for every type.
@@ -61,6 +61,11 @@ export default function inlineTransitions(options = {}) {
       // This handler is bound for every possible transition to help limit the
       // amount of transitions bound.
       const handler = (childNode, ...rest) => {
+        // Abort early if no childNode was present.
+        if (!childNode) {
+          return;
+        }
+
         // If the child element triggered in the transition is the root
         // element, this is an easy lookup for the handler.
         if (map.has(childNode)) {

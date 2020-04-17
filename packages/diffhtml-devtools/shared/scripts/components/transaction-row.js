@@ -3,13 +3,13 @@ import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 import SemanticUITable from '../semantic-ui/table';
 
+const { keys } = Object;
+
 class DevtoolsTransactionRow extends WebComponent {
   static propTypes = {
     index: PropTypes.number,
     transaction: PropTypes.object,
     stateName: PropTypes.string,
-    inspect: PropTypes.func,
-    isExpanded: PropTypes.bool,
     startTime: PropTypes.number,
     endTime: PropTypes.number,
   }
@@ -22,7 +22,6 @@ class DevtoolsTransactionRow extends WebComponent {
       index,
       transaction,
       stateName,
-      isExpanded,
     } = this.props;
 
     const stats = this.calculateStats();
@@ -32,11 +31,12 @@ class DevtoolsTransactionRow extends WebComponent {
       markup = {},
       aborted = false,
       promises = [],
+      surpressedCount,
     } = transaction;
 
     let unnecessaryRender = true;
 
-    Object.keys(stats).some(statName => {
+    keys(stats).some(statName => {
       if (stats[statName]) {
         unnecessaryRender = false;
         return true;
@@ -50,6 +50,7 @@ class DevtoolsTransactionRow extends WebComponent {
       <style>${this.styles()}</style>
 
       <td class="center aligned">
+        ${surpressedCount}
         ${unnecessaryRender && transaction.completed && html`
           <div
             data-tooltip="Nothing changed, unnecessary render!"
@@ -58,16 +59,6 @@ class DevtoolsTransactionRow extends WebComponent {
             <i class="icon warning sign yellow" />
           </div>
         `}
-      </td>
-
-      <td class="center aligned">
-        <span>
-          ${fps && (
-            fps === Infinity && '&infin;' ||
-            fps >= 60 && '>=60' ||
-            fps.toFixed(1)
-          )}
-        </span>
       </td>
 
       <td class="center aligned">
@@ -82,7 +73,7 @@ class DevtoolsTransactionRow extends WebComponent {
         </span>
       </td>
 
-      <td class="center aligned" onclick=${this.inspectNode}>
+      <td class="center aligned">
         <div class="node">
           &lt;${domNode}&gt;
         </div>
@@ -300,11 +291,6 @@ class DevtoolsTransactionRow extends WebComponent {
     }
 
     return color;
-  }
-
-  inspectNode = () => {
-    const { inspect, transaction: { domNode } } = this.props;
-    inspect(domNode);
   }
 }
 

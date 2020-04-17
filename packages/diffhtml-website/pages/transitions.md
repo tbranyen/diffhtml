@@ -9,11 +9,11 @@ could allow you to easily build keyframe based animations or integrate tools
 like [anime.js](https://animejs.com/documentation/#finishedPromise) that
 support Promises.
 
-<a name="available-states"></a>
+<a name="states"></a>
 
 ---
 
-## <a href="#available-states">Available states</a>
+## <a href="#states">States</a>
 
 - [**attached**](#attached)
 - [**detached**](#detached)

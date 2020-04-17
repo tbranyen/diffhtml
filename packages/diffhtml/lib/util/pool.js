@@ -1,8 +1,6 @@
 import { VTree } from "./types";
 
-// A modest size.
-const size = 10000;
-
+let size = 10000;
 const free = new Set();
 const allocate = new Set();
 const protect = new Set();
@@ -29,10 +27,23 @@ for (let i = 0; i < size; i++) {
 // than calling it every single time. It gets replaced once exhausted.
 let freeValues = free.values();
 
-// Cache VTree objects in a pool which is used to get
+// A pool contains Virtual Tree objects which are a deterministic, pre-created
+// shape that is used internally by diffHTML. Since diffHTML constantly creates
+// and recycles objects, this helps avoid unwanted and unexpected garbage
+// collection and improves performance.
 export default {
   size,
   memory,
+
+  /**
+   * As the Pool size is configurable, this method can be used to fill up the
+   * pool after making it larger.
+   */
+  fill() {
+    for (let i = free.size; i < size; i++) {
+      free.add(shape());
+    }
+  },
 
   /**
    * @return {VTree}

@@ -32,7 +32,7 @@ class DevtoolsNavigation extends WebComponent {
         <div class="credit">
           <strong>Detected diffHTML: ${version}</strong>
           <hr>
-          Created by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
+          by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
         </div>
       </div>
     `;

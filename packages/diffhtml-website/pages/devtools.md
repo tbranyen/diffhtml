@@ -1,26 +1,57 @@
-<h1>
-  <a
-    href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-devtools"
-  ><i style="margin-right: 10px" class="fa fa-github"></i></a>
-  DevTools
-</h1>
+# DevTools
 
-<a name="#live-reload-server"></a>
+<a name="install"></a>
 
 ---
 
 
-## <a href="#live-reload-server">Live Reload Server</a>
+## <a href="#install">Install</a>
 
-TBD
+...
 
-<a name="#render-to-string"></a>
+<a name="panels"></a>
+
+---
+
+## <a href="#panels">Panels</a>
+
+<a name="renders-panel"></a>
 
 ---
 
+### <a href="#renders-panel">Renders panel</a>
 
-## <a href="#render-to-string">Render to String</a>
+...
 
-TBD
+<a name="mounts-panel"></a>
 
 ---
+
+### <a href="#mounts-panel">Mounts panel</a>
+
+...
+
+<a name="middleware-panel"></a>
+
+---
+
+### <a href="#middleware-panel">Middleware panel</a>
+
+...
+
+<a name="health-panel"></a>
+
+---
+
+### <a href="#health-panel">Health panel</a>
+
+...
+
+<a name="settings-panel"></a>
+
+---
+
+### <a href="#settings-panel">Settings panel</a>
+
+...
+
