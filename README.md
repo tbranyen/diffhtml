@@ -48,10 +48,9 @@ level or any specific nested package level.
   npm install diffhtml-components
   ```
 
-  **Highly Experimental:** Provides stateful React-like and v1 Web Component
-  classes with a consistent API. If you're looking for drop-in React parity,
-  refer to the [diffhtml-react-compat](/packages/diffhtml-react-compat)
-  package.
+  Provides stateful React-like and v1 Web Component classes with a consistent
+  API. If you're looking for drop-in React parity, refer to the
+  [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
 
 * **[diffhtml-render-to-string](/packages/diffhtml-render-to-string)**
 
@@ -140,9 +139,9 @@ level or any specific nested package level.
 
 * [diffhtml-devtools](/packages/diffhtml-devtools)
 
-  **Highly Experimental:** A work-in-progress set of developer tools that logs
-  out transactions.  Eventually will allow for subscription/unsubscription of
-  middleware, charting for the overall application health, and more.
+  Chrome Extension providing DevTools for inspecting and learning more about
+  your running diffHTML code. Currently logs information about transactions,
+  allows toggling active middleware, and displays some memory internals.
 
 * [diffhtml-website](/packages/diffhtml-website)
 
