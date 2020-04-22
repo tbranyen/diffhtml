@@ -39,7 +39,7 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
 
     it('can render a nested quasi literal', () => {
       diff.outerHTML(this.fixture, fixtures.renderNestedQuasi());
-      assert.equal(this.fixture.innerHTML.trim(), '<div>Hello world</div>');
+      assert.equal(this.fixture.innerHTML.trim(), 'Hello world');
     });
 
     it('can render a nested quasi literal w/ concat text', () => {
