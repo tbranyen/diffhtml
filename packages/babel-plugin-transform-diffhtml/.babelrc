@@ -1,6 +1,11 @@
 {
+  "env": {
+    "test": {
+      "plugins": [["module:.", { "createTree": "createTree" }]]
+    }
+  },
+
   "plugins": [
-    ["module:.", { "createTree": "createTree" }],
     "@babel/plugin-transform-modules-commonjs"
   ]
 }

@@ -1,6 +1,5 @@
 import { Internals } from 'diffhtml';
 import * as babylon from 'babylon';
-import Global from './global';
 
 const { parse } = Internals;
 const hasNonWhitespaceEx = /\S/;
@@ -141,18 +140,6 @@ export default function({ types: t }) {
       if (tagName === `${plugin.opts.tagName || 'html'}.strict`) {
         strict = true;
       }
-
-      const middleware = (plugin.opts.use || []).map(name => {
-        try {
-          const transform = Global.require(`${name}/transform`);
-          return middleware;
-        }
-        catch (ex) {
-          throw new Error(`
-            Missing or incompatible middleware ${name}/transform
-          `);
-        }
-      }).filter(Boolean);
 
       const supplemental = {
         attributes: {},

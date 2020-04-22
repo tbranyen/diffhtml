@@ -3,16 +3,14 @@ import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 import SemanticUITable from '../semantic-ui/table';
 
-//const fadeIn = el => {
-//  el.style.opacity = 0;
-//
-//  return new Promise(resolve => el.animate([
-//    { opacity: 0 },
-//    { opacity: 1 },
-//  ], { duration: 500 }).onfinish = resolve).then(() => {
-//      el.style.opacity = 1;
-//    });
-//};
+const fadeIn = el => {
+  return new Promise(resolve => el.animate([
+    { opacity: 0 },
+    { opacity: 1 },
+  ], { duration: 500 }).onfinish = resolve).then(() => {
+      el.style.opacity = 1;
+    });
+};
 
 class DevtoolsTransactionsPanel extends WebComponent {
   static propTypes = {
@@ -101,6 +99,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
                   startTime=${transaction.startDate}
                   endTime=${transaction.endDate}
                   onClick=${this.toggleExpanded(index)}
+                  onattached=${fadeIn}
                 />
               `)}
 
@@ -115,6 +114,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
                   startTime=${transaction.startDate}
                   endTime=${transaction.endDate}
                   onClick=${this.toggleExpanded(index)}
+                  onattached=${fadeIn}
                 />
               `)}
 
