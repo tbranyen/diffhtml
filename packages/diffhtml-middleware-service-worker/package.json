@@ -11,8 +11,8 @@
     "clean": "rm -rf dist/* && mkdir -p dist",
     "min": "npm run build && npm run build-min",
     "build": "npm run clean && npm run build-umd && npm run build-cjs && npm run build-esm",
-    "build-cjs": "NODE_ENV=cjs babel index.js -d dist/cjs",
-    "build-esm": "NODE_ENV=esm babel index.js -d dist/es",
+    "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs",
+    "build-esm": "NODE_ENV=esm babel lib -d dist/es",
     "build-umd": "NODE_ENV=umd rollup -c rollup.config.js",
     "build-min": "NODE_ENV=min rollup -c rollup.config.js && uglifyjs dist/logger.min.js -o dist/logger.min.js -m -c",
     "watch": "NODE_ENV=umd rollup -c rollup.config.js -w"
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@babel/cli": "^7.6.0",
     "@babel/core": "^7.6.0",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.13",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.14",
     "diffhtml": "^1.0.0-beta.14",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
@@ -38,6 +38,6 @@
     "uglify-js": "^3.6.0"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.10"
+    "diffhtml": "^1.0.0-beta.14"
   }
 }

@@ -11,6 +11,7 @@ import syncTree from '../lib/tree/sync';
 import { SyncTreeHookCache, NodeCache } from '../lib/util/caches';
 import parse from '../lib/util/parse';
 import { PATCH_TYPE } from '../lib/util/types';
+import { gc } from '../lib/util/memory';
 import html from '../lib/html';
 import release from '../lib/release';
 import validateMemory from './util/validate-memory';
@@ -376,8 +377,6 @@ describe('Tree', function() {
 
       const spanTree = createTree(div).childNodes[0];
 
-      div.removeChild(span);
-      // It's expensive to recrawl every time, so only do it if released
       release(div);
 
       const vTree = createTree(div);

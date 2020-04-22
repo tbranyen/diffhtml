@@ -1,7 +1,7 @@
 {
   "name": "babel-plugin-transform-diffhtml",
   "version": "1.0.0-beta.14",
-  "description": "Transforms tagged tempalates into createTree calls",
+  "description": "Compiles tagged templates into createTree calls",
   "main": "dist/index.js",
   "scripts": {
     "build": "NODE_ENV=umd browserify --im -x diffhtml -u diffhtml -s transform -g babelify lib/index.js -o dist/index.js",
@@ -28,6 +28,6 @@
     "watchify": "^3.11.1"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.10"
+    "diffhtml": "^1.0.0-beta.14"
   }
 }

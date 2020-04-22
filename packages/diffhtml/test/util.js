@@ -12,6 +12,8 @@ import Pool from '../lib/util/pool';
 import validateMemory from './util/validate-memory';
 import createSupplemental from './util/create-supplemental';
 
+const { floor } = Math;
+
 describe('Util', function() {
   let performance;
 
@@ -1227,6 +1229,28 @@ describe('Util', function() {
   });
 
   describe('Pool', () => {
+    it('will fill the pool to the right size', () => {
+      const defaultSize = Pool.size;
+
+      equal(Pool.memory.free.size, defaultSize);
+
+      // Cut Pool size in half.
+      Pool.size = floor(defaultSize / 2);
+      Pool.fill();
+
+      equal(Pool.memory.free.size, Pool.size);
+
+      // Increase to twice default;
+      Pool.size = floor(defaultSize * 2);
+      Pool.fill();
+
+      equal(Pool.memory.free.size, Pool.size);
+
+      // Bring pool back to default size.
+      Pool.size = defaultSize;
+      Pool.fill();
+    });
+
     it('will create additional shapes if the pool is exceeded', () => {
       let shape = null;
 

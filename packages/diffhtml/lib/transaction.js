@@ -8,7 +8,7 @@ import reconcileTrees from './tasks/reconcile-trees';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
-import { VTree, VTreeLike, ValidInput, Mount, Options } from './util/types';
+import { VTree, ValidInput, Mount, Options } from './util/types';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,

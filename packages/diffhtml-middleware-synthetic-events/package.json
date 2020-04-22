@@ -28,7 +28,7 @@
   "devDependencies": {
     "@babel/cli": "^7.6.0",
     "@babel/core": "^7.6.0",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.13",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.14",
     "diffhtml": "^1.0.0-beta.14",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
@@ -39,6 +39,6 @@
     "uglify-js": "^3.6.0"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.10"
+    "diffhtml": "^1.0.0-beta.14"
   }
 }

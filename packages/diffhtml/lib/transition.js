@@ -1,7 +1,5 @@
 import { TransitionCache, NodeCache } from './util/caches';
 import process from './util/process';
-import createTree from './tree/create';
-import createNode from './node/create';
 import { VTree } from './util/types';
 
 // Available transition states.
@@ -82,18 +80,14 @@ export function runTransitions(setName, ...args) {
 
   const [ vTree, ...rest ] = args;
 
-  // Do not pass text nodes to anything but textChanged.
-  if (!set.size || (setName !== 'textChanged' && vTree.nodeType === 3)) {
+  // Filter out text nodes and fragments from transition callbacks.
+  if (!set.size || (setName !== 'textChanged' && vTree.nodeType !== 1)) {
     return promises;
   }
 
   // Run each transition callback, but only if the passed args are an
   // Element.
   set.forEach(callback => {
-    if (setName !== 'textChanged' && vTree.nodeType !== 1) {
-      return;
-    }
-
     const retVal = callback(NodeCache.get(vTree), ...rest);
 
     // Is a `thennable` object or Native Promise.

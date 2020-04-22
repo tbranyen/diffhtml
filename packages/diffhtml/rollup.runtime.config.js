@@ -29,7 +29,7 @@ export const output = [{
 }];
 
 export const plugins = [
-  NODE_ENV === 'min' && replace({
+  replace({
     'process.env.NODE_ENV': stringify('production')
   }),
   babel(),

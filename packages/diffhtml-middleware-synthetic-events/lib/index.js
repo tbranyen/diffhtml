@@ -1,13 +1,10 @@
-import { Internals } from 'diffhtml';
-
-const { PATCH_TYPE, NodeCache, createNode, decodeEntities } = Internals;
-
 const useCapture = [
   'onload', 'onunload', 'onscroll', 'onfocus', 'onblur', 'onloadstart',
   'onprogress', 'onerror', 'onabort', 'onload', 'onloadend', 'onpointerenter',
   'onpointerleave',
 ];
 
+const { assign, defineProperty, getOwnPropertyDescriptor } = Object;
 const eventNames = [];
 const handlers = new Map();
 const bounded = new Set();
@@ -30,12 +27,12 @@ const cloneEvent = (ev, ov = {}) => {
   // Copy over original event getters/setters first, will need some extra
   // intelligence to ensure getters/setters work, thx @kofifus.
   for (let key in ev) {
-    const desc = Object.getOwnPropertyDescriptor(ev, key);
+    const desc = getOwnPropertyDescriptor(ev, key);
 
     if (key === 'isTrusted') { continue; }
 
     if (desc && desc.get) {
-      Object.defineProperty(newEvent, key, desc);
+      defineProperty(newEvent, key, desc);
     }
     else {
       newEvent[key] = ev[key];
@@ -112,6 +109,8 @@ const bindEventsTo = domNode => {
 }
 
 const syntheticEvents = () => {
+  let Internals = null;
+
   function syntheticEventsTask() {
     return ({ patches }) => {
       const { length } = patches;
@@ -202,7 +201,13 @@ const syntheticEvents = () => {
     }
   }
 
-  return Object.assign(syntheticEventsTask, {});
+  return assign(syntheticEventsTask, {
+    displayName: 'syntheticEventsTask',
+
+    subscribe(_Internals) {
+      Internals = _Internals;
+    },
+  });
 };
 
 export default syntheticEvents;

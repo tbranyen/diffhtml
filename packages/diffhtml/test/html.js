@@ -299,16 +299,7 @@ describe('HTML (Tagged template)', function() {
     const span = html`<span>${textNode}</span>`;
     const vTree = createTree(textNode);
 
-    deepEqual(span.childNodes[0], {
-      rawNodeName: '#text',
-      nodeName: '#text',
-      nodeType: 3,
-      nodeValue: 'foo',
-      key: '',
-      attributes: {},
-      childNodes: [],
-    });
-
+    deepEqual(span.childNodes[0], vTree);
     equal(NodeCache.get(vTree), textNode);
   });
 

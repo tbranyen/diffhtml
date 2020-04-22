@@ -1,9 +1,11 @@
-import { deepEqual, throws } from 'assert';
+import { equal, deepEqual, notEqual, throws } from 'assert';
 import html from '../lib/html';
 import release from '../lib/release';
 import Transaction from '../lib/transaction';
 import reconcileTrees from '../lib/tasks/reconcile-trees';
+import schedule from '../lib/tasks/schedule';
 import syncTrees from '../lib/tasks/sync-trees';
+import { StateCache } from '../lib/util/caches';
 import validateMemory from './util/validate-memory';
 
 describe('Tasks', function() {
@@ -185,6 +187,117 @@ describe('Tasks', function() {
         childNodes: children,
         attributes: {},
       });
+    });
+  });
+
+  describe('schedule', () => {
+    it('will mark a transaction as rendering', () => {
+      const options = { inner: false };
+      const transaction = Transaction.create(this.fixture, [], options);
+
+      schedule(transaction);
+
+      const { state } = transaction;
+
+      equal(state.isRendering, true);
+      equal(state.activeTransaction, transaction);
+    });
+
+    it('will make a subsequent transaction wait for an existing element', async () => {
+      const options = { inner: false };
+      const transaction1 = Transaction.create(this.fixture, [], options);
+      const transaction2 = Transaction.create(this.fixture, [], options);
+      transaction1.tasks = [];
+      transaction2.tasks = [];
+
+      // First "render".
+      schedule(transaction1);
+
+      // Second "render"
+      const promise = schedule(transaction2);
+      const { state } = transaction1;
+
+      equal(typeof transaction2.promise.then, 'function');
+      equal(state.nextTransaction, transaction2);
+      equal(transaction2.aborted, true);
+
+      // Wait for the promise to complete.
+      await promise;
+
+      equal(transaction2.aborted, false);
+      equal(state.activeTransaction, transaction2);
+    });
+
+    it('will make a new transaction wait for an existing parent element transaction', async () => {
+      const options = { inner: false };
+      this.child = document.createElement('div');
+      this.fixture.appendChild(this.child);
+
+      // Parent
+      const transaction1 = Transaction.create(this.fixture, [], options);
+
+      // Child
+      const transaction2 = Transaction.create(this.child, [], options);
+
+      transaction1.tasks = [];
+      transaction2.tasks = [];
+
+      // First "render" (parent)
+      schedule(transaction1);
+
+      // Second "render" (child)
+      const promise = schedule(transaction2);
+      const state1 = transaction1.state;
+      const state2 = transaction2.state;
+
+      // States are different per element
+      notEqual(state1, state2);
+
+      equal(typeof transaction2.promise.then, 'function');
+      equal(state1.nextTransaction, transaction2);
+      equal(transaction2.aborted, true);
+
+      // Wait for the promise to complete.
+      await promise;
+
+      equal(transaction2.aborted, false);
+      equal(state2.activeTransaction, transaction2);
+    });
+
+    it('will make a new transaction wait for an existing child element render', async () => {
+      const options = { inner: false };
+      this.child = document.createElement('div');
+      this.fixture.appendChild(this.child);
+
+      // Parent
+      const transaction1 = Transaction.create(this.child, [], options);
+
+      // Child
+      const transaction2 = Transaction.create(this.fixture, [], options);
+
+      transaction1.tasks = [];
+      transaction2.tasks = [];
+
+      // First "render" (parent)
+      schedule(transaction1);
+
+      // Second "render" (child)
+      const promise = schedule(transaction2);
+      const state1 = transaction1.state;
+      const state2 = transaction2.state;
+
+      // States are different per element
+      notEqual(state1, state2);
+
+      equal(typeof transaction2.promise.then, 'function');
+      equal(state1.nextTransaction, transaction2);
+      equal(transaction2.aborted, true);
+
+      // Wait for the promise to complete.
+      await promise;
+
+      equal(transaction2.aborted, false);
+      equal(state2.activeTransaction, transaction2);
     });
   });
 

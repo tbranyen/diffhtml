@@ -1,6 +1,6 @@
 const { equal } = require('assert');
 const { use, html, innerHTML } = require('diffhtml');
-const inlineTransitions = require('../index');
+const inlineTransitions = require('../lib');
 
 const whitespaceEx = /[ ]{2,}|\n/g;
 

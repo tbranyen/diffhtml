@@ -1,6 +1,5 @@
-import { StateCache, NodeCache } from './util/caches';
+import { StateCache, NodeCache, ReleaseHookCache } from './util/caches';
 import { unprotectVTree } from './util/memory';
-import createTree from './tree/create';
 import { ValidNode } from './util/types';
 
 /**
@@ -15,11 +14,14 @@ export default function release(domNode) {
   // If this was a top-level rendered element, deallocate the VTree
   // and remove the StateCache reference.
   if (state) {
-    if (state.oldTree) {
-      unprotectVTree(createTree(state.oldTree));
-    }
-
     StateCache.delete(domNode);
+
+    // If there is a known root association that is not in the NodeCache,
+    // remove this VTree.
+    if (state.oldTree && !NodeCache.has(state.oldTree)) {
+      unprotectVTree(state.oldTree);
+      ReleaseHookCache.forEach(fn => fn(state.oldTree));
+    }
   }
 
   // The rest of this function only pertains to real HTML element nodes. If
@@ -37,13 +39,16 @@ export default function release(domNode) {
 
   // If there is a shadowRoot attached to the DOM node, attempt
   // to release this as well.
-  release(asHTMLElement.shadowRoot);
+  if (asHTMLElement.shadowRoot) {
+    release(asHTMLElement.shadowRoot);
+  }
 
   // Do a thorough check within the NodeCache to fully deallocate all
   // references to the associated trees.
-  NodeCache.forEach((value, key) => {
-    if (value === asHTMLElement) {
-      unprotectVTree(key);
+  NodeCache.forEach((domNode, vTree) => {
+    if (domNode === asHTMLElement) {
+      unprotectVTree(vTree);
+      ReleaseHookCache.forEach(fn => fn(vTree));
     }
   });
 }

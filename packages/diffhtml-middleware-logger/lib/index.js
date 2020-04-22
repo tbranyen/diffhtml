@@ -22,9 +22,7 @@ const cloneTree = tree => assign({}, tree, {
   childNodes: tree.childNodes.map(vTree => cloneTree(vTree))
 });
 
-const state = {
-  Internals: null,
-};
+let Internals = null;
 
 const format = (patches) => {
   const { Internals } = state;
@@ -289,12 +287,8 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
 }, {
   displayName: 'loggerTask',
 
-  subscribe(Internals) {
-    state.Internals = Internals;
-  },
-
-  unsubscribe() {
-    state.Internals = null;
+  subscribe(_Internals) {
+    Internals = _Internals;
   },
 });
 

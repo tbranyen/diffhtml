@@ -330,7 +330,7 @@ export default function patchNode(patches, state = {}) {
           // Do full replace and cleanup once transitions have completed.
           Promise.all(allPromises).then(() => {
             if (oldDomNode.parentNode) {
-              oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+              oldDomNode.parentNode.removeChild(oldDomNode);
             }
             unprotectVTree(oldTree);
           });
@@ -339,7 +339,7 @@ export default function patchNode(patches, state = {}) {
         }
         else {
           if (oldDomNode.parentNode) {
-            oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+            oldDomNode.parentNode.removeChild(oldDomNode);
           }
           unprotectVTree(oldTree);
         }

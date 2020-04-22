@@ -39,11 +39,15 @@ class HelloWorld extends Component {
 into `test.built.js`:
 
 ``` js
-var _vtree = diff.createTree("#text", null, "Hello world");
+var _vtree = diff.createTree("#text", "Hello world");
 
 class HelloWorld extends Component {
   render() {
-    return diff.createTree("div", {}, [_vtree]);
+    return diff.createTree('#document-fragment', null, [
+      diff.createTree('#text', '\n'),
+      diff.createTree('div', {}, [_vtree]),
+      diff.createTree('#text', '\n'),
+    ]);
   }
 }
 ```
@@ -161,7 +165,7 @@ const { html, innerHTML } = require('diffhtml/runtime');
 
 // Render a div with dynamic children and onclick
 function renderTime(time) {
-  innerHTML(document.body, [diff.createTree("button", { "onclick": e => renderTime(new Date()) }, [diff.createTree('#text', null, "Get time")]), diff.createTree('#text', null, "\n    "), diff.createTree("output", {}, [diff.createTree(time)])]);
+  innerHTML(document.body, [diff.createTree("button", { "onclick": e => renderTime(new Date()) }, [diff.createTree('#text', "Get time")]), diff.createTree('#text', "\n    "), diff.createTree("output", {}, [diff.createTree(time)])]);
 }
 
 renderTime(new Date());
@@ -207,7 +211,7 @@ The output would look like:
 const { innerHTML, html, createTree } = require('diffhtml/runtime');
 
 function render() {
-  return createTree("div", null, "Hello world");
+  return createTree("div", "Hello world");
 }
 
 innerHTML(document.body, render());

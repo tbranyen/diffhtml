@@ -1,5 +1,5 @@
 import Pool from './pool';
-import { NodeCache, ReleaseHookCache } from './caches';
+import { NodeCache } from './caches';
 import { VTree } from './types';
 
 const { protect, unprotect, memory } = Pool;
@@ -30,15 +30,11 @@ export function protectVTree(vTree) {
 export function unprotectVTree(vTree) {
   unprotect(vTree);
 
-  // FIXME Why is this not in lib/release?
-  ReleaseHookCache.forEach(fn => fn(vTree));
-
   for (let i = 0; i < vTree.childNodes.length; i++) {
     unprotectVTree(vTree.childNodes[i]);
   }
 
   NodeCache.delete(vTree);
-
   return vTree;
 }
 

@@ -1,4 +1,4 @@
-import { ok, equal, throws } from 'assert';
+import { ok, deepEqual, equal, throws, doesNotThrow } from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validate-memory';
 
@@ -9,6 +9,7 @@ describe('Integration: Transitions', function() {
   });
 
   afterEach(() => {
+    process.env.NODE_ENV = 'development';
     diff.release(this.fixture);
     diff.removeTransitionState();
 
@@ -22,10 +23,32 @@ describe('Integration: Transitions', function() {
       }, /Invalid state name 'undefined'/);
     });
 
+    it('will throw when missing the required name argument in production', () => {
+      process.env.NODE_ENV = 'production';
+
+      throws(() => {
+        diff.addTransitionState();
+      });
+    });
+
+    it('will throw when missing the required name argument', () => {
+      throws(() => {
+        diff.addTransitionState();
+      }, /Invalid state name 'undefined'/);
+    });
+
     it('will throw when missing the required callback argument', () => {
       throws(() => {
         diff.addTransitionState('attached');
       }, /Missing transition state callback/);
+    });
+
+    it('will not throw when missing the required callback argument in production', () => {
+      process.env.NODE_ENV = 'production';
+
+      doesNotThrow(() => {
+        diff.addTransitionState('attached');
+      });
     });
 
     it('will throw when passed an invalid state name', () => {
@@ -174,7 +197,27 @@ describe('Integration: Transitions', function() {
   });
 
   describe('Removing states', () => {
-    it('can remove all states', () => {
+    it('will not error when provided an empty name', () => {
+      doesNotThrow(() => {
+        diff.removeTransitionState();
+      });
+    });
+
+    it('will error when provided an invalid name', () => {
+      throws(() => {
+        diff.removeTransitionState('appended');
+      }, /Invalid state name 'appended'/);
+    });
+
+    it('will error when provided an invalid name in production', () => {
+      process.env.NODE_ENV = 'production';
+
+      throws(() => {
+        diff.removeTransitionState('appended');
+      });
+    });
+
+    it('will remove all states', () => {
       var hit = 0;
 
       diff.addTransitionState('attached', element => { hit++; });
@@ -185,7 +228,7 @@ describe('Integration: Transitions', function() {
       equal(hit, 1);
     });
 
-    it('can remove all states by name', () => {
+    it('will remove all states by name', () => {
       var hit = 0;
 
       diff.addTransitionState('attached', function(element) { hit++; });
@@ -196,7 +239,7 @@ describe('Integration: Transitions', function() {
       equal(hit, 1);
     });
 
-    it('can remove state by name and callback reference', () => {
+    it('will remove state by name and callback reference', () => {
       var hit = 0;
 
       function attachedState(element) { hit++; }
@@ -549,14 +592,120 @@ describe('Integration: Transitions', function() {
     });
   });
 
-  describe.skip('Attached state', () => {
-    it('will trigger the added attached state', () => {
-      var hit = 0;
+  describe('Attached state', () => {
+    it('will correctly handle memory with attached promise', async () => {
+      diff.addTransitionState('attached', () => Promise.resolve());
 
-      diff.addTransitionState('attached', () => { hit++; });
-      diff.innerHTML(this.fixture, '<div><p></p></div>');
+      const t1 = await diff.innerHTML(this.fixture, '<div><div></div></div>');
+      equal(this.fixture.innerHTML, '<div><div></div></div>');
 
-      equal(hit, 1);
+      const domNode = this.fixture.firstChild.firstChild;
+      const vTree = t1.state.oldTree.childNodes[0].childNodes[0];
+
+      let match = 0;
+
+      // Look up both DOM Node and vTree association in NodeCache.
+      diff.Internals.NodeCache.forEach((value, key) => {
+        if (value === domNode) {
+          match += 1;
+        }
+
+        if (key === vTree) {
+          match += 1;
+        }
+      });
+
+      equal(match, 2);
+    });
+  });
+
+  describe('Detached state', () => {
+    it('will correctly handle memory with detached promise', async () => {
+      diff.addTransitionState('detached', () => Promise.resolve());
+
+      const t1 = await diff.innerHTML(this.fixture, '');
+      equal(this.fixture.innerHTML, '');
+
+      const domNode = this.fixture.firstChild;
+      const vTree = t1.state.oldTree.childNodes[0];
+
+      let match = 0;
+
+      // Look up both DOM Node and vTree association in NodeCache.
+      diff.Internals.NodeCache.forEach((value, key) => {
+        if (value === domNode) {
+          match += 1;
+        }
+
+        if (key === vTree) {
+          match += 1;
+        }
+      });
+
+      equal(match, 0);
+    });
+  });
+
+  describe('Replaced state', () => {
+    it('will correctly handle memory with replaced promise', async () => {
+      diff.addTransitionState('replaced', () => Promise.resolve());
+
+      const t1 = await diff.innerHTML(this.fixture, '<p></p>');
+      equal(this.fixture.innerHTML, '<p></p>');
+
+      const pChild = this.fixture.firstChild;
+      const p = t1.state.oldTree.childNodes[0];
+
+      const t2 = await diff.innerHTML(this.fixture, '<span></span>');
+      equal(this.fixture.innerHTML, '<span></span>');
+
+      let match = 0;
+
+      const spanChild = this.fixture.firstChild;
+      const span = t2.state.oldTree.childNodes[0];
+
+      // Look up both DOM Node and vTree association in NodeCache.
+      diff.Internals.NodeCache.forEach((value, key) => {
+        if (value === spanChild || value === pChild) {
+          match += 1;
+        }
+
+        if (key === span || key === p) {
+          match += 1;
+        }
+      });
+
+      equal(match, 2);
+    });
+  });
+
+  describe('Attribute changed state', () => {
+    it('will correctly handle memory with attribute changed promise', async () => {
+      diff.addTransitionState('attributeChanged', () => Promise.resolve());
+
+      await diff.innerHTML(this.fixture, '<div id="test"></div>');
+      equal(this.fixture.innerHTML, '<div id="test"></div>');
+
+      const transaction = await diff.innerHTML(this.fixture, '<div id="test2"></div>');
+      equal(this.fixture.innerHTML, '<div id="test2"></div>');
+
+      let match = 0;
+
+      const { firstChild } = this.fixture;
+      const div = transaction.state.oldTree.childNodes[0];
+
+      // Look up both DOM Node and vTree association in NodeCache.
+      diff.Internals.NodeCache.forEach((value, key) => {
+        if (value === firstChild) {
+          match += 1;
+        }
+
+        if (key === div) {
+          match += 1;
+        }
+      });
+
+      equal(match, 2);
     });
   });
 

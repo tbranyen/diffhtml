@@ -31,14 +31,11 @@ export default function({ types: t }) {
     for (let i = 0; i < length; i++) {
       const value = parts[i];
 
-      if (!value) { continue; }
-
       // When we split on the token expression, the capture group will replace
       // the token's position. So all we do is ensure that we're on an odd
       // index and then we can source the correct value.
       if (i % 2 === 1) {
         const innerTree = supplemental.children[value];
-        if (!innerTree) { continue; }
         const isFragment = innerTree.nodeType === 11;
 
         if (typeof innerTree.rawNodeName === 'string' && isFragment) {
@@ -46,19 +43,39 @@ export default function({ types: t }) {
         }
         else {
           if (innerTree.type === 'StringLiteral' || innerTree.type === 'NumberLiteral') {
-            childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.nullLiteral(), innerTree]));
+            childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), innerTree]));
           }
           else {
             childNodes.push(innerTree);
           }
         }
       }
-      else if (!doctypeEx.test(value) && hasNonWhitespaceEx.test(value) || (i !== 0 && i !== length -1)) {
+      else if (!doctypeEx.test(value)) {
         childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.stringLiteral(value)]));
       }
     }
 
-    return t.arrayExpression(childNodes);
+    let retVal = null;
+
+    // If no children were present, send back an empty text node.
+    if (childNodes.length === 0) {
+      retVal = t.callExpression(
+        createTree,
+        [t.stringLiteral('#text'), t.stringLiteral('')],
+      );
+    }
+    // Wrap multiple nodes in a fragment.
+    else if (childNodes.length > 1) {
+      retVal = t.callExpression(createTree, [
+        t.stringLiteral('#document-fragment'),
+        t.arrayExpression(childNodes),
+      ]);
+    }
+    else {
+      retVal = childNodes[0];
+    }
+
+    return t.arrayExpression([retVal]);
   };
 
   // Takes in a dot-notation identifier and breaks it up into a
@@ -216,7 +233,7 @@ export default function({ types: t }) {
             if (isProp) {
               supplemental.attributes[i] = expression;
             }
-            else if (i) {
+            else {
               supplemental.children[i] = expression;
             }
           }
@@ -278,15 +295,62 @@ export default function({ types: t }) {
 
           const args = [];
 
-          // Replace attribute values.
+          // Remaps the supplemental values inline. This will strip out the
+          // tokens and inject.
           attributes.properties.forEach((property, i, properties) => {
-            const keyToken = property.key.value.match(tokenEx);
-            const valueToken = property.value.value.match(tokenEx);
+            const keysMatched = property.key.value.split(tokenEx);
+            const valuesMatched = property.value.value.split(tokenEx);
+
+            const keys = [];
+            const values = [];
+
+            let key;
+            let value;
+
+            // Build up the key.
+            for (let i = 0; i < keysMatched.length; i++) {
+              const match = keysMatched[i];
+
+              if (i % 2 === 1) {
+                keys.push(supplemental.attributes[match]);
+              }
+              else if (match) {
+                keys.push(t.stringLiteral(match));
+              }
+            }
+
+            key = keys.reduce((memo, curr) => {
+              if (!memo) {
+                return curr;
+              }
+
+              return t.binaryExpression('+', memo, curr);
+            }, null);
+
+            // Build up the value.
+            for (let i = 0; i < valuesMatched.length; i++) {
+              const match = valuesMatched[i];
+
+              if (i % 2 === 1) {
+                values.push(supplemental.attributes[match]);
+              }
+              else if (match) {
+                values.push(t.stringLiteral(match));
+              }
+            }
+
+            value = values.reduce((memo, curr) => {
+              if (!memo) {
+                return curr;
+              }
+
+              return t.binaryExpression('+', memo, curr);
+            }, null);
 
             properties[i] = t.objectProperty(
-              keyToken ? supplemental.attributes[keyToken[1]] : property.key,
-              valueToken ? supplemental.attributes[valueToken[1]] : property.value,
-              Boolean(keyToken) // isComputed
+              keys.length ? key : property.key,
+              values.length ? value : property.value,
+              Boolean(keys.length),
             );
           });
 
@@ -324,7 +388,7 @@ export default function({ types: t }) {
                 args.replacement = values.elements[0];
               }
               else {
-                args.push(createTree, [t.stringLiteral('#document-fragment'), t.nullLiteral(), values]);
+                args.push(createTree, [t.stringLiteral('#document-fragment'), values]);
               }
 
               isDynamic = true;
@@ -336,14 +400,12 @@ export default function({ types: t }) {
                 id,
                 init: t.callExpression(createTree, [
                   t.stringLiteral('#text'),
-                  t.nullLiteral(),
                   nodeValue,
                 ]),
               });
 
               args.replacement = t.callExpression(createTree, [
                 t.stringLiteral('#text'),
-                t.nullLiteral(),
                 nodeValue,
               ]);
             }
@@ -369,12 +431,19 @@ export default function({ types: t }) {
         return isDynamic;
       }
 
-      replaceDynamicBits([].concat(vTree.program.body));
+      replaceDynamicBits([...vTree.program.body]);
 
-      if (vTree.program.body.length > 1) {
-        path.replaceWith(t.arrayExpression(vTree.program.body.map(
-          e => e.expression
-        )));
+      //if (vTree.program.body.length > 1) {
+      if (t.isArrayExpression(vTree.program.body[0].expression)) {
+        path.replaceWith(
+          t.callExpression(
+            createTree,
+            [
+              t.stringLiteral('#document-fragment'),
+              vTree.program.body[0].expression,
+            ],
+          ),
+        );
       }
       else {
         path.replaceWith(vTree.program.body[0]);

@@ -18,11 +18,6 @@ const shape = () => ({
 // Creates a pool to query new or reused values from.
 const memory = { free, allocated: allocate, protected: protect };
 
-// Prime the free memory pool with VTrees.
-for (let i = 0; i < size; i++) {
-  free.add(shape());
-}
-
 // Cache the values object, we'll refer to this iterator which is faster
 // than calling it every single time. It gets replaced once exhausted.
 let freeValues = free.values();
@@ -31,7 +26,7 @@ let freeValues = free.values();
 // shape that is used internally by diffHTML. Since diffHTML constantly creates
 // and recycles objects, this helps avoid unwanted and unexpected garbage
 // collection and improves performance.
-export default {
+const Pool = {
   size,
   memory,
 
@@ -40,8 +35,21 @@ export default {
    * pool after making it larger.
    */
   fill() {
-    for (let i = free.size; i < size; i++) {
+    // Increase the pool size.
+    for (let i = free.size; i < this.size; i++) {
       free.add(shape());
+    }
+
+    // Decrease the pool size.
+    if (this.size < free.size) {
+      // Loop the set until pruning has completed.
+      free.forEach(value => {
+        if (free.size === this.size) {
+          return;
+        }
+
+        free.delete(value);
+      });
     }
   },
 
@@ -76,11 +84,18 @@ export default {
    * @param {VTree} vTree - Virtual Tree to unprotect and deallocate
    */
   unprotect(vTree) {
-    allocate.delete(vTree);
-
     if (protect.has(vTree)) {
       protect.delete(vTree);
       free.add(vTree);
     }
+    else if (allocate.has(vTree)) {
+      allocate.delete(vTree);
+      free.add(vTree);
+    }
   },
 };
+
+// Fill the pool.
+Pool.fill();
+
+export default Pool;

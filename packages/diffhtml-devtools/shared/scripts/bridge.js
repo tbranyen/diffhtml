@@ -53,7 +53,7 @@ export default function devTools(Internals) {
         Internals.MiddlewareCache.add(assign(() => {}, { displayName: raw }));
 
         if (userMiddleware.unsubscribe) {
-          userMiddleware.unsubscribe();
+          userMiddleware.unsubscribe(Internals);
         }
       }
     });

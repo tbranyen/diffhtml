@@ -9,6 +9,7 @@ describe('Transaction', function() {
   const suite = /** @type {any} */(this);
 
   beforeEach(() => {
+    process.env.NODE_ENV = 'development';
     suite.domNode = document.createElement('div');
     suite.markup = `
       <div>Hello world</div>
@@ -214,6 +215,28 @@ describe('Transaction', function() {
   });
 
   describe('start', () => {
+    it('will not error in production if trying to start a transaction without a dom node', () => {
+      process.env.NODE_ENV = 'production';
+      const { domNode, markup, options } = suite;
+      const transaction = Transaction.create(domNode, markup, options);
+
+      transaction.domNode = null;
+
+      doesNotThrow(() => {
+        transaction.start();
+      });
+    });
+
+    it('will error in development if trying to start a transaction without a dom node', () => {
+      const { domNode, markup, options } = suite;
+      const transaction = Transaction.create(domNode, markup, options);
+
+      transaction.domNode = null;
+
+      throws(() => {
+        transaction.start();
+      }, / /);
+    });
     it('will error in development if trying to start a transaction without a dom node', () => {
       const { domNode, markup, options } = suite;
       const transaction = Transaction.create(domNode, markup, options);

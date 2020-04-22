@@ -1,7 +1,6 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
 import { VTree, VTreeLike, ValidInput } from '../util/types';
-import { unprotectVTree, protectVTree } from '../util/memory';
 
 const { assign } = Object;
 const { isArray } = Array;
@@ -63,7 +62,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     // When working with a text node, migrate the nodeValue into
     if (input.nodeType === 3) {
-      const vTree = createTree('#text', null, input.nodeValue);
+      const vTree = createTree('#text', input.nodeValue);
       NodeCache.set(vTree, input);
       return vTree;
     }
@@ -108,10 +107,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       }
     });
 
+    // If no VTree was previously bound this to DOM Node, create a brand new tree.
     /** @type {VTree} */
     let vTree = domBound || createTree(input.nodeName, attributes, childNodes);
 
-    // If no VTree was previously bound this to DOM Node, create a brand new tree.
     if (domBound) {
       // FIXME Should it be easier to update a VTree than this?
       assign(vTree.attributes, attributes);
@@ -129,14 +128,13 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     const {
       rawNodeName,
       nodeName,
-      elementName,
       nodeValue,
       attributes,
       childNodes,
       children,
     } = (input);
 
-    const treeName = rawNodeName || nodeName || elementName;
+    const treeName = rawNodeName || nodeName;
 
     // The priority of a VTreeLike input is nodeValue above all else. If this value is
     // present, we assume a text-based element and that the intentions are setting the

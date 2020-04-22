@@ -1,10 +1,16 @@
-import { equal, throws } from 'assert';
-import { html, innerHTML, outerHTML, use, release } from '../lib/index';
+import { equal, deepEqual, throws } from 'assert';
+import { html, innerHTML, outerHTML, use, release, createTree, Internals } from '../lib/index';
 import validateMemory from './util/validate-memory';
 
 describe('Use (Middleware)', function() {
   beforeEach(() => {
     this.unsubscribe = use({
+      createNodeHook: (...args) => {
+        if (this.createNodeHook) {
+          return this.createNodeHook(...args);
+        }
+      },
+
       createTreeHook: (...args) => {
         if (this.createTreeHook) {
           return this.createTreeHook(...args);
@@ -16,10 +22,20 @@ describe('Use (Middleware)', function() {
           return this.syncTreeHook(...args);
         }
       },
+
+      releaseHook: (...args) => {
+        if (this.releaseHook) {
+          return this.releaseHook(...args);
+        }
+      },
     });
   });
 
   afterEach(() => {
+    this.createNodeHook = undefined;
+    this.createTreeHook = undefined;
+    this.syncTreeHook = undefined;
+    this.releaseHook = undefined;
     this.unsubscribe();
     validateMemory();
   });
@@ -34,9 +50,35 @@ describe('Use (Middleware)', function() {
     throws(() => use([]));
   });
 
+  it('will call subscribe', () => {
+  });
+
+  it('will call unsubscribe', () => {
+  });
+
+  it('will allow swapping out what node gets created', () => {
+    const domNode = document.createElement('div');
+    const span = document.createElement('span');
+
+    this.createNodeHook = ({ nodeName, attributes }) => {
+      if (nodeName === 'div') {
+        return span;
+      }
+    };
+
+    innerHTML(domNode, html`
+      <div></div>
+    `);
+
+    equal(domNode.innerHTML.trim(), '<span></span>');
+    equal(domNode.childNodes[1], span);
+
+    release(domNode);
+  });
+
   it('will allow modifying a vTree during creation', () => {
     const Fn = ({ message }) => html`<marquee>${message}</marquee>`;
-    const oldTree = document.createElement('div');
+    const domNode = document.createElement('div');
 
     let i = 0;
 
@@ -51,34 +93,34 @@ describe('Use (Middleware)', function() {
       }
     };
 
-    innerHTML(oldTree, html`
+    innerHTML(domNode, html`
       <${Fn} message="Hello world" />
     `);
 
-    equal(oldTree.outerHTML, `<div>
+    equal(domNode.outerHTML, `<div>
       <marquee>Hello world</marquee>
     </div>`);
 
-    release(oldTree);
+    release(domNode);
   });
 
   it('will allow modifying a nested vTree during creation', () => {
-    const Fn = ({ message }) => html`<marquee>${message}</marquee>`;
-
-    const oldTree = document.createElement('div');
-    const newTree = html`<div><${Fn} message="Hello world" /></div>`;
-
     this.createTreeHook = vTree => {
       if (typeof vTree.rawNodeName === 'function') {
         return vTree.rawNodeName(vTree.attributes);
       }
     };
 
-    innerHTML(oldTree, newTree);
+    const Fn = ({ message }) => html`<marquee>${message}</marquee>`;
 
-    equal(oldTree.outerHTML, `<div><div><marquee>Hello world</marquee></div></div>`);
+    const domNode = document.createElement('div');
+    const newTree = html`<div><${Fn} message="Hello world" /></div>`;
 
-    release(oldTree);
+    innerHTML(domNode, newTree);
+
+    equal(domNode.outerHTML, `<div><div><marquee>Hello world</marquee></div></div>`);
+
+    release(domNode);
   });
 
   it('will allow modifying the newTree during sync', () => {
@@ -184,5 +226,32 @@ describe('Use (Middleware)', function() {
     `);
 
     release(oldTree);
+  });
+
+  it('will call a release hook when an element is released', () => {
+    const domNode = document.createElement('div');
+    const releaseTrees = [];
+
+    this.releaseHook = oldTree => releaseTrees.push(oldTree);
+
+    const newTree = html`<h1>Updates</h1>`;
+    innerHTML(domNode, newTree);
+
+    let oldTree = null;
+
+    Internals.NodeCache.forEach((value, vTree) => {
+      if (value === domNode) {
+        oldTree = vTree;
+      }
+    });
+
+    release(domNode);
+
+    equal(releaseTrees.length, 3);
+    deepEqual(releaseTrees, [
+      newTree.childNodes[0],
+      newTree,
+      oldTree,
+    ]);
   });
 });

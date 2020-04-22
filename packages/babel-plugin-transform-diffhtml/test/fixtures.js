@@ -1,6 +1,6 @@
 'use strict';
 
-const { html } = require('diffhtml');
+const { createTree, html } = require('diffhtml');
 
 BASICS: {
 
@@ -11,6 +11,8 @@ BASICS: {
   exports.warnsOnInvalidMarkup = () => html`
     <div></span>
   `;
+
+  exports.willRenderSingleElement = () => html`<div></div>`;
 
 }
 
@@ -55,7 +57,7 @@ EXPRESSIONS: {
 
   exports.renderTrailingExpression = () => {
     const text = () => html`Hello world`;
-    return html`<div><div></div> ${text()}</div>`;
+    return html`<div></div> ${text()}`;
   };
 
   exports.renderRealWorld = () => {
@@ -111,6 +113,34 @@ VIRTUAL_TREES: {
 
 }
 
+ATTRIBUTES: {
+
+  exports.dynamicKeyAndValue = (key, value) => html`
+    <div ${key}=${value} />
+  `;
+
+  exports.setSingleValue = value => html`
+    <div class=${value} />
+  `;
+
+  exports.setInterpolatedKeyAfter = key => html`
+    <div data-${key}="test" />
+  `;
+
+  exports.setInterpolatedKeyBefore = key => html`
+    <div ms-${key}="test" />
+  `;
+
+  exports.setInterpolatedValueAfter = value => html`
+    <div class="test ${value}" />
+  `;
+
+  exports.setInterpolatedValueBefore = value => html`
+    <div class="${value} test" />
+  `;
+
+}
+
 BUG_FIXES: {
 
   exports.interpolatedValuesAreConcat = () => {
@@ -119,6 +149,14 @@ BUG_FIXES: {
     return html`<div>
       Text node ${createSecond()}
     </div>`;
+  };
+
+}
+
+FRAGMENTS: {
+
+  exports.willCreateFragments = () => {
+    return html`<div></div><span></span>`;
   };
 
 }

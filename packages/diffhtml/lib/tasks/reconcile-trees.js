@@ -1,5 +1,5 @@
-import { NodeCache, StateCache } from '../util/caches';
-import { protectVTree, unprotectVTree } from '../util/memory';
+import { StateCache } from '../util/caches';
+import { protectVTree } from '../util/memory';
 import createTree from '../tree/create';
 import Transaction from '../transaction';
 import release from '../release';

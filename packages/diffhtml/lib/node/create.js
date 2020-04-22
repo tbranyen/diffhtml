@@ -6,7 +6,6 @@ import createTree from '../tree/create';
 
 const namespace = 'http://www.w3.org/2000/svg';
 const document = /** @type {any} */ (globalThis).document || null;
-const { keys } = Object;
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.

@@ -24,6 +24,11 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
         fixtures.warnsOnInvalidMarkup();
       });
     });
+
+    it('will render a single element', () => {
+      const actual = fixtures.willRenderSingleElement();
+      assert.deepEqual(actual, diff.createTree('div'));
+    });
   });
 
   describe('Quasis', () => {
@@ -34,7 +39,7 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
 
     it('can render a nested quasi literal', () => {
       diff.outerHTML(this.fixture, fixtures.renderNestedQuasi());
-      assert.equal(this.fixture.innerHTML.trim(), 'Hello world');
+      assert.equal(this.fixture.innerHTML.trim(), '<div>Hello world</div>');
     });
 
     it('can render a nested quasi literal w/ concat text', () => {
@@ -88,11 +93,69 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
     });
   });
 
+  describe('Attributes', () => {
+    it('will set both a key and value dynamically', () => {
+      const vTree = fixtures.dynamicKeyAndValue('id', 'test');
+
+      assert.equal(vTree.childNodes.length, 3);
+      assert.equal(vTree.childNodes[0].nodeType, 3);
+      assert.equal(vTree.childNodes[1].attributes.id, 'test');
+      assert.equal(vTree.childNodes[2].nodeType, 3);
+    });
+
+    it('will set a single attribute value', () => {
+      const vTree = fixtures.setSingleValue('test');
+
+      assert.equal(vTree.childNodes.length, 3);
+      assert.equal(vTree.childNodes[0].nodeType, 3);
+      assert.equal(vTree.childNodes[1].attributes.class, 'test');
+      assert.equal(vTree.childNodes[2].nodeType, 3);
+    });
+
+    it('will set an interpolated value after static', () => {
+      const vTree = fixtures.setInterpolatedValueAfter('test2');
+
+      assert.equal(vTree.childNodes.length, 3);
+      assert.equal(vTree.childNodes[0].nodeType, 3);
+      assert.equal(vTree.childNodes[1].attributes.class, 'test test2');
+      assert.equal(vTree.childNodes[2].nodeType, 3);
+    });
+
+    it('will set an interpolated value before static', () => {
+      const vTree = fixtures.setInterpolatedValueBefore('test2');
+
+      assert.equal(vTree.childNodes.length, 3);
+      assert.equal(vTree.childNodes[0].nodeType, 3);
+      assert.equal(vTree.childNodes[1].attributes.class, 'test2 test');
+      assert.equal(vTree.childNodes[2].nodeType, 3);
+    });
+
+  //exports.setInterpolatedValueAfter = value => html`
+  //  <div class="test ${value}" />
+  //`;
+
+  //exports.setInterpolatedValueBefore = value => html`
+  //  <div class="${value} test" />
+  //`;
+  });
+
   describe('Bug Fixes', () => {
     it('will not concat neighbor nodes', () => {
       const vTree = fixtures.interpolatedValuesAreConcat();
       diff.innerHTML(this.fixture, vTree);
       assert.equal(this.fixture.textContent.trim(), 'Text node second');
+    });
+  });
+
+  describe('Fragments', () => {
+    it('will create a fragment of elements', () => {
+      const vTree = fixtures.willCreateFragments();
+
+      assert.equal(vTree.nodeType, 11);
+      assert.deepEqual(vTree.childNodes, [
+        diff.createTree('div'),
+        diff.createTree('span'),
+      ]);
     });
   });
 });

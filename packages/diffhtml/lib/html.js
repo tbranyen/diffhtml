@@ -3,7 +3,6 @@ import parse, { TOKEN } from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 import { VTree, Supplemental } from './util/types';
-import release from './release';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
@@ -48,9 +47,11 @@ export default function handleTaggedTemplate(strings, ...values) {
       return empty;
     }
 
-    const vTree = parse(strings[0], undefined, { parser: { strict } });
-    const { childNodes } = vTree;
-    return childNodes.length > 1 ? createTree(childNodes) : childNodes[0];
+    const { childNodes } = parse(strings[0], undefined, {
+      parser: { strict },
+    });
+
+    return createTree(childNodes.length === 1 ? childNodes[0] : childNodes);
   }
 
   // Used to store markup and tokens.
@@ -118,7 +119,7 @@ export default function handleTaggedTemplate(strings, ...values) {
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
-  return childNodes.length === 1 ? childNodes[0] : createTree(childNodes);
+  return createTree(childNodes.length === 1 ? childNodes[0] : childNodes);
 }
 
 // Default to loose-mode.

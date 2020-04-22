@@ -1,6 +1,6 @@
 const assert = require('assert');
 const { use, html, innerHTML } = require('diffhtml');
-const inlineTransitions = require('../index');
+const inlineTransitions = require('../lib');
 
 describe('Basics', function() {
   beforeEach(() => {
@@ -33,6 +33,7 @@ describe('Basics', function() {
 
     this.unsubscribeInlineTransitions();
 
+    await innerHTML(this.fixture, html``);
     await innerHTML(this.fixture, html`<div onattached=${attached}>
       <div></div>
     </div>`);

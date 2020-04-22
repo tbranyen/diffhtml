@@ -1,3 +1,4 @@
+import { StateCache } from '../util/caches';
 import Transaction from '../transaction';
 
 /**
@@ -13,7 +14,31 @@ export default function schedule(transaction) {
   // The state is a global store which is shared by all like-transactions.
   let { state } = transaction;
 
-  const { isRendering, activeTransaction, nextTransaction } = state;
+  let isRendering = state.isRendering;
+
+  // Loop through all existing mounts to ensure we properly wait.
+  StateCache.forEach(val => {
+    // Is parent.
+    const domNode = /** @type {HTMLElement} */ (
+      val.activeTransaction && val.activeTransaction.domNode
+    );
+    const newNode = /** @type {HTMLElement} */ (transaction.domNode);
+
+    if (!domNode || !domNode.contains || !newNode || !newNode.contains) {
+      return;
+    }
+
+    if (domNode.contains(newNode) && val.isRendering) {
+      state = val;
+      isRendering = true;
+    }
+    else if (newNode.contains(domNode) && val.isRendering) {
+      state = val;
+      isRendering = true;
+    }
+  });
+
+  const { activeTransaction, nextTransaction } = state;
 
   // If there is an in-flight transaction render happening, push this
   // transaction into a queue.
@@ -30,7 +55,12 @@ export default function schedule(transaction) {
     const promise = chainTransaction.promise || Promise.resolve();
 
     return transaction.promise = promise.then(() => {
+      // Mark the transaction as not aborted (we are running it now). This
+      // triggers a nested render.
       transaction.aborted = false;
+      transaction.state.isRendering = true;
+      transaction.state.activeTransaction = transaction;
+
       return Transaction.flow(transaction, tasks.slice(1));
     });
   }

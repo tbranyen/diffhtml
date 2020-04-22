@@ -4,8 +4,8 @@ import replace from 'rollup-plugin-replace';
 import Visualizer from 'rollup-plugin-visualizer';
 
 const entries = {
-  min: 'index.js',
-  umd: 'index.js',
+  min: 'lib/index.js',
+  umd: 'lib/index.js',
 };
 
 const dests = {

@@ -1,4 +1,4 @@
-import { outerHTML, html, use } from 'diffhtml';
+import { Internals, outerHTML, html, use } from 'diffhtml';
 import logger from 'diffhtml-middleware-logger';
 import verifyState from 'diffhtml-middleware-verify-state';
 import inlineTransitions from 'diffhtml-middleware-inline-transitions';
@@ -22,7 +22,7 @@ const { stringify, parse } = JSON;
 const { assign } = Object;
 const background = chrome.runtime.connect({ name: 'devtools-page' });
 
-//use(inlineTransitions());
+use(inlineTransitions());
 //use(logger());
 //use(verifyState());
 

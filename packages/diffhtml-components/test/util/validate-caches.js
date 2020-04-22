@@ -14,7 +14,7 @@ export default function validateCaches() {
 }
 
 const {
-  Pool: { memory },
+  Pool: { memory, size },
   memory: { gc },
   StateCache,
   NodeCache,
@@ -35,6 +35,9 @@ function validateMemory() {
 
   assert.equal(memory.allocated.size, 0,
     'Should not leave leftover element allocations in memory');
+
+  assert.equal(memory.free.size, size,
+    'Should bring the free pool size back to the default');
 
   assert.equal(StateCache.size, 0, 'The state cache should be empty');
   assert.equal(NodeCache.size, 0, 'The node cache should be empty');
