@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-logger",
-  "version": "1.0.0-beta.14",
+  "version": "1.0.0-beta.15",
   "description": "Logs out render transactions to the console",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -27,8 +27,8 @@
   "devDependencies": {
     "@babel/cli": "^7.6.0",
     "@babel/core": "^7.6.0",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.14",
-    "diffhtml": "^1.0.0-beta.14",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.15",
+    "diffhtml": "^1.0.0-beta.15",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-node-resolve": "^5.2.0",
