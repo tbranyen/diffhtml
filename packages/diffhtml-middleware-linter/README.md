@@ -1,6 +1,6 @@
 # <±/> diffHTML Linter Middleware
 
-Stable Version: 1.0.0-beta.14
+Stable Version: 1.0.0-beta.15
 
 Use to validate your markup for inconsistencies and bad practices using
 [HTMLHint](https://github.com/htmlhint/HTMLHint) rules.
