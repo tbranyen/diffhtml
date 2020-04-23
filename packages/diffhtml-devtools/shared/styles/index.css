@@ -55,6 +55,13 @@ h1:first-child {
   line-height: 100vh;
 }
 
+#not-found img {
+  position: relative;
+  top: 17px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
 [data-theme="dark"] #not-found {
   color: #FFF;
   background: transparent;

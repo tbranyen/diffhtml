@@ -1,6 +1,6 @@
 {
-  "name": "diffhtml-devtools",
-  "version": "0.1.0",
+  "name": "diffHTML DevTools",
+  "version": "1.0.0.15",
   "description": "Official diffHTML Chrome DevTools Extension",
   "permissions": [
     "tabs",
@@ -23,8 +23,15 @@
     "styles/**/*",
     "node_modules/**/*",
     "markup/*",
-    "markup/**/*"
+    "markup/**/*",
+    "icons/*",
+    "icons/**/*"
   ],
+  "icons": {
+    "16": "icons/logo-16.png",
+    "48": "icons/logo-48.png",
+    "128": "icons/logo-128.png"
+  },
   "devtools_page": "markup/devtools.html",
   "manifest_version": 2,
   "default_locale": "en"

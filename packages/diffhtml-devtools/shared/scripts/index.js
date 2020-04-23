@@ -99,10 +99,7 @@ const fadeIn = el => {
 
 const render = () => outerHTML(main, html`<main id="main" data-theme=${state.theme}>
   ${!state.version && html`
-    <h1 id="not-found">
-      Could not locate &lt;&#xB1;/&gt; diffHTML
-      <i onclick=${refresh} class="icon sync"></i>
-    </h1>
+    <h1 id="not-found">Could not locate <img src="../icons/logo-48.png"> <strong>diffHTML</strong></h1>
   `}
 
   ${state.version && html`

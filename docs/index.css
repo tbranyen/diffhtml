@@ -33,7 +33,7 @@ code {
 }
 
 .hljs {
-  background: #022f46;
+  background: #333333;
 }
 
 pre code {
@@ -255,6 +255,10 @@ layer#main ul {
 body.home layer#main ul {
   margin-left: 0;
   list-style: none;
+}
+
+body.home #content {
+  margin-bottom: 20px;
 }
 
 layer#main table li:not(:first-child) {
