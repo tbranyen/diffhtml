@@ -86,7 +86,7 @@ import { innerHTML } from 'https://diffhtml.org/es';
 
 <div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
   <iframe
-    src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=40&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
+    src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-helloworld on Glitch"
     style="height: 100%; width: 100%; border: 0;">
   </iframe>
@@ -96,7 +96,7 @@ import { innerHTML } from 'https://diffhtml.org/es';
 
 <div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
   <iframe
-    src="https://glitch.com/embed/#!/embed/diffhtml-clock?path=script.js&previewSize=40&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
+    src="https://glitch.com/embed/#!/embed/diffhtml-clock?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-clock on Glitch"
     style="height: 100%; width: 100%; border: 0;">
   </iframe>
@@ -106,7 +106,7 @@ import { innerHTML } from 'https://diffhtml.org/es';
 
 <div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
   <iframe
-    src="https://glitch.com/embed/#!/embed/diffhtml-todomvc?path=lib/index.js&previewSize=40&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
+    src="https://glitch.com/embed/#!/embed/diffhtml-todomvc?path=lib/index.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-todomvc on Glitch"
     style="height: 100%; width: 100%; border: 0;">
   </iframe>

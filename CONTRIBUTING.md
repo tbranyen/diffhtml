@@ -42,7 +42,7 @@ Note this may generate new files, if so, commit these as a dist build.
 
 Run the `lerna publish` command and follow the instructions to tag your
 release.  This will create the tags and push and do everything else, including
-actually publishing to npm, so great!
+actually publishing to npm, which is great!
 
 ``` sh
 lerna publish
