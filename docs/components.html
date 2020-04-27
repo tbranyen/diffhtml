@@ -213,6 +213,12 @@
       
 
       
+        <a href="components.html#lifecycle-hooks" target><li>Lifecycle hooks</li></a>
+      
+    
+      
+
+      
         <a href="components.html#component" target><li>Component</li></a>
       
     
@@ -294,32 +300,36 @@
 
         <hr></hr>
 
-        <section id="content"><h1 id="components">Components</h1>
-<p>GitHub repository <a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components"><i class="fa fa-github"></i></a></p>
-<pre><code class="language-sh">npm install diffhtml-components</code></pre>
-<ul>
-<li>diffHTML does not require components</li>
-<li>Supports a loose interpretation of the React component model and web components</li>
-<li>Components are either stateless (cannot re-render, vs stateful and can re-render)</li>
-<li></li>
-</ul>
-<p>While the diffHTML API allows you to build large applications and powerful UIs
-on its own, if you&#39;re coming from another framework you may be looking for a
-more structured component-based approach.</p>
-<p>While it&#39;s easy to build powerful UIs with the diffHTML API alone, if </p>
-<p>While you can build many great things with the diffHTML API alone, an improved
-way of structuring your creations is through the notion of a Component. The
-Component will consolidate a section of your UI and make it re-usable and
-encapsulated. Over the years many different &quot;component&quot; interfaces have been
-created, but the most popular, which diffHTML is based off of, is React&#39;s.</p>
+        <section id="content"><h1 id="components-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-componentsi-classfa-fa-githubia">Components <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components"><i class="fa fa-github"></i></a></h1>
+<p>When working on larger and more structured projects, you may find that you want
+to structure your code using a component paradigm like you would find using
+React. This module provides just that, specifically constructors and middleware
+necessary to render a React-like JavaScript class/function or Web Component.</p>
 <p><a name="overview"></a></p>
 <hr></hr>
 <h2 id="a-hrefoverviewoverviewa"><a href="#overview">Overview</a></h2>
-<p>This package contains middleware to render components in diffHTML. A nice
-feature is that you can use any class or function to render a component. So
-long as the function or a render method on the class returns a string, VTree,
-or DOM Node. The function and class used in this way do not have state and
-cannot influence how they re-render.</p>
+<p>In order to use components, you must install/fetch the components package. This
+contains middleware which will render functions, stateless classes, and
+stateful classes. Unlike middleware, this package will automatically hook its
+middleware into the running diffHTML build.</p>
+<p>Using components in diffHTML always requires installing or including the base
+package:</p>
+<pre><code class="language-sh">npm install diffhtml-components</code></pre>
+<p>If you need to import React components, install the compat package:</p>
+<pre><code class="language-sh">npm install diffhtml-react-compat</code></pre>
+<blockquote>
+<p>This will allow you to replace <code>react</code> and <code>react-dom</code> in your project and
+import</p>
+</blockquote>
+<p>There are two primary packages for components: 
+    <a href="#overview" title="null">diffhtml-components</a>
+  
+and 
+    <a href="#react-compat" title="null">diffhtml-react-compat</a>
+  .Unlike other frameworks diffHTML is
+extremely flexible with what you can return, and allows for seamless JSX
+integration, top-level fragments, and supports stateless classes that do not
+need to extend from a base class.</p>
 <h3 id="function-component">Function component</h3>
 <pre><code class="language-javascript">import { html, innerHTML } from &#39;diffhtml&#39;;
 
@@ -342,19 +352,81 @@ class MyComponent {
 }
 
 innerHTML(document.body, html`&lt;${MyComponent} someProp=&quot;value&quot; /&gt;`);</code></pre>
+<p><a name="lifecycle-hooks"></a></p>
+<hr></hr>
+<h2 id="a-hreflifecycle-hookslifecycle-hooksa"><a href="#lifecycle-hooks">Lifecycle hooks</a></h2>
+<p>The following hooks will be called during the respective mounting and
+unmounting flow. You do not need to extend from <code>Component</code> to use these hooks.
+Simple classes can just define them as methods and they will be called.</p>
+<h3 id="hooks">Hooks</h3>
+<ul>
+<li><code>componentWillMount</code></li>
+<li><code>componentDidUpdate</code></li>
+<li><code>componentWillReceiveProps</code></li>
+<li><code>shouldComponentUpdate</code></li>
+<li><code>componentWillUnmount</code></li>
+</ul>
 <p><a name="component"></a></p>
 <hr></hr>
 <h2 id="a-hrefcomponentcomponenta"><a href="#component">Component</a></h2>
+<p>The stateful class component, which is used by importing the <code>Component</code> class.</p>
+<pre><code class="language-js">import { Component } from &#39;diffhtml-components&#39;;</code></pre>
+<p>Once you have this base class, you can extend your ES6 class to get access to
+sub-tree rendering. A component render result is treated as a fragment, and are
+compared with previous results. All top-level elements are tracked and
+efficient diffing is applied against the previously rendered contents. </p>
+<pre><code class="language-js">import { innerHTML, html } from &#39;diffhtml-components&#39;;
+import { Component } from &#39;diffhtml-components&#39;;
+
+class ListComponent extends Component {
+  render({ items }) {
+    return html`
+      ${items.map(item =&gt; html`
+        &lt;li&gt;${item}&lt;/li&gt;
+      `)}
+    `;
+  }
+}
+
+innerHTML(document.body, html`
+  &lt;ul&gt;
+    &lt;${ListComponent} items=${[&#39;List item 1&#39;, &#39;List item 2&#39;]} /&gt;
+  &lt;/ul&gt;
+`);</code></pre>
+<h3 id="props">Props</h3>
+<p>These are incoming values that map to the props you set using the element
+attributes. Like in React, there will be a <code>children</code> prop automatically added
+which maps to the passed in child elements. You can access props on
+<code>this.props</code> or in the <code>render(props) {}</code> method.</p>
+<h3 id="proptypes">PropTypes</h3>
+<h3 id="state">State</h3>
+<h4 id="forceupdate">forceUpdate</h4>
+<h4 id="setstate">setState</h4>
 <p><a name="web-component"></a></p>
 <hr></hr>
 <h2 id="a-hrefweb-componentweb-componenta"><a href="#web-component">Web Component</a></h2>
+<p>The WebComponent implementation is nearly identical to the standard
+
+    <a href="#component" title="null">Component</a>
+  , except <code>this</code> points to an HTML element, children are
+rendered into the Shadow DOM, and when props and attributes are set on an
+element that match <code>propTypes</code> cause an automatic re-render.</p>
+<pre><code class="language-js">import { WebComponent } from &#39;diffhtml-components&#39;;</code></pre>
 <p><a name="jsx"></a></p>
 <hr></hr>
 <h2 id="a-hrefjsxjsxa"><a href="#jsx">JSX</a></h2>
-<p><a name="react-compatibility"></a></p>
+<p>JSX is supported out-of-the-box. </p>
+<p><a name="react-compat"></a></p>
 <hr></hr>
-<h2 id="a-hrefreact-compatibilityreact-compatibilitya"><a href="#react-compatibility">React Compatibility</a></h2>
-<hr></hr>
+<h2 id="a-hrefreact-compatreact-compata"><a href="#react-compat">React Compat</a></h2>
+<p>This experimental module aims to replicate the public API surface-area of React
+that is sufficient to execute and render components from that ecosystem. The
+reason this is important, is that diffHTML should be able to adopt and help
+contribute back to the community that it borrows so much from. It also helps
+keep down the level of fragmentation required and initial investment if someone
+wants to try out diffHTML in an existing React project.</p>
+<p>You can install it by running:</p>
+<pre><code class="language-sh">npm install diffhtml-react-compat</code></pre>
 </section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/components.md" id="edit-on-github">

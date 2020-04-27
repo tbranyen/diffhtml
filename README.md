@@ -58,18 +58,18 @@ level or any specific nested package level.
   npm install diffhtml-render-to-string
   ```
 
-  Use with diffHTML to render your Virtual Trees to strings. This is useful for
-  server-side rendering and testing.
+  Use with diffHTML to render your complex markup to strings. This is useful
+  for server-side rendering, testing, and HTML/XML transformations.
 
 * **[babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)**
 
   ``` sh
   npm install babel-plugin-transform-diffhtml
   ```
-
-  Converts HTML found in tagged template strings to `createTree` calls and
-  allows you to shave bytes off your bundles by switching to the
-  diffHTML runtime build.
+  Converts markup into function calls. Similar to how JSX compiles down to
+  `React.createElement`, this module converts HTML elements to function calls.
+  This is useful for optimizing file size and CPU time by pushing parsing to
+  the compiler.
 
 * [diffhtml-middleware-logger](/packages/diffhtml-middleware-logger)
 

@@ -1,8 +1,11 @@
 # Parser
 
-The parser built into diffHTML supports loose and strict HTML, XML, and SVG. It
-includes a token based syntax that can be used to interpolate dynamic values.
-This is used by the [innerHTML](/api.html#inner-html), [outerHTML](/api.html#outer-html), and [html](/api.html#html) APIs and advanced use cases.
+A core feature of diffHTML is the HTML/XML/SVG parser. This is used whenever
+you pass a string of markup or [use the html tagged template](/api.html#html)
+to [innerHTML](/api.html#inner-html)/[outerHTML](/api.html#ouuter-html). This
+works very similar to JSX where you are able to optimize away the parser. While
+this code is optimized specifically for the VDOM and is very fast, you may want
+to optimize out the markup using the Babel plugin.
 
 The parser can read full HTML documents including doctype, html/head/body/title
 etc tags, unwrapped fragments, and more!
@@ -12,11 +15,58 @@ etc tags, unwrapped fragments, and more!
 ```js
 import { innerHTML } from 'diffhtml';
 
-// Using innerHTML will parse the HTML markup and apply inside the element.
+// Using innerHTML will parse the HTML markup from a string literal.
+innerHTML(document.body, '<div>Hello world</div>');
+```
+
+This produces a single top level element `<div/>` with a nested `#text` node.
+
+If you were to structure your code like this:
+
+```js
+import { innerHTML } from 'diffhtml';
+
+// Using innerHTML will parse the HTML markup from a string literal.
+innerHTML(document.body, '<div>Hello world</div>');
+```
+
+This would become:
+
+```js
+import { createTree } from 'diffhtml';
+
+innerHTML(document.body, createTree('div', null, [
+  createTree('#text', 'Hello world')
+]));
+```
+
+You'll notice the top-level element returned is 'div'. From there you may
+think:
+
+```js
+import { innerHTML } from 'diffhtml';
+
+// Using innerHTML will parse the HTML markup from a string literal.
 innerHTML(document.body, `
   <div>Hello world</div>
 `);
 ```
+
+Would produce similar behavior, but it does not. The returned value mirrors
+what is embedded precisely, becoming:
+
+```js
+import { createTree } from 'diffhtml';
+
+innerHTML(document.body, createTree('#document-fragment', [
+  createTree('#text', '\n'),
+  createTree('div', null, [createTree('#text', 'Hello world')]),
+  createTree('#text', '\n'),
+]));
+```
+
+This can be useful knowledge for optimizing, but for more applications it
+should be fine to keep them in for developer convenience.
 
 **Using with outerHTML:**
 

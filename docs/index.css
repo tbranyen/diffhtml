@@ -2,10 +2,6 @@
 @import 'https://fonts.googleapis.com/css?family=Lato:300,400,bold';
 @import 'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css';
 
-.glitch-embed-wrap {
-  max-height: 240px;
-}
-
 html, body {
   max-height: 100%;
   margin: 0 auto;
@@ -18,6 +14,12 @@ html, body {
 body {
   overflow: auto;
   min-width: 300px;
+}
+
+blockquote {
+  color: #808080;
+  font-size: 16px;
+  margin-left: 30px;
 }
 
 code {
@@ -33,7 +35,9 @@ code {
 }
 
 .hljs {
-  background: #333333;
+  /*background: #333333;*/
+  background: linear-gradient(#024161, #122F3E);
+  color: #FFF2E7;
 }
 
 pre code {
@@ -45,7 +49,7 @@ pre code {
 
 layer#navigation {
   display: flex;
-  background-color: #FCFDF0;
+  background-color: rgba(252, 253, 240, 1);
   padding: 0 20px;
   padding-right: 0;
   width: 240px;
@@ -325,11 +329,8 @@ table th {
   padding-left: 10px;
   border: none;
   border-right: 1px solid #ececec;
-}
-
-table th {
-  background-color: #2e6698;
-  color: #FFF;
+  background: linear-gradient(#024161, #122F3E);
+  color: #FFF2E7;
   padding: 10px;
 }
 
@@ -338,24 +339,33 @@ table td {
   background-color: #FFF;
   min-width: 144px;
   border: 1px solid #F0F0F0;
+  line-height: 26px;
 }
 
 #edit-on-github {
   text-align: center;
   color: #333;
   text-decoration: none;
-  width: 100%;
-  display: inline-block;
-  padding: 40px;
+  width: auto;
+  display: block;
+  margin: 40px;
   background: linear-gradient(to bottom, #FFF, #FFF);
   box-sizing: border-box;
   font-weight: bold;
   transition: background cubic-bezier(.17,.67,.83,.67) 140ms;
+  padding: 12px;
 }
 
 #edit-on-github:hover {
   color: #FFF;
   background: linear-gradient(to bottom, #38ab70, #397db9);
+  border-radius: 4px;
+}
+
+h2 a.github,
+h1 a.github {
+  margin-left: 15px;
+  font-size: 20px;
 }
 
 .open-menu {
@@ -379,6 +389,8 @@ table td {
 
   body.open {
     background: linear-gradient(to right, #333 248px, #F3F3F3 248px, #F3F3F3 100%);
+    user-select: none;
+    overflow: hidden;
   }
 
   nav {
@@ -392,7 +404,7 @@ table td {
 
   layer#navigation {
     will-change: transform;
-    width: 240px;
+    width: 200px;
     height: 100%;
     transform: translate3d(-300px, 0, 0);
     position: fixed;
@@ -404,7 +416,8 @@ table td {
   }
 
   body.open layer#navigation {
-    transition: all cubic-bezier(.17,.67,.83,.67) 140ms;
+    background-color: rgba(252, 253, 240, 0.9);
+    transition: transform cubic-bezier(.17,.67,.83,.67) 140ms;
     transform: translate3d(0, 0, 0);
     padding: 0 18px;
     opacity: 1;
@@ -415,7 +428,10 @@ table td {
   }
 
   layer#main sub {
-    display: none;
+    display: block;
+    left: -7px;
+    top: 0;
+    font-size: 14px;
   }
 
   layer#navigation p.social {
@@ -451,7 +467,7 @@ table td {
     text-align: left;
     margin-left: 0;
     padding-left: 0;
-    padding-top: 20px;
+    padding-top: 4px;
     padding-bottom: 0;
     display: inline-block;
     max-width: calc(100% - 55px);
@@ -477,8 +493,10 @@ table td {
     padding-top: 0 !important;
   }
 
+  body.open layer#main header,
   body.open layer#main section#content {
     width: 100%;
+    opacity: 0.2;
   }
 
   layer#main section#content {
@@ -503,7 +521,6 @@ table td {
   }
 
   layer#main strong {
-    display: block;
     margin-top: 10px;
   }
 
@@ -532,9 +549,11 @@ table td {
     outline: 0 !important;
   }
 
+  /*
 	table, thead, tbody, th, td, tr {
 		display: block;
 	}
+  */
 
 	tr { border: 1px solid #ccc; }
 

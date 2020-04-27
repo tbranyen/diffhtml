@@ -84,7 +84,7 @@ import { innerHTML } from 'https://diffhtml.org/es';
 
 ### Hello World
 
-<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+<div class="glitch-embed-wrap" style="height: 200px; width: 100%;">
   <iframe
     src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-helloworld on Glitch"
@@ -94,7 +94,7 @@ import { innerHTML } from 'https://diffhtml.org/es';
 
 ### Clock
 
-<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+<div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
   <iframe
     src="https://glitch.com/embed/#!/embed/diffhtml-clock?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-clock on Glitch"
@@ -104,7 +104,7 @@ import { innerHTML } from 'https://diffhtml.org/es';
 
 ### TodoMVC
 
-<div class="glitch-embed-wrap" style="height: 420px; width: 100%;">
+<div class="glitch-embed-wrap" style="height: 400px; width: 100%;">
   <iframe
     src="https://glitch.com/embed/#!/embed/diffhtml-todomvc?path=lib/index.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-todomvc on Glitch"

@@ -1,15 +1,8 @@
-# Core API
-
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml">
-  <i class="fa fa-github"></i>
-</a>
+# Core API <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a>
 
 This reference contains all stable API documentation which is up-to-date with
 the latest release. The core was designed to be minimal and familiar if you've
 used browser DOM APIs such as `innerHTML` and `addEventListener`.
-
-Your input will be parsed using the built-in smart HTML parser. This logic will
-not run under the [release build]().
 
 <a name="inner-html"></a>
 

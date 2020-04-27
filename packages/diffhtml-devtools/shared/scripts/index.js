@@ -63,10 +63,7 @@ let timeout = null;
 const reactiveBinding = f => ({ set(t, p, v) { t[p] = v; f(); return !0; } });
 const state = new Proxy(initialState, reactiveBinding(() => {
   clearTimeout(timeout);
-
-  timeout = setTimeout(() => {
-    render();
-  }, 0);
+  timeout = requestAnimationFrame(render);
 }));
 
 window.state = state;
@@ -161,7 +158,7 @@ background.onMessage.addListener(message => {
     }
 
     case 'start': {
-      state.inProgress = state.inProgress.concat(clone(message.data));
+      state.inProgress = state.inProgress.concat(clone(message.data)).slice(-20);
 
       break;
     }
@@ -173,7 +170,7 @@ background.onMessage.addListener(message => {
         return transaction.startDate !== completeData.startDate;
       });
 
-      state.completed = state.completed.concat(completeData);
+      state.completed = state.completed.concat(completeData).slice(-20);
 
       break;
     }

@@ -213,6 +213,12 @@
       
 
       
+        <a href="components.html#lifecycle-hooks" target><li>Lifecycle hooks</li></a>
+      
+    
+      
+
+      
         <a href="components.html#component" target><li>Component</li></a>
       
     
@@ -295,9 +301,16 @@
         <hr></hr>
 
         <section id="content"><h1 id="middleware">Middleware</h1>
-<p>This concept allows developers to write plugins that hooks into and possibly
-augments diffHTML. You can find pre-made middleware or create your own easily
-using this guide as a reference.</p>
+<p>One of the primary ways of extending diffHTML is to write middleware.
+Middleware are added using the top-level 
+    <a href="/api.html#use" title="null"><code>use()</code></a>
+   API.  This
+injects functions into the render pipeline, which grants access the state
+before and after a sync/patch render.</p>
+<p>Additionally, you can hook into when diffHTML creates new elements, elements
+are released, and handle these events. You can change how elements are created,
+and much more. Middleware should be designed to allow being enabled and
+disabled, as this enables DevTools to toggle your plugin.</p>
 <p><a name="writing-middleware"></a></p>
 <hr></hr>
 <h2 id="a-hrefwriting-middlewarewriting-middlewarea"><a href="#writing-middleware">Writing middleware</a></h2>
@@ -351,8 +364,7 @@ removed.</p>
 });</code></pre>
 <p><a name="inline-transitions"></a></p>
 <hr></hr>
-<h2 id="a-hrefinline-transitionsinline-transitionsa"><a href="#inline-transitions">Inline Transitions</a></h2>
-<p><a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions"><i class="fa fa-github"></i></a></p>
+<h2 id="a-hrefinline-transitionsinline-transitionsa-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-inline-transitionsi-classfa-fa-githubia"><a href="#inline-transitions">Inline Transitions</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions"><i class="fa fa-github"></i></a></h2>
 <p>Tiny module to support binding/unbinding declarative diffHTML transition hooks.</p>
 <pre><code class="language-sh">npm install diffhtml-middleware-inline-transitions</code></pre>
 <p>Full events and args list:</p>
@@ -403,12 +415,7 @@ innerHTML(document.body, html`&lt;body onattached=${fadeIn}&gt;
 &lt;/body&gt;`);</code></pre>
 <p><a name="logger"></a></p>
 <hr></hr>
-<h2 id="a-hrefloggerloggera"><a href="#logger">Logger</a></h2>
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger">
-  <i class="fa fa-github"></i>
-  GitHub
-</a>
-
+<h2 id="a-hrefloggerloggera-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-loggeri-classfa-fa-github-a"><a href="#logger">Logger</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger"><i class="fa fa-github"></i></a></h2>
 <p>Use with diffHTML to <code>console.log</code> out render
 
       <a href="https://diffhtml.org/#transaction" target="_blank" rel="noopener noreferrer" title="null">Transaction</a>
@@ -428,12 +435,7 @@ production where performance is critical. Use only in development or behind a
 flag.</p>
 <p><a name="service-worker"></a></p>
 <hr></hr>
-<h2 id="a-hrefservice-workerservice-workera"><a href="#service-worker">Service Worker</a></h2>
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker">
-  <i class="fa fa-github"></i>
-  GitHub
-</a>
-
+<h2 id="a-hrefservice-workerservice-workera-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-service-workeri-classfa-fa-github-a"><a href="#service-worker">Service Worker</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker"><i class="fa fa-github"></i></a></h2>
 <p>While this does not really benefit from being a middleware, I made it as such
 since it looks nice in the use and can be disabled if the middleware is
 unsubscribed. I&#39;ve added some developer niceties, like auto clearing the caches
@@ -455,12 +457,7 @@ use(serviceWorker({
 }));</code></pre>
 <p><a name="synthetic-events"></a></p>
 <hr></hr>
-<h2 id="a-hrefsynthetic-eventssynthetic-eventsa"><a href="#synthetic-events">Synthetic Events</a></h2>
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events">
-  <i class="fa fa-github"></i>
-  GitHub
-</a>
-
+<h2 id="a-hrefsynthetic-eventssynthetic-eventsa-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-synthetic-eventsi-classfa-fa-github-a"><a href="#synthetic-events">Synthetic Events</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events"><i class="fa fa-github"></i></a></h2>
 <p>Changes the event binding from inline event handlers like <code>onclick = fn</code> to use
 <code>addEventListener</code>. Hooks are attached to the <code>body</code> element and coordinated
 using event delegation.</p>
@@ -484,12 +481,7 @@ inline event handlers is not possible. Supports non-bubbling events via the
 <code>useCapture</code> flag.</p>
 <p><a name="verify-state"></a></p>
 <hr></hr>
-<h2 id="a-hrefverify-stateverify-statea"><a href="#verify-state">Verify State</a></h2>
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state">
-  <i class="fa fa-github"></i>
-  GitHub
-</a>
-
+<h2 id="a-hrefverify-stateverify-statea-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-verify-statei-classfa-fa-github-a"><a href="#verify-state">Verify State</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state"><i class="fa fa-github"></i></a></h2>
 <p>Asserts that a render properly updated the old Virtual Tree and the DOM. Will
 recursively search for inconsistencies, displays warnings unless debugging is
 enabled, then it throws errors instead.</p>
@@ -502,15 +494,9 @@ import verifyState from &#39;diffhtml-middleware-verify-state&#39;;
 
 // Throw when debug is truthy (when location.search has `?debug`)
 use(verifyState({ debug: location.search.includes(&#39;debug&#39;) }));</code></pre>
-<hr></hr>
 <p><a name="html-linter"></a></p>
 <hr></hr>
-<h2 id="a-hrefhtml-linterhtml-lintera"><a href="#html-linter">HTML Linter</a></h2>
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter">
-  <i class="fa fa-github"></i>
-  GitHub
-</a>
-
+<h2 id="a-hrefhtml-linterhtml-lintera-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-linteri-classfa-fa-github-a"><a href="#html-linter">HTML Linter</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter"><i class="fa fa-github"></i></a></h2>
 <p>Validates your passed in markup against rules established in the 
       <a href="https://htmlhint.com/" target="_blank" rel="noopener noreferrer" title="null">HTMLHint</a>
      project.</p>

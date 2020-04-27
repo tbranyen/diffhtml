@@ -213,6 +213,12 @@
       
 
       
+        <a href="components.html#lifecycle-hooks" target><li>Lifecycle hooks</li></a>
+      
+    
+      
+
+      
         <a href="components.html#component" target><li>Component</li></a>
       
     
@@ -295,24 +301,56 @@
         <hr></hr>
 
         <section id="content"><h1 id="parser">Parser</h1>
-<p>The parser built into diffHTML supports loose and strict HTML, XML, and SVG. It
-includes a token based syntax that can be used to interpolate dynamic values.
-This is used by the 
+<p>A core feature of diffHTML is the HTML/XML/SVG parser. This is used whenever
+you pass a string of markup or 
+    <a href="/api.html#html" title="null">use the html tagged template</a>
+  
+to 
     <a href="/api.html#inner-html" title="null">innerHTML</a>
-  , 
-    <a href="/api.html#outer-html" title="null">outerHTML</a>
-  , and 
-    <a href="/api.html#html" title="null">html</a>
-   APIs and advanced use cases.</p>
+  /
+    <a href="/api.html#ouuter-html" title="null">outerHTML</a>
+  . This
+works very similar to JSX where you are able to optimize away the parser. While
+this code is optimized specifically for the VDOM and is very fast, you may want
+to optimize out the markup using the Babel plugin.</p>
 <p>The parser can read full HTML documents including doctype, html/head/body/title
 etc tags, unwrapped fragments, and more!</p>
 <p><strong>Using with innerHTML:</strong></p>
 <pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
 
-// Using innerHTML will parse the HTML markup and apply inside the element.
+// Using innerHTML will parse the HTML markup from a string literal.
+innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);</code></pre>
+<p>This produces a single top level element <code>&lt;div/&gt;</code> with a nested <code>#text</code> node.</p>
+<p>If you were to structure your code like this:</p>
+<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
+
+// Using innerHTML will parse the HTML markup from a string literal.
+innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);</code></pre>
+<p>This would become:</p>
+<pre><code class="language-js">import { createTree } from &#39;diffhtml&#39;;
+
+innerHTML(document.body, createTree(&#39;div&#39;, null, [
+  createTree(&#39;#text&#39;, &#39;Hello world&#39;)
+]));</code></pre>
+<p>You&#39;ll notice the top-level element returned is &#39;div&#39;. From there you may
+think:</p>
+<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
+
+// Using innerHTML will parse the HTML markup from a string literal.
 innerHTML(document.body, `
   &lt;div&gt;Hello world&lt;/div&gt;
 `);</code></pre>
+<p>Would produce similar behavior, but it does not. The returned value mirrors
+what is embedded precisely, becoming:</p>
+<pre><code class="language-js">import { createTree } from &#39;diffhtml&#39;;
+
+innerHTML(document.body, createTree(&#39;#document-fragment&#39;, [
+  createTree(&#39;#text&#39;, &#39;\n&#39;),
+  createTree(&#39;div&#39;, null, [createTree(&#39;#text&#39;, &#39;Hello world&#39;)]),
+  createTree(&#39;#text&#39;, &#39;\n&#39;),
+]));</code></pre>
+<p>This can be useful knowledge for optimizing, but for more applications it
+should be fine to keep them in for developer convenience.</p>
 <p><strong>Using with outerHTML:</strong></p>
 <pre><code class="language-js">import { outerHTML } from &#39;diffhtml&#39;;
 

@@ -135,13 +135,13 @@ export default function devTools(Internals) {
     const startDate = performance.now();
 
     // If we are getting renders too quickly, restrict them from being sent.
-    //if (lastRun !== 0 && (startDate - lastRun) < 1000) {
-    //  surpressedCount += 1;
-    //  return;
-    //}
-    //else {
-    //  lastRun = startDate;
-    //}
+    if (lastRun !== 0 && (startDate - lastRun) < 1000) {
+      surpressedCount += 1;
+      return;
+    }
+    else {
+      lastRun = startDate;
+    }
 
     const cachedSurpressedCount = surpressedCount;
     surpressedCount = 0;

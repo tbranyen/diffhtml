@@ -50,6 +50,7 @@ const webServer = express();
 const watcher = watch(CWD, {
   ignored: /[\/\\]\./,
   persistent: true,
+  alwaysStat: true,
 });
 
 const read = path => new Promise((res, rej) => {

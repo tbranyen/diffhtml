@@ -3,6 +3,8 @@ import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 
+const { isArray } = Array;
+const { keys } = Object;
 const { stringify } = JSON;
 const hasNonWhitespaceEx = /\S/;
 
@@ -122,25 +124,85 @@ class DevtoolsMountsPanel extends WebComponent {
     }
   }
 
+  addedElement(domNode) {
+    console.log(domNode);
+    //return new Promise(resolve => {
+    //  domNode.animate([
+    //    { background: 'transparent' },
+    //    { background: 'green' },
+    //    { background: 'transparent' },
+    //  ], { duration: 200 }).onfinish = resolve;
+    //});
+  }
+
+  removedElement(domNode) {
+    //return new Promise(resolve => {
+    //  domNode.animate([
+    //    { background: 'transparent' },
+    //    { background: 'red' },
+    //    { background: 'transparent' },
+    //  ], { duration: 200 }).onfinish = resolve;
+    //});
+  }
+
   renderVTree(vTree) {
-    const isTextNode = vTree && vTree.nodeType === 3;
     const { activeVTree } = this.state;
+    const isTextNode = vTree && vTree.nodeType === 3;
 
     if (isTextNode) {
       return html``;
     }
 
+    const attributes = ({ attributes }) => {
+      const attrKeys = keys(attributes);
+
+      if (!attrKeys.length) {
+        return html``;
+      }
+
+      return html`<div class="attributes">${attrKeys.map(key => {
+        const value = attributes[key];
+
+        if (!value) {
+          return html` <span class="boolean">${key}</span>`;
+        }
+        else if (typeof value === 'string') {
+          return html` ${key}=<span class="string">"${value}"</span>`;
+        }
+        else if (typeof value === 'boolean') {
+          return html` ${key}=<span class="boolean">${value}</span>`;
+        }
+        else if (typeof value === 'number') {
+          return html` ${key}=<span class="number">${value}</span>`;
+        }
+      })}</div>`;
+    };
+
+    const childrenText = ({ childNodes }) => {
+      const childTextNodes = childNodes
+        .filter(x => x.nodeType === 3)
+        .filter(x => x.nodeValue.trim().length);
+
+      if (!childTextNodes.length) {
+        return html``;
+      }
+
+      return html`<div class="children">${childTextNodes.map(text => html`
+        <span>#text ${text.nodeValue}</span>
+      `)}</div>`;
+    };
+
     return html`
       <div
         class="vtree"
         data-nodetype=${vTree.nodeType}
+        ondetached=${this.removedElement}
+        onattached=${this.addedElement}
       >
         <h2
           onClick=${() => this.setState({ activeVTree: vTree })}
           class="vtree-header ${vTree === activeVTree ? 'active' : ''}"
-        >
-          ${`&lt;${vTree.nodeName}&gt;`}
-        </h2>
+        >&lt;${vTree.nodeName}${attributes(vTree)}&gt; ${childrenText(vTree)}</h2>
 
         ${Boolean(vTree.childNodes.length) && html`
           <div class="vtree-children">
@@ -200,6 +262,14 @@ class DevtoolsMountsPanel extends WebComponent {
 
       pre {
         white-space: pre-wrap;
+        font-weight: bold;
+        padding: 10px;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+
+      p {
+        padding: 16px;
       }
 
       .vtree {
@@ -217,7 +287,6 @@ class DevtoolsMountsPanel extends WebComponent {
       .wrapper {
         display: flex;
         font-size: 11px;
-        padding: 10px;
         overflow: hidden;
       }
 
@@ -226,7 +295,7 @@ class DevtoolsMountsPanel extends WebComponent {
         display: inline-block;
         overflow-y: auto;
         height: 100%;
-        padding-left: 0px;
+        padding: 10px;
       }
 
       .vtree-header {
@@ -237,7 +306,9 @@ class DevtoolsMountsPanel extends WebComponent {
         flex: 1;
         display: block;
         width: 100%;
-        border-size: 2px solid transparent;
+        font-family: dejavu sans mono, monospace;
+        font-size: 10px;
+        color: #5a5a5a;
       }
 
       .vtree.active .vtree-header,
@@ -260,14 +331,45 @@ class DevtoolsMountsPanel extends WebComponent {
       .vtree-header.active,
       .vtree-header:hover {
         color: #1E70BF;
-        background-color: #E8F4FF;
+        background-color: #FAFFD4;
+      }
+
+      .inverted .vtree-header.active,
+      .inverted .vtree-header:hover {
+        background-color: #182125;
       }
 
       .vtree-sidepanel {
-        width: 30%;
+        width: 50%;
         display: inline-block;
         border-left: 1px solid #E0E0E0;
-        padding-left: 20px;
+      }
+
+      .vtree-sidepanel h4 {
+        color: #1E70BF;
+        background: #E8F4FF;
+        padding: 10px;
+        margin-bottom: 0;
+        margin-top: 0;
+      }
+
+      .attributes {
+        display: inline-block;
+        margin-left: 5px;
+        color: #607D8B;
+      }
+
+      .string {
+        color: #A5448F;
+      }
+
+      .boolean {
+        color: #60B764;
+      }
+
+      .children {
+        display: inline-block;
+        color: #a9a9a9;
       }
     `;
   }

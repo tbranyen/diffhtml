@@ -32,4 +32,4 @@ module.exports = ->
         alias:
           'react': 'diffhtml-react-compat/dist/cjs/index'
           'react-dom': 'diffhtml-react-compat/dist/cjs/index'
-          'diffhtml': 'diffhtml/dist/cjs/runtime'
+          'diffhtml': 'diffhtml/dist/cjs/index'

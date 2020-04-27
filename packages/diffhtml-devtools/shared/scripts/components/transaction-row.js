@@ -80,31 +80,31 @@ class DevtoolsTransactionRow extends WebComponent {
       </td>
 
       <td class="center aligned">
-        <strong><a href="#transaction-promises">${String(promises.length)}</a></strong>
+        <strong><a>${String(promises.length)}</a></strong>
       </td>
 
       <td class="center aligned ${getColorFromStat(stats.insert)}">
-        <strong><a href="#transaction-insert">${stats.insert}</a></strong>
+        <strong><a>${stats.insert}</a></strong>
       </td>
 
       <td class="center aligned ${getColorFromStat(stats.replace)}">
-        <strong><a href="#transaction-replace">${stats.replace}</a></strong>
+        <strong><a>${stats.replace}</a></strong>
       </td>
 
       <td class="center aligned ${getColorFromStat(stats.remove)}">
-        <strong><a href="#transaction-remove">${stats.remove}</a></strong>
+        <strong><a>${stats.remove}</a></strong>
       </td>
 
       <td class="center aligned ${getColorFromStat(stats.nodeValue)}">
-        <strong><a href="#transaction-node-value">${stats.nodeValue}</a></strong>
+        <strong><a>${stats.nodeValue}</a></strong>
       </td>
 
       <td class="center aligned ${getColorFromStat(stats.setAttribute)}">
-        <strong><a href="#transaction-set-attribute">${stats.setAttribute}</a></strong>
+        <strong><a>${stats.setAttribute}</a></strong>
       </td>
 
       <td class="center aligned ${getColorFromStat(stats.removeAttribute)}">
-        <strong><a href="#transaction-remove-attribute">${stats.removeAttribute}</a></strong>
+        <strong><a>${stats.removeAttribute}</a></strong>
       </td>
 
       ${false && html`

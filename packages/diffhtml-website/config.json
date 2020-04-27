@@ -41,6 +41,7 @@
 
     "Components": ["components.html", {
       "Overview": "#overview",
+      "Lifecycle hooks": "#lifecycle-hooks",
       "Component": "#component",
       "Web Component": "#web-component",
       "JSX": "#jsx",

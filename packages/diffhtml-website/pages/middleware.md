@@ -1,8 +1,14 @@
 # Middleware
 
-This concept allows developers to write plugins that hooks into and possibly
-augments diffHTML. You can find pre-made middleware or create your own easily
-using this guide as a reference.
+One of the primary ways of extending diffHTML is to write middleware.
+Middleware are added using the top-level [`use()`](/api.html#use) API.  This
+injects functions into the render pipeline, which grants access the state
+before and after a sync/patch render.
+
+Additionally, you can hook into when diffHTML creates new elements, elements
+are released, and handle these events. You can change how elements are created,
+and much more. Middleware should be designed to allow being enabled and
+disabled, as this enables DevTools to toggle your plugin.
 
 <a name="writing-middleware"></a>
 
@@ -67,9 +73,7 @@ use(() => ({ patches }) => {
 
 ---
 
-## <a href="#inline-transitions">Inline Transitions</a>
-
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions"><i class="fa fa-github"></i></a>
+## <a href="#inline-transitions">Inline Transitions</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions"><i class="fa fa-github"></i></a>
 
 Tiny module to support binding/unbinding declarative diffHTML transition hooks.
 
@@ -113,12 +117,7 @@ innerHTML(document.body, html`<body onattached=${fadeIn}>
 
 ---
 
-## <a href="#logger">Logger</a>
-
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger">
-  <i class="fa fa-github" />
-  GitHub
-</a>
+## <a href="#logger">Logger</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger"><i class="fa fa-github" /></a>
 
 Use with diffHTML to `console.log` out render
 [Transaction](https://diffhtml.org/#transaction) operations. This will nest
@@ -148,12 +147,7 @@ flag.
 
 ---
 
-## <a href="#service-worker">Service Worker</a>
-
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker">
-  <i class="fa fa-github" />
-  GitHub
-</a>
+## <a href="#service-worker">Service Worker</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker"><i class="fa fa-github" /></a>
 
 While this does not really benefit from being a middleware, I made it as such
 since it looks nice in the use and can be disabled if the middleware is
@@ -187,12 +181,7 @@ use(serviceWorker({
 
 ---
 
-## <a href="#synthetic-events">Synthetic Events</a>
-
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events">
-  <i class="fa fa-github" />
-  GitHub
-</a>
+## <a href="#synthetic-events">Synthetic Events</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events"><i class="fa fa-github" /></a>
 
 Changes the event binding from inline event handlers like `onclick = fn` to use
 `addEventListener`. Hooks are attached to the `body` element and coordinated
@@ -228,12 +217,7 @@ inline event handlers is not possible. Supports non-bubbling events via the
 
 ---
 
-## <a href="#verify-state">Verify State</a>
-
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state">
-  <i class="fa fa-github" />
-  GitHub
-</a>
+## <a href="#verify-state">Verify State</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state"><i class="fa fa-github" /></a>
 
 Asserts that a render properly updated the old Virtual Tree and the DOM. Will
 recursively search for inconsistencies, displays warnings unless debugging is
@@ -256,18 +240,11 @@ import verifyState from 'diffhtml-middleware-verify-state';
 use(verifyState({ debug: location.search.includes('debug') }));
 ```
 
----
-
 <a name="html-linter"></a>
 
 ---
 
-## <a href="#html-linter">HTML Linter</a>
-
-<a href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter">
-  <i class="fa fa-github" />
-  GitHub
-</a>
+## <a href="#html-linter">HTML Linter</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter"><i class="fa fa-github" /></a>
 
 Validates your passed in markup against rules established in the [HTMLHint](https://htmlhint.com/) project.
 
