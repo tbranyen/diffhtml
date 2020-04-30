@@ -18,11 +18,13 @@ class DevtoolsSplitView extends WebComponent {
         display: flex;
         flex: 1;
         flex-direction: row;
+        height: 100%;
       }
 
       .split-view {
         display: flex;
         width: 100%;
+        height: 100%;
       }
     `;
   }

@@ -4,6 +4,7 @@ import { PATCH_TYPE, VTree } from '../util/types';
 
 const empty = {};
 const keyNames = ['old', 'new'];
+const textName = '#text';
 
 // Compares how the new state should look to the old state and mutates it,
 // while recording the changes along the way.
@@ -34,7 +35,7 @@ export default function syncTree(oldTree, newTree, patches = []) {
     }
   }
 
-  let shortCircuit = false;
+  let shortCircuit = null;
 
   // Invoke the SyncTree hooks which allow middleware to do their own custom
   // sync logic. This may mean short-circuiting the sync completely by
@@ -46,16 +47,16 @@ export default function syncTree(oldTree, newTree, patches = []) {
     // Call the user provided middleware function for a single root node. Allow
     // the consumer to specify a return value of a different VTree (useful for
     // components).
-    const retVal = fn(oldTree, newTree);
+    const entry = fn(oldTree, newTree);
 
     // If the value returned matches the original element, then short circuit
     // and do not dig further.
-    if (retVal && retVal === oldTree) {
+    if (entry && entry === oldTree) {
       shortCircuit = true;
     }
     // If the user has returned a value, treat it as the new tree.
-    else if (retVal) {
-      newTree = retVal;
+    else if (entry) {
+      newTree = entry;
     }
   });
 
@@ -90,13 +91,12 @@ export default function syncTree(oldTree, newTree, patches = []) {
     }
   }
 
-  const newNodeName = newTree.nodeName;
   const isElement = newTree.nodeType === 1;
 
   // Text nodes are low level and frequently change, so this path is accounted
   // for first.
-  if (newTree.nodeName === '#text') {
-    if (oldTree.nodeName === '#text' && oldTree.nodeValue !== newTree.nodeValue) {
+  if (newTree.nodeName === textName) {
+    if (oldTree.nodeName === textName && oldTree.nodeValue !== newTree.nodeValue) {
     // If both VTrees are text nodes and the values are different, change the
     // `Element#nodeValue`.
       patches.push(
@@ -158,17 +158,6 @@ export default function syncTree(oldTree, newTree, patches = []) {
     }
   }
 
-  // If we somehow end up comparing two totally different kinds of elements,
-  // we'll want to raise an error to let the user know something is wrong.
-  // FIXME This should never occur, right?
-  if (process.env.NODE_ENV !== 'production') {
-    if (!isEmpty && oldNodeName !== newNodeName && !isFragment) {
-      throw new Error(
-        `Sync failure, cannot compare ${newNodeName} with ${oldNodeName}`
-      );
-    }
-  }
-
   const newChildNodes = newTree.childNodes || [];
 
   // Scan all childNodes for attribute changes.
@@ -181,7 +170,8 @@ export default function syncTree(oldTree, newTree, patches = []) {
     return patches;
   }
 
-  const oldChildNodes = oldTree.childNodes || [];
+  /** @type {VTree[]} */
+  const oldChildNodes = (oldTree.childNodes);
 
   // Do a single pass over the new child nodes.
   for (let i = 0; i < newChildNodes.length; i++) {
@@ -191,9 +181,7 @@ export default function syncTree(oldTree, newTree, patches = []) {
 
     // If there is no old element to compare to, this is a simple addition.
     if (!oldChildNode) {
-      if (oldChildNodes) {
-        oldChildNodes.push(newChildNode);
-      }
+      oldChildNodes.push(newChildNode);
 
       // Crawl this Node for any changes to apply.
       syncTree(null, newChildNode, patches, oldTree);
@@ -243,7 +231,7 @@ export default function syncTree(oldTree, newTree, patches = []) {
           optimalNewNode = keysLookup.old.get(newKey);
           oldChildNodes.splice(oldChildNodes.indexOf(optimalNewNode), 1);
         }
-        else if (newKey) {
+        else {
           optimalNewNode = newChildNode;
         }
 

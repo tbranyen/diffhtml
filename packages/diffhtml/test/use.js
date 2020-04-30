@@ -104,6 +104,22 @@ describe('Use (Middleware)', function() {
     release(domNode);
   });
 
+  it('will allow modifying a vTree when created from a DOM Node', () => {
+    const domNode = document.createElement('div');
+
+    this.createTreeHook = ({ nodeName, attributes }) => {
+      if (nodeName === 'span') {
+        attributes.label = 'modified';
+      }
+    };
+
+    const span = document.createElement('span');
+
+    innerHTML(domNode, html`<${span} label="Hello world" />`);
+    equal(domNode.outerHTML, `<div><span label="modified"></span></div>`);
+    release(domNode);
+  });
+
   it('will allow modifying a nested vTree during creation', () => {
     this.createTreeHook = vTree => {
       if (typeof vTree.rawNodeName === 'function') {
@@ -226,6 +242,25 @@ describe('Use (Middleware)', function() {
     `);
 
     release(oldTree);
+  });
+
+  it('will call a release hook when a mounted element is released', async () => {
+    const domNode = document.createElement('div');
+    const releaseTrees = [];
+
+    this.releaseHook = oldTree => releaseTrees.push(oldTree);
+
+    const newTree = html`<h1></h1>`;
+    const transaction = await innerHTML(domNode, newTree);
+    const oldTree = transaction.oldTree;
+
+    release(domNode);
+
+    equal(releaseTrees.length, 2);
+    deepEqual(releaseTrees, [
+      newTree,
+      oldTree,
+    ]);
   });
 
   it('will call a release hook when an element is released', () => {

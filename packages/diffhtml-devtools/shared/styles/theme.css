@@ -1,5 +1,6 @@
 @import '/node_modules/semantic-ui-css/semantic.min.css';
 @import '/node_modules/semantic-ui-icon/icon.min.css';
+@import "/styles/tooltip.css";
 
 .ui.inverted.input > input {
   background: #3E3E3E;

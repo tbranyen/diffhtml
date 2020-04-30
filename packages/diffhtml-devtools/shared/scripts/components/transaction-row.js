@@ -28,7 +28,6 @@ class DevtoolsTransactionRow extends WebComponent {
 
     const {
       domNode = '',
-      markup = {},
       aborted = false,
       promises = [],
       surpressedCount,
@@ -43,18 +42,18 @@ class DevtoolsTransactionRow extends WebComponent {
       }
     });
 
-    const fps = endTime ? 1000 / (endTime - startTime) : Infinity;
-
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
       <style>${this.styles()}</style>
 
       <td class="center aligned">
-        ${surpressedCount}
+        ${Boolean(surpressedCount) && html`
+          <i class="icon plus" />
+        `}
+
         ${unnecessaryRender && transaction.completed && html`
           <div
             data-tooltip="Nothing changed, unnecessary render!"
-            data-position="right center"
           >
             <i class="icon warning sign yellow" />
           </div>

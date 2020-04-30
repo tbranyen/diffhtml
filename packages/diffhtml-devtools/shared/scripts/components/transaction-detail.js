@@ -4,13 +4,9 @@ import PropTypes from 'prop-types';
 
 const { keys } = Object;
 
-class DevtoolsTransactionRow extends WebComponent {
+class DevtoolsTransactionDetail extends WebComponent {
   static propTypes = {
-    index: PropTypes.number,
     transaction: PropTypes.object,
-    stateName: PropTypes.string,
-    startTime: PropTypes.number,
-    endTime: PropTypes.number,
   }
 
   render() {
@@ -291,4 +287,4 @@ class DevtoolsTransactionRow extends WebComponent {
   }
 }
 
-customElements.define('devtools-transaction-row', DevtoolsTransactionRow);
+customElements.define('devtools-transaction-detail', DevtoolsTransactionDetail);

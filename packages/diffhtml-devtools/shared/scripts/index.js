@@ -73,8 +73,6 @@ const inspect = selector => chrome.devtools.inspectedWindow.eval(
   `inspect($$('${selector}')[0])`
 );
 
-const refresh = () => location.reload();
-
 const clearEntries = () => {
   assign(state, {
     inProgress: [],
@@ -88,7 +86,7 @@ const fadeIn = el => {
   return new Promise(resolve => el.animate([
     { opacity: 0 },
     { opacity: 1 },
-  ], { duration: 240 }).onfinish = resolve)
+  ], { duration: 140 }).onfinish = resolve)
     .then(() => {
       el.style.opacity = 1;
     });

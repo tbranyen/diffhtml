@@ -107,6 +107,50 @@ describe('Tree', function() {
       });
     });
 
+    it('will ignore null values', () => {
+      const vTree = createTree('div', [null, createTree('#text', 'test')]);
+
+      deepEqual(vTree, {
+        rawNodeName: 'div',
+        nodeName: 'div',
+        nodeValue: '',
+        nodeType: 1,
+        key: '',
+        attributes: {},
+        childNodes: [{
+          rawNodeName: '#text',
+          nodeName: '#text',
+          nodeValue: 'test',
+          nodeType: 3,
+          key: '',
+          attributes: {},
+          childNodes: [],
+        }],
+      });
+    });
+
+    it('will will merge in a nested array', () => {
+      const vTree = createTree('div', [[createTree('#text', 'test')]]);
+
+      deepEqual(vTree, {
+        rawNodeName: 'div',
+        nodeName: 'div',
+        nodeValue: '',
+        nodeType: 1,
+        key: '',
+        attributes: {},
+        childNodes: [{
+          rawNodeName: '#text',
+          nodeName: '#text',
+          nodeValue: 'test',
+          nodeType: 3,
+          key: '',
+          attributes: {},
+          childNodes: [],
+        }],
+      });
+    });
+
     it('will ignore falsy values when creating children from an array', () => {
       const vTree = createTree('div', null, ['text', NaN, createTree('p')]);
 

@@ -1,4 +1,5 @@
 @import "/styles/theme.css";
+@import "/styles/tooltip.css";
 
 body, main {
   color: #333;
@@ -20,13 +21,13 @@ body::-webkit-scrollbar {
   width: 5px;
   position: absolute;
 }
- 
+
 body::-webkit-scrollbar-track {
   background: #ddd;
 }
- 
+
 body::-webkit-scrollbar-thumb {
-  background: #666; 
+  background: #666;
 }
 
 h1:first-child {

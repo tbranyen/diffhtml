@@ -26,7 +26,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
   }
 
   render() {
-    const { inspect, clearEntries, inProgress, completed } = this.props;
+    const { clearEntries, inProgress, completed } = this.props;
     const { expandedIndex, isExpanded, autoScroll } = this.state;
     const { toggleAutoscroll } = this;
 
@@ -124,12 +124,16 @@ class DevtoolsTransactionsPanel extends WebComponent {
                 <tbody>
                   <tr class="missing">
                     <td colspan="11">
-                      No transactions
+                      No renders
                     </td>
                   </tr>
                 </tbody>
               `}
             </table>
+          `}
+
+          ${expandedIndex !== -1 && html`
+            <i class="icon close" onClick=${this.toggleExpanded(-1)}></i>
           `}
         </div>
       </div>

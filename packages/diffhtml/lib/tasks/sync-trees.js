@@ -51,9 +51,9 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     StateCache.delete(domNode);
     StateCache.set(createNode(newTree), transaction.state);
   }
-  // Otherwise only diff the children.
-  else if (newTree) {
-    transaction.patches = syncTree(oldTree || null, newTree, []);
+  // Synchronize the top level elements.
+  else {
+    transaction.patches = syncTree(oldTree || null, newTree || null, []);
   }
 
   measure('sync trees');

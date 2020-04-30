@@ -125,24 +125,23 @@ class DevtoolsMountsPanel extends WebComponent {
   }
 
   addedElement(domNode) {
-    console.log(domNode);
-    //return new Promise(resolve => {
-    //  domNode.animate([
-    //    { background: 'transparent' },
-    //    { background: 'green' },
-    //    { background: 'transparent' },
-    //  ], { duration: 200 }).onfinish = resolve;
-    //});
+    return new Promise(resolve => {
+      domNode.animate([
+        { background: 'transparent' },
+        { background: '#E1FFE1' },
+        { background: 'transparent' },
+      ], { duration: 200 }).onfinish = resolve;
+    });
   }
 
   removedElement(domNode) {
-    //return new Promise(resolve => {
-    //  domNode.animate([
-    //    { background: 'transparent' },
-    //    { background: 'red' },
-    //    { background: 'transparent' },
-    //  ], { duration: 200 }).onfinish = resolve;
-    //});
+    return new Promise(resolve => {
+      domNode.animate([
+        { background: 'transparent' },
+        { background: '#FFE1E1' },
+        { background: 'transparent' },
+      ], { duration: 200 }).onfinish = resolve;
+    });
   }
 
   renderVTree(vTree) {
