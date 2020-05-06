@@ -329,6 +329,18 @@ describe('Component implementation', function() {
       equal(vTree.attributes.test, 'true');
     });
 
+    it('will set simple boolean single value', () => {
+      class CustomComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+      }
+
+      const vTree = html`<${CustomComponent} checked />`;
+
+      equal(vTree.attributes.checked, true);
+    });
+
     it('will set complex object', () => {
       class CustomComponent extends Component {
         render() {

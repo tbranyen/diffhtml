@@ -390,6 +390,37 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
+  it('will support boolean attributes on a ctor', () => {
+    const Ctor = function() {};
+    const vTree = html`<${Ctor} attr />`;
+
+    deepEqual(vTree, {
+      rawNodeName: Ctor,
+      nodeName: '#document-fragment',
+      nodeType: 11,
+      nodeValue: '',
+      key: '',
+      attributes: { attr: true },
+      childNodes: [],
+    });
+  });
+
+  it('will support interpolating object attributes on a ctor', () => {
+    const Ctor = function() {};
+    const rest = { id: 'test' };
+    const vTree = html`<${Ctor} ${rest} />`;
+
+    deepEqual(vTree, {
+      rawNodeName: Ctor,
+      nodeName: '#document-fragment',
+      nodeType: 11,
+      nodeValue: '',
+      key: '',
+      attributes: { id: 'test' },
+      childNodes: [],
+    });
+  });
+
   it('supports mixing custom elements and custom components', () => {
     const React = () => {};
     const vTree = html`<${React} />

@@ -158,14 +158,16 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
 
   // Migrate raw attributes into the attributes object used by the VTree.
   for (let match; match = attrEx.exec(rawAttrs || '');) {
+    const isHTML = typeof nodeName === 'string';
     const name = match[1];
-    const value = match[6] || match[5] || match[4] || match[1];
-    let valueMatchesToken = value.match(tokenEx);
+    const testValue = match[6] || match[5] || match[4];
+    const value = testValue || (isHTML ? match[1] : testValue || true);
+    let valueMatchesToken = String(value).match(tokenEx);
 
     // If we have multiple interpolated values in an attribute, we must
     // flatten to a string. There are no other valid options.
     if (valueMatchesToken && valueMatchesToken.length) {
-      const parts = value.split(tokenEx);
+      const parts = String(value).split(tokenEx);
       const hasToken = tokenEx.exec(name);
       const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
 
@@ -211,12 +213,21 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
         }
       }
     }
-    // This attribute has no value, so set to an empty string.
+    // If the name was injected, pull from attributes and assign as either
+    // empty or truthy.
     else if (valueMatchesToken = tokenEx.exec(name)) {
       const nameAndValue = supplemental.attributes[valueMatchesToken[1]];
-      attributes[nameAndValue] = '';
+
+      if (typeof nameAndValue === 'object') {
+        assign(attributes, nameAndValue);
+      }
+      else {
+        attributes[nameAndValue] = '';
+      }
     }
-    // If the remaining value is a string, directly assign to the attribute name.
+    // If the remaining value is a string, directly assign to the attribute
+    // name. If the value is anything else, treat it as unknown and default to
+    // a boolean.
     else {
       attributes[name] = value === `''` || value === `""` ? '' : value;
     }
