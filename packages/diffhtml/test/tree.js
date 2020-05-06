@@ -578,10 +578,32 @@ describe('Tree', function() {
       equal(vTree.childNodes[0].nodeName, 'p');
     });
 
-    it('will ignore undefined array elements', () => {
+    it('will ignore undefined in array of text elements', () => {
+      const vTree = createTree([null, 'text content']);
+
+      deepEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeType: 11,
+        nodeValue: '',
+        key: '',
+        attributes: {},
+        childNodes: [{
+          rawNodeName: '#text',
+          nodeName: '#text',
+          nodeType: 3,
+          nodeValue: 'text content',
+          key: '',
+          attributes: {},
+          childNodes: [],
+        }],
+      });
+    });
+
+    it('will ignore undefined in array of html elements', () => {
       const vTree = createTree([
         null,
-        'div'
+        createTree('span', 'text content'),
       ]);
 
       deepEqual(vTree, {
@@ -592,13 +614,21 @@ describe('Tree', function() {
         key: '',
         attributes: {},
         childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
+          rawNodeName: 'span',
+          nodeName: 'span',
           nodeType: 1,
           nodeValue: '',
           key: '',
           attributes: {},
-          childNodes: [],
+          childNodes: [{
+            rawNodeName: '#text',
+            nodeName: '#text',
+            nodeType: 3,
+            nodeValue: 'text content',
+            key: '',
+            attributes: {},
+            childNodes: [],
+          }],
         }],
       });
     });

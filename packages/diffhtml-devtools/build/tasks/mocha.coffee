@@ -13,7 +13,7 @@ module.exports = ->
         'test/integration/tests/**/*.js'
       ]
 
-    'shared':
+    'lib':
       src: [
         'test/unit/runner.js'
         'test/unit/tests/**/*.js'

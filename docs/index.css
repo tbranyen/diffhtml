@@ -197,6 +197,7 @@ layer#main h2 {
   margin-top: 40px;
 }
 
+layer#main h1 a,
 layer#main h2 a {
   text-decoration: none;
 }
@@ -366,6 +367,13 @@ h2 a.github,
 h1 a.github {
   margin-left: 15px;
   font-size: 20px;
+  position: relative;
+  top: -2px;
+}
+
+h2 a.github:hover,
+h1 a.github:hover {
+  font-weight: bold;
 }
 
 .open-menu {

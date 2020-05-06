@@ -10,7 +10,7 @@
     "build-chrome": "grunt chrome-extension",
     "test": "grunt && grunt mochaTest",
     "test-chrome": "grunt mochaTest:chrome-extension",
-    "cjs": "compile-modules convert -f commonjs shared/scripts/**/*.js -o cjs/"
+    "cjs": "compile-modules convert -f commonjs lib/scripts/**/*.js -o cjs/"
   },
   "devDependencies": {
     "@babel/core": "^7.4.4",

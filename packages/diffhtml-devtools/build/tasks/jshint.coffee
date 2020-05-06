@@ -7,5 +7,5 @@ module.exports = ->
       jshintrc: '.jshintrc'
 
     files: [
-      'shared/**/*.js'
+      'lib/**/*.js'
     ]

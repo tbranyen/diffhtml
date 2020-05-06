@@ -63,6 +63,11 @@ export default function renderComponent(vTree, context) {
     // Now that the instance is associated, we can look up context.
     context = getContext(vTree);
 
+    // Signal the component is about to mount.
+    if (instance.componentWillMount) {
+      instance.componentWillMount();
+    }
+
     // Initial render of the class component.
     renderTree = createTree(instance.render(props, instance.state, context));
 

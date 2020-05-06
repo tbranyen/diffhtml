@@ -22,6 +22,9 @@ sed -i -e 's/1.0.0-beta.8/1.0.0-beta.9/g' **/lib/*.js
 # Update the root package version.
 sed -i -e 's/1.0.0-beta.8/1.0.0-beta.9/g' ./package.json
 
+# Update the DevTools version. It cannot use letters or dashes.
+sed -i -e 's/1.0.0.8/1.0.0.9/g' ./packages/diffhtml-devtools/chrome-extension/manifest.json
+
 # Make a descriptive commit.
 git commit -am"Update JavaScript and REAMDE files to 1.0.0-beta.9"
 ```

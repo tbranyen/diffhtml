@@ -9,12 +9,17 @@ class DevtoolsMiddlewarePanel extends WebComponent {
 
   state = {
     isExpanded: false,
+    activeTab: 0,
   }
 
   render() {
     const { middleware = [] } = this.props;
-    const { isExpanded } = this.state;
-    const { toggleMiddleware } = this;
+    const { isExpanded, activeTab } = this.state;
+    const { toggleMiddleware, setActive } = this;
+
+    const activeMiddleware = middleware
+      .sort()
+      .filter(name => name !== 'Dev Tools');
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -33,21 +38,27 @@ class DevtoolsMiddlewarePanel extends WebComponent {
         `}
       </div>
 
-      <form>
-        ${middleware.sort().map(name => html`
-          <div class="middleware" key=${name}>
-            <div class="ui toggle checkbox" >
-              <input
-                checked
-                type="checkbox"
-                ${name === 'Dev Tools' && 'disabled'}
-                onclick=${toggleMiddleware(name)}
-              />
-              <label>${name}</label>
+      <div class="wrapper">
+        <div class="ui attached tabular menu">
+          ${activeMiddleware.map((name, i) => html`
+            <div class="item ${i === activeTab && 'active'}" key=${name}>
+              <a href="#" onClick=${setActive(i)}>${name}</a>
             </div>
+          `)}
+        </div>
+
+        <div class="ui bottom attached active tab segment">
+          <strong>Enabled</strong>
+          <div class="ui toggle checkbox">
+            <input
+              checked
+              type="checkbox"
+              onclick=${toggleMiddleware(name)}
+            />
+            <label></label>
           </div>
-        `)}
-      </form>
+        </div>
+      </div>
     `;
   }
 
@@ -55,6 +66,10 @@ class DevtoolsMiddlewarePanel extends WebComponent {
     return `
       :host {
         display: block;
+      }
+
+      * {
+        box-sizing: border-box;
       }
 
       h3 {
@@ -71,6 +86,7 @@ class DevtoolsMiddlewarePanel extends WebComponent {
         border-right: 0;
         border-top: 0;
         margin-top: 0;
+        margin-bottom: 0;
         position: sticky;
         top: 0;
         z-index: 100;
@@ -78,6 +94,15 @@ class DevtoolsMiddlewarePanel extends WebComponent {
         background: #FFF;
         color: #333;
         user-select: none;
+      }
+
+      .ui.bottom.attached.active.tab.segment {
+        padding: 20px;
+      }
+
+      label {
+        display: inline !important;
+        margin-left: 10px;
       }
     `;
   }
@@ -93,6 +118,11 @@ class DevtoolsMiddlewarePanel extends WebComponent {
         enabled,
       }));
     });
+  }
+
+  setActive = activeTab => ev => {
+    ev.preventDefault();
+    this.setState({ activeTab });
   }
 }
 

@@ -300,19 +300,45 @@
 
         <hr></hr>
 
-        <section id="content"><h1 id="core-api-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtmli-classfa-fa-githubia">Core API <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a></h1>
-<p>This reference contains all stable API documentation which is up-to-date with
-the latest release. The core was designed to be minimal and familiar if you&#39;ve
-used browser DOM APIs such as <code>innerHTML</code> and <code>addEventListener</code>.</p>
+        <section id="content"><h1 id="a-hrefapihtmlcore-apia-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtmli-classfa-fa-githubia"><a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a></h1>
+<p>This documentation covers the core public API. This page stays up-to-date with
+the latest version. All of these methods work in the browser, with JSDOM, and
+directly in Node.</p>
+<pre><code class="language-sh">npm install diffhtml</code></pre>
+<p>Some diffHTML lingo to be aware of:</p>
+<ul>
+<li><p><strong>Transaction</strong>: A class structure which represents a set of changes to the
+DOM.</p>
+</li>
+<li><p><strong>VTree</strong>: Virtual Tree, represents the shape of a DOM node, Component,
+etc. These objects are created when diffHTML first loads and help regulate
+memory usage.</p>
+</li>
+<li><p><strong>Mount</strong>: Most commonly a DOM node that you want to update, but can also be
+VTrees and other types.</p>
+</li>
+</ul>
 <p><a name="inner-html"></a></p>
 <hr></hr>
-<h2 id="a-hrefinner-htmlinnerhtmla-domnode-markup-options"><a href="#inner-html">innerHTML</a> <strong><code>(domNode, markup, options)</code></strong></h2>
-<p>Replaces the contents of a DOM node with the passed in markup, but will only
-update changed content and structure. Works like the browser&#39;s <code>innerHTML</code> only
-changing the element&#39;s children, but not the containing element. If you want to
-control the entire tag, use 
-    <a href="#outer-html" title="null"><code>outerHTML</code></a>
-  .</p>
+<h2 id="a-hrefinner-htmlinnerhtmla-mount-input-options"><a href="#inner-html">innerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
+<p>The <code>innerHTML</code> and <code>outerHTML</code> methods are the most common to use. They allow
+you to mimic the respective browser feature, where you replace the contents of
+a DOM node and in the case of <code>outerHTML</code> replace the top-level element
+attributes as well.  You may call this once in a complex application where the
+individual components re-render themselves, or in a game you would call this on
+every render tick, if you&#39;re building something simple, you can call it
+whenever the state changes.</p>
+<p>These methods can work in the browser and browser-like environments like JSDOM.
+An interesting feature is that you can pass in more than just DOM nodes. This
+comes in handy for advanced use cases such as</p>
+<p>What&#39;s nice about these methods is that all renders go through the same
+scheduling pipeline and VTrees are shared across all other renders.</p>
+<p>By calling these methods you are signaling intent that you want the mount to
+reflect the incoming input.</p>
+<ul>
+<li>Creating and scheduling a render transaction</li>
+<li></li>
+</ul>
 <h3 id="arguments">Arguments</h3>
 <table>
 <thead>
@@ -322,19 +348,19 @@ control the entire tag, use
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>domNode</strong></td>
-<td>The root DOM Node to change the child contents of, but not the element itself.</td>
+<td><strong>mount</strong></td>
+<td>The root DOM node to update children in, but not the node itself.</td>
 </tr>
 <tr>
 <td><strong>input</strong></td>
-<td>New markup to replace into <strong>domNode</strong>.</td>
+<td>New markup to replace into <strong>mount</strong>.</td>
 </tr>
 <tr>
 <td><strong>options</strong></td>
-<td><ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><strong>parser:</strong> Settings which influence the HTML parser. No parser settings available in the runtime build.</li></ul></td>
+<td><ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul></td>
 </tr>
 </tbody></table>
-<h3 id="example">Example</h3>
+<h3 id="examples">Examples</h3>
 <pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
 
 innerHTML(document.body, `
@@ -342,7 +368,7 @@ innerHTML(document.body, `
 `);</code></pre>
 <p><a name="outer-html"></a></p>
 <hr></hr>
-<h2 id="a-hrefouter-htmlouterhtmla-domnode-markup-options"><a href="#outer-html">outerHTML</a> <strong><code>(domNode, markup, options)</code></strong></h2>
+<h2 id="a-hrefouter-htmlouterhtmla-mount-input-options"><a href="#outer-html">outerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the
 element you&#39;re modifying has a parent, you may also change the element type,
@@ -358,16 +384,16 @@ but this isn&#39;t really recommended.</p>
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>domNode</strong></td>
-<td>A DOM Node to change.</td>
+<td><strong>mount</strong></td>
+<td>The root DOM node to update including attributes and children.</td>
 </tr>
 <tr>
-<td><strong>markup</strong></td>
-<td>New markup to replace the entire <code>domNode</code> with.</td>
+<td><strong>input</strong></td>
+<td>New markup to replace into <strong>mount</strong>.</td>
 </tr>
 <tr>
 <td><strong>options</strong></td>
-<td><ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out completely to run custom logic instead.</li><li><strong>parser:</strong> Settings which influence the HTML parser, not available with the runtime build.</li></ul></td>
+<td><ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul></td>
 </tr>
 </tbody></table>
 <p><a name="html"></a></p>
@@ -386,7 +412,7 @@ useful when working with Web Components, DOM events,</p>
 after it, like the example below, it will be automatically trimmed. If you
 provide multiple elements, the whitespace becomes</p>
 <p>A simple example of its usage along with interpolation.</p>
-<pre><code class="language-js">html`
+<pre><code class="language-js">const vTree = html`
   &lt;body&gt;
     &lt;center style=${{ fontSize: &#39;11px&#39; }}&gt;Hello world&lt;/center&gt;
   &lt;/body&gt;
@@ -406,15 +432,13 @@ all representing an element (or many elements).</p>
 <p><a name="use"></a></p>
 <hr></hr>
 <h2 id="a-hrefuseusea-middlewarefunction-or-middlewareobject"><a href="#use">use</a> <strong><code>(middlewareFunction or middlewareObject)</code></strong></h2>
-<p>Can be used to mount pre-existing middleware or you can write your own.
-Middleware are effectively hooks that execute in various areas of the
-reconciler during a render call such as <code>innerHTML</code> or <code>outerHTML</code>.</p>
-<p>A function is useful when you want to follow the transactions (which are
-started and run a series of tasks), and passing an object can be cleaner when
-you want to modify the Virtual Tree or automatically add properties.</p>
+<p>This function is used to hook plugins into your render pipeline. These plugins
+are referred to as middleware. They are meant for advanced use cases such as
+observing the render flow, modifying attributes or elements, and more.</p>
+<p>Middleware can be enabled and disabled via code or the browser DevTools.</p>
 <p>
-    <a href="/middleware.html#writing-middleware" title="null"><strong>Refer to the Middleware documentation for more in-depth
-information.</strong></a>
+    <a href="/middleware.html" title="null"><strong>Refer to the Middleware documentation for documentation on writing your own
+and find existing plugins.</strong></a>
   </p>
 <h3 id="arguments-3">Arguments</h3>
 <table>
@@ -430,10 +454,10 @@ information.</strong></a>
 </tr>
 <tr>
 <td><strong>middlewareObject</strong></td>
-<td>Use this when you don&#39;t care about the transaction start/stop, and want a cleaner way to monitor the VTree lifecycle. <p><b>- createTreeHook</b></p><p><b>- syncTreeHook</b></p> <p><b>- releaseHook</b></p><p><b>- subscribe</b></p><p><b>- unsubscribe</b></p></td>
+<td>Use this when you don&#39;t care about the transaction start/stop, and want a cleaner way to monitor the VTree lifecycle. <ul><li>displayName</li><li>createNodeHook</li><li>createTreeHook</li><li>syncTreeHook</li><li>releaseHook</li><li>subscribe</li><li>unsubscribe</li></ul></td>
 </tr>
 </tbody></table>
-<h3 id="examples">Examples</h3>
+<h3 id="examples-1">Examples</h3>
 <h4 id="logging-the-start-of-a-render-transaction">Logging the start of a render transaction</h4>
 <pre><code class="language-js">function someTask(transaction) {
   console.log(&#39;Start of render transaction:&#39;, transaction);
@@ -579,9 +603,9 @@ diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
 <p><a name="create-tree"></a></p>
 <hr></hr>
 <h2 id="a-hrefcreate-treecreatetreea-nodename-attributes-childnodes"><a href="#create-tree">createTree</a> <strong><code>(nodeName, attributes, ...childNodes)</code></strong></h2>
-<p>Creates a Virtual Tree which can be interpolated and rendered. This has a
-similar purpose to hyperscript&#39;s <code>h()</code> and React&#39;s <code>createElement</code>.</p>
-<p>Example:</p>
+<p>Creates a Virtual Tree (VTree) which can be interpolated and rendered. This has
+a similar purpose to hyperscript&#39;s <code>h()</code> and React&#39;s <code>createElement</code>.</p>
+<p>Examples:</p>
 <pre><code class="language-js">const attributes = {
   id: &#39;test&#39;,
   style: &#39;color: red&#39;,
@@ -603,7 +627,7 @@ const div = createTree(&#39;div&#39;, attributes, childNodes);</code></pre>
 </thead>
 <tbody><tr>
 <td><strong>nodeName</strong></td>
-<td>A string for HTML, or if using components or middleware other types, like functions</td>
+<td>A string for HTML, or couuld be a component or other types like functions when using middleware</td>
 </tr>
 <tr>
 <td><strong>attributes</strong></td>
@@ -616,7 +640,7 @@ const div = createTree(&#39;div&#39;, attributes, childNodes);</code></pre>
 </tbody></table>
 <p><a name="release"></a></p>
 <hr></hr>
-<h2 id="a-hrefreleasereleasea-domnode"><a href="#release">release</a> <strong><code>(domNode)</code></strong></h2>
+<h2 id="a-hrefreleasereleasea-mount"><a href="#release">release</a> <strong><code>(mount)</code></strong></h2>
 <p>Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
 testing and general cleanup when you&#39;re done with an element. Applications will
@@ -630,18 +654,15 @@ probably not use this if the app lives as long as the tab.</p>
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>domNode</strong></td>
-<td>The root DOM Node to release memory around</td>
+<td><strong>mount</strong></td>
+<td>Release memory and all internal references to the DOM node.</td>
 </tr>
 </tbody></table>
-<p>This method should fully release everything related to the rendering, but its
-possible an untested code path is hit, so you should track the internal memory
-allocations to verify that memory isn&#39;t causing a problem.</p>
 <h4 id="domnode">domNode</h4>
 <p><em>Reference element.</em></p>
 <p>This argument is overloaded. Can be one of many types:</p>
 <ul>
-<li>HTML Element / DOM Node (Used interchangeably)</li>
+<li>HTML Element / DOM node (Used interchangeably)</li>
 <li>Virtual Tree Element (produced from <code>diff.html</code>)</li>
 </ul>
 <p><a name="internals"></a></p>
@@ -669,7 +690,7 @@ additional cleanup here.</p>
 <p>A JavaScript Set object that contains functions that trigger whenever Virtual
 Trees are compared.</p>
 <h3 id="a-namenode-cache-hrefnode-cachenodecachea"><a name="node-cache" href="#node-cache">NodeCache</a></h3>
-<p>A Map that can be used to get access to the DOM Node associated to a VTree.
+<p>A Map that can be used to get access to the DOM node associated to a VTree.
 This is comparable to <code>findDOMNode</code> in React. Basically if you encounter an
 object that the documentation says is a VTree and you want to convert to a DOM
 Node, you could write something like:</p>
@@ -731,7 +752,7 @@ asynchronous.</p>
 <hr></hr>
 <h2 id="a-hrefversionversiona"><a href="#version">VERSION</a></h2>
 <p>Property which indicates the current running version of diffHTML.</p>
-<h3 id="example-1">Example</h3>
+<h3 id="example">Example</h3>
 <pre><code class="language-js">console.log(VERSION);</code></pre>
 <hr></hr>
 </section>

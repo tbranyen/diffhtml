@@ -14,11 +14,15 @@ class DevtoolsFooter extends WebComponent {
 
       <div class="ui search">
         <div class="ui left aligned icon input">
-          <input class="prompt" type="text" placeholder="Search for Components / Values/ Changes...">
-          <i class="search icon"></i>
+          <input
+            class="prompt"
+            type="text"
+            placeholder="Search for Components / Values/ Changes..."
+          />
+          <i class="search icon" />
         </div>
 
-        <slot></slot>
+        <slot />
       </div>
     `;
   }

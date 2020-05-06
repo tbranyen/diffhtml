@@ -1,14 +1,4 @@
-import {
-  createTree,
-  innerHTML,
-  outerHTML,
-  use,
-  html,
-  addTransitionState,
-  removeTransitionState,
-  release,
-  Internals,
-} from 'diffhtml';
+import { createTree, innerHTML, use, Internals } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 import Children from './children';
@@ -24,42 +14,70 @@ if (typeof document !== 'undefined') {
 
 const REACT_ELEMENT_TYPE = Symbol.for('react.element') || 0xeac7;
 
+
+
+// Bind the React compat middleware task to take care of things that
+// diffhtml-components does not handle.
 use({
   displayName: 'reactCompatTask',
 
-  createTreeHook(tree) {
-    tree.$$typeof = REACT_ELEMENT_TYPE;
+  // Whenever a component is removed, delete the $$typeof property.
+  releaseHook(vTree) {
+    if (vTree.$$typeof) {
+      delete vTree.$$typeof;
+    }
+  },
 
-    const attributes = keys(tree.attributes);
+  createTreeHook(vTree) {
+    const attributes = keys(vTree.attributes);
+
+    if (attributes.includes('children')) {
+      const childNodes = vTree.childNodes.length
+        ? vTree.childNodes
+        : Children.toArray(vTree.attributes.children);
+
+      const newNodes = childNodes.map(childNode => {
+        if (typeof childNode === 'string') {
+          return createTree('#text', childNode);
+        }
+        else {
+          return createTree(childNode);
+        }
+      });
+
+      vTree.childNodes = newNodes;
+    }
+    else {
+      vTree.attributes.children = vTree.childNodes;
+    }
 
     // Merge className into class
     if (attributes.includes('className')) {
-      tree.attributes.class = `${tree.attributes.class} ${tree.attributes.className}`;
+      vTree.attributes.class = `
+        ${vTree.attributes.class || ''}
+        ${vTree.attributes.className}
+      `.trim();
     }
 
     if (attributes.includes('htmlFor')) {
-      tree.attributes.for = tree.attributes.htmlFor;
+      vTree.attributes.for = vTree.attributes.htmlFor;
     }
 
-    if (attributes.includes('children')) {
-      const childNodes = tree.childNodes.length ? tree.childNodes : Children.toArray(tree.attributes.children);
-      const newNodes = childNodes.map(createTree);
-
-      tree.childNodes = newNodes;
+    if (typeof vTree.rawNodeName === 'function') {
+      // Mark this as a React element.
+      vTree.$$typeof = REACT_ELEMENT_TYPE;
     }
 
+    // Normalize all the event names.
     attributes.forEach(name => {
       if (name.indexOf('on') === 0) {
-        tree.attributes[name.toLowerCase()] = tree.attributes[name];
+        vTree.attributes[name.toLowerCase()] = vTree.attributes[name];
       }
     });
   },
 });
 
-const createRef = () => ({
-  current: null,
-});
-
+const createRef = () => ({ current: null });
 const render = (component, mount, opts) => innerHTML(mount, component, opts);
 
 const isValidElement = object => (
@@ -71,12 +89,30 @@ const isValidElement = object => (
 const createFactory = ctor => createTree.bind(null, ctor);
 
 const cloneElement = ({ rawNodeName, attributes }, props, ...children) => {
-  return createElement(rawNodeName, assign(attributes, props), ...children);
+  return createTree(rawNodeName, assign(attributes, props), children);
 };
 
 const findDOMNode = vTree => NodeCache.get(vTree) || null;
 
 const internals = {};
+
+Component.prototype.componentWillMount = function(...args) {
+  if (this.UNSAFE_componentWillMount) {
+    this.UNSAFE_componentWillMount(...args);
+  }
+};
+
+Component.prototype.componentWillReceiveProps = function(...args) {
+  if (this.UNSAFE_componentWillReceiveProps) {
+    this.UNSAFE_componentWillReceiveProps(...args);
+  }
+};
+
+Component.prototype.componentWillUpdate = function(...args) {
+  if (this.UNSAFE_componentWillUpdate) {
+    this.UNSAFE_componentWillUpdate(...args);
+  }
+};
 
 export {
   internals as __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
@@ -92,15 +128,6 @@ export {
   isValidElement,
   PropTypes,
   findDOMNode,
-  // diffHTML API
-  html,
-  createTree,
-  innerHTML,
-  outerHTML,
-  use,
-  release,
-  addTransitionState,
-  removeTransitionState,
 };
 
 export default {
@@ -117,13 +144,4 @@ export default {
   isValidElement,
   PropTypes,
   findDOMNode,
-  // diffHTML API
-  html,
-  createTree,
-  innerHTML,
-  outerHTML,
-  use,
-  release,
-  addTransitionState,
-  removeTransitionState,
 }

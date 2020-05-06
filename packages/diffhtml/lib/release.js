@@ -33,8 +33,10 @@ export default function release(domNode) {
   const asHTMLElement = /** @type {HTMLElement} */(domNode);
 
   // Crawl the childNodes if this is an HTMLElement for state trees.
-  for (let i = 0; i < asHTMLElement.childNodes.length; i++) {
-    release(asHTMLElement.childNodes[i]);
+  if (asHTMLElement.childNodes && asHTMLElement.childNodes.length) {
+    for (let i = 0; i < asHTMLElement.childNodes.length; i++) {
+      release(asHTMLElement.childNodes[i]);
+    }
   }
 
   // If there is a shadowRoot attached to the DOM node, attempt

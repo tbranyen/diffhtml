@@ -4,7 +4,6 @@ const cacheTask = [];
 const selectors = new Map();
 const { assign } = Object;
 const toggleMiddleware = {};
-const placeholders = new Set();
 const anon = 'anonymous_';
 
 function getMiddlewareName(userMiddleware, i) {
@@ -67,7 +66,7 @@ export default function devTools(Internals) {
     if (!vTree) { return vTree; }
 
     if (typeof vTree.rawNodeName === 'function') {
-      vTree.nodeName = vTree.rawNodeName.name;
+      vTree.nodeName = vTree.rawNodeName.displayName || vTree.rawNodeName.name;
     }
 
     vTree.childNodes = vTree.childNodes.map(filterVTree);
@@ -94,8 +93,7 @@ export default function devTools(Internals) {
     const middleware = [];
 
     MiddlewareCache.forEach(userMiddleware => {
-      const [ raw, name ] = getMiddlewareName(userMiddleware);
-
+      const [ __unused, name ] = getMiddlewareName(userMiddleware);
       middleware.push(name);
     });
 
@@ -131,7 +129,7 @@ export default function devTools(Internals) {
 
     const isFunction = typeof domNode.rawNodeName === 'function';
     const selector = unique(domNode) ||
-      `${isFunction ? domNode.rawNodeName.name : domNode.rawNodeName}`;
+      `${isFunction ? domNode.rawNodeName.displayName || domNode.rawNodeName.name : domNode.rawNodeName}`;
     const startDate = performance.now();
 
     // If we are getting renders too quickly, restrict them from being sent.
@@ -199,6 +197,7 @@ export default function devTools(Internals) {
         if (!extension) {
           cacheTask.push(() => stop());
         } else {
+
           extension.activate(getInternals());
           stop();
         }
@@ -210,9 +209,10 @@ export default function devTools(Internals) {
     const devToolsExtension = await pollForFunction();
 
     extension = devToolsExtension().activate({
-      // TODO Use these instead of cacheTask
+      // Reset counts per unique activation.
       inProgress: initial ? [] : null,
       completed: initial ? [] : null,
+
       ...getInternals(),
     });
   }
@@ -244,7 +244,7 @@ export default function devTools(Internals) {
     await setExtension(true);
 
     // Start keep-alive in case we disconnect.
-    keepAlive();
+    //keepAlive();
 
     // Call existing cached tasks.
     if (cacheTask.length) {

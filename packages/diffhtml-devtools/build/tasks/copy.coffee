@@ -35,7 +35,7 @@ module.exports = ->
             '!_assets/**'
           ]
           expand: true
-          cwd: 'shared'
+          cwd: 'lib'
           dest: chromeDest
         }
         {

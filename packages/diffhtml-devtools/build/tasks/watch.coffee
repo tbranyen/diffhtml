@@ -6,7 +6,7 @@ module.exports = ->
       files: [
         'chrome-extension/**/*'
         '!chrome-extension/dist/**/*'
-        'shared/**/*'
+        'lib/**/*'
       ]
 
       tasks: [

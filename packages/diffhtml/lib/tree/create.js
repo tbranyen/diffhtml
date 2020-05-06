@@ -28,9 +28,8 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     entry = /** @type {VTree } */ (input);
   }
 
-  // A fragment is used whenever an array is passed directly into createTree,
-  // and all children are mapped into this call as well.  This is also what is
-  // returned when no input is passed `createTree()`.
+  // A fragment is used whenever an array is passed directly into createTree.
+  // This is also what is returned when no input is passed.
   else if (!input || isArray(input)) {
     const length = input ? input.length : 0;
 
@@ -38,7 +37,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     // When using an Array copy the Nodes in and ensure a valid top-level tree.
     for (let i = 0; i < length; i++) {
-      childNodes.push(createTree(input[i]));
+      childNodes.push(input[i]);
     }
 
     entry = createTree(fragmentName, null, childNodes);
@@ -126,7 +125,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     return entry;
   }
 
-  // Assume any object value is a valid VTree-like object.
+  // Assume any remaining objects are VTree-like.
   if (isObject) {
     /** @type {VTreeLike} */
     const {
@@ -164,22 +163,33 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   // Allocate a new VTree from the pool.
   entry = Pool.get();
+
   const isTextNode = input === textName;
   const isString = typeof input === 'string';
-  const rawName = /** @type {string} */ (isString ? input : fragmentName);
 
-  entry.key = '';
-  entry.rawNodeName = input;
-  entry.nodeName = rawName.toLowerCase();
-  entry.childNodes.length = 0;
+  // This is a standard HTML element.
+  if (isString) {
+    entry.rawNodeName = input;
+    entry.nodeName = entry.rawNodeName.toLowerCase();
+  }
+  // Otherwise treat this as a fragment, since we have no idea what type of
+  // element it is.
+  else {
+    entry.rawNodeName = input;
+    entry.nodeName = fragmentName;
+  }
+
+  // Clear out and reset the remaining VTree attributes.
   entry.nodeValue = '';
-  entry.nodeType = 1;
+  entry.key = '';
+  entry.childNodes.length = 0;
   entry.attributes = {};
 
   const useAttributes = isArray(attributes) || typeof attributes !== 'object';
   const useNodes = useAttributes ? attributes : childNodes;
   const allNodes = isArray(useNodes) ? useNodes : [useNodes];
 
+  // Ensure nodeType is set correctly, and if this is a text node, return early.
   if (isTextNode) {
     const nodeValue = allNodes.join('');
 
@@ -188,12 +198,14 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     return entry;
   }
-
-  if (rawName === fragmentName) {
+  else if (entry.nodeName === fragmentName) {
     entry.nodeType = 11;
   }
   else if (input === '#comment') {
     entry.nodeType = 8;
+  }
+  else {
+    entry.nodeType = 1;
   }
 
   if (useNodes && allNodes.length) {

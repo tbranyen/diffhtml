@@ -88,18 +88,25 @@ class Component {
      */
     const domNode = (childNodes[0]);
 
-    // If there is no DOM Node association then error out.
-    if (process.env.NODE_ENV !== 'production') {
-      if (!domNode) {
-        throw new Error('Missing DOM Node association to this component');
-      }
-
-      // Throw an error if we are not connected, cannot use stateful components
-      // if they are rendered shallow.
-      if (!domNode.parentNode) {
-        throw new Error('Cannot use stateful features when shallow rendered');
-      }
+    // Do not attempt to re-render if we do not have prior children.
+    // TODO This is cheating until there is a better way to determine if a
+    // component has rendered or not.
+    if (!domNode || !domNode.parentNode) {
+      return;
     }
+
+    // If there is no DOM Node association then error out.
+    //if (process.env.NODE_ENV !== 'production') {
+    //  if (!domNode) {
+    //    throw new Error('Missing DOM Node association to this component');
+    //  }
+
+    //  // Throw an error if we are not connected, cannot use stateful components
+    //  // if they are rendered shallow.
+    //  if (!domNode.parentNode) {
+    //    throw new Error('Cannot use stateful features when shallow rendered');
+    //  }
+    //}
 
     const { parentNode } = domNode;
 

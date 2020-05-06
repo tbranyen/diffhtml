@@ -85,6 +85,7 @@ export const Mount = '';
 /**
  * @typedef {Object} Middleware - defines Middleware
  *
+ * @property {string=} displayName
  * @property {Function=} subscribe
  * @property {Function=} unsubscribe
  * @property {Function=} createTreeHook
@@ -92,6 +93,11 @@ export const Mount = '';
  * @property {Function=} syncTreeHook
  * @property {Function=} releaseHook
  */
+
+/**
+ * @type {Middleware} implements Middleware
+ */
+export const Middleware = {};
 
 /**
  * @typedef {Object} ParserOptions - defines ParserOptions type
@@ -118,11 +124,6 @@ export const ParserOptions = {};
  * @type {Options} implements VTree
  */
 export const Options = {};
-
-/**
- * @type {Middleware} implements Middleware
- */
-export const Middleware = {};
 
 /**
  * @typedef {Object} Supplemental - defines Supplemental

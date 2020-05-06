@@ -3,7 +3,7 @@ import { runTransitions } from '../transition';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
 import { PATCH_TYPE, ValidNode, VTree } from '../util/types';
-import { NodeCache } from '../util/caches';
+import { NodeCache, TransitionCache } from '../util/caches';
 
 const { keys } = Object;
 const blacklist = new Set();
@@ -266,7 +266,7 @@ export default function patchNode(patches, state = {}) {
         // Patching without an existing DOM Node is a mistake, so we should not
         // attempt to do anything in this case.
         if (!domNode) {
-          continue;
+          break;
         }
 
         protectVTree(newTree);
@@ -302,13 +302,31 @@ export default function patchNode(patches, state = {}) {
         // Patching without an existing DOM Node is a mistake, so we should not
         // attempt to do anything in this case.
         if (!oldDomNode || !oldDomNode.parentNode) {
-          continue;
+          break;
         }
 
         // Ensure the `newTree` is protected before any DOM operations occur.
         // This is due to the `connectedCallback` in Web Components firing off,
         // and possibly causing a `gc()` to wipe this out.
         protectVTree(newTree);
+
+        // Check if there are any transitions, if none, then we can skip
+        // inserting and removing, and instead use a much faster replaceChild.
+        const hasAttached = TransitionCache.get('attached').size;
+        const hasDetached = TransitionCache.get('detached').size;
+        const hasReplaced = TransitionCache.get('replaced').size;
+
+        // In the hot path, ensure we always use the fastest operation given
+        // the constraints. If there are no transitions, do not use the more
+        // expensive, but more expressive path.
+        if (!hasAttached && !hasDetached && !hasReplaced) {
+          if (oldDomNode.parentNode) {
+            unprotectVTree(oldTree);
+            oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+          }
+
+          break;
+        }
 
         // Always insert before to allow the element to transition.
         if (oldDomNode.parentNode) {
@@ -355,7 +373,7 @@ export default function patchNode(patches, state = {}) {
         const domNode = /** @type {HTMLElement} */ (NodeCache.get(vTree));
 
         if (!domNode || !domNode.parentNode) {
-          continue;
+          break;
         }
 
         const detachedPromises = runTransitions('detached', vTree);

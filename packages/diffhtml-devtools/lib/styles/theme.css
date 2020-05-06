@@ -24,6 +24,14 @@
   border: 1px solid #FFF;
 }
 
+.ui.attached.tabular.menu a {
+  color: #757575;
+}
+
+.ui.attached.tabular.menu.inverted a {
+  color: #FFFFFF;
+}
+
 .ui.toggle.checkbox.inverted input:checked~.box,
 .ui.toggle.checkbox.inverted input:checked~label {
   color: #FFF !important;
@@ -36,4 +44,24 @@
 
 .ui.table thead tr th {
   border-radius: 0;
+}
+
+.ui.attached.menu {
+  border-color: #DEDEDE;
+}
+
+.ui.attached.menu .item,
+.ui.attached.menu .active.item {
+  border-top: 0;
+  border-radius: 0 !important;
+}
+
+.ui.attached.menu .active.item {
+  border-color: #DEDEDE;
+}
+
+.ui.attached.tab {
+  border: none;
+  flex: 1;
+  padding: 0;
 }

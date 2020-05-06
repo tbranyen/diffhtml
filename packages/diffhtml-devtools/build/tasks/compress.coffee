@@ -8,7 +8,7 @@ module.exports = ->
         mode: 'zip'
 
       files: [
-        { src: ['**/*'], expand: true, cwd: 'shared' }
+        { src: ['**/*'], expand: true, cwd: 'lib' }
         {
           src: [
             'key.pem'

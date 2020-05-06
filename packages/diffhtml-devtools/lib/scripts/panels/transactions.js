@@ -23,12 +23,13 @@ class DevtoolsTransactionsPanel extends WebComponent {
     isExpanded: false,
     expandedIndex: -1,
     autoScroll: 'autoScroll' in localStorage ? localStorage.autoScroll === 'true' : true,
+    activeTab: 'patches',
   }
 
   render() {
     const { clearEntries, inProgress, completed } = this.props;
-    const { expandedIndex, isExpanded, autoScroll } = this.state;
-    const { toggleAutoscroll } = this;
+    const { expandedIndex, isExpanded, autoScroll, activeTab } = this.state;
+    const { toggleAutoscroll, setActive } = this;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -43,7 +44,6 @@ class DevtoolsTransactionsPanel extends WebComponent {
           ${isExpanded && html`
             <p>
               This panel shows you when a render occured and what was patched.
-              Set the sampling rate in <a href="#settings">Settings</a>.
             </p>
 
             <div class="ui toggle checkbox">
@@ -64,13 +64,13 @@ class DevtoolsTransactionsPanel extends WebComponent {
       </div>
 
       <div class="wrapper">
-        <div class="rows">
-          ${expandedIndex === -1 && html`
-            <table class="header ui fixed celled sortable selectable structured table striped">
+        ${expandedIndex === -1 && html`
+          <div class="rows">
+            <table class="header ui fixed celled sortable selectable structured table striped unstackable">
               <thead>
                 <tr>
                   <th rowspan="2"></th>
-                  <th class="center aligned" rowspan="2">Time</th>
+                  <th class="center aligned" rowspan="2">Duration</th>
                   <th class="center aligned" rowspan="2">Status</th>
                   <th class="center aligned" rowspan="2">Mount</th>
                   <th class="center aligned" rowspan="2">Transitions</th>
@@ -89,7 +89,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
               </thead>
             </table>
 
-            <table class="ui fixed celled sortable selectable structured table striped">
+            <table class="ui fixed celled sortable selectable structured table striped unstackable">
               ${completed
                 .sort(transaction => transaction.startDate)
                 .map((transaction, index) => html`
@@ -130,12 +130,22 @@ class DevtoolsTransactionsPanel extends WebComponent {
                 </tbody>
               `}
             </table>
-          `}
+          </div>
+        `}
 
-          ${expandedIndex !== -1 && html`
-            <i class="icon close" onClick=${this.toggleExpanded(-1)}></i>
-          `}
-        </div>
+        ${expandedIndex !== -1 && html`
+          <div class="ui attached tabular menu">
+            <div class="item ${activeTab === 'patches' && 'active'}">
+              <a href="#" onClick=${setActive('patches')}>Patches</a>
+            </div>
+
+            <div class="item ${activeTab === 'diff' && 'active'}">
+              <a href="#" onClick=${setActive('diff')}>Diff</a>
+            </div>
+          </div>
+
+          <i class="icon close" onClick=${this.toggleExpanded(-1)}></i>
+        `}
       </div>
     `;
   }
@@ -155,14 +165,13 @@ class DevtoolsTransactionsPanel extends WebComponent {
         border-top: 0;
         margin-top: 0;
         margin-bottom: 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-radius: 0 !important;
         background: #FFF;
         color: #333;
-        border-radius: 0 !important;
         user-select: none;
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-start;
-        align-items: flex-end;
       }
 
       .ui.segment .content {
@@ -183,13 +192,16 @@ class DevtoolsTransactionsPanel extends WebComponent {
         display: flex;
         font-size: 11px;
         overflow: hidden;
+        height: 100%;
+        flex-direction: column;
       }
 
       .wrapper > .rows {
         border: none;
-        display: inline-block;
         overflow-y: auto;
+        overflow-x: hidden;
         height: 100%;
+        width: 100%;
         padding-left: 0px;
       }
 
@@ -234,27 +246,24 @@ class DevtoolsTransactionsPanel extends WebComponent {
         user-select: none;
       }
 
-      thead th {
+      .ui.table thead th {
         position: relative;
         border-radius: 0;
+        border-color: #DEDEDE !important;
       }
 
       .ui.table thead tr:first-child>th:last-child {
         border-radius: 0;
+        border-right: 0;
       }
 
       .ui.celled.table tr td:first-child, .ui.celled.table tr th:first-child {
-        border-right: none;
+        border-right: 0;
       }
 
       tbody tr td:first-child,
       thead tr th:first-child {
-        border-left: none;
-      }
-
-      tbody tr td:last-child,
-      thead tr th:last-child {
-        border-right: none;
+        border-left: 0;
       }
 
       thead th:nth-child(1) { width: 40px; }
@@ -296,6 +305,11 @@ class DevtoolsTransactionsPanel extends WebComponent {
       const expandedIndex = this.state.expandedIndex === index ? -1 : index;
       this.setState({ expandedIndex });
     };
+  }
+
+  setActive = activeTab => ev => {
+    ev.preventDefault();
+    this.setState({ activeTab });
   }
 }
 

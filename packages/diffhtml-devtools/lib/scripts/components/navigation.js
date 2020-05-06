@@ -30,7 +30,7 @@ class DevtoolsNavigation extends WebComponent {
         </ol>
 
         <div class="credit">
-          <strong>Detected diffHTML: ${version}</strong>
+          <strong><img class="logo" src="/icons/logo-16-invert.png" />diffHTML: ${version}</strong>
           <hr>
           by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
         </div>
@@ -129,6 +129,12 @@ class DevtoolsNavigation extends WebComponent {
         font-size: 11px;
         padding: 25px;
       }
+
+      .logo {
+        position: relative;
+        top: 4px;
+        margin-right: 5px;
+      }
     `;
   }
 
@@ -140,12 +146,12 @@ class DevtoolsNavigation extends WebComponent {
       { route: 'mounts', label: 'Mounts', icon: 'sitemap' },
       { route: 'middleware', label: 'Middleware', icon: 'chain' },
       { route: 'health', label: 'Health', icon: 'heartbeat' },
-      { route: 'settings', label: 'Settings', icon: 'settings' },
-      //{ route: 'help', label: 'Help', icon: 'help' },
+      //{ route: 'settings', label: 'Settings', icon: 'settings' },
+      { route: 'help', label: 'Help', icon: 'help' },
     ],
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps() {
     const route = location.hash.slice(1);
     const routes = this.state.nav.map(nav => nav.route);
     const selected = routes.indexOf(route);

@@ -9,8 +9,8 @@ const entries = {
 };
 
 const dests = {
-  min: 'dist/logger.min.js',
-  umd: 'dist/logger.js',
+  min: 'dist/service-worker.min.js',
+  umd: 'dist/service-worker.js',
 }
 
 const { NODE_ENV = 'umd' } = process.env;

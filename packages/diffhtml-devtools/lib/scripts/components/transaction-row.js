@@ -164,6 +164,7 @@ class DevtoolsTransactionRow extends WebComponent {
       td {
         padding: 10px;
         text-align: center;
+        border-color: #DEDEDE;
       }
 
       td > * {
@@ -176,7 +177,7 @@ class DevtoolsTransactionRow extends WebComponent {
 
       td:nth-of-type(1) { width: 40px; border-left: 0; }
       td:nth-of-type(2) { width: 80px; }
-      td:nth-of-type(13) { border-right: 0; }
+      td:nth-of-type(11) { border-right: 0; }
 
       :host(:hover) td {
         background-color: #FFF4D3;

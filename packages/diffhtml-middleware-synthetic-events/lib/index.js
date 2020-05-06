@@ -114,6 +114,7 @@ const syntheticEvents = () => {
   function syntheticEventsTask() {
     return ({ patches }) => {
       const { length } = patches;
+      const { PATCH_TYPE, decodeEntities, createNode } = Internals;
 
       let i = 0;
 

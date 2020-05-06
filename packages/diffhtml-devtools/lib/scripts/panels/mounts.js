@@ -3,7 +3,6 @@ import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 
-const { isArray } = Array;
 const { keys } = Object;
 const { stringify } = JSON;
 const hasNonWhitespaceEx = /\S/;
@@ -12,20 +11,19 @@ class DevtoolsMountsPanel extends WebComponent {
   static propTypes = {
     mounts: PropTypes.array,
     inspect: PropTypes.func,
+    theme: PropTypes.string,
   }
 
   state = {
-    index: 0,
     isExpanded: false,
     activeVTree: null,
+    activeTab: 0,
   }
-
-  changeIndex = ({ target }) => this.setState({ index: target.selectedIndex })
 
   render() {
     const { mounts = [] } = this.props;
-    const { index, isExpanded, activeVTree } = this.state;
-    const { styles, changeIndex } = this;
+    const { isExpanded, activeVTree, activeTab } = this.state;
+    const { styles, setActive } = this;
 
     const options = mounts.map(({ selector }) => ({
       text: selector,
@@ -42,33 +40,12 @@ class DevtoolsMountsPanel extends WebComponent {
         </h3>
 
         ${isExpanded && html`
-          ${options.length && html`
-            <select oninput=${changeIndex}>
-              ${options.map(option => html`
-                <option value=${option.value}>${option.text}</option>
-              `)}
-            </select>
-          `}
+          <p>
+            Shows the rendered VTree for a given mount point. This could be a
+            top-level render or a component rendering itself.
+          </p>
         `}
       </div>
-
-      ${false && html`
-        <${Dropdown} text='File'>
-          <${Dropdown.Menu}>
-            <${Dropdown.Item} text='New' />
-            <${Dropdown.Item} text='Open...' description='ctrl + o' />
-            <${Dropdown.Item} text='Save as...' description='ctrl + s' />
-            <${Dropdown.Item} text='Rename' description='ctrl + r' />
-            <${Dropdown.Item} text='Make a copy' />
-            <${Dropdown.Item} icon='folder' text='Move to folder' />
-            <${Dropdown.Item} icon='trash' text='Move to trash' />
-            <${Dropdown.Divider} />
-            <${Dropdown.Item} text='Download As...' />
-            <${Dropdown.Item} text='Publish To Web' />
-            <${Dropdown.Item} text='E-mail Collaborators' />
-          </${Dropdown.Menu}>
-        </${Dropdown}>
-      `}
 
       ${false && html`
         <${Dropdown}
@@ -81,22 +58,25 @@ class DevtoolsMountsPanel extends WebComponent {
       `}
 
       ${!options.length && html`
-        <p>
+        <p class="no-mounts">
           <i class="icon exclamation circle"></i>
           <strong>No mounts found, have you rendered anything?</strong>
         </p>
       `}
 
       ${Boolean(options.length) && html`
-        <div class="ui mini icon input">
-          <input type="text" placeholder="Filter nodes">
-          <i class="search icon"></i>
+        <div class="ui attached tabular menu">
+          ${options.map((option, i) => html`
+            <div class="item ${activeTab === i && 'active'}">
+              <a href="#" onClick=${setActive(i)}>&lt;${option.text}&gt;</a>
+            </div>
+          `)}
         </div>
       `}
 
-      ${mounts[index] && mounts[index].tree && html`
+      ${mounts[activeTab] && mounts[activeTab].tree && html`
         <div class="wrapper">
-          ${this.renderVTree(mounts[index].tree)}
+          ${this.renderVTree(mounts[activeTab].tree)}
 
           ${activeVTree && html`
             <div class="vtree-sidepanel">
@@ -119,8 +99,8 @@ class DevtoolsMountsPanel extends WebComponent {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!this.state.activeVTree && nextProps.mounts[this.state.index]) {
-      this.state.activeVTree = nextProps.mounts[this.state.index].tree;
+    if (!this.state.activeVTree && nextProps.mounts[this.state.activeTab]) {
+      this.state.activeVTree = nextProps.mounts[this.state.activeTab].tree;
     }
   }
 
@@ -206,7 +186,6 @@ class DevtoolsMountsPanel extends WebComponent {
         ${Boolean(vTree.childNodes.length) && html`
           <div class="vtree-children">
             ${vTree.childNodes.filter(vTree => vTree).map(vTree => {
-              const hasNonWhitespace = hasNonWhitespaceEx.test(vTree.nodeValue);
               return this.renderVTree(vTree);
             })}
           </div>
@@ -215,7 +194,9 @@ class DevtoolsMountsPanel extends WebComponent {
     `;
   }
 
-  styles() {
+  styles = () => {
+    const { theme } = this.props;
+
     return `
       :host {
         display: flex;
@@ -267,7 +248,7 @@ class DevtoolsMountsPanel extends WebComponent {
         margin-bottom: 0;
       }
 
-      p {
+      .no-mounts {
         padding: 16px;
       }
 
@@ -315,9 +296,15 @@ class DevtoolsMountsPanel extends WebComponent {
         color: #FFF;
       }
 
-      .vtree-children:hover {
-        border-left: 2px solid #E8F4FF;
-      }
+      ${theme === 'dark' ? `
+        .vtree-children:hover {
+          border-left: 2px solid #333738;
+        }
+      ` : `
+        .vtree-children:hover {
+          border-left: 2px solid #E8F4FF;
+        }
+      `}
 
       .vtree-children {
         display: flex;
@@ -327,16 +314,18 @@ class DevtoolsMountsPanel extends WebComponent {
         border-left: 2px solid transparent;
       }
 
-      .vtree-header.active,
-      .vtree-header:hover {
-        color: #1E70BF;
-        background-color: #FAFFD4;
-      }
-
-      .inverted .vtree-header.active,
-      .inverted .vtree-header:hover {
-        background-color: #182125;
-      }
+      ${theme === 'dark' ? `
+        .vtree-header.active,
+        .vtree-header:hover {
+          background-color: #333738;
+        }
+      ` : `
+        .vtree-header.active,
+        .vtree-header:hover {
+          color: #1E70BF;
+          background-color: #FAFFD4;
+        }
+      `}
 
       .vtree-sidepanel {
         width: 50%;
@@ -371,6 +360,11 @@ class DevtoolsMountsPanel extends WebComponent {
         color: #a9a9a9;
       }
     `;
+  }
+
+  setActive = activeTab => ev => {
+    ev.preventDefault();
+    this.setState({ activeTab });
   }
 }
 

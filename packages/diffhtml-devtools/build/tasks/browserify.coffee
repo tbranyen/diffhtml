@@ -4,7 +4,7 @@ module.exports = ->
   @config 'browserify',
     'bridge':
       files:
-        'chrome-extension/dist/extension/js/bridge.js': ['shared/scripts/bridge.js']
+        'chrome-extension/dist/extension/js/bridge.js': ['lib/scripts/bridge.js']
 
       options:
         transform: ['babelify', 'brfs']
@@ -15,10 +15,10 @@ module.exports = ->
 
     'chrome-extension':
       files:
-        'chrome-extension/dist/extension/js/index.js': ['shared/scripts/index.js']
-        'chrome-extension/dist/extension/js/contentscript.js': ['shared/scripts/contentscript.js']
-        'chrome-extension/dist/extension/js/devtools.js': ['shared/scripts/devtools.js']
-        'chrome-extension/dist/extension/js/background.js': ['shared/scripts/background.js']
+        'chrome-extension/dist/extension/js/index.js': ['lib/scripts/index.js']
+        'chrome-extension/dist/extension/js/contentscript.js': ['lib/scripts/contentscript.js']
+        'chrome-extension/dist/extension/js/devtools.js': ['lib/scripts/devtools.js']
+        'chrome-extension/dist/extension/js/background.js': ['lib/scripts/background.js']
 
       options:
         transform: [
