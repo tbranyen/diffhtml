@@ -3,6 +3,7 @@ import componentWillUnmount from './lifecycle/component-will-unmount';
 import renderComponent from './render-component';
 import getContext from './get-context';
 import { ComponentTreeCache } from '../util/caches';
+import globalThis from '../util/global';
 
 const { assign } = Object;
 
@@ -32,8 +33,7 @@ function render(oldTree, newTree) {
 const releaseHook = vTree => componentWillUnmount(vTree);
 
 const createTreeHook = vTree => {
-  const root = typeof window !== 'undefined' ? window : global;
-  const { customElements } = root;
+  const { customElements } = globalThis;
   const Constructor = customElements && customElements.get(vTree.nodeName);
 
   if (typeof vTree.rawNodeName === 'function' || Constructor) {
@@ -46,8 +46,7 @@ const createNodeHook = vTree => {
   if (!vTree.nodeName.includes('-')) return;
 
   // Convert this to globalThis
-  const root = typeof window !== 'undefined' ? window : global;
-  const { customElements } = root;
+  const { customElements } = globalThis;
   const Constructor = customElements && customElements.get(vTree.nodeName);
 
   if (Constructor) {
