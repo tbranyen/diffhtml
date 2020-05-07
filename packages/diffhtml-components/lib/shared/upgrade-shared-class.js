@@ -1,14 +1,14 @@
-import { use } from 'diffhtml';
 import lifecycleHooks from './lifecycle-hooks';
 import setState from './set-state';
 import forceUpdate from './force-update';
-import componentTask from './middleware';
+import middleware from './middleware';
 import { ComponentTreeCache, InstanceCache } from '../util/caches';
+import { getBinding } from '../util/binding';
 
 const { assign } = Object;
 
-// Allow tests to unbind this task, you would not typically need to do this
-// in a web application, as this code loads once and is not reloaded.
+// Allow tests to unbind this task, you would not typically need to do this in
+// a web application, as this code loads once and is not reloaded.
 let unsubscribe = null;
 
 export default function upgradeClass(Constructor) {
@@ -17,7 +17,8 @@ export default function upgradeClass(Constructor) {
       unsubscribe();
     }
 
-    unsubscribe = use(componentTask());
+    // Pass the constructor in and have diffHTML apply
+    unsubscribe = getBinding().use(middleware(Constructor));
   };
 
   Constructor.unsubscribeMiddleware = () => {

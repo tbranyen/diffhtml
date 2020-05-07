@@ -68,7 +68,7 @@ class DevtoolsMountsPanel extends WebComponent {
         <div class="ui attached tabular menu">
           ${options.map((option, i) => html`
             <div class="item ${activeTab === i && 'active'}">
-              <a href="#" onClick=${setActive(i)}>&lt;${option.text}&gt;</a>
+              <a href="#" onClick=${setActive(i)}>&lt;${option.text.trim()}&gt;</a>
             </div>
           `)}
         </div>
@@ -167,7 +167,7 @@ class DevtoolsMountsPanel extends WebComponent {
       }
 
       return html`<div class="children">${childTextNodes.map(text => html`
-        <span>#text ${text.nodeValue}</span>
+        <span>${text.nodeValue}</span>
       `)}</div>`;
     };
 

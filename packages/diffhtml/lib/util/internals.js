@@ -23,5 +23,6 @@ export default {
   createNode,
   syncTree,
 
+  // Merge in caches.
   ...caches,
 };

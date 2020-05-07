@@ -16,12 +16,8 @@ import { __VERSION__ as VERSION } from './version';
 // At startup inject the HTML parser into the default set of tasks.
 defaultTasks.splice(defaultTasks.indexOf(reconcileTrees), 0, parseNewTree);
 
-// This is an internal API exported purely for middleware and extensions to
-// leverage internal APIs that are not part of the public API. There are no
-// promises that this will not break in the future. We will attempt to minimize
-// changes and will supply fallbacks when APIs change.
-//
-// Note: The HTML parser is only available in this mode.
+// Exposes the Internal APIs which may change. Once this project reaches a
+// stable version, this will only be able to break between major versions.
 const Internals = {
   ...internals,
 
@@ -31,6 +27,7 @@ const Internals = {
   VERSION,
 };
 
+// Build up the full public API.
 const api = {};
 
 api.VERSION = VERSION;
@@ -42,8 +39,6 @@ api.use = use;
 api.outerHTML = outerHTML;
 api.innerHTML = innerHTML;
 api.html = html;
-
-// Attach a circular reference to `Internals` for ES/CJS builds.
 api.Internals = Internals;
 
 /** @type {any} */
@@ -53,6 +48,10 @@ const global = globalThis;
 if (global.devTools) {
   global.unsubscribeDevTools = use(global.devTools(Internals));
 }
+
+// Bind the API into the global scope. Allows middleware and other code to
+// reference the core API.
+global[Symbol.for('diffHTML')] = api;
 
 export {
   VERSION,

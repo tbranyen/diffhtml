@@ -1,8 +1,6 @@
-import { createTree, innerHTML } from 'diffhtml';
-import process from './util/process';
-import PropTypes from './util/prop-types';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { $$render, $$vTree } from './util/symbols';
+import { getBinding } from './util/binding';
 
 const { defineProperty, assign, keys } = Object;
 const root = typeof window !== 'undefined' ? window : global;
@@ -67,12 +65,6 @@ class WebComponent extends root.HTMLElement {
 
       this.props[propName] = defaultProps[propName];
     });
-
-    if (process.env.NODE_ENV !== 'production') {
-      if (PropTypes.checkPropTypes) {
-        PropTypes.checkPropTypes(propTypes, this.props, 'prop', name);
-      }
-    }
   }
 
   connectedCallback() {
@@ -134,7 +126,10 @@ class WebComponent extends root.HTMLElement {
     const oldState = this.state;
 
     this.props = createProps(this, this.props);
-    innerHTML(this.shadowRoot, this.render(this.props, this.state, this.context));
+    getBinding().innerHTML(
+      this.shadowRoot,
+      this.render(this.props, this.state, this.context),
+    );
     this.componentDidUpdate(oldProps, oldState);
   }
 }

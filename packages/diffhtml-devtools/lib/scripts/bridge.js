@@ -58,9 +58,7 @@ export default function devTools(Internals) {
     });
   });
 
-  document.addEventListener('diffHTML:gc', () => {
-    Internals.memory.gc();
-  });
+  document.addEventListener('diffHTML:gc', () => Internals.memory.gc());
 
   const filterVTree = vTree => {
     if (!vTree) { return vTree; }

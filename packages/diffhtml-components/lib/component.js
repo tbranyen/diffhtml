@@ -1,11 +1,8 @@
-import process from './util/process';
-import PropTypes from './util/prop-types';
-import { outerHTML, createTree, Internals, release } from 'diffhtml';
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { ComponentTreeCache } from './util/caches';
 import { $$render, $$vTree } from './util/symbols';
+import { getBinding } from './util/binding';
 
-const { NodeCache, createNode, memory } = Internals;
 const { from } = Array;
 const { keys, assign } = Object;
 const FRAGMENT = '#document-fragment';
@@ -18,8 +15,9 @@ class Component {
     initialProps && (initialProps.refs || (initialProps.refs = {}));
 
     const props = this.props = assign({}, initialProps);
-    this.state = {};
     const context = this.context = assign({}, initialContext);
+
+    this.state = {};
 
     if (props.refs) {
       this.refs = props.refs;
@@ -40,13 +38,6 @@ class Component {
 
       this.props[prop] = defaultProps[prop];
     });
-
-    if (process.env.NODE_ENV !== 'production') {
-      if (PropTypes && PropTypes.checkPropTypes) {
-        PropTypes.checkPropTypes(propTypes, props, 'prop', name);
-        PropTypes.checkPropTypes(contextTypes, context, 'context', name);
-      }
-    }
   }
 
   [$$vTree] = null;
@@ -58,6 +49,9 @@ class Component {
    * @return {void}
    */
   [$$render]() {
+    const { outerHTML, createTree, release, Internals } = getBinding();
+    const { NodeCache, memory, createNode } = Internals;
+
     // Get the fragment tree associated with this component. This is used to
     // lookup rendered children.
     const vTree = this[$$vTree];
@@ -94,19 +88,6 @@ class Component {
     if (!domNode || !domNode.parentNode) {
       return;
     }
-
-    // If there is no DOM Node association then error out.
-    //if (process.env.NODE_ENV !== 'production') {
-    //  if (!domNode) {
-    //    throw new Error('Missing DOM Node association to this component');
-    //  }
-
-    //  // Throw an error if we are not connected, cannot use stateful components
-    //  // if they are rendered shallow.
-    //  if (!domNode.parentNode) {
-    //    throw new Error('Cannot use stateful features when shallow rendered');
-    //  }
-    //}
 
     const { parentNode } = domNode;
 

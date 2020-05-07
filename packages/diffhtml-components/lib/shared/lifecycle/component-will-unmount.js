@@ -1,7 +1,5 @@
-import { Internals, release } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../../util/caches';
-
-const { NodeCache } = Internals;
+import { getBinding } from '../../util/binding';
 
 const hasVTree = (matchTree, vTree) => {
   if (matchTree === vTree) {
@@ -12,9 +10,10 @@ const hasVTree = (matchTree, vTree) => {
 };
 
 export default function willUnmount(vTree) {
+  const diff = getBinding();
   const componentTree = ComponentTreeCache.get(vTree);
   const instances = InstanceCache.get(componentTree);
-  const domNode = NodeCache.get(vTree);
+  const domNode = diff.Internals.NodeCache.get(vTree);
 
   // TODO This needs to mirror component-did-mount where the refs map is
   // updated correctly.
@@ -36,7 +35,7 @@ export default function willUnmount(vTree) {
 
   // Clean up Shadow DOM (TODO what if the shadow dom is detached?).
   if (domNode && domNode.shadowRoot) {
-    release(domNode.shadowRoot);
+    diff.release(domNode.shadowRoot);
   }
 
   ComponentTreeCache.delete(vTree);

@@ -1,7 +1,7 @@
-import { createTree } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../util/caches';
 import { $$vTree } from '../util/symbols';
 import getContext from './get-context';
+import { getBinding } from '../util/binding';
 
 /**
  * Used during a synchronization flow. Takes in a vTree and a context object
@@ -9,6 +9,7 @@ import getContext from './get-context';
  * methods.
  */
 export default function renderComponent(vTree, context) {
+  const { createTree } = getBinding();
   const Component = vTree.rawNodeName;
   const props = vTree.attributes;
   const isNewable = Component.prototype && Component.prototype.render;

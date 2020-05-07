@@ -1,7 +1,5 @@
-import { Internals } from 'diffhtml';
 import { ComponentTreeCache, InstanceCache } from '../../util/caches';
-
-const { NodeCache } = Internals;
+import { getBinding } from '../../util/binding';
 
 const callRefs = vTrees => {
   for (let i = 0; i < vTrees.length; i++) {
@@ -18,7 +16,7 @@ const callRefs = vTrees => {
 
     // Pull the ref off the componentTree, or fall back to the DOM tree. This
     // allows DOM nodes to have refs called.
-    const domNode = NodeCache.get(vTree);
+    const domNode = getBinding().Internals.NodeCache.get(vTree);
 
     instances && instances.forEach(instance => {
       const { ref } = (instance.props || instance);

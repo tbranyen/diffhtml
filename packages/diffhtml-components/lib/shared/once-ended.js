@@ -1,11 +1,12 @@
-import { Internals } from 'diffhtml';
 import componentDidMount from './lifecycle/component-did-mount';
 import componentWillUnmount from './lifecycle/component-will-unmount';
+import { getBinding } from '../util/binding';
 
-const { NodeCache, PATCH_TYPE, decodeEntities } = Internals;
 const uppercaseEx = /[A-Z]/g;
 
 export default transaction => {
+  const { NodeCache, PATCH_TYPE, decodeEntities } = getBinding().Internals;
+
   if (transaction.aborted) {
     return;
   }

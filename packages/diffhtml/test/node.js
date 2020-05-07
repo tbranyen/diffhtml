@@ -427,6 +427,50 @@ describe('Node', function() {
       equal(domNode.style.fontWeight, 'bold');
     });
 
+    it('will unset checked=checked when removed', () => {
+      const vTree = html`<input />`;
+      const domNode = /** @type {HTMLInputElement} */ (createNode(vTree));
+
+      patchNode([
+        PATCH_TYPE.SET_ATTRIBUTE,
+        vTree,
+        'checked',
+        'checked',
+      ]);
+
+      patchNode([
+        PATCH_TYPE.REMOVE_ATTRIBUTE,
+        vTree,
+        'checked',
+      ]);
+
+      equal(domNode.checked, false);
+      equal(domNode.hasAttribute('checked'), false);
+      release(domNode);
+    });
+
+    it('will unset checked=true when removed', () => {
+      const vTree = html`<input />`;
+      const domNode = /** @type {HTMLInputElement} */ (createNode(vTree));
+
+      patchNode([
+        PATCH_TYPE.SET_ATTRIBUTE,
+        vTree,
+        'checked',
+        true,
+      ]);
+
+      patchNode([
+        PATCH_TYPE.REMOVE_ATTRIBUTE,
+        vTree,
+        'checked',
+      ]);
+
+      equal(domNode.checked, false);
+      equal(domNode.hasAttribute('checked'), false);
+      release(domNode);
+    });
+
     it('will set checked=checked as true', () => {
       const vTree = html`<input />`;
       const domNode = /** @type {HTMLInputElement} */ (createNode(vTree));

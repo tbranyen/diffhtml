@@ -1,2 +1,3 @@
-export const $$render = Symbol('diff.render');
-export const $$vTree = Symbol('diff.vTree');
+export const $$render = Symbol.for('diff.render');
+export const $$vTree = Symbol.for('diff.vTree');
+export const $$diffHTML = Symbol.for('diffHTML');
