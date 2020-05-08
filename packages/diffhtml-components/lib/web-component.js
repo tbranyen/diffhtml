@@ -1,13 +1,13 @@
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { $$render, $$vTree } from './util/symbols';
 import { getBinding } from './util/binding';
-import globalThis from './util/global';
 
 const { defineProperty, assign, keys } = Object;
 const nullFunc = function() {};
 const debounce = new Set();
+const root = typeof window !== 'undefined' ? window : global;
 
-globalThis.HTMLElement = globalThis.HTMLElement || nullFunc;
+root.HTMLElement = root.HTMLElement || nullFunc;
 
 // Convert observed attributes from passed PropTypes.
 const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
@@ -33,13 +33,13 @@ const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
 const $$timeout = Symbol.for('$$timeout');
 
-class WebComponent extends globalThis.HTMLElement {
+class WebComponent extends root.HTMLElement {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
   }
 
   constructor(props, context) {
-    if (globalThis.HTMLElement === nullFunc) {
+    if (root.HTMLElement === nullFunc) {
       throw new Error('Custom Elements require a valid browser environment');
     }
 
@@ -87,11 +87,11 @@ class WebComponent extends globalThis.HTMLElement {
       defineProperty(this, propName, {
         get: () => this.props[propName],
         set: (value) => {
-          globalThis.clearTimeout(timeout);
+          root.clearTimeout(timeout);
 
           this.props[propName] = value;
 
-          timeout = globalThis.setTimeout(() => {
+          timeout = root.setTimeout(() => {
             this[$$render]();
           }, 0);
         },
@@ -110,9 +110,9 @@ class WebComponent extends globalThis.HTMLElement {
     this.componentWillReceiveProps(nextProps);
 
     if (this.shouldComponentUpdate(nextProps, nextState)) {
-      globalThis.clearTimeout(this[$$timeout]);
+      root.clearTimeout(this[$$timeout]);
 
-      this[$$timeout] = globalThis.setTimeout(() => {
+      this[$$timeout] = root.setTimeout(() => {
         this[$$render]();
       }, 0);
     }
