@@ -1,6 +1,6 @@
 {
   "name": "diffHTML DevTools",
-  "version": "1.0.0.15",
+  "version": "1.0.0.16",
   "description": "Official diffHTML Chrome DevTools Extension",
   "permissions": [
     "tabs",
