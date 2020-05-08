@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-service-worker",
-  "version": "1.0.0-beta.15",
+  "version": "1.0.0-beta.16",
   "description": "Helps with service workers",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -28,7 +28,7 @@
     "@babel/cli": "^7.6.0",
     "@babel/core": "^7.6.0",
     "babel-preset-diffhtml-imports": "^1.0.0-beta.15",
-    "diffhtml": "^1.0.0-beta.15",
+    "diffhtml": "^1.0.0-beta.16",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-node-resolve": "^5.2.0",

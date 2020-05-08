@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-render-to-string",
-  "version": "1.0.0-beta.15",
+  "version": "1.0.0-beta.16",
   "description": "Renders diffHTML Virtual Trees to strings",
   "main": "index.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "test:ci": "npm run test"
   },
   "devDependencies": {
-    "diffhtml": "^1.0.0-beta.15",
-    "diffhtml-components": "^1.0.0-beta.15",
+    "diffhtml": "^1.0.0-beta.16",
+    "diffhtml-components": "^1.0.0-beta.16",
     "mocha": "^6.2.0"
   },
   "peerDependencies": {
