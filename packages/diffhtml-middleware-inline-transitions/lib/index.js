@@ -119,9 +119,6 @@ export default function inlineTransitions(options = {}) {
       // Unbind the associated global handler.
       const handler = boundHandlers[transitionName];
       Internals.TransitionCache.get(transitionName).delete(handler);
-
-      // Empty the associated element set.
-      map.clear();
     });
 
     // Empty the bound handlers.

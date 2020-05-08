@@ -218,7 +218,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
     else if (valueMatchesToken = tokenEx.exec(name)) {
       const nameAndValue = supplemental.attributes[valueMatchesToken[1]];
 
-      if (typeof nameAndValue === 'object') {
+      if (typeof nameAndValue === 'object' && !isArray(nameAndValue)) {
         assign(attributes, nameAndValue);
       }
       else {

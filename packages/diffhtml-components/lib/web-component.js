@@ -1,6 +1,7 @@
 import upgradeSharedClass from './shared/upgrade-shared-class';
 import { $$render, $$vTree } from './util/symbols';
 import { getBinding } from './util/binding';
+import './util/process';
 
 const { defineProperty, assign, keys } = Object;
 const nullFunc = function() {};

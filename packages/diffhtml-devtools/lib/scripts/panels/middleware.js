@@ -47,17 +47,19 @@ class DevtoolsMiddlewarePanel extends WebComponent {
           `)}
         </div>
 
-        <div class="ui bottom attached active tab segment">
-          <strong>Enabled</strong>
-          <div class="ui toggle checkbox">
-            <input
-              checked
-              type="checkbox"
-              onclick=${toggleMiddleware(name)}
-            />
-            <label></label>
+        ${activeMiddleware.map((name, i) => html`
+          <div class="ui bottom attached tab segment ${i === activeTab && 'active'}">
+            <strong>Enabled</strong>
+            <div class="ui toggle checkbox">
+              <input
+                checked
+                type="checkbox"
+                onclick=${toggleMiddleware(name)}
+              />
+              <label></label>
+            </div>
           </div>
-        </div>
+        `)}
       </div>
     `;
   }

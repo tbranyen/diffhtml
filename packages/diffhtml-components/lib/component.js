@@ -2,6 +2,7 @@ import upgradeSharedClass from './shared/upgrade-shared-class';
 import { ComponentTreeCache } from './util/caches';
 import { $$render, $$vTree } from './util/symbols';
 import { getBinding } from './util/binding';
+import './util/process';
 
 const { from } = Array;
 const { keys, assign } = Object;
