@@ -53,6 +53,22 @@ lerna publish
 
 Enter in your new version (using custom), unless you see it listed.
 
-### Take a deep breath
+### Update website
+
+The website pulls version information from the package.json files. The version
+gets bumped from the previous command. Now you need to run:
+
+```sh
+lerna run generate
+```
+
+To get the latest docs files built. Commit and push these:
+
+```sh
+git commit -am"Update website to 1.0.0-beta.9"
+git push
+```
+
+### Take a bow
 
 You've earned it.
