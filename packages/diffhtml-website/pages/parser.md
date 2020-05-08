@@ -2,10 +2,10 @@
 
 A core feature of diffHTML is the HTML/XML/SVG parser. This is used whenever
 you pass a string of markup or [use the html tagged template](/api.html#html)
-to [innerHTML](/api.html#inner-html)/[outerHTML](/api.html#ouuter-html). This
-works very similar to JSX where you are able to optimize away the parser. While
+to [innerHTML](/api.html#inner-html)/[outerHTML](/api.html#ouuter-html). While
 this code is optimized specifically for the VDOM and is very fast, you may want
-to optimize out the markup using the Babel plugin.
+to optimize out the parser using the [Babel
+plugin](/tools.html#babel-transform).
 
 The parser can read full HTML documents including doctype, html/head/body/title
 etc tags, unwrapped fragments, and more!
