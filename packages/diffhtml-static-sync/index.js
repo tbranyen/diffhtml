@@ -4,8 +4,6 @@ if (require.main === module) {
   return require('./lib/watch');
 }
 
-const { readFile, readFileSync } = require('fs');
-const { basename, join } = require('path');
 const { watch } = require('chokidar');
 const getSocket = require('./lib/socket');
 
@@ -16,7 +14,7 @@ exports.watch = (path, file, cb) => {
   const watcher = watch(path, { ignored: /[\/\\]\./, persistent: true, });
 
   getSocket.then(socket => {
-    watcher.on('change', path => cb(markup => socket.send(
+    watcher.on('change', () => cb(markup => socket.send(
       JSON.stringify({
         file,
         markup,

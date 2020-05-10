@@ -5,54 +5,10 @@ process.env.NODE_ENV = 'production';
 
 let interval = null;
 const domNodes = new Map();
-const SECRET = 'MY BRAIN IBM';
-const transactions = new Map();
-
-// TODO Pull diffHTML out in other ways.
-const { html, use, innerHTML, outerHTML, release, Internals } = (window.diff || diffhtml);
-
-//diffhtml.addTransitionState('textChanged', (domNode, name, oldValue, newValue) => {
-//  if (domNode.matches('script') &&) {
-//    if (oldValue !== newValue) {
-//      try {
-//        eval(newValue);
-//      }
-//      catch (ex) {
-//        console.log('Whoops, ya broke something, see you again shortly');
-//        throw ex;
-//      }
-//    }
-//  }
-//});
+const { html, outerHTML } = diffhtml;
 
 window.staticSyncHandlers = new Set();
 window.staticSyncSocket = undefined;
-
-//use(transaction => {
-//  transactions.set(transaction.domNode, transaction);
-//
-//  transactions.forEach((existingTransaction, existingDomNode)  => {
-//    const { options, state, domNode, markup } = existingTransaction;
-//
-//    if (state.isRendering || transaction.domNode === existingDomNode) {
-//      console.log('Not re-rendering', transaction);
-//      return;
-//    }
-//
-//    console.log('Re-rendering', transaction)
-//
-//    release(domNode);
-//
-//    if (options.inner) {
-//      innerHTML(domNode, markup);
-//    }
-//    else {
-//      outerHTML(domNode, markup);
-//    }
-//  });
-//
-//  return transaction;
-//});
 
 function open() {
   clearInterval(interval);
@@ -111,7 +67,7 @@ function open() {
       }
 
       const path = location.pathname.slice(1) || 'index';
-      const ext = file.split('.').slice(-1);
+      const ext = file.split('.').slice(-1)[0];
 
       if (
         file === true ||
@@ -122,30 +78,15 @@ function open() {
           ext === 'md'
         )
       ) {
-        if (!quiet) {
-          console.log(`Updated with: ${markup}`);
-        }
-
         const children = html(markup);
 
-        if (children.length > 1) {
-          innerHTML(document.documentElement, children);
+        if (children.childNodes.length > 1) {
+          outerHTML(document.documentElement, children.childNodes[1]);
         }
         else {
           outerHTML(document.documentElement, children);
         }
-
-        /*
-          .then(() => {
-            Internals.StateCache.forEach((state, domNode) => {
-              if (domNode !== document.documentElement) {
-                outerHTML(domNode, state.previousMarkup);
-              }
-            });
-          });
-        */
       }
-
       // All other files cause a full page reload.
       else {
         location.reload();

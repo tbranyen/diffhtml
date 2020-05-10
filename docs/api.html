@@ -301,26 +301,24 @@
         <hr></hr>
 
         <section id="content"><h1 id="a-hrefapihtmlcore-apia-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtmli-classfa-fa-githubia"><a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a></h1>
-<p>This documentation covers the core public API. This page stays up-to-date with
-the latest version. All of these methods work in the browser, with JSDOM, and
-directly in Node.</p>
 <pre><code class="language-sh">npm install diffhtml</code></pre>
-<p>Some diffHTML lingo to be aware of:</p>
+<p>This documentation covers the core public API and is central to the framework.
+All methods work in the browser, with JSDOM, and directly in Node. You use this
+to construct the Virtual DOM, synchronize changes, and patch the DOM.</p>
+<p>Some lingo to be aware of:</p>
 <ul>
-<li><p><strong>Transaction</strong>: A class structure which represents a set of changes to the
-DOM.</p>
-</li>
-<li><p><strong>VTree</strong>: Virtual Tree, represents the shape of a DOM node, Component,
+<li><strong>Transaction</strong>: A class structure which represents a set of changes to the
+DOM.</li>
+<li><strong>VTree</strong>: Virtual Tree, represents the shape of a DOM node, Component,
 etc. These objects are created when diffHTML first loads and help regulate
-memory usage.</p>
-</li>
-<li><p><strong>Mount</strong>: Most commonly a DOM node that you want to update, but can also be
-VTrees and other types.</p>
-</li>
+memory usage.</li>
+<li><strong>Mount</strong>: Most commonly a DOM node that you want to update, but can also be
+VTrees and other types.</li>
 </ul>
 <p><a name="inner-html"></a></p>
 <hr></hr>
 <h2 id="a-hrefinner-htmlinnerhtmla-mount-input-options"><a href="#inner-html">innerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
+<p>Compares the children of mount with input.</p>
 <p>The <code>innerHTML</code> and <code>outerHTML</code> methods are the most common to use. They allow
 you to mimic the respective browser feature, where you replace the contents of
 a DOM node and in the case of <code>outerHTML</code> replace the top-level element
@@ -333,12 +331,6 @@ An interesting feature is that you can pass in more than just DOM nodes. This
 comes in handy for advanced use cases such as</p>
 <p>What&#39;s nice about these methods is that all renders go through the same
 scheduling pipeline and VTrees are shared across all other renders.</p>
-<p>By calling these methods you are signaling intent that you want the mount to
-reflect the incoming input.</p>
-<ul>
-<li>Creating and scheduling a render transaction</li>
-<li></li>
-</ul>
 <h3 id="arguments">Arguments</h3>
 <table>
 <thead>
@@ -369,6 +361,7 @@ innerHTML(document.body, `
 <p><a name="outer-html"></a></p>
 <hr></hr>
 <h2 id="a-hrefouter-htmlouterhtmla-mount-input-options"><a href="#outer-html">outerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
+<p>Compares the attributes and children of mount with input.</p>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the
 element you&#39;re modifying has a parent, you may also change the element type,
@@ -774,8 +767,8 @@ asynchronous.</p>
         </footer>
       </layer>
 
-      
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+      <script src="/scripts/diffhtml.min.js"></script>
+      <script src="/scripts/highlight.min.js"></script>
       <script>
         try {
           hljs.initHighlightingOnLoad();

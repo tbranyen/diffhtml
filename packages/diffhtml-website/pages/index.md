@@ -102,6 +102,16 @@ import { innerHTML } from 'https://diffhtml.org/es';
   </iframe>
 </div>
 
+### Hacker News
+
+<div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
+  <iframe
+    src="https://glitch.com/embed/#!/embed/diffhtml-hackernews?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
+    title="diffhtml-hackernews on Glitch"
+    style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
+
 ### TodoMVC
 
 <div class="glitch-embed-wrap" style="height: 400px; width: 100%;">

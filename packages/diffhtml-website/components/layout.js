@@ -69,8 +69,8 @@ module.exports = ({ path, page, pages, content }) => html`
         </footer>
       </layer>
 
-      <!--<script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js"></script>-->
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+      <script src="/scripts/diffhtml.min.js"></script>
+      <script src="/scripts/highlight.min.js"></script>
       <script>
         try {
           hljs.initHighlightingOnLoad();

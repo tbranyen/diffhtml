@@ -309,10 +309,12 @@ to
     <a href="/api.html#inner-html" title="null">innerHTML</a>
   /
     <a href="/api.html#ouuter-html" title="null">outerHTML</a>
-  . This
-works very similar to JSX where you are able to optimize away the parser. While
+  . While
 this code is optimized specifically for the VDOM and is very fast, you may want
-to optimize out the markup using the Babel plugin.</p>
+to optimize out the parser using the 
+    <a href="/tools.html#babel-transform" title="null">Babel
+plugin</a>
+  .</p>
 <p>The parser can read full HTML documents including doctype, html/head/body/title
 etc tags, unwrapped fragments, and more!</p>
 <p><strong>Using with innerHTML:</strong></p>
@@ -494,8 +496,8 @@ innerHTML(document.body, vTree);</code></pre>
         </footer>
       </layer>
 
-      
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+      <script src="/scripts/diffhtml.min.js"></script>
+      <script src="/scripts/highlight.min.js"></script>
       <script>
         try {
           hljs.initHighlightingOnLoad();

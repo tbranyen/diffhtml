@@ -1,22 +1,20 @@
 # <a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a>
 
-This documentation covers the core public API. This page stays up-to-date with
-the latest version. All of these methods work in the browser, with JSDOM, and
-directly in Node.
-
 ``` sh
 npm install diffhtml
 ```
 
-Some diffHTML lingo to be aware of:
+This documentation covers the core public API and is central to the framework.
+All methods work in the browser, with JSDOM, and directly in Node. You use this
+to construct the Virtual DOM, synchronize changes, and patch the DOM.
+
+Some lingo to be aware of:
 
 - **Transaction**: A class structure which represents a set of changes to the
   DOM.
-
 - **VTree**: Virtual Tree, represents the shape of a DOM node, Component,
   etc. These objects are created when diffHTML first loads and help regulate
   memory usage.
-
 - **Mount**: Most commonly a DOM node that you want to update, but can also be
   VTrees and other types.
 
@@ -25,6 +23,8 @@ Some diffHTML lingo to be aware of:
 ---
 
 ## <a href="#inner-html">innerHTML</a> **`(mount, input, options)`**
+
+Compares the children of mount with input.
 
 The `innerHTML` and `outerHTML` methods are the most common to use. They allow
 you to mimic the respective browser feature, where you replace the contents of
@@ -40,12 +40,6 @@ comes in handy for advanced use cases such as
 
 What's nice about these methods is that all renders go through the same
 scheduling pipeline and VTrees are shared across all other renders.
-
-By calling these methods you are signaling intent that you want the mount to
-reflect the incoming input.
-
-- Creating and scheduling a render transaction
--
 
 ### Arguments
 
@@ -70,6 +64,8 @@ innerHTML(document.body, `
 ---
 
 ## <a href="#outer-html">outerHTML</a> **`(mount, input, options)`**
+
+Compares the attributes and children of mount with input.
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the

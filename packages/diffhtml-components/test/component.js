@@ -1,6 +1,6 @@
 /// <reference types="mocha" />
 
-import { ok, equal, doesNotThrow, throws } from 'assert';
+import { ok, equal, deepEqual, doesNotThrow, throws } from 'assert';
 import {
   use,
   innerHTML,
@@ -1104,7 +1104,7 @@ describe('Component implementation', function() {
     });
   });
 
-  describe('HOC', () => {
+  describe.only('HoC', () => {
     it('will support a component that returns a new component', () => {
       let didMount = 0;
 
@@ -1129,6 +1129,50 @@ describe('Component implementation', function() {
 
       equal(didMount, 1);
       equal(this.fixture.innerHTML, '<span>Hello world</span>');
+    });
+
+    it.only('will support forceUpdate with an HoC', () => {
+      const proxy = ({ children }) => html(children);
+
+      const HOC = ChildComponent => class HOCComponent extends Component {
+        render() {
+          console.log('here');
+          return html`<${ChildComponent} />`;
+        }
+      };
+
+      const WrappedComponent = HOC(proxy);
+
+      let instance = null;
+
+      class CustomComponent extends Component {
+        render({ message }) {
+          return html`
+            <span>${message}</span>
+            <${WrappedComponent}>test</${WrappedComponent}>
+          `;
+        }
+
+        constructor(...args) {
+          super(...args);
+
+          instance = this;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} message="Some" />`);
+
+      //equal(
+      //  this.fixture.innerHTML.replace(whitespaceEx, ''),
+      //  '<span>Some</span> test',
+      //);
+
+      instance.forceUpdate();
+
+      equal(
+        this.fixture.innerHTML.replace(whitespaceEx, ''),
+        '<span>Some</span> test',
+      );
     });
 
     it('will support wrapping a component that returns a new component', () => {
@@ -1156,6 +1200,75 @@ describe('Component implementation', function() {
 
       equal(didMount, 1);
       equal(this.fixture.innerHTML, '<span>Hello world</span>');
+    });
+
+    it('will correctly forward props with outer function component', () => {
+      let outerProps = null;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<span>Hello world</span>`;
+        }
+      }
+
+      const HOC = ChildComponent => class HOCComponent extends Component {
+        render() {
+          return html`<${ChildComponent} />`;
+        }
+
+        componentDidMount() {
+          didMount++;
+        }
+      };
+
+      const WrappedComponent = HOC(CustomComponent);
+      const DoubleWrappedComponent = props => {
+        outerProps = props;
+        return html``;
+      };
+      innerHTML(this.fixture, html`<${DoubleWrappedComponent} message="Test" />`);
+
+      deepEqual(outerProps, {
+        children: [],
+        message: 'Test',
+      });
+    });
+
+    it('will correctly forward props with outer class component', () => {
+      let outerProps = null;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`<span>Hello world</span>`;
+        }
+      }
+
+      const HOC = ChildComponent => class HOCComponent extends Component {
+        render() {
+          return html`<${ChildComponent} />`;
+        }
+
+        componentDidMount() {
+          didMount++;
+        }
+      };
+
+      const WrappedComponent = HOC(CustomComponent);
+
+      class DoubleWrappedComponent extends Component {
+        render(props) {
+          outerProps = props;
+          return html``;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${DoubleWrappedComponent} message="Test" />`);
+
+      deepEqual(outerProps, {
+        children: [],
+        message: 'Test',
+        refs: {},
+      });
     });
   });
 

@@ -1,6 +1,5 @@
-const { createHash } = require('crypto');
 const { readFile } = require('fs');
-const { basename, extname, join } = require('path');
+const { extname, join } = require('path');
 const { Spinner } = require('cli-spinner');
 const { watch } = require('chokidar');
 const marked = require('marked');
@@ -30,14 +29,10 @@ process.argv.slice(2).some(arg => {
 const CWD = join(process.cwd(), userDir);
 
 // CLI Colors
-const yellow = '\x1B[33m';
-const blue = '\x1B[34m';
 const gray = '\x1B[37m';
 const green = '\x1B[32m';
 const reset = '\x1B[m';
 const quiet = process.argv.includes('--quiet');
-
-let hook = null;
 
 process.argv.forEach(arg => {
   if (arg.includes('--hook')) {

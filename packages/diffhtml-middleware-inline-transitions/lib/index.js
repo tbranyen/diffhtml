@@ -74,7 +74,6 @@ export default function inlineTransitions(options = {}) {
         }
         // Text nodes are looked up on the parent.
         else if (transitionName === 'textChanged') {
-          const retVal = [];
           const { parentNode } = childNode;
 
           if (map.has(parentNode)) {
