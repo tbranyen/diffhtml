@@ -25,8 +25,6 @@ const cloneTree = tree => assign({}, tree, {
 let Internals = null;
 
 const format = (patches) => {
-  const { Internals } = state;
-
   if (!Internals) {
     return {};
   }
