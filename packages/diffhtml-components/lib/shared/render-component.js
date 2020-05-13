@@ -17,8 +17,6 @@ export default function renderComponent(vTree, context) {
   let instances = null;
   let renderTree = null;
 
-  console.log('Rendering', vTree.rawNodeName.name);
-
   // Existing component.
   if (InstanceCache.has(vTree)) {
     instances = InstanceCache.get(vTree);
