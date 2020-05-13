@@ -43,6 +43,12 @@ const hasBinding = bindingSymbol in globalThis;
 // The first API binding wins and if you use static-sync or accidentally bundle
 // multiple versions they will not cause conflicts.
 if (hasBinding) {
+  const existingApi = global[bindingSymbol];
+
+  if (VERSION !== existingApi.VERSION) {
+    console.log(`Tried to load ${VERSION} after ${existingApi.VERSION}`);
+  }
+
   // Merge the existing API in.
   assign(api, global[bindingSymbol]);
 }
