@@ -115,6 +115,7 @@ export default class Transaction {
 
     this.state = StateCache.get(domNode) || {
       measure: makeMeasure(domNode, input),
+      svgElements: new Set(),
     };
 
     if (options.tasks && options.tasks.length) {
@@ -189,6 +190,9 @@ export default class Transaction {
     // Cache the markup and text for the DOM node to allow for short-circuiting
     // future render transactions.
     state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
+
+    // Clean up SVG element list.
+    state.svgElements.clear();
 
     // Rendering is complete.
     state.isRendering = false;

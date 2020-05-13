@@ -13,14 +13,19 @@ const textName = '#text';
  * @param {Partial<VTree> | null} oldTree
  * @param {Partial<VTree> | null} newTree
  * @param {any[]} patches
+ * @param {any} state
  */
-export default function syncTree(oldTree, newTree, patches = []) {
+export default function syncTree(oldTree, newTree, patches = [], state = {}) {
   if (!oldTree) oldTree = empty;
   if (!newTree) newTree = empty;
 
+  const { svgElements = new Set() } = state;
   const oldNodeName = oldTree.nodeName;
   const isFragment = newTree.nodeType === 11 || oldTree.nodeType === 11;
   const isEmpty = oldTree === empty;
+
+  // Check for SVG in parent.
+  const isSVG = newTree.nodeName === 'svg' || svgElements.has(newTree);
 
   if (process.env.NODE_ENV !== 'production') {
     if (newTree === empty) {
@@ -164,7 +169,11 @@ export default function syncTree(oldTree, newTree, patches = []) {
   if (isEmpty) {
     // Do a single pass over the new child nodes.
     for (let i = 0; i < newChildNodes.length; i++) {
-      syncTree(null, newChildNodes[i], patches, newTree);
+      if (isSVG) {
+        svgElements.add(newChildNodes[i]);
+      }
+
+      syncTree(null, newChildNodes[i], patches, state);
     }
 
     return patches;
@@ -179,12 +188,17 @@ export default function syncTree(oldTree, newTree, patches = []) {
     const newChildNode = newChildNodes[i];
     const newKey = newChildNode.key;
 
+    // Check for SVG in child as well.
+    if (isSVG || newChildNode.nodeName === 'svg') {
+      svgElements.add(newChildNode);
+    }
+
     // If there is no old element to compare to, this is a simple addition.
     if (!oldChildNode) {
       oldChildNodes.push(newChildNode);
 
       // Crawl this Node for any changes to apply.
-      syncTree(null, newChildNode, patches, oldTree);
+      syncTree(null, newChildNode, patches, state);
 
       patches.push(
         PATCH_TYPE.INSERT_BEFORE,
@@ -205,7 +219,7 @@ export default function syncTree(oldTree, newTree, patches = []) {
       // Remove the old node instead of replacing.
       if (!oldInNew && !newInOld) {
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
-        syncTree(null, newChildNode, patches, newTree);
+        syncTree(null, newChildNode, patches, state);
 
         patches.push(PATCH_TYPE.REPLACE_CHILD, newChildNode, oldChildNode);
 
@@ -236,7 +250,7 @@ export default function syncTree(oldTree, newTree, patches = []) {
         }
 
         // Crawl this Node for any changes to apply.
-        syncTree(null, optimalNewNode, patches, oldTree);
+        syncTree(null, optimalNewNode, patches, state);
 
         patches.push(
           PATCH_TYPE.INSERT_BEFORE,
@@ -262,7 +276,7 @@ export default function syncTree(oldTree, newTree, patches = []) {
         oldChildNodes.splice(lookupIndex, 1);
       }
 
-      syncTree(null, newChildNode, patches, newTree);
+      syncTree(null, newChildNode, patches, state);
 
       patches.push(
         PATCH_TYPE.REPLACE_CHILD,
@@ -273,7 +287,7 @@ export default function syncTree(oldTree, newTree, patches = []) {
       continue;
     }
 
-    syncTree(oldChildNode, newChildNode, patches, oldTree);
+    syncTree(oldChildNode, newChildNode, patches, state);
   }
 
   // We've reconciled new changes, so we can remove any old nodes and adjust

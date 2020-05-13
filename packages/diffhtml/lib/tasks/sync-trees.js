@@ -6,7 +6,7 @@ import process from '../util/process';
 import Transaction from '../transaction';
 
 export default function syncTrees(/** @type {Transaction} */ transaction) {
-  const { state: { measure }, oldTree, newTree, domNode } = transaction;
+  const { state, state: { measure }, oldTree, newTree, domNode } = transaction;
 
   measure('sync trees');
 
@@ -45,15 +45,20 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     ];
 
     // Clean up the existing old tree, and mount the new tree.
-    transaction.oldTree = transaction.state.oldTree = newTree;
+    transaction.oldTree = state.oldTree = newTree;
 
     // Update the StateCache since we are changing the top level element.
     StateCache.delete(domNode);
-    StateCache.set(createNode(newTree), transaction.state);
+    StateCache.set(createNode(newTree), state);
   }
   // Synchronize the top level elements.
   else {
-    transaction.patches = syncTree(oldTree || null, newTree || null, []);
+    transaction.patches = syncTree(
+      oldTree || null,
+      newTree || null,
+      [],
+      state,
+    );
   }
 
   measure('sync trees');
