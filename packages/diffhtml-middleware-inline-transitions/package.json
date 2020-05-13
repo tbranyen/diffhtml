@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-inline-transitions",
-  "version": "1.0.0-beta.16",
+  "version": "1.0.0-beta.17",
   "description": "Monitors inline attributes and assigns transition hooks",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -33,7 +33,7 @@
     "@babel/register": "^7.6.0",
     "babel-preset-diffhtml-imports": "^1.0.0-beta.15",
     "coveralls": "^3.0.6",
-    "diffhtml": "^1.0.0-beta.16",
+    "diffhtml": "^1.0.0-beta.17",
     "jsdom": "^16.2.1",
     "mocha": "^6.2.0",
     "nyc": "^15.0.1",
