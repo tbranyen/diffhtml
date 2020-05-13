@@ -19,7 +19,40 @@ describe('Integration: SVG', function() {
     it('can create SVG elements', function() {
       diff.innerHTML(this.fixture, '<g id="test"></g>');
 
-      assert.equal(this.fixture.firstChild.namespaceURI, this.namespace);
+      assert.equal(this.fixture.querySelector('g').namespaceURI, this.namespace);
+    });
+
+    it('can insert complete SVG documents', function() {
+      const container = document.createElement('div');
+
+      diff.innerHTML(container, '<svg><g id="test"></g></svg>');
+
+      assert.equal(container.querySelector('g').namespaceURI, this.namespace);
+
+      diff.release(container);
+    });
+
+    it('can diff complete SVG documents', function() {
+      const container = document.createElement('div');
+
+      diff.innerHTML(container, '<svg><g id="test"></g></svg>');
+      assert.equal(container.querySelector('g').namespaceURI, this.namespace);
+
+      diff.innerHTML(container, '<svg><rect id="test2" /></svg>');
+      assert.equal(container.querySelector('rect').namespaceURI, this.namespace);
+
+      diff.release(container);
+    });
+
+    it('can replace element with complete SVG document', function() {
+      const container = document.createElement('div');
+
+      diff.innerHTML(container, '<div></div>>');
+      diff.innerHTML(container, '<svg><rect id="test2" /></svg>');
+      assert.equal(container.querySelector('svg').namespaceURI, this.namespace);
+      assert.equal(container.querySelector('rect').namespaceURI, this.namespace);
+
+      diff.release(container);
     });
   });
 });

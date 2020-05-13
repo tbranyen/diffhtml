@@ -148,7 +148,7 @@ const changeNodeValue = (domNode, nodeValue) => {
  */
 export default function patchNode(patches, state = {}) {
   const promises = [];
-  const { isSVG, ownerDocument } = state;
+  const { ownerDocument, svgElements = new Set() } = state;
   const { length } = patches;
 
   let i = 0;
@@ -168,6 +168,7 @@ export default function patchNode(patches, state = {}) {
 
         i += 4;
 
+        const isSVG = svgElements.has(vTree);
         const domNode = /** @type {HTMLElement} */ (
           createNode(vTree, ownerDocument, isSVG)
         );
@@ -197,6 +198,7 @@ export default function patchNode(patches, state = {}) {
 
         i += 3;
 
+        const isSVG = svgElements.has(vTree);
         const domNode = /** @type {HTMLElement} */ (
           createNode(vTree, ownerDocument, isSVG)
         );
@@ -224,6 +226,7 @@ export default function patchNode(patches, state = {}) {
         const vTree = patches[i + 1];
         const nodeValue = patches[i + 2];
         const oldValue = patches[i + 3];
+        const isSVG = svgElements.has(vTree);
 
         i += 4;
 
@@ -269,6 +272,8 @@ export default function patchNode(patches, state = {}) {
           break;
         }
 
+        const isSVG = svgElements.has(newTree);
+
         protectVTree(newTree);
 
         const refNode = refTree && /** @type {HTMLElement} */ (
@@ -293,6 +298,8 @@ export default function patchNode(patches, state = {}) {
         const oldTree = patches[i + 2];
 
         i += 3;
+
+        const isSVG = svgElements.has(newTree);
 
         const oldDomNode = /** @type {HTMLElement} */ (NodeCache.get(oldTree));
         const newDomNode = /** @type {HTMLElement} */ (
