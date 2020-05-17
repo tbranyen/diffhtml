@@ -11,8 +11,6 @@ Virtual DOM specifically designed for modern web UIs. These interfaces can be
 applications, games, data visualizations, or anything else that you may want to
 render in a web browser or Node.
 
-[**Click here to go directly to the diffHTML library source**](/packages/diffhtml/)
-
 ## Features
 
 - Parses real **HTML** and supports **JSX & Tagged Templates**.

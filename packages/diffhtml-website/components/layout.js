@@ -1,9 +1,10 @@
 const { html } = require('diffhtml');
 const { version } = require('../package');
 const Nav = require('./nav');
+const { NODE_ENV } = process.env;
 
 module.exports = ({ path, page, pages, content }) => html`
-  <html>
+  <html key="root">
     <head>
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -69,21 +70,27 @@ module.exports = ({ path, page, pages, content }) => html`
         </footer>
       </layer>
 
-      <script src="/scripts/diffhtml.min.js"></script>
+      <script src="//diffhtml.org/master/diffhtml/dist/diffhtml.min.js"></script>
       <script src="/scripts/highlight.min.js"></script>
-      <script>
-        try {
-          hljs.initHighlightingOnLoad();
-        } catch (ex) {}
+      <script key="source">
+        try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
-        // Every time a refresh happens, reload the highlight code block.
-        if (typeof staticSyncHandlers !== 'undefined') {
-          setTimeout(() => staticSyncHandlers.add(() => {
-            setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
-              hljs.highlightBlock(block);
-            }));
-          }));
-        }
+        ${NODE_ENV !== 'production' && html`
+          // Every time a refresh happens, reload the highlight code block.
+          let interval;
+
+          interval = setInterval(() => {
+            if (typeof staticSyncHandlers !== 'undefined') {
+              clearInterval(interval);
+
+              staticSyncHandlers.add(() => {
+                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+                  hljs.highlightBlock(block);
+                }));
+              });
+            }
+          }, 200);
+        `}
 
         document.querySelector('.open-menu').onclick = ev => {
           ev.stopImmediatePropagation();

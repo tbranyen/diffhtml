@@ -1,6 +1,6 @@
 
       
-  <html>
+  <html key="root">
     <head>
       <meta charset="utf-8"></meta>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
@@ -301,10 +301,10 @@
         <hr></hr>
 
         <section id="content"><h1 id="a-hrefapihtmlcore-apia-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtmli-classfa-fa-githubia"><a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a></h1>
-<pre><code class="language-sh">npm install diffhtml</code></pre>
 <p>This documentation covers the core public API and is central to the framework.
 All methods work in the browser, with JSDOM, and directly in Node. You use this
 to construct the Virtual DOM, synchronize changes, and patch the DOM.</p>
+<pre><code class="language-sh">npm install diffhtml</code></pre>
 <p>Some lingo to be aware of:</p>
 <ul>
 <li><strong>Transaction</strong>: A class structure which represents a set of changes to the
@@ -767,21 +767,12 @@ asynchronous.</p>
         </footer>
       </layer>
 
-      <script src="/scripts/diffhtml.min.js"></script>
+      <script src="//diffhtml.org/master/diffhtml/dist/diffhtml.min.js"></script>
       <script src="/scripts/highlight.min.js"></script>
-      <script>
-        try {
-          hljs.initHighlightingOnLoad();
-        } catch (ex) {}
+      <script key="source">
+        try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
-        // Every time a refresh happens, reload the highlight code block.
-        if (typeof staticSyncHandlers !== 'undefined') {
-          setTimeout(() => staticSyncHandlers.add(() => {
-            setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
-              hljs.highlightBlock(block);
-            }));
-          }));
-        }
+        
 
         document.querySelector('.open-menu').onclick = ev => {
           ev.stopImmediatePropagation();

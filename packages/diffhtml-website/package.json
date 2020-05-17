@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run generate && npm run copy",
     "start": "diffhtml-static-sync ../../docs --hook=./build/watch",
-    "generate": "node build/generate",
+    "generate": "NODE_ENV=production node build/generate",
     "copy": "node build/copy"
   },
   "author": "Tim Branyen (@tbranyen)",

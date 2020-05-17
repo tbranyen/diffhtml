@@ -9,8 +9,8 @@ function copy() {
   ncp(public, docs, () => {});
   ncp(min, join(docs, 'scripts'), {
     filter: path => {
-      // Only allow diffhtml.min.js
-      if (path.includes('diffhtml.min.js')) {
+      // Only allow highlight.min.js
+      if (path.includes('highlight.min.js')) {
         return true;
       }
 

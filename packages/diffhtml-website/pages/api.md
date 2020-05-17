@@ -1,12 +1,12 @@
 # <a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a>
 
-``` sh
-npm install diffhtml
-```
-
 This documentation covers the core public API and is central to the framework.
 All methods work in the browser, with JSDOM, and directly in Node. You use this
 to construct the Virtual DOM, synchronize changes, and patch the DOM.
+
+``` sh
+npm install diffhtml
+```
 
 Some lingo to be aware of:
 
