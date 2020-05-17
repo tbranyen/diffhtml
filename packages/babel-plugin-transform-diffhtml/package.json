@@ -29,6 +29,6 @@
     "watchify": "^3.11.1"
   },
   "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.14"
+    "diffhtml": "^1.0.0-beta.17"
   }
 }

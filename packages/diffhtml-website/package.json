@@ -27,6 +27,6 @@
   },
   "devDependencies": {
     "combynexpress": "^3.0.0",
-    "diffhtml-components": "^1.0.0-beta.14"
+    "diffhtml-components": "^1.0.0-beta.17"
   }
 }
