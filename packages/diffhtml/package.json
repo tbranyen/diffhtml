@@ -28,7 +28,6 @@
     "build-runtime-min": "NODE_ENV=min rollup -c rollup.runtime.config.js && uglifyjs dist/diffhtml-runtime.min.js -o dist/diffhtml-runtime.min.js -m -c",
     "watch-main": "NODE_ENV=umd rollup -c rollup.main.config.js -w",
     "watch-runtime": "NODE_ENV=umd rollup -c rollup.runtime.main.config.js -w",
-    "jshint": "jshint lib/**/*.js",
     "test": "NODE_ENV=test mocha test/_setup test test/integration/*.js",
     "test:ci": "npm run test-cov && cat coverage/lcov.info | coveralls",
     "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test test/integration/*.js",
@@ -36,16 +35,15 @@
     "test-debug": "NODE_ENV=test mocha --inspect --debug-brk test/_setup test test/integration/*.js"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.0",
-    "@babel/core": "^7.6.0",
-    "@babel/register": "^7.6.0",
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/register": "^7.9.0",
     "@types/mocha": "^7.0.2",
-    "babel-plugin-istanbul": "^5.2.0",
+    "babel-plugin-istanbul": "^6.0.0",
     "babel-preset-diffhtml-imports": "^1.0.0-beta.15",
-    "coveralls": "^3.0.6",
-    "jsdom": "^16.2.1",
-    "jshint": "^2.10.2",
-    "mocha": "^6.2.0",
+    "coveralls": "^3.1.0",
+    "jsdom": "^16.2.2",
+    "mocha": "^7.1.2",
     "nyc": "^15.0.1",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
@@ -54,8 +52,8 @@
     "rollup-plugin-replace": "^2.2.0",
     "rollup-plugin-visualizer": "^2.6.0",
     "rollup-watch": "^4.3.1",
-    "sinon": "^7.4.2",
-    "typescript": "^3.8.3",
+    "sinon": "^9.0.2",
+    "typescript": "^3.9.2",
     "uglifyjs": "^2.4.11"
   },
   "nyc": {
@@ -64,5 +62,8 @@
     ],
     "sourceMap": false,
     "instrument": false
+  },
+  "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.8.3"
   }
 }
