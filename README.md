@@ -11,10 +11,6 @@ Virtual DOM specifically designed for modern web UIs. These interfaces can be
 applications, games, data visualizations, or anything else that you may want to
 render in a web browser or Node.
 
-This repository is a mono-repo structured with the [Lerna](https://lernajs.io/)
-CLI tool. This makes it easier to support continuous integration, consistent
-versioning, and working on the various diffHTML tools.
-
 [**Click here to go directly to the diffHTML library source**](/packages/diffhtml/)
 
 ## Features
@@ -28,52 +24,72 @@ versioning, and working on the various diffHTML tools.
 
 ## Packages
 
-The following list of packages are nested in the `/packages` folder. They can
-be tested globally or independently by using `npm test` at the root directory
-level or any specific nested package level.
+The following list of modules are nested in the `/packages` folder. They make
+up the foundation of the diffHTML ecosystem.
 
-* **[diffhtml](/packages/diffhtml)**
+* [diffhtml](/packages/diffhtml)
 
-  ``` sh
+  ```sh
   npm install diffhtml
   ```
 
-  The core library for creating user interfaces. Contains a full build and
-  smaller runtime build (which excludes HTML parser, tagged templates, and
-  performance metrics).
+  The core public API for creating user interfaces. Contains a standard build
+  which includes everything, and a smaller optimized build that excludes the
+  HTML parser and performance metrics, which is useful for those who want to
+  minimize the filesize.
 
-* **[diffhtml-components](/packages/diffhtml-components)**
+* [diffhtml-components](/packages/diffhtml-components)
 
-  ``` sh
+  ```sh
   npm install diffhtml-components
   ```
 
-  Provides stateful React-like and v1 Web Component classes with a consistent
-  API. If you're looking for drop-in React parity, refer to the
+  Provides constructors and middleware to rendering stateful/stateless
+  components seamlessly with diffHTML. The API will be very familiar to anyone
+  who has used React as the class methods and structure is the same. While the
+  APIs are very similar, if you want true React compatibility, check out the
   [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
 
-* **[diffhtml-render-to-string](/packages/diffhtml-render-to-string)**
+* [diffhtml-render-to-string](/packages/diffhtml-render-to-string)
 
-  ``` sh
+  ```sh
   npm install diffhtml-render-to-string
   ```
 
-  Use with diffHTML to render your complex markup to strings. This is useful
-  for server-side rendering, testing, and HTML/XML transformations.
+  Use to render your input to string. This is useful for server-side rendering,
+  testing, and HTML/XML transformations.
 
-* **[babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)**
+* [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
 
-  ``` sh
+  ```sh
   npm install babel-plugin-transform-diffhtml
   ```
-  Converts markup into function calls. Similar to how JSX compiles down to
-  `React.createElement`, this module converts HTML elements to function calls.
-  This is useful for optimizing file size and CPU time by pushing parsing to
-  the compiler.
+
+  Transforms your input into function calls. This eliminates the need for
+  runtime parsing. This is similar to how React compiles down JSX.
+
+* [diffhtml-middleware-inline-transitions](/packages/diffhtml-middleware-inline-transitions)
+
+  ```sh
+  npm install diffhtml-middleware-inline-transitions
+  ```
+
+  By default diffHTML provides transition hooks at a global level. This
+  middleware turns them into scoped, performant, event hooks.
+
+* [diffhtml-middleware-linter](/packages/diffhtml-middleware-linter)
+
+  ```sh
+  npm install diffhtml-middleware-linter
+  ```
+
+  This module will run various linting rules on your input to ensure you are
+  writing valid/well-formed HTML. This was inspired by and uses rules from the
+  [HTMLHint](https://htmlhint.com/) project.
 
 * [diffhtml-middleware-logger](/packages/diffhtml-middleware-logger)
 
-  ``` sh
+  ```sh
   npm install diffhtml-middleware-logger
   ```
 
@@ -81,7 +97,7 @@ level or any specific nested package level.
 
 * [diffhtml-middleware-synthetic-events](/packages/diffhtml-middleware-synthetic-events)
 
-  ``` sh
+  ```sh
   npm install diffhtml-middleware-synthetic-events
   ```
 
@@ -89,18 +105,9 @@ level or any specific nested package level.
   use `addEventListener`. Events are attached to the `body` element and
   coordinated to children through delegation.
 
-* [diffhtml-middleware-inline-transitions](/packages/diffhtml-middleware-inline-transitions)
-
-  ``` sh
-  npm install diffhtml-middleware-inline-transitions
-  ```
-
-  By default diffHTML provides transition hooks at a global level. This
-  middleware turns them into scoped, performant, event hooks.
-
 * [diffhtml-middleware-verify-state](/packages/diffhtml-middleware-verify-state)
 
-  ``` sh
+  ```sh
   npm install diffhtml-middleware-verify-state
   ```
 
@@ -110,7 +117,7 @@ level or any specific nested package level.
 
 * [diffhtml-middleware-service-worker](/packages/diffhtml-middleware-service-worker)
 
-  ``` sh
+  ```sh
   npm install diffhtml-middleware-service-worker
   ```
 
