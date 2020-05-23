@@ -10,7 +10,6 @@ import {
   addTransitionState,
   removeTransitionState,
 } from 'diffhtml';
-import PropTypes from 'prop-types';
 import Component from '../lib/component';
 import validateCaches from './util/validate-caches';
 
@@ -364,7 +363,7 @@ describe('Component implementation', function() {
       }
 
       CustomComponent.propTypes = {
-        customProperty: PropTypes.string.isRequired,
+        customProperty: String,
       };
 
       doesNotThrow(() => innerHTML(this.fixture, html`<${CustomComponent} />`));

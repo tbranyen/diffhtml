@@ -2,7 +2,6 @@
 
 import { deepEqual, equal, ok } from 'assert';
 import { innerHTML, html, createTree, release } from 'diffhtml';
-import PropTypes from 'prop-types';
 import validateCaches from './util/validate-caches';
 
 const whitespaceEx = /[ ]{2,}|\n/g;
@@ -97,7 +96,7 @@ describe('Web Component', function() {
       }
 
       static propTypes = {
-        message: PropTypes.string,
+        message: String,
       }
     }
 
@@ -123,7 +122,7 @@ describe('Web Component', function() {
       }
 
       static propTypes = {
-        message: PropTypes.object,
+        message: Object,
       }
     }
 
@@ -154,7 +153,7 @@ describe('Web Component', function() {
       }
 
       static propTypes = {
-        message: PropTypes.object,
+        message: Object,
       }
     }
 
@@ -166,7 +165,7 @@ describe('Web Component', function() {
       }
 
       static propTypes = {
-        message: PropTypes.object,
+        message: Object,
       }
     }
 
@@ -231,7 +230,7 @@ describe('Web Component', function() {
       }
 
       static propTypes = {
-        message: PropTypes.string,
+        message: String,
       }
     }
 
@@ -412,7 +411,7 @@ describe('Web Component', function() {
         }
 
         static propTypes = {
-          message: PropTypes.string,
+          message: String,
         }
       });
 

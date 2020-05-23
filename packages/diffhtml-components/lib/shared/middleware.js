@@ -101,6 +101,9 @@ const syncTreeHook = (oldTree, newTree) => {
       // Nothing rendered, so return the oldTree.
       else {
         newTree.childNodes[i] = newChildTree;
+
+        // FIXME Determine why this is necessary, it is most likely wrong.
+        return oldTree;
       }
     }
   }

@@ -18,7 +18,7 @@ const { NODE_ENV = 'umd' } = process.env;
 
 export const input = entries[NODE_ENV];
 export const context = 'this';
-export const external = ['diffhtml', 'prop-types'];
+export const external = ['diffhtml'];
 
 export const output = [{
   file: dests[NODE_ENV],
@@ -26,7 +26,7 @@ export const output = [{
   exports: 'default',
   name: 'Component',
   sourcemap: false,
-  globals: { diffhtml: 'diff', 'prop-types': 'PropTypes' },
+  globals: { diffhtml: 'diff' },
 }];
 
 export const plugins = [
