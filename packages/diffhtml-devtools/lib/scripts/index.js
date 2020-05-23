@@ -1,6 +1,4 @@
 import { outerHTML, html, use } from 'diffhtml';
-import logger from 'diffhtml-middleware-logger';
-import verifyState from 'diffhtml-middleware-verify-state';
 import inlineTransitions from 'diffhtml-middleware-inline-transitions';
 
 // Components
@@ -9,6 +7,7 @@ import './components/footer';
 import './components/split-view';
 import './components/navigation';
 import './components/transaction-row';
+import './components/transaction-detail';
 
 // Panels
 import './panels/transactions';
@@ -22,9 +21,7 @@ const { stringify, parse } = JSON;
 const { assign } = Object;
 const background = chrome.runtime.connect({ name: 'devtools-page' });
 
-//use(inlineTransitions());
-//use(logger());
-//use(verifyState());
+use(inlineTransitions());
 
 use({
   // When dark mode is set, automatically add Semantic UI `inverted` class.
@@ -49,7 +46,7 @@ background.postMessage({
 });
 
 const initialState = {
-  activeRoute: location.hash,
+  activeRoute: location.hash || '#help',
   inProgress: [],
   completed: [],
   middleware: [],
@@ -93,56 +90,48 @@ const fadeIn = el => {
 };
 
 const render = () => outerHTML(main, html`<main id="main" data-theme=${state.theme}>
-    ${!state.version && html`
-      <h1 id="not-found">
-        Could not locate
-        <img src="/icons/logo-48${state.theme === 'dark' ? '-invert' : ''}.png">
-        <strong>diffHTML</strong>
-      </h1>
-    `}
-
-    ${state.version && html`
-      <devtools-split-view onattached=${fadeIn}>
+    <devtools-split-view onattached=${fadeIn}>
+      ${Boolean(state.inProgress.length + state.completed.length) && html`
         <devtools-navigation
           version=${state.version}
           activeRoute=${state.activeRoute}
         />
+      `}
 
-        <devtools-panels route="" activeRoute=${state.activeRoute}>
-          <devtools-transactions-panel
-            inProgress=${state.inProgress}
-            completed=${state.completed}
-            inspect=${inspect}
-            clearEntries=${clearEntries}
-            onattached=${fadeIn}
-          />
-        </devtools-panels>
+      <devtools-panels route="" activeRoute=${state.activeRoute}>
+        <devtools-transactions-panel
+          inProgress=${state.inProgress}
+          completed=${state.completed}
+          inspect=${inspect}
+          clearEntries=${clearEntries}
+          onattached=${fadeIn}
+        />
+      </devtools-panels>
 
-        <devtools-panels route="#mounts" activeRoute=${state.activeRoute}>
-          <devtools-mounts-panel mounts=${state.mounts} inspect=${inspect} theme=${state.theme} />
-        </devtools-panels>
+      <devtools-panels route="#mounts" activeRoute=${state.activeRoute}>
+        <devtools-mounts-panel mounts=${state.mounts} inspect=${inspect} theme=${state.theme} />
+      </devtools-panels>
 
-        <devtools-panels route="#middleware" activeRoute=${state.activeRoute}>
-          <devtools-middleware-panel middleware=${state.middleware} />
-        </devtools-panels>
+      <devtools-panels route="#middleware" activeRoute=${state.activeRoute}>
+        <devtools-middleware-panel middleware=${state.middleware} />
+      </devtools-panels>
 
-        <devtools-panels route="#health" activeRoute=${state.activeRoute}>
-          <devtools-health-panel
-            activeRoute=${state.activeRoute}
-            memory=${state.memory}
-          />
-        </devtools-panels>
+      <devtools-panels route="#health" activeRoute=${state.activeRoute}>
+        <devtools-health-panel
+          activeRoute=${state.activeRoute}
+          memory=${state.memory}
+        />
+      </devtools-panels>
 
-        <devtools-panels route="#settings" activeRoute=${state.activeRoute}>
-          <devtools-settings-panel />
-        </devtools-panels>
+      <devtools-panels route="#settings" activeRoute=${state.activeRoute}>
+        <devtools-settings-panel />
+      </devtools-panels>
 
-        <devtools-panels route="#help" activeRoute=${state.activeRoute}>
-          <devtools-help-panel theme=${state.theme} />
-        </devtools-panels>
-      </devtools-split-view>
-    `}
-</main>`).catch(ex => {
+      <devtools-panels route="#help" activeRoute=${state.activeRoute}>
+        <devtools-help-panel theme=${state.theme} />
+      </devtools-panels>
+    </devtools-split-view>
+  </main>`).catch(ex => {
   throw ex;
 });
 

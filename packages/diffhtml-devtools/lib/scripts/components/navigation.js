@@ -1,15 +1,14 @@
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 
 class DevtoolsNavigation extends WebComponent {
   static propTypes = {
-    version: PropTypes.string,
-    activeRoute: PropTypes.string,
+    version: String,
+    activeRoute: String,
   }
 
   render() {
-    const { version } = this.props;
+    const { version, activeRoute = '' } = this.props;
     const { nav, selected } = this.state;
 
     return html`
@@ -19,7 +18,7 @@ class DevtoolsNavigation extends WebComponent {
       <div class="navigation">
         <ol>
           ${nav.map((item, index) => html`
-            <li index=${index} selected=${selected === index} onclick=${() => this.onClick(index)}>
+            <li index=${index} selected=${item.route === activeRoute.slice(1)} onclick=${() => this.onClick(index)}>
               <span class="label">
                 ${item.icon && html`<i class="${item.icon} icon" />`}
                 ${item.label}
@@ -128,6 +127,7 @@ class DevtoolsNavigation extends WebComponent {
       div.credit {
         font-size: 11px;
         padding: 25px;
+        padding-bottom: 0;
       }
 
       .logo {
@@ -151,8 +151,8 @@ class DevtoolsNavigation extends WebComponent {
     ],
   }
 
-  componentWillReceiveProps() {
-    const route = location.hash.slice(1);
+  componentWillReceiveProps(nextProps) {
+    const route = nextProps.activeRoute.slice(1);
     const routes = this.state.nav.map(nav => nav.route);
     const selected = routes.indexOf(route);
 

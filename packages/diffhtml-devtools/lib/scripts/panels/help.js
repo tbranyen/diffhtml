@@ -1,10 +1,9 @@
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 
 class DevtoolsHelpPanel extends WebComponent {
   static propTypes = {
-    theme: PropTypes.string,
+    theme: String,
   }
 
   state = {
@@ -29,22 +28,27 @@ class DevtoolsHelpPanel extends WebComponent {
 
       <div class="wrapper">
         <div class="ui attached tabular menu">
-          <div class="item ${activeTab === 'chat' && 'active'}">
+          <div class="ui item ${activeTab === 'chat' && 'active'}">
             <a href="#" onClick=${setActive('chat')}>Chat</a>
           </div>
-          <div class="item ${activeTab === 'api' && 'active'}">
+          <div class="ui item ${activeTab === 'api' && 'active'}">
             <a href="#" onClick=${setActive('api')}>API Reference</a>
+          </div>
+          <div class="ui item ${activeTab === 'repl' && 'active'}">
+            <a href="#" onClick=${setActive('repl')}>REPL</a>
           </div>
         </div>
 
-        <div class="ui bottom attached active tab segment">
-          ${activeTab === 'chat' && html`
-            <iframe frameborder="0" src="https://gitter.im/tbranyen/diffhtml/~embed?env=%7B%22basePath%22%3A%22chrome-extension%3A%2F%2Fkmelgoilbhnakpkabonlenccgajjipdd%22%7D"></iframe>
-          `}
+        <div class="ui bottom attached tab segment ${activeTab === 'chat' && 'active'}">
+          <iframe frameborder="0" src="https://gitter.im/tbranyen/diffhtml/~embed?env=%7B%22basePath%22%3A%22chrome-extension%3A%2F%2Fkmelgoilbhnakpkabonlenccgajjipdd%22%7D"></iframe>
+        </div>
 
-          ${activeTab === 'api' && html`
-            <iframe frameborder="0" src="https://diffhtml.org/api.html"></iframe>
-          `}
+        <div class="ui bottom attached tab segment ${activeTab === 'api' && 'active'}">
+          <iframe frameborder="0" src="https://diffhtml.org/api.html"></iframe>
+        </div>
+
+        <div class="ui bottom attached tab segment ${activeTab === 'repl' && 'active'}">
+          REPL
         </div>
       </div>
     `;

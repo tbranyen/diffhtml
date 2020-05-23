@@ -1,4 +1,3 @@
-//import { Dropdown } from 'semantic-ui-react'
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
@@ -47,18 +46,8 @@ class DevtoolsMountsPanel extends WebComponent {
         `}
       </div>
 
-      ${false && html`
-        <${Dropdown}
-          placeholder='Select DOM Node'
-          fluid
-          selection
-          value=${options[0] && options[0].value}
-          options=${options}
-        />
-      `}
-
       ${!options.length && html`
-        <p class="no-mounts">
+        <p class="ui no-mounts">
           <i class="icon exclamation circle"></i>
           <strong>No mounts found, have you rendered anything?</strong>
         </p>
@@ -67,7 +56,7 @@ class DevtoolsMountsPanel extends WebComponent {
       ${Boolean(options.length) && html`
         <div class="ui attached tabular menu">
           ${options.map((option, i) => html`
-            <div class="item ${activeTab === i && 'active'}">
+            <div class="ui item ${activeTab === i && 'active'}">
               <a href="#" onClick=${setActive(i)}>&lt;${option.text.trim()}&gt;</a>
             </div>
           `)}
@@ -104,22 +93,23 @@ class DevtoolsMountsPanel extends WebComponent {
     }
   }
 
-  addedElement(domNode) {
+  addedElement(targetNode, domNode) {
+    domNode.style.opacity = 0;
     return new Promise(resolve => {
       domNode.animate([
-        { background: 'transparent' },
-        { background: '#E1FFE1' },
-        { background: 'transparent' },
+        { opacity: 0 },
+        { opacity: 1 },
       ], { duration: 200 }).onfinish = resolve;
+    }).then(() => {
+      domNode.style.opacity = 1;
     });
   }
 
-  removedElement(domNode) {
+  removedElement(targetNode, domNode) {
     return new Promise(resolve => {
       domNode.animate([
-        { background: 'transparent' },
-        { background: '#FFE1E1' },
-        { background: 'transparent' },
+        { opacity: 1 },
+        { opacity: 0 },
       ], { duration: 200 }).onfinish = resolve;
     });
   }
@@ -139,22 +129,29 @@ class DevtoolsMountsPanel extends WebComponent {
         return html``;
       }
 
-      return html`<div class="attributes">${attrKeys.map(key => {
-        const value = attributes[key];
+      return html`
+        <div class="attributes">
+          ${attrKeys.map(key => {
+            const value = attributes[key];
 
-        if (!value) {
-          return html` <span class="boolean">${key}</span>`;
-        }
-        else if (typeof value === 'string') {
-          return html` ${key}=<span class="string">"${value}"</span>`;
-        }
-        else if (typeof value === 'boolean') {
-          return html` ${key}=<span class="boolean">${value}</span>`;
-        }
-        else if (typeof value === 'number') {
-          return html` ${key}=<span class="number">${value}</span>`;
-        }
-      })}</div>`;
+            if (!value) {
+              return html` <span class="boolean">${key}</span>`;
+            }
+            //else if (typeof value === 'string') {
+            //  return html` ${key}=<span class="string">"${value}"</span>`;
+            //}
+            //else if (typeof value === 'boolean') {
+            //  return html` ${key}=<span class="boolean">${value}</span>`;
+            //}
+            //else if (typeof value === 'number') {
+            //  return html` ${key}=<span class="number">${value}</span>`;
+            //}
+            else {
+              return html``;
+            }
+          })}
+        </div>
+      `;
     };
 
     const childrenText = ({ childNodes }) => {
@@ -205,7 +202,7 @@ class DevtoolsMountsPanel extends WebComponent {
         flex-direction: column;
       }
 
-      * { box-sizing: border-box; }
+      * { box-sizing: border-box; user-select: none; }
 
       h2 {
         font-size: 13px;
@@ -358,6 +355,10 @@ class DevtoolsMountsPanel extends WebComponent {
       .children {
         display: inline-block;
         color: #a9a9a9;
+      }
+
+      .ui.inverted {
+        color: rgba(255, 255, 255, 0.9);
       }
     `;
   }

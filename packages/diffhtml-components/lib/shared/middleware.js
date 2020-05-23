@@ -10,7 +10,7 @@ const { assign } = Object;
 function render(oldTree, newTree) {
   let oldComponentTree = null;
 
-  if (oldTree) {
+  if (oldTree && oldTree.childNodes) {
     // First try and lookup the old tree as a component.
     oldComponentTree = ComponentTreeCache.get(oldTree);
 
@@ -98,8 +98,9 @@ const syncTreeHook = (oldTree, newTree) => {
           }
         }
       }
+      // Nothing rendered, so return the oldTree.
       else {
-        return oldTree;
+        newTree.childNodes[i] = newChildTree;
       }
     }
   }

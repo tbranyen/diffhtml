@@ -39,69 +39,93 @@ class DevtoolsHealthPanel extends WebComponent {
 
         ${isExpanded && html`
           <p>
-            Test
+            Displays the active memory usage. Will allow you to toggle the
+            profiler and view a visualization of the rendering flow.
           </p>
         `}
       </div>
 
       <div class="wrapper">
         <div class="ui attached tabular menu">
-          <div class="item ${activeTab === 'memory' && 'active'}">
+          <div class="ui item ${activeTab === 'memory' && 'active'}">
             <a href="#" onClick=${setActive('memory')}>Memory</a>
           </div>
 
-          <div class="item ${activeTab === 'profiler' && 'active'}">
+          <div class="ui item ${activeTab === 'profiler' && 'active'}">
             <a href="#" onClick=${setActive('profiler')}>Profiler</a>
           </div>
         </div>
 
-        <div class="ui bottom attached active tab segment">
-          ${activeTab === 'memory' && html`
-            <p style="margin-left: 15px; margin-top: 0px; margin-bottom: 20px">
-              ${series.map((count, i) => html`
-                ${i === 0 && html`
-                  <strong>${String(count)} free</strong>
-                `}
+        <div class="ui bottom attached tab segment ${activeTab === 'memory' && 'active'}">
+          <div class="ui segment">
+            <div class="ui two column very relaxed grid">
+              <div class="ui column">
+                <p style="margin-left: 20px; margin-top: 20px; margin-bottom: 20px">
+                  ${series.map((count, i) => html`
+                    ${i === 0 && html`
+                      <strong>${String(count)} free</strong>
+                    `}
 
-                ${i === 2 && html`
-                  <strong style="margin-left: 5px; padding: 4px; color: #4A8209; background: #BFFB86">
-                    ${String(count)} used
-                  </strong>
-                `}
-              `)}
-            </p>
+                    ${i === 2 && html`
+                      <strong style="margin-left: 5px; padding: 4px; color: #4A8209; background: #BFFB86">
+                        ${String(count)} used
+                      </strong>
+                    `}
+                  `)}
+                </p>
 
-            <svg
-              height="20"
-              width="20"
-              viewBox="0 0 20 20"
-              style=${{
-                zoom: 6,
-                marginLeft: '2px',
-              }}
-            >
-              ${series.map((count, i) => html`
-                <!-- Free -->
-                ${i === 0 && html`
-                  <circle r="10" cx="10" cy="10" fill="#2185D0" />
-                `}
+                <svg
+                  height="20"
+                  width="20"
+                  viewBox="0 0 20 20"
+                  style=${{
+                    zoom: 6,
+                    marginLeft: '2px',
+                  }}
+                >
+                  ${series.map((count, i) => html`
+                    <!-- Free -->
+                    ${i === 0 && html`
+                      <circle r="10" cx="10" cy="10" fill="#2185D0" />
+                    `}
 
-                <!-- Protected -->
-                ${i === 2 && html`
-                  <circle
-                    r="5"
-                    cx="10"
-                    cy="10"
-                    fill="transparent"
-                    stroke="#BFFB86"
-                    stroke-width="10"
-                    stroke-dasharray="calc(${(series[2][0] / series[0][0]) * 100} * 31.4 / 100) 31.4"
-                    transform="rotate(-90) translate(-20)"
-                  />
-                `}
-              `)}
-            </svg>
-          `}
+                    <!-- Protected -->
+                    ${i === 2 && html`
+                      <circle
+                        r="5"
+                        cx="10"
+                        cy="10"
+                        fill="transparent"
+                        stroke="#BFFB86"
+                        stroke-width="10"
+                        stroke-dasharray="calc(${(series[2][0] / series[0][0]) * 100} * 31.4 / 100) 31.4"
+                        transform="rotate(-90) translate(-20)"
+                      />
+                    `}
+                  `)}
+                </svg>
+              </div>
+
+              <div class="ui column" style="align-self: center">
+                <button class="ui button">Trigger GC</button>
+              </div>
+            </div>
+
+            <div class="ui vertical divider">
+              <i class="icon cogs" />
+            </div>
+          </div>
+        </div>
+
+        <div class="ui bottom attached tab segment ${activeTab === 'profiler' && 'active'}">
+          <div class="ui top attached menu">
+            <div class="ui dropdown icon item" tabindex="0">
+              <i class="circle icon"></i>
+            </div>
+
+            <div class="ui right menu">
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -129,6 +153,10 @@ class DevtoolsHealthPanel extends WebComponent {
         cursor: pointer;
       }
 
+      .ui.column {
+        text-align: center;
+      }
+
       .ui.segment {
         border-left: 0;
         border-right: 0;
@@ -149,6 +177,7 @@ class DevtoolsHealthPanel extends WebComponent {
 
       .ui.attached {
         margin: 0px 10px !important;
+        border-top: 0 !important;
       }
 
       .ui.menu {
@@ -157,7 +186,6 @@ class DevtoolsHealthPanel extends WebComponent {
       }
 
       .ui.bottom {
-        padding: 20px !important;
         margin: 0 !important;
         box-sizing: border-box !important;
       }
@@ -168,6 +196,18 @@ class DevtoolsHealthPanel extends WebComponent {
     ev.preventDefault();
     this.setState({ activeTab });
   }
+
+  triggerGC = name => () => {
+    const type = 'gc';
+
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, {
+        type,
+        name,
+      }));
+    });
+  }
+
 }
 
 customElements.define('devtools-health-panel', DevtoolsHealthPanel);

@@ -30,7 +30,6 @@ class DevtoolsTransactionRow extends WebComponent {
       domNode = '',
       aborted = false,
       promises = [],
-      surpressedCount,
     } = transaction;
 
     let unnecessaryRender = true;
@@ -47,13 +46,10 @@ class DevtoolsTransactionRow extends WebComponent {
       <style>${this.styles()}</style>
 
       <td class="center aligned">
-        ${Boolean(surpressedCount) && html`
-          <i class="icon plus" />
-        `}
-
         ${unnecessaryRender && transaction.completed && html`
           <div
-            data-tooltip="Nothing changed, unnecessary render!"
+            data-tooltip="Unnecessary render, nothing changed"
+            data-position="top left"
           >
             <i class="icon warning sign yellow" />
           </div>
@@ -105,13 +101,6 @@ class DevtoolsTransactionRow extends WebComponent {
       <td class="center aligned ${getColorFromStat(stats.removeAttribute)}">
         <strong><a>${stats.removeAttribute}</a></strong>
       </td>
-
-      ${false && html`
-        <div>
-          <h3>Transaction #${index + 1} Summary</h3>
-          <p>Was aborted? ${String(aborted)}</p>
-        </div>
-      `}
     `;
 
   }
@@ -170,7 +159,7 @@ class DevtoolsTransactionRow extends WebComponent {
       td > * {
         white-space: nowrap;
         text-overflow: ellipsis;
-        overflow: hidden;
+        /*overflow: hidden;*/
         width: 100%;
         display: inline-block;
       }
@@ -181,6 +170,7 @@ class DevtoolsTransactionRow extends WebComponent {
 
       :host(:hover) td {
         background-color: #FFF4D3;
+        /*background-color: #e0d6ba;*/
         color: #333;
         cursor: pointer;
       }

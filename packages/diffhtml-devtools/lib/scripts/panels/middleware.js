@@ -38,29 +38,38 @@ class DevtoolsMiddlewarePanel extends WebComponent {
         `}
       </div>
 
-      <div class="wrapper">
-        <div class="ui attached tabular menu">
+      ${!activeMiddleware.length && html`
+        <p class="ui no-middleware">
+          <i class="icon exclamation circle"></i>
+          <strong>No middleware found.</strong>
+        </p>
+      `}
+
+      ${activeMiddleware.length && html`
+        <div class="ui wrapper">
+          <div class="ui attached tabular menu">
+            ${activeMiddleware.map((name, i) => html`
+              <div class="ui item ${i === activeTab && 'active'}" key=${name}>
+                <a href="#" onClick=${setActive(i)}>${name}</a>
+              </div>
+            `)}
+          </div>
+
           ${activeMiddleware.map((name, i) => html`
-            <div class="item ${i === activeTab && 'active'}" key=${name}>
-              <a href="#" onClick=${setActive(i)}>${name}</a>
+            <div class="ui bottom attached tab segment ${i === activeTab && 'active'}">
+              <strong>Enabled</strong>
+              <div class="ui toggle checkbox">
+                <input
+                  checked
+                  type="checkbox"
+                  onclick=${toggleMiddleware(name)}
+                />
+                <label></label>
+              </div>
             </div>
           `)}
         </div>
-
-        ${activeMiddleware.map((name, i) => html`
-          <div class="ui bottom attached tab segment ${i === activeTab && 'active'}">
-            <strong>Enabled</strong>
-            <div class="ui toggle checkbox">
-              <input
-                checked
-                type="checkbox"
-                onclick=${toggleMiddleware(name)}
-              />
-              <label></label>
-            </div>
-          </div>
-        `)}
-      </div>
+      `}
     `;
   }
 
@@ -100,6 +109,14 @@ class DevtoolsMiddlewarePanel extends WebComponent {
 
       .ui.bottom.attached.active.tab.segment {
         padding: 20px;
+      }
+
+      .no-middleware {
+        padding: 16px;
+      }
+
+      .ui.inverted {
+        color: rgba(255, 255, 255, 0.9);
       }
 
       label {

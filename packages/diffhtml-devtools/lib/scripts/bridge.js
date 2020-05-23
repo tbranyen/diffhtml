@@ -58,7 +58,10 @@ export default function devTools(Internals) {
     });
   });
 
-  document.addEventListener('diffHTML:gc', () => Internals.memory.gc());
+  document.addEventListener('diffHTML:gc', () => {
+    console.log('Triggering GC');
+    Internals.memory.gc();
+  });
 
   const filterVTree = vTree => {
     if (!vTree) { return vTree; }
@@ -117,9 +120,6 @@ export default function devTools(Internals) {
     };
   };
 
-  let surpressedCount = 0;
-  let lastRun = 0;
-
   function devToolsTask(transaction) {
     const {
       domNode, markup, options, state: { newTree }, state
@@ -130,24 +130,11 @@ export default function devTools(Internals) {
       `${isFunction ? domNode.rawNodeName.displayName || domNode.rawNodeName.name : domNode.rawNodeName}`;
     const startDate = performance.now();
 
-    // If we are getting renders too quickly, restrict them from being sent.
-    if (lastRun !== 0 && (startDate - lastRun) < 1000) {
-      surpressedCount += 1;
-      return;
-    }
-    else {
-      lastRun = startDate;
-    }
-
-    const cachedSurpressedCount = surpressedCount;
-    surpressedCount = 0;
-
     const start = () => {
       return extension.startTransaction(startDate, {
         domNode: selector,
         markup,
         options,
-        surpressedCount: cachedSurpressedCount,
         state: assign({}, state, state.nextTransaction && {
           nextTransaction: undefined,
         }, {
@@ -180,7 +167,6 @@ export default function devTools(Internals) {
           domNode: selector,
           markup,
           options,
-          surpressedCount: cachedSurpressedCount,
           state: assign({}, state, state.nextTransaction && {
             nextTransaction: undefined,
           }, {

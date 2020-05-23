@@ -3,15 +3,6 @@ import { WebComponent } from 'diffhtml-components';
 import PropTypes from 'prop-types';
 import SemanticUITable from '../semantic-ui/table';
 
-const fadeIn = el => {
-  return new Promise(resolve => el.animate([
-    { opacity: 0 },
-    { opacity: 1 },
-  ], { duration: 500 }).onfinish = resolve).then(() => {
-      el.style.opacity = 1;
-    });
-};
-
 class DevtoolsTransactionsPanel extends WebComponent {
   static propTypes = {
     inProgress: PropTypes.array,
@@ -22,14 +13,22 @@ class DevtoolsTransactionsPanel extends WebComponent {
   state = {
     isExpanded: false,
     expandedIndex: -1,
-    autoScroll: 'autoScroll' in localStorage ? localStorage.autoScroll === 'true' : true,
-    activeTab: 'patches',
+    expandedState: null,
+    autoScroll: true,
+    hideEmpty: false,
   }
 
   render() {
     const { clearEntries, inProgress, completed } = this.props;
-    const { expandedIndex, isExpanded, autoScroll, activeTab } = this.state;
-    const { toggleAutoscroll, setActive } = this;
+    const {
+      expandedState,
+      expandedIndex,
+      isExpanded,
+      autoScroll,
+      hideEmpty,
+      activeTab,
+    } = this.state;
+    const { toggleAutoscroll, toggleHideEmpty } = this;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -52,7 +51,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
             </div>
 
             <div class="ui toggle checkbox" style="margin-left: 14px">
-              <input type="checkbox" />
+              <input type="checkbox" ${hideEmpty ? 'checked' : ''} onchange=${toggleHideEmpty} />
               <label>Hide empty renders</label>
             </div>
 
@@ -92,6 +91,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
             <table class="ui fixed celled sortable selectable structured table striped unstackable">
               ${completed
                 .sort(transaction => transaction.startDate)
+                .filter(({ args }) => hideEmpty ? args.patches.length : true)
                 .map((transaction, index) => html`
                   <devtools-transaction-row
                     key=${'completed-' + String(transaction.startDate)}
@@ -100,8 +100,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
                     transaction=${transaction.args}
                     startTime=${transaction.startDate}
                     endTime=${transaction.endDate}
-                    onClick=${this.toggleExpanded(index)}
-                    onattached=${fadeIn}
+                    onClick=${this.toggleExpanded(completed, index)}
                   />
                 `)}
 
@@ -115,8 +114,7 @@ class DevtoolsTransactionsPanel extends WebComponent {
                     transaction=${transaction.args}
                     startTime=${transaction.startDate}
                     endTime=${transaction.endDate}
-                    onClick=${this.toggleExpanded(index)}
-                    onattached=${fadeIn}
+                    onClick=${this.toggleExpanded(completed, index)}
                   />
                 `)}
 
@@ -134,17 +132,9 @@ class DevtoolsTransactionsPanel extends WebComponent {
         `}
 
         ${expandedIndex !== -1 && html`
-          <div class="ui attached tabular menu">
-            <div class="item ${activeTab === 'patches' && 'active'}">
-              <a href="#" onClick=${setActive('patches')}>Patches</a>
-            </div>
-
-            <div class="item ${activeTab === 'diff' && 'active'}">
-              <a href="#" onClick=${setActive('diff')}>Diff</a>
-            </div>
-          </div>
-
-          <i class="icon close" onClick=${this.toggleExpanded(-1)}></i>
+          <transaction-detail transaction=${
+            expandedState.sort(transaction => transaction.startDate)[expandedIndex]
+          } />
         `}
       </div>
     `;
@@ -296,20 +286,19 @@ class DevtoolsTransactionsPanel extends WebComponent {
 
   toggleAutoscroll = () => {
     const autoScroll = !this.state.autoScroll;
-    localStorage.autoScroll = autoScroll;
     this.setState({ autoScroll });
   }
 
-  toggleExpanded(index) {
-    return () => {
-      const expandedIndex = this.state.expandedIndex === index ? -1 : index;
-      this.setState({ expandedIndex });
-    };
+  toggleHideEmpty = () => {
+    const hideEmpty = !this.state.hideEmpty;
+    this.setState({ hideEmpty });
   }
 
-  setActive = activeTab => ev => {
-    ev.preventDefault();
-    this.setState({ activeTab });
+  toggleExpanded(expandedState, index) {
+    return () => {
+      const expandedIndex = this.state.expandedIndex === index ? -1 : index;
+      this.setState({ expandedState, expandedIndex });
+    };
   }
 }
 

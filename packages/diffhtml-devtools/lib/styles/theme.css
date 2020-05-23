@@ -1,6 +1,5 @@
 @import '/node_modules/semantic-ui-css/semantic.min.css';
 @import '/node_modules/semantic-ui-icon/icon.min.css';
-@import "/styles/tooltip.css";
 
 .ui.inverted.input > input {
   background: #3E3E3E;
@@ -18,6 +17,10 @@
 
 .ui.toggle.checkbox.inverted .box, .ui.toggle.checkbox.inverted label {
   color: #FFF;
+}
+
+.ui.toggle.checkbox.inverted label:before {
+  box-shadow: rgba(255, 255, 255, 0.5) 0px 0px 0px 2px inset;
 }
 
 .ui.toggle.checkbox.inverted input {
@@ -64,4 +67,16 @@
   border: none;
   flex: 1;
   padding: 0;
+}
+
+.ui.item.inverted {
+  border-color: transparent !important;
+}
+
+.ui.segmentui.segment.inverted {
+   border-bottom: 2px solid rgb(51, 51, 51);
+}
+
+.ui.attached.tabular.menuui.inverted {
+   border-bottom: 1px solid rgb(51, 51, 51);
 }
