@@ -11,6 +11,10 @@ Virtual DOM specifically designed for modern web UIs. These interfaces can be
 applications, games, data visualizations, or anything else that you may want to
 render in a web browser or Node.
 
+The core works like a library, where you can import just one function and have
+a fully reactive VDOM rendering engine. When you opt into more functions and
+use the companion packages you get a framework for structuring your ideas.
+
 ## Features
 
 - Parses real **HTML** and supports **JSX & Tagged Templates**.
@@ -23,8 +27,8 @@ render in a web browser or Node.
 
 ## Packages
 
-The following list of modules are nested in the `/packages` folder. They make
-up the foundation of the diffHTML ecosystem.
+The following list of modules are nested in the `/packages` folder. They form
+the foundation of the diffHTML ecosystem.
 
 * [diffhtml](/packages/diffhtml)
 

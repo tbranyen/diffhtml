@@ -1,34 +1,34 @@
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
-import SemanticUITable from '../semantic-ui/table';
 
 class DevtoolsTransactionsPanel extends WebComponent {
   static propTypes = {
-    inProgress: PropTypes.array,
-    completed: PropTypes.array,
-    inspect: PropTypes.func,
+    inProgress: Array,
+    completed: Array,
+    inspect: Function,
+    activeRoute: String,
   }
 
   state = {
     isExpanded: false,
-    expandedIndex: -1,
-    expandedState: null,
+    activeTransaction: null,
     autoScroll: true,
     hideEmpty: false,
+    sortBy: 'startDate',
+    sortDir: 'asc',
+    sorted: [],
   }
 
   render() {
     const { clearEntries, inProgress, completed } = this.props;
     const {
-      expandedState,
-      expandedIndex,
       isExpanded,
       autoScroll,
       hideEmpty,
-      activeTab,
+      activeTransaction,
+      sorted,
     } = this.state;
-    const { toggleAutoscroll, toggleHideEmpty } = this;
+    const { fragment, toggleAutoscroll, toggleHideEmpty } = this;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -63,78 +63,59 @@ class DevtoolsTransactionsPanel extends WebComponent {
       </div>
 
       <div class="wrapper">
-        ${expandedIndex === -1 && html`
-          <div class="rows">
-            <table class="header ui fixed celled sortable selectable structured table striped unstackable">
-              <thead>
-                <tr>
-                  <th rowspan="2"></th>
-                  <th class="center aligned" rowspan="2">Duration</th>
-                  <th class="center aligned" rowspan="2">Status</th>
-                  <th class="center aligned" rowspan="2">Mount</th>
-                  <th class="center aligned" rowspan="2">Transitions</th>
-                  <th class="center aligned" colspan="4">DOM Tree Changes</th>
-                  <th class="center aligned" colspan="2">Attribute Changes</th>
-                </tr>
+        <div class="rows">
+          <table class="header ui fixed celled sortable selectable structured table striped unstackable">
+            <thead>
+              <tr>
+                <th rowspan="2"></th>
+                <th class="center aligned" rowspan="2">Duration</th>
+                <th class="center aligned" rowspan="2">Status</th>
+                <th class="center aligned" rowspan="2">Mount</th>
+                <th class="center aligned" rowspan="2">Transitions</th>
+                <th class="center aligned" colspan="4">DOM Tree Changes</th>
+                <th class="center aligned" colspan="2">Attribute Changes</th>
+              </tr>
 
-                <tr>
-                  <th class="center aligned">Insert</th>
-                  <th class="center aligned">Replace</th>
-                  <th class="center aligned">Remove</th>
-                  <th class="center aligned">Node Value</th>
-                  <th class="center aligned">Set Attribute</th>
-                  <th class="center aligned">Remove Attribute</th>
-                </tr>
-              </thead>
-            </table>
+              <tr>
+                <th class="center aligned">Insert</th>
+                <th class="center aligned">Replace</th>
+                <th class="center aligned">Remove</th>
+                <th class="center aligned">Node Value</th>
+                <th class="center aligned">Set Attribute</th>
+                <th class="center aligned">Remove Attribute</th>
+              </tr>
+            </thead>
+          </table>
 
-            <table class="ui fixed celled sortable selectable structured table striped unstackable">
-              ${completed
-                .sort(transaction => transaction.startDate)
-                .filter(({ args }) => hideEmpty ? args.patches.length : true)
-                .map((transaction, index) => html`
-                  <devtools-transaction-row
-                    key=${'completed-' + String(transaction.startDate)}
-                    index=${index}
-                    stateName="completed"
-                    transaction=${transaction.args}
-                    startTime=${transaction.startDate}
-                    endTime=${transaction.endDate}
-                    onClick=${this.toggleExpanded(completed, index)}
-                  />
-                `)}
+          <table class="transaction-list ui fixed celled sortable selectable structured table striped unstackable">
+            ${sorted.length && sorted.map((transaction, index) => html`<devtools-transaction-row
+              class="ui ${transaction === activeTransaction && 'active'}"
+              key=${(transaction.endDate ? 'completed-' : 'progress-') + transaction.startDate}
+              index=${index}
+              stateName=${(transaction.endDate ? 'completed' : 'progress')}
+              transaction=${transaction.args}
+              startTime=${transaction.startDate}
+              endTime=${transaction.endDate}
+              onClick=${transaction.endDate && this.toggleExpanded(transaction)}
+            />`)}
 
-              ${inProgress
-                .sort(transaction => transaction.startDate)
-                .map((transaction, index) => html`
-                  <devtools-transaction-row
-                    key=${'progress-' + String(transaction.startDate)}
-                    index=${index}
-                    stateName="progress"
-                    transaction=${transaction.args}
-                    startTime=${transaction.startDate}
-                    endTime=${transaction.endDate}
-                    onClick=${this.toggleExpanded(completed, index)}
-                  />
-                `)}
+            ${!sorted.length && html`<tbody>
+              <tr class="missing">
+                <td colspan="11">
+                  No renders
+                </td>
+              </tr>
+            </tbody>`}
+          </table>
+        </div>
 
-              ${(!completed.length && !inProgress.length) && html`
-                <tbody>
-                  <tr class="missing">
-                    <td colspan="11">
-                      No renders
-                    </td>
-                  </tr>
-                </tbody>
-              `}
-            </table>
-          </div>
-        `}
-
-        ${expandedIndex !== -1 && html`
-          <transaction-detail transaction=${
-            expandedState.sort(transaction => transaction.startDate)[expandedIndex]
-          } />
+        ${activeTransaction && html`
+          <devtools-transaction-detail
+            class="ui"
+            style="max-height: 50%"
+            transaction=${activeTransaction}
+            closeDetail=${this.toggleExpanded(null)}
+          />
         `}
       </div>
     `;
@@ -271,6 +252,38 @@ class DevtoolsTransactionsPanel extends WebComponent {
     `;
   }
 
+  constructor(...args) {
+    super(...args);
+
+    this.componentWillReceiveProps(this.props);
+  }
+
+  componentWillReceiveProps(nextProps, nextState = this.state) {
+    const { hideEmpty, sortBy, sortDir, activeTransaction } = nextState;
+
+    if (nextProps.completed) {
+      this.state.sorted = nextProps.completed
+        .sort((a, b) => sortDir === 'asc' ? a[sortBy] < b[sortBy] : a[sortBy] > b[sortBy])
+        .filter(({ args }) => hideEmpty ? args.patches.length : true);
+    }
+
+    if (nextProps.inProgress) {
+      this.state.sorted.push(
+        ...nextProps.inProgress.sort(
+          (a, b) => sortDir === 'asc' ? a[sortBy] < b[sortBy] : a[sortBy] > b[sortBy]
+        )
+      );
+    }
+
+    // Only use up to 20 items.
+    this.state.sorted = this.state.sorted.slice(-20);
+
+    // Reset activeTransaction if it's no longer relevant.
+    if (activeTransaction && !this.state.sorted.includes(activeTransaction)) {
+      this.state.activeTransaction = null;
+    }
+  }
+
   componentDidUpdate() {
     const { isExpanded, expandedIndex, autoScroll } = this.state;
 
@@ -284,21 +297,23 @@ class DevtoolsTransactionsPanel extends WebComponent {
     }
   }
 
+  shouldComponentUpdate() {
+    const { activeRoute } = this.props;
+
+    return activeRoute === '#transactions' || !activeRoute;
+  }
+
   toggleAutoscroll = () => {
-    const autoScroll = !this.state.autoScroll;
-    this.setState({ autoScroll });
+    this.setState({ autoScroll: !this.state.autoScroll });
   }
 
   toggleHideEmpty = () => {
-    const hideEmpty = !this.state.hideEmpty;
-    this.setState({ hideEmpty });
+    this.setState({ hideEmpty: !this.state.hideEmpty });
   }
 
-  toggleExpanded(expandedState, index) {
-    return () => {
-      const expandedIndex = this.state.expandedIndex === index ? -1 : index;
-      this.setState({ expandedState, expandedIndex });
-    };
+  toggleExpanded = activeTransaction => () => {
+    console.log(activeTransaction);
+    this.setState({ activeTransaction });
   }
 }
 

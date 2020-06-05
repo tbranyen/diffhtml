@@ -1,20 +1,31 @@
-import { html } from 'diffhtml';
+import diff, { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
 
 class DevtoolsHelpPanel extends WebComponent {
   static propTypes = {
     theme: String,
+    activeRoute: String,
+    version: Number,
   }
 
   state = {
     isExpanded: false,
     activeTab: 'chat',
+    source: `
+      diff.innerHTML(document.body, diff.html\`
+        <h1>Live Sandbox</h1>
+      \`);
+    `,
+  }
+
+  updateSource = ev => {
+    this.setState({ source: ev.target.value });
   }
 
   render() {
-    const { theme } = this.props;
-    const { isExpanded, activeTab } = this.state;
-    const { setActive } = this;
+    const { theme, version } = this.props;
+    const { source, isExpanded, activeTab } = this.state;
+    const { setActive, updateSource } = this;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -28,15 +39,50 @@ class DevtoolsHelpPanel extends WebComponent {
 
       <div class="wrapper">
         <div class="ui attached tabular menu">
-          <div class="ui item ${activeTab === 'chat' && 'active'}">
-            <a href="#" onClick=${setActive('chat')}>Chat</a>
-          </div>
-          <div class="ui item ${activeTab === 'api' && 'active'}">
-            <a href="#" onClick=${setActive('api')}>API Reference</a>
-          </div>
+          <!--
           <div class="ui item ${activeTab === 'repl' && 'active'}">
             <a href="#" onClick=${setActive('repl')}>REPL</a>
           </div>
+          -->
+          <div class="ui item ${activeTab === 'chat' && 'active'}">
+            <a href="#" onClick=${setActive('chat')}>Chat</a>
+          </div>
+          <div class="ui item ${activeTab === 'about' && 'active'}">
+            <a href="#" onClick=${setActive('about')}>About</a>
+          </div>
+          <!--
+          <div class="ui item ${activeTab === 'api' && 'active'}">
+            <a href="#" onClick=${setActive('api')}>API Reference</a>
+          </div>
+          -->
+        </div>
+
+        <div class="ui bottom attached tab repl segment ${activeTab === 'repl' && 'active'}">
+          <textarea value=${source} oninput=${updateSource} />
+          <iframe
+            onload=${ev => {
+              ev.target.contentWindow.diff = diff;
+            }}
+            srcdoc=${`
+            <!doctype html>
+
+            <html>
+              <head></head>
+              <body>
+                Testing
+              </body>
+            </html>
+          `} />
+        </div>
+
+        <div class="ui bottom attached tab about segment ${activeTab === 'about' && 'active'}">
+          <p>
+            <div class="ui logo" src="/icons/logo-128.png" />
+            <h3 class="version">diffHTML: ${version}</h3>
+          </p>
+
+          <hr>
+          by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
         </div>
 
         <div class="ui bottom attached tab segment ${activeTab === 'chat' && 'active'}">
@@ -46,16 +92,19 @@ class DevtoolsHelpPanel extends WebComponent {
         <div class="ui bottom attached tab segment ${activeTab === 'api' && 'active'}">
           <iframe frameborder="0" src="https://diffhtml.org/api.html"></iframe>
         </div>
-
-        <div class="ui bottom attached tab segment ${activeTab === 'repl' && 'active'}">
-          REPL
-        </div>
       </div>
     `;
   }
 
-  componentDidMount() {
-    this.querySelector('iframe').focus();
+  componentDidUpdate() {
+    if (this.state.activeTab !== 'repl') {
+      const iframe = this.querySelector('iframe');
+      iframe && iframe.focus();
+    }
+  }
+
+  shouldComponentUpdate(nextProps) {
+    return nextProps.activeRoute === '#help';
   }
 
   styles() {
@@ -93,6 +142,35 @@ class DevtoolsHelpPanel extends WebComponent {
       .wrapper iframe {
         width: 100%;
         height: 100%;
+      }
+
+      .tab.repl.active {
+        display: flex !important;
+        flex-direction: row !important;
+      }
+
+      .tab.repl > * {
+        flex: 1;
+      }
+
+      .ui.logo {
+        width: 128px;
+        height: 128px;
+
+        background-image: url(/icons/logo-128.png);
+      }
+
+      .ui.logo.inverted {
+        background-image: url(/icons/logo-128-invert.png);
+      }
+
+      .tab.about {
+        padding: 20px !important;
+        padding-top: 0 !important;
+        overflow-y: auto;
+        height: 100%;
+        box-sizing: border-box;
+        margin-bottom: 0;
       }
     `;
   }

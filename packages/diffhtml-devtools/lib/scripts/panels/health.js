@@ -1,13 +1,12 @@
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 //import Chartist from 'chartist';
 //import ChartistGraph from 'react-chartist';
 
 class DevtoolsHealthPanel extends WebComponent {
   static propTypes = {
-    activeRoute: PropTypes.string,
-    memory: PropTypes.array,
+    activeRoute: String,
+    memory: Array,
   }
 
   state = {
@@ -18,14 +17,13 @@ class DevtoolsHealthPanel extends WebComponent {
   render() {
     const { memory = [] } = this.props;
     const { isExpanded, activeTab } = this.state;
-    const { setActive } = this;
+    const { setActive, triggerGC } = this;
 
     const labels = memory.map(mem => new Date(mem.time).toLocaleTimeString());
 
     const series = [
       memory.map(mem => mem.free),
-      memory.map(mem => mem.allocated),
-      memory.map(mem => mem.protected),
+      memory.map(mem => mem.protected + mem.allocated),
     ];
 
     return html`
@@ -57,18 +55,23 @@ class DevtoolsHealthPanel extends WebComponent {
         </div>
 
         <div class="ui bottom attached tab segment ${activeTab === 'memory' && 'active'}">
-          <div class="ui segment">
+          <div class="ui segment" style=${{
+            'box-shadow': 'none',
+            'border': 'none',
+          }}>
             <div class="ui two column very relaxed grid">
               <div class="ui column">
                 <p style="margin-left: 20px; margin-top: 20px; margin-bottom: 20px">
                   ${series.map((count, i) => html`
                     ${i === 0 && html`
-                      <strong>${String(count)} free</strong>
+                      <strong style="margin-left: 5px; padding: 4px; color: #BFFB86; background: #4A8209">
+                        ${String(count)} free
+                      </strong>
                     `}
 
-                    ${i === 2 && html`
-                      <strong style="margin-left: 5px; padding: 4px; color: #4A8209; background: #BFFB86">
-                        ${String(count)} used
+                    ${i === 1 && html`
+                      <strong style="margin-left: 5px; padding: 4px; color: #FFF178; background: #FF9800">
+                        ${String(count)} allocated
                       </strong>
                     `}
                   `)}
@@ -86,19 +89,19 @@ class DevtoolsHealthPanel extends WebComponent {
                   ${series.map((count, i) => html`
                     <!-- Free -->
                     ${i === 0 && html`
-                      <circle r="10" cx="10" cy="10" fill="#2185D0" />
+                      <circle r="10" cx="10" cy="10" fill="#BFFB86" />
                     `}
 
-                    <!-- Protected -->
-                    ${i === 2 && html`
+                    <!-- Allocated -->
+                    ${i === 1 && html`
                       <circle
                         r="5"
                         cx="10"
                         cy="10"
                         fill="transparent"
-                        stroke="#BFFB86"
+                        stroke="#FF9800"
                         stroke-width="10"
-                        stroke-dasharray="calc(${(series[2][0] / series[0][0]) * 100} * 31.4 / 100) 31.4"
+                        stroke-dasharray="calc(${(series[1][0] / series[0][0]) * 100} * 31.4 / 100) 31.4"
                         transform="rotate(-90) translate(-20)"
                       />
                     `}
@@ -107,7 +110,7 @@ class DevtoolsHealthPanel extends WebComponent {
               </div>
 
               <div class="ui column" style="align-self: center">
-                <button class="ui button">Trigger GC</button>
+                <button class="ui button" onClick=${triggerGC}>Manually Trigger GC</button>
               </div>
             </div>
 
@@ -129,6 +132,10 @@ class DevtoolsHealthPanel extends WebComponent {
         </div>
       </div>
     `;
+  }
+
+  shouldComponentUpdate() {
+    return this.props.activeRoute === '#health';
   }
 
   styles() {
@@ -197,17 +204,13 @@ class DevtoolsHealthPanel extends WebComponent {
     this.setState({ activeTab });
   }
 
-  triggerGC = name => () => {
+  triggerGC = () => {
     const type = 'gc';
 
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-      tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, {
-        type,
-        name,
-      }));
+      tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, { type }));
     });
   }
-
 }
 
 customElements.define('devtools-health-panel', DevtoolsHealthPanel);

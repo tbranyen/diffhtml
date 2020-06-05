@@ -1,17 +1,16 @@
 import { html, Internals } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 import SemanticUITable from '../semantic-ui/table';
 
 const { keys } = Object;
 
 class DevtoolsTransactionRow extends WebComponent {
   static propTypes = {
-    index: PropTypes.number,
-    transaction: PropTypes.object,
-    stateName: PropTypes.string,
-    startTime: PropTypes.number,
-    endTime: PropTypes.number,
+    index: Number,
+    transaction: Object,
+    stateName: String,
+    startTime: Number,
+    endTime: Number,
   }
 
   render() {
@@ -45,7 +44,7 @@ class DevtoolsTransactionRow extends WebComponent {
       <link rel="stylesheet" href="/styles/theme.css">
       <style>${this.styles()}</style>
 
-      <td class="center aligned">
+      <td class="ui center aligned">
         ${unnecessaryRender && transaction.completed && html`
           <div
             data-tooltip="Unnecessary render, nothing changed"
@@ -56,11 +55,11 @@ class DevtoolsTransactionRow extends WebComponent {
         `}
       </td>
 
-      <td class="center aligned">
+      <td class="ui center aligned">
         <span>${endTime ? `${(endTime - startTime).toFixed(1)}ms` : ''}</span>
       </td>
 
-      <td class="center aligned">
+      <td class="ui center aligned">
         <span>
           ${aborted ? 'Aborted' : (
             stateName === 'completed' ? 'Completed' : 'In Progress'
@@ -68,41 +67,49 @@ class DevtoolsTransactionRow extends WebComponent {
         </span>
       </td>
 
-      <td class="center aligned">
+      <td class="ui center aligned">
         <div class="node">
           &lt;${domNode}&gt;
         </div>
       </td>
 
-      <td class="center aligned">
+      <td class="ui center aligned">
         <strong><a>${String(promises.length)}</a></strong>
       </td>
 
-      <td class="center aligned ${getColorFromStat(stats.insert)}">
+      <td class="ui center aligned ${getColorFromStat(stats.insert)}">
         <strong><a>${stats.insert}</a></strong>
       </td>
 
-      <td class="center aligned ${getColorFromStat(stats.replace)}">
+      <td class="ui center aligned ${getColorFromStat(stats.replace)}">
         <strong><a>${stats.replace}</a></strong>
       </td>
 
-      <td class="center aligned ${getColorFromStat(stats.remove)}">
+      <td class="ui center aligned ${getColorFromStat(stats.remove)}">
         <strong><a>${stats.remove}</a></strong>
       </td>
 
-      <td class="center aligned ${getColorFromStat(stats.nodeValue)}">
+      <td class="ui center aligned ${getColorFromStat(stats.nodeValue)}">
         <strong><a>${stats.nodeValue}</a></strong>
       </td>
 
-      <td class="center aligned ${getColorFromStat(stats.setAttribute)}">
+      <td class="ui center aligned ${getColorFromStat(stats.setAttribute)}">
         <strong><a>${stats.setAttribute}</a></strong>
       </td>
 
-      <td class="center aligned ${getColorFromStat(stats.removeAttribute)}">
+      <td class="ui center aligned ${getColorFromStat(stats.removeAttribute)}">
         <strong><a>${stats.removeAttribute}</a></strong>
       </td>
     `;
+  }
 
+  shouldComponentUpdate(nextProps) {
+    if (this._lastStateName !== nextProps.stateName) {
+      this._lastStateName = nextProps.stateName;
+      return true;
+    }
+
+    return false;
   }
 
   styles() {
@@ -140,6 +147,10 @@ class DevtoolsTransactionRow extends WebComponent {
         background-color: transparent;
       }
 
+      .inverted .node {
+        color: #D35263;
+      }
+
       .node {
         color: #91248A;
         font-family: "dejavu sans mono", monospace;
@@ -154,12 +165,20 @@ class DevtoolsTransactionRow extends WebComponent {
         padding: 10px;
         text-align: center;
         border-color: #DEDEDE;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+
+      td.inverted {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+
+      td:nth-of-type(1) {
+        overflow: visible;
       }
 
       td > * {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        /*overflow: hidden;*/
         width: 100%;
         display: inline-block;
       }
@@ -168,26 +187,51 @@ class DevtoolsTransactionRow extends WebComponent {
       td:nth-of-type(2) { width: 80px; }
       td:nth-of-type(11) { border-right: 0; }
 
-      :host(:hover) td {
+      :host(:hover) td.inverted {
+        background-color: #FBCA82;
+      }
+
+      :host(.active) td.inverted {
+        background-color: #82FBD9;
+      }
+
+      :host(:hover) td, :host(.active) td {
         background-color: #FFF4D3;
         /*background-color: #e0d6ba;*/
         color: #333;
         cursor: pointer;
       }
-      :host(:hover) td.red { background-color: #F1B1B1 !important; }
-      :host(:hover) td.red a { color: #772E2E !important; }
-      :host(:hover) td.yellow { background-color: #FFEBA0 !important; }
-      :host(:hover) td.yellow a { color: #EF7C11 !important; }
-      :host(:hover) td.green { background-color: #b8efc5 !important; }
 
-      .red { background-color: #F1B1B1; }
-      .red a { color: #772E2E; }
+      :host(:hover) td.red {
+        background-color: #FFF4D3;
+        color: #F1B1B1 !important;
+      }
 
-      .yellow { background-color: #FFEBA0; }
-      .yellow a { color: #EF7C11; }
+      :host(:hover) td.yellow {
+        background-color: #FFF4D3;
+        color: #FFEBA0 !important;
+      }
 
-      .green { background-color: #A5DEA5; }
-      .green a { color: #009407; }
+      :host(:hover) td.green {
+        background-color: #FFF4D3;
+        color: #b8efc5 !important;
+      }
+
+      td.red:not(.inverted) { background-color: #F1B1B1 !important; }
+      td.red a { color: #772E2E; }
+      :host(:hover) td.red.inverted, :host(.active) td.red.inverted {
+        color: #F95454 !important;
+      }
+
+      td.yellow:not(.inverted) { background-color: #FFEBA0 !important; }
+      td.yellow a { color: #EF7C11; }
+
+      td.green:not(.inverted) { background-color: #A5DEA5 !important; }
+      td.green.inverted { background-color: #89E889 !important; }
+      :host(:hover) td.green.inverted, :host(.active) td.green.inverted {
+        color: #22ff84 !important;
+      }
+      td.green a { color: #009407; }
     `;
   }
 

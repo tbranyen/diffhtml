@@ -1,6 +1,5 @@
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 
 class DevtoolsSettingsPanel extends WebComponent {
   state = {
@@ -54,6 +53,10 @@ class DevtoolsSettingsPanel extends WebComponent {
         </div>
       </div>
     `;
+  }
+
+  shouldComponentUpdate() {
+    return this.props.activeRoute === '#settings';
   }
 
   styles() {

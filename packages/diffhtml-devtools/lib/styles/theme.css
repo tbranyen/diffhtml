@@ -80,3 +80,19 @@
 .ui.attached.tabular.menuui.inverted {
    border-bottom: 1px solid rgb(51, 51, 51);
 }
+
+.ui.inverted.segment, .ui.primary.inverted.segment {
+  background: #222;
+}
+
+[data-position~=top][data-tooltip]:before {
+  z-index: 1002;
+}
+
+[data-tooltip][data-position="bottom left"]:hover:after, [data-tooltip][data-position="bottom right"]:hover:after, [data-tooltip][data-position="top left"]:hover:after, [data-tooltip][data-position="top right"]:hover:after {
+  z-index: 1001;
+}
+
+h3 {
+  font-size: 15px;
+}

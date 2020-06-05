@@ -4,6 +4,8 @@ import { WebComponent } from 'diffhtml-components';
 class DevtoolsTransactionDetail extends WebComponent {
   static propTypes = {
     transaction: Object,
+    stats: Object,
+    closeDetail: Function,
   }
 
   state = {
@@ -11,6 +13,8 @@ class DevtoolsTransactionDetail extends WebComponent {
   }
 
   render() {
+    const { transaction, stats, closeDetail } = this.props;
+    const { activeTab } = this.state;
     const { setActive } = this;
 
     return html`
@@ -18,8 +22,13 @@ class DevtoolsTransactionDetail extends WebComponent {
       <style>${this.styles()}</style>
 
       <div class="ui attached tabular menu">
+        <i class="ui icon close" onClick=${closeDetail} />
+
         <div class="ui item ${activeTab === 'patches' && 'active'}">
-          <a href="#" onClick=${setActive('patches')}>Patches</a>
+          <a href="#" onClick=${setActive('patches')}>
+            Patches
+            <span class="ui teal label">${String(transaction.args.patches.length)}</span>
+          </a>
         </div>
 
         <div class="ui item ${activeTab === 'diff' && 'active'}">
@@ -27,29 +36,24 @@ class DevtoolsTransactionDetail extends WebComponent {
         </div>
       </div>
 
-      <div class="ui styled fluid accordion">
-        <div class="title">
-          <i class="dropdown icon"></i>
-          What is a dog?
+      <div class="ui bottom attached tab segment ${activeTab === 'patches' && 'active'}">
+        <div class="ui styled fluid accordion">
+          <div class="title">
+            <i class="dropdown icon"></i>
+            What is a dog?
+          </div>
+          <div class="content">
+            <p class="transition hidden">A dog is a type of domesticated animal. Known for its loyalty and faithfulness, it can be found as a welcome guest in many households across the world.</p>
+          </div>
+          <div class="content active">
+            <p class="transition visible">Three common ways for a prospective owner to acquire a dog is from pet shops, private owners, or shelters.</p>
+            <p class="transition visible">A pet shop may be the most convenient way to buy a dog. Buying a dog from a private owner allows you to assess the pedigree and upbringing of your dog before choosing to take it home. Lastly, finding your dog from a shelter, helps give a good home to a dog who may not find one so readily.</p>
+          </div>
         </div>
-        <div class="content">
-          <p class="transition hidden">A dog is a type of domesticated animal. Known for its loyalty and faithfulness, it can be found as a welcome guest in many households across the world.</p>
-        </div>
-        <div class="title">
-          <i class="dropdown icon"></i>
-          What kinds of dogs are there?
-        </div>
-        <div class="content">
-          <p class="transition hidden">There are many breeds of dogs. Each breed varies in size and temperament. Owners often select a breed of dog that they find to be compatible with their own lifestyle and desires from a companion.</p>
-        </div>
-        <div class="title active">
-          <i class="dropdown icon"></i>
-          How do you acquire a dog?
-        </div>
-        <div class="content active">
-          <p class="transition visible">Three common ways for a prospective owner to acquire a dog is from pet shops, private owners, or shelters.</p>
-          <p class="transition visible">A pet shop may be the most convenient way to buy a dog. Buying a dog from a private owner allows you to assess the pedigree and upbringing of your dog before choosing to take it home. Lastly, finding your dog from a shelter, helps give a good home to a dog who may not find one so readily.</p>
-        </div>
+      </div>
+
+      <div class="ui bottom attached tab segment ${activeTab === 'diff' && 'active'}">
+        <devtools-vtree vTree=${transaction.args.state.oldTree} />
       </div>
     `;
   }
@@ -61,6 +65,25 @@ class DevtoolsTransactionDetail extends WebComponent {
         vertical-align: inherit;
         border-color: inherit;
         user-select: none;
+        border-top: 2px solid #DEDEDE;
+      }
+
+      :host(.inverted) {
+        border-top: 2px solid #424242;
+      }
+
+      .ui.close {
+        padding: 15px;
+        cursor: pointer;
+      }
+
+      .ui.tab.attached {
+        overflow-y: auto;
+      }
+
+      .ui.styled.accordion {
+        border-top: none;
+        box-shadow: none;
       }
     `;
   }

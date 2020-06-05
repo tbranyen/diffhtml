@@ -585,7 +585,7 @@ Transactions have a number of properties available to access:
 - **completed** - The transaction successfully completed
 - **domNode** - The container element being rendered into
 - **endedCallbacks** - The set of callbacks that will be called once completed
-- **markup** - The raw input to render
+- **input** - The raw input to render
 - **newTree** - The reconciled tree to use for new source-of-truth
 - **oldTree** - The old tree which may already be updated with **newTree**
 - **options** - Options used when updating markup

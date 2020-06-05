@@ -6,7 +6,9 @@ const { assign } = Object;
 export default function setState(state) {
   this.state = assign({}, this.state, state);
 
-  if (!Debounce.has(this) && this.shouldComponentUpdate()) {
+  this.componentWillReceiveProps(this.props, this.state);
+
+  if (!Debounce.has(this) && this.shouldComponentUpdate(this.props, this.state)) {
     // Only render if we have an instance (has rendered before).
     this[$$render]();
   }

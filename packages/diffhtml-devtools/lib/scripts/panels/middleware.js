@@ -1,20 +1,21 @@
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 
 class DevtoolsMiddlewarePanel extends WebComponent {
   static propTypes = {
-    middleware: PropTypes.array
+    activeRoute: String,
+    middleware: Array,
   }
 
   state = {
     isExpanded: false,
     activeTab: 0,
+    middlewareStatus: {},
   }
 
   render() {
     const { middleware = [] } = this.props;
-    const { isExpanded, activeTab } = this.state;
+    const { isExpanded, activeTab, middlewareStatus } = this.state;
     const { toggleMiddleware, setActive } = this;
 
     const activeMiddleware = middleware
@@ -60,7 +61,7 @@ class DevtoolsMiddlewarePanel extends WebComponent {
               <strong>Enabled</strong>
               <div class="ui toggle checkbox">
                 <input
-                  checked
+                  checked=${name in middlewareStatus ? middlewareStatus[name] : true}
                   type="checkbox"
                   onclick=${toggleMiddleware(name)}
                 />
@@ -71,6 +72,10 @@ class DevtoolsMiddlewarePanel extends WebComponent {
         </div>
       `}
     `;
+  }
+
+  shouldComponentUpdate() {
+    return this.props.activeRoute === '#middleware';
   }
 
   styles() {
@@ -129,6 +134,9 @@ class DevtoolsMiddlewarePanel extends WebComponent {
   toggleMiddleware = name => ({ target }) => {
     const enabled = Boolean(target.checked);
     const type = 'toggleMiddleware';
+
+    this.state.middlewareStatus[name] = enabled;
+    this.forceUpdate();
 
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, {

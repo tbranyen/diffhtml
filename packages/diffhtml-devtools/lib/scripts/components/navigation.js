@@ -3,12 +3,11 @@ import { WebComponent } from 'diffhtml-components';
 
 class DevtoolsNavigation extends WebComponent {
   static propTypes = {
-    version: String,
     activeRoute: String,
   }
 
   render() {
-    const { version, activeRoute = '' } = this.props;
+    const { activeRoute = '' } = this.props;
     const { nav, selected } = this.state;
 
     return html`
@@ -27,12 +26,6 @@ class DevtoolsNavigation extends WebComponent {
             </li>
           `)}
         </ol>
-
-        <div class="credit">
-          <strong><img class="logo" src="/icons/logo-16-invert.png" />diffHTML: ${version}</strong>
-          <hr>
-          by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
-        </div>
       </div>
     `;
   }
@@ -60,6 +53,7 @@ class DevtoolsNavigation extends WebComponent {
 
       ol {
         margin: 0;
+        margin-right: 10px;
         list-style: none;
         padding: 0;
         width: 100%;
@@ -146,12 +140,13 @@ class DevtoolsNavigation extends WebComponent {
       { route: 'mounts', label: 'Mounts', icon: 'sitemap' },
       { route: 'middleware', label: 'Middleware', icon: 'chain' },
       { route: 'health', label: 'Health', icon: 'heartbeat' },
-      //{ route: 'settings', label: 'Settings', icon: 'settings' },
       { route: 'help', label: 'Help', icon: 'help' },
+      //{ route: 'settings', label: 'Settings', icon: 'settings' },
     ],
   }
 
   componentWillReceiveProps(nextProps) {
+    if (!nextProps.activeRoute) { return; }
     const route = nextProps.activeRoute.slice(1);
     const routes = this.state.nav.map(nav => nav.route);
     const selected = routes.indexOf(route);
@@ -159,9 +154,9 @@ class DevtoolsNavigation extends WebComponent {
     this.state.selected = selected;
   }
 
-  onClick = selected => {
+  onClick = index => {
     const { nav } = this.state;
-    location.hash = nav[selected].route;
+    location.hash = nav[index].route;
   }
 }
 
