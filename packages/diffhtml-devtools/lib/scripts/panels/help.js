@@ -80,9 +80,6 @@ class DevtoolsHelpPanel extends WebComponent {
             <div class="ui logo" src="/icons/logo-128.png" />
             <h3 class="version">diffHTML: ${version}</h3>
           </p>
-
-          <hr>
-          by <a target="_blank" href="http://twitter.com/tbranyen">@tbranyen</a>
         </div>
 
         <div class="ui bottom attached tab segment ${activeTab === 'chat' && 'active'}">
@@ -144,18 +141,20 @@ class DevtoolsHelpPanel extends WebComponent {
         height: 100%;
       }
 
-      .tab.repl.active {
+      .tab.repl.active, .tab.about.active > p:first-child {
         display: flex !important;
         flex-direction: row !important;
       }
 
       .tab.repl > * {
         flex: 1;
+        width: 100%;
       }
 
       .ui.logo {
         width: 128px;
         height: 128px;
+        display: inline-block;
 
         background-image: url(/icons/logo-128.png);
       }
@@ -171,6 +170,10 @@ class DevtoolsHelpPanel extends WebComponent {
         height: 100%;
         box-sizing: border-box;
         margin-bottom: 0;
+      }
+
+      .version {
+        padding: 30px;
       }
     `;
   }
