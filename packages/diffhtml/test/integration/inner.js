@@ -58,6 +58,23 @@ describe('Integration: innerHTML', function() {
     assert.equal(this.fixture.querySelector('style').textContent, 'h1 { color: blue; }');
   });
 
+  it('will remove script tags which are dynamically added', async function() {
+    const { state } = await diff.innerHTML(this.fixture, `
+      <script></script>
+    `);
+
+    // Simulate a synchronous script being added.
+    const script = document.createElement('script');
+    script.setAttribute('id', 'test');
+    this.fixture.appendChild(script);
+
+    state.previousMarkup = this.fixture.outerHTML;
+
+    diff.innerHTML(this.fixture, ``);
+
+    assert.equal(this.fixture.innerHTML, '');
+  });
+
   it('can render multiple top level elements from a single element', function() {
     diff.innerHTML(this.fixture, html`
       <div></div>

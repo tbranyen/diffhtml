@@ -1,3 +1,4 @@
+import { VTree, ValidInput, Mount, Options } from './util/types';
 import { StateCache, MiddlewareCache } from './util/caches';
 import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
@@ -8,7 +9,7 @@ import reconcileTrees from './tasks/reconcile-trees';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
-import { VTree, ValidInput, Mount, Options } from './util/types';
+import createTree from './tree/create';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -189,7 +190,8 @@ export default class Transaction {
 
     // Cache the markup and text for the DOM node to allow for short-circuiting
     // future render transactions.
-    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
+    //state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
+    state.oldTree = createTree(domNode);
 
     // Clean up SVG element list.
     state.svgElements.clear();

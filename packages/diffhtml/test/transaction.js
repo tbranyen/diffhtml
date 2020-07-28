@@ -322,7 +322,7 @@ describe('Transaction', function() {
       equal(transaction.completed, true);
     });
 
-    it('will set the state', () => {
+    it.skip('will set the state', () => {
       const { domNode, markup, options } = suite;
       const transaction = Transaction.create(domNode, markup, options);
 
