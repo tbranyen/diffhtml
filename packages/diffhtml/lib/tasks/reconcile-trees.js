@@ -18,12 +18,14 @@ export default function reconcileTrees(transaction) {
 
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
-  release(domNode);
-  state.oldTree = createTree(domNode);
-  protectVTree(state.oldTree);
+  if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
+    release(domNode);
+    state.oldTree = createTree(domNode);
+    protectVTree(state.oldTree);
 
-  // Reset the state cache after releasing.
-  StateCache.set(domNode, state);
+    // Reset the state cache after releasing.
+    StateCache.set(domNode, state);
+  }
 
   // If we are in a render transaction where no markup was previously parsed
   // then reconcile trees will attempt to create a tree based on the incoming

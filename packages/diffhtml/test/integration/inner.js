@@ -59,16 +59,17 @@ describe('Integration: innerHTML', function() {
   });
 
   it('will remove script tags which are dynamically added', async function() {
+    document.body.appendChild(this.fixture);
+
     const { state } = await diff.innerHTML(this.fixture, `
-      <script></script>
+      <script>
+        const script = document.createElement('script');
+        script.id = 'test';
+        document.body.firstElementChild.appendChild(script);
+      </script>
     `);
 
-    // Simulate a synchronous script being added.
-    const script = document.createElement('script');
-    script.setAttribute('id', 'test');
-    this.fixture.appendChild(script);
-
-    state.previousMarkup = this.fixture.outerHTML;
+    document.body.removeChild(this.fixture);
 
     diff.innerHTML(this.fixture, ``);
 

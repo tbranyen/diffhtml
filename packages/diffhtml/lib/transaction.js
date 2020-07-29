@@ -9,7 +9,6 @@ import reconcileTrees from './tasks/reconcile-trees';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
-import createTree from './tree/create';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -184,20 +183,28 @@ export default class Transaction {
 
     this.completed = true;
 
-    // Mark the end to rendering.
-    measure('finalize');
-    measure('render');
-
-    // Cache the markup and text for the DOM node to allow for short-circuiting
-    // future render transactions.
-    //state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
-    state.oldTree = createTree(domNode);
-
     // Clean up SVG element list.
     state.svgElements.clear();
 
     // Rendering is complete.
     state.isRendering = false;
+
+    // Remove all the type attributes for a clean outerHTML.
+    Array.from(document.querySelectorAll('script')).forEach(el => {
+      el.removeAttribute('type');
+    });
+
+    // Save the markup immediately after patching.
+    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
+
+    // Execute any scripts.
+    Array.from(document.querySelectorAll('script')).forEach(el => {
+      eval(el.innerHTML);
+    });
+
+    // Mark the end to rendering.
+    measure('finalize');
+    measure('render');
 
     // Clean up memory before rendering the next transaction, however if
     // another transaction is running concurrently this will be delayed until

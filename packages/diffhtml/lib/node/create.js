@@ -76,6 +76,13 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
     else {
       domNode = ownerDocument.createElement(rawNodeName);
     }
+
+    // Do not execute scripts by default.
+    if (nodeName === 'script') {
+      // Set the type to 'no-execute'. This will be toggled after patching,
+      // unless disabled by the consumer.
+      /** @type {any} */(domNode).type = 'no-execute';
+    }
   }
 
   /** @type {HTMLElement | DocumentFragment | Text} */
