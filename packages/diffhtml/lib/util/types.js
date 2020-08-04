@@ -116,6 +116,7 @@ export const ParserOptions = {};
  * @typedef {Object} Options - defines Options type
  *
  * @property {Boolean=} inner - to diff children or root
+ * @property {Boolean=} executeScripts - to execute scripts or not
  * @property {Function[]=} tasks - to override tasks
  * @property {ParserOptions=} parser - override parser options
  */

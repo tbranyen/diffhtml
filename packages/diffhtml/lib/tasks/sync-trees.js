@@ -47,9 +47,17 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     // Clean up the existing old tree, and mount the new tree.
     transaction.oldTree = state.oldTree = newTree;
 
+    const newNode = createNode(newTree);
+
     // Update the StateCache since we are changing the top level element.
     StateCache.delete(domNode);
-    StateCache.set(createNode(newTree), state);
+    StateCache.set(newNode, state);
+
+    transaction.domNode = /** @type {HTMLElement} */ (newNode);
+
+    if (newTree.nodeName === 'script') {
+      state.scriptsToExecute.set(newTree, newTree.attributes.type || '');
+    }
   }
   // Synchronize the top level elements.
   else {

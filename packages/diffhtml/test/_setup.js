@@ -5,7 +5,7 @@ import { parse } from 'url';
 
 const { stringify } = JSON;
 const { assign } = Object;
-const instance = new JSDOM();
+const instance = new JSDOM('', { runScripts: 'dangerously' });
 const { window } = instance;
 
 const location = new Proxy(parse('about:blank'), {
