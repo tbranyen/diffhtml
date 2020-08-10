@@ -145,6 +145,15 @@ export default function syncTree(oldTree, newTree, patches = [], state = {}) {
         oldAttributes[key] = value;
       }
 
+      // Skip script types as these are handled special by the transaction
+      // patch and end tasks.
+      if (
+        // Do not block existing scripts being modified.
+        (!oldTree || oldTree.nodeName !== 'script')
+        && newTree.nodeName === 'script' && key === 'type') {
+        continue;
+      }
+
       patches.push(
         PATCH_TYPE.SET_ATTRIBUTE,
         isEmpty ? newTree : oldTree,

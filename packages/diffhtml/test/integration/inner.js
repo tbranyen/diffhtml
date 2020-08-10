@@ -94,7 +94,7 @@ describe('Integration: innerHTML', function() {
     assert.equal(this.fixture.innerHTML, '');
   });
 
-  it.only('will inject script with correct type', function() {
+  it('will inject script with correct type', function() {
     document.body.appendChild(this.fixture);
 
     diff.innerHTML(this.fixture, `
@@ -103,7 +103,7 @@ describe('Integration: innerHTML', function() {
         script3.id = 'test';
         document.body.firstElementChild.appendChild(script3);
       </script>
-    `, { executeScripts: false });
+    `);
 
     assert.equal(
       Boolean(document.body.querySelector('#test')),
@@ -122,7 +122,22 @@ describe('Integration: innerHTML', function() {
     document.body.removeChild(this.fixture);
   });
 
-  it.only('will remove script tags which are dynamically added at the root', function() {
+  it('will allow changing script type', function() {
+    diff.innerHTML(this.fixture, `
+      <script></script>
+    `);
+
+    diff.innerHTML(this.fixture, `
+      <script type="template"></script>
+    `);
+
+    assert.equal(
+      this.fixture.querySelector('script').type,
+      'template',
+    );
+  });
+
+  it('will remove script tags which are dynamically added at the root', function() {
     document.body.appendChild(this.fixture);
 
     const { domNode } = diff.outerHTML(this.fixture, `<script>
@@ -137,7 +152,7 @@ describe('Integration: innerHTML', function() {
 
     assert.equal(document.body.innerHTML, '');
 
-    diff.release(domNode);
+    diff.release(document.body);
   });
 
   it('can render multiple top level elements from a single element', function() {
