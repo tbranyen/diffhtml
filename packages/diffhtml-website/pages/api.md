@@ -18,6 +18,114 @@ Some lingo to be aware of:
 - **Mount**: Most commonly a DOM node that you want to update, but can also be
   VTrees and other types.
 
+<a name="options"></a>
+
+---
+
+## <a href="#options">Options</a>
+
+- [`tasks`](#tasks)
+- [`executeScripts`](#execute-scripts)
+- [`parser`](#parser)
+
+<!--
+### inner `Boolean`
+
+Determines if the Transaction should update the DOM Node or just its children.
+Setting this to `true` will emulate the behavior of `innerHTML` and setting it
+to `false` emulates `outerHTML`.
+-->
+
+### tasks `Function[]`
+
+Manipulate the tasks which run. This can allow you to do interesting things
+with the core API. You can do API changes like providing a stream or generator
+API for the return signature, you can remove syncing and provide your own
+object for patching, etc. This feature is used by the project to create the
+render-to-string module.
+
+_Caution: Only modify this in a closed environment and
+do not ship components or shared utils which attempt to modify the host tasks._
+
+#### Example
+
+Change the return value of innerHTML to be a callback.
+
+```js
+import { innerHTML, Internals } from 'diffhtml';
+
+// Start with the default tasks.
+const newTasks = new Set(Internals.defaultTasks);
+
+newTasks.delete(Internals.tasks.endAsPromise);
+
+// Update the transaction end by returning a callback instead of using a
+// Promise based API.
+newTasks.add(transaction => {
+  const { promises } = transaction;
+
+  // Change the final return value to a callback.
+  return callback => {
+    if (promises && promises.length) {
+      return transaction.promise = Promise.all(promises).then(() => {
+        transaction.end();
+        callback(transaction);
+      });
+    }
+
+    transaction.promise = Promise.resolve(transaction.end());
+    callback(transaction);
+  };
+});
+
+// You can supress this behavior by setting executeScripts to false
+innerHTML(document.body, `<h1>Hello world</h1>`, {
+  tasks: [...newTasks],
+})(transaction => {
+  console.log('Render has completed with transaction', transaction);
+});
+```
+
+### executeScripts `Boolean`
+
+Control whether or not newly appended scripts are executed or not. Tricks the
+browser by setting the `type` property to `no-execute` when a script is added.
+This prevents the browser from executing the script.
+
+#### Example
+
+```js
+import { innerHTML } from 'diffhtml';
+
+// By default scripts will execute
+innerHTML(document.body, `<script>window.alert('here')</script>`);
+
+// You can supress this behavior by setting executeScripts to false
+innerHTML(document.body, `<script>window.alert('here')</script>`, {
+  executeScripts: false,
+});
+
+```
+
+### parser `Object`
+
+These options modify the parser by making it more strict or changing which
+elements are treated as block or self closing.
+
+[Learn more about these options](/parser.html#options)
+
+#### Example
+
+This example will throw an error since the parser encountered invalid markup.
+
+```js
+import { innerHTML } from 'diffhtml';
+
+innerHTML(document.body, `
+  <h1>Hello world</h2>
+`, { parser: { strict: true } });
+```
+
 <a name="inner-html"></a>
 
 ---
@@ -478,7 +586,7 @@ Transactions have a number of properties available to access:
 - **markup** - The raw input to render
 - **newTree** - The reconciled tree to use for new source-of-truth
 - **oldTree** - The old tree which may already be updated with **newTree**
-- **options** - Options used when renderingo
+- **options** - Options used when updating markup
 - **patches** - What has been updated in the DOM
 - **promise** - The raw promise backing the tranasction completeness
 - **promises** - All promises attached to the transaction from transitions
