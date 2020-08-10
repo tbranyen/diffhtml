@@ -3,7 +3,7 @@
 *JavaScript classes for rendering components using either Custom Element or
 React-inspired implementations.*
 
-Stable Version: 1.0.0-beta.17
+Stable Version: 1.0.0-beta.18
 
 The exported classes `Component` and `WebComponent` are designed to be
 inter-changeable and as close to feature-parity as possible. This helps bridge

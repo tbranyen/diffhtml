@@ -1,6 +1,6 @@
 # <±/> diffHTML Render to String
 
-Stable Version: 1.0.0-beta.17
+Stable Version: 1.0.0-beta.18
 
 Allows you to render diffHTML markup to string. This is useful for server-side
 rendering, compiling to static HTML, and testing.
