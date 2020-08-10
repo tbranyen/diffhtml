@@ -63,6 +63,12 @@
       
 
       
+        <a href="api.html#options" target><li>Options</li></a>
+      
+    
+      
+
+      
         <a href="api.html#inner-html" target><li>innerHTML</li></a>
       
     
@@ -315,6 +321,92 @@ memory usage.</li>
 <li><strong>Mount</strong>: Most commonly a DOM node that you want to update, but can also be
 VTrees and other types.</li>
 </ul>
+<p><a name="options"></a></p>
+<hr></hr>
+<h2 id="a-hrefoptionsoptionsa"><a href="#options">Options</a></h2>
+<ul>
+<li>
+    <a href="#tasks" title="null"><code>tasks</code></a>
+  </li>
+<li>
+    <a href="#execute-scripts" title="null"><code>executeScripts</code></a>
+  </li>
+<li>
+    <a href="#parser" title="null"><code>parser</code></a>
+  </li>
+</ul>
+
+
+<h3 id="tasks-function">tasks <code>Function[]</code></h3>
+<p>Manipulate the tasks which run. This can allow you to do interesting things
+with the core API. You can do API changes like providing a stream or generator
+API for the return signature, you can remove syncing and provide your own
+object for patching, etc. This feature is used by the project to create the
+render-to-string module.</p>
+<p><em>Caution: Only modify this in a closed environment and
+do not ship components or shared utils which attempt to modify the host tasks.</em></p>
+<h4 id="example">Example</h4>
+<p>Change the return value of innerHTML to be a callback.</p>
+<pre><code class="language-js">import { innerHTML, Internals } from &#39;diffhtml&#39;;
+
+// Start with the default tasks.
+const newTasks = new Set(Internals.defaultTasks);
+
+newTasks.delete(Internals.tasks.endAsPromise);
+
+// Update the transaction end by returning a callback instead of using a
+// Promise based API.
+newTasks.add(transaction =&gt; {
+  const { promises } = transaction;
+
+  // Change the final return value to a callback.
+  return callback =&gt; {
+    if (promises &amp;&amp; promises.length) {
+      return transaction.promise = Promise.all(promises).then(() =&gt; {
+        transaction.end();
+        callback(transaction);
+      });
+    }
+
+    transaction.promise = Promise.resolve(transaction.end());
+    callback(transaction);
+  };
+});
+
+// You can supress this behavior by setting executeScripts to false
+innerHTML(document.body, `&lt;h1&gt;Hello world&lt;/h1&gt;`, {
+  tasks: [...newTasks],
+})(transaction =&gt; {
+  console.log(&#39;Render has completed with transaction&#39;, transaction);
+});</code></pre>
+<h3 id="executescripts-boolean">executeScripts <code>Boolean</code></h3>
+<p>Control whether or not newly appended scripts are executed or not. Tricks the
+browser by setting the <code>type</code> property to <code>no-execute</code> when a script is added.
+This prevents the browser from executing the script.</p>
+<h4 id="example-1">Example</h4>
+<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
+
+// By default scripts will execute
+innerHTML(document.body, `&lt;script&gt;window.alert(&#39;here&#39;)&lt;/script&gt;`);
+
+// You can supress this behavior by setting executeScripts to false
+innerHTML(document.body, `&lt;script&gt;window.alert(&#39;here&#39;)&lt;/script&gt;`, {
+  executeScripts: false,
+});
+</code></pre>
+<h3 id="parser-object">parser <code>Object</code></h3>
+<p>These options modify the parser by making it more strict or changing which
+elements are treated as block or self closing.</p>
+<p>
+    <a href="/parser.html#options" title="null">Learn more about these options</a>
+  </p>
+<h4 id="example-2">Example</h4>
+<p>This example will throw an error since the parser encountered invalid markup.</p>
+<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
+
+innerHTML(document.body, `
+  &lt;h1&gt;Hello world&lt;/h2&gt;
+`, { parser: { strict: true } });</code></pre>
 <p><a name="inner-html"></a></p>
 <hr></hr>
 <h2 id="a-hrefinner-htmlinnerhtmla-mount-input-options"><a href="#inner-html">innerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
@@ -730,7 +822,7 @@ asynchronous.</p>
 <li><strong>markup</strong> - The raw input to render</li>
 <li><strong>newTree</strong> - The reconciled tree to use for new source-of-truth</li>
 <li><strong>oldTree</strong> - The old tree which may already be updated with <strong>newTree</strong></li>
-<li><strong>options</strong> - Options used when renderingo</li>
+<li><strong>options</strong> - Options used when updating markup</li>
 <li><strong>patches</strong> - What has been updated in the DOM</li>
 <li><strong>promise</strong> - The raw promise backing the tranasction completeness</li>
 <li><strong>promises</strong> - All promises attached to the transaction from transitions</li>
@@ -745,7 +837,7 @@ asynchronous.</p>
 <hr></hr>
 <h2 id="a-hrefversionversiona"><a href="#version">VERSION</a></h2>
 <p>Property which indicates the current running version of diffHTML.</p>
-<h3 id="example">Example</h3>
+<h3 id="example-3">Example</h3>
 <pre><code class="language-js">console.log(VERSION);</code></pre>
 <hr></hr>
 </section>
@@ -772,6 +864,21 @@ asynchronous.</p>
       <script key="source">
         try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
+        
+          // Every time a refresh happens, reload the highlight code block.
+          let interval;
+
+          interval = setInterval(() => {
+            if (typeof staticSyncHandlers !== 'undefined') {
+              clearInterval(interval);
+
+              staticSyncHandlers.add(() => {
+                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+                  hljs.highlightBlock(block);
+                }));
+              });
+            }
+          }, 200);
         
 
         document.querySelector('.open-menu').onclick = ev => {

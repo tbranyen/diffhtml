@@ -1,4 +1,5 @@
-import { StateCache, MiddlewareCache } from './util/caches';
+import { VTree, ValidInput, Mount, Options } from './util/types';
+import { StateCache, MiddlewareCache, NodeCache } from './util/caches';
 import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
@@ -8,7 +9,7 @@ import reconcileTrees from './tasks/reconcile-trees';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
-import { VTree, ValidInput, Mount, Options } from './util/types';
+import release from './release';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -116,6 +117,7 @@ export default class Transaction {
     this.state = StateCache.get(domNode) || {
       measure: makeMeasure(domNode, input),
       svgElements: new Set(),
+      scriptsToExecute: new Map(),
     };
 
     if (options.tasks && options.tasks.length) {
@@ -176,26 +178,65 @@ export default class Transaction {
    * @return {Transaction}
    */
   end() {
-    const { state, domNode } = this;
-    const { measure } = state;
+    const { state, domNode, options } = this;
+    const { measure, svgElements, scriptsToExecute } = state;
 
     measure('finalize');
 
     this.completed = true;
 
-    // Mark the end to rendering.
-    measure('finalize');
-    measure('render');
-
-    // Cache the markup and text for the DOM node to allow for short-circuiting
-    // future render transactions.
-    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
-
     // Clean up SVG element list.
-    state.svgElements.clear();
+    svgElements.clear();
 
     // Rendering is complete.
     state.isRendering = false;
+
+    /**
+     * Ensure correct script type is set before caching the output HTML.
+     * @type {Map<VTree, string | undefined>}
+     */(scriptsToExecute).forEach((type = '', key) => {
+      const oldNode = /** @type {any} */ (NodeCache.get(key));
+
+      // Reset the type value.
+      if (type) oldNode.setAttribute('type', type);
+      else oldNode.removeAttribute('type');
+    });
+
+    // Save the markup immediately after patching.
+    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
+
+    // Only execute scripts if the configuration is set. By default this is set
+    // to true. You can toggle this behavior for your app to disable script
+    // execution.
+    if (options.executeScripts) {
+      /**
+       * Execute deferred scripts.
+       * @type {Map<VTree, string | undefined>}
+       */(scriptsToExecute).forEach((_, key)=> {
+        const oldNode = NodeCache.get(key);
+        const newNode = /** @type {any} */ (oldNode).cloneNode(true);
+
+        // If the script is now the root element, make sure we cleanup and
+        // re-assign.
+        if (StateCache.has(oldNode)) {
+          release(oldNode);
+          StateCache.set(newNode, state);
+        }
+
+        // Replace the node association.
+        NodeCache.set(key, newNode);
+
+        // Replace the scripts to trigger default browser behavior.
+        /** @type {any}  */ (oldNode).parentNode.replaceChild(newNode, oldNode);
+      });
+    }
+
+    // Empty the scripts to execute.
+    scriptsToExecute.clear();
+
+    // Mark the end to rendering.
+    measure('finalize');
+    measure('render');
 
     // Clean up memory before rendering the next transaction, however if
     // another transaction is running concurrently this will be delayed until

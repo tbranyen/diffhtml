@@ -1,4 +1,4 @@
-import assert, { ok } from 'assert';
+import assert from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validate-memory';
 
@@ -56,6 +56,103 @@ describe('Integration: innerHTML', function() {
     diff.innerHTML(this.fixture, '<style>h1 { color: blue; }</style>');
 
     assert.equal(this.fixture.querySelector('style').textContent, 'h1 { color: blue; }');
+  });
+
+  it('will allow disabling scripts', function() {
+    document.body.appendChild(this.fixture);
+
+    diff.innerHTML(this.fixture, `
+      <script>
+        const script1 = document.createElement('script');
+        script1.id = 'test';
+        document.body.firstElementChild.appendChild(script1);
+      </script>
+    `, { executeScripts: false });
+
+    assert.equal(Boolean(document.querySelector('#test')), false)
+
+    document.body.removeChild(this.fixture);
+  });
+
+  it('will remove script tags which are dynamically added', function() {
+    document.body.appendChild(this.fixture);
+
+    diff.innerHTML(this.fixture, `
+      <script>
+        const script = document.createElement('script');
+        script.id = 'test';
+        document.body.firstElementChild.appendChild(script);
+      </script>
+    `);
+
+    assert.equal(Boolean(document.querySelector('#test')), true);
+
+    document.body.removeChild(this.fixture);
+
+    diff.innerHTML(this.fixture, ``);
+
+    assert.equal(this.fixture.innerHTML, '');
+  });
+
+  it('will inject script with correct type', function() {
+    document.body.appendChild(this.fixture);
+
+    diff.innerHTML(this.fixture, `
+      <script type="text/javascript">
+        const script3 = document.createElement('script');
+        script3.id = 'test';
+        document.body.firstElementChild.appendChild(script3);
+      </script>
+    `);
+
+    assert.equal(
+      Boolean(document.body.querySelector('#test')),
+      true,
+    );
+
+    assert.equal(
+      document.body.querySelector('script[type]').getAttribute('type'),
+      'text/javascript',
+    );
+
+    diff.innerHTML(this.fixture, '');
+
+    assert.equal(this.fixture.innerHTML, '');
+
+    document.body.removeChild(this.fixture);
+  });
+
+  it('will allow changing script type', function() {
+    diff.innerHTML(this.fixture, `
+      <script></script>
+    `);
+
+    diff.innerHTML(this.fixture, `
+      <script type="template"></script>
+    `);
+
+    assert.equal(
+      this.fixture.querySelector('script').type,
+      'template',
+    );
+  });
+
+  it('will remove script tags which are dynamically added at the root', function() {
+    document.body.appendChild(this.fixture);
+
+    const { domNode } = diff.outerHTML(this.fixture, `<script>
+      const script2 = document.createElement('script');
+      script2.id = 'test';
+      document.body.appendChild(script2);
+    </script>`);
+
+    assert.equal(Boolean(document.querySelector('#test')), true);
+
+    diff.innerHTML(document.body, ``);
+
+    assert.equal(document.body.innerHTML, '');
+
+    diff.release(document.body);
   });
 
   it('can render multiple top level elements from a single element', function() {

@@ -8,6 +8,7 @@
     }],
 
     "Core API": ["api.html", {
+      "Options": "#options",
       "innerHTML": "#inner-html",
       "outerHTML": "#outer-html",
       "html": "#html",

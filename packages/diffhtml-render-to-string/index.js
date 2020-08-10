@@ -62,7 +62,7 @@ exports.renderToString = function renderToString(markup, options = {}) {
   const newTree = createTree('#document-fragment', {}, childNodes);
   const oldTree = createTree(newTree.rawNodeName);
 
-  return innerHTML(oldTree, newTree, { tasks: [...tasks], options });
+  return innerHTML(oldTree, newTree, { tasks: [...tasks], ...options });
 };
 
 // Proxy diffHTML API.

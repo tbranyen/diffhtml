@@ -63,6 +63,12 @@
       
 
       
+        <a href="api.html#options" target><li>Options</li></a>
+      
+    
+      
+
+      
         <a href="api.html#inner-html" target><li>innerHTML</li></a>
       
     
@@ -550,6 +556,21 @@ use(linter({
       <script key="source">
         try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
+        
+          // Every time a refresh happens, reload the highlight code block.
+          let interval;
+
+          interval = setInterval(() => {
+            if (typeof staticSyncHandlers !== 'undefined') {
+              clearInterval(interval);
+
+              staticSyncHandlers.add(() => {
+                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+                  hljs.highlightBlock(block);
+                }));
+              });
+            }
+          }, 200);
         
 
         document.querySelector('.open-menu').onclick = ev => {

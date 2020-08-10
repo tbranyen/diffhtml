@@ -11,6 +11,8 @@ import { ValidInput, Options, Mount } from './util/types';
  */
 export default function innerHTML(domNode, input = '', options = {}) {
   options.inner = true;
+  options.executeScripts = 'executeScripts' in options ? options.executeScripts : true;
   options.tasks = options.tasks || defaultTasks;
+
   return Transaction.create(domNode, input, options).start();
 }
