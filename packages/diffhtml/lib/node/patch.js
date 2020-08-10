@@ -6,8 +6,8 @@ import { PATCH_TYPE, ValidNode, VTree } from '../util/types';
 import { NodeCache, TransitionCache } from '../util/caches';
 
 const { keys } = Object;
-const blacklist = new Set();
-const whitelist = new Set();
+const blocklist = new Set();
+const allowlist = new Set();
 
 /**
  * Directly set this attributes, in addition to setting as properties.
@@ -38,21 +38,21 @@ const setAttribute = (vTree, domNode, name, value) => {
   const lowerName = isEvent ? name.toLowerCase() : name;
 
   // Runtime checking if the property can be set.
-  const blacklistName = vTree.nodeName + '-' + lowerName;
+  const blocklistName = vTree.nodeName + '-' + lowerName;
 
   /** @type {HTMLElement} */
   const htmlElement = (domNode);
 
   // Since this is a property value it gets set directly on the node.
-  if (whitelist.has(blacklistName)) {
+  if (allowlist.has(blocklistName)) {
     /** @type {any} */ (domNode)[lowerName] = value;
   }
-  else if (!blacklist.has(blacklistName)) {
+  else if (!blocklist.has(blocklistName)) {
     try {
       /** @type {any} */ (domNode)[lowerName] = value;
-      whitelist.add(blacklistName);
+      allowlist.add(blocklistName);
     } catch (unhandledException) {
-      blacklist.add(blacklistName);
+      blocklist.add(blocklistName);
     }
   }
 
@@ -89,9 +89,9 @@ const removeAttribute = (domNode, name) => {
   /** @type {HTMLElement} */ (domNode).removeAttribute(name);
 
   // Runtime checking if the property can be set.
-  const blacklistName = /** @type {HTMLElement} */ (domNode).nodeName + '-' + name;
+  const blocklistName = /** @type {HTMLElement} */ (domNode).nodeName + '-' + name;
 
-  if (whitelist.has(blacklistName)) {
+  if (allowlist.has(blocklistName)) {
     const anyNode = /** @type {any} */ (domNode);
 
     if (isEvent) {
@@ -104,7 +104,7 @@ const removeAttribute = (domNode, name) => {
       /** @type {any} */ (domNode)[name] = false;
     }
   }
-  else if (!blacklist.has(blacklistName)) {
+  else if (!blocklist.has(blocklistName)) {
     try {
       const anyNode = /** @type {any} */ (domNode);
       if (isEvent) {
@@ -117,9 +117,9 @@ const removeAttribute = (domNode, name) => {
         /** @type {any} */ (domNode)[name] = false;
       }
 
-      whitelist.add(blacklistName);
+      allowlist.add(blocklistName);
     } catch (unhandledException) {
-      blacklist.add(blacklistName);
+      blocklist.add(blocklistName);
     }
   }
 };
