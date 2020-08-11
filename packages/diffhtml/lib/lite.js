@@ -10,7 +10,7 @@ import { addTransitionState, removeTransitionState } from './transition';
 import { __VERSION__ } from './version';
 
 const { assign } = Object;
-const VERSION = `${__VERSION__}-runtime`;
+const VERSION = `${__VERSION__}-lite`;
 
 // Exposes the Internal APIs which may change. Once this project reaches a
 // stable version, this will only be able to break between major versions.
