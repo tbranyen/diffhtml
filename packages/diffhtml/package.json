@@ -54,7 +54,7 @@
     "rollup-watch": "^4.3.1",
     "sinon": "^9.0.2",
     "typescript": "^3.9.2",
-    "uglifyjs": "^2.4.11"
+    "uglify-js": "backports"
   },
   "nyc": {
     "require": [
