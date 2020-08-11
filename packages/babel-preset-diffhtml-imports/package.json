@@ -1,7 +1,7 @@
 {
   "name": "babel-preset-diffhtml-imports",
   "private": true,
-  "version": "1.0.0-beta.17",
+  "version": "1.0.0-beta.18",
   "description": "Used to normalize import paths to diffHTML modules based on env",
   "main": "index.js",
   "author": "Tim Branyen (@tbranyen)",

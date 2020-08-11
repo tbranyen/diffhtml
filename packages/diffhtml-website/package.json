@@ -1,7 +1,7 @@
 {
   "name": "diffhtml-website",
   "private": true,
-  "version": "1.0.0-beta.17",
+  "version": "1.0.0-beta.18",
   "description": "",
   "scripts": {
     "build": "npm run generate && npm run copy",
@@ -16,10 +16,10 @@
     "chokidar": "^3.1.1",
     "cli-spinner": "^0.2.10",
     "combyne": "^2.0.0",
-    "diffhtml": "^1.0.0-beta.17",
-    "diffhtml-components": "^1.0.0-beta.17",
-    "diffhtml-render-to-string": "^1.0.0-beta.17",
-    "diffhtml-static-sync": "^1.0.0-beta.17",
+    "diffhtml": "^1.0.0-beta.18",
+    "diffhtml-components": "^1.0.0-beta.18",
+    "diffhtml-render-to-string": "^1.0.0-beta.18",
+    "diffhtml-static-sync": "^1.0.0-beta.18",
     "express": "^4.17.1",
     "marked": "^0.7.0",
     "ncp": "^2.0.0",
