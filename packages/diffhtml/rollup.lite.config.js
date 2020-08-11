@@ -8,13 +8,13 @@ const { stringify } = JSON;
 const { NODE_ENV = 'umd' } = process.env;
 
 const entries = {
-  min: 'lib/runtime.js',
-  umd: 'lib/runtime.js',
+  min: 'lib/lite.js',
+  umd: 'lib/lite.js',
 };
 
 const dests = {
-  min: 'dist/diffhtml-runtime.min.js',
-  umd: 'dist/diffhtml-runtime.js',
+  min: 'dist/diffhtml-lite.min.js',
+  umd: 'dist/diffhtml-lite.js',
 }
 
 export const input = entries[NODE_ENV];
@@ -67,6 +67,6 @@ export const plugins = [
     }
   }),
   NODE_ENV === 'umd' && Visualizer({
-    filename: './dist/runtime-build-size.html'
+    filename: './dist/lite-build-size.html'
   }),
 ];

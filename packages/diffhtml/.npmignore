@@ -6,4 +6,4 @@ test
 .jshintrc
 .npmignore
 rollup.main.config.js
-rollup.runtime.config.js
+rollup.lite.config.js

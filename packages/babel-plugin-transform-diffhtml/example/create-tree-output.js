@@ -1,4 +1,4 @@
-const { html, innerHTML } = require('diffhtml/runtime');
+const { html, innerHTML } = require('diffhtml/lite');
 
 // Render a div with dynamic children and onclick
 function renderTime(time) {

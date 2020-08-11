@@ -317,7 +317,7 @@ anytime you have an element that does not change, the call will be hoisted and
 reused instead of recreated every time. Any <code>html</code> tagged template calls will
 be converted to <code>createTree</code> calls.</p>
 <p><strong>After your code has been passed through this plugin, you will be able to fully
-utilize the runtime build!</strong></p>
+utilize the lite build!</strong></p>
 <p>To use, install into your project as a dev dependency.</p>
 <pre><code class="language-sh">npm install -D babel-plugin-transform-diffhtml</code></pre>
 <p>Specify the plugin in the Babel configuration, usually a <code>.babelrc</code> or
@@ -334,10 +334,10 @@ function render() {
   `);
 }</code></pre>
 <p>Without this Babel transformation process, this HTML would need to be parsed
-every time <code>render()</code> is called. If you use the runtime build and the parser,
+every time <code>render()</code> is called. If you use the lite build and the parser,
 this will become a cached call. <code>html</code> is the same thing as <code>createTree</code> in the
-runtime build. So there is no HTML parsing happening.</p>
-<pre><code class="language-javascript">const { innerHTML, html } = require(&#39;diffhtml/dist/cjs/runtime&#39;);
+lite build. So there is no HTML parsing happening.</p>
+<pre><code class="language-javascript">const { innerHTML, html } = require(&#39;diffhtml/dist/cjs/lite&#39;);
 
 function render() {
   innerHTML(document.body, html(&#39;div&#39;, {}, [html(&#39;#text&#39;, null, &#39;Hello world&#39;)]));

@@ -13,11 +13,11 @@ describe('DevTools', function() {
     delete global[Symbol.for('diffHTML')];
   });
 
-  it('will not hook into devtools with runtime build if devtools are not present', () => {
-    delete require.cache[require.resolve('../lib/runtime')];
+  it('will not hook into devtools with lite build if devtools are not present', () => {
+    delete require.cache[require.resolve('../lib/lite')];
     delete global[Symbol.for('diffHTML')];
-    require('../lib/runtime');
-    delete require.cache[require.resolve('../lib/runtime')];
+    require('../lib/lite');
+    delete require.cache[require.resolve('../lib/lite')];
     delete global[Symbol.for('diffHTML')];
   });
 
@@ -42,9 +42,9 @@ describe('DevTools', function() {
     global.unsubscribeDevTools();
   });
 
-  it('will hook into devtools with runtime build', () => {
+  it('will hook into devtools with lite build', () => {
     let hooked = null;
-    delete require.cache[require.resolve('../lib/runtime')];
+    delete require.cache[require.resolve('../lib/lite')];
     delete global[Symbol.for('diffHTML')];
 
     const middleware = () => {};
@@ -54,7 +54,7 @@ describe('DevTools', function() {
       return middleware;
     };
 
-    require('../lib/runtime');
+    require('../lib/lite');
 
     ok(hooked);
     delete globalThis.devTools;

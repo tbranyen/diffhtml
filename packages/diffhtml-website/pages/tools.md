@@ -14,7 +14,7 @@ reused instead of recreated every time. Any `html` tagged template calls will
 be converted to `createTree` calls.
 
 **After your code has been passed through this plugin, you will be able to fully
-utilize the runtime build!**
+utilize the lite build!**
 
 To use, install into your project as a dev dependency.
 
@@ -44,12 +44,12 @@ function render() {
 ```
 
 Without this Babel transformation process, this HTML would need to be parsed
-every time `render()` is called. If you use the runtime build and the parser,
+every time `render()` is called. If you use the lite build and the parser,
 this will become a cached call. `html` is the same thing as `createTree` in the
-runtime build. So there is no HTML parsing happening.
+lite build. So there is no HTML parsing happening.
 
 ```javascript
-const { innerHTML, html } = require('diffhtml/dist/cjs/runtime');
+const { innerHTML, html } = require('diffhtml/dist/cjs/lite');
 
 function render() {
   innerHTML(document.body, html('div', {}, [html('#text', null, 'Hello world')]));

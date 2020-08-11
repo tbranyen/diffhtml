@@ -8,7 +8,7 @@ Stable Version: 1.0.0-beta.18
 This plugin transforms tagged template strings containing HTML to
 JSX/HyperScript-like function calls. By default it will use `diff.createTree`
 which will need to be imported into your module. This works out-of-the-box with
-the `diffhtml.js` and `diffhtml-runtime.js` UMD script files.
+the `diffhtml.js` and `diffhtml-lite.js` UMD script files.
 
 ## Installation
 
@@ -66,7 +66,7 @@ import { html } from 'diffhtml';
 ```
 
 Configure the babel plugin to find and replace with the same `html` value. The
-runtime build which will be swapped in, automatically replaces the `html`
+lite build which will be swapped in, automatically replaces the `html`
 function with the `createTree` call. This saves you from needing to do a
 needless import.
 
@@ -78,7 +78,7 @@ plugins: [
 ]
 ```
 
-Lastly, make sure you alias the `diffhtml` import to `diffhtml/runtime` in your
+Lastly, make sure you alias the `diffhtml` import to `diffhtml/lite` in your
 bundler. Note: that this approach doesn't need a build step, since the tagged
 template will work standalone. The bundler will trigger the babel pipeline and
 give you a chance to reassign the import call to a different module.
@@ -88,7 +88,7 @@ give you a chance to reassign the import call to a different module.
 ``` json
 "aliasify": {
   "aliases": {
-    "diffhtml": "diffhtml/dist/cjs/runtime"
+    "diffhtml": "diffhtml/dist/cjs/lite"
   }
 }
 ```
@@ -98,7 +98,7 @@ give you a chance to reassign the import call to a different module.
 ``` json
 "resolve": {
   "alias": {
-    "diffhtml": "diffhtml/runtime"
+    "diffhtml": "diffhtml/lite"
   }
 }
 ```
@@ -125,7 +125,7 @@ Add the plugin to your `package.json` and update the plugin section in your
 
 You will then need to tag your diffHTML templates with the `html` function,
 examples below. This will *only* optimize tagged templates, allowing you to
-use the diffHTML runtime build avoiding runtime HTML parsing.
+use the diffHTML lite build avoiding runtime HTML parsing.
 
 Example on a `.babelrc` file that will work with diffHTML:
 
@@ -139,7 +139,7 @@ Example on a `.babelrc` file that will work with diffHTML:
 Write a View `view.js`:
 
 ``` javascript
-const { html, innerHTML } = require('diffhtml/runtime');
+const { html, innerHTML } = require('diffhtml/lite');
 
 // Render a div with dynamic children and onclick
 function renderTime(time) {
@@ -161,7 +161,7 @@ babel view.js -o view.es5.js
 The output will be:
 
 ``` js
-const { html, innerHTML } = require('diffhtml/runtime');
+const { html, innerHTML } = require('diffhtml/lite');
 
 // Render a div with dynamic children and onclick
 function renderTime(time) {
@@ -208,7 +208,7 @@ innerHTML(document.body, render());
 The output would look like:
 
 ``` js
-const { innerHTML, html, createTree } = require('diffhtml/runtime');
+const { innerHTML, html, createTree } = require('diffhtml/lite');
 
 function render() {
   return createTree("div", "Hello world");
