@@ -246,8 +246,8 @@ export default class Transaction {
     // Defer garbage collection if the current size is more than double the
     // current allocation.
     if (Pool.memory.free.size < Pool.memory.allocated.size * 2) {
-      global.cancelIdleCallback(this._idleCallback);
-      this._idleCallback = global.requestIdleCallback(gc);
+      /** @type {any} */(global).cancelIdleCallback(this._idleCallback);
+      this._idleCallback = /** @type {any} */(global).requestIdleCallback(gc);
     }
 
     // Trigger all `onceEnded` callbacks, so that middleware can know the
