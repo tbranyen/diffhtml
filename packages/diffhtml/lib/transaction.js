@@ -1,7 +1,6 @@
 import { VTree, ValidInput, Mount, Options, TransactionState, EMPTY } from './util/types';
 import { MiddlewareCache, StateCache, NodeCache } from './util/caches';
 import { gc } from './util/memory';
-import Pool from './util/pool';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
 import schedule from './tasks/schedule';
@@ -11,6 +10,7 @@ import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
 import release from './release';
+import Pool from './util/pool';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -89,9 +89,12 @@ export default class Transaction {
    * @param {Transaction} transaction
    */
   static invokeMiddleware(transaction) {
-    const { tasks } = transaction;
+    const { state: { measure }, tasks } = transaction;
 
     MiddlewareCache.forEach(fn => {
+      const label = `invoke ${fn.name || 'anon'}`;
+      measure(label);
+
       // Invoke all the middleware passing along this transaction as the only
       // argument. If they return a value (must be a function) it will be added
       // to the transaction task flow.
@@ -100,6 +103,8 @@ export default class Transaction {
       if (result) {
         tasks.push(result);
       }
+
+      measure(label);
     });
   }
 
@@ -143,13 +148,13 @@ export default class Transaction {
     const { state: { measure }, tasks } = this;
     const takeLastTask = tasks.pop();
 
+    // Start measuring a render for performance tracing.
+    measure('render');
+
     this.aborted = false;
 
     // Add middleware in as tasks.
     Transaction.invokeMiddleware(this);
-
-    // Measure the render flow if the user wants to track performance.
-    measure('render');
 
     // Push back the last task as part of ending the flow.
     takeLastTask && tasks.push(takeLastTask);
@@ -235,25 +240,23 @@ export default class Transaction {
     // Empty the scripts to execute.
     scriptsToExecute.clear();
 
-    // Mark the end to rendering.
-    measure('finalize');
-    measure('render');
-
     // Clean up memory before rendering the next transaction, however if
     // another transaction is running concurrently this will be delayed until
     // the last render completes.
-    //
-    // Defer garbage collection if the current size is more than double the
-    // current allocation.
+     // Defer garbage collection if the current size is more than double the
+     // current allocation.
     if (Pool.memory.free.size < Pool.memory.allocated.size * 2) {
-      /** @type {any} */(global).cancelIdleCallback(this._idleCallback);
-      this._idleCallback = /** @type {any} */(global).requestIdleCallback(gc);
+      gc();
     }
 
     // Trigger all `onceEnded` callbacks, so that middleware can know the
     // transaction has ended.
     this.endedCallbacks.forEach(callback => callback(this));
     this.endedCallbacks.clear();
+
+    // Mark the end to rendering.
+    measure('finalize');
+    measure('render');
 
     return this;
   }
