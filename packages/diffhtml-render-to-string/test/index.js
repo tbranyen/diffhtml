@@ -22,7 +22,7 @@ describe('renderToString', function() {
 
   it('can support strict html parsing, throwing on error', () => {
     throws(() => {
-      renderToString('<p>Hello world', { strict: true });
+      renderToString('<p>Hello world', { parser: { strict: true } });
     }, {
       name: 'Error',
       message: `

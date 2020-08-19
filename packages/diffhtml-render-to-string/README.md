@@ -2,8 +2,8 @@
 
 Stable Version: 1.0.0-beta.18
 
-Allows you to render diffHTML markup to string. This is useful for server-side
-rendering, compiling to static HTML, and testing.
+Renders Virtual Tree (VDOM) markup to string. This is useful for server-side
+rendering, static HTML exporting, creating diffs, and testing.
 
 All middleware should work if it can run under Node.js. For instance you can
 use Components by importing from diffhtml-components or get logging by
@@ -29,7 +29,20 @@ const markup = renderToString(html`
 //res.send(markup);
 ```
 
-##### Example components
+##### Passing options
+
+``` javascript
+import { html } from 'diffhtml';
+import { renderToString } from 'diffhtml-render-to-string';
+
+const markup = renderToString(html`
+  <div>Hello world
+`, { parser: { strict: true } });
+
+// throws an error as markup is malformed
+```
+
+##### Using components
 
 ``` javascript
 import { html } from 'diffhtml';
