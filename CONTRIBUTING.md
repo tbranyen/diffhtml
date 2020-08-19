@@ -53,6 +53,19 @@ lerna publish
 
 Enter in your new version (using custom), unless you see it listed.
 
+This will automatically crawl nested `package.json` files and update diffhtml
+dependencies to the latest version.
+
+### Ensure all dependencies are updated
+
+Lerna often misses updating references to packages. By running this you ensure
+all packages reference the latest version.
+
+```sh
+# Update the root package version.
+sed -i -e 's/1.0.0-beta.8/1.0.0-beta.9/g' ./packages/*/package.json
+```
+
 ### Update website
 
 The website pulls version information from the package.json files. The version
