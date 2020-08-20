@@ -381,7 +381,7 @@ h1 a.github:hover {
 }
 
 /* Tablet */
-@media only screen and (max-width : 1024px) {
+@media only screen and (max-width : 1175px) {
   html, body {
     background-color: #FFF;
     background: #FFF;
