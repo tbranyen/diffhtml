@@ -1,3 +1,4 @@
+import Transaction, { defaultTasks, tasks } from '../transaction';
 import createNode from '../node/create';
 import syncTree from '../tree/sync';
 import * as caches from './caches';
@@ -22,6 +23,11 @@ export default {
   // Core.
   createNode,
   syncTree,
+
+  // Tasks.
+  Transaction,
+  defaultTasks,
+  tasks,
 
   // Merge in caches.
   ...caches,

@@ -44,11 +44,9 @@ const Pool = {
     if (this.size < free.size) {
       // Loop the set until pruning has completed.
       free.forEach(value => {
-        if (free.size === this.size) {
-          return;
+        if (free.size !== this.size) {
+          free.delete(value);
         }
-
-        free.delete(value);
       });
     }
   },

@@ -2,6 +2,7 @@ import assert from 'assert';
 import * as diff from '../../lib/index';
 import html from '../../lib/html';
 import validateMemory from '../util/validate-memory';
+import internals from '../../lib/util/internals';
 
 describe('Integration: outerHTML', function() {
   beforeEach(function() {
@@ -92,6 +93,19 @@ describe('Integration: outerHTML', function() {
     diff.outerHTML(this.fixture.firstChild, html
       `<div id="test">hello world</div>`
     );
+
+    assert.equal(this.fixture.firstChild.nodeName, 'DIV');
+    assert.equal(this.fixture.firstChild.getAttribute('id'), 'test');
+    assert.equal(this.fixture.firstChild.id, 'test');
+    assert.equal(this.fixture.firstChild.textContent, 'hello world');
+  });
+
+  it.skip('can use trimmed input to make comparing easier', function() {
+    //diff.Internals.defaultOptions = {};
+
+    diff.outerHTML(this.fixture.firstChild, html`
+      <div id="test">hello world</div>
+    `, { parser: { trim: true } });
 
     assert.equal(this.fixture.firstChild.nodeName, 'DIV');
     assert.equal(this.fixture.firstChild.getAttribute('id'), 'test');

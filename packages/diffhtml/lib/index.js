@@ -6,26 +6,19 @@ import parse from './util/parse';
 import globalThis, { bindingSymbol } from './util/global';
 import innerHTML from './inner-html';
 import outerHTML from './outer-html';
-import { defaultTasks, tasks } from './transaction';
+import { defaultTasks } from './transaction';
 import html from './html';
 import release from './release';
 import use from './use';
 import { addTransitionState, removeTransitionState } from './transition';
 import { __VERSION__ as VERSION } from './version';
 
-const { assign } = Object;
-
 // At startup inject the HTML parser into the default set of tasks.
 defaultTasks.splice(defaultTasks.indexOf(reconcileTrees), 0, parseNewTree);
 
-// Exposes the Internal APIs which may change. Once this project reaches a
-// stable version, this will only be able to break between major versions.
-assign(internals, {
-  parse,
-  defaultTasks,
-  tasks,
-  VERSION,
-});
+// Add build flavor internals when executed.
+internals.parse = parse;
+internals.VERSION = VERSION;
 
 // Build up the full public API.
 const api = {};
@@ -56,9 +49,6 @@ if (hasBinding) {
   if (VERSION !== existingApi.VERSION) {
     console.log(`Tried to load ${VERSION} after ${existingApi.VERSION}`);
   }
-
-  // Merge the existing API in.
-  assign(api, global[bindingSymbol]);
 }
 else {
   global[bindingSymbol] = api;

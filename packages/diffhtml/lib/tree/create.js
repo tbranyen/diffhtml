@@ -10,7 +10,7 @@ const textName = '#text';
 /**
  * Typically passed either a single or list of DOM Nodes or a VTreeLike object.
  *
- * @param {ValidInput} input
+ * @param {ValidInput=} input
  * @param {any=} attributes
  * @param {any=} childNodes
  * @param  {...any} rest
@@ -37,6 +37,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     // When using an Array copy the Nodes in and ensure a valid top-level tree.
     for (let i = 0; i < length; i++) {
+      if (!input) continue;
       childNodes.push(input[i]);
     }
 

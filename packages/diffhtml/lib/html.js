@@ -82,12 +82,11 @@ export default function handleTaggedTemplate(strings, ...values) {
       const lastCharacter = HTML.trim().slice(-1);
       const isAttribute = HTML.lastIndexOf('>') < HTML.lastIndexOf('<');
       const isTag = Boolean(lastCharacter.match(isTagEx));
-      const isString = typeof value === 'string';
       const isObject = typeof value === 'object';
       const token = `${TOKEN}${i}__`;
 
       // Injected as a tag.
-      if (isTag && !isString) {
+      if (isTag) {
         supplemental.tags[i] = value;
         HTML += token;
       }
@@ -124,7 +123,6 @@ export default function handleTaggedTemplate(strings, ...values) {
 
 // Default to loose-mode.
 handleTaggedTemplate.isStrict = false;
-
 
 /**
  * Use a strict mode similar to XHTML/JSX where tags must be properly closed

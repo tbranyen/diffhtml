@@ -83,6 +83,21 @@ describe('Integration: Basics', function() {
       assert.equal(vTree.childNodes[1].attributes.id, 'example');
     });
 
+    it.only('can use a dynamic tag name', function() {
+      const tagName = 'div';
+      const vTree = diff.html`
+        <${tagName}
+          class="test"
+        >
+          <span></span>
+        </${tagName}>
+      `;
+
+      assert.equal(vTree.childNodes[1].nodeName, 'div');
+      assert.equal(vTree.childNodes[1].attributes.class, 'test');
+      assert.equal(vTree.childNodes[1].childNodes[1].nodeName, 'span');
+    });
+
     it('can "spread" objects into attributes', function() {
       const obj = { a: 1, b: false };
       const vTree = diff.html`

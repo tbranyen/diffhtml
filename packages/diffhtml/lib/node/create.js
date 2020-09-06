@@ -14,7 +14,7 @@ const document = /** @type {any} */ (globalThis).document || null;
  *
  * @param {VTreeLike} vTreeLike - A Virtual Tree Element or VTree-like element
  * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
- * @param {Boolean=} isSVG - Is their a root SVG element?
+ * @param {Boolean=} isSVG - Indicates if the root element is SVG
  * @return {ValidNode} A DOM Node matching the vTree
  */
 export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
@@ -56,6 +56,12 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
     }
   });
 
+  // It is not possible to continue if this object is falsy. By returning null,
+  // patching can gracefully no-op.
+  if (!ownerDocument) {
+    return domNode;
+  }
+
   // If no DOM Node was provided by CreateNode hooks, we must create it
   // ourselves.
   if (domNode === null) {
@@ -95,10 +101,7 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
   // through this `createNode` function as well.
   for (let i = 0; i < childNodes.length; i++) {
     /** @type {HTMLElement | DocumentFragment | Text} */
-    const validChildNode = (
-      createNode(childNodes[i], ownerDocument, isSVG)
-    );
-
+    const validChildNode = (createNode(childNodes[i], ownerDocument, isSVG));
     validNode.appendChild(validChildNode);
   }
 

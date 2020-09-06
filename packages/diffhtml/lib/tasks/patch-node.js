@@ -2,6 +2,7 @@ import patchNode from '../node/patch';
 import Transaction from '../transaction';
 import { CreateNodeHookCache } from '../util/caches';
 import { VTree } from '../util/types';
+import globalThis from '../util/global';
 
 /**
  * Processes a set of patches onto a tracked DOM Node.
@@ -15,14 +16,13 @@ export default function patch(transaction) {
   const { ownerDocument } = (domNode);
   const promises = transaction.promises || [];
 
-  state.ownerDocument = ownerDocument || document;
+  state.ownerDocument = ownerDocument || globalThis.document;
 
   // Hook into the Node creation process to find all script tags, and mark them
   // for execution.
   const collectScripts = (/** @type {VTree} */vTree) => {
     if (vTree.nodeName === 'script') {
       scriptsToExecute.set(vTree, vTree.attributes.type);
-      vTree.attributes.type = 'no-execute';
     }
   };
 

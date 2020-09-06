@@ -172,6 +172,11 @@ export default function patchNode(patches, state = {}) {
         const domNode = /** @type {HTMLElement} */ (
           createNode(vTree, ownerDocument, isSVG)
         );
+
+        if (!domNode) {
+          break;
+        }
+
         const oldValue = domNode.getAttribute(name);
         const attributeChangedPromises = runTransitions(
           'attributeChanged', vTree, name, oldValue, value
@@ -202,6 +207,11 @@ export default function patchNode(patches, state = {}) {
         const domNode = /** @type {HTMLElement} */ (
           createNode(vTree, ownerDocument, isSVG)
         );
+
+        if (!domNode) {
+          break;
+        }
+
         const oldValue = domNode.getAttribute(name);
         const attributeChangedPromises = runTransitions(
           'attributeChanged', vTree, name, oldValue, null
@@ -233,6 +243,10 @@ export default function patchNode(patches, state = {}) {
         const domNode = /** @type {Text} */ (
           createNode(vTree, ownerDocument, isSVG)
         );
+
+        if (!domNode) {
+          break;
+        }
 
         protectVTree(vTree);
 

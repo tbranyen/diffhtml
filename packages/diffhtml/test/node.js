@@ -138,13 +138,7 @@ describe('Node', function() {
     it('will set string properties', () => {
       const vTree = html`<div />`;
       const domNode = createNode(vTree);
-
-      const patches = [
-        PATCH_TYPE.SET_ATTRIBUTE,
-        vTree,
-        'id',
-        'main',
-      ];
+      const patches = [PATCH_TYPE.SET_ATTRIBUTE, vTree, 'id', 'main'];
 
       patchNode(patches);
       release(domNode);
