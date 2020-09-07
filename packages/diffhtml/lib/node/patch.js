@@ -2,7 +2,7 @@ import createNode from './create';
 import { runTransitions } from '../transition';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
-import { PATCH_TYPE, ValidNode, VTree } from '../util/types';
+import { PATCH_TYPE, ValidNode, VTree, EMPTY } from '../util/types';
 import { NodeCache, TransitionCache } from '../util/caches';
 
 const { keys } = Object;
@@ -64,7 +64,7 @@ const setAttribute = (vTree, domNode, name, value) => {
 
     // If we cannot set the value as a property, try as an attribute.
     if (lowerName) {
-      htmlElement.setAttribute(lowerName, noValue ? '' : value);
+      htmlElement.setAttribute(lowerName, noValue ? EMPTY.STR : value);
     }
   }
   // Support patching an object representation of the style object.
@@ -146,7 +146,7 @@ const changeNodeValue = (domNode, nodeValue) => {
  * @param {*} patches
  * @param {*} state
  */
-export default function patchNode(patches, state = {}) {
+export default function patchNode(patches, state = EMPTY.OBJ) {
   const promises = [];
   const { ownerDocument, svgElements = new Set() } = state;
   const { length } = patches;
@@ -333,9 +333,9 @@ export default function patchNode(patches, state = {}) {
 
         // Check if there are any transitions, if none, then we can skip
         // inserting and removing, and instead use a much faster replaceChild.
-        const hasAttached = TransitionCache.get('attached').size;
-        const hasDetached = TransitionCache.get('detached').size;
-        const hasReplaced = TransitionCache.get('replaced').size;
+        const hasAttached = TransitionCache.get('attached')?.size;
+        const hasDetached = TransitionCache.get('detached')?.size;
+        const hasReplaced = TransitionCache.get('replaced')?.size;
 
         // In the hot path, ensure we always use the fastest operation given
         // the constraints. If there are no transitions, do not use the more

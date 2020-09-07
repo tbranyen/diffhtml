@@ -1,5 +1,5 @@
-import { VTree, ValidInput, Mount, Options } from './util/types';
-import { StateCache, MiddlewareCache, NodeCache } from './util/caches';
+import { VTree, ValidInput, Mount, Options, TransactionState, EMPTY } from './util/types';
+import { MiddlewareCache, StateCache, NodeCache } from './util/caches';
 import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
@@ -109,11 +109,13 @@ export default class Transaction {
    * @param {Options} options
    */
   constructor(domNode, input, options) {
+    // TODO: Rename this to mount.
     this.domNode = domNode;
     // TODO: Rename this to input.
     this.markup = input;
     this.options = options;
 
+    /** @type {TransactionState} */
     this.state = StateCache.get(domNode) || {
       measure: makeMeasure(domNode, input),
       svgElements: new Set(),
@@ -191,11 +193,8 @@ export default class Transaction {
     // Rendering is complete.
     state.isRendering = false;
 
-    /**
-     * Ensure correct script type is set before caching the output HTML.
-     * @type {Map<VTree, string | undefined>}
-     */(scriptsToExecute).forEach((type = '', key) => {
-      const oldNode = /** @type {any} */ (NodeCache.get(key));
+    scriptsToExecute.forEach((type = EMPTY.STR, vTree) => {
+      const oldNode = /** @type {HTMLElement} */ (NodeCache.get(vTree));
 
       // Reset the type value.
       if (type) oldNode.setAttribute('type', type);
@@ -203,18 +202,20 @@ export default class Transaction {
     });
 
     // Save the markup immediately after patching.
-    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : '';
+    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : EMPTY.STR;
 
     // Only execute scripts if the configuration is set. By default this is set
     // to true. You can toggle this behavior for your app to disable script
     // execution.
     if (options.executeScripts) {
-      /**
-       * Execute deferred scripts.
-       * @type {Map<VTree, string | undefined>}
-       */(scriptsToExecute).forEach((_, key)=> {
-        const oldNode = NodeCache.get(key);
+      // Execute deferred scripts.
+      scriptsToExecute.forEach((_, vTree)=> {
+        const oldNode = NodeCache.get(vTree);
         const newNode = /** @type {any} */ (oldNode).cloneNode(true);
+
+        if (!oldNode) {
+          return;
+        }
 
         // If the script is now the root element, make sure we cleanup and
         // re-assign.
@@ -224,10 +225,10 @@ export default class Transaction {
         }
 
         // Replace the node association.
-        NodeCache.set(key, newNode);
+        NodeCache.set(vTree, newNode);
 
         // Replace the scripts to trigger default browser behavior.
-        /** @type {any}  */ (oldNode).parentNode.replaceChild(newNode, oldNode);
+        oldNode.parentNode && oldNode.parentNode.replaceChild(newNode, oldNode);
       });
     }
 
@@ -259,10 +260,10 @@ export default class Transaction {
   }
 
   /** @type {Mount} */
-  domNode = '';
+  domNode = EMPTY.STR;
 
   /** @type {ValidInput} */
-  markup = '';
+  markup = EMPTY.STR;
 
   /** @type {VTree=} */
   oldTree = undefined;

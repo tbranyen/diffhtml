@@ -4,6 +4,7 @@ import {
   CreateNodeHookCache,
   SyncTreeHookCache,
   ReleaseHookCache,
+  ParseHookCache,
 } from './util/caches';
 import process from './util/process';
 import { Middleware } from './util/types';
@@ -57,10 +58,11 @@ export default function use(middleware) {
     createNodeHook,
     syncTreeHook,
     releaseHook,
+    parseHook,
   } = middleware;
 
   // Add the function to the set of middlewares.
-  isFunction && MiddlewareCache.add(middleware);
+  isFunction && MiddlewareCache.add(/** @type {Function} */ (middleware));
 
   // Call the subscribe method if it was defined, passing in the full public
   // API we have access to at this point.
@@ -71,21 +73,23 @@ export default function use(middleware) {
   createNodeHook && CreateNodeHookCache.add(createNodeHook);
   syncTreeHook && SyncTreeHookCache.add(syncTreeHook);
   releaseHook && ReleaseHookCache.add(releaseHook);
+  parseHook && ParseHookCache.add(parseHook);
 
   // The unsubscribe method for the middleware.
   return () => {
     // Remove this middleware from the internal cache. This will prevent it
     // from being invoked in the future.
-    isFunction && MiddlewareCache.delete(middleware);
+    isFunction && MiddlewareCache.delete(/** @type {Function} */ (middleware));
 
     // Call the unsubscribe method if defined in the middleware (allows them
     // to cleanup).
     unsubscribe && unsubscribe(Internals);
 
     // Cleanup the specific fns from their Cache.
-    CreateTreeHookCache.delete(createTreeHook);
-    CreateNodeHookCache.delete(createNodeHook);
-    SyncTreeHookCache.delete(syncTreeHook);
-    ReleaseHookCache.delete(releaseHook);
+    createTreeHook && CreateTreeHookCache.delete(createTreeHook);
+    createNodeHook && CreateNodeHookCache.delete(createNodeHook);
+    syncTreeHook && SyncTreeHookCache.delete(syncTreeHook);
+    releaseHook && ReleaseHookCache.delete(releaseHook);
+    parseHook && ParseHookCache.delete(parseHook);
   };
 }

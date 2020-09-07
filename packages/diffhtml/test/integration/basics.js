@@ -83,7 +83,7 @@ describe('Integration: Basics', function() {
       assert.equal(vTree.childNodes[1].attributes.id, 'example');
     });
 
-    it.only('can use a dynamic tag name', function() {
+    it('can use a dynamic tag name', function() {
       const tagName = 'div';
       const vTree = diff.html`
         <${tagName}

@@ -1,7 +1,7 @@
 import { NodeCache, CreateNodeHookCache } from '../util/caches';
 import process from '../util/process';
 import globalThis from '../util/global';
-import { VTreeLike, VTree, ValidNode } from '../util/types';
+import { VTreeLike, VTree, ValidNode, EMPTY } from '../util/types';
 import createTree from '../tree/create';
 
 const namespace = 'http://www.w3.org/2000/svg';
@@ -15,7 +15,7 @@ const document = /** @type {any} */ (globalThis).document || null;
  * @param {VTreeLike} vTreeLike - A Virtual Tree Element or VTree-like element
  * @param {Document=} ownerDocument - Document to create Nodes in, defaults to document
  * @param {Boolean=} isSVG - Indicates if the root element is SVG
- * @return {ValidNode} A DOM Node matching the vTree
+ * @return {ValidNode | null} A DOM Node matching the vTree
  */
 export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {
@@ -42,13 +42,13 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
 
   isSVG = isSVG || nodeName === 'svg';
 
-  /**
-   * Will vary based on the properties of the VTree.
-   * @type {ValidNode | unknown}
-   */
+  /** @type {ValidNode | null} */
   let domNode = null;
 
-  CreateNodeHookCache.forEach((fn, retVal) => {
+  /** @type {ValidNode | null | void} */
+  let retVal = null;
+
+  CreateNodeHookCache.forEach((fn) => {
     // Invoke all the `createNodeHook` functions passing along the vTree as the
     // only argument. These functions must return a valid DOM Node value.
     if (retVal = fn(vTree)) {
@@ -68,7 +68,7 @@ export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
     // Create empty text elements. They will get filled in during the patch
     // process.
     if (nodeName === '#text') {
-      domNode = ownerDocument.createTextNode(vTree.nodeValue || '');
+      domNode = ownerDocument.createTextNode(vTree.nodeValue || EMPTY.STR);
     }
     // Support dynamically creating document fragments.
     else if (nodeName === '#document-fragment') {

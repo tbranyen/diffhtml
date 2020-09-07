@@ -8,9 +8,9 @@ import makeMeasure from './make-measure';
 import * as memory from './memory';
 import Pool from './pool';
 import process from './process';
-import { PATCH_TYPE } from './types';
+import { PATCH_TYPE, Internals } from './types';
 
-export default {
+export default /** @type {Internals} */ ({
   // Utils.
   decodeEntities,
   escape,
@@ -31,4 +31,4 @@ export default {
 
   // Merge in caches.
   ...caches,
-};
+});

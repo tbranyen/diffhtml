@@ -1,6 +1,7 @@
 const { join } = require('path');
 
 const ModuleRewrite = require('babel-plugin-module-rewrite').default;
+const OptionalChaining = require('@babel/plugin-proposal-optional-chaining').default;
 const ObjectRestSpread = require('@babel/plugin-proposal-object-rest-spread').default;
 const ClassProperties = require('@babel/plugin-proposal-class-properties').default;
 const ModulesCommonJS = require('@babel/plugin-transform-modules-commonjs').default;
@@ -37,6 +38,7 @@ if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
     TemplateLiterals,
     Classes,
     ForOf,
+    OptionalChaining,
   ];
 }
 
@@ -48,6 +50,7 @@ if (NODE_ENV === 'cjs') {
     ObjectRestSpread,
     ClassProperties,
     ElementClasses,
+    OptionalChaining,
   ];
 }
 
@@ -66,6 +69,7 @@ if (NODE_ENV === 'test' || NODE_ENV === 'test+cov') {
     ModulesCommonJS,
     ObjectRestSpread,
     ClassProperties,
+    OptionalChaining,
   ];
 };
 

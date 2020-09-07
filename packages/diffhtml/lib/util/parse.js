@@ -3,7 +3,7 @@
 
 import createTree from '../tree/create';
 import process from './process';
-import { VTree, Supplemental, Options, ParserOptions } from './types';
+import { VTree, Supplemental, Options, ParserOptions, EMPTY } from './types';
 
 // Magic token used for interpolation.
 export const TOKEN = '__DIFFHTML__';
@@ -157,7 +157,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   const attributes = {};
 
   // Migrate raw attributes into the attributes object used by the VTree.
-  for (let match; match = attrEx.exec(rawAttrs || '');) {
+  for (let match; match = attrEx.exec(rawAttrs || EMPTY.STR);) {
     const isHTML = typeof nodeName === 'string';
     const name = match[1];
     const testValue = match[6] || match[5] || match[4];
@@ -222,14 +222,14 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
         assign(attributes, nameAndValue);
       }
       else {
-        attributes[nameAndValue] = '';
+        attributes[nameAndValue] = EMPTY.STR;
       }
     }
     // If the remaining value is a string, directly assign to the attribute
     // name. If the value is anything else, treat it as unknown and default to
     // a boolean.
     else {
-      attributes[name] = value === `''` || value === `""` ? '' : value;
+      attributes[name] = value === `''` || value === `""` ? EMPTY.STR : value;
     }
   }
 

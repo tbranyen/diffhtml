@@ -1,6 +1,6 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
-import { VTree, VTreeLike, ValidInput } from '../util/types';
+import { VTree, VTreeLike, ValidInput, EMPTY } from '../util/types';
 
 const { isArray } = Array;
 const { memory } = Pool;
@@ -62,7 +62,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     // associate in the NodeCache.
     if (nodeType === 3) {
       const vTree = createTree(textName, inputAsHTMLEl.nodeValue);
-      NodeCache.set(vTree, input);
+      NodeCache.set(vTree, inputAsHTMLEl);
       return vTree;
     }
 
@@ -77,7 +77,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
         const { name, value } = inputAttrs[i];
 
         // If the attribute's value is empty, seek out the property instead.
-        if (value === '' && name in inputAsHTMLEl) {
+        if (value === EMPTY.STR && name in inputAsHTMLEl) {
           attributes[name] = /** @type {any} */ (input)[name];
           continue;
         }
@@ -122,7 +122,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     entry.childNodes.length = 0;
     entry.childNodes.push(...childNodes);
 
-    NodeCache.set(entry, input);
+    NodeCache.set(entry, inputAsHTMLEl);
     return entry;
   }
 
@@ -181,8 +181,8 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   }
 
   // Clear out and reset the remaining VTree attributes.
-  entry.nodeValue = '';
-  entry.key = '';
+  entry.nodeValue = EMPTY.STR;
+  entry.key = EMPTY.STR;
   entry.childNodes.length = 0;
   entry.attributes = {};
 
@@ -192,10 +192,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   // Ensure nodeType is set correctly, and if this is a text node, return early.
   if (isTextNode) {
-    const nodeValue = allNodes.join('');
+    const nodeValue = allNodes.join(EMPTY.STR);
 
     entry.nodeType = 3;
-    entry.nodeValue = String(nodeValue || '');
+    entry.nodeValue = String(nodeValue || EMPTY.STR);
 
     return entry;
   }

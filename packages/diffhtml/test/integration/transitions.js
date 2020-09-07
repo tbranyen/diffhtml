@@ -23,10 +23,10 @@ describe('Integration: Transitions', function() {
       }, /Invalid state name 'undefined'/);
     });
 
-    it('will throw when missing the required name argument in production', () => {
+    it('will not throw when missing the required name argument in production', () => {
       process.env.NODE_ENV = 'production';
 
-      throws(() => {
+      doesNotThrow(() => {
         diff.addTransitionState();
       });
     });
@@ -209,10 +209,10 @@ describe('Integration: Transitions', function() {
       }, /Invalid state name 'appended'/);
     });
 
-    it('will error when provided an invalid name in production', () => {
+    it('will not error when provided an invalid name in production', () => {
       process.env.NODE_ENV = 'production';
 
-      throws(() => {
+      doesNotThrow(() => {
         diff.removeTransitionState('appended');
       });
     });

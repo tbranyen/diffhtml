@@ -2,7 +2,10 @@ import parse from '../util/parse';
 import createTree from '../tree/create';
 import Transaction from '../transaction';
 
-export default function parseNewTree(/** @type {Transaction} */ transaction) {
+/**
+ * @param {Transaction} transaction
+ */
+export default function parseNewTree(transaction) {
   const { state, markup, options } = transaction;
   const { measure } = state;
   const { inner } = options;

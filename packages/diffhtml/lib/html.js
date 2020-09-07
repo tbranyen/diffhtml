@@ -2,7 +2,7 @@ import createTree from './tree/create';
 import parse, { TOKEN } from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
-import { VTree, Supplemental } from './util/types';
+import { EMPTY, VTree, Supplemental } from './util/types';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
@@ -25,7 +25,7 @@ const nextValue = (/** @type {any[]} */ values) => {
  * @return {VTree} VTree object or null if no input strings
  */
 export default function handleTaggedTemplate(strings, ...values) {
-  const empty = createTree('#text', '');
+  const empty = createTree('#text', EMPTY.STR);
 
   // Do not attempt to parse empty strings.
   if (!strings) {
@@ -55,7 +55,7 @@ export default function handleTaggedTemplate(strings, ...values) {
   }
 
   // Used to store markup and tokens.
-  let HTML = '';
+  let HTML = EMPTY.STR;
 
   // We filter the supplemental values by where they are used. Values are
   // either, children, or tags (for components).

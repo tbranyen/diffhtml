@@ -12,8 +12,7 @@ import globalThis from '../util/global';
  */
 export default function patch(transaction) {
   const { domNode, state, state: { measure, scriptsToExecute }, patches } = transaction;
-  /** @type {HTMLElement | DocumentFragment} */
-  const { ownerDocument } = (domNode);
+  const { ownerDocument } = /** @type {HTMLElement} */ (domNode);
   const promises = transaction.promises || [];
 
   state.ownerDocument = ownerDocument || globalThis.document;

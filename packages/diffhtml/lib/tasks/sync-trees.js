@@ -1,7 +1,7 @@
 import syncTree from '../tree/sync';
 import createNode from '../node/create';
 import { StateCache } from '../util/caches';
-import { PATCH_TYPE } from '../util/types';
+import { PATCH_TYPE, EMPTY, Mount } from '../util/types';
 import process from '../util/process';
 import Transaction from '../transaction';
 
@@ -51,12 +51,12 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
 
     // Update the StateCache since we are changing the top level element.
     StateCache.delete(domNode);
-    StateCache.set(newNode, state);
+    StateCache.set(/** @type {Mount} */ (newNode), state);
 
     transaction.domNode = /** @type {HTMLElement} */ (newNode);
 
     if (newTree.nodeName === 'script') {
-      state.scriptsToExecute.set(newTree, newTree.attributes.type || '');
+      state.scriptsToExecute.set(newTree, newTree.attributes.type || EMPTY.STR);
     }
   }
   // Synchronize the top level elements.

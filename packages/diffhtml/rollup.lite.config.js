@@ -32,31 +32,13 @@ export const plugins = [
   replace({
     'process.env.NODE_ENV': stringify('production')
   }),
-  babel(),
+  babel({ comments: false }),
   nodeResolve({ mainFields: ['module'] }),
   hypothetical({
     allowFallthrough: true,
     files: {
       './lib/util/performance.js': `
         export default () => () => {};
-      `,
-
-      './lib/util/types.js': `
-        export const PATCH_TYPE = {
-          'SET_ATTRIBUTE': 0,
-          'REMOVE_ATTRIBUTE': 1,
-          'NODE_VALUE': 2,
-          'INSERT_BEFORE': 3,
-          'REPLACE_CHILD': 4,
-          'REMOVE_CHILD': 5,
-        };
-
-        export const VTree = 0;
-        export const VTreeLike = 0;
-        export const Mount = 0;
-        export const ValidInput = 0;
-        export const Options = 0;
-        export const Middleware = 0;
       `,
 
       './lib/util/process.js': `

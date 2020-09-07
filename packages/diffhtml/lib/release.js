@@ -1,11 +1,11 @@
 import { StateCache, NodeCache, ReleaseHookCache } from './util/caches';
 import { unprotectVTree } from './util/memory';
-import { ValidNode } from './util/types';
+import { Mount } from './util/types';
 
 /**
  * Releases state and memory associated to a DOM Node.
  *
- * @param {ValidNode} domNode - Valid input node
+ * @param {Mount} domNode - Valid input node
  */
 export default function release(domNode) {
   // Try and find a state object for this DOM Node.
