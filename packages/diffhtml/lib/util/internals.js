@@ -1,3 +1,4 @@
+import Transaction, { defaultTasks, tasks } from '../transaction';
 import createNode from '../node/create';
 import syncTree from '../tree/sync';
 import * as caches from './caches';
@@ -7,9 +8,9 @@ import makeMeasure from './make-measure';
 import * as memory from './memory';
 import Pool from './pool';
 import process from './process';
-import { PATCH_TYPE } from './types';
+import { PATCH_TYPE, Internals } from './types';
 
-export default {
+export default /** @type {Internals} */ ({
   // Utils.
   decodeEntities,
   escape,
@@ -23,6 +24,11 @@ export default {
   createNode,
   syncTree,
 
+  // Tasks.
+  Transaction,
+  defaultTasks,
+  tasks,
+
   // Merge in caches.
   ...caches,
-};
+});

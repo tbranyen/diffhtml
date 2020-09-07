@@ -1,4 +1,5 @@
 import globalThis from './global';
+import { EMPTY } from './types';
 
 // Support loading diffHTML in non-browser environments.
 const element = /** @type {any} */ (globalThis).document ? document.createElement('div') : null;
@@ -17,5 +18,5 @@ export default function decodeEntities(string) {
   }
 
   element.innerHTML = string;
-  return element.textContent || '';
+  return element.textContent || EMPTY.STR;
 }

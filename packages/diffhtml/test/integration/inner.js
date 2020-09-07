@@ -69,7 +69,7 @@ describe('Integration: innerHTML', function() {
       </script>
     `, { executeScripts: false });
 
-    assert.equal(Boolean(document.querySelector('#test')), false)
+    assert.equal(Boolean(document.querySelector('#test')), false);
 
     document.body.removeChild(this.fixture);
   });

@@ -3,7 +3,6 @@ import internals from './util/internals';
 import globalThis, { bindingSymbol } from './util/global';
 import innerHTML from './inner-html';
 import outerHTML from './outer-html';
-import { defaultTasks, tasks } from './transaction';
 import release from './release';
 import use from './use';
 import { addTransitionState, removeTransitionState } from './transition';
@@ -15,8 +14,6 @@ const VERSION = `${__VERSION__}-lite`;
 // Exposes the Internal APIs which may change. Once this project reaches a
 // stable version, this will only be able to break between major versions.
 assign(internals, {
-  defaultTasks,
-  tasks,
   VERSION,
 });
 

@@ -18,9 +18,9 @@ describe('Transition', function() {
       throws(() => addTransitionState('invalid'));
     });
 
-    it('will error if invalid state name is passed to add in production', () => {
+    it('will not error if invalid state name is passed to add in production', () => {
       process.env.NODE_ENV = 'production';
-      throws(() => addTransitionState('invalid'));
+      doesNotThrow(() => addTransitionState('invalid'));
     });
   });
 
@@ -29,9 +29,9 @@ describe('Transition', function() {
       throws(() => removeTransitionState('invalid'));
     });
 
-    it('will error if invalid state name is passed to remove', () => {
+    it('will not error if invalid state name is passed to remove in production', () => {
       process.env.NODE_ENV = 'production';
-      throws(() => removeTransitionState('invalid'));
+      doesNotThrow(() => removeTransitionState('invalid'));
     });
   });
 });

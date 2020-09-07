@@ -1,28 +1,16 @@
 import { TransitionCache, NodeCache } from './util/caches';
 import process from './util/process';
-import { VTree } from './util/types';
-
-// Available transition states.
-const stateNames = [
-  'attached',
-  'detached',
-  'replaced',
-  'attributeChanged',
-  'textChanged',
-];
-
-// Sets up the states up so we can add and remove events from the sets.
-stateNames.forEach(stateName => TransitionCache.set(stateName, new Set()));
+import { VTree, TransitionStateNames, TransitionStateName } from './util/types';
 
 /**
  *
- * @param {string} stateName
+ * @param {TransitionStateName} stateName
  * @param {Function} callback
  * @return {void}
  */
 export function addTransitionState(stateName, callback) {
   if (process.env.NODE_ENV !== 'production') {
-    if (!stateName || !stateNames.includes(stateName)) {
+    if (!TransitionStateNames.includes(stateName)) {
       throw new Error(`Invalid state name '${stateName}'`);
     }
 
@@ -31,52 +19,55 @@ export function addTransitionState(stateName, callback) {
     }
   }
 
-  TransitionCache.get(stateName).add(callback);
+  TransitionCache.get(stateName)?.add(callback);
 }
 
 /**
  *
- * @param {string=} stateName
+ * @param {TransitionStateName=} stateName
  * @param {Function=} callback
  * @return {void}
  */
 export function removeTransitionState(stateName, callback) {
   if (process.env.NODE_ENV !== 'production') {
     // Only validate the stateName if the caller provides one.
-    if (stateName && !stateNames.includes(stateName)) {
+    if (stateName && !TransitionStateNames.includes(stateName)) {
       throw new Error(`Invalid state name '${stateName}'`);
     }
   }
 
-  // Remove all transition callbacks from state.
+  // Remove all specific transition callbacks.
   if (!callback && stateName) {
-    TransitionCache.get(stateName).clear();
+    TransitionCache.get(stateName)?.clear();
   }
-  // Remove a specific transition callback.
+  // Remove a single distinct transition callback.
   else if (stateName && callback) {
-    TransitionCache.get(stateName).delete(callback);
+    TransitionCache.get(stateName)?.delete(callback);
   }
-  // Remove all callbacks.
+  // Remove all transition callbacks.
   else {
-    for (let i = 0; i < stateNames.length; i++) {
-      TransitionCache.get(stateNames[i]).clear();
+    for (let i = 0; i < TransitionStateNames.length; i++) {
+      TransitionCache.get(TransitionStateNames[i])?.clear();
     }
   }
 }
 
 /**
  *
- * @param {string} setName
+ * @param {TransitionStateName} setName
  * @param  {...any} args
  *
  * @return {Promise<any>[]}
  */
 export function runTransitions(setName, ...args) {
-  /** @type {Set<Function>} */
   const set = TransitionCache.get(setName);
 
   /** @type {Promise<any>[]} */
   const promises = [];
+
+  if (!set) {
+    return promises;
+  }
 
   const [ vTree, ...rest ] = args;
 

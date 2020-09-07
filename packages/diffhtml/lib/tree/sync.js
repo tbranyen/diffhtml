@@ -1,8 +1,7 @@
 import { SyncTreeHookCache } from '../util/caches';
 import process from '../util/process';
-import { PATCH_TYPE, VTree } from '../util/types';
+import { PATCH_TYPE, VTree, EMPTY, TransactionState } from '../util/types';
 
-const empty = {};
 const keyNames = ['old', 'new'];
 const textName = '#text';
 
@@ -13,22 +12,22 @@ const textName = '#text';
  * @param {Partial<VTree> | null} oldTree
  * @param {Partial<VTree> | null} newTree
  * @param {any[]} patches
- * @param {any} state
+ * @param {Partial<TransactionState>} state
  */
 export default function syncTree(oldTree, newTree, patches = [], state = {}) {
-  if (!oldTree) oldTree = empty;
-  if (!newTree) newTree = empty;
+  if (!oldTree) oldTree = /** @type {VTree} */ (EMPTY.OBJ);
+  if (!newTree) newTree = /** @type {VTree} */ (EMPTY.OBJ);
 
   const { svgElements = new Set() } = state;
   const oldNodeName = oldTree.nodeName;
   const isFragment = newTree.nodeType === 11 || oldTree.nodeType === 11;
-  const isEmpty = oldTree === empty;
+  const isEmpty = oldTree === EMPTY.OBJ;
 
   // Check for SVG in parent.
-  const isSVG = newTree.nodeName === 'svg' || svgElements.has(newTree);
+  const isSVG = newTree.nodeName === 'svg' || svgElements.has(/** @type {VTree} */ (newTree));
 
   if (process.env.NODE_ENV !== 'production') {
-    if (newTree === empty) {
+    if (newTree === EMPTY.OBJ) {
       throw new Error('Missing new Virtual Tree to sync changes from');
     }
 
@@ -130,7 +129,7 @@ export default function syncTree(oldTree, newTree, patches = [], state = {}) {
 
   // Seek out attribute changes first, but only from element Nodes.
   if (isElement) {
-    const oldAttributes = isEmpty ? empty : oldTree.attributes;
+    const oldAttributes = isEmpty ? EMPTY.OBJ : oldTree.attributes;
     const newAttributes = newTree.attributes;
 
     // Search for sets and changes.

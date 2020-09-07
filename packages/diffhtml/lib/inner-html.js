@@ -1,5 +1,5 @@
 import Transaction, { defaultTasks } from './transaction';
-import { ValidInput, Options, Mount } from './util/types';
+import { EMPTY, ValidInput, Options, Mount } from './util/types';
 
 /**
  *
@@ -9,7 +9,7 @@ import { ValidInput, Options, Mount } from './util/types';
  *
  * @return {Promise<Transaction> | unknown}
  */
-export default function innerHTML(domNode, input = '', options = {}) {
+export default function innerHTML(domNode, input = EMPTY.STR, options = EMPTY.OBJ) {
   options.inner = true;
   options.executeScripts = 'executeScripts' in options ? options.executeScripts : true;
   options.tasks = options.tasks || defaultTasks;

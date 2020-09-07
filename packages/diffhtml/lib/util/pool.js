@@ -1,4 +1,4 @@
-import { VTree } from "./types";
+import { EMPTY, VTree } from './types';
 
 let size = 10000;
 const free = new Set();
@@ -6,11 +6,11 @@ const allocate = new Set();
 const protect = new Set();
 
 const shape = () => ({
-  rawNodeName: '',
-  nodeName: '',
-  nodeValue: '',
+  rawNodeName: EMPTY.STR,
+  nodeName: EMPTY.STR,
+  nodeValue: EMPTY.STR,
   nodeType: 1,
-  key: '',
+  key: EMPTY.STR,
   childNodes: [],
   attributes: {},
 });
@@ -44,11 +44,9 @@ const Pool = {
     if (this.size < free.size) {
       // Loop the set until pruning has completed.
       free.forEach(value => {
-        if (free.size === this.size) {
-          return;
+        if (free.size !== this.size) {
+          free.delete(value);
         }
-
-        free.delete(value);
       });
     }
   },

@@ -1,47 +1,12 @@
-const { use, html, Internals, createTree, innerHTML } = require('diffhtml');
-const { makeDOMNode } = require('quick-dom-node');
+const { Internals, createTree } = require('diffhtml');
 const { keys } = Object;
-
-// Apply a transformation function against the Nodes to produce a string of
-// markup.
-use({ createNodeHook: vTree => makeDOMNode(vTree) });
 
 // Use the same tasks for every run. Maybe in the future we'll allow for
 // passing custom tasks.
 const tasks = new Set(Internals.defaultTasks);
 
-// Remove incompatible tasks, and replace them with serialization-compatible
-// functions.
-tasks.delete(Internals.tasks.reconcileTrees);
-tasks.delete(Internals.tasks.syncTrees);
-tasks.delete(Internals.tasks.patchNode);
+// Replace the `endAsPromise` task with the string return value.
 tasks.delete(Internals.tasks.endAsPromise);
-
-// Add a new reconcile trees function to ensure we are diffing against a tree
-// instead of DOM Node.
-tasks.add(function reconcileTrees(transaction) {
-  const { domNode, markup, options } = transaction;
-
-  // If we are in a render transaction where no markup was previously parsed
-  // then reconcile trees will attempt to create a tree based on the incoming
-  // markup (JSX/html/etc).
-  if (!transaction.newTree) {
-    transaction.newTree = createTree(markup);
-  }
-
-  // Associate the old tree with this brand new transaction. Always ensure that
-  // diffing happens at the root level. This avoids the unnecessary REPLACE
-  // operation that would normally occur under `innerHTML`.
-  transaction.oldTree = domNode;
-
-  // Create a fake, but fast DOM node, replacing the VTree passed in.
-  transaction.domNode = makeDOMNode(domNode);
-});
-
-// Now that the reconcilation phase has been modified, proceed as normal.
-tasks.add(Internals.tasks.syncTrees);
-
-// Return the string.
 tasks.add(function endAsString(transaction) {
   return serializeVTree(transaction.oldTree);
 });
@@ -57,18 +22,14 @@ tasks.add(function endAsString(transaction) {
  * @return {String} of rendered markup representing the input rendered
  */
 exports.renderToString = function renderToString(markup, options = {}) {
-  const parseHTML = options.strict ? html.strict : html;
-  const childNodes = typeof markup === 'string' ? parseHTML(markup) : markup;
-  const newTree = createTree('#document-fragment', {}, childNodes);
-  const oldTree = createTree(newTree.rawNodeName);
+  const oldTree = createTree(null);
+  options.tasks = options.tasks || [...tasks];
+  options.inner = true;
 
-  return innerHTML(oldTree, newTree, { tasks: [...tasks], ...options });
+  return /** @type {String} */ (
+    Internals.Transaction.create(oldTree, markup, options).start()
+  );
 };
-
-// Proxy diffHTML API.
-exports.use = use;
-exports.html = html;
-exports.createTree = createTree;
 
 /**
  * serializeAttributes
@@ -84,7 +45,7 @@ function serializeAttributes(attributes) {
 
   return attrs.length ? ' ' + attrs.map((keyName, i) => {
     const value = attributes[keyName];
-    const isFalsy = !Boolean(value);
+    const isFalsy = !value;
     const isDynamic = typeof value === 'object' || typeof value === 'function';
 
     return `${keyName}${(!isFalsy && !isDynamic) ? `="${String(value)}"` : ''}`;
@@ -99,28 +60,31 @@ function serializeAttributes(attributes) {
  * @param {Object} vTree
  * @return {String}
  */
-function serializeVTree(vTree) {
-  const { attributes, childNodes } = vTree;
-
+function serializeVTree(vTree = {}) {
   let output = '';
+  const { childNodes, nodeType, nodeName: tag, nodeValue, attributes } = vTree;
 
   // Document fragment.
-  if (vTree.nodeType === 11) {
-    vTree.childNodes.forEach(childNode => {
+  if (nodeType === 11) {
+    childNodes.forEach(childNode => {
       output += serializeVTree(childNode);
     });
   }
   // Empty element.
-  else if (!(vTree.childNodes.length) && vTree.nodeType === 1) {
-    output += `<${vTree.nodeName}${serializeAttributes(vTree.attributes)}></${vTree.nodeName}>`;
+  else if (!(childNodes.length) && nodeType === 1) {
+    output += `<${tag}${serializeAttributes(attributes)}></${tag}>`;
   }
   // Text Nodes.
-  else if (vTree.nodeType === 3) {
-    output += vTree.nodeValue;
+  else if (nodeType === 3) {
+    output += nodeValue;
   }
   // Presentational DOM Node.
-  else if (vTree.childNodes.length) {
-    output += `<${vTree.nodeName}${serializeAttributes(vTree.attributes)}>${vTree.childNodes.map(childNode => `${serializeVTree(childNode)}`).join('')}</${vTree.nodeName}>`;
+  else if (childNodes.length) {
+    const children = childNodes.map(childNode =>
+      `${serializeVTree(childNode)}`
+    ).join('');
+
+    output += `<${tag}${serializeAttributes(attributes)}>${children}</${tag}>`;
   }
 
   return output;

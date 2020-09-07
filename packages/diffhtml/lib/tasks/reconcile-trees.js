@@ -14,13 +14,14 @@ export default function reconcileTrees(transaction) {
   const { state, domNode, markup, options } = transaction;
   const { previousMarkup } = state;
   const { inner } = options;
-  const { outerHTML } = /** @type {any} */ (domNode);
+  const domNodeAsHTMLEl = /** @type {HTMLElement} */ (domNode);
+  const { outerHTML } = domNodeAsHTMLEl;
 
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
   if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
     release(domNode);
-    state.oldTree = createTree(domNode);
+    state.oldTree = createTree(domNodeAsHTMLEl);
     protectVTree(state.oldTree);
 
     // Reset the state cache after releasing.
