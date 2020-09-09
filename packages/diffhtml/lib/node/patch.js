@@ -2,7 +2,7 @@ import createNode from './create';
 import { runTransitions } from '../transition';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
-import { PATCH_TYPE, ValidNode, VTree, EMPTY } from '../util/types';
+import { PATCH_TYPE, ValidNode, VTree, EMPTY, TransactionState } from '../util/types';
 import { NodeCache, TransitionCache } from '../util/caches';
 
 const { keys } = Object;
@@ -18,13 +18,12 @@ const DIRECT = ['class', 'checked', 'disabled', 'selected'];
 /**
  * Sets an attribute on an element.
  *
- *
  * @param {VTree} vTree
  * @param {ValidNode} domNode
  * @param {string} name
  * @param {any} value
  *
- * @return
+ * @return {void}
  */
 const setAttribute = (vTree, domNode, name, value) => {
   // Triggered either synchronously or asynchronously depending on if a
@@ -82,6 +81,7 @@ const setAttribute = (vTree, domNode, name, value) => {
  *
  * @param {ValidNode} domNode
  * @param {string} name
+ * @return {void}
  */
 const removeAttribute = (domNode, name) => {
   const isEvent = name.indexOf('on') === 0;
@@ -129,6 +129,8 @@ const removeAttribute = (domNode, name) => {
  *
  * @param {ValidNode} domNode
  * @param {string} nodeValue
+ *
+ * @return {void}
  */
 const changeNodeValue = (domNode, nodeValue) => {
   const htmlElement = /** @type {HTMLElement} */ (domNode);
@@ -144,7 +146,9 @@ const changeNodeValue = (domNode, nodeValue) => {
 /**
  *
  * @param {*} patches
- * @param {*} state
+ * @param {TransactionState=} state
+ *
+ * @return {Promise<any>[]}
  */
 export default function patchNode(patches, state = EMPTY.OBJ) {
   const promises = [];

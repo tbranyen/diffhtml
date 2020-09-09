@@ -1,25 +1,19 @@
 import { Mount, ValidInput, VTree } from "./types";
-import process from './process';
+import getConfig from './config';
 
 export const marks = new Map();
 export const prefix = 'diffHTML';
 
-const DIFF_PERF = 'diff_perf';
-const hasSearch = typeof location !== 'undefined';
-const hasArguments = process.argv;
 const nop = () => {};
 
 /**
  *
- * @param {Mount} domNode
+ * @param {Mount} mount
  * @param {ValidInput=} input
  * @return {(name: string) => void}
  */
-export default function makeMeasure(domNode, input) {
-  // Check for these changes on every check.
-  const wantsSearch = hasSearch && location.search.includes(DIFF_PERF);
-  const wantsArguments = hasArguments && process.argv.includes(DIFF_PERF);
-  const wantsPerfChecks = wantsSearch || wantsArguments;
+export default function makeMeasure(mount, input) {
+  const wantsPerfChecks = getConfig('collectMetrics', false);
 
   // If the user has not requested they want perf checks, return a nop
   // function.
@@ -28,10 +22,10 @@ export default function makeMeasure(domNode, input) {
   const inputAsVTree = /** @type {VTree} */ (input);
 
   return name => {
-    const host = /** @type any */ (domNode).host;
+    const host = /** @type any */ (mount).host;
 
     // Use the Web Component name if it's available.
-    if (domNode && host) {
+    if (mount && host) {
       name = `${host.constructor.name} ${name}`;
     }
     else if (inputAsVTree && typeof inputAsVTree.rawNodeName === 'function') {

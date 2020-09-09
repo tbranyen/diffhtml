@@ -312,6 +312,7 @@ describe('Use (Middleware)', function() {
     this.releaseHook = oldTree => releaseTrees.push(oldTree);
 
     const newTree = html`<h1>Updates</h1>`;
+    const newFirstElement = newTree.childNodes[0];
     innerHTML(domNode, newTree);
 
     let oldTree = null;
@@ -326,7 +327,7 @@ describe('Use (Middleware)', function() {
 
     equal(releaseTrees.length, 3);
     deepEqual(releaseTrees, [
-      newTree.childNodes[0],
+      newFirstElement,
       newTree,
       oldTree,
     ]);

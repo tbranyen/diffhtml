@@ -1,4 +1,4 @@
-import { VTree, ValidInput, Mount, Options, TransactionState, EMPTY } from './util/types';
+import { VTree, ValidInput, Mount, TransactionConfig, TransactionState, EMPTY } from './util/types';
 import { MiddlewareCache, StateCache, NodeCache } from './util/caches';
 import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
@@ -11,6 +11,7 @@ import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
 import release from './release';
 import Pool from './util/pool';
+import getConfig from './util/config';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -25,7 +26,7 @@ export default class Transaction {
    *
    * @param {Mount} domNode
    * @param {ValidInput} input
-   * @param {Options} options
+   * @param {TransactionConfig} options
    */
   static create(domNode, input, options) {
     return new Transaction(domNode, input, options);
@@ -110,31 +111,31 @@ export default class Transaction {
 
   /**
    * @constructor
-   * @param {Mount} domNode
+   * @param {Mount} mount
    * @param {ValidInput} input
-   * @param {Options} options
+   * @param {TransactionConfig} config
    */
-  constructor(domNode, input, options) {
+  constructor(mount, input, config) {
     // TODO: Rename this to mount.
-    this.domNode = domNode;
+    this.domNode = mount;
     this.input = input;
-    this.options = options;
+    // TODO: Rename this to config.
+    this.options = config;
 
-    /** @type {TransactionState} */
-    this.state = StateCache.get(domNode) || {
-      measure: makeMeasure(domNode, input),
+    this.state = StateCache.get(mount) || /** @type {TransactionState} */ ({
+      measure: makeMeasure(mount, input),
       svgElements: new Set(),
       scriptsToExecute: new Map(),
-    };
+    });
 
-    if (options.tasks && options.tasks.length) {
-      this.tasks = [...options.tasks];
-    }
+    this.tasks = /** @type {Function[]} */ (
+      getConfig('tasks', defaultTasks, config)
+    );
 
     // Store calls to trigger after the transaction has ended.
     this.endedCallbacks = new Set();
 
-    StateCache.set(domNode, this.state);
+    StateCache.set(mount, this.state);
   }
 
   /**
@@ -187,6 +188,7 @@ export default class Transaction {
   end() {
     const { state, domNode, options } = this;
     const { measure, svgElements, scriptsToExecute } = state;
+    const domNodeAsHTMLEl = /** @type {HTMLElement} */ (domNode);
 
     measure('finalize');
 
@@ -207,7 +209,7 @@ export default class Transaction {
     });
 
     // Save the markup immediately after patching.
-    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : EMPTY.STR;
+    state.previousMarkup = 'outerHTML' in domNodeAsHTMLEl ? domNodeAsHTMLEl.outerHTML : EMPTY.STR;
 
     // Only execute scripts if the configuration is set. By default this is set
     // to true. You can toggle this behavior for your app to disable script
@@ -240,9 +242,6 @@ export default class Transaction {
     // Empty the scripts to execute.
     scriptsToExecute.clear();
 
-    // Clean up memory before rendering the next transaction, however if
-    // another transaction is running concurrently this will be delayed until
-    // the last render completes.
      // Defer garbage collection if the current size is more than double the
      // current allocation.
     if (Pool.memory.free.size < Pool.memory.allocated.size * 2) {

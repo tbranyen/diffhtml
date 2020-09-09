@@ -101,11 +101,11 @@ describe('Integration: outerHTML', function() {
   });
 
   it.skip('can use trimmed input to make comparing easier', function() {
-    //diff.Internals.defaultOptions = {};
+    diff.Internals.globalConfig.parser = { trim: true };
 
     diff.outerHTML(this.fixture.firstChild, html`
       <div id="test">hello world</div>
-    `, { parser: { trim: true } });
+    `);
 
     assert.equal(this.fixture.firstChild.nodeName, 'DIV');
     assert.equal(this.fixture.firstChild.getAttribute('id'), 'test');
