@@ -635,34 +635,18 @@ describe('Tree', function() {
   });
 
   describe('sync', () => {
-    it('will error if missing a new tree to sync into', () => {
-      const oldTree = createTree('div');
-      const newTree = undefined;
-
-      throws(() => syncTree(oldTree, newTree), /Missing new Virtual Tree/);
-    });
-
-    it('will not throw custom error if in production', () => {
-      const oldTree = createTree('div');
-      const newTree = undefined;
-
-      process.env.NODE_ENV = 'production';
-
-      doesNotThrow(() => syncTree(oldTree, newTree), /Cannot read property 'length'/);
-    });
-
-    it('will throw an error if top level elements are different', () => {
+    it('will not throw an error if top level elements are different', () => {
       const oldTree = createTree('div');
       const newTree = createTree('h1');
 
-      throws(() => syncTree(oldTree, newTree), /cannot compare h1 with div/);
+      doesNotThrow(() => syncTree(oldTree, newTree));
     });
 
-    it('will throw an error if the new tree is not the same type', () => {
+    it('will not throw an error if the new tree is not the same type', () => {
       const oldTree = createTree('div');
       const newTree = createTree('span');
 
-      throws(() =>  syncTree(oldTree, newTree));
+      doesNotThrow(() =>  syncTree(oldTree, newTree));
     });
 
     it('will generate an empty patchset if there are no changes', () => {

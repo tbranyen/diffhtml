@@ -19,7 +19,7 @@ render in a web browser or Node.
 - Powerful **middleware** extends diffHTML with additional features.
 - **Web** and **React**-compatible stateful components.
 - View and debug your code using the **Chrome DevTools extension**.
-- A **lite** build which has a smaller size, meant for optimizing production code
+- A **lite** build which has a smaller size, meant for optimizing production code.
 
 ## Packages
 

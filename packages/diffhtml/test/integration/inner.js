@@ -89,7 +89,7 @@ describe('Integration: innerHTML', function() {
 
     document.body.removeChild(this.fixture);
 
-    diff.innerHTML(this.fixture, ``);
+    diff.innerHTML(this.fixture, '');
 
     assert.equal(this.fixture.innerHTML, '');
   });
