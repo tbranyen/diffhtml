@@ -46,27 +46,29 @@ export default function syncTree(
   // DOM from changes or diffs. Another useful way to use these hooks are to
   // take the new tree, and convert it into something else. This is how
   // components are implemented.
-  oldTree !== EMPTY.OBJ && SyncTreeHookCache.forEach(fn => {
-    // Call the user provided middleware function for a single root node. Allow
-    // the consumer to specify a return value of a different VTree (useful for
-    // components).
-    const entry = fn(oldTree, newTree);
+  if (SyncTreeHookCache.size && oldTree !== EMPTY.OBJ) {
+    SyncTreeHookCache.forEach(fn => {
+      // Call the user provided middleware function for a single root node.
+      // Allow the consumer to specify a return value of a different VTree
+      // (useful for components).
+      const entry = fn(oldTree, newTree);
 
-    // If the value returned matches the original element, then short circuit
-    // and do not dig further.
-    if (entry && entry === oldTree) {
-      shortCircuit = patches;
-    }
-    // Allow skipping an element for diffing. It will be preserved and kept
-    // in the DOM.
-    else if (entry === false) {
-      shortCircuit = false;
-    }
-    // If the user has returned a value, treat it as the new tree.
-    else if (entry) {
-      newTree = entry;
-    }
-  });
+      // If the value returned matches the original element, then short circuit
+      // and do not dig further.
+      if (entry && entry === oldTree) {
+        shortCircuit = patches;
+      }
+      // Allow skipping an element for diffing. It will be preserved and kept
+      // in the DOM.
+      else if (entry === false) {
+        shortCircuit = false;
+      }
+      // If the user has returned a value, treat it as the new tree.
+      else if (entry) {
+        newTree = entry;
+      }
+    });
+  }
 
   if (shortCircuit !== null || !newTree) {
     return shortCircuit;
