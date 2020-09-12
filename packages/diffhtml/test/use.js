@@ -173,7 +173,7 @@ describe('Use (Middleware)', function() {
     release(oldTree);
   });
 
-  it('will allow blackboxing an existing tree to avoid diffing', () => {
+  it('will allow sandboxing an existing tree to avoid diffing', () => {
     const oldTree = document.createElement('div');
     const newTree = html`<div class="test" />`;
 
@@ -190,7 +190,49 @@ describe('Use (Middleware)', function() {
     release(oldTree);
   });
 
-  it('will not diff children during blackboxing using a key', () => {
+  it('will ignoring a dynamically added DOM Node to avoid diffing', () => {
+    const fixture = document.createElement('div');
+
+    innerHTML(fixture, '<p></p>');
+
+    // End user is responsible for knowing what to ignore
+    const elements = new Set();
+
+    const marquee1 = document.createElement('marquee');
+    const marquee2 = document.createElement('marquee');
+    elements.add(marquee1);
+    elements.add(marquee2);
+
+    // Add untracked elements before and after rendered nodes
+    fixture.appendChild(marquee1);
+    fixture.insertBefore(marquee2, fixture.firstChild);
+
+    let protect = true;
+
+    // Do not compare dynamically added elements.
+    this.syncTreeHook = oldTree => {
+      // If this element was added by the end user, skip comparisons.
+      if (protect && elements.has(Internals.NodeCache.get(oldTree))) {
+        return false;
+      }
+    };
+
+    innerHTML(fixture, '<p></p><span></span>');
+
+    equal(fixture.innerHTML, `<marquee></marquee><p></p><marquee></marquee><span></span>`);
+
+    innerHTML(fixture, '<p></p>');
+    equal(fixture.innerHTML, `<marquee></marquee><p></p><marquee></marquee>`);
+
+    protect = false;
+
+    innerHTML(fixture, '<p></p>');
+    equal(fixture.innerHTML, `<p></p>`);
+
+    release(fixture);
+  });
+
+  it('will not diff children while sandboxing using a key', () => {
     const oldTree = document.createElement('div');
 
     // Issue with text element during diff, this test will pass if the whitespace
@@ -217,7 +259,7 @@ describe('Use (Middleware)', function() {
     release(oldTree);
   });
 
-  it('will not diff children during blackboxing', () => {
+  it('will not diff children while sandboxing', () => {
     const oldTree = document.createElement('div');
 
     // Issue with text element during diff, this test will pass if the whitespace
