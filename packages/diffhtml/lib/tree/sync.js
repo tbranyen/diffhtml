@@ -16,7 +16,7 @@ const textName = '#text';
  * @param {Partial<TransactionState>} state
  * @param {boolean} attributesOnly
  *
- * @return {any[] | false}
+ * @return {any[] | false | null}
  */
 export default function syncTree(
   oldTree,
