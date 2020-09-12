@@ -523,7 +523,9 @@ additional cleanup here.
 ### <a name="sync-tree-hook-cache" href="#sync-tree-hook-cache">SyncTreeHookCache</a>
 
 A JavaScript Set object that contains functions that trigger whenever Virtual
-Trees are compared.
+Trees are compared. You can influence how the Virtual DOM synchronizes changes,
+by changing attributes JIT, telling diffHTML to ignore certain nodes, or tell
+diffHTML to not apply any changes to a given node.
 
 ### <a name="node-cache" href="#node-cache">NodeCache</a>
 
