@@ -156,7 +156,6 @@ export default function syncTree(
     for (let i = 0; i < newChildNodes.length; i++) {
       // Ensure all SVG elements are tracked.
       isSVG && svgElements.add(newChildNodes[i]);
-      //console.log('a', newChildNodes[i]);
       syncTree(null, newChildNodes[i], patches, state, true);
     }
 
