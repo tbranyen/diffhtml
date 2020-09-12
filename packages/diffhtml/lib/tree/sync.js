@@ -46,7 +46,7 @@ export default function syncTree(
   // DOM from changes or diffs. Another useful way to use these hooks are to
   // take the new tree, and convert it into something else. This is how
   // components are implemented.
-  if (SyncTreeHookCache.size && oldTree !== EMPTY.OBJ) {
+  if (SyncTreeHookCache.size) {
     SyncTreeHookCache.forEach(fn => {
       // Call the user provided middleware function for a single root node.
       // Allow the consumer to specify a return value of a different VTree
@@ -105,10 +105,9 @@ export default function syncTree(
   }
 
   const newChildNodes = newTree.childNodes || [];
-  const isElement = newTree.nodeType === 1;
 
   // Seek out attribute changes first, but only from element Nodes.
-  if (isElement) {
+  if (newTree.nodeType === 1) {
     const oldAttributes = isEmpty ? EMPTY.OBJ : oldTree.attributes;
     const newAttributes = newTree.attributes;
 
@@ -155,10 +154,9 @@ export default function syncTree(
   if (attributesOnly) {
     // Do a single pass over the new child nodes.
     for (let i = 0; i < newChildNodes.length; i++) {
-      if (isSVG) {
-        svgElements.add(newChildNodes[i]);
-      }
-
+      // Ensure all SVG elements are tracked.
+      isSVG && svgElements.add(newChildNodes[i]);
+      //console.log('a', newChildNodes[i]);
       syncTree(null, newChildNodes[i], patches, state, true);
     }
 
@@ -307,7 +305,7 @@ export default function syncTree(
     if (!sameType) {
       oldChildNodes[i] = newChildNode;
 
-      // This only works if VTrees are identical...
+      // This only works if VTrees are identical.
       const lookupIndex = oldChildNodes.lastIndexOf(newChildNode);
 
       if (lookupIndex > i) {

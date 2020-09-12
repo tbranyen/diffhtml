@@ -66,6 +66,10 @@ const syncTreeHook = (oldTree, newTree) => {
     return render(oldTree, newTree) || oldTree;
   }
 
+  if (!newTree.childNodes) {
+    return oldTree;
+  }
+
   // Loop through childNodes seeking out components to render.
   for (let i = 0; i < newTree.childNodes.length; i++) {
     const newChildTree = newTree.childNodes[i];
@@ -86,6 +90,9 @@ const syncTreeHook = (oldTree, newTree) => {
           if (typeof renderTree.rawNodeName === 'function') {
             i = i - 1;
           }
+          // Replace the fragment with the rendered elements. Maybe in the
+          // future this could remain a fragment and seamlessly patch into the
+          // DOM.
           else {
             newTree.childNodes.splice(i, 1, ...renderTree.childNodes);
           }
@@ -98,7 +105,7 @@ const syncTreeHook = (oldTree, newTree) => {
   }
 };
 
-export default Constructor => assign(
+export default () => assign(
   transaction => transaction.onceEnded(onceEnded),
   {
     displayName: 'componentTask',
