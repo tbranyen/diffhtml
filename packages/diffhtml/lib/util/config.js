@@ -1,8 +1,11 @@
 import process from './process';
-import { Config, Internals } from './types';
+import { Config } from './types';
 import globalThis from './global';
 
-const hasSearch = typeof globalThis.location !== 'undefined';
+const { location, URLSearchParams } = globalThis;
+const hasSearchParams = typeof URLSearchParams !== 'undefined';
+const hasLocation = typeof location !== 'undefined';
+const hasSearch = hasSearchParams && hasLocation;
 const hasEnv = process.env;
 
 /** @type {Config} */
@@ -11,24 +14,37 @@ export const globalConfig = {
   executeScripts: true,
 };
 
+function getValue(value, type) {
+  switch (type) {
+    case 'boolean': {
+
+    }
+  }
+}
+
 /**
  *
  * @param {String} name
  * @param {unknown} defaultValue
+ * @param {string} type
  * @param {{[name: string]: unknown}=} override
  *
  * @return {unknown}
  */
-export default function getConfig(name, defaultValue, override) {
-  const searchName = `diff_${name.toLowerCase()}`;
-  const envName = `DIFF_${name.toUpperCase()}`;
+export default function getConfig(name, defaultValue, type = typeof defaultValue, override) {
+  const keyName = `DIFF_${name.replace(/[^a-zA-Z0-9]/, '').toLowerCase()}`;
 
+  // Allow bypassing any lookups.
   if (override && name in override) {
     return override[name];
   }
 
-  // FIXME
-  if (hasSearch && location.search.includes(searchName)) {
+  const searchParams = new URLSearchParams(location.search);
+  const wantsSearch = hasSearch && searchParams.has(keyName);
+  const searchValue = searchParams.get(keyName);
+
+  // Querystring parameter has highest precedence.
+  if (wantsSearch) {
     return true;
   }
   // else if (hasEnv) {

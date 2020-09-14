@@ -6,7 +6,6 @@ export const EMPTY = {
   NUM: 1,
   OBJ: {},
   ARR: [],
-  FUNC: () => {},
   MAP: new Map(),
   SET: new Set(),
   DOM: /** @type {HTMLElement} */ ({}),

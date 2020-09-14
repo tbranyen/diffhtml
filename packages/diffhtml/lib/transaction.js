@@ -267,6 +267,9 @@ export default class Transaction {
     this.endedCallbacks.add(callback);
   }
 
+  /** @type {TransactionState} */
+  state = EMPTY.OBJ;
+
   /** @type {Mount} */
   domNode = EMPTY.STR;
 
