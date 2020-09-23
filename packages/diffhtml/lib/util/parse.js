@@ -8,7 +8,7 @@ import { VTree, Supplemental, Options, ParserOptions, EMPTY } from './types';
 // Magic token used for interpolation.
 export const TOKEN = '__DIFFHTML__';
 
-const doctypeEx = /<!.*>/i;
+const doctypeEx = /<!DOCTYPE.*>/i;
 const spaceEx = /[^ ]/;
 const tokenEx = new RegExp(`${TOKEN}([^_]*)__`);
 
