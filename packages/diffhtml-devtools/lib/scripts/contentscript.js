@@ -28,9 +28,7 @@ chrome.runtime.onMessage.addListener(ev => document.dispatchEvent(
   })
 ));
 
-const postEvent = ev => postMessage(
-  typeof ev.detail === 'string' ? parse(ev.detail) : ev.detail,
-);
+const postEvent = ev => postMessage(ev.detail);
 
 document.addEventListener('diffHTML:activated', postEvent);
 document.addEventListener('diffHTML:start', postEvent);

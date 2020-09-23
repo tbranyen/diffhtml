@@ -26,7 +26,7 @@ export default function devTools(Internals) {
 
   // Toggle if a middleware is enabled/disabled.
   document.addEventListener('diffHTML:toggleMiddleware', ev => {
-    const { detail } = ev;
+    const detail = parse(ev.detail);
 
     Internals.MiddlewareCache.forEach((userMiddleware, i) => {
       const [ raw, name ] = getMiddlewareName(userMiddleware);

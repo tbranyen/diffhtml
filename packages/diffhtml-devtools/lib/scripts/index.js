@@ -152,7 +152,9 @@ const render = () => outerHTML(main, html`<main id="main" data-theme=${state.the
 
 const clone = x => parse(stringify(x));
 
-background.onMessage.addListener(message => {
+background.onMessage.addListener(unparsedMessage => {
+  const message = parse(unparsedMessage);
+
   switch (message.action) {
     case 'activated': {
       const clonedData = clone(message.data);
