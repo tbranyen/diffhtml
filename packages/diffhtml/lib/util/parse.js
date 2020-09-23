@@ -141,7 +141,7 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   let match = null;
-  const attrEx = /\b([_a-z][_a-z0-9\-:]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+  const attrEx = /\b([_a-z][_a-z0-9\-:.]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 
   // Support dynamic tag names like: `<${MyComponent} />`.
   if (match = tokenEx.exec(nodeName)) {
