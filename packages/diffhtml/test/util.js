@@ -83,6 +83,17 @@ describe('Util', function() {
       equal(vTree.attributes.selected, '');
     });
 
+    it('will support HTML comments inside script tags', () => {
+      const vTree = parse('<script>before<!-- in -->after</script>').childNodes[0];
+      equal(vTree.childNodes[0].nodeValue, 'before<!-- in -->after');
+    });
+
+    it('will support dot attributes', () => {
+      const vTree = parse('<option dot.value="test" />').childNodes[0];
+
+      equal(vTree.attributes['dot.value'], 'test');
+    });
+
     it('will support spreading interpolated attribute objects', () => {
       const supplemental = createSupplemental({
         attributes: [{ value: 'test' }]
