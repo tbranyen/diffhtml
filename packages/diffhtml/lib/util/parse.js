@@ -141,7 +141,7 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   let match = null;
-  const attrEx = /\b([_a-z][_a-z0-9\-:]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+  const attrEx = /\b([_a-z][^\s\x00-\x1F"'>\/=\uFDD0-\uFDEF\uFFFE\uFFFF]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 
   // Support dynamic tag names like: `<${MyComponent} />`.
   if (match = tokenEx.exec(nodeName)) {
@@ -160,8 +160,16 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   for (let match; match = attrEx.exec(rawAttrs || EMPTY.STR);) {
     const isHTML = typeof nodeName === 'string';
     const name = match[1];
+
+    let tokenValue;
+
+    if (name === '') {
+      const match = rawAttrs.match(tokenEx);
+      tokenValue = match ? match[0] : '';
+    }
+
     const testValue = match[6] || match[5] || match[4];
-    const value = testValue || (isHTML ? match[1] : testValue || true);
+    const value = tokenValue || testValue || (isHTML ? match[1] : testValue || true);
     let valueMatchesToken = String(value).match(tokenEx);
 
     // If we have multiple interpolated values in an attribute, we must
