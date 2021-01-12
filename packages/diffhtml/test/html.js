@@ -42,6 +42,18 @@ describe('HTML (Tagged template)', function() {
     equal(multipleValues.attributes.class, 'foo bar');
   });
 
+  it('will support invalid characters in attributes', function() {
+    const div = html`<div
+      @ns@key="value"
+      $ns$key="value"
+      #ns#key="value"
+    />`;
+
+    equal(div.attributes['@ns@key'], 'value');
+    equal(div.attributes['$ns$key'], 'value');
+    equal(div.attributes['#ns#key'], 'value');
+  });
+
   it('will support namespace attributes', function() {
     const div = html`<div ns:key="value" />`;
 

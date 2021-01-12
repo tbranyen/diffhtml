@@ -141,7 +141,7 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   let match = null;
-  const attrEx = /\b([_a-z][^\s\x00-\x1F"'>\/=\uFDD0-\uFDEF\uFFFE\uFFFF]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
+  const attrEx = /([_@$#a-z][^\s\x00-\x1F"'>\/=\uFDD0-\uFDEF\uFFFE\uFFFF]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
 
   // Support dynamic tag names like: `<${MyComponent} />`.
   if (match = tokenEx.exec(nodeName)) {
@@ -158,6 +158,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
 
   // Migrate raw attributes into the attributes object used by the VTree.
   for (let match; match = attrEx.exec(rawAttrs || EMPTY.STR);) {
+    //console.log(match);
     const isHTML = typeof nodeName === 'string';
     const name = match[1];
 
