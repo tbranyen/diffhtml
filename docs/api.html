@@ -773,7 +773,9 @@ Tree is cleaned up by diffHTML&#39;s internal garbage collection. You can do
 additional cleanup here.</p>
 <h3 id="a-namesync-tree-hook-cache-hrefsync-tree-hook-cachesynctreehookcachea"><a name="sync-tree-hook-cache" href="#sync-tree-hook-cache">SyncTreeHookCache</a></h3>
 <p>A JavaScript Set object that contains functions that trigger whenever Virtual
-Trees are compared.</p>
+Trees are compared. You can influence how the Virtual DOM synchronizes changes,
+by changing attributes JIT, telling diffHTML to ignore certain nodes, or tell
+diffHTML to not apply any changes to a given node.</p>
 <h3 id="a-namenode-cache-hrefnode-cachenodecachea"><a name="node-cache" href="#node-cache">NodeCache</a></h3>
 <p>A Map that can be used to get access to the DOM node associated to a VTree.
 This is comparable to <code>findDOMNode</code> in React. Basically if you encounter an

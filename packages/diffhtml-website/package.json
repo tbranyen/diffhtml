@@ -21,7 +21,7 @@
     "diffhtml-render-to-string": "^1.0.0-beta.18",
     "diffhtml-static-sync": "^1.0.0-beta.18",
     "express": "^4.17.1",
-    "marked": "^1.2.7",
+    "marked": "^0.7.0",
     "ncp": "^2.0.0",
     "serve-favicon": "^2.5.0"
   },
