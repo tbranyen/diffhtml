@@ -10,7 +10,7 @@
   "devDependencies": {
     "diffhtml": "^1.0.0-beta.18",
     "diffhtml-components": "^1.0.0-beta.18",
-    "mocha": "^6.2.0"
+    "mocha": "^8.2.1"
   },
   "peerDependencies": {
     "diffhtml": "^1.0.0-beta.18"

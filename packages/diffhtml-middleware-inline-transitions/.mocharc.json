@@ -1,0 +1,5 @@
+{
+  "require": ["@babel/register"],
+  "colors": true,
+  "bail": true
+}
