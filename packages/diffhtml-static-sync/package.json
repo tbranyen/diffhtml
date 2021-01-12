@@ -17,19 +17,19 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "dependencies": {
-    "chokidar": "^3.1.1",
+    "chokidar": "^3.5.0",
     "cli-spinner": "^0.2.10",
     "diffhtml": "^1.0.0-beta.18",
-    "engine.io": "^3.4.0",
+    "engine.io": "^4.0.6",
     "express": "^4.17.1",
-    "marked": "^0.7.0"
+    "marked": "^1.2.7"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.6.0",
+    "@babel/core": "^7.12.10",
+    "@babel/plugin-transform-modules-commonjs": "^7.12.1",
     "babelify": "^10.0.0",
-    "browserify": "^16.5.0",
-    "engine.io-client": "^3.4.0",
+    "browserify": "^17.0.0",
+    "engine.io-client": "^4.0.6",
     "watchify": "^3.11.1"
   }
 }
