@@ -453,18 +453,22 @@ element names to allow this feature.</p>
 <hr></hr>
 <h2 id="a-hrefdynamic-valuesdynamic-valuesa"><a href="#dynamic-values">Dynamic values</a></h2>
 <p>The parser allows you to use dynamic values for many different parts of the
-HTML syntax.</p>
+HTML syntax. This is primarily used with tagged template literals to support
+the passing of objects and other JavaScript types.</p>
 <p>You can put dynamic values in either: <em>tag</em>, <em>attribute</em>, or <em>children</em> locations.
 This makes it incredibly easy to compose dynamic template-driven UIs from your
 JavaScript view layer.</p>
-<pre><code>&lt;TAG ATTRIBUTE&gt;CHILDREN&lt;/TAG&gt;</code></pre><p>Internally diffHTML has the notion of a Supplemental object. This object contains
-three keys: <code>tags</code>, <code>attributes</code>, <code>children</code>.</p>
-<p>In order to indicate that a given position should be swapped with a dynamic value
-simply use the syntax: <strong>&#95;&#95;DIFFHTML&#95;&#95;TOKEN&#95;&#95;</strong>. Where the <strong>TOKEN</strong> value is an arbitrary
-string value that will correlate to a value provided to the parser. Every token
-must be completely unique. You cannot guarentee that the parser won&#39;t try to
-determine automatically what type the token belongs to. If a value is not found for the token, it
-will be left in your source.</p>
+<pre><code>&lt;TAG ATTRIBUTE&gt;CHILDREN&lt;/TAG&gt;</code></pre><p>When parsing diffHTML will create a &quot;Supplemental&quot; object, which contains the
+keys: <code>tags</code>, <code>attributes</code>, <code>children</code>. Denoting the position in which the
+value was located. The template is rewritten with the unique keys and then are
+applied once the tree has been created.</p>
+<p>In order to indicate that a given position should be swapped with a dynamic
+value simply use the syntax: <strong>&#95;&#95;DIFFHTML&#95;&#95;TOKEN&#95;&#95;</strong>.
+Where the <strong>TOKEN</strong> value is an arbitrary string value that will correlate to a
+value provided to the parser. Every token must be completely unique. You cannot
+guarantee that the parser won&#39;t try to determine automatically what type the
+token belongs to. If a value is not found for the token, it will be left in
+your source.</p>
 <p><strong>An example setting each type of injection:</strong></p>
 <pre><code class="language-js">import { Internals, innerHTML } from &#39;diffhtml&#39;;
 

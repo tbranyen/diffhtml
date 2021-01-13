@@ -158,7 +158,6 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
 
   // Migrate raw attributes into the attributes object used by the VTree.
   for (let match; match = attrEx.exec(rawAttrs || EMPTY.STR);) {
-    //console.log(match);
     const isHTML = typeof nodeName === 'string';
     const name = match[1];
 

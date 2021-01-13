@@ -193,7 +193,8 @@ Examples of these kinds of elements are: `<meta/>`, `<hr/>`, `<img/>`
 ## <a href="#dynamic-values">Dynamic values</a>
 
 The parser allows you to use dynamic values for many different parts of the
-HTML syntax.
+HTML syntax. This is primarily used with tagged template literals to support
+the passing of objects and other JavaScript types.
 
 You can put dynamic values in either: _tag_, _attribute_, or _children_ locations.
 This makes it incredibly easy to compose dynamic template-driven UIs from your
@@ -203,15 +204,18 @@ JavaScript view layer.
 <TAG ATTRIBUTE>CHILDREN</TAG>
 ```
 
-Internally diffHTML has the notion of a Supplemental object. This object contains
-three keys: `tags`, `attributes`, `children`.
+When parsing diffHTML will create a "Supplemental" object, which contains the
+keys: `tags`, `attributes`, `children`. Denoting the position in which the
+value was located. The template is rewritten with the unique keys and then are
+applied once the tree has been created.
 
-In order to indicate that a given position should be swapped with a dynamic value
-simply use the syntax: **&#95;&#95;DIFFHTML&#95;&#95;TOKEN&#95;&#95;**. Where the **TOKEN** value is an arbitrary
-string value that will correlate to a value provided to the parser. Every token
-must be completely unique. You cannot guarentee that the parser won't try to
-determine automatically what type the token belongs to. If a value is not found for the token, it
-will be left in your source.
+In order to indicate that a given position should be swapped with a dynamic
+value simply use the syntax: **&#95;&#95;DIFFHTML&#95;&#95;TOKEN&#95;&#95;**.
+Where the **TOKEN** value is an arbitrary string value that will correlate to a
+value provided to the parser. Every token must be completely unique. You cannot
+guarantee that the parser won't try to determine automatically what type the
+token belongs to. If a value is not found for the token, it will be left in
+your source.
 
 **An example setting each type of injection:**
 
