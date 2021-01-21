@@ -58,7 +58,7 @@ function render() {
 
 [Refer to the configuration documentation.](https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml#-diffhtml-babel-transform-plugin)
 
-<a name="#render-to-string"></a>
+<a name="render-to-string"></a>
 
 ---
 
@@ -108,7 +108,7 @@ renderToString(html`
 ```
 
 
-<a name="#live-reload-server"></a>
+<a name="live-reload-server"></a>
 
 ---
 

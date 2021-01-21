@@ -52,7 +52,7 @@
     "Additional Packages": ["tools.html", {
       "Babel Transform": "#babel-transform",
       "Render to String": "#render-to-string",
-      "Live Reload Server": "#static-sync"
+      "Live Reload Server": "#live-reload-server"
     }],
 
     "DevTools": ["devtools.html", {
