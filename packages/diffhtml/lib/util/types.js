@@ -181,12 +181,13 @@ export const TransactionConfig = EMPTY.OBJ;
 /**
  * @typedef {Object} GlobalConfig
  *
+ * @property {string=} NODE_ENV - To set the runtime execution mode
  * @property {Boolean=} collectMetrics - to collect performance metrics, defaults to false
  */
 export const GlobalConfig = EMPTY.OBJ;
 
 /**
- * @typedef {TransactionConfig & GlobalConfig} Config
+ * @typedef {TransactionConfig & GlobalConfig & { [key: string]: unknown }} Config
  */
 export const Config = {};
 

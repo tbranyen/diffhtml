@@ -100,19 +100,6 @@ describe('Integration: outerHTML', function() {
     assert.equal(this.fixture.firstChild.textContent, 'hello world');
   });
 
-  it.skip('can use trimmed input to make comparing easier', function() {
-    diff.Internals.globalConfig.parser = { trim: true };
-
-    diff.outerHTML(this.fixture.firstChild, html`
-      <div id="test">hello world</div>
-    `);
-
-    assert.equal(this.fixture.firstChild.nodeName, 'DIV');
-    assert.equal(this.fixture.firstChild.getAttribute('id'), 'test');
-    assert.equal(this.fixture.firstChild.id, 'test');
-    assert.equal(this.fixture.firstChild.textContent, 'hello world');
-  });
-
   describe('Comments', function() {
     it('ignores comments', function() {
       diff.outerHTML(this.fixture, '<div><p><!-- test --></p></div>');
