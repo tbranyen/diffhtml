@@ -1,10 +1,9 @@
 import { html } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 
 class DevtoolsFooter extends WebComponent {
   static propTypes = {
-    version: PropTypes.string,
+    version: String,
   }
 
   render() {

@@ -1,4 +1,4 @@
-import { VTree, ValidInput, Mount, Options, TransactionState, EMPTY } from './util/types';
+import { VTree, ValidInput, Mount, TransactionConfig, TransactionState, EMPTY } from './util/types';
 import { MiddlewareCache, StateCache, NodeCache } from './util/caches';
 import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
@@ -10,13 +10,15 @@ import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
 import release from './release';
+import Pool from './util/pool';
+import getConfig from './util/config';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
 ];
 
 export const tasks = {
-  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise
+  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
 };
 
 export default class Transaction {
@@ -24,7 +26,7 @@ export default class Transaction {
    *
    * @param {Mount} domNode
    * @param {ValidInput} input
-   * @param {*} options
+   * @param {TransactionConfig} options
    */
   static create(domNode, input, options) {
     return new Transaction(domNode, input, options);
@@ -88,9 +90,12 @@ export default class Transaction {
    * @param {Transaction} transaction
    */
   static invokeMiddleware(transaction) {
-    const { tasks } = transaction;
+    const { state: { measure }, tasks } = transaction;
 
     MiddlewareCache.forEach(fn => {
+      const label = `invoke ${fn.name || 'anon'}`;
+      measure(label);
+
       // Invoke all the middleware passing along this transaction as the only
       // argument. If they return a value (must be a function) it will be added
       // to the transaction task flow.
@@ -99,37 +104,38 @@ export default class Transaction {
       if (result) {
         tasks.push(result);
       }
+
+      measure(label);
     });
   }
 
   /**
    * @constructor
-   * @param {Mount} domNode
+   * @param {Mount} mount
    * @param {ValidInput} input
-   * @param {Options} options
+   * @param {TransactionConfig} config
    */
-  constructor(domNode, input, options) {
+  constructor(mount, input, config) {
     // TODO: Rename this to mount.
-    this.domNode = domNode;
-    // TODO: Rename this to input.
-    this.markup = input;
-    this.options = options;
+    this.domNode = mount;
+    this.input = input;
+    // TODO: Rename this to config.
+    this.options = config;
 
-    /** @type {TransactionState} */
-    this.state = StateCache.get(domNode) || {
-      measure: makeMeasure(domNode, input),
+    this.state = StateCache.get(mount) || /** @type {TransactionState} */ ({
+      measure: makeMeasure(mount, input),
       svgElements: new Set(),
       scriptsToExecute: new Map(),
-    };
+    });
 
-    if (options.tasks && options.tasks.length) {
-      this.tasks = [...options.tasks];
-    }
+    this.tasks = /** @type {Function[]} */ (
+      getConfig('tasks', defaultTasks, undefined, config)
+    );
 
     // Store calls to trigger after the transaction has ended.
     this.endedCallbacks = new Set();
 
-    StateCache.set(domNode, this.state);
+    StateCache.set(mount, this.state);
   }
 
   /**
@@ -143,13 +149,13 @@ export default class Transaction {
     const { state: { measure }, tasks } = this;
     const takeLastTask = tasks.pop();
 
+    // Start measuring a render for performance tracing.
+    measure('render');
+
     this.aborted = false;
 
     // Add middleware in as tasks.
     Transaction.invokeMiddleware(this);
-
-    // Measure the render flow if the user wants to track performance.
-    measure('render');
 
     // Push back the last task as part of ending the flow.
     takeLastTask && tasks.push(takeLastTask);
@@ -182,6 +188,7 @@ export default class Transaction {
   end() {
     const { state, domNode, options } = this;
     const { measure, svgElements, scriptsToExecute } = state;
+    const domNodeAsHTMLEl = /** @type {HTMLElement} */ (domNode);
 
     measure('finalize');
 
@@ -202,7 +209,7 @@ export default class Transaction {
     });
 
     // Save the markup immediately after patching.
-    state.previousMarkup = 'outerHTML' in /** @type {any} */ (domNode) ? domNode.outerHTML : EMPTY.STR;
+    state.previousMarkup = 'outerHTML' in domNodeAsHTMLEl ? domNodeAsHTMLEl.outerHTML : EMPTY.STR;
 
     // Only execute scripts if the configuration is set. By default this is set
     // to true. You can toggle this behavior for your app to disable script
@@ -235,19 +242,20 @@ export default class Transaction {
     // Empty the scripts to execute.
     scriptsToExecute.clear();
 
-    // Mark the end to rendering.
-    measure('finalize');
-    measure('render');
-
-    // Clean up memory before rendering the next transaction, however if
-    // another transaction is running concurrently this will be delayed until
-    // the last render completes.
-    gc();
+     // Defer garbage collection if the current size is more than double the
+     // current allocation.
+    if (Pool.memory.free.size < Pool.memory.allocated.size * 2) {
+      gc();
+    }
 
     // Trigger all `onceEnded` callbacks, so that middleware can know the
     // transaction has ended.
     this.endedCallbacks.forEach(callback => callback(this));
     this.endedCallbacks.clear();
+
+    // Mark the end to rendering.
+    measure('finalize');
+    measure('render');
 
     return this;
   }
@@ -259,11 +267,14 @@ export default class Transaction {
     this.endedCallbacks.add(callback);
   }
 
+  /** @type {TransactionState} */
+  state = EMPTY.OBJ;
+
   /** @type {Mount} */
   domNode = EMPTY.STR;
 
   /** @type {ValidInput} */
-  markup = EMPTY.STR;
+  input = EMPTY.STR;
 
   /** @type {VTree=} */
   oldTree = undefined;

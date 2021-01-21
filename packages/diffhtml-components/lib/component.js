@@ -124,10 +124,7 @@ class Component {
 
       // Replace if the nodes are different.
       if (newNode && oldNode && childTrees[i] !== childTree) {
-        parentNode.replaceChild(
-          newNode,
-          oldNode,
-        );
+        parentNode.replaceChild(newNode, oldNode);
 
         // Reset last node, since it has been replaced.
         lastNode = newNode;

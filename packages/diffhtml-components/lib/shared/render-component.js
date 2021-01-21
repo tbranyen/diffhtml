@@ -42,7 +42,10 @@ export default function renderComponent(vTree, context) {
         }
       });
 
-      if (instance.shouldComponentUpdate && instance.shouldComponentUpdate()) {
+      if (
+        instance.shouldComponentUpdate &&
+        instance.shouldComponentUpdate(props, instance.state)
+      ) {
         renderTree = createTree(instance.render(props, instance.state, context));
 
         if (instance.componentDidUpdate && instance.componentDidUpdate) {

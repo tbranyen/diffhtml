@@ -16,9 +16,7 @@ const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
 // Creates the `component.props` object.
 const createProps = (domNode, props = {}) => {
   const observedAttributes = getObserved(domNode.constructor);
-  const initialProps = {
-    //children: [].map.call(domNode.childNodes, createTree),
-  };
+  const initialProps = {};
 
   const incoming = observedAttributes.reduce((props, attr) => ({
     [attr]: (
@@ -92,9 +90,13 @@ class WebComponent extends root.HTMLElement {
 
           this.props[propName] = value;
 
-          timeout = root.setTimeout(() => {
-            this[$$render]();
-          }, 0);
+          this.componentWillReceiveProps(this.props, this.state);
+
+          if (this.shouldComponentUpdate(this.props, this.state)) {
+            timeout = root.setTimeout(() => {
+              this[$$render]();
+            }, 0);
+          }
         },
       });
     });

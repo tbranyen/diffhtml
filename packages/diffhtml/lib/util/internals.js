@@ -8,6 +8,7 @@ import makeMeasure from './make-measure';
 import * as memory from './memory';
 import Pool from './pool';
 import process from './process';
+import { globalConfig } from './config';
 import { PATCH_TYPE, Internals } from './types';
 
 export default /** @type {Internals} */ ({
@@ -19,6 +20,7 @@ export default /** @type {Internals} */ ({
   Pool,
   process,
   PATCH_TYPE,
+  globalConfig,
 
   // Core.
   createNode,

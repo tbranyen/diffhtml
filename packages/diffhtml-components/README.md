@@ -58,66 +58,38 @@ innerHTML(document.body, html`<${MyComponent} />`);
 
 ## PropTypes
 
-The PropTypes package has been extracted out of React into a standalone module
-(`npm i prop-types`) which can be used with both `Component` and `WebComponent`
-implementations.
+This static definition on either a function or class component provides a
+specification for incoming props. It borrows from the React concept. While
+these are common for runtime validation, they are also used to denote which
+Web Component properties should be observed.
 
-**If you are using Web Components please note that PropTypes are required so
-that the implementation knows which attributes to fire change events on.**
+You simply provide a top level definition for the incoming prop. Use native
+JavaScript constructor types.
 
-[See the MDN article on it for more
-information](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements#Observed_attributes)
+Such as:
 
+```js
+import { html, innerHTML } from 'diffhtml';
+import { WebComponent } from 'diffhtml-components';
 
-Example using PropTypes with ES6:
-
-``` js
-import { html } from 'diffhtml';
-import { Component } from 'diffhtml-components';
-import PropTypes from 'prop-types';
-
-class MyComponent extends Component {
+class MyComponent extends WebComponent {
   render() {
-    const { className } = this.props;
-
-    return html`
-      <div class=${className}>${label}</div>
-    `;
-  }
-}
-
-MyComponent.propTypes = {
-  className: PropTypes.string.isRequired,
-  label: PropTypes.string,
-};
-```
-
-Using with `babel-plugin-transform-class-properties`:
-
-``` js
-import { html } from 'diffhtml';
-import { Component } from 'diffhtml-components';
-import PropTypes from 'prop-types';
-
-class MyComponent extends Component {
-  render() {
-    const { className } = this.props;
-
-    return html`
-      <div class=${className}>${label}</div>
-    `;
+    const { message } = this.props;
+    return html`${message}`;
   }
 
   static propTypes = {
-    className: PropTypes.string.isRequired,
-    label: PropTypes.string,
+    message: String,
   }
 }
-```
 
-Also note that in order to fully remove PropTypes from a bundler, you will need
-to add additional configuration. Please consult the bundlers documentation for
-this until we add examples.
+customElements.define('my-component', MyComponent);
+
+innerHTML(document.body, html`
+  <my-component message="Valid" />
+  <my-component message=${5} /> <!-- invalid -->
+`);
+```
 
 ## State
 
@@ -133,11 +105,10 @@ For example:
 ``` js
 import { html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 
 class SimpleCounter extends Component {
   render() {
-    const {  } = this.props;
+    const { className, label  } = this.props;
 
     return html`
       <div class=${className}>${label}</div>
@@ -194,7 +165,6 @@ work to load some components. If you need full parity with React, look to the
 ``` js
 import { html, innerHTML } from 'diffhtml';
 import { Component } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 
 class SimpleClock extends Component {
   render() {
@@ -217,13 +187,12 @@ class SimpleClock extends Component {
 
 // Not-required, but nice to have for debugging purposes.
 SimpleClock.propTypes = {
-  now: PropTypes.number,
+  now: Number,
 };
 
 // Render to the `<body />` element.
 innerHTML(document.body, html`<${SimpleClock} />`);
 ```
-
 
 ### Web Components
 
@@ -241,7 +210,6 @@ Explorer, which is current in development.
 ``` js
 import { html, innerHTML } from 'diffhtml';
 import { WebComponent } from 'diffhtml-components';
-import PropTypes from 'prop-types';
 
 class SimpleClock extends WebComponent {
   render() {
@@ -264,7 +232,7 @@ class SimpleClock extends WebComponent {
 
 // Required to auto-fill the `observedAttributes` function.
 SimpleClock.propTypes = {
-  now: PropTypes.number,
+  now: Number,
 };
 
 // Register into the browser's element registry.

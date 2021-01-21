@@ -18,7 +18,7 @@ tasks.add(function endAsString(transaction) {
  * will accept any input that `outerHTML` normally accepts. This is a true
  * render, but omits the DOM patching task.
  *
- * @param {any} markup Can be a diffHTML VTree object or string of HTML
+ * @param {any} input Can be a diffHTML VTree object or string of HTML
  * @return {String} of rendered markup representing the input rendered
  */
 exports.renderToString = function renderToString(markup, options = {}) {

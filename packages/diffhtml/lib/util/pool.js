@@ -1,6 +1,7 @@
 import { EMPTY, VTree } from './types';
+import getConfig from './config';
 
-let size = 10000;
+const size = /** @type {Number} */ (getConfig('initialPoolSize', 5000));
 const free = new Set();
 const allocate = new Set();
 const protect = new Set();

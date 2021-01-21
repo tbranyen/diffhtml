@@ -22,22 +22,16 @@ injector.parentNode.removeChild(injector);
 
 const postMessage = body => chrome.runtime.sendMessage(body);
 
-chrome.runtime.onMessage.addListener(ev => {
-  if (ev.type === 'pong') {
-    document.dispatchEvent(new CustomEvent('diffHTML:pong', {
-      detail: ev,
-    }));
-  }
-  else if (ev.type === 'toggleMiddleware') {
-    document.dispatchEvent(new CustomEvent('diffHTML:toggleMiddleware', {
-      detail: ev,
-    }));
-  }
-});
+chrome.runtime.onMessage.addListener(ev => document.dispatchEvent(
+  new CustomEvent(`diffHTML:${ev.type}`, {
+    detail: ev,
+  })
+));
 
-const postEvent = ev => postMessage(parse(ev.detail));
+const postEvent = ev => postMessage(ev.detail);
 
 document.addEventListener('diffHTML:activated', postEvent);
 document.addEventListener('diffHTML:start', postEvent);
 document.addEventListener('diffHTML:end', postEvent);
 document.addEventListener('diffHTML:ping', postEvent);
+document.addEventListener('diffHTML:gc', postEvent);

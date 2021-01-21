@@ -1,4 +1,6 @@
+import { Config } from "./types";
+
 export default typeof process !== 'undefined' ? process : {
-  env: { NODE_ENV: 'development' },
+  env: /** @type {Config} */({ NODE_ENV: 'development' }),
   argv: /** @type {string[]} */ ([]),
 };

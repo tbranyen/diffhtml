@@ -1,5 +1,6 @@
 import unique from 'unique-selector';
 
+const { stringify, parse } = JSON;
 const cacheTask = [];
 const selectors = new Map();
 const { assign } = Object;
@@ -18,11 +19,14 @@ function getMiddlewareName(userMiddleware, i) {
 // Called by diffHTML index/runtime entry points.
 export default function devTools(Internals) {
   let extension = null;
+  let schedule = null;
   let interval = null;
+  let primaryTimeout = null;
+  let scheduleTimeout = null;
 
   // Toggle if a middleware is enabled/disabled.
   document.addEventListener('diffHTML:toggleMiddleware', ev => {
-    const { detail } = ev;
+    const detail = parse(ev.detail);
 
     Internals.MiddlewareCache.forEach((userMiddleware, i) => {
       const [ raw, name ] = getMiddlewareName(userMiddleware);
@@ -58,7 +62,10 @@ export default function devTools(Internals) {
     });
   });
 
-  document.addEventListener('diffHTML:gc', () => Internals.memory.gc());
+  document.addEventListener('diffHTML:gc', () => {
+    Internals.memory.gc();
+    extension.activate(getInternals());
+  });
 
   const filterVTree = vTree => {
     if (!vTree) { return vTree; }
@@ -77,6 +84,7 @@ export default function devTools(Internals) {
     }
     else {
       // Polling interval that looks for the diffHTML devtools hook.
+      clearInterval(interval);
       interval = setInterval(() => {
         if (window.__diffHTMLDevTools) {
           clearInterval(interval);
@@ -117,9 +125,6 @@ export default function devTools(Internals) {
     };
   };
 
-  let surpressedCount = 0;
-  let lastRun = 0;
-
   function devToolsTask(transaction) {
     const {
       domNode, markup, options, state: { newTree }, state
@@ -130,24 +135,11 @@ export default function devTools(Internals) {
       `${isFunction ? domNode.rawNodeName.displayName || domNode.rawNodeName.name : domNode.rawNodeName}`;
     const startDate = performance.now();
 
-    // If we are getting renders too quickly, restrict them from being sent.
-    if (lastRun !== 0 && (startDate - lastRun) < 1000) {
-      surpressedCount += 1;
-      return;
-    }
-    else {
-      lastRun = startDate;
-    }
-
-    const cachedSurpressedCount = surpressedCount;
-    surpressedCount = 0;
-
     const start = () => {
       return extension.startTransaction(startDate, {
         domNode: selector,
         markup,
         options,
-        surpressedCount: cachedSurpressedCount,
         state: assign({}, state, state.nextTransaction && {
           nextTransaction: undefined,
         }, {
@@ -166,7 +158,9 @@ export default function devTools(Internals) {
     selectors.set(selector, newTree);
 
     return function() {
-      const patches = JSON.parse(JSON.stringify(transaction.patches));
+      // TODO Make patches a separate asynchronous operation, and only
+      // aggregate when completed.
+      const patches = parse(stringify(transaction.patches));
       const promises = transaction.promises.slice();
 
       transaction.onceEnded(() => {
@@ -180,7 +174,6 @@ export default function devTools(Internals) {
           domNode: selector,
           markup,
           options,
-          surpressedCount: cachedSurpressedCount,
           state: assign({}, state, state.nextTransaction && {
             nextTransaction: undefined,
           }, {
@@ -220,14 +213,14 @@ export default function devTools(Internals) {
   function keepAlive() {
     extension.ping();
 
-    let primaryTimeout = null;
-    let scheduleTimeout = null;
-
-    const schedule = () => {
+    // Schedule a new keep-alive two seconds after a successful ping.
+    schedule = async () => {
       clearTimeout(primaryTimeout);
-      scheduleTimeout = setTimeout(keepAlive, 5000);
+      scheduleTimeout = setTimeout(keepAlive, 2000);
+      await setExtension();
     };
 
+    document.removeEventListener('diffHTML:pong', schedule);
     document.addEventListener('diffHTML:pong', schedule, { once: true });
 
     // If we do not receive a response after 1 second, try and reconnect.
@@ -235,6 +228,7 @@ export default function devTools(Internals) {
       document.removeEventListener('diffHTML:pong', schedule);
       clearTimeout(scheduleTimeout);
       await setExtension();
+      keepAlive();
     }, 1000);
   }
 
@@ -242,13 +236,21 @@ export default function devTools(Internals) {
     await setExtension(true);
 
     // Start keep-alive in case we disconnect.
-    //keepAlive();
+    keepAlive();
 
     // Call existing cached tasks.
     if (cacheTask.length) {
       cacheTask.forEach(cb => cb());
       cacheTask.length = 0;
     }
+  };
+
+  devToolsTask.unsubscribe = async () => {
+    clearInterval(interval);
+    clearTimeout(primaryTimeout);
+    clearTimeout(scheduleTimeout);
+
+    document.removeEventListener('diffHTML:pong', schedule);
   };
 
   return devToolsTask;

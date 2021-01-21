@@ -10,7 +10,6 @@ import {
   addTransitionState,
   removeTransitionState,
 } from 'diffhtml';
-import PropTypes from 'prop-types';
 import Component from '../lib/component';
 import validateCaches from './util/validate-caches';
 
@@ -364,7 +363,7 @@ describe('Component implementation', function() {
       }
 
       CustomComponent.propTypes = {
-        customProperty: PropTypes.string.isRequired,
+        customProperty: String,
       };
 
       doesNotThrow(() => innerHTML(this.fixture, html`<${CustomComponent} />`));
@@ -1129,6 +1128,50 @@ describe('Component implementation', function() {
 
       equal(didMount, 1);
       equal(this.fixture.innerHTML, '<span>Hello world</span>');
+    });
+
+    it.skip('will support forceUpdate with an HoC', () => {
+      const proxy = ({ children }) => html(children);
+
+      const HOC = ChildComponent => class HOCComponent extends Component {
+        render() {
+          console.log('here');
+          return html`<${ChildComponent} />`;
+        }
+      };
+
+      const WrappedComponent = HOC(proxy);
+
+      let instance = null;
+
+      class CustomComponent extends Component {
+        render({ message }) {
+          return html`
+            <span>${message}</span>
+            <${WrappedComponent}>test</${WrappedComponent}>
+          `;
+        }
+
+        constructor(...args) {
+          super(...args);
+
+          instance = this;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} message="Some" />`);
+
+      //equal(
+      //  this.fixture.innerHTML.replace(whitespaceEx, ''),
+      //  '<span>Some</span> test',
+      //);
+
+      instance.forceUpdate();
+
+      equal(
+        this.fixture.innerHTML.replace(whitespaceEx, ''),
+        '<span>Some</span> test',
+      );
     });
 
     it('will support wrapping a component that returns a new component', () => {

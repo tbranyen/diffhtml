@@ -5,13 +5,14 @@ import Transaction from '../transaction';
 import release from '../release';
 
 /**
- * This task ensures that the Virtual DOM matches the Browser DOM. If any of the
- * markup changes between renders, the old tree is recalculated to ensure accuracy.
+ * This task ensures that the Virtual DOM matches the Browser DOM. If any of
+ * the markup changes between renders, the old tree is recalculated to ensure
+ * accuracy.
  *
  * @param {Transaction} transaction
  */
 export default function reconcileTrees(transaction) {
-  const { state, domNode, markup, options } = transaction;
+  const { state, domNode, input, options } = transaction;
   const { previousMarkup } = state;
   const { inner } = options;
   const domNodeAsHTMLEl = /** @type {HTMLElement} */ (domNode);
@@ -33,7 +34,7 @@ export default function reconcileTrees(transaction) {
   // markup (JSX/html/etc).
   if (!transaction.newTree) {
     // Reset the old tree with the newly created VTree association.
-    transaction.newTree = createTree(markup);
+    transaction.newTree = createTree(input);
   }
 
   // Associate the old tree with this brand new transaction.

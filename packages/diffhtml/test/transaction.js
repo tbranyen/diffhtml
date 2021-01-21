@@ -11,7 +11,7 @@ describe('Transaction', function() {
   beforeEach(() => {
     process.env.NODE_ENV = 'development';
     suite.domNode = document.createElement('div');
-    suite.markup = `
+    suite.input = `
       <div>Hello world</div>
     `;
     suite.options = { inner: false, tasks: [spy()] };
@@ -24,21 +24,21 @@ describe('Transaction', function() {
 
   describe('create', () => {
     it('will return a transaction instance', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = new Transaction(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = new Transaction(domNode, input, options);
 
       ok(transaction instanceof Transaction);
     });
 
     it('will attach relevant properties to the transaction instance', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = new Transaction(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = new Transaction(domNode, input, options);
       const { tasks, state, endedCallbacks } = transaction;
 
       deepEqual(transaction, {
         // Public.
         domNode,
-        markup,
+        input,
         options,
         tasks,
         state,
@@ -142,13 +142,13 @@ describe('Transaction', function() {
 
   describe('assert', () => {
     it('will not error if not aborted or completd', () => {
-      const { domNode, markup } = suite;
+      const { domNode, input } = suite;
       const tasks = [
         transaction => transaction.abort(),
         spy(),
       ];
 
-      const transaction = Transaction.create(domNode, markup, { tasks });
+      const transaction = Transaction.create(domNode, input, { tasks });
       transaction.aborted = false;
       transaction.completed = false;
       doesNotThrow(() => transaction.start());
@@ -156,26 +156,26 @@ describe('Transaction', function() {
     });
 
     it('will error if a transaction has been aborted', () => {
-      const { domNode, markup } = suite;
+      const { domNode, input } = suite;
       const tasks = [
         transaction => transaction.abort(),
         spy(),
       ];
 
-      const transaction = Transaction.create(domNode, markup, { tasks });
+      const transaction = Transaction.create(domNode, input, { tasks });
       transaction.aborted = true;
       transaction.completed = true;
       throws(() => transaction.start());
     });
 
     it('will error if a transaction has been completed', () => {
-      const { domNode, markup } = suite;
+      const { domNode, input } = suite;
       const tasks = [
         transaction => transaction.abort(),
         spy(),
       ];
 
-      const transaction = Transaction.create(domNode, markup, { tasks });
+      const transaction = Transaction.create(domNode, input, { tasks });
       transaction.aborted = false;
       transaction.completed = true;
       throws(() => transaction.start());
@@ -184,8 +184,8 @@ describe('Transaction', function() {
 
   describe('invokeMiddleware', () => {
     it('will not modify the task flow if not provided a function', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       /** @type {unknown} */
       const middleware = spy();
@@ -198,8 +198,8 @@ describe('Transaction', function() {
     });
 
     it('will modify the task flow if provided a function', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       const task = spy();
 
@@ -217,8 +217,8 @@ describe('Transaction', function() {
   describe('start', () => {
     it('will not error in production if trying to start a transaction without a dom node', () => {
       process.env.NODE_ENV = 'production';
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       transaction.domNode = null;
 
@@ -228,8 +228,8 @@ describe('Transaction', function() {
     });
 
     it('will error in development if trying to start a transaction without a dom node', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       transaction.domNode = null;
 
@@ -238,8 +238,8 @@ describe('Transaction', function() {
       }, / /);
     });
     it('will error in development if trying to start a transaction without a dom node', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       transaction.domNode = null;
 
@@ -249,8 +249,8 @@ describe('Transaction', function() {
     });
 
     it('will start a transaction', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       transaction.start();
 
@@ -260,8 +260,8 @@ describe('Transaction', function() {
     });
 
     it('will start a transaction with middleware', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       const task = spy();
 
@@ -276,10 +276,10 @@ describe('Transaction', function() {
     });
 
     it('will get the return value from the flow', async () => {
-      const { domNode, markup } = suite;
+      const { domNode, input } = suite;
       const token = {};
       const tasks = [() => token];
-      const transaction = Transaction.create(domNode, markup, { tasks });
+      const transaction = Transaction.create(domNode, input, { tasks });
       const returnValue = await transaction.start();
 
       equal(returnValue, token);
@@ -288,8 +288,8 @@ describe('Transaction', function() {
 
   describe('abort', () => {
     it('will abort a transaction flow', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       transaction.start();
       const returnValue = transaction.abort();
@@ -299,10 +299,10 @@ describe('Transaction', function() {
     });
 
     it('will return the last tasks return value', () => {
-      const { domNode, markup } = suite;
+      const { domNode, input } = suite;
       const token = {};
       const tasks = [() => token];
-      const transaction = Transaction.create(domNode, markup, { tasks });
+      const transaction = Transaction.create(domNode, input, { tasks });
 
       transaction.start();
       const returnValue = transaction.abort(true);
@@ -314,8 +314,8 @@ describe('Transaction', function() {
 
   describe('end', () => {
     it('will mark the transaction as completed', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       transaction.end();
 
@@ -323,8 +323,8 @@ describe('Transaction', function() {
     });
 
     it('will set the state', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
       transaction.end();
 
@@ -332,8 +332,8 @@ describe('Transaction', function() {
     });
 
     it('will change isRendering', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
 
 
       transaction.start();
@@ -346,8 +346,8 @@ describe('Transaction', function() {
 
   describe('onceEnded', () => {
     it('will register callbacks to run after ended', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
       const fn = () => {};
 
       transaction.onceEnded(fn);
@@ -355,8 +355,8 @@ describe('Transaction', function() {
     });
 
     it('will trigger onceEnded callbacks', () => {
-      const { domNode, markup, options } = suite;
-      const transaction = Transaction.create(domNode, markup, options);
+      const { domNode, input, options } = suite;
+      const transaction = Transaction.create(domNode, input, options);
       const fn = spy();
 
       transaction.onceEnded(fn);

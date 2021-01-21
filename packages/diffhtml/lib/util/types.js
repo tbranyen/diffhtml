@@ -6,7 +6,6 @@ export const EMPTY = {
   NUM: 1,
   OBJ: {},
   ARR: [],
-  FUNC: () => {},
   MAP: new Map(),
   SET: new Set(),
   DOM: /** @type {HTMLElement} */ ({}),
@@ -26,12 +25,6 @@ export const PATCH_TYPE = {
 };
 
 /**
- * @typedef {'attached' | 'detached' | 'replaced' | 'attributeChanged' | 'textChanged'} TransitionStateName
- * @type {TransitionStateName}
- */
-export const TransitionStateName = 'attached';
-
-/**
  * @typedef {TransitionStateName[]} TransitionStateNames
  * @type {TransitionStateNames}
  */
@@ -44,6 +37,71 @@ export const TransitionStateNames = [
 ];
 
 /**
+ * Creates a mapping of TransitionState
+ *
+ * @typedef {Map<TransitionStateName, Set<Function>>} TransitionCache
+ */
+export const TransitionCache = new Map([
+  ['attached', new Set()],
+  ['detached', new Set()],
+  ['replaced', new Set()],
+  ['attributeChanged', new Set()],
+  ['textChanged', new Set()],
+]);
+
+/**
+ * Associates active transaction mount with state.
+ *
+ * @typedef {Map<Mount, TransactionState>} StateCache
+ */
+export const StateCache = new Map();
+
+/**
+ * Associates a VTree with a distinctive DOM Node.
+ *
+ * @typedef {Map<VTree, ValidNode>} NodeCache
+ */
+export const NodeCache = new Map();
+
+/**
+ * Stores middleware functions/objects which hook into the render flow.
+ *
+ * @typedef {Set<Function>} MiddlewareCache
+ */
+export const MiddlewareCache = new Set();
+
+/**
+ * @typedef {Set<Function>} CreateTreeHookCache
+ */
+export const CreateTreeHookCache = new Set();
+
+/**
+ * @typedef {(vTree: VTree) => ValidNode | void} CreateNodeHookCallback
+ * @typedef {Set<CreateNodeHookCallback>} CreateNodeHookCache
+ */
+export const CreateNodeHookCache = new Set();
+
+/**
+ * @typedef {Set<Function>} SyncTreeHookCache
+ */
+export const SyncTreeHookCache = new Set();
+
+/**
+ * @typedef {Set<Function>} ReleaseHookCache
+ */
+export const ReleaseHookCache = new Set();
+
+/**
+ * @typedef {Set<Function>} ParseHookCache
+ */
+export const ParseHookCache = new Set();
+
+/**
+ * @typedef {'attached' | 'detached' | 'replaced' | 'attributeChanged' | 'textChanged'} TransitionStateName
+ */
+export const TransitionStateName = EMPTY.OBJ;
+
+/**
  * @typedef {Object} VTree
  *
  * @property {any} rawNodeName - unaltered extracted nodeName
@@ -54,19 +112,7 @@ export const TransitionStateNames = [
  * @property {VTree[]} childNodes - Any nested elements
  * @property {any} attributes - Any key/val attributes for the Node
  */
-
-/**
- * @type {VTree}
- */
-export const VTree = {
-  rawNodeName: EMPTY.STR,
-  nodeName: EMPTY.STR,
-  nodeValue: EMPTY.STR,
-  nodeType: EMPTY.NUM,
-  key: EMPTY.STR,
-  childNodes: EMPTY.ARR,
-  attributes: EMPTY.OBJ,
-};
+export const VTree = EMPTY.OBJ;
 
 /**
  * @typedef {Object} VTreeLike
@@ -79,32 +125,24 @@ export const VTree = {
  * @property {string=} key - A unique identifier for the children
  * @property {VTreeLike[]=} childNodes - Any nested elements
  * @property {VTreeLike[]=} children - Any nested elements
- * @property {any=} attributes - Any key/val attributes for the Node */
-
-/**
- * @type {VTreeLike}
+ * @property {any=} attributes - Any key/val attributes for the Node
  */
-export const VTreeLike = {
-  nodeName: EMPTY.STR,
-};
+export const VTreeLike = EMPTY.OBJ;
 
 /**
  * @typedef {HTMLElement | Text | Comment | DocumentFragment | Function | string | string[] | VTree | VTree[] | VTreeLike | VTreeLike[]} ValidInput
- * @type {ValidInput}
  */
-export const ValidInput = EMPTY.STR;
+export const ValidInput = EMPTY.OBJ;
 
 /**
  * @typedef {Element | HTMLElement | Text | DocumentFragment | ChildNode} ValidNode
- * @type {ValidNode}
  */
-export const ValidNode = EMPTY.DOM;
+export const ValidNode = EMPTY.OBJ;
 
 /**
  * @typedef {ValidNode | VTree | VTree[] | VTreeLike | VTreeLike[]} Mount
- * @type {Mount}
  */
-export const Mount = EMPTY.STR;
+export const Mount = EMPTY.OBJ;
 
 /**
  * @typedef {Object} Middleware
@@ -118,39 +156,40 @@ export const Mount = EMPTY.STR;
  * @property {Function=} releaseHook
  * @property {Function=} parseHook
  */
+export const Middleware = EMPTY.OBJ;
 
 /**
- * @type {Middleware}
- */
-export const Middleware = {};
-
-/**
- * @typedef {Object} ParserOptions
+ * @typedef {Object} ParserConfig
  *
  * @property {Boolean=} strict - Should the parser operate in strict mode
  * @property {Boolean=} trim - Trim surrounding whitespace nodes
  * @property {string[]=} rawElements - Set of raw tagNames, empty is all
  * @property {string[]=} selfClosingElements - Set of self closing element tagNames, empty is all
  */
-
-/**
- * @type {ParserOptions}
- */
-export const ParserOptions = {};
+export const ParserConfig = EMPTY.OBJ;
 
  /**
- * @typedef {Object} Options
+ * @typedef {Object} TransactionConfig
  *
  * @property {Boolean=} inner - to diff children or root
  * @property {Boolean=} executeScripts - to execute scripts or not
  * @property {Function[]=} tasks - to override tasks
- * @property {ParserOptions=} parser - override parser options
+ * @property {ParserConfig=} parser - override parser options
  */
+export const TransactionConfig = EMPTY.OBJ;
 
 /**
- * @type {Options}
+ * @typedef {Object} GlobalConfig
+ *
+ * @property {string=} NODE_ENV - To set the runtime execution mode
+ * @property {Boolean=} collectMetrics - to collect performance metrics, defaults to false
  */
-export const Options = {};
+export const GlobalConfig = EMPTY.OBJ;
+
+/**
+ * @typedef {TransactionConfig & GlobalConfig & { [key: string]: unknown }} Config
+ */
+export const Config = {};
 
 /**
  * @typedef {Object} Supplemental
@@ -159,15 +198,7 @@ export const Options = {};
  * @property {{ [key: string]: any }} attributes
  * @property {{ [key: string]: any }} children
  */
-
-/**
- * @type {Supplemental}
- */
-export const Supplemental = {
-  attributes: EMPTY.OBJ,
-  tags: EMPTY.OBJ,
-  children: EMPTY.OBJ,
-};
+export const Supplemental = EMPTY.OBJ;
 
 /**
  * @typedef {Object} TransactionState
@@ -183,91 +214,13 @@ export const Supplemental = {
  * @property {any=} nextTransaction
  * @property {Document=} ownerDocument
 */
-
-/**
- * @type {TransactionState}
- */
-export const TransactionState = {
-  measure: EMPTY.FUNC,
-  svgElements: EMPTY.SET,
-  scriptsToExecute: EMPTY.MAP,
-};
-
-/**
- * Associates active transaction mount with state.
- *
- * @typedef {Map<Mount, TransactionState>} StateCache
- * @type {StateCache}
- */
-export const StateCache = new Map();
-
-/**
- * Associates a VTree with a distinctive DOM Node.
- *
- * @typedef {Map<VTree, ValidNode>} NodeCache
- */
-/**
- * @type {NodeCache} implements NodeCache
- */
-export const NodeCache = new Map();
-
-/**
- * Creates a mapping of TransitionState
- *
- * @typedef {Map<TransitionStateName, Set<Function>>} TransitionCache
- * @type {TransitionCache}
- */
-export const TransitionCache = new Map([
-  ['attached', new Set()],
-  ['detached', new Set()],
-  ['replaced', new Set()],
-  ['attributeChanged', new Set()],
-  ['textChanged', new Set()],
-]);
-
-/**
- * Stores middleware functions/objects which hook into the render flow.
- *
- * @typedef {Set<Function>} MiddlewareCache
- * @type {MiddlewareCache}
- */
-export const MiddlewareCache = new Set();
-
-/**
- * @typedef {Set<Function>} CreateTreeHookCache
- * @type {CreateTreeHookCache}
- */
-export const CreateTreeHookCache = new Set();
-
-/**
- * @typedef {(vTree: VTree) => ValidNode | void} CreateNodeHookCallback
- * @typedef {Set<CreateNodeHookCallback>} CreateNodeHookCache
- * @type {CreateNodeHookCache}
- */
-export const CreateNodeHookCache = new Set();
-
-/**
- * @typedef {Set<Function>} SyncTreeHookCache
- * @type {SyncTreeHookCache}
- */
-export const SyncTreeHookCache = new Set();
-
-/**
- * @typedef {Set<Function>} ReleaseHookCache
- * @type {ReleaseHookCache}
- */
-export const ReleaseHookCache = new Set();
-
-/**
- * @typedef {Set<Function>} ParseHookCache
- * @type {ParseHookCache}
- */
-export const ParseHookCache = new Set();
+export const TransactionState = EMPTY.OBJ;
 
 /**
  * @typedef {Object} Internals
  *
  * @property {string=} VERSION
+ * @property {GlobalConfig=} globalConfig
  * @property {Function} decodeEntities
  * @property {Function} escape
  * @property {Function} makeMeasure
@@ -291,31 +244,4 @@ export const ParseHookCache = new Set();
  * @property {ReleaseHookCache} ReleaseHookCache
  * @property {ParseHookCache} ParseHookCache
  */
-
-/**
- * @type {Internals}
- */
-export const Internals = {
-  decodeEntities: EMPTY.FUNC,
-  escape: EMPTY.FUNC,
-  makeMeasure: EMPTY.FUNC,
-  memory: EMPTY.OBJ,
-  Pool: EMPTY.OBJ,
-  process: EMPTY.OBJ,
-  PATCH_TYPE: EMPTY.OBJ,
-  parse: EMPTY.FUNC,
-  createNode: EMPTY.FUNC,
-  syncTree: EMPTY.FUNC,
-  Transaction: EMPTY.FUNC,
-  defaultTasks: EMPTY.OBJ,
-  tasks: EMPTY.OBJ,
-  StateCache: EMPTY.MAP,
-  NodeCache: EMPTY.MAP,
-  TransitionCache: EMPTY.MAP,
-  MiddlewareCache: EMPTY.SET,
-  CreateNodeHookCache: EMPTY.SET,
-  CreateTreeHookCache: EMPTY.SET,
-  SyncTreeHookCache: EMPTY.SET,
-  ReleaseHookCache: EMPTY.SET,
-  ParseHookCache: EMPTY.SET,
-};
+export const Internals = EMPTY.OBJ;

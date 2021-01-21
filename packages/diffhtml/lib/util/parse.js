@@ -3,7 +3,7 @@
 
 import createTree from '../tree/create';
 import process from './process';
-import { VTree, Supplemental, Options, ParserOptions, EMPTY } from './types';
+import { VTree, Supplemental, TransactionConfig, ParserConfig, EMPTY } from './types';
 
 // Magic token used for interpolation.
 export const TOKEN = '__DIFFHTML__';
@@ -136,7 +136,7 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
  * @param {String} nodeName - DOM Node name
  * @param {String} rawAttrs - DOM Node Attributes
  * @param {Supplemental} supplemental - Interpolated data from a tagged template
- * @param {Options} options
+ * @param {TransactionConfig} options
  * @return {VTree} vTree
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
@@ -249,12 +249,12 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  *
  * @param {String} html - String of HTML markup to parse into a Virtual Tree
  * @param {Supplemental=} supplemental - Dynamic interpolated data values
- * @param {Options=} options - Contains options like silencing warnings
+ * @param {TransactionConfig=} options - Contains options like silencing warnings
  * @return {VTree} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
   if (!options.parser) {
-    /** @type {ParserOptions} */
+    /** @type {ParserConfig} */
     options.parser = {};
   }
 

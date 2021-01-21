@@ -12,9 +12,9 @@ import Transaction from '../transaction';
  */
 export default function schedule(transaction) {
   // The state is a global store which is shared by all like-transactions.
-  let { state } = transaction;
+  let { state, state: { isRendering } } = transaction;
 
-  let isRendering = state.isRendering;
+  state.measure('schedule');
 
   // Loop through all existing mounts to ensure we properly wait.
   StateCache.forEach(val => {
@@ -28,11 +28,10 @@ export default function schedule(transaction) {
       return;
     }
 
-    if (domNode.contains(newNode) && val.isRendering) {
-      state = val;
-      isRendering = true;
-    }
-    else if (newNode.contains(domNode) && val.isRendering) {
+    else if (
+      (domNode.contains(newNode) || newNode.contains(domNode)) &&
+      val.isRendering
+    ) {
       state = val;
       isRendering = true;
     }
@@ -61,6 +60,8 @@ export default function schedule(transaction) {
       transaction.state.isRendering = true;
       transaction.state.activeTransaction = transaction;
 
+      state.measure('schedule');
+
       return Transaction.flow(transaction, tasks.slice(1));
     });
   }
@@ -68,4 +69,6 @@ export default function schedule(transaction) {
   // Indicate we are now rendering a transaction for this DOM Node.
   state.isRendering = true;
   state.activeTransaction = transaction;
+
+  state.measure('schedule');
 }

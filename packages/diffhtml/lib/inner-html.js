@@ -1,11 +1,11 @@
 import Transaction, { defaultTasks } from './transaction';
-import { EMPTY, ValidInput, Options, Mount } from './util/types';
+import { EMPTY, ValidInput, TransactionConfig, Mount } from './util/types';
 
 /**
  *
  * @param {Mount} domNode
  * @param {ValidInput} input
- * @param {Options} options
+ * @param {TransactionConfig} options
  *
  * @return {Promise<Transaction> | unknown}
  */

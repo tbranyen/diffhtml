@@ -12,6 +12,9 @@ import globalThis from '../util/global';
  */
 export default function patch(transaction) {
   const { domNode, state, state: { measure, scriptsToExecute }, patches } = transaction;
+
+  measure('patch node');
+
   const { ownerDocument } = /** @type {HTMLElement} */ (domNode);
   const promises = transaction.promises || [];
 
@@ -27,11 +30,13 @@ export default function patch(transaction) {
 
   CreateNodeHookCache.add(collectScripts);
 
-  measure('patch node');
-  promises.push(...patchNode(patches, state));
-  measure('patch node');
+  // Skip patching completely if we aren't in a DOM environment.
+  if (state.ownerDocument) {
+    promises.push(...patchNode(patches, state));
+  }
 
   CreateNodeHookCache.delete(collectScripts);
 
   transaction.promises = promises;
+  measure('patch node');
 }
