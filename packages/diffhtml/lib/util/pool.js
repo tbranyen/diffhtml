@@ -1,4 +1,4 @@
-import { EMPTY, VTree } from './types';
+import { EMPTY, NODE_TYPE, VTree } from './types';
 import getConfig from './config';
 
 const size = /** @type {Number} */ (getConfig('initialPoolSize', 5000));
@@ -10,7 +10,7 @@ const shape = () => ({
   rawNodeName: EMPTY.STR,
   nodeName: EMPTY.STR,
   nodeValue: EMPTY.STR,
-  nodeType: 1,
+  nodeType: NODE_TYPE.ELEMENT,
   key: EMPTY.STR,
   childNodes: [],
   attributes: {},

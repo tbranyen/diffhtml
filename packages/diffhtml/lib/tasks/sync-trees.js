@@ -1,7 +1,7 @@
 import syncTree from '../tree/sync';
 import createNode from '../node/create';
 import { StateCache } from '../util/caches';
-import { PATCH_TYPE, EMPTY, Mount } from '../util/types';
+import { NODE_TYPE, PATCH_TYPE, EMPTY, Mount } from '../util/types';
 import process from '../util/process';
 import Transaction from '../transaction';
 
@@ -27,7 +27,7 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     oldTree &&
     newTree &&
     oldTree.nodeName !== newTree.nodeName &&
-    newTree.nodeType !== 11
+    newTree.nodeType !== NODE_TYPE.FRAGMENT
   ) {
     // If there is no `parentNode` for the replace operation, we will need to
     // throw an error and prevent the `StateCache` from being updated.

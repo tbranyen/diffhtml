@@ -81,6 +81,12 @@
       
 
       
+        <a href="api.html#to-string" target><li>toString</li></a>
+      
+    
+      
+
+      
         <a href="api.html#html" target><li>html</li></a>
       
     
@@ -256,18 +262,6 @@
 
       
         <a href="tools.html#babel-transform" target><li>Babel Transform</li></a>
-      
-    
-      
-
-      
-        <a href="tools.html#render-to-string" target><li>Render to String</li></a>
-      
-    
-      
-
-      
-        <a href="tools.html#live-reload-server" target><li>Live Reload Server</li></a>
       
     
       
@@ -511,6 +505,21 @@ innerHTML(document.body, vTree);</code></pre>
       <script key="source">
         try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
+        
+          // Every time a refresh happens, reload the highlight code block.
+          let interval;
+
+          interval = setInterval(() => {
+            if (typeof staticSyncHandlers !== 'undefined') {
+              clearInterval(interval);
+
+              staticSyncHandlers.add(() => {
+                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+                  hljs.highlightBlock(block);
+                }));
+              });
+            }
+          }, 200);
         
 
         document.querySelector('.open-menu').onclick = ev => {

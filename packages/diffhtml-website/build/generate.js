@@ -1,7 +1,6 @@
 const { readFileSync, writeFileSync, existsSync } = require('fs');
 const { join } = require('path');
-const { html } = require('diffhtml');
-const { renderToString } = require('diffhtml-render-to-string');
+const { html, toString } = require('diffhtml');
 const marked = require('marked');
 const flattenPages = require('./util/flatten-pages');
 const { keys } = Object;
@@ -54,7 +53,7 @@ function generate() {
       markup = marked(String(readFileSync(mdPath)), { renderer });
     }
 
-    const contents = renderToString(html`
+    const contents = toString(html`
       <${Layout}
         path=${path}
         page=${name}

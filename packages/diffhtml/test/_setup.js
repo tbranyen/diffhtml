@@ -1,17 +1,16 @@
-/// <reference types="mocha" />
-
 import { JSDOM } from 'jsdom';
-import { parse } from 'url';
 
 const { stringify } = JSON;
 const { assign } = Object;
 const instance = new JSDOM('', { runScripts: 'dangerously' });
 const { window } = instance;
 
-const location = new Proxy(parse('about:blank'), {
+const url = new URL('about:blank');
+
+const location = new Proxy(url, {
   set(obj, keyName, value) {
     if (keyName === 'href') {
-      assign(obj, parse(value));
+      assign(obj, new URL(value));
 
       if (obj.search === null) {
         obj.search = '';

@@ -1,8 +1,10 @@
 /// <reference types="mocha" />
 
 import { deepEqual, equal, ok } from 'assert';
-import { innerHTML, html, createTree, release } from 'diffhtml';
+import { getBinding } from '../../lib/util/binding';
 import validateCaches from './util/validate-caches';
+
+const { innerHTML, html, createTree, release } = getBinding();
 
 const whitespaceEx = /[ ]{2,}|\n/g;
 

@@ -15,7 +15,7 @@
   <script src="../../diffhtml-middleware-inline-transitions/dist/inline-transitions.js"></script>
   <script src="../../diffhtml-middleware-logger/dist/logger.js"></script>
   <script>
-    const { use, html, innerHTML } = diff;
+    const { use, html, innerHTML, outerHTML } = diff;
 
     // Current broken and not letting text update for some reason...
     use(inlineTransitions());
@@ -41,9 +41,9 @@
         </div>
       `)
 
-      innerHTML(document.querySelector('footer'), html`
-        Testing out footer
-      `);
+      outerHTML(document.querySelector('footer'), html`<footer id="footer">
+          Testing out footer
+      </footer>`);
 
       return render;
     };

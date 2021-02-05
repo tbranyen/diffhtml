@@ -1,35 +1,50 @@
-const { Internals, createTree } = require('diffhtml');
+import createTree from './tree/create';
+import { TransactionConfig, ValidInput, VTree, VTreeAttributes } from './util/types';
+import Transaction, { defaultTasks, tasks } from './transaction';
+import release from './release';
+
 const { keys } = Object;
 
-// Use the same tasks for every run. Maybe in the future we'll allow for
-// passing custom tasks.
-const tasks = new Set(Internals.defaultTasks);
-
-// Replace the `endAsPromise` task with the string return value.
-tasks.delete(Internals.tasks.endAsPromise);
-tasks.add(function endAsString(transaction) {
-  return serializeVTree(transaction.oldTree);
-});
-
 /**
- * renderToString
+ * Renders input to a string.
  *
  * Works like outerHTML by rendering a VTree and returning the source. This
  * will accept any input that `outerHTML` normally accepts. This is a true
  * render, but omits the DOM patching task.
  *
- * @param {any} input Can be a diffHTML VTree object or string of HTML
- * @return {String} of rendered markup representing the input rendered
+ * @param {ValidInput} input
+ * @param {TransactionConfig} config
+ * @return {string}
  */
-exports.renderToString = function renderToString(markup, options = {}) {
-  const oldTree = createTree(null);
-  options.tasks = options.tasks || [...tasks];
-  options.inner = true;
+export default function toString(input, config = {}) {
+  const oldTree = createTree();
+  const activeTasks = new Set(config.tasks || defaultTasks);
 
-  return /** @type {String} */ (
-    Internals.Transaction.create(oldTree, markup, options).start()
-  );
-};
+  // Replace the `endAsPromise` task with the string return value.
+  activeTasks.delete(tasks.endAsPromise);
+  activeTasks.add(function endAsString(/** @type {Transaction} */ transaction) {
+    return serializeVTree(transaction.oldTree);
+  });
+
+  config.tasks = [...activeTasks];
+  config.inner = true;
+
+  let markup = '';
+
+  try {
+    markup = /** @type {string} */ (
+      Transaction.create(oldTree, input, config).start()
+    );
+  }
+  catch (e) {
+    release(oldTree);
+    throw e;
+  }
+
+  release(oldTree);
+
+  return markup;
+}
 
 /**
  * serializeAttributes
@@ -37,13 +52,13 @@ exports.renderToString = function renderToString(markup, options = {}) {
  * Takes in a diffHTML VTree attributes object and turns it into a key=value
  * string.
  *
- * @param {Object} attributes
+ * @param {VTreeAttributes} attributes
  * @return {String}
  */
 function serializeAttributes(attributes) {
   const attrs = keys(attributes);
 
-  return attrs.length ? ' ' + attrs.map((keyName, i) => {
+  return attrs.length ? ' ' + attrs.map((keyName) => {
     const value = attributes[keyName];
     const isFalsy = !value;
     const isDynamic = typeof value === 'object' || typeof value === 'function';
@@ -57,18 +72,23 @@ function serializeAttributes(attributes) {
  *
  * Takes in a diffHTML VTree object and turns it into a string of HTML.
  *
- * @param {Object} vTree
+ * @param {VTree=} vTree
  * @return {String}
  */
-function serializeVTree(vTree = {}) {
+function serializeVTree(vTree) {
   let output = '';
+
+  if (!vTree) {
+    return output;
+  }
+
   const { childNodes, nodeType, nodeName: tag, nodeValue, attributes } = vTree;
 
   // Document fragment.
   if (nodeType === 11) {
-    childNodes.forEach(childNode => {
-      output += serializeVTree(childNode);
-    });
+    for (let i = 0; i < childNodes.length; i++) {
+      output += serializeVTree(childNodes[i]);
+    }
   }
   // Empty element.
   else if (!(childNodes.length) && nodeType === 1) {

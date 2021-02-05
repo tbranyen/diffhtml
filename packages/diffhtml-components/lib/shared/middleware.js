@@ -1,9 +1,9 @@
+import { ComponentTreeCache } from '../util/caches';
+import globalThis from '../util/global';
 import onceEnded from './once-ended';
 import componentWillUnmount from './lifecycle/component-will-unmount';
 import renderComponent from './render-component';
 import getContext from './get-context';
-import { ComponentTreeCache } from '../util/caches';
-import globalThis from '../util/global';
 
 const { assign } = Object;
 

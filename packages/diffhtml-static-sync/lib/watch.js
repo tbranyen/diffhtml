@@ -49,6 +49,7 @@ const watcher = watch(CWD, {
 });
 
 const read = path => new Promise((res, rej) => {
+  console.log(join(CWD, path));
   readFile(join(CWD, path), (err, buffer) => {
     if (err) { rej(err); } else { res(buffer); }
   });
@@ -91,7 +92,7 @@ webServer.use((req, res, next) => {
       ${String(buffer)}
       <script>${clientScript}</script>
     `))
-    .catch(() => res.sendFile(join(CWD, '.', url)))
+    .catch(() => res.sendFile(join(CWD, url)))
     .catch(() => next());
 });
 

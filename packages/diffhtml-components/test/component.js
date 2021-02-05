@@ -1135,7 +1135,6 @@ describe('Component implementation', function() {
 
       const HOC = ChildComponent => class HOCComponent extends Component {
         render() {
-          console.log('here');
           return html`<${ChildComponent} />`;
         }
       };

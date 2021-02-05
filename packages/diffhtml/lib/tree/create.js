@@ -1,6 +1,6 @@
 import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
-import { VTree, VTreeLike, ValidInput, EMPTY } from '../util/types';
+import { VTree, VTreeLike, ValidInput, EMPTY, NODE_TYPE } from '../util/types';
 
 const { isArray } = Array;
 const { memory } = Pool;
@@ -60,7 +60,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     // When passed a text node, simply migrate the value over into the new VTree
     // associate in the NodeCache.
-    if (nodeType === 3) {
+    if (nodeType === NODE_TYPE.TEXT) {
       const vTree = createTree(textName, inputAsHTMLEl.nodeValue);
       NodeCache.set(vTree, inputAsHTMLEl);
       return vTree;
@@ -72,7 +72,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     const inputAttrs = inputAsHTMLEl.attributes;
 
     // We only scrape attributes from element nodes if they are available.
-    if (inputAsHTMLEl.nodeType === 1 && inputAttrs && inputAttrs.length) {
+    if (inputAsHTMLEl.nodeType === NODE_TYPE.ELEMENT && inputAttrs && inputAttrs.length) {
       for (let i = 0; i < inputAttrs.length; i++) {
         const { name, value } = inputAttrs[i];
 
@@ -87,7 +87,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     }
 
     // Get the child nodes from an Element or Fragment/Shadow Root.
-    if (inputAsHTMLEl.nodeType === 1 || inputAsHTMLEl.nodeType === 11) {
+    if (inputAsHTMLEl.nodeType === NODE_TYPE.ELEMENT || inputAsHTMLEl.nodeType === NODE_TYPE.FRAGMENT) {
       if (inputAsHTMLEl.childNodes.length) {
         childNodes = [];
 
@@ -194,19 +194,19 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   if (isTextNode) {
     const nodeValue = allNodes.join(EMPTY.STR);
 
-    entry.nodeType = 3;
+    entry.nodeType = NODE_TYPE.TEXT;
     entry.nodeValue = String(nodeValue || EMPTY.STR);
 
     return entry;
   }
   else if (entry.nodeName === fragmentName) {
-    entry.nodeType = 11;
+    entry.nodeType = NODE_TYPE.FRAGMENT;
   }
   else if (input === '#comment') {
-    entry.nodeType = 8;
+    entry.nodeType = NODE_TYPE.COMMENT;
   }
   else {
-    entry.nodeType = 1;
+    entry.nodeType = NODE_TYPE.ELEMENT;
   }
 
   if (useNodes && allNodes.length) {
@@ -222,7 +222,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
         continue;
       }
       // Merge in true fragments, but not components or unknowns.
-      else if (newNode.nodeType === 11 && typeof newNode.rawNodeName === 'string') {
+      else if (newNode.nodeType === NODE_TYPE.FRAGMENT && typeof newNode.rawNodeName === 'string') {
         entry.childNodes.push(...newNode.childNodes);
       }
       // Assume objects are vTrees.

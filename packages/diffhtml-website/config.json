@@ -11,6 +11,7 @@
       "Options": "#options",
       "innerHTML": "#inner-html",
       "outerHTML": "#outer-html",
+      "toString": "#to-string",
       "html": "#html",
       "use": "#use",
       "addTransitionState": "#add-transition-state",
@@ -50,9 +51,7 @@
     }],
 
     "Additional Packages": ["tools.html", {
-      "Babel Transform": "#babel-transform",
-      "Render to String": "#render-to-string",
-      "Live Reload Server": "#live-reload-server"
+      "Babel Transform": "#babel-transform"
     }],
 
     "DevTools": ["devtools.html", {

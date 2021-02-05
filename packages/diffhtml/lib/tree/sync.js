@@ -1,6 +1,6 @@
 import { SyncTreeHookCache } from '../util/caches';
 import process from '../util/process';
-import { PATCH_TYPE, VTree, EMPTY, TransactionState } from '../util/types';
+import { PATCH_TYPE, VTree, EMPTY, TransactionState, NODE_TYPE } from '../util/types';
 
 const { max } = Math;
 const keyNames = ['old', 'new'];
@@ -107,9 +107,9 @@ export default function syncTree(
   const newChildNodes = newTree.childNodes || [];
 
   // Seek out attribute changes first, but only from element Nodes.
-  if (newTree.nodeType === 1) {
+  if (newTree.nodeType === NODE_TYPE.ELEMENT) {
     const oldAttributes = isEmpty ? EMPTY.OBJ : oldTree.attributes;
-    const newAttributes = newTree.attributes;
+    const newAttributes = newTree.attributes || {};
 
     // Search for sets and changes.
     for (let key in newAttributes) {

@@ -1,28 +1,39 @@
-const { equal, throws } = require('assert');
-const { html } = require('diffhtml');
-const { Component } = require('diffhtml-components');
-const { renderToString } = require('../');
+import { strictEqual, throws } from 'assert';
+import { html, toString } from '../lib/index';
+import { Component } from 'diffhtml-components';
+import validateMemory from './util/validate-memory';
+
+Component.unsubscribeMiddleware();
 
 const whitespaceEx = /[ ]{2,}|\n/g;
 
-describe('renderToString', function() {
+describe('toString', function() {
+  beforeEach(() => {
+    Component.subscribeMiddleware();
+  });
+
+  afterEach(() => {
+    Component.unsubscribeMiddleware();
+    validateMemory();
+  });
+
   it('can render simple div string', () => {
-    const actual = renderToString('<div>Hello world</div>');
+    const actual = toString('<div>Hello world</div>');
     const expected = `<div>Hello world</div>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render pure text, no wrapper element', () => {
-    const actual = renderToString('Hello world');
+    const actual = toString('Hello world');
     const expected = `Hello world`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can support strict html parsing, throwing on error', () => {
     throws(() => {
-      renderToString('<p>Hello world', { parser: { strict: true } });
+      toString('<p>Hello world', { parser: { strict: true } });
     }, {
       name: 'Error',
       message: `
@@ -32,62 +43,63 @@ describe('renderToString', function() {
     Possibly invalid markup. <p> must be closed in strict mode.
             `
     });
+
   });
 
   it('can render simple vTree', () => {
-    const actual = renderToString(html`<div>Hello world</div>`);
+    const actual = toString(html`<div>Hello world</div>`);
     const expected = `<div>Hello world</div>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render attributes', () => {
-    const actual = renderToString(html`<div data-test="test" />`);
+    const actual = toString(html`<div data-test="test" />`);
     const expected = `<div data-test="test"></div>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render dynamic attributes', () => {
-    const actual = renderToString(html`<div data-test=${() => {}} />`);
+    const actual = toString(html`<div data-test=${() => {}} />`);
     const expected = `<div data-test></div>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render a value-less attribute', () => {
-    const actual = renderToString(html`<div disabled/>`);
+    const actual = toString(html`<div disabled/>`);
     const expected = `<div disabled="disabled"></div>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render top level document fragments', () => {
-    const actual = renderToString(html`<div/><p/>`);
+    const actual = toString(html`<div/><p/>`);
     const expected = `<div></div><p></p>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render top level single adjacent document fragments', () => {
-    const actual = renderToString(html`<div/>${html`<div/><p/>`}`);
+    const actual = toString(html`<div/>${html`<div/><p/>`}`);
     const expected = `<div></div><div></div><p></p>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render top level document fragments adjacent single', () => {
-    const actual = renderToString(html`${html`<div/><p/>`}<div/>`);
+    const actual = toString(html`${html`<div/><p/>`}<div/>`);
     const expected = `<div></div><p></p><div></div>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render nested document fragments', () => {
-    const actual = renderToString(html`<div>${html`<div/><p/>`}</div>`);
+    const actual = toString(html`<div>${html`<div/><p/>`}</div>`);
     const expected = `<div><div></div><p></p></div>`;
 
-    equal(actual, expected);
+    strictEqual(actual, expected);
   });
 
   it('can render components', () => {
@@ -99,7 +111,7 @@ describe('renderToString', function() {
       }
     }
 
-    const actual = renderToString(html`
+    const actual = toString(html`
       <div>
         <${MyComponent}  />
       </div>
@@ -107,7 +119,7 @@ describe('renderToString', function() {
 
     const expected = '<div><p>Hello world</p></div>';
 
-    equal(actual.replace(whitespaceEx, ''), expected);
+    strictEqual(actual.replace(whitespaceEx, ''), expected);
   });
 
   it('can render components with props', () => {
@@ -119,7 +131,7 @@ describe('renderToString', function() {
       }
     }
 
-    const actual = renderToString(html`
+    const actual = toString(html`
       <div>
         <${MyComponent} message="Hello world" />
       </div>
@@ -127,7 +139,7 @@ describe('renderToString', function() {
 
     const expected = `<div><p>Hello world</p></div>`;
 
-    equal(actual.replace(whitespaceEx, ''), expected);
+    strictEqual(actual.replace(whitespaceEx, ''), expected);
   });
 
   it('can render components with dynamic props', () => {
@@ -139,7 +151,7 @@ describe('renderToString', function() {
       }
     }
 
-    const actual = renderToString(html`
+    const actual = toString(html`
       <div>
         <${MyComponent} display=${{ message: 'Hello world' }} />
       </div>
@@ -147,7 +159,7 @@ describe('renderToString', function() {
 
     const expected = `<div><p>Hello world</p></div>`;
 
-    equal(actual.replace(whitespaceEx, ''), expected);
+    strictEqual(actual.replace(whitespaceEx, ''), expected);
   });
 
   it('can render components with nested elements', () => {
@@ -166,12 +178,12 @@ describe('renderToString', function() {
       }
     }
 
-    const actual = renderToString(html`
+    const actual = toString(html`
       <${MyComponent} />
     `);
 
     const expected = `<html><head><title>Test</title></head><body></body></html>`;
 
-    equal(actual.replace(whitespaceEx, ''), expected);
+    strictEqual(actual.replace(whitespaceEx, ''), expected);
   });
 });

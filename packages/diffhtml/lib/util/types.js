@@ -1,4 +1,15 @@
 /**
+ * @type {{ [type: string]: number }}
+ */
+export const NODE_TYPE = {
+  ELEMENT: 1,
+  ATTR: 2,
+  TEXT: 3,
+  COMMENT: 8,
+  FRAGMENT: 11,
+};
+
+/**
  * @type {{ [type: string]: any }}
  */
 export const EMPTY = {
@@ -102,6 +113,12 @@ export const ParseHookCache = new Set();
 export const TransitionStateName = EMPTY.OBJ;
 
 /**
+ * @typedef {{ [key: string]: any }} VTreeAttributes
+ *
+ */
+export const VTreeAttributes = EMPTY.OBJ;
+
+/**
  * @typedef {Object} VTree
  *
  * @property {any} rawNodeName - unaltered extracted nodeName
@@ -110,7 +127,7 @@ export const TransitionStateName = EMPTY.OBJ;
  * @property {number} nodeType - the type of Node this is representing
  * @property {string} key - A unique identifier for the children
  * @property {VTree[]} childNodes - Any nested elements
- * @property {any} attributes - Any key/val attributes for the Node
+ * @property {VTreeAttributes} attributes - Any key/val attributes for the Node
  */
 export const VTree = EMPTY.OBJ;
 
@@ -231,9 +248,9 @@ export const TransactionState = EMPTY.OBJ;
  * @property {Function=} parse
  * @property {Function} createNode
  * @property {Function} syncTree
- * @property {Function} Transaction
- * @property {object} defaultTasks
- * @property {object} tasks
+ * @property {unknown} Transaction
+ * @property {Function[]} defaultTasks
+ * @property {{ [key: string]: any }} tasks
  * @property {StateCache} StateCache
  * @property {NodeCache} NodeCache
  * @property {TransitionCache} TransitionCache

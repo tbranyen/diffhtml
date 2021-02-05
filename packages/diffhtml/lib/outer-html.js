@@ -1,5 +1,10 @@
 import Transaction from './transaction';
-import { EMPTY, ValidInput, TransactionConfig, Mount } from './util/types';
+import {
+  EMPTY,
+  ValidInput,
+  TransactionConfig,
+  Mount,
+} from './util/types';
 
 /**
  * @param {Mount} mount
@@ -10,5 +15,6 @@ import { EMPTY, ValidInput, TransactionConfig, Mount } from './util/types';
  */
 export default function outerHTML(mount, input = EMPTY.STR, config = EMPTY.OBJ) {
   config.inner = false;
+
   return Transaction.create(mount, input, config).start();
 }
