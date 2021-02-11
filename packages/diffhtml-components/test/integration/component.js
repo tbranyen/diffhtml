@@ -1,7 +1,11 @@
 /// <reference types="mocha" />
 
 import { ok, equal, deepEqual, doesNotThrow, throws } from 'assert';
-import {
+import { getBinding } from '../../lib/util/binding';
+import Component from '../../lib/component';
+import validateCaches from '../util/validate-caches';
+
+const {
   use,
   innerHTML,
   html,
@@ -9,9 +13,7 @@ import {
   Internals,
   addTransitionState,
   removeTransitionState,
-} from 'diffhtml';
-import Component from '../lib/component';
-import validateCaches from './util/validate-caches';
+} = getBinding();
 
 const { process } = Internals;
 const { assign } = Object;

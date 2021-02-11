@@ -63,12 +63,6 @@
       
 
       
-        <a href="api.html#options" target><li>Options</li></a>
-      
-    
-      
-
-      
         <a href="api.html#inner-html" target><li>innerHTML</li></a>
       
     
@@ -130,6 +124,12 @@
 
       
         <a href="api.html#version" target><li>VERSION</li></a>
+      
+    
+      
+
+      
+        <a href="api.html#options" target><li>Options</li></a>
       
     
       
@@ -315,92 +315,6 @@ memory usage.</li>
 <li><strong>Mount</strong>: Most commonly a DOM node that you want to update, but can also be
 VTrees and other types.</li>
 </ul>
-<p><a name="options"></a></p>
-<hr></hr>
-<h2 id="a-hrefoptionsoptionsa"><a href="#options">Options</a></h2>
-<ul>
-<li>
-    <a href="#tasks" title="null"><code>tasks</code></a>
-  </li>
-<li>
-    <a href="#execute-scripts" title="null"><code>executeScripts</code></a>
-  </li>
-<li>
-    <a href="#parser" title="null"><code>parser</code></a>
-  </li>
-</ul>
-
-
-<h3 id="tasks-function">tasks <code>Function[]</code></h3>
-<p>Manipulate the tasks which run. This can allow you to do interesting things
-with the core API. You can do API changes like providing a stream or generator
-API for the return signature, you can remove syncing and provide your own
-object for patching, etc. This feature is used by the project to create the
-render-to-string module.</p>
-<p><em>Caution: Only modify this in a closed environment and
-do not ship components or shared utils which attempt to modify the host tasks.</em></p>
-<h4 id="example">Example</h4>
-<p>Change the return value of innerHTML to be a callback.</p>
-<pre><code class="language-js">import { innerHTML, Internals } from &#39;diffhtml&#39;;
-
-// Start with the default tasks.
-const newTasks = new Set(Internals.defaultTasks);
-
-newTasks.delete(Internals.tasks.endAsPromise);
-
-// Update the transaction end by returning a callback instead of using a
-// Promise based API.
-newTasks.add(transaction =&gt; {
-  const { promises } = transaction;
-
-  // Change the final return value to a callback.
-  return callback =&gt; {
-    if (promises &amp;&amp; promises.length) {
-      return transaction.promise = Promise.all(promises).then(() =&gt; {
-        transaction.end();
-        callback(transaction);
-      });
-    }
-
-    transaction.promise = Promise.resolve(transaction.end());
-    callback(transaction);
-  };
-});
-
-// You can supress this behavior by setting executeScripts to false
-innerHTML(document.body, `&lt;h1&gt;Hello world&lt;/h1&gt;`, {
-  tasks: [...newTasks],
-})(transaction =&gt; {
-  console.log(&#39;Render has completed with transaction&#39;, transaction);
-});</code></pre>
-<h3 id="executescripts-boolean">executeScripts <code>Boolean</code></h3>
-<p>Control whether or not newly appended scripts are executed or not. Tricks the
-browser by setting the <code>type</code> property to <code>no-execute</code> when a script is added.
-This prevents the browser from executing the script.</p>
-<h4 id="example-1">Example</h4>
-<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
-
-// By default scripts will execute
-innerHTML(document.body, `&lt;script&gt;window.alert(&#39;here&#39;)&lt;/script&gt;`);
-
-// You can supress this behavior by setting executeScripts to false
-innerHTML(document.body, `&lt;script&gt;window.alert(&#39;here&#39;)&lt;/script&gt;`, {
-  executeScripts: false,
-});
-</code></pre>
-<h3 id="parser-object">parser <code>Object</code></h3>
-<p>These options modify the parser by making it more strict or changing which
-elements are treated as block or self closing.</p>
-<p>
-    <a href="/parser.html#options" title="null">Learn more about these options</a>
-  </p>
-<h4 id="example-2">Example</h4>
-<p>This example will throw an error since the parser encountered invalid markup.</p>
-<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
-
-innerHTML(document.body, `
-  &lt;h1&gt;Hello world&lt;/h2&gt;
-`, { parser: { strict: true } });</code></pre>
 <p><a name="inner-html"></a></p>
 <hr></hr>
 <h2 id="a-hrefinner-htmlinnerhtmla-mount-input-options"><a href="#inner-html">innerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
@@ -475,6 +389,30 @@ but this isn&#39;t really recommended.</p>
 <td><ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul></td>
 </tr>
 </tbody></table>
+<p><a name="to-string"></a></p>
+<hr></hr>
+<h2 id="a-hrefto-stringtostringa-input-options"><a href="#to-string">toString</a> <strong><code>(input, options)</code></strong></h2>
+<p>Takes any valid input and returns a serialized string of XML/HTML markup.</p>
+<p>Example:</p>
+<pre><code class="language-js">toString(&#39;&lt;body&gt;Hello world&lt;/body&gt;&#39;);
+// &lt;body&gt;Hello world&lt;/body&gt;</code></pre>
+<h3 id="arguments-2">Arguments</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>input</strong></td>
+<td>New markup to replace into <strong>mount</strong>.</td>
+</tr>
+<tr>
+<td><strong>options</strong></td>
+<td><ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul></td>
+</tr>
+</tbody></table>
 <p><a name="html"></a></p>
 <hr></hr>
 <h2 id="a-hrefhtmlhtmla-markup"><a href="#html">html</a> <strong><code>(markup)</code></strong></h2>
@@ -504,7 +442,7 @@ provide multiple elements, the whitespace becomes</p>
     <a href="#examples" title="null">Examples</a>
    section
 below.</p>
-<h3 id="arguments-2">Arguments</h3>
+<h3 id="arguments-3">Arguments</h3>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
@@ -519,7 +457,7 @@ observing the render flow, modifying attributes or elements, and more.</p>
     <a href="/middleware.html" title="null"><strong>Refer to the Middleware documentation for documentation on writing your own
 and find existing plugins.</strong></a>
   </p>
-<h3 id="arguments-3">Arguments</h3>
+<h3 id="arguments-4">Arguments</h3>
 <table>
 <thead>
 <tr>
@@ -585,7 +523,7 @@ templates, check out the
     <a href="middleware.html#inline-transitions" title="null">diffhtml-inline-transitions
 plugin</a>
   .</p>
-<h3 id="arguments-4">Arguments</h3>
+<h3 id="arguments-5">Arguments</h3>
 <table>
 <thead>
 <tr>
@@ -643,7 +581,7 @@ that, decorate your markup like so...</p>
 <ol>
 <li>Remove the second element</li>
 </ol>
-<h3 id="arguments-5">Arguments</h3>
+<h3 id="arguments-6">Arguments</h3>
 <p>The two required inputs are a reference element and new element to compare.
 Although &quot;element&quot; is used, the actual input can be of various input types
 all representing an element (or many elements).</p>
@@ -662,7 +600,7 @@ diff.removeTransitionState(&#39;attached&#39;);
 
 // Removes states by name and callback reference.
 diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
-<h3 id="arguments-6">Arguments</h3>
+<h3 id="arguments-7">Arguments</h3>
 <table>
 <thead>
 <tr>
@@ -696,7 +634,7 @@ const childNodes = [
 
 // Create a div Virtual Tree.
 const div = createTree(&#39;div&#39;, attributes, childNodes);</code></pre>
-<h3 id="arguments-7">Arguments</h3>
+<h3 id="arguments-8">Arguments</h3>
 <table>
 <thead>
 <tr>
@@ -724,7 +662,7 @@ const div = createTree(&#39;div&#39;, attributes, childNodes);</code></pre>
 internal to diffHTML associated with your element. This is very useful for unit
 testing and general cleanup when you&#39;re done with an element. Applications will
 probably not use this if the app lives as long as the tab.</p>
-<h3 id="arguments-8">Arguments</h3>
+<h3 id="arguments-9">Arguments</h3>
 <table>
 <thead>
 <tr>
@@ -833,9 +771,94 @@ asynchronous.</p>
 <hr></hr>
 <h2 id="a-hrefversionversiona"><a href="#version">VERSION</a></h2>
 <p>Property which indicates the current running version of diffHTML.</p>
-<h3 id="example-3">Example</h3>
+<h3 id="example">Example</h3>
 <pre><code class="language-js">console.log(VERSION);</code></pre>
+<p><a name="options"></a></p>
 <hr></hr>
+<h2 id="a-hrefoptionsoptionsa"><a href="#options">Options</a></h2>
+<ul>
+<li>
+    <a href="#tasks" title="null"><code>tasks</code></a>
+  </li>
+<li>
+    <a href="#execute-scripts" title="null"><code>executeScripts</code></a>
+  </li>
+<li>
+    <a href="#parser" title="null"><code>parser</code></a>
+  </li>
+</ul>
+
+
+<h3 id="tasks-function">tasks <code>Function[]</code></h3>
+<p>Manipulate the tasks which run. This can allow you to do interesting things
+with the core API. You can do API changes like providing a stream or generator
+API for the return signature, you can remove syncing and provide your own
+object for patching, etc. This feature is used by the project to create the
+render-to-string module.</p>
+<p><em>Caution: Only modify this in a closed environment and
+do not ship components or shared utils which attempt to modify the host tasks.</em></p>
+<h4 id="example-1">Example</h4>
+<p>Change the return value of innerHTML to be a callback.</p>
+<pre><code class="language-js">import { innerHTML, Internals } from &#39;diffhtml&#39;;
+
+// Start with the default tasks.
+const newTasks = new Set(Internals.defaultTasks);
+
+newTasks.delete(Internals.tasks.endAsPromise);
+
+// Update the transaction end by returning a callback instead of using a
+// Promise based API.
+newTasks.add(transaction =&gt; {
+  const { promises } = transaction;
+
+  // Change the final return value to a callback.
+  return callback =&gt; {
+    if (promises &amp;&amp; promises.length) {
+      return transaction.promise = Promise.all(promises).then(() =&gt; {
+        transaction.end();
+        callback(transaction);
+      });
+    }
+
+    transaction.promise = Promise.resolve(transaction.end());
+    callback(transaction);
+  };
+});
+
+// You can supress this behavior by setting executeScripts to false
+innerHTML(document.body, `&lt;h1&gt;Hello world&lt;/h1&gt;`, {
+  tasks: [...newTasks],
+})(transaction =&gt; {
+  console.log(&#39;Render has completed with transaction&#39;, transaction);
+});</code></pre>
+<h3 id="executescripts-boolean">executeScripts <code>Boolean</code></h3>
+<p>Control whether or not newly appended scripts are executed or not. Tricks the
+browser by setting the <code>type</code> property to <code>no-execute</code> when a script is added.
+This prevents the browser from executing the script.</p>
+<h4 id="example-2">Example</h4>
+<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
+
+// By default scripts will execute
+innerHTML(document.body, `&lt;script&gt;window.alert(&#39;here&#39;)&lt;/script&gt;`);
+
+// You can supress this behavior by setting executeScripts to false
+innerHTML(document.body, `&lt;script&gt;window.alert(&#39;here&#39;)&lt;/script&gt;`, {
+  executeScripts: false,
+});
+</code></pre>
+<h3 id="parser-object">parser <code>Object</code></h3>
+<p>These options modify the parser by making it more strict or changing which
+elements are treated as block or self closing.</p>
+<p>
+    <a href="/parser.html#options" title="null">Learn more about these options</a>
+  </p>
+<h4 id="example-3">Example</h4>
+<p>This example will throw an error since the parser encountered invalid markup.</p>
+<pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
+
+innerHTML(document.body, `
+  &lt;h1&gt;Hello world&lt;/h2&gt;
+`, { parser: { strict: true } });</code></pre>
 </section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/api.md" id="edit-on-github">

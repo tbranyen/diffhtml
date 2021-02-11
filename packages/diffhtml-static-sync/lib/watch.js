@@ -7,10 +7,11 @@ const express = require('express');
 const getSocket = require('./socket');
 const clientScript = require('./util/client-script');
 
+const { argv } = process;
 let userDir = '.';
 
 // Find the new path to use
-process.argv.slice(2).some(arg => {
+argv.slice(2).some(arg => {
   if (!arg.includes('--')) {
     userDir = arg;
 
@@ -32,9 +33,9 @@ const CWD = join(process.cwd(), userDir);
 const gray = '\x1B[37m';
 const green = '\x1B[32m';
 const reset = '\x1B[m';
-const quiet = process.argv.includes('--quiet');
+const quiet = argv.includes('--quiet');
 
-process.argv.forEach(arg => {
+argv.forEach(arg => {
   if (arg.includes('--hook')) {
     const path = arg.split('=')[1];
     require(join(process.cwd(), path));
@@ -49,9 +50,8 @@ const watcher = watch(CWD, {
 });
 
 const read = path => new Promise((res, rej) => {
-  console.log(join(CWD, path));
   readFile(join(CWD, path), (err, buffer) => {
-    if (err) { rej(err); } else { res(buffer); }
+    err ? rej(err) : res(buffer);
   });
 });
 
@@ -80,7 +80,7 @@ webServer.use((req, res, next) => {
   };
 
   // TODO This area needs some work with regards to extension handling.
-  new Promise((resolve, reject) => read(path('html')).then(resolve, reject))
+  return new Promise((resolve, reject) => read(path('html')).then(resolve, reject))
     .catch(() => read(path('md')).then(formatMarkdown))
     .catch(() => read(path('markdown')).then(formatMarkdown))
     .catch(() => read(path('json')).then(resolve, reject))
@@ -104,13 +104,13 @@ webServer.listen(port, host, () => {
     console.log(`Open http://localhost:8000\n`);
   }
 
-  getSocket.then(sockets => {
-    watcher.on('change', path => {
-      if (!quiet) {
-        console.log(`${green}${path} changed${reset}`);
-      }
+  watcher.on('change', path => {
+    readFile(path, { encoding: 'utf8' }, (err, markup) => {
+      getSocket.then(sockets => {
+        if (!quiet) {
+          console.log(`${green}${path} changed${reset}`);
+        }
 
-      readFile(path, { encoding: 'utf8' }, (err, markup) => {
         sockets.forEach(socket => {
           const file = path.slice(CWD.length + 1);
           const state = { file, markup, quiet };

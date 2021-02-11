@@ -2,10 +2,13 @@
 user interfaces using JavaScript. With diffHTML you can create applications,
 games, data visualizations, and much more in you web browser.
 
-Here's a simple example to show what it's all about:
+Unlike other libraries, the template syntax is simply HTML and JavaScript
+tagged templates.
+
+You are able to use simple HTML strings...
 
 ```js
-import { innerHTML } from '//diffhtml.org/es';
+import { innerHTML } from '//diffhtml.org/core';
 
 innerHTML(document.body, `
   <h1>Hello world!</h1>
@@ -82,6 +85,8 @@ import { innerHTML } from 'https://diffhtml.org/es';
 
 ## <a href="#examples">Examples</a>
 
+<!--
+
 ### Hello World
 
 <div class="glitch-embed-wrap" style="height: 200px; width: 100%;">
@@ -121,3 +126,4 @@ import { innerHTML } from 'https://diffhtml.org/es';
     style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div>
+-->

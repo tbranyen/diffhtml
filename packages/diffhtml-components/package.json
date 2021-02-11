@@ -15,6 +15,7 @@
     "babel-plugin-transform-custom-element-classes": "^0.1.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-diffhtml-imports": "^1.0.0-beta.18",
+    "diffhtml": "^1.0.0-beta.18",
     "jsdom": "^16.4.0",
     "mocha": "^8.2.1",
     "nyc": "^15.1.0",
@@ -45,7 +46,7 @@
     "watch-main": "NODE_ENV=umd rollup -c rollup.main.config.js -w",
     "watch-component": "NODE_ENV=umd rollup -c rollup.component.config.js -w",
     "watch-web-component": "NODE_ENV=umd rollup -c rollup.web-component.config.js -w",
-    "test": "NODE_ENV=test mocha test/_setup test",
+    "test": "NODE_ENV=test mocha test/_setup test/**",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test",
     "test:ci": "npm run test-cov",
     "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test"

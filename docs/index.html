@@ -63,12 +63,6 @@
       
 
       
-        <a href="api.html#options" target><li>Options</li></a>
-      
-    
-      
-
-      
         <a href="api.html#inner-html" target><li>innerHTML</li></a>
       
     
@@ -130,6 +124,12 @@
 
       
         <a href="api.html#version" target><li>VERSION</li></a>
+      
+    
+      
+
+      
+        <a href="api.html#options" target><li>Options</li></a>
       
     
       
@@ -303,8 +303,10 @@
         <section id="content"><p><strong>Welcome to diffHTML!</strong> A lightweight library for creating fast and reactive
 user interfaces using JavaScript. With diffHTML you can create applications,
 games, data visualizations, and much more in you web browser.</p>
-<p>Here&#39;s a simple example to show what it&#39;s all about:</p>
-<pre><code class="language-js">import { innerHTML } from &#39;//diffhtml.org/es&#39;;
+<p>Unlike other libraries, the template syntax is simply HTML and JavaScript
+tagged templates.</p>
+<p>You are able to use simple HTML strings...</p>
+<pre><code class="language-js">import { innerHTML } from &#39;//diffhtml.org/core&#39;;
 
 innerHTML(document.body, `
   &lt;h1&gt;Hello world!&lt;/h1&gt;
@@ -358,29 +360,7 @@ import { innerHTML } from &#39;https://diffhtml.org/es&#39;;</code></pre>
 <p><a name="examples"></a></p>
 <hr></hr>
 <h2 id="a-hrefexamplesexamplesa"><a href="#examples">Examples</a></h2>
-<h3 id="hello-world">Hello World</h3>
-<div class="glitch-embed-wrap" style="height: 200px; width: 100%;">
-  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-helloworld on Glitch" style="height: 100%; width: 100%; border: 0;">
-  </iframe>
-</div>
 
-<h3 id="clock">Clock</h3>
-<div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
-  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-clock?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-clock on Glitch" style="height: 100%; width: 100%; border: 0;">
-  </iframe>
-</div>
-
-<h3 id="hacker-news">Hacker News</h3>
-<div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
-  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-hackernews?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-hackernews on Glitch" style="height: 100%; width: 100%; border: 0;">
-  </iframe>
-</div>
-
-<h3 id="todomvc">TodoMVC</h3>
-<div class="glitch-embed-wrap" style="height: 400px; width: 100%;">
-  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-todomvc?path=lib/index.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-todomvc on Glitch" style="height: 100%; width: 100%; border: 0;">
-  </iframe>
-</div>
 </section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/index.md" id="edit-on-github">

@@ -8,7 +8,6 @@
     }],
 
     "Core API": ["api.html", {
-      "Options": "#options",
       "innerHTML": "#inner-html",
       "outerHTML": "#outer-html",
       "toString": "#to-string",
@@ -19,7 +18,8 @@
       "createTree": "#create-tree",
       "release": "#release",
       "Internals": "#internals",
-      "VERSION": "#version"
+      "VERSION": "#version",
+      "Options": "#options"
     }],
 
     "Parser": ["parser.html", {
