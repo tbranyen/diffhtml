@@ -45,7 +45,7 @@ if (bindingSymbol in globalThis) {
   const existingApi = global[bindingSymbol];
 
   if (VERSION !== existingApi.VERSION) {
-    console.log(`Tried to load ${VERSION} after ${existingApi.VERSION}`);
+    console.log(`Loaded ${VERSION} after ${existingApi.VERSION}`);
   }
 }
 

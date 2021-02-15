@@ -53,15 +53,6 @@ the foundation of the diffHTML ecosystem.
   APIs are very similar, if you want true React compatibility, check out the
   [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
 
-* [diffhtml-render-to-string](/packages/diffhtml-render-to-string)
-
-  ```sh
-  npm install diffhtml-render-to-string
-  ```
-
-  Use to render your input to string. This is useful for server-side rendering,
-  testing, and HTML/XML transformations.
-
 * [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
 
   ```sh

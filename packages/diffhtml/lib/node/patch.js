@@ -2,8 +2,15 @@ import createNode from './create';
 import { runTransitions } from '../transition';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
-import { PATCH_TYPE, ValidNode, VTree, EMPTY, TransactionState } from '../util/types';
-import { NodeCache, TransitionCache } from '../util/caches';
+import {
+  PATCH_TYPE,
+  ValidNode,
+  VTree,
+  EMPTY,
+  TransactionState,
+  NodeCache,
+  TransitionCache,
+} from '../util/types';
 
 const { keys } = Object;
 const blocklist = new Set();

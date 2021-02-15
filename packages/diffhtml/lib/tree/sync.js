@@ -1,6 +1,12 @@
-import { SyncTreeHookCache } from '../util/caches';
 import process from '../util/process';
-import { PATCH_TYPE, VTree, EMPTY, TransactionState, NODE_TYPE } from '../util/types';
+import {
+  PATCH_TYPE,
+  VTree,
+  EMPTY,
+  TransactionState,
+  NODE_TYPE,
+  SyncTreeHookCache,
+} from '../util/types';
 
 const { max } = Math;
 const keyNames = ['old', 'new'];

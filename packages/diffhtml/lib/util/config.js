@@ -17,6 +17,8 @@ export const globalConfig = {
 };
 
 /**
+ * Converts input to string and then coerces to the appropriate title.
+ *
  * @param {unknown} value
  * @param {string} type
  *
@@ -49,6 +51,10 @@ function formatValue(value, type) {
 }
 
 /**
+ * Request a configuration value by key. Provide a defaultValue always to ensure
+ * proper type lookup. An overrides object can be passed to shortcircuit
+ * lookups. Keys are looked up with a DIFF_ prefix when in the query string or
+ * environment variable.
  *
  * @param {string} name
  * @param {unknown} defaultValue

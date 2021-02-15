@@ -2,7 +2,6 @@ import { throws, doesNotThrow } from 'assert';
 import {
   addTransitionState,
   removeTransitionState,
-  runTransitions,
 } from '../lib/transition';
 import validateMemory from './util/validate-memory';
 

@@ -8,10 +8,8 @@ import {
 } from 'assert';
 import createTree from '../lib/tree/create';
 import syncTree from '../lib/tree/sync';
-import { SyncTreeHookCache, NodeCache } from '../lib/util/caches';
+import { PATCH_TYPE, SyncTreeHookCache, NodeCache } from '../lib/util/types';
 import parse from '../lib/util/parse';
-import { PATCH_TYPE } from '../lib/util/types';
-import { gc } from '../lib/util/memory';
 import html from '../lib/html';
 import release from '../lib/release';
 import validateMemory from './util/validate-memory';

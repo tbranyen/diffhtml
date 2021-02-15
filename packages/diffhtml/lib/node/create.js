@@ -1,7 +1,13 @@
-import { NodeCache, CreateNodeHookCache } from '../util/caches';
 import process from '../util/process';
 import globalThis from '../util/global';
-import { VTreeLike, VTree, ValidNode, EMPTY } from '../util/types';
+import {
+  NodeCache,
+  CreateNodeHookCache,
+  VTreeLike,
+  VTree,
+  ValidNode,
+  EMPTY,
+} from '../util/types';
 import createTree from '../tree/create';
 
 const namespace = 'http://www.w3.org/2000/svg';

@@ -1,5 +1,4 @@
-import { NODE_TYPE, VTree } from '../util/types';
-import { StateCache } from '../util/caches';
+import { StateCache, NODE_TYPE, VTree } from '../util/types';
 import { protectVTree } from '../util/memory';
 import createTree from '../tree/create';
 import Transaction from '../transaction';

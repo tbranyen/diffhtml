@@ -51,7 +51,8 @@
     }],
 
     "Additional Packages": ["tools.html", {
-      "Babel Transform": "#babel-transform"
+      "Babel Transform": "#babel-transform",
+      "Live Reload Server": "#live-reload-server"
     }],
 
     "DevTools": ["devtools.html", {

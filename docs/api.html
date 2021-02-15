@@ -265,6 +265,12 @@
       
     
       
+
+      
+        <a href="tools.html#live-reload-server" target><li>Live Reload Server</li></a>
+      
+    
+      
         <a href="devtools.html"><li class="header"><h4>DevTools</h4></li></a>
       
 
@@ -794,7 +800,7 @@ asynchronous.</p>
 with the core API. You can do API changes like providing a stream or generator
 API for the return signature, you can remove syncing and provide your own
 object for patching, etc. This feature is used by the project to create the
-render-to-string module.</p>
+toString method, which changes the return value to a string.</p>
 <p><em>Caution: Only modify this in a closed environment and
 do not ship components or shared utils which attempt to modify the host tasks.</em></p>
 <h4 id="example-1">Example</h4>

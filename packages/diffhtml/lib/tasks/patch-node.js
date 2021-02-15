@@ -1,7 +1,6 @@
 import patchNode from '../node/patch';
 import Transaction from '../transaction';
-import { CreateNodeHookCache } from '../util/caches';
-import { VTree } from '../util/types';
+import { CreateNodeHookCache, VTree } from '../util/types';
 import globalThis from '../util/global';
 
 /**

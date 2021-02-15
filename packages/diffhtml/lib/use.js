@@ -5,9 +5,9 @@ import {
   SyncTreeHookCache,
   ReleaseHookCache,
   ParseHookCache,
-} from './util/caches';
+  Middleware,
+} from './util/types';
 import process from './util/process';
-import { Middleware } from './util/types';
 import Internals from './util/internals';
 
 const { isArray } = Array;

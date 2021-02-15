@@ -105,7 +105,7 @@ webServer.listen(port, host, () => {
   }
 
   watcher.on('change', path => {
-    readFile(path, { encoding: 'utf8' }, (err, markup) => {
+    readFile(path, { encoding: 'utf8' }, (_err, markup) => {
       getSocket.then(sockets => {
         if (!quiet) {
           console.log(`${green}${path} changed${reset}`);

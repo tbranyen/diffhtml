@@ -551,7 +551,7 @@ Manipulate the tasks which run. This can allow you to do interesting things
 with the core API. You can do API changes like providing a stream or generator
 API for the return signature, you can remove syncing and provide your own
 object for patching, etc. This feature is used by the project to create the
-render-to-string module.
+toString method, which changes the return value to a string.
 
 _Caution: Only modify this in a closed environment and
 do not ship components or shared utils which attempt to modify the host tasks._
@@ -634,4 +634,3 @@ innerHTML(document.body, `
   <h1>Hello world</h2>
 `, { parser: { strict: true } });
 ```
-

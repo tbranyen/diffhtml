@@ -1,5 +1,14 @@
-import { VTree, ValidInput, Mount, TransactionConfig, TransactionState, EMPTY } from './util/types';
-import { MiddlewareCache, StateCache, NodeCache } from './util/caches';
+import {
+  MiddlewareCache,
+  StateCache,
+  NodeCache,
+  VTree,
+  ValidInput,
+  Mount,
+  TransactionConfig,
+  TransactionState,
+  EMPTY,
+} from './util/types';
 import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';

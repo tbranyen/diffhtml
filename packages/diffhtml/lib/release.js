@@ -1,6 +1,5 @@
-import { StateCache, NodeCache, ReleaseHookCache } from './util/caches';
 import { unprotectVTree } from './util/memory';
-import { Mount } from './util/types';
+import { StateCache, NodeCache, ReleaseHookCache, Mount } from './util/types';
 
 /**
  * Releases state and memory associated to a DOM Node.

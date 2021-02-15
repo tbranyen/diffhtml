@@ -8,7 +8,7 @@ import {
   CreateNodeHookCache,
   SyncTreeHookCache,
   ReleaseHookCache,
-} from '../../lib/util/caches';
+} from '../../lib/util/types';
 import Pool from '../../lib/util/pool';
 import { gc } from '../../lib/util/memory';
 

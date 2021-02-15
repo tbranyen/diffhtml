@@ -1,6 +1,13 @@
-import { NodeCache, CreateTreeHookCache } from '../util/caches';
 import Pool from '../util/pool';
-import { VTree, VTreeLike, ValidInput, EMPTY, NODE_TYPE } from '../util/types';
+import {
+  VTree,
+  VTreeLike,
+  ValidInput,
+  EMPTY,
+  NODE_TYPE,
+  NodeCache,
+  CreateTreeHookCache,
+} from '../util/types';
 
 const { isArray } = Array;
 const { memory } = Pool;

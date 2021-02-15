@@ -1,6 +1,7 @@
-import { TransitionCache, NodeCache } from './util/caches';
 import process from './util/process';
 import {
+  TransitionCache,
+  NodeCache,
   NODE_TYPE,
   VTree,
   TransitionStateNames,

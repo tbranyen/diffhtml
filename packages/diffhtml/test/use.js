@@ -1,5 +1,5 @@
 import { equal, deepEqual, throws } from 'assert';
-import { html, innerHTML, outerHTML, use, release, createTree, Internals } from '../lib/index';
+import { html, innerHTML, outerHTML, use, release, Internals } from '../lib/index';
 import validateMemory from './util/validate-memory';
 
 describe('Use (Middleware)', function() {

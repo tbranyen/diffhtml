@@ -1,7 +1,7 @@
-import { ok, equal, deepEqual, throws, doesNotThrow } from 'assert';
+import { ok, strictEqual, deepStrictEqual, throws, doesNotThrow } from 'assert';
 import { spy } from 'sinon';
 import createTree from '../lib/tree/create';
-import { NodeCache } from '../lib/util/caches';
+import { NodeCache } from '../lib/util/types';
 import decodeEntities from '../lib/util/decode-entities';
 import escape from '../lib/util/escape';
 import parse from '../lib/util/parse';
@@ -33,27 +33,31 @@ describe('Util', function() {
     location.href = 'about:blank';
   });
 
+  describe('Config', () => {
+
+  });
+
   describe('DecodeEntities', () => {
     it('will pass simple strings through', () => {
       const string = decodeEntities('test');
-      equal(string, 'test');
+      strictEqual(string, 'test');
     });
 
     it('will decode an unencoded string', () => {
       const string = decodeEntities('&lt;p&gt;&lt;/p&gt;');
-      equal(string, '<p></p>');
+      strictEqual(string, '<p></p>');
     });
 
     it('will decode an HTML5 encoded string', () => {
       const string = decodeEntities(`&gla;`);
-      equal(string, '⪥');
+      strictEqual(string, '⪥');
     });
   });
 
   describe('Escape', () => {
     it('will prevent HTML elements from being injected', () => {
       const string = escape('<script>');
-      equal(string, '&#60;script&#62;');
+      strictEqual(string, '&#60;script&#62;');
     });
   });
 
@@ -61,37 +65,37 @@ describe('Util', function() {
     it('will support empty attributes', () => {
       const vTree = parse('<option value="test" selected></option>').childNodes[0];
 
-      equal(vTree.attributes.value, 'test');
-      equal(vTree.attributes.selected, 'selected');
+      strictEqual(vTree.attributes.value, 'test');
+      strictEqual(vTree.attributes.selected, 'selected');
     });
 
     it('will support quote-less values', () => {
       const vTree = parse('<option value=test></option>').childNodes[0];
-      equal(vTree.attributes.value, 'test');
+      strictEqual(vTree.attributes.value, 'test');
     });
 
     it('will not parse whitespace from inside <html></html> tags', () => {
       const vTree = parse('<html>\n</html>').childNodes[0];
 
-      equal(vTree.childNodes.length, 2);
+      strictEqual(vTree.childNodes.length, 2);
     });
 
     it('will support simple text attributes alongside an empty attribute', () => {
       const vTree = parse('<option value="test" selected=""></option>').childNodes[0];
 
-      equal(vTree.attributes.value, 'test');
-      equal(vTree.attributes.selected, '');
+      strictEqual(vTree.attributes.value, 'test');
+      strictEqual(vTree.attributes.selected, '');
     });
 
     it('will support HTML comments inside script tags', () => {
       const vTree = parse('<script>before<!-- in -->after</script>').childNodes[0];
-      equal(vTree.childNodes[0].nodeValue, 'before<!-- in -->after');
+      strictEqual(vTree.childNodes[0].nodeValue, 'before<!-- in -->after');
     });
 
     it('will support dot attributes', () => {
       const vTree = parse('<option dot.value="test" />').childNodes[0];
 
-      equal(vTree.attributes['dot.value'], 'test');
+      strictEqual(vTree.attributes['dot.value'], 'test');
     });
 
     it('will support spreading interpolated attribute objects', () => {
@@ -100,7 +104,7 @@ describe('Util', function() {
       })
       const vTree = parse('<option __DIFFHTML__0__></option>', supplemental).childNodes[0];
 
-      equal(vTree.attributes.value, 'test');
+      strictEqual(vTree.attributes.value, 'test');
     });
 
     it('will move elements found between the ends of body and html', () => {
@@ -111,12 +115,12 @@ describe('Util', function() {
         </html>
       `.trim()).childNodes[0];
 
-      equal(vTree.childNodes.length, 2);
-      equal(vTree.childNodes[0].nodeName, 'head');
-      equal(vTree.childNodes[0].childNodes.length, 0);
-      equal(vTree.childNodes[1].nodeName, 'body');
-      equal(vTree.childNodes[1].childNodes.length, 1);
-      equal(vTree.childNodes[1].childNodes[0].nodeName, 'script');
+      strictEqual(vTree.childNodes.length, 2);
+      strictEqual(vTree.childNodes[0].nodeName, 'head');
+      strictEqual(vTree.childNodes[0].childNodes.length, 0);
+      strictEqual(vTree.childNodes[1].nodeName, 'body');
+      strictEqual(vTree.childNodes[1].childNodes.length, 1);
+      strictEqual(vTree.childNodes[1].childNodes[0].nodeName, 'script');
     });
 
     it('will move elements found before or after head and before body', () => {
@@ -130,55 +134,55 @@ describe('Util', function() {
         </html>
       `.trim()).childNodes[0];
 
-      equal(vTree.childNodes.length, 2);
-      equal(vTree.childNodes[0].nodeName, 'head');
-      equal(vTree.childNodes[0].childNodes.length, 2);
-      equal(vTree.childNodes[0].childNodes[0].nodeName, 'script');
-      equal(vTree.childNodes[0].childNodes[0].childNodes[0].nodeValue, 'test');
-      equal(vTree.childNodes[0].childNodes[1].childNodes[0].nodeValue, 'this');
-      equal(vTree.childNodes[1].nodeName, 'body');
-      equal(vTree.childNodes[1].childNodes.length, 1);
-      equal(vTree.childNodes[1].childNodes[0].nodeName, 'p');
+      strictEqual(vTree.childNodes.length, 2);
+      strictEqual(vTree.childNodes[0].nodeName, 'head');
+      strictEqual(vTree.childNodes[0].childNodes.length, 2);
+      strictEqual(vTree.childNodes[0].childNodes[0].nodeName, 'script');
+      strictEqual(vTree.childNodes[0].childNodes[0].childNodes[0].nodeValue, 'test');
+      strictEqual(vTree.childNodes[0].childNodes[1].childNodes[0].nodeValue, 'this');
+      strictEqual(vTree.childNodes[1].nodeName, 'body');
+      strictEqual(vTree.childNodes[1].childNodes.length, 1);
+      strictEqual(vTree.childNodes[1].childNodes[0].nodeName, 'p');
     });
 
     it('will not support brackets in attribute values', () => {
       const vTree = parse(`<a data-text="<li class='test'></li>"></a>`).childNodes[0];
 
-      equal(vTree.nodeName, 'a');
-      equal(vTree.attributes['data-text'], '\"<li');
+      strictEqual(vTree.nodeName, 'a');
+      strictEqual(vTree.attributes['data-text'], '\"<li');
     });
 
     it('will parse text siblings next to elements', () => {
       const vTrees = parse(`<div></div> Hello world`).childNodes;
 
-      equal(vTrees[0].nodeName, 'div');
-      equal(vTrees[1].nodeName, '#text');
-      equal(vTrees[1].nodeValue, ' Hello world');
+      strictEqual(vTrees[0].nodeName, 'div');
+      strictEqual(vTrees[1].nodeName, '#text');
+      strictEqual(vTrees[1].nodeValue, ' Hello world');
     });
 
     it('will support parsing text before element', () => {
       const vTrees = parse(`Hello <div></div>`).childNodes;
 
-      equal(vTrees.length, 2);
-      equal(vTrees[0].nodeName, '#text');
-      equal(vTrees[0].nodeValue, 'Hello ');
-      equal(vTrees[1].nodeName, 'div');
+      strictEqual(vTrees.length, 2);
+      strictEqual(vTrees[0].nodeName, '#text');
+      strictEqual(vTrees[0].nodeValue, 'Hello ');
+      strictEqual(vTrees[1].nodeName, 'div');
     });
 
     it('will support parsing just text', () => {
       const vTrees = parse(`Hello`).childNodes;
 
-      equal(vTrees.length, 1);
-      equal(vTrees[0].nodeName, '#text');
-      equal(vTrees[0].nodeValue, 'Hello');
+      strictEqual(vTrees.length, 1);
+      strictEqual(vTrees[0].nodeName, '#text');
+      strictEqual(vTrees[0].nodeValue, 'Hello');
     });
 
     it('will parse out full token attributes', () => {
       const token = '__DIFFHTML_BABEL__';
       const vTrees = parse(`<input ${token}/>`).childNodes;
 
-      equal(vTrees[0].nodeName, 'input');
-      deepEqual(vTrees[0].attributes, { [token]: token });
+      strictEqual(vTrees[0].nodeName, 'input');
+      deepStrictEqual(vTrees[0].attributes, { [token]: token });
     });
 
     it('will parse out partial attributes', () => {
@@ -190,8 +194,8 @@ describe('Util', function() {
       };
       const vTrees = parse(`<input value=${token}/>`, supplemental).childNodes;
 
-      equal(vTrees[0].nodeName, 'input');
-      deepEqual(vTrees[0].attributes, { value: 'test' });
+      strictEqual(vTrees[0].nodeName, 'input');
+      deepStrictEqual(vTrees[0].attributes, { value: 'test' });
     });
 
     it('will parse a key-only attribute', () => {
@@ -203,8 +207,8 @@ describe('Util', function() {
       };
       const vTrees = parse(`<input ${token}/>`, supplemental).childNodes;
 
-      equal(vTrees[0].nodeName, 'input');
-      deepEqual(vTrees[0].attributes, { disabled: 'disabled' });
+      strictEqual(vTrees[0].nodeName, 'input');
+      deepStrictEqual(vTrees[0].attributes, { disabled: 'disabled' });
     });
 
     it('will support passing childNodes as an attribute', () => {
@@ -213,7 +217,7 @@ describe('Util', function() {
       })
       const vTrees = parse(`<div childNodes=__DIFFHTML__0__ />`, supplemental).childNodes;
 
-      deepEqual(vTrees[0].childNodes, [createTree('#text', 'hello world')]);
+      deepStrictEqual(vTrees[0].childNodes, [createTree('#text', 'hello world')]);
     });
 
     it('will support passing childNodes as an attribute to pave over existing children', () => {
@@ -222,12 +226,12 @@ describe('Util', function() {
       });
       const vTrees = parse(`<div childNodes=__DIFFHTML__0__>test</div>`, supplemental).childNodes;
 
-      deepEqual(vTrees[0].childNodes, [createTree('#text', 'hello world')]);
+      deepStrictEqual(vTrees[0].childNodes, [createTree('#text', 'hello world')]);
     });
 
     it('will ignore parsing doctypes', () => {
       const vTree = parse(`<!doctype html>`).childNodes[0];
-      equal(vTree, undefined);
+      strictEqual(vTree, undefined);
     });
 
     it('will support mixed cased elements being self closed', () => {
@@ -235,11 +239,11 @@ describe('Util', function() {
         attr="test"
         /><div>Hello world</div>`).childNodes;
 
-      equal(vTrees[0].nodeName, 'customelement');
-      deepEqual(vTrees[0].attributes, { attr: 'test' });
-      equal(vTrees[1].nodeName, 'div');
-      equal(vTrees[1].childNodes[0].nodeName, '#text');
-      equal(vTrees[1].childNodes[0].nodeValue, 'Hello world');
+      strictEqual(vTrees[0].nodeName, 'customelement');
+      deepStrictEqual(vTrees[0].attributes, { attr: 'test' });
+      strictEqual(vTrees[1].nodeName, 'div');
+      strictEqual(vTrees[1].childNodes[0].nodeName, '#text');
+      strictEqual(vTrees[1].childNodes[0].nodeValue, 'Hello world');
     });
 
     it('will support passing custom self closing elements', () => {
@@ -250,10 +254,10 @@ describe('Util', function() {
         }
       }).childNodes;
 
-      equal(vTrees.length, 1);
-      equal(vTrees[0].nodeName, 'div');
-      equal(vTrees[0].childNodes[0].nodeName, '#text');
-      equal(vTrees[0].childNodes[0].nodeValue, 'test');
+      strictEqual(vTrees.length, 1);
+      strictEqual(vTrees[0].nodeName, 'div');
+      strictEqual(vTrees[0].childNodes[0].nodeName, '#text');
+      strictEqual(vTrees[0].childNodes[0].nodeValue, 'test');
     });
 
     it('will support passing custom raw elements', () => {
@@ -264,26 +268,26 @@ describe('Util', function() {
         }
       }).childNodes;
 
-      equal(vTrees.length, 1);
-      equal(vTrees[0].nodeName, 'div');
-      equal(vTrees[0].childNodes[0].nodeName, '#text');
-      equal(vTrees[0].childNodes[0].nodeValue, '<p></p>');
+      strictEqual(vTrees.length, 1);
+      strictEqual(vTrees[0].nodeName, 'div');
+      strictEqual(vTrees[0].childNodes[0].nodeName, '#text');
+      strictEqual(vTrees[0].childNodes[0].nodeValue, '<p></p>');
     });
 
     it('will leave tokens in the children if no value is found', () => {
       const vTrees = parse('__DIFFHTML__0__', null).childNodes;
 
-      equal(vTrees.length, 1);
-      equal(vTrees[0].nodeName, '#text');
-      equal(vTrees[0].nodeValue, '__DIFFHTML__0__');
+      strictEqual(vTrees.length, 1);
+      strictEqual(vTrees[0].nodeName, '#text');
+      strictEqual(vTrees[0].nodeValue, '__DIFFHTML__0__');
     });
 
     it('will leave tokens in the attributes if no value is found', () => {
       const vTrees = parse('<a href=__DIFFHTML__0__>test</a>', null).childNodes;
 
-      equal(vTrees.length, 1);
-      equal(vTrees[0].nodeName, 'a');
-      deepEqual(vTrees[0].attributes, { href: '__DIFFHTML__0__' });
+      strictEqual(vTrees.length, 1);
+      strictEqual(vTrees[0].nodeName, 'a');
+      deepStrictEqual(vTrees[0].attributes, { href: '__DIFFHTML__0__' });
     });
 
     it('will throw if arrays are tried to be spread as attributes', () => {
@@ -362,9 +366,9 @@ describe('Util', function() {
     it('will support nested elements within <pre>', () => {
       const vTrees = parse(`<pre><code></code></pre>`).childNodes;
 
-      equal(vTrees[0].nodeName, 'pre');
-      equal(vTrees[0].childNodes.length, 1);
-      equal(vTrees[0].childNodes[0].nodeName, 'code');
+      strictEqual(vTrees[0].nodeName, 'pre');
+      strictEqual(vTrees[0].childNodes.length, 1);
+      strictEqual(vTrees[0].childNodes[0].nodeName, 'code');
     });
 
     it('will support nested elements within <code>', () => {
@@ -378,37 +382,37 @@ describe('Util', function() {
     it('will not support nested elements within <script>', () => {
       const vTrees = parse(`<script><pre></pre></script>`).childNodes;
 
-      equal(vTrees[0].nodeName, 'script');
-      equal(vTrees[0].childNodes.length, 1);
-      equal(vTrees[0].childNodes[0].nodeName, '#text');
-      equal(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
+      strictEqual(vTrees[0].nodeName, 'script');
+      strictEqual(vTrees[0].childNodes.length, 1);
+      strictEqual(vTrees[0].childNodes[0].nodeName, '#text');
+      strictEqual(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
     });
 
     it('will not support nested elements within <noscript>', () => {
       const vTrees = parse(`<noscript><pre></pre></noscript>`).childNodes;
 
-      equal(vTrees[0].nodeName, 'noscript');
-      equal(vTrees[0].childNodes.length, 1);
-      equal(vTrees[0].childNodes[0].nodeName, '#text');
-      equal(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
+      strictEqual(vTrees[0].nodeName, 'noscript');
+      strictEqual(vTrees[0].childNodes.length, 1);
+      strictEqual(vTrees[0].childNodes[0].nodeName, '#text');
+      strictEqual(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
     });
 
     it('will not support nested elements within <style>', () => {
       const vTrees = parse(`<style><pre></pre></style>`).childNodes;
 
-      equal(vTrees[0].nodeName, 'style');
-      equal(vTrees[0].childNodes.length, 1);
-      equal(vTrees[0].childNodes[0].nodeName, '#text');
-      equal(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
+      strictEqual(vTrees[0].nodeName, 'style');
+      strictEqual(vTrees[0].childNodes.length, 1);
+      strictEqual(vTrees[0].childNodes[0].nodeName, '#text');
+      strictEqual(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
     });
 
     it('will not support nested elements within <template>', () => {
       const vTrees = parse(`<template><pre></pre></template>`).childNodes;
 
-      equal(vTrees[0].nodeName, 'template');
-      equal(vTrees[0].childNodes.length, 1);
-      equal(vTrees[0].childNodes[0].nodeName, '#text');
-      equal(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
+      strictEqual(vTrees[0].nodeName, 'template');
+      strictEqual(vTrees[0].childNodes.length, 1);
+      strictEqual(vTrees[0].childNodes[0].nodeName, '#text');
+      strictEqual(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
     });
 
     it('will support self closing elements', () => {
@@ -422,7 +426,7 @@ describe('Util', function() {
         <hr/>
       `.trim()).childNodes.filter(el => el.nodeType === 1);
 
-      equal(vTrees.length, 7);
+      strictEqual(vTrees.length, 7);
     });
 
     it('will support top-level interpolated string tag names', () => {
@@ -430,7 +434,7 @@ describe('Util', function() {
       const supplemental = createSupplemental({ tags: [div] });
       const vTree = parse('<__DIFFHTML__0__ />', supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -455,7 +459,7 @@ describe('Util', function() {
       const supplemental = createSupplemental({ tags: [div, p] });
       const vTree = parse('<__DIFFHTML__0__><__DIFFHTML__1__ /></__DIFFHTML__0__>', supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -488,7 +492,7 @@ describe('Util', function() {
       const supplemental = createSupplemental({ tags: [Empty] });
       const vTree = parse('<__DIFFHTML__0__ />', supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -514,7 +518,7 @@ describe('Util', function() {
         <__DIFFHTML__0__></__DIFFHTML__1__>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -540,7 +544,7 @@ describe('Util', function() {
       });
       const vTree = parse('<__DIFFHTML__0__>Hello world</__DIFFHTML__1__>', supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -576,7 +580,7 @@ describe('Util', function() {
         <div>__DIFFHTML__0__</div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -612,7 +616,7 @@ describe('Util', function() {
         <div>__DIFFHTML__0__</div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -656,7 +660,7 @@ describe('Util', function() {
         <div>Hello __DIFFHTML__0__</div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -697,7 +701,7 @@ describe('Util', function() {
         <div>Hello __DIFFHTML__0__</div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -733,7 +737,7 @@ describe('Util', function() {
         <div class=__DIFFHTML__0__></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -763,7 +767,7 @@ describe('Util', function() {
         <div __DIFFHTML__0__></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -794,7 +798,7 @@ describe('Util', function() {
         <div class=__DIFFHTML__0__ data-test=__DIFFHTML__1__></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -826,7 +830,7 @@ describe('Util', function() {
         <div class="__DIFFHTML__0__ ui"></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -857,7 +861,7 @@ describe('Util', function() {
         <div class="ui __DIFFHTML__0__"></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -888,7 +892,7 @@ describe('Util', function() {
         <div class="__DIFFHTML__0__-__DIFFHTML__1__"></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -918,7 +922,7 @@ describe('Util', function() {
         <div __DIFFHTML__0__=""></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -948,7 +952,7 @@ describe('Util', function() {
         <div __DIFFHTML__0__=''></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -979,7 +983,7 @@ describe('Util', function() {
         <div __DIFFHTML__0__=__DIFFHTML__1__></div>
       `.trim(), supplemental);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -1003,7 +1007,7 @@ describe('Util', function() {
     it('will ignore parsing comments until a later version', () => {
       const vTree = parse('<!-- Test -->Test');
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -1028,7 +1032,7 @@ describe('Util', function() {
         <li>World
       `.trim());
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -1077,7 +1081,7 @@ describe('Util', function() {
         <li>World</ol>
       `.trim());
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -1131,7 +1135,7 @@ describe('Util', function() {
     it('will support parsing malformed markup with not closing', () => {
       const vTree = parse(`<script>`);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -1155,7 +1159,7 @@ describe('Util', function() {
     <h1>Attach/Detach Template</h1>
 </div>`);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
           rawNodeName: '#document-fragment',
           nodeName: '#document-fragment',
           nodeValue: '',
@@ -1216,7 +1220,7 @@ describe('Util', function() {
       const vTree = parse(`<code>
 </code>`).childNodes[0];
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         "attributes": {},
         "childNodes": [
           {
@@ -1242,19 +1246,19 @@ describe('Util', function() {
     it('will fill the pool to the right size', () => {
       const defaultSize = Pool.size;
 
-      equal(Pool.memory.free.size, defaultSize);
+      strictEqual(Pool.memory.free.size, defaultSize);
 
       // Cut Pool size in half.
       Pool.size = floor(defaultSize / 2);
       Pool.fill();
 
-      equal(Pool.memory.free.size, Pool.size);
+      strictEqual(Pool.memory.free.size, Pool.size);
 
       // Increase to twice default;
       Pool.size = floor(defaultSize * 2);
       Pool.fill();
 
-      equal(Pool.memory.free.size, Pool.size);
+      strictEqual(Pool.memory.free.size, Pool.size);
 
       // Bring pool back to default size.
       Pool.size = defaultSize;
@@ -1268,17 +1272,17 @@ describe('Util', function() {
         shape = createTree('div');
       }
 
-      equal(Pool.memory.free.size, 0);
-      equal(Pool.memory.allocated.size, Pool.size + 1);
+      strictEqual(Pool.memory.free.size, 0);
+      strictEqual(Pool.memory.allocated.size, Pool.size + 1);
 
       gc();
 
-      equal(Pool.memory.free.size, Pool.size + 1);
-      equal(Pool.memory.allocated.size, 0);
+      strictEqual(Pool.memory.free.size, Pool.size + 1);
+      strictEqual(Pool.memory.allocated.size, 0);
 
       Pool.memory.free.delete(shape);
 
-      equal(Pool.memory.free.size, Pool.size);
+      strictEqual(Pool.memory.free.size, Pool.size);
     });
   });
 
@@ -1289,14 +1293,14 @@ describe('Util', function() {
       protectVTree(vTree);
       gc();
 
-      equal(Pool.memory.free.size, Pool.size - 1);
-      equal(Pool.memory.protected.size, 1);
+      strictEqual(Pool.memory.free.size, Pool.size - 1);
+      strictEqual(Pool.memory.protected.size, 1);
 
       unprotectVTree(vTree);
       gc();
 
-      equal(Pool.memory.free.size, Pool.size);
-      equal(Pool.memory.protected.size, 0);
+      strictEqual(Pool.memory.free.size, Pool.size);
+      strictEqual(Pool.memory.protected.size, 0);
     });
 
     it('will protect and unprotect nested VTrees', () => {
@@ -1305,14 +1309,14 @@ describe('Util', function() {
       protectVTree(vTree);
       gc();
 
-      equal(Pool.memory.free.size, Pool.size - 2);
-      equal(Pool.memory.protected.size, 2);
+      strictEqual(Pool.memory.free.size, Pool.size - 2);
+      strictEqual(Pool.memory.protected.size, 2);
 
       unprotectVTree(vTree);
       gc();
 
-      equal(Pool.memory.free.size, Pool.size);
-      equal(Pool.memory.protected.size, 0);
+      strictEqual(Pool.memory.free.size, Pool.size);
+      strictEqual(Pool.memory.protected.size, 0);
     });
 
     it('will "garbage collect" unprotected VTrees', () => {
@@ -1322,15 +1326,15 @@ describe('Util', function() {
       unprotectVTree(vTree.childNodes[0]);
       gc();
 
-      equal(Pool.memory.free.size, Pool.size - 1);
-      equal(Pool.memory.protected.size, 1);
-      equal(Pool.memory.free.has(vTree.childNodes[0]), true);
+      strictEqual(Pool.memory.free.size, Pool.size - 1);
+      strictEqual(Pool.memory.protected.size, 1);
+      strictEqual(Pool.memory.free.has(vTree.childNodes[0]), true);
 
       unprotectVTree(vTree);
       gc();
 
-      equal(Pool.memory.free.size, Pool.size);
-      equal(Pool.memory.protected.size, 0);
+      strictEqual(Pool.memory.free.size, Pool.size);
+      strictEqual(Pool.memory.protected.size, 0);
     });
 
     it('will garbage collect DOM Node associations', () => {
@@ -1339,13 +1343,13 @@ describe('Util', function() {
 
       protectVTree(vTree);
 
-      equal(Pool.memory.free.size, Pool.size - 1);
-      equal(Pool.memory.protected.has(vTree), true);
+      strictEqual(Pool.memory.free.size, Pool.size - 1);
+      strictEqual(Pool.memory.protected.has(vTree), true);
 
       gc();
 
-      equal(Pool.memory.free.size, Pool.size - 1);
-      equal(Pool.memory.protected.has(vTree), true);
+      strictEqual(Pool.memory.free.size, Pool.size - 1);
+      strictEqual(Pool.memory.protected.has(vTree), true);
 
       unprotectVTree(vTree);
       gc();
@@ -1358,7 +1362,7 @@ describe('Util', function() {
         }
       })
 
-      equal(cacheHasNode, false);
+      strictEqual(cacheHasNode, false);
     });
   });
 
@@ -1368,7 +1372,7 @@ describe('Util', function() {
       const vTree = createTree(div);
       const measure = makeMeasure(div, vTree);
 
-      equal(measure.name, 'nop');
+      strictEqual(measure.name, 'nop');
     });
 
     it(`will return a NOP when the user has search, but no diff`, () => {
@@ -1378,7 +1382,7 @@ describe('Util', function() {
       location.href = 'about:blank?';
 
       const measure = makeMeasure(div, vTree);
-      equal(measure.name, 'nop');
+      strictEqual(measure.name, 'nop');
     });
 
     it('will return a real measure function if requested', () => {
@@ -1389,8 +1393,8 @@ describe('Util', function() {
 
       const measure = makeMeasure(div, vTree);
 
-      equal(measure.name, '');
-      equal(measure.length, 1);
+      strictEqual(measure.name, '');
+      strictEqual(measure.length, 1);
     });
 
     it('will use performance.mark on the first call', () => {
@@ -1403,8 +1407,8 @@ describe('Util', function() {
 
       measure('test-1');
 
-      equal(performance.mark.calledOnce, true);
-      deepEqual(performance.mark.firstCall.args, ['test-1']);
+      strictEqual(performance.mark.calledOnce, true);
+      deepStrictEqual(performance.mark.firstCall.args, ['test-1']);
     });
 
     it('will use performance.measure on the second call', () => {
@@ -1418,10 +1422,10 @@ describe('Util', function() {
       measure('test-2');
       measure('test-2');
 
-      equal(performance.measure.callCount, 1);
-      deepEqual(performance.mark.firstCall.args, ['test-2']);
-      deepEqual(performance.mark.lastCall.args, ['test-2-end']);
-      deepEqual(performance.measure.firstCall.args.slice(1), [
+      strictEqual(performance.measure.callCount, 1);
+      deepStrictEqual(performance.mark.firstCall.args, ['test-2']);
+      deepStrictEqual(performance.mark.lastCall.args, ['test-2-end']);
+      deepStrictEqual(performance.measure.firstCall.args.slice(1), [
         'test-2',
         'test-2-end',
       ]);
@@ -1442,10 +1446,10 @@ describe('Util', function() {
       measure('test-3');
       measure('test-3');
 
-      equal(performance.measure.callCount, 1);
-      deepEqual(performance.mark.firstCall.args, ['Component test-3']);
-      deepEqual(performance.mark.lastCall.args, ['Component test-3-end']);
-      deepEqual(performance.measure.firstCall.args.slice(1), [
+      strictEqual(performance.measure.callCount, 1);
+      deepStrictEqual(performance.mark.firstCall.args, ['Component test-3']);
+      deepStrictEqual(performance.mark.lastCall.args, ['Component test-3-end']);
+      deepStrictEqual(performance.measure.firstCall.args.slice(1), [
         'Component test-3',
         'Component test-3-end',
       ]);
@@ -1466,10 +1470,10 @@ describe('Util', function() {
       measure('test-4');
       measure('test-4');
 
-      equal(performance.measure.callCount, 1);
-      deepEqual(performance.mark.firstCall.args, ['Component test-4']);
-      deepEqual(performance.mark.lastCall.args, ['Component test-4-end']);
-      deepEqual(performance.measure.firstCall.args.slice(1), [
+      strictEqual(performance.measure.callCount, 1);
+      deepStrictEqual(performance.mark.firstCall.args, ['Component test-4']);
+      deepStrictEqual(performance.mark.lastCall.args, ['Component test-4-end']);
+      deepStrictEqual(performance.measure.firstCall.args.slice(1), [
         'Component test-4',
         'Component test-4-end',
       ]);
@@ -1481,7 +1485,7 @@ describe('Util', function() {
 
   describe('Process', () => {
     it('it matches the global process', () => {
-      equal(_process, global.process);
+      strictEqual(_process, global.process);
     });
   });
 });

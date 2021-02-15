@@ -265,6 +265,12 @@
       
     
       
+
+      
+        <a href="tools.html#live-reload-server" target><li>Live Reload Server</li></a>
+      
+    
+      
         <a href="devtools.html"><li class="header"><h4>DevTools</h4></li></a>
       
 
@@ -339,41 +345,6 @@ function render() {
 <p>
       <a href="https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml#-diffhtml-babel-transform-plugin" target="_blank" rel="noopener noreferrer" title="null">Refer to the configuration documentation.</a>
     </p>
-<p><a name="render-to-string"></a></p>
-<hr></hr>
-<h2 id="a-hrefrender-to-stringrender-to-stringa"><a href="#render-to-string">Render to String</a></h2>
-<p>While Virtual DOM libraries are designed to work in the browser and keep UI
-presentation state synchronized, they are also very beneficial in a Node
-runtime environment.</p>
-<p>This package will crawl your reconciled tree (after all middleware are applied)
-and serialize to a string. Since middleware is supported, you can use this
-module to hook into Nodes and change the output. This can be especially useful
-when you need to do XML-like transformations.</p>
-<p>The primary use case of this module is for server-side rendering of web
-applications. You can easily render the specific state as flat markup and then
-re-hydrate on the client side.</p>
-<p>A super simple example of rendering a Virtual Tree:</p>
-<pre><code class="language-javascript">import { renderToString, html } from &#39;diffhtml-render-to-string&#39;;
-
-renderToString(html`
-  &lt;div&gt;Hello world&lt;/div&gt;
-`);
-
-// &lt;div&gt;Hello world&lt;/div&gt;</code></pre>
-<p>Since middleware is supported, you can simply include the diffhtml-components
-package to get full component rendering support.</p>
-<pre><code class="language-javascript">import { renderToString, html } from &#39;diffhtml-render-to-string&#39;;
-import &#39;diffhtml-components&#39;;
-
-function Component() {
-  return &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;;
-}
-
-renderToString(html`
-  &lt;${Component} /&gt;
-`);
-
-// &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;</code></pre>
 <p><a name="live-reload-server"></a></p>
 <hr></hr>
 <h2 id="a-hreflive-reload-serverlive-reload-servera"><a href="#live-reload-server">Live Reload Server</a></h2>

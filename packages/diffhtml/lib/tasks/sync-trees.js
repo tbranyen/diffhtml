@@ -1,7 +1,6 @@
 import syncTree from '../tree/sync';
 import createNode from '../node/create';
-import { StateCache } from '../util/caches';
-import { NODE_TYPE, PATCH_TYPE, EMPTY, Mount } from '../util/types';
+import { StateCache, NODE_TYPE, PATCH_TYPE, EMPTY, Mount } from '../util/types';
 import process from '../util/process';
 import Transaction from '../transaction';
 
