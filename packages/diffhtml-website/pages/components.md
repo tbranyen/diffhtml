@@ -1,9 +1,9 @@
 # Components <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components"><i class="fa fa-github"></i></a>
 
-When working on larger and more structured projects, you may find that you want
-to structure your code using a component paradigm like you would find using
-React. This module provides just that, specifically constructors and middleware
-necessary to render a React-like JavaScript class/function or Web Component.
+Components are useful when you have parts of your interface that you wish to
+reuse or structure. There many popular component frameworks, with React being
+one of the most popular ones. diffHTML provides component features that mimic
+what you'd find in React, but in many different ways that are very flexible.
 
 <a name="overview"></a>
 
@@ -19,19 +19,18 @@ middleware into the running diffHTML build.
 Using components in diffHTML always requires installing or including the base
 package:
 
-
 ``` sh
-npm install diffhtml-components
+npm install --save diffhtml-components
 ```
 
 If you need to import React components, install the compat package:
 
 ``` sh
-npm install diffhtml-react-compat
+npm install --save diffhtml-react-compat
 ```
 
-> This will allow you to replace `react` and `react-dom` in your project and
-import
+> This will allow you to point `react` and `react-dom` in your project to this
+package and get the same functionality with diffHTML.
 
 There are two primary packages for components: [diffhtml-components](#overview)
 and [diffhtml-react-compat](#react-compat).Unlike other frameworks diffHTML is
@@ -81,11 +80,34 @@ Simple classes can just define them as methods and they will be called.
 
 ### Hooks
 
-- `componentWillMount`
-- `componentDidUpdate`
-- `componentWillReceiveProps`
-- `shouldComponentUpdate`
-- `componentWillUnmount`
+#### `componentWillMount`
+
+```js
+import { html, innerHTML } from 'diffhtml';
+import { Component } from 'diffhtml-components';
+
+class WillMountComponent extends Component {
+  render() {
+    return html`
+      <div><h1>Hello world</h1></div>
+    `;
+  }
+
+  componentWillMount() {
+    console.log('Component has mounted');
+  }
+}
+
+innerHTML(document.body, html`<${WillMountComponent} />`);
+```
+
+#### `componentDidUpdate`
+
+#### `componentWillReceiveProps`
+
+#### `shouldComponentUpdate`
+
+#### `componentWillUnmount`
 
 
 <a name="component"></a>
@@ -103,7 +125,7 @@ import { Component } from 'diffhtml-components';
 Once you have this base class, you can extend your ES6 class to get access to
 sub-tree rendering. A component render result is treated as a fragment, and are
 compared with previous results. All top-level elements are tracked and
-efficient diffing is applied against the previously rendered contents. 
+efficient diffing is applied against the previously rendered contents.
 
 ```js
 import { innerHTML, html } from 'diffhtml-components';
@@ -164,7 +186,7 @@ import { WebComponent } from 'diffhtml-components';
 
 ## <a href="#jsx">JSX</a>
 
-JSX is supported out-of-the-box. 
+JSX is supported out-of-the-box.
 
 <a name="react-compat"></a>
 

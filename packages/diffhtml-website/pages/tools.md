@@ -19,7 +19,7 @@ utilize the lite build!**
 To use, install into your project as a dev dependency.
 
 ``` sh
-npm install -D babel-plugin-transform-diffhtml
+npm install --save-dev babel-plugin-transform-diffhtml
 ```
 
 Specify the plugin in the Babel configuration, usually a `.babelrc` or
@@ -57,14 +57,3 @@ function render() {
 ```
 
 [Refer to the configuration documentation.](https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml#-diffhtml-babel-transform-plugin)
-
-<a name="live-reload-server"></a>
-
----
-
-
-## <a href="#live-reload-server">Live Reload Server</a>
-
-This server is designed for the diffhtml-website. Whenever the markdown files
-change, it compiles them to HTML and re-renders the relevant HTML live. Other
-assets may trigger a full page reload.

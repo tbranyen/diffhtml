@@ -6,6 +6,7 @@ const marked = require('marked');
 const express = require('express');
 const getSocket = require('./socket');
 const clientScript = require('./util/client-script');
+const { Socket } = require('engine.io');
 
 const { argv } = process;
 let userDir = '.';
@@ -44,18 +45,18 @@ argv.forEach(arg => {
 
 const webServer = express();
 const watcher = watch(CWD, {
-  ignored: /[\/\\]\./,
+  ignored: /([\/\\]\.)|(node_modules)/,
   persistent: true,
   alwaysStat: true,
 });
 
-const read = path => new Promise((res, rej) => {
+const read = (/** @type {string} */ path) => new Promise((res, rej) => {
   readFile(join(CWD, path), (err, buffer) => {
     err ? rej(err) : res(buffer);
   });
 });
 
-const formatMarkdown = markup => `<html>
+const formatMarkdown = (/** @type {string} */ markup) => `<html>
   <body>
     ${marked(String(markup))}
   </body>
@@ -65,7 +66,7 @@ webServer.use((req, res, next) => {
   const url = req.url.split('?')[0];
   const ext = extname(url);
   const isRoot = url === '' || url.slice(-1) === '/';
-  const path = newExt => {
+  const path = (/** @type {string} */ newExt) => {
     // If the path has an extension pass through.
     if (ext && ext !== '.html') {
       throw null;
@@ -83,11 +84,6 @@ webServer.use((req, res, next) => {
   return new Promise((resolve, reject) => read(path('html')).then(resolve, reject))
     .catch(() => read(path('md')).then(formatMarkdown))
     .catch(() => read(path('markdown')).then(formatMarkdown))
-    .catch(() => read(path('json')).then(resolve, reject))
-    .catch(() => read(path('svg')).then((...args) => {
-      res.header('Content-Type', 'image/svg+xml');
-      resolve(...args);
-    }, reject))
     .then(buffer => res.send(`
       ${String(buffer)}
       <script>${clientScript}</script>
@@ -110,16 +106,13 @@ webServer.listen(port, host, () => {
         if (!quiet) {
           console.log(`${green}${path} changed${reset}`);
         }
-
-        sockets.forEach(socket => {
+        sockets.forEach((/** @type {Socket} */socket) => {
           const file = path.slice(CWD.length + 1);
           const state = { file, markup, quiet };
-
           if (state.file.includes('.md') || state.file.includes('.markdown')) {
             state.file = state.file.replace(/(\.md|\.markdown|\.html)/g, '');
             state.markup = formatMarkdown(state.markup);
           }
-
           socket.send(JSON.stringify(state));
         });
       });

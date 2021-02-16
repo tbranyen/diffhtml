@@ -1,13 +1,15 @@
 # <±/> diffHTML Components
 
-*JavaScript classes for rendering components using either Custom Element or
-React-inspired implementations.*
+*Provides a way to use function, class, and stateful components with diffHTML.
+Inspired by React and other component based frameworks.*
 
 Stable Version: 1.0.0-beta.18
 
 The exported classes `Component` and `WebComponent` are designed to be
 inter-changeable and as close to feature-parity as possible. This helps bridge
 the React / Web Component gap.
+
+Refer to the website [https://diffhtml.org/components.html](https://diffhtml.org/components.html) for documentation.
 
 ## Installation
 

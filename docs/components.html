@@ -129,7 +129,7 @@
       
 
       
-        <a href="api.html#options" target><li>Options</li></a>
+        <a href="api.html#config-options" target><li>Config options</li></a>
       
     
       
@@ -249,7 +249,7 @@
       
 
       
-        <a href="components.html#react" target><li>React Compatibility</li></a>
+        <a href="components.html#react-compat" target><li>React Compatibility</li></a>
       
     
       
@@ -307,10 +307,10 @@
         <hr></hr>
 
         <section id="content"><h1 id="components-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-componentsi-classfa-fa-githubia">Components <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components"><i class="fa fa-github"></i></a></h1>
-<p>When working on larger and more structured projects, you may find that you want
-to structure your code using a component paradigm like you would find using
-React. This module provides just that, specifically constructors and middleware
-necessary to render a React-like JavaScript class/function or Web Component.</p>
+<p>Components are useful when you have parts of your interface that you wish to
+reuse or structure. There many popular component frameworks, with React being
+one of the most popular ones. diffHTML provides component features that mimic
+what you&#39;d find in React, but in many different ways that are very flexible.</p>
 <p><a name="overview"></a></p>
 <hr></hr>
 <h2 id="a-hrefoverviewoverviewa"><a href="#overview">Overview</a></h2>
@@ -320,12 +320,12 @@ stateful classes. Unlike middleware, this package will automatically hook its
 middleware into the running diffHTML build.</p>
 <p>Using components in diffHTML always requires installing or including the base
 package:</p>
-<pre><code class="language-sh">npm install diffhtml-components</code></pre>
+<pre><code class="language-sh">npm install --save diffhtml-components</code></pre>
 <p>If you need to import React components, install the compat package:</p>
-<pre><code class="language-sh">npm install diffhtml-react-compat</code></pre>
+<pre><code class="language-sh">npm install --save diffhtml-react-compat</code></pre>
 <blockquote>
-<p>This will allow you to replace <code>react</code> and <code>react-dom</code> in your project and
-import</p>
+<p>This will allow you to point <code>react</code> and <code>react-dom</code> in your project to this
+package and get the same functionality with diffHTML.</p>
 </blockquote>
 <p>There are two primary packages for components: 
     <a href="#overview" title="null">diffhtml-components</a>
@@ -365,13 +365,27 @@ innerHTML(document.body, html`&lt;${MyComponent} someProp=&quot;value&quot; /&gt
 unmounting flow. You do not need to extend from <code>Component</code> to use these hooks.
 Simple classes can just define them as methods and they will be called.</p>
 <h3 id="hooks">Hooks</h3>
-<ul>
-<li><code>componentWillMount</code></li>
-<li><code>componentDidUpdate</code></li>
-<li><code>componentWillReceiveProps</code></li>
-<li><code>shouldComponentUpdate</code></li>
-<li><code>componentWillUnmount</code></li>
-</ul>
+<h4 id="componentwillmount"><code>componentWillMount</code></h4>
+<pre><code class="language-js">import { html, innerHTML } from &#39;diffhtml&#39;;
+import { Component } from &#39;diffhtml-components&#39;;
+
+class WillMountComponent extends Component {
+  render() {
+    return html`
+      &lt;div&gt;&lt;h1&gt;Hello world&lt;/h1&gt;&lt;/div&gt;
+    `;
+  }
+
+  componentWillMount() {
+    console.log(&#39;Component has mounted&#39;);
+  }
+}
+
+innerHTML(document.body, html`&lt;${WillMountComponent} /&gt;`);</code></pre>
+<h4 id="componentdidupdate"><code>componentDidUpdate</code></h4>
+<h4 id="componentwillreceiveprops"><code>componentWillReceiveProps</code></h4>
+<h4 id="shouldcomponentupdate"><code>shouldComponentUpdate</code></h4>
+<h4 id="componentwillunmount"><code>componentWillUnmount</code></h4>
 <p><a name="component"></a></p>
 <hr></hr>
 <h2 id="a-hrefcomponentcomponenta"><a href="#component">Component</a></h2>
@@ -380,7 +394,7 @@ Simple classes can just define them as methods and they will be called.</p>
 <p>Once you have this base class, you can extend your ES6 class to get access to
 sub-tree rendering. A component render result is treated as a fragment, and are
 compared with previous results. All top-level elements are tracked and
-efficient diffing is applied against the previously rendered contents. </p>
+efficient diffing is applied against the previously rendered contents.</p>
 <pre><code class="language-js">import { innerHTML, html } from &#39;diffhtml-components&#39;;
 import { Component } from &#39;diffhtml-components&#39;;
 
@@ -421,7 +435,7 @@ element that match <code>propTypes</code> cause an automatic re-render.</p>
 <p><a name="jsx"></a></p>
 <hr></hr>
 <h2 id="a-hrefjsxjsxa"><a href="#jsx">JSX</a></h2>
-<p>JSX is supported out-of-the-box. </p>
+<p>JSX is supported out-of-the-box.</p>
 <p><a name="react-compat"></a></p>
 <hr></hr>
 <h2 id="a-hrefreact-compatreact-compata"><a href="#react-compat">React Compat</a></h2>

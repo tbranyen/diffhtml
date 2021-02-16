@@ -1,19 +1,7 @@
-**Welcome to diffHTML!** A lightweight library for creating fast and reactive
-user interfaces using JavaScript. With diffHTML you can create applications,
-games, data visualizations, and much more in you web browser.
-
-Unlike other libraries, the template syntax is simply HTML and JavaScript
-tagged templates.
-
-You are able to use simple HTML strings...
-
-```js
-import { innerHTML } from '//diffhtml.org/core';
-
-innerHTML(document.body, `
-  <h1>Hello world!</h1>
-`);
-```
+**Welcome to diffHTML,** a lightweight library for creating fast and reactive
+user interfaces using JavaScript. Using this tool you can create applications,
+games, data visualizations, and much more! It is designed to be approachable to
+new programmers, intermediates, and professionals.
 
 <a name="core-features"></a>
 
@@ -37,7 +25,7 @@ innerHTML(document.body, `
 
 <a name="node-module"></a>
 
-### <a href="#node-module">Package manager</a>
+### <a href="#node-module"><u>Package manager</u></a>
 
 <div id="install"></div>
 
@@ -58,7 +46,7 @@ innerHTML(document.body, `
 
 <a name="using-script-tag"></a>
 
-### <a href="#using-script-tag">Script tag</a>
+### <a href="#using-script-tag"><u>Script tag</u></a>
 
 ```html
 <script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
@@ -67,7 +55,7 @@ innerHTML(document.body, `
 
 <a name="es-modules"></a>
 
-### <a href="#es-modules">ES modules</a>
+### <a href="#es-modules"><u>ES modules</u></a>
 
 You can import diffHTML directly over HTTP using the ES modules syntax. This is
 a new feature that isn't available in all browsers yet, but you can use them

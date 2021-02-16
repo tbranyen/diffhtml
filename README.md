@@ -129,15 +129,6 @@ the foundation of the diffHTML ecosystem.
   [diffHTML Components](/packages/diffhtml-components) package as the base for
   the component constructors. It then layers additional React-specific APIs.
 
-* [diffhtml-static-sync](/packages/diffhtml-static-sync)
-
-  ```
-  npm install diffhtml-static-sync
-  ```
-
-  **Highly Experimental:** A work-in-progress static HTML server that automatically
-  reloads your markup as you save using Web Sockets.
-
 * [diffhtml-devtools](/packages/diffhtml-devtools)
 
   Chrome Extension providing DevTools for inspecting and learning more about

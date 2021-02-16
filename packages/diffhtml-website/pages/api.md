@@ -47,7 +47,7 @@ scheduling pipeline and VTrees are shared across all other renders.
 | ----------- | -----------
 | **mount**   | The root DOM node to update children in, but not the node itself.
 | **input**   | New markup to replace into **mount**.
-| **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul>
+| **options** | **[Config options](#config-options)**
 
 ### Examples
 
@@ -527,11 +527,11 @@ Property which indicates the current running version of diffHTML.
 console.log(VERSION);
 ```
 
-<a name="options"></a>
+<a name="config-options"></a>
 
 ---
 
-## <a href="#options">Options</a>
+## <a href="#config-options">Config options</a>
 
 - [`tasks`](#tasks)
 - [`executeScripts`](#execute-scripts)
