@@ -1,4 +1,4 @@
-import { ComponentTreeCache, InstanceCache } from '../util/caches';
+import { ComponentTreeCache, InstanceCache, VTree } from '../util/types';
 import { $$vTree } from '../util/symbols';
 import getContext from './get-context';
 import { getBinding } from '../util/binding';
@@ -7,6 +7,11 @@ import { getBinding } from '../util/binding';
  * Used during a synchronization flow. Takes in a vTree and a context object
  * and renders the component as a class or a function. Calls standard lifecycle
  * methods.
+ *
+ * @param {VTree} vTree - tree to render
+ * @param {object} context
+ *
+ * @returns {VTree | null}
  */
 export default function renderComponent(vTree, context) {
   const { createTree } = getBinding();
@@ -120,8 +125,12 @@ export default function renderComponent(vTree, context) {
     return renderTree;
   }
 
-  // Associate the children with the parent component that rendered them, this
-  // is used to trigger lifecycle events.
+  /**
+   * Associate the children with the parent component that rendered them, this
+   * is used to trigger lifecycle events.
+   *
+   * @param {VTree[]} childNodes
+   */
   const linkTrees = childNodes => {
     for (let i = 0; i < childNodes.length; i++) {
       const newTree = childNodes[i];

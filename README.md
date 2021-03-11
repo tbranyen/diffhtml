@@ -99,16 +99,6 @@ the foundation of the diffHTML ecosystem.
   use `addEventListener`. Events are attached to the `body` element and
   coordinated to children through delegation.
 
-* [diffhtml-middleware-verify-state](/packages/diffhtml-middleware-verify-state)
-
-  ```sh
-  npm install diffhtml-middleware-verify-state
-  ```
-
-  Asserts that a render properly updated the old Virtual Tree and the DOM. Will
-  recursively search for inconsistencies, displays warnings unless debugging is
-  enabled, then it throws errors instead.
-
 * [diffhtml-middleware-service-worker](/packages/diffhtml-middleware-service-worker)
 
   ```sh

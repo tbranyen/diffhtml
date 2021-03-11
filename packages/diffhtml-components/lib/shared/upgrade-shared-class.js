@@ -2,7 +2,7 @@ import lifecycleHooks from './lifecycle-hooks';
 import setState from './set-state';
 import forceUpdate from './force-update';
 import middleware from './middleware';
-import { ComponentTreeCache, InstanceCache } from '../util/caches';
+import { ComponentTreeCache, InstanceCache } from '../util/types';
 import { getBinding } from '../util/binding';
 
 const { assign } = Object;

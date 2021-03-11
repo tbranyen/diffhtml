@@ -241,9 +241,9 @@ export const TransactionState = EMPTY.OBJ;
  * @property {Function} decodeEntities
  * @property {Function} escape
  * @property {Function} makeMeasure
- * @property {object} memory
- * @property {object} Pool
- * @property {object} process
+ * @property {any} memory
+ * @property {any} Pool
+ * @property {any} process
  * @property {PATCH_TYPE} PATCH_TYPE
  * @property {Function=} parse
  * @property {Function} createNode

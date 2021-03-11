@@ -1,6 +1,6 @@
 const { readFileSync, writeFileSync, existsSync } = require('fs');
 const { join } = require('path');
-const { html, toString } = require('diffhtml');
+const { html, toString, use } = require('diffhtml');
 const marked = require('marked');
 const flattenPages = require('./util/flatten-pages');
 const { keys } = Object;

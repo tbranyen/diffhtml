@@ -1,3 +1,6 @@
-import * as caches from './caches';
+import { ComponentTreeCache, InstanceCache } from './types';
 
-export { caches };
+export const caches = {
+  ComponentTreeCache,
+  InstanceCache,
+};

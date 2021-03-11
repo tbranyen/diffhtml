@@ -23,9 +23,17 @@ new programmers, intermediates, and professionals.
 
 ## <a href="#getting-started">Getting started</a>
 
+Depending on your project, preference, or both, you'll need to include diffHTML
+somehow in your code. Examples of linking using three different popular methods
+are available below.
+
 <a name="node-module"></a>
 
 ### <a href="#node-module"><u>Package manager</u></a>
+
+This method uses a CLI tool such as npm or yarn to download and install the
+package files directly in your Node-based project. This is useful for server-
+side applications and tools like webpack, browserify, and rollup.
 
 <div id="install"></div>
 
@@ -48,8 +56,19 @@ new programmers, intermediates, and professionals.
 
 ### <a href="#using-script-tag"><u>Script tag</u></a>
 
+A script tag is useful for snippets, small projects, and possibly larger
+projects that want to have runtime control over the asset. You simply point a
+script tag to one of the files:
+
+- https://unpkg.com/diffhtml/dist/diffhtml.js - _full debug build_
+- https://unpkg.com/diffhtml/dist/diffhtml-lite.js - _lite debug build_
+- https://unpkg.com/diffhtml/dist/diffhtml.min.js - _compressed full build_
+- https://unpkg.com/diffhtml/dist/diffhtml-lite.min.js - _compressed lite build_
+
 ```html
 <script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
+
+<!-- To explore the API -->
 <script>console.log(window.diff);</script>
 ```
 
@@ -72,8 +91,6 @@ import { innerHTML } from 'https://diffhtml.org/es';
 ---
 
 ## <a href="#examples">Examples</a>
-
-<!--
 
 ### Hello World
 
@@ -114,4 +131,3 @@ import { innerHTML } from 'https://diffhtml.org/es';
     style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div>
--->

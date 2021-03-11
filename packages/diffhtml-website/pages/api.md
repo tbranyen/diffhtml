@@ -1,22 +1,23 @@
 # <a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a>
 
 This documentation covers the core public API and is central to the framework.
-All methods work in the browser, with JSDOM, and directly in Node. You use this
-to construct the Virtual DOM, synchronize changes, and patch the DOM.
+All methods work in the browser, with JSDOM, and directly in Node.
 
-``` sh
-npm install diffhtml
-```
+<u>Special terms:</u>
 
-Some lingo to be aware of:
+- **VTree**: You will see them mentioned throughout the documentation. They are
+  JavaScript objects that represent a DOM node. They store information such as
+  the tagName, what the childNodes are, and more. A reference to a VTree can get
+  you access to the DOM node it represents. They are used throughout the
+  codebase to simplify and abstract the internals away from the DOM, in favor of
+  one that is virtual, hence the V.
 
-- **Transaction**: A class structure which represents a set of changes to the
-  DOM.
-- **VTree**: Virtual Tree, represents the shape of a DOM node, Component,
-  etc. These objects are created when diffHTML first loads and help regulate
-  memory usage.
-- **Mount**: Most commonly a DOM node that you want to update, but can also be
-  VTrees and other types.
+  An added bonus to this is that diffHTML can work seamlessly in Node without
+  a DOM abstraction such as JSDOM.
+
+- **Transaction**: An object that represents a render. One is produced every
+  time you call innerHTML, outerHTML, or toString. You don't need to worry about
+  it unless you're trying to deeply understand the library.
 
 <a name="inner-html"></a>
 

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2017",
+    "declaration": true,
+    "checkJs": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "moduleResolution": "node",
+    "outDir": "./dist/typings",
+    "lib": ["es2017", "dom"]
+  },
+  "include": ["lib/**/*"]
+}

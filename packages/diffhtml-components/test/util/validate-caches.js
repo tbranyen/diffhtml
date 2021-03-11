@@ -1,6 +1,6 @@
 import { strictEqual } from 'assert';
 import { getBinding } from '../../lib/util/binding';
-import { ComponentTreeCache, InstanceCache } from '../../lib/util/caches';
+import { ComponentTreeCache, InstanceCache } from '../../lib/util/types';
 
 /**
  * Validates that the caches has been successfully cleaned per render.

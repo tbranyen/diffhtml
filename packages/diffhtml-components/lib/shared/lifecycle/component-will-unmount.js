@@ -1,14 +1,11 @@
-import { ComponentTreeCache, InstanceCache } from '../../util/caches';
+import { ComponentTreeCache, InstanceCache, VTree } from '../../util/types';
 import { getBinding } from '../../util/binding';
 
-const hasVTree = (matchTree, vTree) => {
-  if (matchTree === vTree) {
-    return true;
-  }
-
-  vTree.childNodes.forEach(hasVTree.bind(null, matchTree));
-};
-
+/**
+ * Called whenever a component is being removed.
+ *
+ * @param {VTree} vTree - The respecting tree pointing to the component
+ */
 export default function willUnmount(vTree) {
   const diff = getBinding();
   const componentTree = ComponentTreeCache.get(vTree);

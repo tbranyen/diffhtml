@@ -265,12 +265,6 @@
       
     
       
-
-      
-        <a href="tools.html#live-reload-server" target><li>Live Reload Server</li></a>
-      
-    
-      
         <a href="devtools.html"><li class="header"><h4>DevTools</h4></li></a>
       
 
@@ -325,8 +319,14 @@ new programmers, intermediates, and professionals.</p>
 <p><a name="getting-started"></a></p>
 <hr></hr>
 <h2 id="a-hrefgetting-startedgetting-starteda"><a href="#getting-started">Getting started</a></h2>
+<p>Depending on your project, preference, or both, you&#39;ll need to include diffHTML
+somehow in your code. Examples of linking using three different popular methods
+are available below.</p>
 <p><a name="node-module"></a></p>
 <h3 id="a-hrefnode-moduleupackage-managerua"><a href="#node-module"><u>Package manager</u></a></h3>
+<p>This method uses a CLI tool such as npm or yarn to download and install the
+package files directly in your Node-based project. This is useful for server-
+side applications and tools like webpack, browserify, and rollup.</p>
 <div id="install"></div>
 
 <ul>
@@ -344,7 +344,26 @@ new programmers, intermediates, and professionals.</p>
 </ul>
 <p><a name="using-script-tag"></a></p>
 <h3 id="a-hrefusing-script-taguscript-tagua"><a href="#using-script-tag"><u>Script tag</u></a></h3>
+<p>A script tag is useful for snippets, small projects, and possibly larger
+projects that want to have runtime control over the asset. You simply point a
+script tag to one of the files:</p>
+<ul>
+<li>
+      <a href="https://unpkg.com/diffhtml/dist/diffhtml.js" target="_blank" rel="noopener noreferrer" title="null">https://unpkg.com/diffhtml/dist/diffhtml.js</a>
+     - <em>full debug build</em></li>
+<li>
+      <a href="https://unpkg.com/diffhtml/dist/diffhtml-lite.js" target="_blank" rel="noopener noreferrer" title="null">https://unpkg.com/diffhtml/dist/diffhtml-lite.js</a>
+     - <em>lite debug build</em></li>
+<li>
+      <a href="https://unpkg.com/diffhtml/dist/diffhtml.min.js" target="_blank" rel="noopener noreferrer" title="null">https://unpkg.com/diffhtml/dist/diffhtml.min.js</a>
+     - <em>compressed full build</em></li>
+<li>
+      <a href="https://unpkg.com/diffhtml/dist/diffhtml-lite.min.js" target="_blank" rel="noopener noreferrer" title="null">https://unpkg.com/diffhtml/dist/diffhtml-lite.min.js</a>
+     - <em>compressed lite build</em></li>
+</ul>
 <pre><code class="language-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml.min.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- To explore the API --&gt;
 &lt;script&gt;console.log(window.diff);&lt;/script&gt;</code></pre>
 <p><a name="es-modules"></a></p>
 <h3 id="a-hrefes-modulesues-modulesua"><a href="#es-modules"><u>ES modules</u></a></h3>
@@ -359,8 +378,29 @@ import { innerHTML } from &#39;https://diffhtml.org/es&#39;;</code></pre>
 <p><a name="examples"></a></p>
 <hr></hr>
 <h2 id="a-hrefexamplesexamplesa"><a href="#examples">Examples</a></h2>
+<h3 id="hello-world">Hello World</h3>
+<div class="glitch-embed-wrap" style="height: 200px; width: 100%;">
+  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-helloworld on Glitch" style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
 
-</section>
+<h3 id="clock">Clock</h3>
+<div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
+  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-clock?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-clock on Glitch" style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
+
+<h3 id="hacker-news">Hacker News</h3>
+<div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
+  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-hackernews?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-hackernews on Glitch" style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div>
+
+<h3 id="todomvc">TodoMVC</h3>
+<div class="glitch-embed-wrap" style="height: 400px; width: 100%;">
+  <iframe src="https://glitch.com/embed/#!/embed/diffhtml-todomvc?path=lib/index.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-todomvc on Glitch" style="height: 100%; width: 100%; border: 0;">
+  </iframe>
+</div></section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/index.md" id="edit-on-github">
           Edit on GitHub &nbsp; <span class="fa fa-github"></span>

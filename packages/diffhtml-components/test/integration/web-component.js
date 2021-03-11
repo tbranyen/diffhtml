@@ -2,7 +2,7 @@
 
 import { deepEqual, equal, ok } from 'assert';
 import { getBinding } from '../../lib/util/binding';
-import validateCaches from './util/validate-caches';
+import validateCaches from '../util/validate-caches';
 
 const { innerHTML, html, createTree, release } = getBinding();
 

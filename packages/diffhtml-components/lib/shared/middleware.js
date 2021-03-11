@@ -1,4 +1,4 @@
-import { ComponentTreeCache } from '../util/caches';
+import { ComponentTreeCache, VTree, Transaction } from '../util/types';
 import globalThis from '../util/global';
 import onceEnded from './once-ended';
 import componentWillUnmount from './lifecycle/component-will-unmount';
@@ -7,6 +7,10 @@ import getContext from './get-context';
 
 const { assign } = Object;
 
+/**
+ * @param {VTree} oldTree
+ * @param {VTree} newTree
+ */
 function render(oldTree, newTree) {
   let oldComponentTree = null;
 
@@ -30,8 +34,14 @@ function render(oldTree, newTree) {
   }
 }
 
+/**
+ * @param {VTree} vTree
+ */
 const releaseHook = vTree => componentWillUnmount(vTree);
 
+/**
+ * @param {VTree} vTree
+ */
 const createTreeHook = vTree => {
   const { customElements } = globalThis;
   const Constructor = customElements && customElements.get(vTree.nodeName);
@@ -41,6 +51,9 @@ const createTreeHook = vTree => {
   }
 };
 
+/**
+ * @param {VTree} vTree
+ */
 const createNodeHook = vTree => {
   // Only look up elements with a dash in the name.
   if (!vTree.nodeName.includes('-')) return;
@@ -54,6 +67,10 @@ const createNodeHook = vTree => {
   }
 };
 
+/**
+ * @param {VTree} oldTree
+ * @param {VTree} newTree
+ */
 const syncTreeHook = (oldTree, newTree) => {
   // Render components during synchronization.
   if (
@@ -110,7 +127,7 @@ const syncTreeHook = (oldTree, newTree) => {
 };
 
 export default () => assign(
-  transaction => transaction.onceEnded(onceEnded),
+  (/** @type {Transaction} */transaction) => transaction.onceEnded(onceEnded),
   {
     displayName: 'componentTask',
     syncTreeHook,

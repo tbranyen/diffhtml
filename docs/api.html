@@ -265,12 +265,6 @@
       
     
       
-
-      
-        <a href="tools.html#live-reload-server" target><li>Live Reload Server</li></a>
-      
-    
-      
         <a href="devtools.html"><li class="header"><h4>DevTools</h4></li></a>
       
 
@@ -308,18 +302,22 @@
 
         <section id="content"><h1 id="a-hrefapihtmlcore-apia-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtmli-classfa-fa-githubia"><a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a></h1>
 <p>This documentation covers the core public API and is central to the framework.
-All methods work in the browser, with JSDOM, and directly in Node. You use this
-to construct the Virtual DOM, synchronize changes, and patch the DOM.</p>
-<pre><code class="language-sh">npm install diffhtml</code></pre>
-<p>Some lingo to be aware of:</p>
+All methods work in the browser, with JSDOM, and directly in Node.</p>
+<p><u>Special terms:</u></p>
 <ul>
-<li><strong>Transaction</strong>: A class structure which represents a set of changes to the
-DOM.</li>
-<li><strong>VTree</strong>: Virtual Tree, represents the shape of a DOM node, Component,
-etc. These objects are created when diffHTML first loads and help regulate
-memory usage.</li>
-<li><strong>Mount</strong>: Most commonly a DOM node that you want to update, but can also be
-VTrees and other types.</li>
+<li><p><strong>VTree</strong>: You will see them mentioned throughout the documentation. They are
+JavaScript objects that represent a DOM node. They store information such as
+the tagName, what the childNodes are, and more. A reference to a VTree can get
+you access to the DOM node it represents. They are used throughout the
+codebase to simplify and abstract the internals away from the DOM, in favor of
+one that is virtual, hence the V.</p>
+<p>An added bonus to this is that diffHTML can work seamlessly in Node without
+a DOM abstraction such as JSDOM.</p>
+</li>
+<li><p><strong>Transaction</strong>: An object that represents a render. One is produced every
+time you call innerHTML, outerHTML, or toString. You don&#39;t need to worry about
+it unless you&#39;re trying to deeply understand the library.</p>
+</li>
 </ul>
 <p><a name="inner-html"></a></p>
 <hr></hr>

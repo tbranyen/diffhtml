@@ -1,11 +1,11 @@
 import upgradeSharedClass from './shared/upgrade-shared-class';
-import { $$render, $$vTree } from './util/symbols';
+import { $$render, $$vTree, $$timeout } from './util/symbols';
 import { getBinding } from './util/binding';
 import './util/process';
+import { ValidNode } from './util/types';
 
 const { defineProperty, assign, keys } = Object;
 const nullFunc = function() {};
-const debounce = new Set();
 const root = typeof window !== 'undefined' ? window : global;
 
 root.HTMLElement = root.HTMLElement || nullFunc;
@@ -13,7 +13,11 @@ root.HTMLElement = root.HTMLElement || nullFunc;
 // Convert observed attributes from passed PropTypes.
 const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
 
-// Creates the `component.props` object.
+/**
+ * Creates the `component.props` object.
+ *
+ * @param {ValidNode} domNode
+ */
 const createProps = (domNode, props = {}) => {
   const observedAttributes = getObserved(domNode.constructor);
   const initialProps = {};
@@ -30,32 +34,24 @@ const createProps = (domNode, props = {}) => {
 // Creates the `component.state` object.
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
-const $$timeout = Symbol.for('$$timeout');
-
 class WebComponent extends root.HTMLElement {
   static get observedAttributes() {
     return getObserved(this).map(key => key.toLowerCase());
   }
 
-  constructor(props, context) {
+  constructor(props) {
+    super();
+
     if (root.HTMLElement === nullFunc) {
       throw new Error('Custom Elements require a valid browser environment');
     }
-
-    super();
 
     this.attachShadow({ mode: 'open' });
 
     this.props = createProps(this, props);
     this.state = createState(this);
 
-    const {
-      defaultProps = {},
-      propTypes = {},
-      childContextTypes = {},
-      contextTypes = {},
-      name,
-    } = this.constructor;
+    const { defaultProps = {} } = this.constructor;
 
     keys(defaultProps).forEach(propName => {
       if (propName in this.props && this.props[propName] !== undefined) {
@@ -73,7 +69,7 @@ class WebComponent extends root.HTMLElement {
     // in re-rendering or creating a new shadow root due to this.
 
     // Always do a full render when mounting.
-    // Why do we always do a full render on mount?
+    // FIXME Why do we always do a full render on mount?
     this[$$render]();
 
     this.componentDidMount();
@@ -112,6 +108,8 @@ class WebComponent extends root.HTMLElement {
 
     this.componentWillReceiveProps(nextProps);
 
+    // Render after the last attributeChangedCallback is called within the same
+    // tick.
     if (this.shouldComponentUpdate(nextProps, nextState)) {
       root.clearTimeout(this[$$timeout]);
 

@@ -31,7 +31,7 @@
 
     const render = () => {
       innerHTML(document.querySelector('main'), html`
-        <div>
+        <div id="test">
           <span>Current date: </span>
           <span ontextchanged=${fade}>${new Date().toLocaleString()}</span>
 

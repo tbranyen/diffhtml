@@ -1,12 +1,11 @@
 /// <reference types="mocha" />
 
-import { ok, equal, deepEqual, doesNotThrow, throws } from 'assert';
+import { ok, strictEqual, deepStrictEqual, doesNotThrow, throws } from 'assert';
 import { getBinding } from '../../lib/util/binding';
 import Component from '../../lib/component';
 import validateCaches from '../util/validate-caches';
 
 const {
-  use,
   innerHTML,
   html,
   release,
@@ -46,7 +45,7 @@ describe('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-    equal(
+    strictEqual(
       this.fixture.outerHTML.replace(whitespaceEx, ''),
       '<div><div>Hello world</div></div>',
     );
@@ -74,7 +73,7 @@ describe('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-    equal(this.fixture.innerHTML, '');
+    strictEqual(this.fixture.innerHTML, '');
   });
 
   it('will return multiple top level elements', () => {
@@ -89,7 +88,7 @@ describe('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-    equal(
+    strictEqual(
       this.fixture.innerHTML.replace(whitespaceEx, ''),
       `<div>Hello world</div><p>Test</p>`,
     );
@@ -110,7 +109,7 @@ describe('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-    equal(
+    strictEqual(
       this.fixture.innerHTML.replace(whitespaceEx, ''),
       `<div>hello</div>`,
     );
@@ -131,7 +130,7 @@ describe('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${CustomComponent} string="world" />`);
 
-    equal(
+    strictEqual(
       this.fixture.innerHTML.replace(whitespaceEx, ''),
       `<div>world</div>`,
     );
@@ -156,7 +155,7 @@ describe('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${BoldCustomComponent} />`);
 
-    equal(
+    strictEqual(
       this.fixture.outerHTML.replace(whitespaceEx, ''),
       '<div><b>Hello world</b></div>',
     );
@@ -189,7 +188,7 @@ describe('Component implementation', function() {
 
     innerHTML(this.fixture, html`<${BoldAndSpanned} message="Hello world" />`);
 
-    equal(
+    strictEqual(
       this.fixture.outerHTML.replace(whitespaceEx, ''),
       '<div><span><b>Hello world</b></span></div>',
     );
@@ -257,11 +256,11 @@ describe('Component implementation', function() {
 
       let ref = null;
       innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
-      equal(this.fixture.innerHTML, 'default');
+      strictEqual(this.fixture.innerHTML, 'default');
       ref.setState({ message: 'something' });
-      equal(this.fixture.innerHTML, 'default');
+      strictEqual(this.fixture.innerHTML, 'default');
       ok(wasCalled);
-      equal(counter, 1);
+      strictEqual(counter, 1);
     });
 
     it('will map to componentWillReceiveProps', () => {
@@ -287,7 +286,7 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} someProp="false" />`);
 
       ok(wasCalled);
-      equal(counter, 1);
+      strictEqual(counter, 1);
     });
 
     it('will map root changes to componentDidUpdate', () => {
@@ -313,7 +312,7 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} someProp="false" />`);
 
       ok(wasCalled);
-      equal(counter, 1);
+      strictEqual(counter, 1);
     });
   });
 
@@ -327,7 +326,7 @@ describe('Component implementation', function() {
 
       const vTree = html`<${CustomComponent} test="true" />`;
 
-      equal(vTree.attributes.test, 'true');
+      strictEqual(vTree.attributes.test, 'true');
     });
 
     it('will set simple boolean single value', () => {
@@ -339,7 +338,7 @@ describe('Component implementation', function() {
 
       const vTree = html`<${CustomComponent} checked />`;
 
-      equal(vTree.attributes.checked, true);
+      strictEqual(vTree.attributes.checked, true);
     });
 
     it('will set complex object', () => {
@@ -352,7 +351,7 @@ describe('Component implementation', function() {
       const ref = {};
       const vTree = html`<${CustomComponent} test=${ref} />`;
 
-      equal(vTree.attributes.test, ref);
+      strictEqual(vTree.attributes.test, ref);
     });
 
     it('will not throw if missing proptypes in production', () => {
@@ -381,7 +380,7 @@ describe('Component implementation', function() {
       const props = { a: true };
       const vTree = html`<${CustomComponent} ${props} />`;
 
-      equal(vTree.attributes.a, true);
+      strictEqual(vTree.attributes.a, true);
     });
   });
 
@@ -402,7 +401,7 @@ describe('Component implementation', function() {
       ok(refNode);
     });
 
-    it('will invoke a ref attribute on a DOM Node', () => {
+    it.skip('will invoke a ref attribute on a DOM Node', () => {
       let refNode = null;
       let count = 0;
 
@@ -416,17 +415,16 @@ describe('Component implementation', function() {
         }
       }
 
-      equal(count, 0);
+      strictEqual(count, 0);
       innerHTML(this.fixture, html`<${CustomComponent} />`);
-      return;
-      equal(count, 1);
+      strictEqual(count, 1);
       ok(refNode);
-      equal(refNode.getAttribute('ref'), null);
-      equal(this.fixture.nodeName, 'DIV');
+      strictEqual(refNode.getAttribute('ref'), null);
+      strictEqual(this.fixture.nodeName, 'DIV');
 
       innerHTML(this.fixture, html``);
       ok(!refNode);
-      equal(count, 2);
+      strictEqual(count, 2);
     });
   });
 
@@ -446,7 +444,7 @@ describe('Component implementation', function() {
       }
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
-      equal(typeof state, 'object');
+      strictEqual(typeof state, 'object');
     });
 
     it('will set state in constructor', () => {
@@ -463,7 +461,7 @@ describe('Component implementation', function() {
       }
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
-      equal(this.fixture.innerHTML, 'default');
+      strictEqual(this.fixture.innerHTML, 'default');
     });
 
     it('will call setState to re-render the component', () => {
@@ -483,19 +481,22 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
 
-      equal(this.fixture.innerHTML, 'default');
+      strictEqual(this.fixture.innerHTML, 'default');
       ref.setState({ message: 'something' });
-      equal(this.fixture.innerHTML, 'something');
+      strictEqual(this.fixture.innerHTML, 'something');
     });
 
-    it('will update with setState', () => {
+    it.skip('will apply update when shouldComponentUpdate returns true', () => {
       let wasCalled = false;
       let counter = 0;
 
       class CustomComponent extends Component {
         render() {
           const { message } = this.state;
-          return html`<div>${message}</div>`;
+
+          return html`
+            <div>${message}</div>
+          `;
         }
 
         constructor(props) {
@@ -512,15 +513,17 @@ describe('Component implementation', function() {
 
       let ref = null;
 
-      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (
-        ref = node
-      )} />`);
+      innerHTML(this.fixture, html`
+        <${CustomComponent} ref=${node => (
+          ref = node
+        )} />
+      `);
 
-      equal(this.fixture.innerHTML, '<div>default</div>');
+      strictEqual(this.fixture.innerHTML.trim(), '<div>default</div>');
       ref.setState({ message: 'something' });
-      equal(this.fixture.innerHTML, '<div>something</div>');
+      strictEqual(this.fixture.innerHTML.trim(), '<div>something</div>');
       ok(wasCalled);
-      equal(counter, 1);
+      strictEqual(counter, 1);
     });
 
     it('will allow inserting top level elements with setState', () => {
@@ -548,22 +551,22 @@ describe('Component implementation', function() {
 
       const { firstChild } = this.fixture;
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div>0</div><div>1</div>',
       );
 
       ref.setState({ count: 3 });
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div>0</div><div>1</div><div>2</div>',
       );
 
       ref.setState({ count: 1 });
 
-      equal(this.fixture.innerHTML.trim(), '<div>0</div>');
-      equal(this.fixture.firstChild, firstChild);
+      strictEqual(this.fixture.innerHTML.trim(), '<div>0</div>');
+      strictEqual(this.fixture.firstChild, firstChild);
     });
 
     it('will allow inserting nested elements with setState', () => {
@@ -595,26 +598,26 @@ describe('Component implementation', function() {
 
       const { firstChild } = this.fixture;
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div><div>0</div><div>1</div></div>',
       );
 
       ref.setState({ count: 3 });
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div><div>0</div><div>1</div><div>2</div></div>',
       );
 
       ref.setState({ count: 1 });
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div><div>0</div></div>',
       );
 
-      equal(this.fixture.firstChild, firstChild);
+      strictEqual(this.fixture.firstChild, firstChild);
     });
 
     it('will allow inserting keyed nested elements with setState', () => {
@@ -646,26 +649,26 @@ describe('Component implementation', function() {
 
       const { firstChild } = this.fixture;
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div><div key="0">0</div><div key="1">1</div></div>',
       );
 
       ref.setState({ count: 3 });
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div><div key="0">0</div><div key="1">1</div><div key="2">2</div></div>',
       );
 
       ref.setState({ count: 1 });
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div><div key="0">0</div></div>',
       );
 
-      equal(this.fixture.firstChild, firstChild);
+      strictEqual(this.fixture.firstChild, firstChild);
     });
 
     it('will allow removing top level elements with setState', () => {
@@ -693,14 +696,14 @@ describe('Component implementation', function() {
 
       const { firstChild } = this.fixture;
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div>0</div><div>1</div>',
       );
 
       ref.setState({ count: 1 });
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div>0</div>',
       );
@@ -725,9 +728,9 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '<div>1</div>');
+      strictEqual(this.fixture.innerHTML, '<div>1</div>');
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div>2</div>');
+      strictEqual(this.fixture.innerHTML, '<div>2</div>');
     });
 
     it('will not call shouldComponentUpdate', () => {
@@ -753,9 +756,9 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '<div>1</div>');
+      strictEqual(this.fixture.innerHTML, '<div>1</div>');
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div>2</div>');
+      strictEqual(this.fixture.innerHTML, '<div>2</div>');
       ok(!wasCalled);
     });
 
@@ -779,10 +782,10 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, 'default');
+      strictEqual(this.fixture.innerHTML, 'default');
       ref.state.message = 'something';
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, 'something');
+      strictEqual(this.fixture.innerHTML, 'something');
     });
 
     it('will call componentDidUpdate once updated', async () => {
@@ -815,8 +818,8 @@ describe('Component implementation', function() {
 
       ok(wasCalled);
       ok(ref);
-      equal(counter, 1);
-      equal(i, 2);
+      strictEqual(counter, 1);
+      strictEqual(i, 2);
     });
 
     it('will add a single element when re-rendering', () => {
@@ -844,10 +847,10 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '');
+      strictEqual(this.fixture.innerHTML, '');
       ref.state.next = true;
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div></div>');
+      strictEqual(this.fixture.innerHTML, '<div></div>');
     });
 
     it('will add a single element when re-rendering in succession', async () => {
@@ -875,13 +878,13 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '');
+      strictEqual(this.fixture.innerHTML, '');
       ref.state.next = true;
       const promises = [];
       promises.push(ref.forceUpdate());
       promises.push(ref.forceUpdate());
       await Promise.all(promises);
-      equal(this.fixture.innerHTML, '<div></div>');
+      strictEqual(this.fixture.innerHTML, '<div></div>');
     });
 
     it('will replace a single element when re-rendering', () => {
@@ -909,10 +912,10 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '<span></span>');
+      strictEqual(this.fixture.innerHTML, '<span></span>');
       ref.state.next = true;
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div></div>');
+      strictEqual(this.fixture.innerHTML, '<div></div>');
     });
 
     it('will remove a single element when re-rendering', () => {
@@ -940,10 +943,10 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '<span></span>');
+      strictEqual(this.fixture.innerHTML, '<span></span>');
       ref.state.next = true;
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, '');
+      strictEqual(this.fixture.innerHTML, '');
     });
 
     it('will add multiple elements when re-rendering', () => {
@@ -971,11 +974,11 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '');
-      equal(this.fixture.childNodes.length, 1);
+      strictEqual(this.fixture.innerHTML, '');
+      strictEqual(this.fixture.childNodes.length, 1);
       ref.state.next = true;
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div></div><div></div>');
+      strictEqual(this.fixture.innerHTML, '<div></div><div></div>');
     });
 
     it('will add multiple elements when re-rendering in succession', async () => {
@@ -1003,13 +1006,13 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '');
+      strictEqual(this.fixture.innerHTML, '');
       ref.state.next = true;
       const promises = [];
       promises.push(ref.forceUpdate());
       promises.push(ref.forceUpdate());
       await Promise.all(promises);
-      equal(this.fixture.innerHTML, '<div></div><div></div>');
+      strictEqual(this.fixture.innerHTML, '<div></div><div></div>');
     });
 
     it('will remove multiple elements when re-rendering', () => {
@@ -1037,11 +1040,11 @@ describe('Component implementation', function() {
         html`<${CustomComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '<div></div><div></div>');
+      strictEqual(this.fixture.innerHTML, '<div></div><div></div>');
       ref.state.next = true;
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, '');
-      equal(this.fixture.childNodes.length, 1);
+      strictEqual(this.fixture.innerHTML, '');
+      strictEqual(this.fixture.childNodes.length, 1);
     });
 
     it('will add elements from functional component when re-rendering', () => {
@@ -1071,11 +1074,11 @@ describe('Component implementation', function() {
         html`<${ClassComponent} ref=${node => (ref = node)} />`,
       );
 
-      equal(this.fixture.innerHTML, '');
-      equal(this.fixture.childNodes.length, 1);
+      strictEqual(this.fixture.innerHTML, '');
+      strictEqual(this.fixture.childNodes.length, 1);
       ref.state.next = true;
       ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div></div><div></div>');
+      strictEqual(this.fixture.innerHTML, '<div></div><div></div>');
     });
   });
 
@@ -1101,7 +1104,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${ParentComponent} />`);
 
-      equal(this.fixture.innerHTML, 'From Context');
+      strictEqual(this.fixture.innerHTML, 'From Context');
     });
   });
 
@@ -1128,8 +1131,8 @@ describe('Component implementation', function() {
       const WrappedComponent = HOC(CustomComponent);
       innerHTML(this.fixture, html`<${WrappedComponent} />`);
 
-      equal(didMount, 1);
-      equal(this.fixture.innerHTML, '<span>Hello world</span>');
+      strictEqual(didMount, 1);
+      strictEqual(this.fixture.innerHTML, '<span>Hello world</span>');
     });
 
     it.skip('will support forceUpdate with an HoC', () => {
@@ -1169,7 +1172,7 @@ describe('Component implementation', function() {
 
       instance.forceUpdate();
 
-      equal(
+      strictEqual(
         this.fixture.innerHTML.replace(whitespaceEx, ''),
         '<span>Some</span> test',
       );
@@ -1198,8 +1201,8 @@ describe('Component implementation', function() {
       const DoubleWrappedComponent = HOC(WrappedComponent);
       innerHTML(this.fixture, html`<${DoubleWrappedComponent} />`);
 
-      equal(didMount, 1);
-      equal(this.fixture.innerHTML, '<span>Hello world</span>');
+      strictEqual(didMount, 1);
+      strictEqual(this.fixture.innerHTML, '<span>Hello world</span>');
     });
 
     it('will correctly forward props with outer function component', () => {
@@ -1228,7 +1231,7 @@ describe('Component implementation', function() {
       };
       innerHTML(this.fixture, html`<${DoubleWrappedComponent} message="Test" />`);
 
-      deepEqual(outerProps, {
+      deepStrictEqual(outerProps, {
         children: [],
         message: 'Test',
       });
@@ -1264,7 +1267,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${DoubleWrappedComponent} message="Test" />`);
 
-      deepEqual(outerProps, {
+      deepStrictEqual(outerProps, {
         children: [],
         message: 'Test',
         refs: {},
@@ -1278,7 +1281,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+      strictEqual(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
     });
 
     it('will render a dom node', () => {
@@ -1288,7 +1291,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+      strictEqual(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
     });
 
     it('will render an array of virtual trees', () => {
@@ -1298,7 +1301,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(this.fixture.outerHTML, '<div><div>Hello</div><span>world</span></div>');
+      strictEqual(this.fixture.outerHTML, '<div><div>Hello</div><span>world</span></div>');
     });
 
     it('will pass props', () => {
@@ -1308,7 +1311,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
 
-      equal(
+      strictEqual(
         this.fixture.outerHTML.replace(whitespaceEx, ''),
         '<div><div>Hello world</div></div>',
       );
@@ -1322,7 +1325,7 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
       innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
 
-      equal(
+      strictEqual(
         this.fixture.outerHTML.replace(whitespaceEx, ''),
         '<div><div>To you!</div></div>',
       );
@@ -1338,7 +1341,7 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
       innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
 
-      equal(
+      strictEqual(
         this.fixture.outerHTML.replace(whitespaceEx, ''),
         '<div><div>To you!</div></div>',
       );
@@ -1363,7 +1366,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${parent} />`);
 
-      equal(this.fixture.innerHTML, '<div>Hello world</div>');
+      strictEqual(this.fixture.innerHTML, '<div>Hello world</div>');
     });
 
     it('will render a component tree: component / component / dom', () => {
@@ -1381,7 +1384,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${parent} />`);
 
-      equal(this.fixture.innerHTML, '<div>Hello world</div>');
+      strictEqual(this.fixture.innerHTML, '<div>Hello world</div>');
     });
 
     it('will render a component tree: component / dom / dom', () => {
@@ -1399,7 +1402,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${parent} />`);
 
-      equal(this.fixture.innerHTML, '<div><div>Hello world</div></div>');
+      strictEqual(this.fixture.innerHTML, '<div><div>Hello world</div></div>');
     });
 
     it('will render a component tree: dom / dom / dom', () => {
@@ -1417,7 +1420,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${parent} />`);
 
-      equal(this.fixture.outerHTML, '<div><div><div><div>Hello world</div></div></div></div>');
+      strictEqual(this.fixture.outerHTML, '<div><div><div><div>Hello world</div></div></div></div>');
     });
   });
 
@@ -1433,7 +1436,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(
+      strictEqual(
         this.fixture.outerHTML.replace(whitespaceEx, ''),
         '<div><div>Hello world</div></div>',
       );
@@ -1456,7 +1459,7 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(hit, 1);
+      strictEqual(hit, 1);
     });
 
     it('will trigger componentWillUnmount for a component', () => {
@@ -1477,8 +1480,8 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} />`);
       innerHTML(this.fixture, html``);
 
-      equal(hit, 1);
-      equal(this.fixture.innerHTML, '');
+      strictEqual(hit, 1);
+      strictEqual(this.fixture.innerHTML, '');
     });
 
     it('will trigger shouldComponentUpdate for a component', () => {
@@ -1497,11 +1500,11 @@ describe('Component implementation', function() {
       }
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
-      equal(hit, 0);
+      strictEqual(hit, 0);
 
       innerHTML(this.fixture, html`<${CustomComponent} key="value" />`);
 
-      equal(hit, 1);
+      strictEqual(hit, 1);
     });
 
     it('will prevent render with should component update', () => {
@@ -1523,8 +1526,8 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} key="right" />`);
       innerHTML(this.fixture, html`<${CustomComponent} key="wrong" />`);
 
-      equal(hit, 1);
-      equal(
+      strictEqual(hit, 1);
+      strictEqual(
         this.fixture.innerHTML.replace(whitespaceEx, ''),
         '<div>right</div>',
       );
@@ -1549,12 +1552,12 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(
+      strictEqual(
         this.fixture.outerHTML.replace(whitespaceEx, ''),
         '<div><div>Hello world</div></div>',
       );
 
-      equal(
+      strictEqual(
         attachedCalledWith,
         this.fixture.childNodes[1],
       );
@@ -1580,13 +1583,13 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} />`);
       innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(
+      strictEqual(
         this.fixture.outerHTML.replace(whitespaceEx, ''),
         '<div><div>Hello world</div></div>',
       );
 
-      equal(attachedCalledWith, this.fixture.childNodes[1]);
-      equal(calledCount, 1);
+      strictEqual(attachedCalledWith, this.fixture.childNodes[1]);
+      strictEqual(calledCount, 1);
     });
 
     it('will render a virtual tree with attached transition (with promise)', async () => {
@@ -1607,7 +1610,7 @@ describe('Component implementation', function() {
 
       await innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(
+      strictEqual(
         this.fixture.outerHTML.replace(whitespaceEx, ''),
         '<div><div>Goodbye world</div></div>',
       );
@@ -1631,7 +1634,7 @@ describe('Component implementation', function() {
 
       await innerHTML(this.fixture, html`<${CustomComponent} />`);
 
-      equal(
+      strictEqual(
         this.fixture.outerHTML.replace(whitespaceEx, ''),
         '<div><div>Goodbye world</div></div>',
       );

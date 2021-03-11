@@ -1,35 +1,33 @@
 import upgradeSharedClass from './shared/upgrade-shared-class';
-import { ComponentTreeCache } from './util/caches';
+import { ComponentTreeCache, Props, State, Transaction, VTree } from './util/types';
 import { $$render, $$vTree } from './util/symbols';
 import { getBinding } from './util/binding';
 import './util/process';
 
 const { from } = Array;
 const { keys, assign } = Object;
-const FRAGMENT = '#document-fragment';
 
 /**
  * Represents a Component
  */
 class Component {
-  constructor(initialProps, initialContext) {
+  /** @type {State} */
+  state = {}
+
+  /**
+   * @param {Props} initialProps
+   */
+  constructor(initialProps/*, initialContext*/) {
     initialProps && (initialProps.refs || (initialProps.refs = {}));
 
     const props = this.props = assign({}, initialProps);
-    const context = this.context = assign({}, initialContext);
-
-    this.state = {};
+    //this.context = assign({}, initialContext);
 
     if (props.refs) {
       this.refs = props.refs;
     }
 
-    const {
-      defaultProps = {},
-      propTypes = {},
-      contextTypes = {},
-      name,
-    } = this.constructor;
+    const { defaultProps = {} } = /** @type {any} */ (this.constructor);
 
     // Merge default props into props object.
     keys(defaultProps).forEach(prop => {
@@ -41,6 +39,17 @@ class Component {
     });
   }
 
+  /**
+   * @param {Props} props
+   * @param {State} state
+   *
+   * @returns {VTree[] | VTree | null | undefined}
+   */
+  render(props, state) {
+    return null;
+  }
+
+  /** @type {VTree | null} */
   [$$vTree] = null;
 
   /**
@@ -93,24 +102,34 @@ class Component {
     const { parentNode } = domNode;
 
     // Render directly from the Component.
-    let renderTree = this.render(this.props, this.state, this.context);
+    let renderTree = this.render(this.props, this.state/*, this.context*/);
 
     // Do not render.
     if (!renderTree) {
       return;
     }
 
-    // Put all the nodes together into a fragment for diffing.
-    const fragment = createTree(this.constructor, null, childTrees);
+    const renderTreeAsVTree = /** @type {VTree} */ (renderTree);
 
     // Always compare a fragment to a fragment. If the renderTree was not
     // wrapped, ensure it is here.
     if (renderTree.nodeType !== 11) {
-      renderTree = createTree(this.constructor, null, renderTree);
+      const isList = 'length' in renderTree;
+      const renderTreeAsList = /** @type {VTree[]} */ (renderTree);
+
+      renderTree = createTree(isList ? renderTreeAsList : [renderTreeAsVTree]);
     }
 
-    // Compare the existing component node(s) to the new node(s).
-    const promise = outerHTML(fragment, renderTree)
+    // Put all the nodes together into a fragment for diffing.
+    const fragment = createTree(childTrees);
+
+    //
+    /**
+     * Compare the existing component node(s) to the new node(s).
+     *
+     * @type {Promise<Transaction>}
+     */
+    const promise = (outerHTML(fragment, renderTree));
 
     // Track the last known node so when insertions happen they are easily
     // executed adjacent to this element.
@@ -158,5 +177,8 @@ class Component {
   }
 }
 
-// Wrap this base class with shared methods.
+/**
+ * Wrap this base class with shared methods.
+ * @type {Component}
+ */
 export default upgradeSharedClass(Component);

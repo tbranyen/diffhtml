@@ -1,7 +1,10 @@
-import { InstanceCache, ComponentTreeCache } from '../util/caches';
+import { InstanceCache, VTree } from '../util/types';
 
 const { assign } = Object;
 
+/**
+ * @param {VTree} vTree - tree to lookup component from
+ */
 export default function getContext(vTree) {
   const context = {};
 

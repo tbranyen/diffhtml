@@ -1,7 +1,7 @@
-import globalThis from './global';
+import { getBinding } from './binding';
 
-const { Internals } = globalThis[Symbol.for('diffHTML')];
+const { Internals } = getBinding();
 
-(typeof window !== 'undefined' ? window : global).process = Internals.process;
+/** @type {any} */ (typeof window !== 'undefined' ? window : global).process = Internals.process;
 
 export default Internals.process;

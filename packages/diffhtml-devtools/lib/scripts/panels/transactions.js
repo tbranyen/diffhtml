@@ -313,7 +313,6 @@ class DevtoolsTransactionsPanel extends WebComponent {
   }
 
   toggleExpanded = activeTransaction => () => {
-    console.log(activeTransaction);
     this.setState({ activeTransaction });
   }
 }
