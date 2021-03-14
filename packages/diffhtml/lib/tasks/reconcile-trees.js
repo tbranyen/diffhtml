@@ -45,7 +45,12 @@ export default function reconcileTrees(transaction) {
   // from that element and apply to the root element. This ultimately renders a
   // flat tree and allows for whitespace to be provided in the `html` function
   // without needing to trim.
-  if (!inner && /** @type {VTree} */(input).nodeType === NODE_TYPE.FRAGMENT) {
+  if (
+    !inner &&
+    /** @type {VTree} */(input).nodeType === NODE_TYPE.FRAGMENT &&
+    // Do not modify the new children when comparing two fragments.
+    state.oldTree.nodeType !== NODE_TYPE.FRAGMENT
+  ) {
     /** @type {VTree[]} */
     let foundElements = [];
 

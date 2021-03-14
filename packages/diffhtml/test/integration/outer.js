@@ -60,6 +60,20 @@ describe('Integration: outerHTML', function() {
     doc.close();
   });
 
+  it('can diff two fragments updating only contents', function() {
+    const frag1 = document.createDocumentFragment();
+    frag1.appendChild(document.createElement('div'));
+
+    const frag2 = document.createDocumentFragment();
+    frag2.appendChild(document.createElement('div'));
+    frag2.firstChild.appendChild(document.createTextNode('test'));
+
+    diff.outerHTML(frag1, frag2);
+
+    diff.release(frag1);
+    diff.release(frag2);
+  });
+
   it('cannot replace an element without a parent', function() {
     throws(() => {
       diff.outerHTML(this.fixture, '<p></p>');

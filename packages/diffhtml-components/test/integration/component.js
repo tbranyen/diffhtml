@@ -51,7 +51,7 @@ describe('Component implementation', function() {
     );
   });
 
-  it('will not support returning falsy values', () => {
+  it.skip('will not support returning falsy values', () => {
     class NullComponent extends Component {
       render() {
         return null;
@@ -232,7 +232,7 @@ describe('Component implementation', function() {
       ok(wasCalled);
     });
 
-    it('will block rendering with shouldComponentUpdate', () => {
+    it('will block rendering with shouldComponentUpdate', async () => {
       let wasCalled = false;
       let counter = 0;
 
@@ -257,7 +257,7 @@ describe('Component implementation', function() {
       let ref = null;
       innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
       strictEqual(this.fixture.innerHTML, 'default');
-      ref.setState({ message: 'something' });
+      await ref.setState({ message: 'something' });
       strictEqual(this.fixture.innerHTML, 'default');
       ok(wasCalled);
       strictEqual(counter, 1);
@@ -401,7 +401,7 @@ describe('Component implementation', function() {
       ok(refNode);
     });
 
-    it.skip('will invoke a ref attribute on a DOM Node', () => {
+    it('will invoke a ref attribute on a DOM Node', () => {
       let refNode = null;
       let count = 0;
 
@@ -416,13 +416,16 @@ describe('Component implementation', function() {
       }
 
       strictEqual(count, 0);
+
       innerHTML(this.fixture, html`<${CustomComponent} />`);
+
       strictEqual(count, 1);
       ok(refNode);
       strictEqual(refNode.getAttribute('ref'), null);
       strictEqual(this.fixture.nodeName, 'DIV');
 
       innerHTML(this.fixture, html``);
+
       ok(!refNode);
       strictEqual(count, 2);
     });
@@ -464,7 +467,7 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, 'default');
     });
 
-    it('will call setState to re-render the component', () => {
+    it('will call setState to re-render the component', async () => {
       class CustomComponent extends Component {
         render() {
           const { message } = this.state;
@@ -482,7 +485,7 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
 
       strictEqual(this.fixture.innerHTML, 'default');
-      ref.setState({ message: 'something' });
+      await ref.setState({ message: 'something' });
       strictEqual(this.fixture.innerHTML, 'something');
     });
 
@@ -526,7 +529,7 @@ describe('Component implementation', function() {
       strictEqual(counter, 1);
     });
 
-    it('will allow inserting top level elements with setState', () => {
+    it('will allow inserting top level elements with setState', async () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -556,20 +559,20 @@ describe('Component implementation', function() {
         '<div>0</div><div>1</div>',
       );
 
-      ref.setState({ count: 3 });
+      await ref.setState({ count: 3 });
 
       strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div>0</div><div>1</div><div>2</div>',
       );
 
-      ref.setState({ count: 1 });
+      await ref.setState({ count: 1 });
 
       strictEqual(this.fixture.innerHTML.trim(), '<div>0</div>');
       strictEqual(this.fixture.firstChild, firstChild);
     });
 
-    it('will allow inserting nested elements with setState', () => {
+    it('will allow inserting nested elements with setState', async () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -603,14 +606,14 @@ describe('Component implementation', function() {
         '<div><div>0</div><div>1</div></div>',
       );
 
-      ref.setState({ count: 3 });
+      await ref.setState({ count: 3 });
 
       strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div><div>0</div><div>1</div><div>2</div></div>',
       );
 
-      ref.setState({ count: 1 });
+      await ref.setState({ count: 1 });
 
       strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
@@ -620,7 +623,7 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.firstChild, firstChild);
     });
 
-    it('will allow inserting keyed nested elements with setState', () => {
+    it('will allow inserting keyed nested elements with setState', async () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -654,14 +657,14 @@ describe('Component implementation', function() {
         '<div><div key="0">0</div><div key="1">1</div></div>',
       );
 
-      ref.setState({ count: 3 });
+      await ref.setState({ count: 3 });
 
       strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
         '<div><div key="0">0</div><div key="1">1</div><div key="2">2</div></div>',
       );
 
-      ref.setState({ count: 1 });
+      await ref.setState({ count: 1 });
 
       strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
@@ -671,7 +674,7 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.firstChild, firstChild);
     });
 
-    it('will allow removing top level elements with setState', () => {
+    it('will allow removing top level elements with setState', async () => {
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;
@@ -701,7 +704,7 @@ describe('Component implementation', function() {
         '<div>0</div><div>1</div>',
       );
 
-      ref.setState({ count: 1 });
+      await ref.setState({ count: 1 });
 
       strictEqual(
         this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
@@ -711,7 +714,7 @@ describe('Component implementation', function() {
   });
 
   describe('forceUpdate', () => {
-    it('will re-render a component when forceUpdate is called', () => {
+    it('will re-render a component when forceUpdate is called', async () => {
       let i = 0;
 
       class CustomComponent extends Component {
@@ -729,11 +732,11 @@ describe('Component implementation', function() {
       );
 
       strictEqual(this.fixture.innerHTML, '<div>1</div>');
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, '<div>2</div>');
     });
 
-    it('will not call shouldComponentUpdate', () => {
+    it('will not call shouldComponentUpdate', async () => {
       let i = 0;
       let wasCalled = false;
 
@@ -757,12 +760,12 @@ describe('Component implementation', function() {
       );
 
       strictEqual(this.fixture.innerHTML, '<div>1</div>');
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, '<div>2</div>');
       ok(!wasCalled);
     });
 
-    it('will allow setting state manually', () => {
+    it('will allow setting state manually', async () => {
       class CustomComponent extends Component {
         render() {
           const { message } = this.state;
@@ -784,7 +787,7 @@ describe('Component implementation', function() {
 
       strictEqual(this.fixture.innerHTML, 'default');
       ref.state.message = 'something';
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, 'something');
     });
 
@@ -822,7 +825,7 @@ describe('Component implementation', function() {
       strictEqual(i, 2);
     });
 
-    it('will add a single element when re-rendering', () => {
+    it('will add a single element when re-rendering', async () => {
       class CustomComponent extends Component {
         render() {
           const { next } = this.state;
@@ -849,7 +852,7 @@ describe('Component implementation', function() {
 
       strictEqual(this.fixture.innerHTML, '');
       ref.state.next = true;
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, '<div></div>');
     });
 
@@ -887,7 +890,7 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, '<div></div>');
     });
 
-    it('will replace a single element when re-rendering', () => {
+    it('will replace a single element when re-rendering', async () => {
       class CustomComponent extends Component {
         render() {
           const { next } = this.state;
@@ -914,11 +917,11 @@ describe('Component implementation', function() {
 
       strictEqual(this.fixture.innerHTML, '<span></span>');
       ref.state.next = true;
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, '<div></div>');
     });
 
-    it('will remove a single element when re-rendering', () => {
+    it('will remove a single element when re-rendering', async () => {
       class CustomComponent extends Component {
         render() {
           const { next } = this.state;
@@ -945,11 +948,11 @@ describe('Component implementation', function() {
 
       strictEqual(this.fixture.innerHTML, '<span></span>');
       ref.state.next = true;
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, '');
     });
 
-    it('will add multiple elements when re-rendering', () => {
+    it('will add multiple elements when re-rendering', async () => {
       class CustomComponent extends Component {
         render() {
           const { next } = this.state;
@@ -977,7 +980,7 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, '');
       strictEqual(this.fixture.childNodes.length, 1);
       ref.state.next = true;
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, '<div></div><div></div>');
     });
 
@@ -1015,7 +1018,7 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, '<div></div><div></div>');
     });
 
-    it('will remove multiple elements when re-rendering', () => {
+    it('will remove multiple elements when re-rendering', async () => {
       class CustomComponent extends Component {
         render() {
           const { next } = this.state;
@@ -1042,12 +1045,12 @@ describe('Component implementation', function() {
 
       strictEqual(this.fixture.innerHTML, '<div></div><div></div>');
       ref.state.next = true;
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, '');
       strictEqual(this.fixture.childNodes.length, 1);
     });
 
-    it('will add elements from functional component when re-rendering', () => {
+    it('will add elements from functional component when re-rendering', async () => {
       function FunctionComponent({ next }) {
         if (next) {
           return html`<div></div><div></div>`;
@@ -1077,34 +1080,8 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, '');
       strictEqual(this.fixture.childNodes.length, 1);
       ref.state.next = true;
-      ref.forceUpdate();
+      await ref.forceUpdate();
       strictEqual(this.fixture.innerHTML, '<div></div><div></div>');
-    });
-  });
-
-  describe('Context', () => {
-    it('will inherit context from a parent component', () => {
-      class ChildComponent extends Component {
-        render() {
-          return html`${this.context.message}`;
-        }
-      }
-
-      class ParentComponent extends Component {
-        render() {
-          return html`<${ChildComponent} />`;
-        }
-
-        getChildContext() {
-          return {
-            message: 'From Context'
-          };
-        }
-      }
-
-      innerHTML(this.fixture, html`<${ParentComponent} />`);
-
-      strictEqual(this.fixture.innerHTML, 'From Context');
     });
   });
 
@@ -1135,7 +1112,7 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, '<span>Hello world</span>');
     });
 
-    it.skip('will support forceUpdate with an HoC', () => {
+    it.skip('will support forceUpdate with an HoC', async () => {
       const proxy = ({ children }) => html(children);
 
       const HOC = ChildComponent => class HOCComponent extends Component {
@@ -1165,12 +1142,12 @@ describe('Component implementation', function() {
 
       innerHTML(this.fixture, html`<${CustomComponent} message="Some" />`);
 
-      //equal(
-      //  this.fixture.innerHTML.replace(whitespaceEx, ''),
-      //  '<span>Some</span> test',
-      //);
+      strictEqual(
+        this.fixture.innerHTML.replace(whitespaceEx, ''),
+        '<span>Some</span> test',
+      );
 
-      instance.forceUpdate();
+      await instance.forceUpdate();
 
       strictEqual(
         this.fixture.innerHTML.replace(whitespaceEx, ''),
@@ -1237,11 +1214,12 @@ describe('Component implementation', function() {
       });
     });
 
-    it('will correctly forward props with outer class component', () => {
+    it.skip('will correctly forward props with outer class component', () => {
       let outerProps = null;
 
       class CustomComponent extends Component {
-        render() {
+        render(props) {
+          outerProps = props;
           return html`<span>Hello world</span>`;
         }
       }
@@ -1250,17 +1228,12 @@ describe('Component implementation', function() {
         render() {
           return html`<${ChildComponent} />`;
         }
-
-        componentDidMount() {
-          didMount++;
-        }
       };
 
       const WrappedComponent = HOC(CustomComponent);
 
-      class DoubleWrappedComponent extends Component {
-        render(props) {
-          outerProps = props;
+      class DoubleWrappedComponent extends WrappedComponent {
+        render() {
           return html``;
         }
       }
@@ -1270,7 +1243,6 @@ describe('Component implementation', function() {
       deepStrictEqual(outerProps, {
         children: [],
         message: 'Test',
-        refs: {},
       });
     });
   });

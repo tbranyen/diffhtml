@@ -1,7 +1,8 @@
 import { ComponentTreeCache, InstanceCache, VTree } from '../util/types';
 import { $$vTree } from '../util/symbols';
-import getContext from './get-context';
 import { getBinding } from '../util/binding';
+
+const { createTree } = getBinding();
 
 /**
  * Used during a synchronization flow. Takes in a vTree and a context object
@@ -9,12 +10,10 @@ import { getBinding } from '../util/binding';
  * methods.
  *
  * @param {VTree} vTree - tree to render
- * @param {object} context
  *
  * @returns {VTree | null}
  */
-export default function renderComponent(vTree, context) {
-  const { createTree } = getBinding();
+export default function renderComponent(vTree) {
   const Component = vTree.rawNodeName;
   const props = vTree.attributes;
   const isNewable = Component.prototype && Component.prototype.render;
@@ -51,7 +50,7 @@ export default function renderComponent(vTree, context) {
         instance.shouldComponentUpdate &&
         instance.shouldComponentUpdate(props, instance.state)
       ) {
-        renderTree = createTree(instance.render(props, instance.state, context));
+        renderTree = createTree(instance.render(props, instance.state));
 
         if (instance.componentDidUpdate && instance.componentDidUpdate) {
           instance.componentDidUpdate(instance.props, instance.state);
@@ -64,13 +63,10 @@ export default function renderComponent(vTree, context) {
   }
   // New class instance.
   else if (isNewable) {
-    const instance = new Component(props, context);
+    const instance = new Component(props);
 
     // Associate the instance to the vTree.
     InstanceCache.set(vTree, [instance]);
-
-    // Now that the instance is associated, we can look up context.
-    context = getContext(vTree);
 
     // Signal the component is about to mount.
     if (instance.componentWillMount) {
@@ -78,16 +74,17 @@ export default function renderComponent(vTree, context) {
     }
 
     // Initial render of the class component.
-    renderTree = createTree(instance.render(props, instance.state, context));
+    renderTree = createTree(instance.render(props, instance.state));
 
     // Ensure at least a single element was returned, unless this is a dynamic
-    // component that needs to be rendered.
+    // component that needs to be rendered. If nothing usable is found, assume
+    // this is an empty fragment.
     if (
       renderTree.nodeType === 11 &&
       renderTree.childNodes.length === 0 &&
       typeof renderTree.rawNodeName !== 'function'
     ) {
-      throw new Error('Must return at least one element from render');
+      renderTree = createTree([]);
     }
 
     const isHOC = typeof renderTree.rawNodeName === 'function';
@@ -96,7 +93,7 @@ export default function renderComponent(vTree, context) {
     // the parent class into it (if it's newable).
     if (isHOC) {
       // Render the nested component.
-      const retVal = renderComponent(renderTree, context);
+      const retVal = renderComponent(renderTree);
 
       // Get the newly created instance, if it exists.
       const renderedInstances = InstanceCache.get(renderTree);
@@ -105,7 +102,9 @@ export default function renderComponent(vTree, context) {
       if (renderedInstances) {
         renderedInstances.unshift(instance);
       }
-      else {
+      // Otherwise setup the instance cache against this VTree for the first
+      // time.
+      else if (retVal) {
         InstanceCache.set(retVal, [instance]);
       }
 
@@ -119,15 +118,16 @@ export default function renderComponent(vTree, context) {
 
     instance[$$vTree] = vTree;
   }
+  // Function component, as these are relatively stateless we can short-circut
+  // the linkTrees.
   else {
-    context = context || getContext(vTree);
-    renderTree = createTree(Component(props, context));
-    return renderTree;
+    return createTree(Component(props));
   }
 
   /**
    * Associate the children with the parent component that rendered them, this
-   * is used to trigger lifecycle events.
+   * is used to trigger lifecycle events. It also allows for render functions
+   * to return an array of VTree or multiple top level HTML elements.
    *
    * @param {VTree[]} childNodes
    */

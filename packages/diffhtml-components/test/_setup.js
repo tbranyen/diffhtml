@@ -1,16 +1,14 @@
-const { JSDOM } = require('jsdom');
+import { JSDOM } from 'jsdom';
+import globalThis from '../lib/util/global';
 
-global.newJSDOMSandbox = () => {
+const { assign } = Object;
+
+globalThis.newJSDOMSandbox = () => {
   const instance = new JSDOM(`<!DOCTYPE html>`);
   const { window } = instance;
   const { document, HTMLElement, customElements } = window;
 
-  Object.assign(global, { document, HTMLElement, customElements, window });
+  assign(globalThis, { document, HTMLElement, customElements, window });
 }
 
 newJSDOMSandbox();
-
-after(() => {
-  require('../lib/component').unsubscribeMiddleware();
-  require('../lib/web-component').unsubscribeMiddleware();
-});

@@ -18,8 +18,8 @@ export default function release(domNode) {
     // If there is a known root association that is not in the NodeCache,
     // remove this VTree.
     if (state.oldTree && !NodeCache.has(state.oldTree)) {
-      unprotectVTree(state.oldTree);
       ReleaseHookCache.forEach(fn => fn(state.oldTree));
+      unprotectVTree(state.oldTree);
     }
   }
 

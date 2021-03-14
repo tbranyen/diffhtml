@@ -3,7 +3,6 @@ import globalThis from '../util/global';
 import onceEnded from './once-ended';
 import componentWillUnmount from './lifecycle/component-will-unmount';
 import renderComponent from './render-component';
-import getContext from './get-context';
 
 const { assign } = Object;
 
@@ -25,12 +24,12 @@ function render(oldTree, newTree) {
   }
 
   if (!oldComponentTree) {
-    return renderComponent(newTree, getContext(newTree));
+    return renderComponent(newTree);
   }
   else if (oldComponentTree.rawNodeName === newTree.rawNodeName) {
     assign(oldComponentTree.attributes, newTree.attributes);
 
-    return renderComponent(oldComponentTree, getContext(oldTree));
+    return renderComponent(oldComponentTree);
   }
 }
 
@@ -63,7 +62,7 @@ const createNodeHook = vTree => {
   const Constructor = customElements && customElements.get(vTree.nodeName);
 
   if (Constructor) {
-    return new Constructor(vTree.attributes, getContext(vTree));
+    return new Constructor(vTree.attributes);
   }
 };
 

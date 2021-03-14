@@ -1,4 +1,5 @@
 import { JSDOM } from 'jsdom';
+import globalThis from '../lib/util/global';
 
 const { stringify } = JSON;
 const { assign } = Object;
@@ -25,7 +26,7 @@ const location = new Proxy(url, {
   },
 });
 
-assign(global, {
+assign(globalThis, {
   customElements: window.customElements,
   document: window.document,
   Element: window.Element,

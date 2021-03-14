@@ -8,7 +8,7 @@ const { innerHTML, html, createTree, release } = getBinding();
 
 const whitespaceEx = /[ ]{2,}|\n/g;
 
-describe('Web Component', function() {
+describe.skip('Web Component', function() {
   let WebComponent = null;
 
   beforeEach(() => {
