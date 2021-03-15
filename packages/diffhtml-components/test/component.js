@@ -451,7 +451,7 @@ describe('Component', function() {
       strictEqual(this.fixture.innerHTML, '<custom-component></custom-component>');
     });
 
-    it('will re-render a component with string props', () => {
+    it('will re-render a component with string props', async () => {
       class CustomComponent extends Component {
         render() {
           return html`
@@ -474,9 +474,7 @@ describe('Component', function() {
 
       const instance = this.fixture.querySelector('custom-component');
 
-      instance.forceUpdate();
-
-      strictEqual(instance.shadowRoot.childNodes[1].outerHTML, '<div>world</div>');
+      strictEqual(instance.shadowRoot.firstElementChild.outerHTML, '<div>world</div>');
       strictEqual(this.fixture.innerHTML, '<custom-component message="world"></custom-component>');
     });
   });

@@ -7,7 +7,7 @@ import {
   VTree,
   State,
 } from './util/types';
-import { $$render, $$vTree, $$unsubscribe } from './util/symbols';
+import { $$render, $$vTree, $$unsubscribe, $$type, $$timeout } from './util/symbols';
 import diff from './util/binding';
 import globalThis from './util/global';
 import middleware from './middleware';
@@ -15,8 +15,27 @@ import middleware from './middleware';
 const { outerHTML, innerHTML, createTree, release, Internals } = diff;
 const { NodeCache, memory, createNode } = Internals;
 const { from, isArray } = Array;
-const { defineProperty, keys, assign } = Object;
+const { setPrototypeOf, defineProperty, keys, assign } = Object;
 const RenderDebounce = new WeakMap();
+
+const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
+
+// Creates the `component.props` object.
+const createProps = (domNode, props = {}) => {
+  const observedAttributes = getObserved(domNode.constructor);
+  const initialProps = {};
+
+  const incoming = observedAttributes.reduce((props, attr) => ({
+    [attr]: (
+      (domNode.hasAttribute(attr) ? domNode.getAttribute(attr) : domNode[attr]) || initialProps[attr]),
+    ...props,
+  }), initialProps);
+
+  return assign({}, props, incoming);
+};
+
+// Creates the `component.state` object.
+const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
 /**
  * Represents a vanilla JavaScript Component. This is a lightweight version of
@@ -24,6 +43,10 @@ const RenderDebounce = new WeakMap();
  * React-inspired API.
  */
 export default class Component {
+  static get observedAttributes() {
+    return getObserved(this).map(key => key.toLowerCase());
+  }
+
   /**
    * Allow tests to unbind this task, you would not typically need to do this in
    * a web application, as this code loads once and is not reloaded.
@@ -65,11 +88,14 @@ export default class Component {
   constructor(initialProps) {
     let instance = this;
 
+    // This is how we detect if this is a WebComponent or not. The component
+    // must be registered ahead of time within the customElements global
+    // registry. This will allow us to construct the HTMLElement and attach the
+    // shadow root.
     try {
-      // Registered as a WebComponent so do special setup to seamlessly render.
       instance = Reflect.construct(HTMLElement, [], new.target);
-      instance.attachShadow({ mode: 'open' });
-      instance._isWebComponent = true;
+      /** @type {any} */ (instance).attachShadow({ mode: 'open' });
+      /** @type {any} */ (instance)[$$type] = 'web';
     } catch {
       // Not a WebComponent.
     }
@@ -95,11 +121,11 @@ export default class Component {
    * @param {Props} props
    * @param {State} state
    *
-   * @returns {VTree[] | VTree | null | undefined}
+   * @returns {VTree[] | VTree | undefined}
    */
   // @ts-ignore
   render(props, state) {
-    return null;
+    return undefined;
   }
 
   /**
@@ -156,6 +182,9 @@ export default class Component {
   /** @type {State} */
   state = {};
 
+  /** @type {'web'|'standard'} */
+  [$$type] = 'standard';
+
   /** @type {VTree | null} */
   [$$vTree] = null;
 
@@ -163,19 +192,19 @@ export default class Component {
    * Stateful render. Used when a component changes and needs to re-render
    * itself. This is triggered on `setState` and `forceUpdate` calls.
    *
-   * @return {Promise<void> | undefined}
+   * @return {Promise<Transaction> | undefined}
    */
   [$$render]() {
-    if (this._isWebComponent) {
+    if (this[$$type] === 'web') {
       const oldProps = this.props;
       const oldState = this.state;
 
       //this.props = createProps(this, this.props);
-
-      const promise = innerHTML(
-        this.shadowRoot,
+      /** @type {Promise<Transaction>} */
+      const promise = (innerHTML(
+        /** @type {any} */ (this).shadowRoot,
         this.render(this.props, this.state),
-      );
+      ));
 
       this.componentDidUpdate(oldProps, oldState);
       return promise;
@@ -284,17 +313,18 @@ export default class Component {
       }
     });
 
-    return promise.then(() => {
+    return promise.then(transaction => {
       // Empty the fragment after using.
       fragment.childNodes.length = 0;
       release(fragment);
 
       this.componentDidUpdate(this.props, this.state);
+      return transaction;
     });
   }
 
   connectedCallback() {
-    const { propTypes = {} } = this.constructor;
+    const { propTypes = {} } = /** @type {any} */ (this).constructor;
 
     // This callback gets called during replace operations, there is no point
     // in re-rendering or creating a new shadow root due to this.
@@ -304,24 +334,24 @@ export default class Component {
 
     this.componentDidMount();
 
-    // Handle properties being set after appended into the DOM, only mark those
-    // set in `propTypes`.
-    let timeout = null;
+    /**
+     * Handle properties being set after appended into the DOM, only mark those
+     * set in `propTypes`.
+     *
+     * @type {number}
+     */
+    let timeout;
 
     keys(propTypes).forEach(propName => {
       defineProperty(this, propName, {
         get: () => this.props[propName],
         set: (value) => {
-          globalThis.clearTimeout(timeout);
-
           this.props[propName] = value;
 
           this.componentWillReceiveProps(this.props, this.state);
 
           if (this.shouldComponentUpdate(this.props, this.state)) {
-            timeout = globalThis.setTimeout(() => {
-              this[$$render]();
-            });
+            this[$$render]();
           }
         },
       });
@@ -330,6 +360,17 @@ export default class Component {
 
   disconnectedCallback() {
     this.componentWillUnmount();
+  }
+
+  attributeChangedCallback() {
+    const nextProps = createProps(this, this.props);
+    const nextState = this.state;
+
+    this.componentWillReceiveProps(nextProps);
+
+    if (this.shouldComponentUpdate(nextProps, nextState)) {
+      this[$$render]();
+    }
   }
 
   /**
@@ -364,8 +405,8 @@ export default class Component {
 }
 
 // Allow Component to be used as a Custom Element.
-Component.__proto__ = HTMLElement;
-Component.prototype.__proto__ = HTMLElement.prototype;
+setPrototypeOf(Component.prototype, HTMLElement.prototype);
+setPrototypeOf(Component, HTMLElement);
 
 // Automatically subscribe the Component middleware.
 Component.subscribeMiddleware();
