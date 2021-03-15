@@ -1,7 +1,7 @@
-import { EMPTY, ComponentTreeCache, InstanceCache, VTree } from '../../util/types';
-import { getBinding } from '../../util/binding';
+import { EMPTY, ComponentTreeCache, InstanceCache, VTree } from '../util/types';
+import diff from '../util/binding';
 
-const { release, Internals } = getBinding();
+const { release, Internals } = diff;
 
 /**
  * @param {any} target

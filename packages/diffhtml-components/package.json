@@ -33,29 +33,20 @@
     "prepublishOnly": "npm run min",
     "clean": "rm -rf dist/* && mkdir -p dist",
     "check-js": "tsc -p jsconfig.json --noEmit false",
-    "min": "npm run build && npm run build-main-min && npm run build-component-min && npm run build-web-component-min",
-    "build": "npm run clean && npm run check-js && npm run build-main && npm run build-component && npm run build-web-component && npm run build-esm && npm run build-cjs",
+    "min": "npm run build && npm run build-main-min && npm run build-component-min",
+    "build": "npm run clean && npm run check-js && npm run build-main && npm run build-component && npm run build-esm && npm run build-cjs",
     "build-main": "NODE_ENV=umd rollup -c rollup.main.config.js",
     "build-component": "NODE_ENV=umd rollup -c rollup.component.config.js",
-    "build-web-component": "NODE_ENV=umd rollup -c rollup.web-component.config.js",
     "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs",
     "build-esm": "NODE_ENV=esm babel lib -d dist/es",
     "build-umd": "NODE_ENV=umd rollup -c rollup.config.js",
     "build-main-min": "NODE_ENV=min rollup -c rollup.main.config.js && uglifyjs dist/components.min.js -o dist/components.min.js -m -c",
     "build-component-min": "NODE_ENV=min rollup -c rollup.component.config.js && uglifyjs dist/component.min.js -o dist/component.min.js -m -c",
-    "build-web-component-min": "NODE_ENV=min rollup -c rollup.web-component.config.js && uglifyjs dist/web-component.min.js -o dist/web-component.min.js -m -c",
     "watch-main": "NODE_ENV=umd rollup -c rollup.main.config.js -w",
     "watch-component": "NODE_ENV=umd rollup -c rollup.component.config.js -w",
-    "watch-web-component": "NODE_ENV=umd rollup -c rollup.web-component.config.js -w",
     "test": "NODE_ENV=test mocha test/_setup test/**",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test",
     "test:ci": "npm run test-cov",
     "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test"
-  },
-  "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.18"
-  },
-  "optionalDependencies": {
-    "prop-types": "^15.7.2"
   }
 }

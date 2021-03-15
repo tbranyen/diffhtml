@@ -1,14 +1,15 @@
 import { strictEqual, deepStrictEqual } from 'assert';
 import Component from '../lib/component';
-import { getBinding } from '../lib/util/binding';
+import diff from '../lib/util/binding';
 import globalThis from '../lib/util/global';
 import validateCaches from './util/validate-caches';
 
-const { html, release, innerHTML, toString, createTree } = getBinding();
+const { html, release, innerHTML, toString, createTree } = diff;
 const { document } = globalThis;
 
 describe('Component', function() {
   beforeEach(() => {
+    newJSDOMSandbox();
     Component.subscribeMiddleware();
   });
 
@@ -383,6 +384,100 @@ describe('Component', function() {
       const actual = toString(html`<${TestComponent} label="test" />`).trim();
 
       strictEqual(actual, '<div>test</div>');
+    });
+  });
+
+  describe.only('WebComponent', () => {
+    it('will support a basic web component with manual registration', () => {
+      class HelloWorld extends Component {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      customElements.define('hello-world', HelloWorld);
+
+      this.fixture = document.createElement('div');
+      document.body.appendChild(this.fixture);
+
+      innerHTML(this.fixture, html`<hello-world />`);
+
+      strictEqual(this.fixture.firstElementChild.shadowRoot.innerHTML.trim(), '<div>Hello world</div>');
+    });
+
+    it('will render a nested component', () => {
+      class CustomComponent extends Component {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      this.fixture = document.createElement('div');
+      document.body.appendChild(this.fixture);
+
+      customElements.define('custom-component', CustomComponent);
+      innerHTML(this.fixture, html`<div><custom-component /></div>`);
+
+      const instance = this.fixture.querySelector('custom-component');
+
+      strictEqual(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+      strictEqual(this.fixture.innerHTML, '<div><custom-component></custom-component></div>');
+    });
+
+    it('will re-render a component', () => {
+      class CustomComponent extends Component {
+        render() {
+          return html`
+            <div>Hello world</div>
+          `;
+        }
+      }
+
+      this.fixture = document.createElement('div');
+      document.body.appendChild(this.fixture);
+
+      customElements.define('custom-component', CustomComponent);
+
+      innerHTML(this.fixture, html`<custom-component />`);
+      innerHTML(this.fixture, html`<custom-component />`);
+
+      const instance = this.fixture.querySelector('custom-component');
+
+      strictEqual(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+      strictEqual(this.fixture.innerHTML, '<custom-component></custom-component>');
+    });
+
+    it('will re-render a component with string props', () => {
+      class CustomComponent extends Component {
+        render() {
+          return html`
+            <div>${this.props.message}</div>
+          `;
+        }
+
+        static propTypes = {
+          message: String,
+        }
+      }
+
+      customElements.define('custom-component', CustomComponent);
+
+      this.fixture = document.createElement('div');
+      document.body.appendChild(this.fixture);
+
+      innerHTML(this.fixture, html`<custom-component message="hello" />`);
+      innerHTML(this.fixture, html`<custom-component message="world" />`);
+
+      const instance = this.fixture.querySelector('custom-component');
+
+      instance.forceUpdate();
+
+      strictEqual(instance.shadowRoot.childNodes[1].outerHTML, '<div>world</div>');
+      strictEqual(this.fixture.innerHTML, '<custom-component message="world"></custom-component>');
     });
   });
 });

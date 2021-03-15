@@ -1,8 +1,8 @@
-import { ComponentTreeCache, InstanceCache, VTree } from '../util/types';
-import { $$vTree } from '../util/symbols';
-import { getBinding } from '../util/binding';
+import { ComponentTreeCache, InstanceCache, VTree } from './util/types';
+import { $$vTree } from './util/symbols';
+import diff from './util/binding';
 
-const { createTree } = getBinding();
+const { createTree } = diff;
 
 /**
  * Used during a synchronization flow. Takes in a vTree and a context object

@@ -1,6 +1,6 @@
-import { getBinding } from './binding';
+import diff from './binding';
 
-const { Internals } = getBinding();
+const { Internals } = diff;
 
 /** @type {any} */ (typeof window !== 'undefined' ? window : global).process = Internals.process;
 

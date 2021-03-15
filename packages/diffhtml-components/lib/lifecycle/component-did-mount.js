@@ -1,9 +1,13 @@
-import { getBinding } from '../../util/binding';
-import { EMPTY, ComponentTreeCache, InstanceCache, VTree } from '../../util/types';
+import diff from '../util/binding';
+import { EMPTY, ComponentTreeCache, InstanceCache, VTree } from '../util/types';
 
-const { Internals } = getBinding();
+const { Internals } = diff;
 
-const invokeRef = (target = EMPTY.OBJ, /** @type {VTree} */ vTree) => {
+/**
+ * @param {any} target
+ * @param {VTree} vTree
+ */
+const invokeRef = (target = EMPTY.OBJ, vTree) => {
   let { ref } = target.props || target;
 
   // Allow refs to be passed to HTML elements. When in a DOM environment

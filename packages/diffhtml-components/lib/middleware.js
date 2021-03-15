@@ -1,5 +1,5 @@
-import { ComponentTreeCache, VTree, Transaction } from '../util/types';
-import globalThis from '../util/global';
+import { ComponentTreeCache, VTree, Transaction } from './util/types';
+import globalThis from './util/global';
 import onceEnded from './once-ended';
 import componentWillUnmount from './lifecycle/component-will-unmount';
 import renderComponent from './render-component';

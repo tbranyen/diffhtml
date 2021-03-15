@@ -1,5 +1,5 @@
 import { strictEqual } from 'assert';
-import { getBinding } from '../../lib/util/binding';
+import diff from '../../lib/util/binding';
 import { ComponentTreeCache, InstanceCache } from '../../lib/util/types';
 
 /**
@@ -24,7 +24,7 @@ const {
   CreateNodeHookCache,
   SyncTreeHookCache,
   ReleaseHookCache,
-} = getBinding().Internals;
+} = diff.Internals;
 
 function validateMemory() {
   // Run garbage collection after each test.

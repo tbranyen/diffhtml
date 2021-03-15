@@ -1,16 +1,15 @@
 import componentDidMount from './lifecycle/component-did-mount';
 import componentWillUnmount from './lifecycle/component-will-unmount';
-import { getBinding } from '../util/binding';
-import { Transaction } from '../util/types';
+import diff from './util/binding';
+import { Transaction } from './util/types';
 
+const { NodeCache, PATCH_TYPE, decodeEntities } = diff.Internals;
 const uppercaseEx = /[A-Z]/g;
 
 /**
  * @param {Transaction} transaction
  */
 export default transaction => {
-  const { NodeCache, PATCH_TYPE, decodeEntities } = getBinding().Internals;
-
   if (transaction.aborted) {
     return;
   }
