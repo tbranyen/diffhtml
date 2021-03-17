@@ -7,9 +7,8 @@ import {
   VTree,
   State,
 } from './util/types';
-import { $$render, $$vTree, $$unsubscribe, $$type, $$timeout } from './util/symbols';
+import { $$render, $$vTree, $$unsubscribe, $$type } from './util/symbols';
 import diff from './util/binding';
-import globalThis from './util/global';
 import middleware from './middleware';
 
 const { outerHTML, innerHTML, createTree, release, Internals } = diff;
@@ -405,8 +404,10 @@ export default class Component {
 }
 
 // Allow Component to be used as a Custom Element.
-setPrototypeOf(Component.prototype, HTMLElement.prototype);
-setPrototypeOf(Component, HTMLElement);
+try {
+  setPrototypeOf(Component.prototype, HTMLElement.prototype);
+  setPrototypeOf(Component, HTMLElement);
+} catch {}
 
 // Automatically subscribe the Component middleware.
 Component.subscribeMiddleware();
