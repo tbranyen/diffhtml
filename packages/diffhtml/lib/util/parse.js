@@ -26,7 +26,6 @@ const blockTextDefaults = [
   'script',
   'noscript',
   'style',
-  'code',
   'template',
 ];
 
