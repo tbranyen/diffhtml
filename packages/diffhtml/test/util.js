@@ -367,6 +367,14 @@ describe('Util', function() {
       equal(vTrees[0].childNodes[0].nodeName, 'code');
     });
 
+    it('will support nested elements within <code>', () => {
+      const vTrees = parse(`<code><pre></pre></code>`).childNodes;
+
+      equal(vTrees[0].nodeName, 'code');
+      equal(vTrees[0].childNodes.length, 1);
+      equal(vTrees[0].childNodes[0].nodeName, 'pre');
+    });
+
     it('will not support nested elements within <script>', () => {
       const vTrees = parse(`<script><pre></pre></script>`).childNodes;
 
@@ -389,15 +397,6 @@ describe('Util', function() {
       const vTrees = parse(`<style><pre></pre></style>`).childNodes;
 
       equal(vTrees[0].nodeName, 'style');
-      equal(vTrees[0].childNodes.length, 1);
-      equal(vTrees[0].childNodes[0].nodeName, '#text');
-      equal(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
-    });
-
-    it('will not support nested elements within <code>', () => {
-      const vTrees = parse(`<code><pre></pre></code>`).childNodes;
-
-      equal(vTrees[0].nodeName, 'code');
       equal(vTrees[0].childNodes.length, 1);
       equal(vTrees[0].childNodes[0].nodeName, '#text');
       equal(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
