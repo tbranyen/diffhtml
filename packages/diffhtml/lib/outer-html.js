@@ -13,7 +13,7 @@ import {
  *
  * @return {Promise<Transaction> | unknown}
  */
-export default function outerHTML(mount, input = EMPTY.STR, config = EMPTY.OBJ) {
+export default function outerHTML(mount, input = EMPTY.STR, config = {}) {
   config.inner = false;
 
   return Transaction.create(mount, input, config).start();

@@ -9,7 +9,7 @@ import { EMPTY, ValidInput, TransactionConfig, Mount } from './util/types';
  *
  * @return {Promise<Transaction> | unknown}
  */
-export default function innerHTML(domNode, input = EMPTY.STR, options = EMPTY.OBJ) {
+export default function innerHTML(domNode, input = EMPTY.STR, options = {}) {
   options.inner = true;
   options.executeScripts = 'executeScripts' in options ? options.executeScripts : true;
   options.tasks = options.tasks || defaultTasks;
