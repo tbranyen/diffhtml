@@ -9,12 +9,11 @@ new programmers, intermediates, and professionals.
 
 ## <a href="#core-features">Core features</a>
 
-- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified builds
-- <span class="list-icon fa fa-retweet"></span> Async transition hooks
+- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified ES5 builds
+- <span class="list-icon fa fa-retweet"></span> Async DOM transition hooks
 - <span class="list-icon fa fa-link"></span> Middleware
 - <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
 - <span class="list-icon fa fa-recycle"></span> Object pooling to optimize GC
-- <span class="list-icon fa fa-codiepie"></span> Automatic memory management
 - <span class="list-icon fa fa-pencil"></span> Strict mode TypeScript via checkJS
 
 <a name="getting-started"></a>
