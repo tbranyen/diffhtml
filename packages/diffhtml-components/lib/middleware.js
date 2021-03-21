@@ -13,6 +13,8 @@ const { assign } = Object;
 function render(oldTree, newTree) {
   let oldComponentTree = null;
 
+  // When there is an oldTree and it has childNodes, attempt to look up first
+  // by the top-level element, or by the first element.
   if (oldTree && oldTree.childNodes) {
     // First try and lookup the old tree as a component.
     oldComponentTree = ComponentTreeCache.get(oldTree);
@@ -23,6 +25,7 @@ function render(oldTree, newTree) {
     }
   }
 
+  // If there is no old component, then we are rendering a brand new component.
   if (!oldComponentTree) {
     return renderComponent(newTree);
   }
@@ -94,26 +97,31 @@ const syncTreeHook = (oldTree, newTree) => {
       const oldChildTree = oldTree.childNodes && oldTree.childNodes[i];
       const renderTree = render(oldChildTree, newChildTree);
 
+      console.log('Finished rendering', renderTree, i);
+
       // Inject the rendered tree into the position.
       if (renderTree) {
         newTree.childNodes[i] = renderTree;
 
         // If the rendered tree is a fragment, splice in the children, as this
         // is simply a container for the nodes.
-        if (renderTree.nodeType === 11) {
-          // If a function was returned, re-run the inspection over this
-          // element.
-          if (typeof renderTree.rawNodeName === 'function') {
-            i = i - 1;
-          }
-          // Replace the fragment with the rendered elements. Maybe in the
-          // future this could remain a fragment and seamlessly patch into the
-          // DOM.
-          else {
-            newTree.childNodes.splice(i, 1, ...renderTree.childNodes);
-          }
-        }
+        //if (renderTree.nodeType === 11) {
+        //  // If a function was returned, re-run the inspection over this
+        //  // element.
+        //  if (typeof renderTree.rawNodeName === 'function') {
+        //    i = i - 1;
+        //  }
+        //  // Replace the fragment with the rendered elements. Maybe in the
+        //  // future this could remain a fragment and seamlessly patch into the
+        //  // DOM.
+        //  else {
+        //    newTree.childNodes.splice(i, 1, ...renderTree.childNodes);
+        //  }
+        //}
+
+        console.log(newChildTree.rawNodeName.name, newTree.childNodes);
       }
+      // FIXME this conditional should not return
       // Nothing rendered, so return the oldTree.
       else {
         newTree.childNodes[i] = newChildTree;

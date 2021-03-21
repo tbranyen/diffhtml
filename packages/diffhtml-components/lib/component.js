@@ -17,23 +17,37 @@ const { from, isArray } = Array;
 const { setPrototypeOf, defineProperty, keys, assign } = Object;
 const RenderDebounce = new WeakMap();
 
-const getObserved = ({ propTypes }) => propTypes ? keys(propTypes) : [];
+/**
+ * @param {Props} defaultProps
+ */
+const getObserved = ({ defaultProps }) => defaultProps ? keys(defaultProps) : [];
 
-// Creates the `component.props` object.
-const createProps = (domNode, props = {}) => {
+/**
+ * Creates the `component.props` object.
+ *
+ * @param {Component} domNode
+ * @param {Props} newProps
+ */
+const createProps = (domNode, newProps = {}) => {
   const observedAttributes = getObserved(domNode.constructor);
   const initialProps = {};
 
   const incoming = observedAttributes.reduce((props, attr) => ({
     [attr]: (
-      (domNode.hasAttribute(attr) ? domNode.getAttribute(attr) : domNode[attr]) || initialProps[attr]),
+      domNode.hasAttribute(attr) ? domNode.getAttribute(attr) : domNode[attr]
+    ) || initialProps[attr],
     ...props,
   }), initialProps);
 
-  return assign({}, props, incoming);
+  return assign({}, newProps, incoming);
 };
 
-// Creates the `component.state` object.
+/**
+ * Creates the `component.state` object.
+ *
+ * @param {Component} domNode
+ * @param {State} newState
+ */
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
 /**
@@ -87,7 +101,7 @@ export default class Component {
   constructor(initialProps) {
     let instance = this;
 
-    // This is how we detect if this is a WebComponent or not. The component
+    // This is how we detect if this is a Web Component or not. The class
     // must be registered ahead of time within the customElements global
     // registry. This will allow us to construct the HTMLElement and attach the
     // shadow root.
@@ -96,7 +110,8 @@ export default class Component {
       /** @type {any} */ (instance).attachShadow({ mode: 'open' });
       /** @type {any} */ (instance)[$$type] = 'web';
     } catch {
-      // Not a WebComponent.
+      // Not a Web Component.
+      /** @type {any} */ (instance)[$$type] = 'class';
     }
 
     const props = instance.props = assign({}, initialProps);
@@ -181,8 +196,8 @@ export default class Component {
   /** @type {State} */
   state = {};
 
-  /** @type {'web'|'standard'} */
-  [$$type] = 'standard';
+  /** @type {'web'|'class'} */
+  [$$type] = 'class';
 
   /** @type {VTree | null} */
   [$$vTree] = null;
@@ -194,11 +209,16 @@ export default class Component {
    * @return {Promise<Transaction> | undefined}
    */
   [$$render]() {
+    debugger;
+
+    // This is a WebComponent, so do something different.
     if (this[$$type] === 'web') {
       const oldProps = this.props;
       const oldState = this.state;
 
-      //this.props = createProps(this, this.props);
+      this.props = createProps(this, this.props);
+      this.state = createState(this, this.state);
+
       /** @type {Promise<Transaction>} */
       const promise = (innerHTML(
         /** @type {any} */ (this).shadowRoot,
@@ -297,7 +317,7 @@ export default class Component {
         memory.protectVTree(childTree);
       }
       // Add if there is no old Node.
-      else if (lastNode) {
+      else if (lastNode && !oldNode) {
         lastNode.after(newNode);
         lastNode = newNode;
 
@@ -323,7 +343,7 @@ export default class Component {
   }
 
   connectedCallback() {
-    const { propTypes = {} } = /** @type {any} */ (this).constructor;
+    const { defaultProps = {} } = /** @type {any} */ (this).constructor;
 
     // This callback gets called during replace operations, there is no point
     // in re-rendering or creating a new shadow root due to this.
@@ -333,15 +353,7 @@ export default class Component {
 
     this.componentDidMount();
 
-    /**
-     * Handle properties being set after appended into the DOM, only mark those
-     * set in `propTypes`.
-     *
-     * @type {number}
-     */
-    let timeout;
-
-    keys(propTypes).forEach(propName => {
+    keys(defaultProps).forEach(propName => {
       defineProperty(this, propName, {
         get: () => this.props[propName],
         set: (value) => {
@@ -363,9 +375,9 @@ export default class Component {
 
   attributeChangedCallback() {
     const nextProps = createProps(this, this.props);
-    const nextState = this.state;
+    const nextState = createState(this, this.state);
 
-    this.componentWillReceiveProps(nextProps);
+    this.componentWillReceiveProps(nextProps, nextState);
 
     if (this.shouldComponentUpdate(nextProps, nextState)) {
       this[$$render]();
@@ -403,7 +415,8 @@ export default class Component {
   componentWillUnmount() {}
 }
 
-// Allow Component to be used as a Custom Element.
+// Allow Component to be used as a Custom Element, but only in DOM environments.
+// Safely fall back
 try {
   setPrototypeOf(Component.prototype, HTMLElement.prototype);
   setPrototypeOf(Component, HTMLElement);

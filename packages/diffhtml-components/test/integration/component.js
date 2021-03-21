@@ -1112,12 +1112,19 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, '<span>Hello world</span>');
     });
 
-    it.skip('will support forceUpdate with an HoC', async () => {
-      const proxy = ({ children }) => html(children);
+    it.only('will support forceUpdate with an HoC', async () => {
+      const proxy = ({ children }) => children;
 
       const HOC = ChildComponent => class HOCComponent extends Component {
         render() {
-          return html`<${ChildComponent} />`;
+          console.log('rendering');
+          return html`<${ChildComponent} children=${this.props.children} />`;
+        }
+
+        constructor(...args) {
+          super(...args);
+
+          console.log('constructor');
         }
       };
 
@@ -1144,14 +1151,15 @@ describe('Component implementation', function() {
 
       strictEqual(
         this.fixture.innerHTML.replace(whitespaceEx, ''),
-        '<span>Some</span> test',
+        '<span>Some</span>test',
       );
 
+      console.log('calling forceUpdate');
       await instance.forceUpdate();
 
       strictEqual(
         this.fixture.innerHTML.replace(whitespaceEx, ''),
-        '<span>Some</span> test',
+        '<span>Some</span>test',
       );
     });
 

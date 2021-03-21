@@ -387,7 +387,7 @@ describe('Component', function() {
     });
   });
 
-  describe.only('WebComponent', () => {
+  describe('WebComponent', () => {
     it('will support a basic web component with manual registration', () => {
       class HelloWorld extends Component {
         render() {
@@ -459,8 +459,8 @@ describe('Component', function() {
           `;
         }
 
-        static propTypes = {
-          message: String,
+        static defaultProps = {
+          message: '',
         }
       }
 

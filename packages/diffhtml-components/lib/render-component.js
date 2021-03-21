@@ -19,7 +19,7 @@ export default function renderComponent(vTree) {
   const isNewable = Component.prototype && Component.prototype.render;
 
   let instances = null;
-  let renderTree = null;
+  let renderedTree = null;
 
   // Existing component.
   if (InstanceCache.has(vTree)) {
@@ -50,7 +50,7 @@ export default function renderComponent(vTree) {
         instance.shouldComponentUpdate &&
         instance.shouldComponentUpdate(props, instance.state)
       ) {
-        renderTree = createTree(instance.render(props, instance.state));
+        renderedTree = createTree(instance.render(props, instance.state));
 
         if (instance.componentDidUpdate && instance.componentDidUpdate) {
           instance.componentDidUpdate(instance.props, instance.state);
@@ -66,6 +66,7 @@ export default function renderComponent(vTree) {
     const instance = new Component(props);
 
     // Associate the instance to the vTree.
+    console.log('>> newed', instance.constructor.name);
     InstanceCache.set(vTree, [instance]);
 
     // Signal the component is about to mount.
@@ -74,33 +75,47 @@ export default function renderComponent(vTree) {
     }
 
     // Initial render of the class component.
-    renderTree = createTree(instance.render(props, instance.state));
+    console.log('>> start render', instance.constructor.name);
+    renderedTree = createTree(instance.render(props, instance.state));
+    console.log('>> end render', instance.constructor.name);
 
     // Ensure at least a single element was returned, unless this is a dynamic
     // component that needs to be rendered. If nothing usable is found, assume
     // this is an empty fragment.
     if (
-      renderTree.nodeType === 11 &&
-      renderTree.childNodes.length === 0 &&
-      typeof renderTree.rawNodeName !== 'function'
+      renderedTree.nodeType === 11 &&
+      renderedTree.childNodes.length === 0 &&
+      typeof renderedTree.rawNodeName !== 'function'
     ) {
-      renderTree = createTree([]);
+      // FIXME: This needs to be something that can be represented in the DOM,
+      // like empty text or a comment.
+      renderedTree = createTree([]);
     }
 
-    const isHOC = typeof renderTree.rawNodeName === 'function';
+    const isHOC = typeof renderedTree.rawNodeName === 'function';
 
     // If the component returned is a function, treat as a HoC and inject
     // the parent class into it (if it's newable).
     if (isHOC) {
       // Render the nested component.
-      const retVal = renderComponent(renderTree);
+      const retVal = renderComponent(renderedTree);
 
       // Get the newly created instance, if it exists.
-      const renderedInstances = InstanceCache.get(renderTree);
+      const renderedInstances = InstanceCache.get(renderedTree);
 
       // Push the parent to the front, so long as a child instance was created.
       if (renderedInstances) {
         renderedInstances.unshift(instance);
+      }
+      // FIXME How to associate tree to node.
+      else if (retVal && retVal.nodeType === 11) {
+        //console.log('here', retVal.childNodes[0]);
+        // What if there are more fragments? Need to flatten some other way.
+        // Is this the correct mapping??
+        //retVal.childNodes.forEach(innerNode => {
+        //  ComponentTreeCache.set(innerNode, vTree);
+        //});
+        //InstanceCache.set(retVal.childNodes[0], [instance]);
       }
       // Otherwise setup the instance cache against this VTree for the first
       // time.
@@ -113,9 +128,10 @@ export default function renderComponent(vTree) {
       return retVal;
     }
     else {
-      InstanceCache.set(renderTree, [instance]);
+      InstanceCache.set(vTree, [instance]);
     }
 
+    // FIXME Should this really be vTree, or should it be the renderedTree?
     instance[$$vTree] = vTree;
   }
   // Function component, as these are relatively stateless we can short-circut
@@ -145,9 +161,9 @@ export default function renderComponent(vTree) {
 
   // Maybe this isn't necessary? For now it helps track, but this is costly
   // and perhaps can be solved in a different way.
-  if (renderTree) {
-    linkTrees(renderTree.nodeType === 11 ? renderTree.childNodes : [renderTree]);
+  if (renderedTree) {
+    linkTrees(renderedTree.nodeType === 11 ? renderedTree.childNodes : [renderedTree]);
   }
 
-  return renderTree;
+  return renderedTree;
 };

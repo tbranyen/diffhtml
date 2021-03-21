@@ -40,7 +40,8 @@ api.Internals = internals;
 const global = globalThis;
 
 // Bind the API into the global scope. Allows middleware and other code to
-// reference the core API.
+// reference the core API. Once import maps are more mainstream, we can
+// deprecate this.
 if (bindingSymbol in globalThis) {
   const existingApi = global[bindingSymbol];
 
