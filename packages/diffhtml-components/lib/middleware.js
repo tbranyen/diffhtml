@@ -9,6 +9,8 @@ const { assign } = Object;
 /**
  * @param {VTree} oldTree
  * @param {VTree} newTree
+ *
+ * @returns {VTree | null}
  */
 function render(oldTree, newTree) {
   let oldComponentTree = null;
@@ -25,15 +27,21 @@ function render(oldTree, newTree) {
     }
   }
 
-  // If there is no old component, then we are rendering a brand new component.
-  if (!oldComponentTree) {
+  // If there is no old component, or if the components do not match, then we
+  // are rendering a brand new component.
+  if (!oldComponentTree || oldComponentTree.rawNodeName !== newTree.rawNodeName) {
     return renderComponent(newTree);
   }
-  else if (oldComponentTree.rawNodeName === newTree.rawNodeName) {
+
+  // Otherwise re-use the existing component if the constructors are the same.
+  if (oldComponentTree) {
+    // Update the incoming props/attrs.
     assign(oldComponentTree.attributes, newTree.attributes);
 
     return renderComponent(oldComponentTree);
   }
+
+  return oldTree;
 }
 
 /**
@@ -80,9 +88,9 @@ const syncTreeHook = (oldTree, newTree) => {
     typeof newTree.rawNodeName === 'function' &&
     // If there is an oldTree and it's not the existing component, trigger a
     // render.
-    (oldTree ? newTree.rawNodeName !== oldTree.rawNodeName : true)
+    (oldTree && oldTree.rawNodeName ? oldTree.rawNodeName !== newTree.rawNodeName : false)
   ) {
-    return render(oldTree, newTree) || oldTree;
+    return render(oldTree, newTree);
   }
 
   if (!newTree.childNodes) {
@@ -97,7 +105,10 @@ const syncTreeHook = (oldTree, newTree) => {
       const oldChildTree = oldTree.childNodes && oldTree.childNodes[i];
       const renderTree = render(oldChildTree, newChildTree);
 
-      console.log('Finished rendering', renderTree, i);
+      // If nothing was rendered, return the oldTree.
+      if (!renderTree) {
+        return oldTree;
+      }
 
       // Inject the rendered tree into the position.
       if (renderTree) {
@@ -105,29 +116,19 @@ const syncTreeHook = (oldTree, newTree) => {
 
         // If the rendered tree is a fragment, splice in the children, as this
         // is simply a container for the nodes.
-        //if (renderTree.nodeType === 11) {
-        //  // If a function was returned, re-run the inspection over this
-        //  // element.
-        //  if (typeof renderTree.rawNodeName === 'function') {
-        //    i = i - 1;
-        //  }
-        //  // Replace the fragment with the rendered elements. Maybe in the
-        //  // future this could remain a fragment and seamlessly patch into the
-        //  // DOM.
-        //  else {
-        //    newTree.childNodes.splice(i, 1, ...renderTree.childNodes);
-        //  }
-        //}
-
-        console.log(newChildTree.rawNodeName.name, newTree.childNodes);
-      }
-      // FIXME this conditional should not return
-      // Nothing rendered, so return the oldTree.
-      else {
-        newTree.childNodes[i] = newChildTree;
-
-        // FIXME Determine why this is necessary, it is most likely wrong.
-        return oldTree;
+        if (renderTree.nodeType === 11) {
+          // If a function was returned, re-run the inspection over this
+          // element.
+          if (typeof renderTree.rawNodeName === 'function') {
+            i = i - 1;
+          }
+          // Replace the fragment with the rendered elements. This reduces and
+          // flattens the fragments into their respective nodes. If there are
+          // none, then they are removed from the DOM and nothing is rendered.
+          else {
+            newTree.childNodes.splice(i, 1, ...renderTree.childNodes);
+          }
+        }
       }
     }
   }

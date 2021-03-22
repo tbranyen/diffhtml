@@ -35,54 +35,52 @@ const invokeRefsForVTrees = (/** @type {(VTree | null)[]} */ ...vTrees) => {
     if (!vTree) continue;
 
     const componentTree = ComponentTreeCache.get(vTree);
-    const instances = InstanceCache.get(componentTree || vTree);
+    const instance = InstanceCache.get(componentTree || vTree);
 
     if (vTree.childNodes.length) {
       invokeRefsForVTrees(...vTree.childNodes);
     }
 
-    if (!instances) {
+    if (!instance) {
       invokeRef(Internals.NodeCache.get(vTree), vTree);
       continue;
     }
 
     // If any instances exist, loop through them and invoke the respective `ref`
     // logic.
-    instances.forEach(instance => invokeRef(instance, vTree));
+    invokeRef(instance, vTree);
   }
 }
 
 /**
  * @param {VTree} vTree
+ *
+ * @returns {void}
  */
 export default function componentDidMount(vTree) {
-  // Ensure this is a stateful component. Stateless components do not get
-  // lifecycle events yet.
   const componentTree = ComponentTreeCache.get(vTree);
 
   /** @type {VTree[]} */
   const childTrees = [];
 
-  ComponentTreeCache.forEach((rootTree, vTree) => {
-    if (rootTree === componentTree) {
-      childTrees.push(vTree);
+  ComponentTreeCache.forEach((parentTree, childTree) => {
+    if (parentTree === componentTree) {
+      childTrees.push(childTree);
     }
   });
 
+  invokeRefsForVTrees(vTree);
+
   // Only trigger a mount for the first element.
-  if (childTrees.length > 1 && childTrees.indexOf(vTree) !== 0) {
+  if (childTrees.length === 0 || childTrees[0] !== vTree) {
     return;
   }
 
-  const instances = InstanceCache.get(componentTree || vTree);
+  // If there is a parent, ensure it is called recursively.
+  if (ComponentTreeCache.has(componentTree)) {
+    componentDidMount(componentTree);
+  }
 
-  // Invoke any function refs and set the current node for this component or
-  // element.
-  invokeRefsForVTrees(vTree, ...childTrees.slice(1));
-
-  instances && instances.forEach(instance => {
-    if (instance.componentDidMount) {
-      instance.componentDidMount();
-    }
-  });
+  const instance = InstanceCache.get(componentTree);
+  instance && instance.componentDidMount && instance.componentDidMount();
 }

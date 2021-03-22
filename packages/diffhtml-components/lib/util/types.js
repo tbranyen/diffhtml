@@ -9,7 +9,7 @@ export const EMPTY = {
 export const ComponentTreeCache = new Map();
 
 /**
- * @typedef {Map<VTree, any[]>} InstanceCache
+ * @typedef {Map<VTree, any>} InstanceCache
  * @type {InstanceCache}
  */
 export const InstanceCache = new Map();

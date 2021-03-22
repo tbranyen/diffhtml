@@ -2,6 +2,7 @@ import { strictEqual, deepStrictEqual } from 'assert';
 import Component from '../lib/component';
 import diff from '../lib/util/binding';
 import globalThis from '../lib/util/global';
+import { ComponentTreeCache } from '../lib/util/types';
 import validateCaches from './util/validate-caches';
 
 const { html, release, innerHTML, toString, createTree } = diff;
@@ -9,13 +10,14 @@ const { document } = globalThis;
 
 describe('Component', function() {
   beforeEach(() => {
+    process.env.NODE_ENV = 'development';
     newJSDOMSandbox();
-    Component.subscribeMiddleware();
+    require('../lib/component').subscribeMiddleware();
   });
 
   afterEach(() => {
-    Component.unsubscribeMiddleware();
     release(this.fixture);
+    require('../lib/component').unsubscribeMiddleware();
     validateCaches();
   });
 
@@ -140,7 +142,7 @@ describe('Component', function() {
         }
       }
 
-      const actual = toString(html`<${TestComponent} test="value" />`).trim();
+      const actual = toString(TestComponent).trim();
 
       strictEqual(actual, '<div></div>');
     });
@@ -181,6 +183,197 @@ describe('Component', function() {
       const actual = toString(html`<${TestComponent} test="value" />`).trim();
 
       strictEqual(actual, '<div>value</div>');
+    });
+
+    it('will correctly render an empty text node when a falsy component is rendered', () => {
+      {
+        class TestComponent extends Component {
+          render() {
+            return null;
+          }
+        }
+
+        this.fixture = createTree('div');
+        innerHTML(this.fixture, TestComponent);
+
+        const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+        strictEqual(componentVTree.rawNodeName, TestComponent);
+        release(this.fixture);
+      }
+      {
+        class TestComponent extends Component {
+          render() {
+            return undefined;
+          }
+        }
+
+        this.fixture = createTree('div');
+        innerHTML(this.fixture, TestComponent);
+
+        const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+        strictEqual(componentVTree.rawNodeName, TestComponent);
+        release(this.fixture);
+      }
+      {
+        class TestComponent extends Component {
+          render() {
+            return false;
+          }
+        }
+
+        this.fixture = createTree('div');
+        innerHTML(this.fixture, TestComponent);
+
+        const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+        strictEqual(componentVTree.rawNodeName, TestComponent);
+        release(this.fixture);
+      }
+    });
+
+    it('will associate single element rendered to component', () => {
+      class TestComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, TestComponent);
+
+      const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(componentVTree.rawNodeName, TestComponent);
+    });
+
+    it('will associate the whitespace from the start of a fragment', () => {
+      class TestComponent extends Component {
+        render() {
+          return html`
+            <div />
+          `;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, TestComponent);
+
+      const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      // FIXME This should be a comment to make it more portable. Although text
+      // will work for now.
+      strictEqual(this.fixture.childNodes[0].nodeName, '#text');
+      strictEqual(componentVTree.rawNodeName, TestComponent);
+    });
+
+    it('will associate a nested component', () => {
+      class Level2Component extends Component {
+        render() {
+          return html`
+            <div />
+          `;
+        }
+      }
+
+      class Level1Component extends Component {
+        render() {
+          return html`
+            <${Level2Component} />
+          `;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, Level1Component);
+
+      const level1VTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(level1VTree.rawNodeName, Level1Component);
+
+      const level2VTree = ComponentTreeCache.get(this.fixture.childNodes[1]);
+      strictEqual(level2VTree.rawNodeName, Level2Component);
+    });
+
+    it('will associate two nested components', () => {
+      class Level3Component extends Component {
+        render() {
+          return html`
+            <div />
+          `;
+        }
+      }
+      class Level2Component extends Component {
+        render() {
+          return html`
+            <${Level3Component} />
+          `;
+        }
+      }
+
+      class Level1Component extends Component {
+        render() {
+          return html`
+            <${Level2Component} />
+          `;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, Level1Component);
+
+      const level1VTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(level1VTree.rawNodeName, Level1Component);
+
+      const level2VTree = ComponentTreeCache.get(this.fixture.childNodes[1]);
+      strictEqual(level2VTree.rawNodeName, Level2Component);
+
+      const level3VTree = ComponentTreeCache.get(this.fixture.childNodes[2]);
+      strictEqual(level3VTree.rawNodeName, Level3Component);
+    });
+
+    it('will associate a nested function component', () => {
+      function Level2Component() {
+        return html`
+          <div />
+        `;
+      }
+
+      class Level1Component extends Component {
+        render() {
+          return html`
+            <${Level2Component} />
+          `;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, Level1Component);
+
+      const level1VTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(level1VTree.rawNodeName, Level1Component);
+
+      const level2VTree = ComponentTreeCache.get(this.fixture.childNodes[1]);
+      strictEqual(level2VTree.rawNodeName, Level2Component);
+    });
+
+    it('will associate a nested function component when passed directly', () => {
+      function Level2Component() {
+        return html`
+          <div />
+        `;
+      }
+
+      class Level1Component extends Component {
+        render() {
+          return html`<${Level2Component} />`;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, Level1Component);
+
+      // Always the most inner component rendered and work outwards.
+      const level2VTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(level2VTree.rawNodeName, Level2Component);
+
+      const level1VTree = ComponentTreeCache.get(level2VTree);
+      strictEqual(level1VTree.rawNodeName, Level1Component);
     });
   });
 

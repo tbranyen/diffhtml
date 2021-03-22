@@ -22,6 +22,7 @@ describe('Component implementation', function() {
   beforeEach(() => {
     this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
+    newJSDOMSandbox();
     Component.subscribeMiddleware();
   });
 
@@ -489,7 +490,7 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, 'something');
     });
 
-    it.skip('will apply update when shouldComponentUpdate returns true', () => {
+    it('will apply update when shouldComponentUpdate returns true', async () => {
       let wasCalled = false;
       let counter = 0;
 
@@ -523,7 +524,7 @@ describe('Component implementation', function() {
       `);
 
       strictEqual(this.fixture.innerHTML.trim(), '<div>default</div>');
-      ref.setState({ message: 'something' });
+      await ref.setState({ message: 'something' });
       strictEqual(this.fixture.innerHTML.trim(), '<div>something</div>');
       ok(wasCalled);
       strictEqual(counter, 1);
@@ -1112,19 +1113,12 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, '<span>Hello world</span>');
     });
 
-    it.only('will support forceUpdate with an HoC', async () => {
+    it('will support forceUpdate with an HoC', async () => {
       const proxy = ({ children }) => children;
 
       const HOC = ChildComponent => class HOCComponent extends Component {
         render() {
-          console.log('rendering');
           return html`<${ChildComponent} children=${this.props.children} />`;
-        }
-
-        constructor(...args) {
-          super(...args);
-
-          console.log('constructor');
         }
       };
 
@@ -1154,7 +1148,6 @@ describe('Component implementation', function() {
         '<span>Some</span>test',
       );
 
-      console.log('calling forceUpdate');
       await instance.forceUpdate();
 
       strictEqual(
@@ -1186,72 +1179,8 @@ describe('Component implementation', function() {
       const DoubleWrappedComponent = HOC(WrappedComponent);
       innerHTML(this.fixture, html`<${DoubleWrappedComponent} />`);
 
-      strictEqual(didMount, 1);
+      strictEqual(didMount, 2);
       strictEqual(this.fixture.innerHTML, '<span>Hello world</span>');
-    });
-
-    it('will correctly forward props with outer function component', () => {
-      let outerProps = null;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<span>Hello world</span>`;
-        }
-      }
-
-      const HOC = ChildComponent => class HOCComponent extends Component {
-        render() {
-          return html`<${ChildComponent} />`;
-        }
-
-        componentDidMount() {
-          didMount++;
-        }
-      };
-
-      const WrappedComponent = HOC(CustomComponent);
-      const DoubleWrappedComponent = props => {
-        outerProps = props;
-        return html``;
-      };
-      innerHTML(this.fixture, html`<${DoubleWrappedComponent} message="Test" />`);
-
-      deepStrictEqual(outerProps, {
-        children: [],
-        message: 'Test',
-      });
-    });
-
-    it.skip('will correctly forward props with outer class component', () => {
-      let outerProps = null;
-
-      class CustomComponent extends Component {
-        render(props) {
-          outerProps = props;
-          return html`<span>Hello world</span>`;
-        }
-      }
-
-      const HOC = ChildComponent => class HOCComponent extends Component {
-        render() {
-          return html`<${ChildComponent} />`;
-        }
-      };
-
-      const WrappedComponent = HOC(CustomComponent);
-
-      class DoubleWrappedComponent extends WrappedComponent {
-        render() {
-          return html``;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${DoubleWrappedComponent} message="Test" />`);
-
-      deepStrictEqual(outerProps, {
-        children: [],
-        message: 'Test',
-      });
     });
   });
 
@@ -1483,7 +1412,6 @@ describe('Component implementation', function() {
       strictEqual(hit, 0);
 
       innerHTML(this.fixture, html`<${CustomComponent} key="value" />`);
-
       strictEqual(hit, 1);
     });
 

@@ -34,20 +34,20 @@ const invokeRefsForVTrees = (/** @type {(VTree | null)[]} */ ...vTrees) => {
     if (!vTree) continue;
 
     const componentTree = ComponentTreeCache.get(vTree);
-    const instances = InstanceCache.get(componentTree || vTree);
+    const instance = InstanceCache.get(componentTree || vTree);
 
     if (vTree.childNodes.length) {
       invokeRefsForVTrees(...vTree.childNodes);
     }
 
-    if (!instances) {
+    if (!instance) {
       invokeRef(Internals.NodeCache.get(vTree), vTree);
       continue;
     }
 
     // If any instances exist, loop through them and invoke the respective `ref`
     // logic.
-    instances.forEach(instance => invokeRef(instance, vTree));
+    invokeRef(instance, vTree);
   }
 }
 
@@ -56,27 +56,42 @@ const invokeRefsForVTrees = (/** @type {(VTree | null)[]} */ ...vTrees) => {
  *
  * @param {VTree} vTree - The respecting tree pointing to the component
  */
-export default function willUnmount(vTree) {
+export default function componentWillUnmount(vTree) {
   const componentTree = ComponentTreeCache.get(vTree);
-  const instances = InstanceCache.get(componentTree);
-  const domNode = Internals.NodeCache.get(vTree);
+
+  /** @type {VTree[]} */
+  const childTrees = [];
+
+  ComponentTreeCache.forEach((parentTree, childTree) => {
+    if (parentTree === componentTree) {
+      childTrees.push(childTree);
+    }
+  });
 
   invokeRefsForVTrees(vTree);
 
-  instances && instances.forEach(instance => {
-    // Ensure this is a stateful component. Stateless components do not get
-    // lifecycle events yet.
-    if (instance && instance.componentWillUnmount) {
-      instance.componentWillUnmount();
-    }
-  });
+  const domNode = Internals.NodeCache.get(vTree);
 
   // Clean up attached Shadow DOM.
   if (domNode && /** @type {any} */ (domNode).shadowRoot) {
     release(/** @type {any} */ (domNode).shadowRoot);
   }
 
-  ComponentTreeCache.delete(vTree);
+  if (!InstanceCache.has(componentTree)) {
+    return;
+  }
+
+  const instance = InstanceCache.get(componentTree);
   InstanceCache.delete(componentTree);
-  InstanceCache.delete(vTree);
+
+  ComponentTreeCache.delete(vTree);
+
+  // If there is a parent, ensure it is called recursively.
+  if (ComponentTreeCache.has(componentTree)) {
+    componentWillUnmount(componentTree);
+  }
+
+  // Ensure this is a stateful component. Stateless components do not get
+  // lifecycle events yet.
+  instance && instance.componentWillUnmount && instance.componentWillUnmount();
 }

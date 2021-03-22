@@ -13,7 +13,7 @@ import middleware from './middleware';
 
 const { outerHTML, innerHTML, createTree, release, Internals } = diff;
 const { NodeCache, memory, createNode } = Internals;
-const { from, isArray } = Array;
+const { isArray } = Array;
 const { setPrototypeOf, defineProperty, keys, assign } = Object;
 const RenderDebounce = new WeakMap();
 
@@ -49,6 +49,25 @@ const createProps = (domNode, newProps = {}) => {
  * @param {State} newState
  */
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
+
+/**
+ * @param {VTree[]} childTrees
+ * @param {VTree} vTree
+ */
+const getChildTrees = (childTrees, vTree) => {
+  ComponentTreeCache.forEach((parentTree, childTree) => {
+    if (parentTree === vTree) {
+      ComponentTreeCache.delete(childTree);
+
+      if (typeof childTree.rawNodeName !== 'function') {
+        childTrees.push(childTree);
+      }
+      else {
+        getChildTrees(childTrees, childTree);
+      }
+    }
+  });
+};
 
 /**
  * Represents a vanilla JavaScript Component. This is a lightweight version of
@@ -209,8 +228,6 @@ export default class Component {
    * @return {Promise<Transaction> | undefined}
    */
   [$$render]() {
-    debugger;
-
     // This is a WebComponent, so do something different.
     if (this[$$type] === 'web') {
       const oldProps = this.props;
@@ -231,21 +248,20 @@ export default class Component {
 
     // Get the fragment tree associated with this component. This is used to
     // lookup rendered children.
-    const vTree = this[$$vTree];
+    let vTree = this[$$vTree];
 
-    // Find all previously rendered top-level children associated to this
-    // component. This will be used to diff against the newly rendered
-    // elements.
-    const childTrees = from(ComponentTreeCache.keys()).filter(key => {
-      const rootTree = ComponentTreeCache.get(key);
+    /**
+     * Find all previously rendered top-level children associated to this
+     * component. This will be used to diff against the newly rendered
+     * elements.
+     *
+     * @type {VTree[]}
+     */
+    const childTrees = [];
 
-      if (rootTree === vTree) {
-        // Remove from the cache, since these elements may be removed or
-        // replaced.
-        ComponentTreeCache.delete(key);
-        return true;
-      }
-    });
+    // Lookup all DOM nodes that were associated at the top level with this
+    // component.
+    vTree && getChildTrees(childTrees, vTree);
 
     // Map all VTree's into DOM Nodes.
     const childNodes = childTrees.map(x => NodeCache.get(x));
