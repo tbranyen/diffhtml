@@ -17,6 +17,8 @@ const TemplateLiterals = require('@babel/plugin-transform-template-literals').de
 const ForOf = require('@babel/plugin-transform-for-of').default;
 const ComputedProperties = require('@babel/plugin-transform-computed-properties').default;
 const ElementClasses = require('babel-plugin-transform-custom-element-classes');
+const NewTarget = require('@babel/plugin-transform-new-target');
+
 
 const esmFunc = join(__dirname, 'utils/replace-esm.js');
 const cjsFunc = join(__dirname, 'utils/replace-cjs.js');
@@ -39,6 +41,7 @@ if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
     Classes,
     ForOf,
     OptionalChaining,
+    NewTarget,
   ];
 }
 

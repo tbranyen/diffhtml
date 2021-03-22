@@ -17,6 +17,7 @@
     "@babel/plugin-transform-destructuring": "^7.12.1",
     "@babel/plugin-transform-for-of": "^7.12.1",
     "@babel/plugin-transform-modules-commonjs": "^7.12.1",
+    "@babel/plugin-transform-new-target": "^7.12.13",
     "@babel/plugin-transform-parameters": "^7.12.1",
     "@babel/plugin-transform-shorthand-properties": "^7.12.1",
     "@babel/plugin-transform-spread": "^7.12.1",

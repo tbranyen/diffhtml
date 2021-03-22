@@ -25,12 +25,12 @@ const getObserved = ({ defaultProps }) => defaultProps ? keys(defaultProps) : []
 /**
  * Creates the `component.props` object.
  *
- * @param {Component} domNode
+ * @param {any} domNode
  * @param {Props} newProps
  */
 const createProps = (domNode, newProps = {}) => {
   const observedAttributes = getObserved(domNode.constructor);
-  const initialProps = {};
+  /** @type {any} */const initialProps = {};
 
   const incoming = observedAttributes.reduce((props, attr) => ({
     [attr]: (
@@ -126,9 +126,11 @@ export default class Component {
     // shadow root.
     try {
       instance = Reflect.construct(HTMLElement, [], new.target);
+
       /** @type {any} */ (instance).attachShadow({ mode: 'open' });
       /** @type {any} */ (instance)[$$type] = 'web';
-    } catch {
+
+    } catch (e) {
       // Not a Web Component.
       /** @type {any} */ (instance)[$$type] = 'class';
     }
@@ -431,11 +433,10 @@ export default class Component {
   componentWillUnmount() {}
 }
 
-// Allow Component to be used as a Custom Element, but only in DOM environments.
-// Safely fall back
+// TODO: Can this be done inside the constructor so that class components do not
+// need to inherit from HTMLElement?
 try {
   setPrototypeOf(Component.prototype, HTMLElement.prototype);
-  setPrototypeOf(Component, HTMLElement);
 } catch {}
 
 // Automatically subscribe the Component middleware.
