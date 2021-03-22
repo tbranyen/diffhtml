@@ -374,9 +374,9 @@ describe('Util', function() {
     it('will support nested elements within <code>', () => {
       const vTrees = parse(`<code><pre></pre></code>`).childNodes;
 
-      equal(vTrees[0].nodeName, 'code');
-      equal(vTrees[0].childNodes.length, 1);
-      equal(vTrees[0].childNodes[0].nodeName, 'pre');
+      strictEqual(vTrees[0].nodeName, 'code');
+      strictEqual(vTrees[0].childNodes.length, 1);
+      strictEqual(vTrees[0].childNodes[0].nodeName, 'pre');
     });
 
     it('will not support nested elements within <script>', () => {
