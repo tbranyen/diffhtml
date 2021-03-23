@@ -8,9 +8,9 @@
     }],
 
     "Core API": ["api.html", {
-      "Options": "#options",
       "innerHTML": "#inner-html",
       "outerHTML": "#outer-html",
+      "toString": "#to-string",
       "html": "#html",
       "use": "#use",
       "addTransitionState": "#add-transition-state",
@@ -18,7 +18,8 @@
       "createTree": "#create-tree",
       "release": "#release",
       "Internals": "#internals",
-      "VERSION": "#version"
+      "VERSION": "#version",
+      "Config options": "#config-options"
     }],
 
     "Parser": ["parser.html", {
@@ -46,13 +47,11 @@
       "Component": "#component",
       "Web Component": "#web-component",
       "JSX": "#jsx",
-      "React Compatibility": "#react"
+      "React Compatibility": "#react-compat"
     }],
 
     "Additional Packages": ["tools.html", {
-      "Babel Transform": "#babel-transform",
-      "Render to String": "#render-to-string",
-      "Live Reload Server": "#live-reload-server"
+      "Babel Transform": "#babel-transform"
     }],
 
     "DevTools": ["devtools.html", {

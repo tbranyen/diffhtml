@@ -1,11 +1,16 @@
-import { NodeCache, CreateNodeHookCache } from '../util/caches';
 import process from '../util/process';
 import globalThis from '../util/global';
-import { VTreeLike, VTree, ValidNode, EMPTY } from '../util/types';
+import {
+  NodeCache,
+  CreateNodeHookCache,
+  VTreeLike,
+  VTree,
+  ValidNode,
+  EMPTY,
+} from '../util/types';
 import createTree from '../tree/create';
 
 const namespace = 'http://www.w3.org/2000/svg';
-const document = /** @type {any} */ (globalThis).document || null;
 
 /**
  * Takes in a Virtual Tree Element (VTree) and creates a DOM Node from it.
@@ -17,7 +22,7 @@ const document = /** @type {any} */ (globalThis).document || null;
  * @param {Boolean=} isSVG - Indicates if the root element is SVG
  * @return {ValidNode | null} A DOM Node matching the vTree
  */
-export default function createNode(vTreeLike, ownerDocument = document, isSVG) {
+export default function createNode(vTreeLike, ownerDocument = globalThis.document, isSVG) {
   if (process.env.NODE_ENV !== 'production') {
     if (!vTreeLike) {
       throw new Error('Missing VTree when trying to create DOM Node');

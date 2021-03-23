@@ -3,7 +3,7 @@
 
 import createTree from '../tree/create';
 import process from './process';
-import { VTree, Supplemental, TransactionConfig, ParserConfig, EMPTY } from './types';
+import { VTree, Supplemental, TransactionConfig, ParserConfig, EMPTY, NODE_TYPE } from './types';
 
 // Magic token used for interpolation.
 export const TOKEN = '__DIFFHTML__';
@@ -109,7 +109,7 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
 
       if (!innerTree) continue;
 
-      const isFragment = innerTree.nodeType === 11;
+      const isFragment = innerTree.nodeType === NODE_TYPE.FRAGMENT;
 
       if (typeof innerTree.rawNodeName === 'string' && isFragment) {
         childNodes.push(...innerTree.childNodes);
@@ -545,7 +545,7 @@ Possibly invalid markup. Opening tag was not properly closed.
         return true;
       }
       // Not a valid nested HTML tag element, move to respective container.
-      else if (el.nodeType === 1) {
+      else if (el.nodeType === NODE_TYPE.ELEMENT) {
         if (beforeHead && beforeBody) head.before.push(el);
         else if (!beforeHead && beforeBody) head.after.push(el);
         else if (!beforeBody) body.after.push(el);

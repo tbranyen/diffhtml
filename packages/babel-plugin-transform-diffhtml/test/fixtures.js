@@ -1,6 +1,6 @@
 'use strict';
 
-const { createTree, html } = require('diffhtml');
+const { html } = require('diffhtml');
 
 BASICS: {
 

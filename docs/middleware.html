@@ -63,12 +63,6 @@
       
 
       
-        <a href="api.html#options" target><li>Options</li></a>
-      
-    
-      
-
-      
         <a href="api.html#inner-html" target><li>innerHTML</li></a>
       
     
@@ -76,6 +70,12 @@
 
       
         <a href="api.html#outer-html" target><li>outerHTML</li></a>
+      
+    
+      
+
+      
+        <a href="api.html#to-string" target><li>toString</li></a>
       
     
       
@@ -124,6 +124,12 @@
 
       
         <a href="api.html#version" target><li>VERSION</li></a>
+      
+    
+      
+
+      
+        <a href="api.html#config-options" target><li>Config options</li></a>
       
     
       
@@ -243,7 +249,7 @@
       
 
       
-        <a href="components.html#react" target><li>React Compatibility</li></a>
+        <a href="components.html#react-compat" target><li>React Compatibility</li></a>
       
     
       
@@ -256,18 +262,6 @@
 
       
         <a href="tools.html#babel-transform" target><li>Babel Transform</li></a>
-      
-    
-      
-
-      
-        <a href="tools.html#render-to-string" target><li>Render to String</li></a>
-      
-    
-      
-
-      
-        <a href="tools.html#live-reload-server" target><li>Live Reload Server</li></a>
       
     
       
@@ -333,12 +327,10 @@ complex operations, such as:</p>
 <li>XML transformations</li>
 <li>React to DevTools changes</li>
 </ul>
-<p>Lastly, middleware can be loaded with the 
-      <a href="https://diffhtml.org/tools.html#render-to-string" target="_blank" rel="noopener noreferrer" title="null">Render to
-String</a>
-     module in NodeJS. So
-if you are extra ambitious you can get your middleware to be fully
-cross-platform even during Server-Side-Rendering.</p>
+<p>Lastly, middleware can be used with the 
+      <a href="https://diffhtml.org/api.html#to-string" target="_blank" rel="noopener noreferrer" title="null">toString</a>
+     method. So if you are extra ambitious you can get your
+middleware to be fully cross-platform even during Server-Side-Rendering.</p>
 <p>The code for a basic middleware looks as simple as:</p>
 <pre><code class="language-js">import { use } from &#39;diffhtml&#39;;
 

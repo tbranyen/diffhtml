@@ -14,7 +14,9 @@ function open() {
   clearInterval(interval);
 
   const host = location.host.split(':')[0];
-  const socket = window.staticSyncSocket = new Socket(`ws://${host}:54321`);
+  const socket = window.staticSyncSocket = new Socket(`ws://${host}:54321`, {
+    transports: ['websocket'],
+  });
 
   socket.on('open', () => {
     console.log('diffhtml-static-sync socket connected');
@@ -99,8 +101,8 @@ function open() {
     interval = setInterval(() => open(), 2000);
   });
 
-  socket.on('error', () => {
-    console.log('Socket errored');
+  socket.on('error', (e) => {
+    console.log('Socket errored', e);
   });
 }
 

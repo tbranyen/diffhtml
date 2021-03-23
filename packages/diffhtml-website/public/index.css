@@ -22,6 +22,10 @@ blockquote {
   margin-left: 30px;
 }
 
+img {
+  max-width: 100%;
+}
+
 code {
   font-family: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
   border-radius: 4px;
@@ -309,6 +313,7 @@ layer#main table {
   font-size: 14px;
   box-shadow: 2px 2px 3px rgba(51, 51, 51, 0.05);
   margin: 16px 0;
+  width: 100%;
 }
 
 table {

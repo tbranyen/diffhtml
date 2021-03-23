@@ -1,15 +1,22 @@
+import { ComponentTreeCache, VTree, Transaction } from './util/types';
+import globalThis from './util/global';
 import onceEnded from './once-ended';
 import componentWillUnmount from './lifecycle/component-will-unmount';
 import renderComponent from './render-component';
-import getContext from './get-context';
-import { ComponentTreeCache } from '../util/caches';
-import globalThis from '../util/global';
 
 const { assign } = Object;
 
+/**
+ * @param {VTree} oldTree
+ * @param {VTree} newTree
+ *
+ * @returns {VTree | null}
+ */
 function render(oldTree, newTree) {
   let oldComponentTree = null;
 
+  // When there is an oldTree and it has childNodes, attempt to look up first
+  // by the top-level element, or by the first element.
   if (oldTree && oldTree.childNodes) {
     // First try and lookup the old tree as a component.
     oldComponentTree = ComponentTreeCache.get(oldTree);
@@ -20,18 +27,31 @@ function render(oldTree, newTree) {
     }
   }
 
-  if (!oldComponentTree) {
-    return renderComponent(newTree, getContext(newTree));
+  // If there is no old component, or if the components do not match, then we
+  // are rendering a brand new component.
+  if (!oldComponentTree || oldComponentTree.rawNodeName !== newTree.rawNodeName) {
+    return renderComponent(newTree);
   }
-  else if (oldComponentTree.rawNodeName === newTree.rawNodeName) {
+
+  // Otherwise re-use the existing component if the constructors are the same.
+  if (oldComponentTree) {
+    // Update the incoming props/attrs.
     assign(oldComponentTree.attributes, newTree.attributes);
 
-    return renderComponent(oldComponentTree, getContext(oldTree));
+    return renderComponent(oldComponentTree);
   }
+
+  return oldTree;
 }
 
+/**
+ * @param {VTree} vTree
+ */
 const releaseHook = vTree => componentWillUnmount(vTree);
 
+/**
+ * @param {VTree} vTree
+ */
 const createTreeHook = vTree => {
   const { customElements } = globalThis;
   const Constructor = customElements && customElements.get(vTree.nodeName);
@@ -41,6 +61,9 @@ const createTreeHook = vTree => {
   }
 };
 
+/**
+ * @param {VTree} vTree
+ */
 const createNodeHook = vTree => {
   // Only look up elements with a dash in the name.
   if (!vTree.nodeName.includes('-')) return;
@@ -50,10 +73,14 @@ const createNodeHook = vTree => {
   const Constructor = customElements && customElements.get(vTree.nodeName);
 
   if (Constructor) {
-    return new Constructor(vTree.attributes, getContext(vTree));
+    return new Constructor(vTree.attributes);
   }
 };
 
+/**
+ * @param {VTree} oldTree
+ * @param {VTree} newTree
+ */
 const syncTreeHook = (oldTree, newTree) => {
   // Render components during synchronization.
   if (
@@ -61,9 +88,9 @@ const syncTreeHook = (oldTree, newTree) => {
     typeof newTree.rawNodeName === 'function' &&
     // If there is an oldTree and it's not the existing component, trigger a
     // render.
-    (oldTree ? newTree.rawNodeName !== oldTree.rawNodeName : true)
+    (oldTree && oldTree.rawNodeName ? oldTree.rawNodeName !== newTree.rawNodeName : false)
   ) {
-    return render(oldTree, newTree) || oldTree;
+    return render(oldTree, newTree);
   }
 
   if (!newTree.childNodes) {
@@ -78,6 +105,11 @@ const syncTreeHook = (oldTree, newTree) => {
       const oldChildTree = oldTree.childNodes && oldTree.childNodes[i];
       const renderTree = render(oldChildTree, newChildTree);
 
+      // If nothing was rendered, return the oldTree.
+      if (!renderTree) {
+        return oldTree;
+      }
+
       // Inject the rendered tree into the position.
       if (renderTree) {
         newTree.childNodes[i] = renderTree;
@@ -90,27 +122,20 @@ const syncTreeHook = (oldTree, newTree) => {
           if (typeof renderTree.rawNodeName === 'function') {
             i = i - 1;
           }
-          // Replace the fragment with the rendered elements. Maybe in the
-          // future this could remain a fragment and seamlessly patch into the
-          // DOM.
+          // Replace the fragment with the rendered elements. This reduces and
+          // flattens the fragments into their respective nodes. If there are
+          // none, then they are removed from the DOM and nothing is rendered.
           else {
             newTree.childNodes.splice(i, 1, ...renderTree.childNodes);
           }
         }
-      }
-      // Nothing rendered, so return the oldTree.
-      else {
-        newTree.childNodes[i] = newChildTree;
-
-        // FIXME Determine why this is necessary, it is most likely wrong.
-        return oldTree;
       }
     }
   }
 };
 
 export default () => assign(
-  transaction => transaction.onceEnded(onceEnded),
+  (/** @type {Transaction} */transaction) => transaction.onceEnded(onceEnded),
   {
     displayName: 'componentTask',
     syncTreeHook,

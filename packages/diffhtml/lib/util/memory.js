@@ -1,6 +1,5 @@
 import Pool from './pool';
-import { NodeCache } from './caches';
-import { VTree } from './types';
+import { NodeCache, VTree } from './types';
 
 const { protect, unprotect, memory } = Pool;
 

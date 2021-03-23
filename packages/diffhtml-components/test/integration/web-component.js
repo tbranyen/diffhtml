@@ -1,12 +1,14 @@
 /// <reference types="mocha" />
 
 import { deepEqual, equal, ok } from 'assert';
-import { innerHTML, html, createTree, release } from 'diffhtml';
-import validateCaches from './util/validate-caches';
+import diff from '../../lib/util/binding';
+import validateCaches from '../util/validate-caches';
+
+const { innerHTML, html, createTree, release } = diff;
 
 const whitespaceEx = /[ ]{2,}|\n/g;
 
-describe('Web Component', function() {
+describe.skip('Web Component', function() {
   let WebComponent = null;
 
   beforeEach(() => {

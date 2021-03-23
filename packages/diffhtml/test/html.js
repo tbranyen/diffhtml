@@ -2,7 +2,7 @@ import { equal, deepEqual, doesNotThrow, throws } from 'assert';
 import html from '../lib/html';
 import createTree from '../lib/tree/create';
 import validateMemory from './util/validate-memory';
-import { NodeCache } from '../lib/util/caches';
+import { NodeCache } from '../lib/util/types';
 
 describe('HTML (Tagged template)', function() {
   afterEach(() => validateMemory());

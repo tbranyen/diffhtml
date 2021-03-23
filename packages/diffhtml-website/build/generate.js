@@ -1,13 +1,12 @@
 const { readFileSync, writeFileSync, existsSync } = require('fs');
 const { join } = require('path');
-const { html } = require('diffhtml');
-const { renderToString } = require('diffhtml-render-to-string');
+const { html, toString, use } = require('diffhtml');
 const marked = require('marked');
 const flattenPages = require('./util/flatten-pages');
 const { keys } = Object;
 
 // Ensure Components middleware is loaded since Layout is a class
-// component and render-to-string will pick it up automatically.
+// component and toString will pick it up automatically.
 require('diffhtml-components');
 
 // Do some marked magic to fix the target="blank" security issue.
@@ -54,7 +53,7 @@ function generate() {
       markup = marked(String(readFileSync(mdPath)), { renderer });
     }
 
-    const contents = renderToString(html`
+    const contents = toString(html`
       <${Layout}
         path=${path}
         page=${name}

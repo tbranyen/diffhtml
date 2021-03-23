@@ -8,7 +8,7 @@
     "https://*/*"
   ],
   "background": {
-    "scripts": ["scripts/background.js"]
+    "scripts": ["js/background.js"]
   },
   "content_scripts": [{
     "matches": ["<all_urls>", "*://*/*", "http://*/*", "https://*/*"],

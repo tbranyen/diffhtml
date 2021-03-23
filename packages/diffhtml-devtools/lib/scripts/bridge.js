@@ -236,7 +236,7 @@ export default function devTools(Internals) {
     await setExtension(true);
 
     // Start keep-alive in case we disconnect.
-    keepAlive();
+    //keepAlive();
 
     // Call existing cached tasks.
     if (cacheTask.length) {

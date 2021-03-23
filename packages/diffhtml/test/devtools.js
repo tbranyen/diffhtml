@@ -5,6 +5,14 @@ import validateMemory from './util/validate-memory';
 describe('DevTools', function() {
   afterEach(() => validateMemory());
 
+  after(() => {
+    // Restore global state.
+    delete require.cache[require.resolve('../lib/lite')];
+    delete require.cache[require.resolve('../lib/index')];
+    delete global[Symbol.for('diffHTML')];
+    require('../lib/index');
+  });
+
   it('will not hook into devtools with primary build if devtools are not present', () => {
     delete require.cache[require.resolve('../lib/index')];
     delete global[Symbol.for('diffHTML')];

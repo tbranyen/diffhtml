@@ -1,13 +1,14 @@
 # <±/> diffHTML Components
 
-*JavaScript classes for rendering components using either Custom Element or
-React-inspired implementations.*
+*Provides a way to use function, class, and stateful components with diffHTML.
+Inspired by React and other component based frameworks.*
 
 Stable Version: 1.0.0-beta.18
 
-The exported classes `Component` and `WebComponent` are designed to be
-inter-changeable and as close to feature-parity as possible. This helps bridge
-the React / Web Component gap.
+The exported class `Component` is designed to be used as either a vanilla JS
+class component, or registered as a Web Component.
+
+Refer to the website [https://diffhtml.org/components.html](https://diffhtml.org/components.html) for documentation.
 
 ## Installation
 
@@ -18,15 +19,14 @@ npm install --save diffhtml-components
 ## Getting started
 
 Before you can use this module, you will need to have diffHTML loaded first.
-This component simply provides the `Component` and `WebComponent` classes, and
-respective middleware, which help you create Virtual Trees to structure your
-code.
+This component simply provides the `Component` class, and respective
+middleware, which help you create Virtual Trees to structure your code.
 
 You can create components as easy as:
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
-import { Component, WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
 class MyComponent extends Component {
   render() {
@@ -40,55 +40,56 @@ class MyComponent extends Component {
   }
 }
 
-// Only works if your browser supports the `customElements` global registry.
-// Load a suitable polyfill if you really want to use these in production.
-customElements.define('web-component', class extends WebComponent {
-  render() {
-    return html`
-      <span>Custom Elements work just fine and 1:1 with React Components</span>
-    `;
-    //return (
-    //  <span>Even Supports JSX (use Babel transform)!</span>
-    //);
-  }
-});
-
+// Render as a class.
 innerHTML(document.body, html`<${MyComponent} />`);
+
+// If you are in a DOM environment that supports Web Components, then you can
+// register your component and it will automatically work.
+customElements.define('my-component', MyComponent);
+
+// Now you can render like any other kind of HTML.
+innerHTML(document.body, '<my-component />');
 ```
 
-## PropTypes
+## Default props
 
 This static definition on either a function or class component provides a
-specification for incoming props. It borrows from the React concept. While
-these are common for runtime validation, they are also used to denote which
-Web Component properties should be observed.
+specification for incoming props. It borrows from the React concept. These are
+very important for Web Components as they set up the observable properties. That
+means you can simply update a property directly on the DOM Node and it will
+automatically re-render.
 
-You simply provide a top level definition for the incoming prop. Use native
-JavaScript constructor types.
-
-Such as:
+Example of default props with a class component:
 
 ```js
 import { html, innerHTML } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class MyComponent extends WebComponent {
+class MyComponent extends Component {
   render() {
     const { message } = this.props;
     return html`${message}`;
   }
 
-  static propTypes = {
-    message: String,
+  static defaultProps = {
+    message: 'default',
   }
 }
 
+innerHTML(document.body, html`
+  <${MyComponent} message="setting props via class" />
+`);
+
+// Defining your component as a web component is completely optional, but can be
+// an interesting way to
 customElements.define('my-component', MyComponent);
 
 innerHTML(document.body, html`
-  <my-component message="Valid" />
-  <my-component message=${5} /> <!-- invalid -->
+  <my-component message="setting props via web component" />
 `);
+
+document.body.firstElementChild.message = 'Dynamic!';
+// my-component has now automatically re-rendered to display this new state
 ```
 
 ## State
@@ -155,7 +156,9 @@ want your components to be reactive.
 The following examples show what real-world usage of these components may look
 like.
 
-### React Like
+### Function components
+
+### Class components
 
 Useful when you need minimal React features for new projects. This is not
 necessarily a good package for React Compatibility inter-op, although it can
@@ -185,33 +188,27 @@ class SimpleClock extends Component {
   }
 }
 
-// Not-required, but nice to have for debugging purposes.
-SimpleClock.propTypes = {
-  now: Number,
-};
-
 // Render to the `<body />` element.
 innerHTML(document.body, html`<${SimpleClock} />`);
 ```
 
 ### Web Components
 
-Will only work in browsers that support v1 Web Components specification. At the
-moment this will in most stable browsers, with the exception of Internet
-Explorer, which is current in development.
+All diffHTML Components extend HTMLElement and can be registered with the V1
+Custom Elements registry. This is entirely optional.
 
-[Consensus & Standardization](https://www.chromestatus.com/feature/4696261944934400)
+[Full browser availability](https://caniuse.com/custom-elementsv1)
 
-- **Chrome** Stable
+- **Chrome:** Stable
 - **Firefox:** Stable
-- **Safari** Stable
-- **Edge:** [In Development](https://developer.microsoft.com/en-us/microsoft-edge/platform/status/customelements/)
+- **Safari:** Stable
+- **Edge:** Stable
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class SimpleClock extends WebComponent {
+class SimpleClock extends Component {
   render() {
     const { now } = this.state;
 
@@ -231,8 +228,8 @@ class SimpleClock extends WebComponent {
 }
 
 // Required to auto-fill the `observedAttributes` function.
-SimpleClock.propTypes = {
-  now: Number,
+SimpleClock.defaultProps = {
+  now: Date.now(),
 };
 
 // Register into the browser's element registry.

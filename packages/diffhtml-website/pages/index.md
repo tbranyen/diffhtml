@@ -1,16 +1,7 @@
-**Welcome to diffHTML!** A lightweight library for creating fast and reactive
-user interfaces using JavaScript. With diffHTML you can create applications,
-games, data visualizations, and much more in you web browser.
-
-Here's a simple example to show what it's all about:
-
-```js
-import { innerHTML } from '//diffhtml.org/es';
-
-innerHTML(document.body, `
-  <h1>Hello world!</h1>
-`);
-```
+**Welcome to diffHTML,** a lightweight library for creating fast and reactive
+user interfaces using JavaScript. Using this tool you can create applications,
+games, data visualizations, and much more! It is designed to be approachable to
+new programmers, intermediates, and professionals.
 
 <a name="core-features"></a>
 
@@ -18,12 +9,11 @@ innerHTML(document.body, `
 
 ## <a href="#core-features">Core features</a>
 
-- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified builds
-- <span class="list-icon fa fa-retweet"></span> Async transition hooks
+- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified ES5 builds
+- <span class="list-icon fa fa-retweet"></span> Async DOM transition hooks
 - <span class="list-icon fa fa-link"></span> Middleware
 - <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
 - <span class="list-icon fa fa-recycle"></span> Object pooling to optimize GC
-- <span class="list-icon fa fa-codiepie"></span> Automatic memory management
 - <span class="list-icon fa fa-pencil"></span> Strict mode TypeScript via checkJS
 
 <a name="getting-started"></a>
@@ -32,9 +22,17 @@ innerHTML(document.body, `
 
 ## <a href="#getting-started">Getting started</a>
 
+Depending on your project, preference, or both, you'll need to include diffHTML
+somehow in your code. Examples of linking using three different popular methods
+are available below.
+
 <a name="node-module"></a>
 
-### <a href="#node-module">Package manager</a>
+### <a href="#node-module"><u>Package manager</u></a>
+
+This method uses a CLI tool such as npm or yarn to download and install the
+package files directly in your Node-based project. This is useful for server-
+side applications and tools like webpack, browserify, and rollup.
 
 <div id="install"></div>
 
@@ -55,16 +53,27 @@ innerHTML(document.body, `
 
 <a name="using-script-tag"></a>
 
-### <a href="#using-script-tag">Script tag</a>
+### <a href="#using-script-tag"><u>Script tag</u></a>
+
+A script tag is useful for snippets, small projects, and possibly larger
+projects that want to have runtime control over the asset. You simply point a
+script tag to one of the files:
+
+- https://unpkg.com/diffhtml/dist/diffhtml.js - _full debug build_
+- https://unpkg.com/diffhtml/dist/diffhtml-lite.js - _lite debug build_
+- https://unpkg.com/diffhtml/dist/diffhtml.min.js - _compressed full build_
+- https://unpkg.com/diffhtml/dist/diffhtml-lite.min.js - _compressed lite build_
 
 ```html
 <script src="https://unpkg.com/diffhtml/dist/diffhtml.min.js"></script>
+
+<!-- To explore the API -->
 <script>console.log(window.diff);</script>
 ```
 
 <a name="es-modules"></a>
 
-### <a href="#es-modules">ES modules</a>
+### <a href="#es-modules"><u>ES modules</u></a>
 
 You can import diffHTML directly over HTTP using the ES modules syntax. This is
 a new feature that isn't available in all browsers yet, but you can use them

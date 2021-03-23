@@ -1,1428 +1,588 @@
-/// <reference types="mocha" />
-
-import { ok, equal, deepEqual, doesNotThrow, throws } from 'assert';
-import {
-  use,
-  innerHTML,
-  html,
-  release,
-  Internals,
-  addTransitionState,
-  removeTransitionState,
-} from 'diffhtml';
+import { strictEqual, deepStrictEqual } from 'assert';
 import Component from '../lib/component';
+import diff from '../lib/util/binding';
+import globalThis from '../lib/util/global';
+import { ComponentTreeCache } from '../lib/util/types';
 import validateCaches from './util/validate-caches';
 
-const { process } = Internals;
-const { assign } = Object;
-const whitespaceEx = /[ ]{2,}|\n/g;
+const { html, release, innerHTML, toString, createTree } = diff;
+const { document } = globalThis;
 
-describe('Component implementation', function() {
+describe('Component', function() {
   beforeEach(() => {
-    this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
-    Component.subscribeMiddleware();
+    newJSDOMSandbox();
+    require('../lib/component').subscribeMiddleware();
   });
 
   afterEach(() => {
-    ['attached', 'detached', 'replaced', 'textChanged', 'attributeChanged']
-      .forEach(transitionName => removeTransitionState(transitionName));
-
     release(this.fixture);
-    Component.unsubscribeMiddleware();
+    require('../lib/component').unsubscribeMiddleware();
     validateCaches();
   });
 
-  it('will render a component', () => {
-    class CustomComponent extends Component {
-      render() {
-        return html`
-          <div>Hello world</div>
-        `;
-      }
-    }
-
-    innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-    equal(
-      this.fixture.outerHTML.replace(whitespaceEx, ''),
-      '<div><div>Hello world</div></div>',
-    );
+  it('will retain the name property', () => {
+    class TestComponent extends Component {}
+    strictEqual(TestComponent.name, 'TestComponent');
   });
 
-  it('will not support returning falsy values', () => {
-    class NullComponent extends Component {
-      render() {
-        return null;
-      }
-    }
-
-    throws(
-      () => innerHTML(this.fixture, html`<${NullComponent} />`),
-      /Must return at least one element from render/,
-    );
-  });
-
-  it('will support rendering empty tree content', () => {
-    class CustomComponent extends Component {
-      render() {
-        return html``;
-      }
-    }
-
-    innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-    equal(this.fixture.innerHTML, '');
-  });
-
-  it('will return multiple top level elements', () => {
-    class CustomComponent extends Component {
-      render() {
-        return html`
-          <div>Hello world</div>
-          <p>Test</p>
-        `;
-      }
-    }
-
-    innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-    equal(
-      this.fixture.innerHTML.replace(whitespaceEx, ''),
-      `<div>Hello world</div><p>Test</p>`,
-    );
-  });
-
-  it('will support setting default props', () => {
-    class CustomComponent extends Component {
-      render() {
-        return html`
-          <div>${this.props.string}</div>
-        `;
+  describe('Default props', () => {
+    it('will support defining default props as null', () => {
+      class TestComponent extends Component {
+        static defaultProps = null
       }
 
-      static defaultProps = {
-        string: 'hello',
-      }
-    }
-
-    innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-    equal(
-      this.fixture.innerHTML.replace(whitespaceEx, ''),
-      `<div>hello</div>`,
-    );
-  });
-
-  it('will support passing prop overrides into constructor', () => {
-    class CustomComponent extends Component {
-      render() {
-        return html`
-          <div>${this.props.string}</div>
-        `;
-      }
-
-      static defaultProps = {
-        string: 'hello',
-      }
-    }
-
-    innerHTML(this.fixture, html`<${CustomComponent} string="world" />`);
-
-    equal(
-      this.fixture.innerHTML.replace(whitespaceEx, ''),
-      `<div>world</div>`,
-    );
-  });
-
-  it('will have a component return a component aka HoC', () => {
-    class CustomComponent extends Component {
-      render({ message }) {
-        return html`${message}`;
-      }
-    }
-
-    const embolden = WrappedComponent => class EmboldenComponent {
-      render() {
-        return html`
-          <b><${WrappedComponent} message="Hello world" /></b>
-        `;
-      }
-    };
-
-    const BoldCustomComponent = embolden(CustomComponent);
-
-    innerHTML(this.fixture, html`<${BoldCustomComponent} />`);
-
-    equal(
-      this.fixture.outerHTML.replace(whitespaceEx, ''),
-      '<div><b>Hello world</b></div>',
-    );
-  });
-
-  it('will have a series of HoC', () => {
-    class CustomComponent extends Component {
-      render({ message }) {
-        return html`${message}`;
-      }
-    }
-
-    const embolden = WrappedComponent => class EmboldenComponent {
-      render({ message }) {
-        return html`
-          <b><${WrappedComponent} message=${message} /></b>
-        `;
-      }
-    };
-
-    const spanify = WrappedComponent => class SpanifyComponent {
-      render({ message }) {
-        return html`
-          <span><${WrappedComponent} message=${message} /></span>
-        `;
-      }
-    };
-
-    const BoldAndSpanned = spanify(embolden(CustomComponent));
-
-    innerHTML(this.fixture, html`<${BoldAndSpanned} message="Hello world" />`);
-
-    equal(
-      this.fixture.outerHTML.replace(whitespaceEx, ''),
-      '<div><span><b>Hello world</b></span></div>',
-    );
-  });
-
-  describe('Lifecycle', () => {
-    it('will map to componentDidMount', () => {
-      let wasCalled = false;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-
-        componentDidMount() {
-          wasCalled = true;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
-
-      ok(wasCalled);
+      const testComponent = new TestComponent();
+      deepStrictEqual(testComponent.props, {});
     });
 
-    it('will map to componentWillUnmount', () => {
-      let wasCalled = false;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
+    it('will not support other types for default props', () => {
+      {
+        class TestComponent extends Component {
+          static defaultProps = 'test'
         }
 
-        componentWillUnmount() {
-          wasCalled = true;
-        }
+        const testComponent = new TestComponent();
+        deepStrictEqual(testComponent.props, {});
       }
+      {
+        class TestComponent extends Component {
+          static defaultProps = ['test']
+        }
 
-      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
-      innerHTML(this.fixture, html``);
+        const testComponent = new TestComponent();
+        deepStrictEqual(testComponent.props, {});
+      }
+      {
+        class TestComponent extends Component {
+          static defaultProps = true
+        }
 
-      ok(wasCalled);
+        const testComponent = new TestComponent();
+        deepStrictEqual(testComponent.props, {});
+      }
+      {
+        class TestComponent extends Component {
+          static defaultProps = 5
+        }
+
+        const testComponent = new TestComponent();
+        deepStrictEqual(testComponent.props, {});
+      }
     });
 
-    it('will block rendering with shouldComponentUpdate', () => {
-      let wasCalled = false;
-      let counter = 0;
-
-      class CustomComponent extends Component {
-        render() {
-          const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor(props) {
-          counter++;
-          super(props);
-          this.state.message = 'default'
-        }
-
-        shouldComponentUpdate() {
-          wasCalled = true;
-          return false;
+    it('will use defined default props', () => {
+      class TestComponent extends Component {
+        static defaultProps = {
+          test: 'value',
         }
       }
 
-      let ref = null;
-      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
-      equal(this.fixture.innerHTML, 'default');
-      ref.setState({ message: 'something' });
-      equal(this.fixture.innerHTML, 'default');
-      ok(wasCalled);
-      equal(counter, 1);
+      const testComponent = new TestComponent();
+
+      deepStrictEqual(testComponent.props, {
+        test: 'value',
+      });
     });
 
-    it('will map to componentWillReceiveProps', () => {
-      let wasCalled = false;
-      let counter = 0;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-
-        constructor(props) {
-          counter++;
-          super(props);
-        }
-
-        componentWillReceiveProps() {
-          wasCalled = true;
+    it('will merge defined default props', () => {
+      class TestComponent extends Component {
+        static defaultProps = {
+          test: 'old',
         }
       }
 
-      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
-      innerHTML(this.fixture, html`<${CustomComponent} someProp="false" />`);
+      const testComponent = new TestComponent({
+        test: 'new'
+      });
 
-      ok(wasCalled);
-      equal(counter, 1);
-    });
-
-    it('will map root changes to componentDidUpdate', () => {
-      let wasCalled = false;
-      let counter = 0;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-
-        constructor(props) {
-          counter++;
-          super(props);
-        }
-
-        componentDidUpdate() {
-          wasCalled = true;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
-      innerHTML(this.fixture, html`<${CustomComponent} someProp="false" />`);
-
-      ok(wasCalled);
-      equal(counter, 1);
+      deepStrictEqual(testComponent.props, {
+        test: 'new',
+      });
     });
   });
 
   describe('Props', () => {
-    it('will set simple string', () => {
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-      }
+    it('will support passing props', () => {
+      class TestComponent extends Component {}
 
-      const vTree = html`<${CustomComponent} test="true" />`;
+      const testComponent = new TestComponent({
+        test: 'value'
+      });
 
-      equal(vTree.attributes.test, 'true');
-    });
-
-    it('will set simple boolean single value', () => {
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-      }
-
-      const vTree = html`<${CustomComponent} checked />`;
-
-      equal(vTree.attributes.checked, true);
-    });
-
-    it('will set complex object', () => {
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-      }
-
-      const ref = {};
-      const vTree = html`<${CustomComponent} test=${ref} />`;
-
-      equal(vTree.attributes.test, ref);
-    });
-
-    it('will not throw if missing proptypes in production', () => {
-      process.env.NODE_ENV = 'production';
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<div />`;
-        }
-      }
-
-      CustomComponent.propTypes = {
-        customProperty: String,
-      };
-
-      doesNotThrow(() => innerHTML(this.fixture, html`<${CustomComponent} />`));
-    });
-
-    it('will interpolate an object', () => {
-      class CustomComponent extends Component {
-        render(props) {
-          return html`<div ${props} />`;
-        }
-      }
-
-      const props = { a: true };
-      const vTree = html`<${CustomComponent} ${props} />`;
-
-      equal(vTree.attributes.a, true);
+      deepStrictEqual(testComponent.props, {
+        test: 'value',
+      });
     });
   });
 
-  describe('Refs', () => {
-    it('will invoke a ref attribute on a Component', () => {
-      let refNode = null;
+  describe('render()', () => {
+    it('will support omitting render function', () => {
+      class TestComponent extends Component {}
 
-      class CustomComponent extends Component {
+      const actual = toString(html`<${TestComponent} />`).trim();
+
+      strictEqual(actual, '');
+    });
+
+    it('will support empty render function', () => {
+      class TestComponent extends Component {
+        render() {}
+      }
+
+      const actual = toString(html`<${TestComponent} />`).trim();
+
+      strictEqual(actual, '');
+    });
+
+    it('will support render function returning single element', () => {
+      class TestComponent extends Component {
         render() {
-          return html`<div ref=${node => (refNode = node)}/>`;
+          return createTree('div');
         }
       }
 
-      innerHTML(this.fixture, html`<${CustomComponent}
-        ref=${node => (refNode = node)}
-      />`);
+      const actual = toString(TestComponent).trim();
 
-      ok(refNode);
+      strictEqual(actual, '<div></div>');
     });
 
-    it('will invoke a ref attribute on a DOM Node', () => {
-      let refNode = null;
-      let count = 0;
+    it('will support render function returning multiple elements', () => {
+      class TestComponent extends Component {
+        render() {
+          return [createTree('div'), createTree('p')];
+        }
+      }
 
-      class CustomComponent extends Component {
+      const actual = toString(html`<${TestComponent} test="value" />`).trim();
+
+      strictEqual(actual, '<div></div><p></p>');
+    });
+
+    it('will support render function returning multiple top-level elements', () => {
+      class TestComponent extends Component {
         render() {
           return html`
-            <div>
-              <div ref=${node => { refNode = node; count++; }} />
-            </div>
+            <div></div><p></p>
           `;
         }
       }
 
-      equal(count, 0);
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      return;
-      equal(count, 1);
-      ok(refNode);
-      equal(refNode.getAttribute('ref'), null);
-      equal(this.fixture.nodeName, 'DIV');
+      const actual = toString(html`<${TestComponent} test="value" />`).trim();
 
-      innerHTML(this.fixture, html``);
-      ok(!refNode);
-      equal(count, 2);
+      strictEqual(actual, '<div></div><p></p>');
     });
-  });
 
-  describe('State', () => {
-    it('will always be an object', () => {
-      let state = null;
+    it('will support render functions using props', () => {
+      class TestComponent extends Component {
+        render(props) {
+          return html`<div>${props.test}</div>`;
+        }
+      }
 
-      class CustomComponent extends Component {
+      const actual = toString(html`<${TestComponent} test="value" />`).trim();
+
+      strictEqual(actual, '<div>value</div>');
+    });
+
+    it('will correctly render an empty text node when a falsy component is rendered', () => {
+      {
+        class TestComponent extends Component {
+          render() {
+            return null;
+          }
+        }
+
+        this.fixture = createTree('div');
+        innerHTML(this.fixture, TestComponent);
+
+        const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+        strictEqual(componentVTree.rawNodeName, TestComponent);
+        release(this.fixture);
+      }
+      {
+        class TestComponent extends Component {
+          render() {
+            return undefined;
+          }
+        }
+
+        this.fixture = createTree('div');
+        innerHTML(this.fixture, TestComponent);
+
+        const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+        strictEqual(componentVTree.rawNodeName, TestComponent);
+        release(this.fixture);
+      }
+      {
+        class TestComponent extends Component {
+          render() {
+            return false;
+          }
+        }
+
+        this.fixture = createTree('div');
+        innerHTML(this.fixture, TestComponent);
+
+        const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+        strictEqual(componentVTree.rawNodeName, TestComponent);
+        release(this.fixture);
+      }
+    });
+
+    it('will associate single element rendered to component', () => {
+      class TestComponent extends Component {
         render() {
           return html`<div />`;
         }
+      }
 
-        constructor() {
-          super();
-          state = this.state;
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, TestComponent);
+
+      const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(componentVTree.rawNodeName, TestComponent);
+    });
+
+    it('will associate the whitespace from the start of a fragment', () => {
+      class TestComponent extends Component {
+        render() {
+          return html`
+            <div />
+          `;
         }
       }
 
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      equal(typeof state, 'object');
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, TestComponent);
+
+      const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      // FIXME This should be a comment to make it more portable. Although text
+      // will work for now.
+      strictEqual(this.fixture.childNodes[0].nodeName, '#text');
+      strictEqual(componentVTree.rawNodeName, TestComponent);
     });
 
-    it('will set state in constructor', () => {
-      class CustomComponent extends Component {
+    it('will associate a nested component', () => {
+      class Level2Component extends Component {
         render() {
-          const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor() {
-          super();
-          this.state.message = 'default'
+          return html`
+            <div />
+          `;
         }
       }
 
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      equal(this.fixture.innerHTML, 'default');
-    });
-
-    it('will call setState to re-render the component', () => {
-      class CustomComponent extends Component {
+      class Level1Component extends Component {
         render() {
-          const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.message = 'default'
+          return html`
+            <${Level2Component} />
+          `;
         }
       }
 
-      let ref = null;
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, Level1Component);
 
-      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+      const level1VTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(level1VTree.rawNodeName, Level1Component);
 
-      equal(this.fixture.innerHTML, 'default');
-      ref.setState({ message: 'something' });
-      equal(this.fixture.innerHTML, 'something');
+      const level2VTree = ComponentTreeCache.get(this.fixture.childNodes[1]);
+      strictEqual(level2VTree.rawNodeName, Level2Component);
     });
 
-    it('will update with setState', () => {
-      let wasCalled = false;
-      let counter = 0;
-
-      class CustomComponent extends Component {
+    it('will associate two nested components', () => {
+      class Level3Component extends Component {
         render() {
+          return html`
+            <div />
+          `;
+        }
+      }
+      class Level2Component extends Component {
+        render() {
+          return html`
+            <${Level3Component} />
+          `;
+        }
+      }
+
+      class Level1Component extends Component {
+        render() {
+          return html`
+            <${Level2Component} />
+          `;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, Level1Component);
+
+      const level1VTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(level1VTree.rawNodeName, Level1Component);
+
+      const level2VTree = ComponentTreeCache.get(this.fixture.childNodes[1]);
+      strictEqual(level2VTree.rawNodeName, Level2Component);
+
+      const level3VTree = ComponentTreeCache.get(this.fixture.childNodes[2]);
+      strictEqual(level3VTree.rawNodeName, Level3Component);
+    });
+
+    it('will associate a nested function component', () => {
+      function Level2Component() {
+        return html`
+          <div />
+        `;
+      }
+
+      class Level1Component extends Component {
+        render() {
+          return html`
+            <${Level2Component} />
+          `;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, Level1Component);
+
+      const level1VTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(level1VTree.rawNodeName, Level1Component);
+
+      const level2VTree = ComponentTreeCache.get(this.fixture.childNodes[1]);
+      strictEqual(level2VTree.rawNodeName, Level2Component);
+    });
+
+    it('will associate a nested function component when passed directly', () => {
+      function Level2Component() {
+        return html`
+          <div />
+        `;
+      }
+
+      class Level1Component extends Component {
+        render() {
+          return html`<${Level2Component} />`;
+        }
+      }
+
+      this.fixture = createTree('div');
+      innerHTML(this.fixture, Level1Component);
+
+      // Always the most inner component rendered and work outwards.
+      const level2VTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
+      strictEqual(level2VTree.rawNodeName, Level2Component);
+
+      const level1VTree = ComponentTreeCache.get(level2VTree);
+      strictEqual(level1VTree.rawNodeName, Level1Component);
+    });
+  });
+
+  describe('refs', () => {
+    it('will trigger function ref on component instance', () => {
+      let refCalled = [];
+
+      class TestComponent extends Component {
+        render() {
+          return html`<div />`;
+        }
+      }
+
+      this.fixture = createTree('div');
+
+      innerHTML(this.fixture, html`
+        <${TestComponent}
+          ref=${(...args) => refCalled.push(args)}
+         />
+      `);
+
+      strictEqual(refCalled.length, 1);
+      strictEqual(refCalled[0][0] instanceof TestComponent, true);
+    });
+
+    it('will trigger function ref on rendered element instance', () => {
+      let refCalled = [];
+
+      class TestComponent extends Component {
+        render() {
+          return html`<div ref=${(...args) => refCalled.push(args)} />`;
+        }
+      }
+
+      this.fixture = createTree('div');
+
+      innerHTML(this.fixture, html`<${TestComponent} />`);
+
+      strictEqual(refCalled.length, 1);
+      strictEqual(refCalled[0][0].nodeName, 'DIV');
+      strictEqual(refCalled[0][0].constructor.name, 'HTMLDivElement');
+    });
+  });
+
+  describe('setState', () => {
+    it('will trigger a re-render on mounted components', async () => {
+      let renderCalled = [];
+
+      class TestComponent extends Component {
+        render(...args) {
+          renderCalled.push(args);
           const { message } = this.state;
           return html`<div>${message}</div>`;
         }
-
-        constructor(props) {
-          counter++;
-          super(props);
-          this.state.message = 'default';
-        }
-
-        shouldComponentUpdate() {
-          wasCalled = true;
-          return true;
-        }
       }
+
+      this.fixture = document.createElement('div');
 
       let ref = null;
 
-      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (
-        ref = node
-      )} />`);
+      innerHTML(this.fixture, html`
+        <${TestComponent} ref=${instance => ref = instance} />
+      `);
 
-      equal(this.fixture.innerHTML, '<div>default</div>');
-      ref.setState({ message: 'something' });
-      equal(this.fixture.innerHTML, '<div>something</div>');
-      ok(wasCalled);
-      equal(counter, 1);
+      await ref.setState({ message: 'test' });
+
+      strictEqual(renderCalled.length, 2);
+      strictEqual(this.fixture.firstElementChild.outerHTML, '<div>test</div>');
     });
 
-    it('will allow inserting top level elements with setState', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { count } = this.state;
+    it('will allow awaiting a re-render', async () => {
+      let renderCalled = [];
 
-          return html`${[...Array(count)].map((__unused, i) => html`
-            <div>${String(i)}</div>
-          `)}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.count = 2;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      const { firstChild } = this.fixture;
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div>0</div><div>1</div>',
-      );
-
-      ref.setState({ count: 3 });
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div>0</div><div>1</div><div>2</div>',
-      );
-
-      ref.setState({ count: 1 });
-
-      equal(this.fixture.innerHTML.trim(), '<div>0</div>');
-      equal(this.fixture.firstChild, firstChild);
-    });
-
-    it('will allow inserting nested elements with setState', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { count } = this.state;
-
-          return html`
-            <div>
-              ${[...Array(count)].map((__unused, i) => html`
-                <div>${String(i)}</div>
-              `)}
-            </div>
-          `;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.count = 2;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      const { firstChild } = this.fixture;
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div><div>0</div><div>1</div></div>',
-      );
-
-      ref.setState({ count: 3 });
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div><div>0</div><div>1</div><div>2</div></div>',
-      );
-
-      ref.setState({ count: 1 });
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div><div>0</div></div>',
-      );
-
-      equal(this.fixture.firstChild, firstChild);
-    });
-
-    it('will allow inserting keyed nested elements with setState', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { count } = this.state;
-
-          return html`
-            <div>
-              ${[...Array(count)].map((__unused, i) => html`
-                <div key=${i}>${String(i)}</div>
-              `)}
-            </div>
-          `;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.count = 2;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      const { firstChild } = this.fixture;
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div><div key="0">0</div><div key="1">1</div></div>',
-      );
-
-      ref.setState({ count: 3 });
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div><div key="0">0</div><div key="1">1</div><div key="2">2</div></div>',
-      );
-
-      ref.setState({ count: 1 });
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div><div key="0">0</div></div>',
-      );
-
-      equal(this.fixture.firstChild, firstChild);
-    });
-
-    it('will allow removing top level elements with setState', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { count } = this.state;
-
-          return html`${[...Array(count)].map((__unused, i) => html`
-            <div>${String(i)}</div>
-          `)}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.count = 2;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      const { firstChild } = this.fixture;
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div>0</div><div>1</div>',
-      );
-
-      ref.setState({ count: 1 });
-
-      equal(
-        this.fixture.innerHTML.trim().replace(whitespaceEx, ''),
-        '<div>0</div>',
-      );
-    });
-  });
-
-  describe('forceUpdate', () => {
-    it('will re-render a component when forceUpdate is called', () => {
-      let i = 0;
-
-      class CustomComponent extends Component {
-        render() {
-          ++i;
-          return html`<div>${i}</div>`;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '<div>1</div>');
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div>2</div>');
-    });
-
-    it('will not call shouldComponentUpdate', () => {
-      let i = 0;
-      let wasCalled = false;
-
-      class CustomComponent extends Component {
-        render() {
-          ++i;
-          return html`<div>${i}</div>`;
-        }
-
-        shouldComponentUpdate() {
-          wasCalled = true;
-          return i < 1;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '<div>1</div>');
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div>2</div>');
-      ok(!wasCalled);
-    });
-
-    it('will allow setting state manually', () => {
-      class CustomComponent extends Component {
-        render() {
+      class TestComponent extends Component {
+        render(...args) {
+          renderCalled.push(args);
           const { message } = this.state;
-          return html`${message}`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.message = 'default';
+          return html`<div>${message}</div>`;
         }
       }
 
+      this.fixture = document.createElement('div');
+
       let ref = null;
 
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
+      innerHTML(this.fixture, html`
+        <${TestComponent} ref=${instance => ref = instance} />
+      `);
 
-      equal(this.fixture.innerHTML, 'default');
-      ref.state.message = 'something';
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, 'something');
+      await ref.setState({ message: 'test' });
+
+      strictEqual(renderCalled.length, 2);
+      strictEqual(this.fixture.firstElementChild.outerHTML, '<div>test</div>');
     });
 
-    it('will call componentDidUpdate once updated', async () => {
-      let wasCalled = false;
-      let counter = 0;
-      let ref = null;
-      let i = 0;
+    it('will debounce same-tick calls', async () => {
+      let renderCalled = [];
 
-      class CustomComponent extends Component {
-        render() {
-          return html`<div>${++i}</div>`;
-        }
-
-        constructor(props) {
-          counter++;
-          super(props);
-        }
-
-        componentDidUpdate() {
-          wasCalled = true;
+      class TestComponent extends Component {
+        render(...args) {
+          renderCalled.push(args);
+          const { message } = this.state;
+          return html`<div>${message}</div>`;
         }
       }
 
-      innerHTML(this.fixture, html`<${CustomComponent}
-        ref=${node => (ref = node)}
-        someProp="true"
-      />`);
-
-      await ref.forceUpdate();
-
-      ok(wasCalled);
-      ok(ref);
-      equal(counter, 1);
-      equal(i, 2);
-    });
-
-    it('will add a single element when re-rendering', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { next } = this.state;
-
-          if (next) {
-            return html`<div></div>`;
-          }
-
-          return html``;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.next = false;
-        }
-      }
+      this.fixture = document.createElement('div');
 
       let ref = null;
 
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
+      innerHTML(this.fixture, html`
+        <${TestComponent} ref=${instance => ref = instance} />
+      `);
 
-      equal(this.fixture.innerHTML, '');
-      ref.state.next = true;
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div></div>');
-    });
+      ref.setState({ message: 'call1' });
+      await ref.setState({ message: 'call2' });
 
-    it('will add a single element when re-rendering in succession', async () => {
-      class CustomComponent extends Component {
-        render() {
-          const { next } = this.state;
-
-          if (next) {
-            return html`<div></div>`;
-          }
-
-          return html``;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.next = false;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '');
-      ref.state.next = true;
-      const promises = [];
-      promises.push(ref.forceUpdate());
-      promises.push(ref.forceUpdate());
-      await Promise.all(promises);
-      equal(this.fixture.innerHTML, '<div></div>');
-    });
-
-    it('will replace a single element when re-rendering', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { next } = this.state;
-
-          if (next) {
-            return html`<div></div>`;
-          }
-
-          return html`<span></span>`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.next = false;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '<span></span>');
-      ref.state.next = true;
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div></div>');
-    });
-
-    it('will remove a single element when re-rendering', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { next } = this.state;
-
-          if (next) {
-            return html``;
-          }
-
-          return html`<span></span>`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.next = false;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '<span></span>');
-      ref.state.next = true;
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, '');
-    });
-
-    it('will add multiple elements when re-rendering', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { next } = this.state;
-
-          if (next) {
-            return html`<div></div><div></div>`;
-          }
-
-          return html``;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.next = false;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '');
-      equal(this.fixture.childNodes.length, 1);
-      ref.state.next = true;
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div></div><div></div>');
-    });
-
-    it('will add multiple elements when re-rendering in succession', async () => {
-      class CustomComponent extends Component {
-        render() {
-          const { next } = this.state;
-
-          if (next) {
-            return html`<div></div><div></div>`;
-          }
-
-          return html``;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.next = false;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '');
-      ref.state.next = true;
-      const promises = [];
-      promises.push(ref.forceUpdate());
-      promises.push(ref.forceUpdate());
-      await Promise.all(promises);
-      equal(this.fixture.innerHTML, '<div></div><div></div>');
-    });
-
-    it('will remove multiple elements when re-rendering', () => {
-      class CustomComponent extends Component {
-        render() {
-          const { next } = this.state;
-
-          if (next) {
-            return html``;
-          }
-
-          return html`<div></div><div></div>`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.next = false;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${CustomComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '<div></div><div></div>');
-      ref.state.next = true;
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, '');
-      equal(this.fixture.childNodes.length, 1);
-    });
-
-    it('will add elements from functional component when re-rendering', () => {
-      function FunctionComponent({ next }) {
-        if (next) {
-          return html`<div></div><div></div>`;
-        }
-
-        return html``;
-      }
-
-      class ClassComponent extends Component {
-        render() {
-          return html`<${FunctionComponent} next=${this.state.next} />`;
-        }
-
-        constructor(props) {
-          super(props);
-          this.state.next = false;
-        }
-      }
-
-      let ref = null;
-
-      innerHTML(
-        this.fixture,
-        html`<${ClassComponent} ref=${node => (ref = node)} />`,
-      );
-
-      equal(this.fixture.innerHTML, '');
-      equal(this.fixture.childNodes.length, 1);
-      ref.state.next = true;
-      ref.forceUpdate();
-      equal(this.fixture.innerHTML, '<div></div><div></div>');
+      strictEqual(this.fixture.firstElementChild.outerHTML, '<div>call2</div>');
+      strictEqual(renderCalled.length, 2);
     });
   });
 
-  describe('Context', () => {
-    it('will inherit context from a parent component', () => {
-      class ChildComponent extends Component {
-        render() {
-          return html`${this.context.message}`;
-        }
-      }
+  describe('componentDidMount()', () => {
+    it('will not trigger when using toString', () => {
+      let componentDidMountCalled = [];
 
-      class ParentComponent extends Component {
-        render() {
-          return html`<${ChildComponent} />`;
-        }
-
-        getChildContext() {
-          return {
-            message: 'From Context'
-          };
-        }
-      }
-
-      innerHTML(this.fixture, html`<${ParentComponent} />`);
-
-      equal(this.fixture.innerHTML, 'From Context');
-    });
-  });
-
-  describe('HoC', () => {
-    it('will support a component that returns a new component', () => {
-      let didMount = 0;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<span>Hello world</span>`;
-        }
-      }
-
-      const HOC = ChildComponent => class HOCComponent extends Component {
-        render() {
-          return html`<${ChildComponent} />`;
-        }
-
-        componentDidMount() {
-          didMount++;
-        }
-      };
-
-      const WrappedComponent = HOC(CustomComponent);
-      innerHTML(this.fixture, html`<${WrappedComponent} />`);
-
-      equal(didMount, 1);
-      equal(this.fixture.innerHTML, '<span>Hello world</span>');
-    });
-
-    it.skip('will support forceUpdate with an HoC', () => {
-      const proxy = ({ children }) => html(children);
-
-      const HOC = ChildComponent => class HOCComponent extends Component {
-        render() {
-          console.log('here');
-          return html`<${ChildComponent} />`;
-        }
-      };
-
-      const WrappedComponent = HOC(proxy);
-
-      let instance = null;
-
-      class CustomComponent extends Component {
-        render({ message }) {
-          return html`
-            <span>${message}</span>
-            <${WrappedComponent}>test</${WrappedComponent}>
-          `;
-        }
-
-        constructor(...args) {
-          super(...args);
-
-          instance = this;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} message="Some" />`);
-
-      //equal(
-      //  this.fixture.innerHTML.replace(whitespaceEx, ''),
-      //  '<span>Some</span> test',
-      //);
-
-      instance.forceUpdate();
-
-      equal(
-        this.fixture.innerHTML.replace(whitespaceEx, ''),
-        '<span>Some</span> test',
-      );
-    });
-
-    it('will support wrapping a component that returns a new component', () => {
-      let didMount = 0;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<span>Hello world</span>`;
-        }
-      }
-
-      const HOC = ChildComponent => class HOCComponent extends Component {
-        render() {
-          return html`<${ChildComponent} />`;
-        }
-
-        componentDidMount() {
-          didMount++;
-        }
-      };
-
-      const WrappedComponent = HOC(CustomComponent);
-      const DoubleWrappedComponent = HOC(WrappedComponent);
-      innerHTML(this.fixture, html`<${DoubleWrappedComponent} />`);
-
-      equal(didMount, 1);
-      equal(this.fixture.innerHTML, '<span>Hello world</span>');
-    });
-
-    it('will correctly forward props with outer function component', () => {
-      let outerProps = null;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<span>Hello world</span>`;
-        }
-      }
-
-      const HOC = ChildComponent => class HOCComponent extends Component {
-        render() {
-          return html`<${ChildComponent} />`;
-        }
-
-        componentDidMount() {
-          didMount++;
-        }
-      };
-
-      const WrappedComponent = HOC(CustomComponent);
-      const DoubleWrappedComponent = props => {
-        outerProps = props;
-        return html``;
-      };
-      innerHTML(this.fixture, html`<${DoubleWrappedComponent} message="Test" />`);
-
-      deepEqual(outerProps, {
-        children: [],
-        message: 'Test',
-      });
-    });
-
-    it('will correctly forward props with outer class component', () => {
-      let outerProps = null;
-
-      class CustomComponent extends Component {
-        render() {
-          return html`<span>Hello world</span>`;
-        }
-      }
-
-      const HOC = ChildComponent => class HOCComponent extends Component {
-        render() {
-          return html`<${ChildComponent} />`;
-        }
-
-        componentDidMount() {
-          didMount++;
-        }
-      };
-
-      const WrappedComponent = HOC(CustomComponent);
-
-      class DoubleWrappedComponent extends Component {
+      class TestComponent extends Component {
         render(props) {
-          outerProps = props;
-          return html``;
+          return html`<div>${props.test}</div>`;
+        }
+
+        componentDidMount(...args) {
+          componentDidMountCalled.push(args);
         }
       }
 
-      innerHTML(this.fixture, html`<${DoubleWrappedComponent} message="Test" />`);
+      toString(html`<${TestComponent} test="value" />`).trim();
 
-      deepEqual(outerProps, {
-        children: [],
-        message: 'Test',
-        refs: {},
-      });
+      strictEqual(componentDidMountCalled.length, 0);
+    });
+
+    it('will trigger when using a mounted render', () => {
+      let componentDidMountCalled = [];
+
+      class TestComponent extends Component {
+        render(props) {
+          return html`<div>${props.test}</div>`;
+        }
+
+        componentDidMount(...args) {
+          componentDidMountCalled.push(args);
+        }
+      }
+
+      this.fixture = createTree('div');
+
+      innerHTML(this.fixture, html`<${TestComponent} test="value" />`);
+
+      strictEqual(componentDidMountCalled.length, 1);
+    });
+  });
+
+  describe('componentDidUpdate()', () => {
+    it('will trigger when calling setState', () => {
+      let componentDidMountCalled = [];
+
+      class TestComponent extends Component {
+        render(props) {
+          return html`<div>${props.test}</div>`;
+        }
+
+        componentDidMount(...args) {
+          componentDidMountCalled.push(args);
+        }
+      }
+
+      this.fixture = createTree('div');
+
+      innerHTML(this.fixture, html`<${TestComponent} test="value" />`);
+
+      strictEqual(componentDidMountCalled.length, 1);
     });
   });
 
   describe('Function components', () => {
-    it('will render a virtual tree', () => {
-      const CustomComponent = () => html`<div>Hello world</div>`;
+    it('will support function components', () => {
+      function TestComponent() {
+        return html`<div></div>`;
+      }
 
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      const actual = toString(html`<${TestComponent} />`).trim();
 
-      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
+      strictEqual(actual, '<div></div>');
     });
 
-    it('will render a dom node', () => {
-      const CustomComponent = () => assign(document.createElement('div'), {
-        innerHTML: 'Hello world',
-      });
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(this.fixture.outerHTML, '<div><div>Hello world</div></div>');
-    });
-
-    it('will render an array of virtual trees', () => {
-      const CustomComponent = () => [
-        html`<div>Hello</div>`, html`<span>world</span>`
-      ];
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(this.fixture.outerHTML, '<div><div>Hello</div><span>world</span></div>');
-    });
-
-    it('will pass props', () => {
-      const CustomComponent = ({ key }) => html`
-        <div>${key}</div>
-      `;
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
-
-      equal(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Hello world</div></div>',
-      );
-    });
-
-    it('will update props', async () => {
-      const CustomComponent = ({ key }) => html`
-        <div>${key}</div>
-      `;
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
-      innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
-
-      equal(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>To you!</div></div>',
-      );
-    });
-
-    it('will render a nested component and forward props', async () => {
-      const NestedComponent = ({ key }) => html`${key}`;
-
-      const CustomComponent = props => html`
-        <div><${NestedComponent} ${props} /></div>
-      `;
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="Hello world" />`);
-      innerHTML(this.fixture, html`<${CustomComponent} key="To you!" />`);
-
-      equal(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>To you!</div></div>',
-      );
-    });
-
-    it('will render a component tree: component / component / component', () => {
-      function parent() {
-        return html`<${self} />`;
+    it('will support function components with props', () => {
+      function TestComponent({ label }) {
+        return html`<div>${label}</div>`;
       }
 
-      function self() {
-        return html`<${child} />`;
-      }
+      const actual = toString(html`<${TestComponent} label="test" />`).trim();
 
-      function child() {
-        return html`<${nested} />`;
-      }
-
-      function nested() {
-        return html`<div>Hello world</div>`;
-      }
-
-      innerHTML(this.fixture, html`<${parent} />`);
-
-      equal(this.fixture.innerHTML, '<div>Hello world</div>');
-    });
-
-    it('will render a component tree: component / component / dom', () => {
-      function parent() {
-        return html`<${self} />`;
-      }
-
-      function self() {
-        return html`<${child} />`;
-      }
-
-      function child() {
-        return html`<div>Hello world</div>`;
-      }
-
-      innerHTML(this.fixture, html`<${parent} />`);
-
-      equal(this.fixture.innerHTML, '<div>Hello world</div>');
-    });
-
-    it('will render a component tree: component / dom / dom', () => {
-      function parent() {
-        return html`<${self} />`;
-      }
-
-      function self() {
-        return html`<div><${child} /></div>`;
-      }
-
-      function child() {
-        return html`<div>Hello world</div>`;
-      }
-
-      innerHTML(this.fixture, html`<${parent} />`);
-
-      equal(this.fixture.innerHTML, '<div><div>Hello world</div></div>');
-    });
-
-    it('will render a component tree: dom / dom / dom', () => {
-      function parent() {
-        return html`<div><${self} /></div>`;
-      }
-
-      function self() {
-        return html`<div><${child} /></div>`;
-      }
-
-      function child() {
-        return html`<div>Hello world</div>`;
-      }
-
-      innerHTML(this.fixture, html`<${parent} />`);
-
-      equal(this.fixture.outerHTML, '<div><div><div><div>Hello world</div></div></div></div>');
+      strictEqual(actual, '<div>test</div>');
     });
   });
 
-  describe('Stateless class components', () => {
-    it('will render a virtual tree', () => {
-      class CustomComponent {
+  describe('WebComponent', () => {
+    it('will support a basic web component with manual registration', () => {
+      class HelloWorld extends Component {
         render() {
           return html`
             <div>Hello world</div>
@@ -1430,114 +590,17 @@ describe('Component implementation', function() {
         }
       }
 
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      customElements.define('hello-world', HelloWorld);
 
-      equal(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Hello world</div></div>',
-      );
+      this.fixture = document.createElement('div');
+      document.body.appendChild(this.fixture);
+
+      innerHTML(this.fixture, html`<hello-world />`);
+
+      strictEqual(this.fixture.firstElementChild.shadowRoot.innerHTML.trim(), '<div>Hello world</div>');
     });
 
-    it('will trigger componentDidMount for a component', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-
-        componentDidMount() {
-          hit++;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(hit, 1);
-    });
-
-    it('will trigger componentWillUnmount for a component', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-
-        componentWillUnmount() {
-          hit++;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      innerHTML(this.fixture, html``);
-
-      equal(hit, 1);
-      equal(this.fixture.innerHTML, '');
-    });
-
-    it('will trigger shouldComponentUpdate for a component', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-
-        shouldComponentUpdate() {
-          hit++;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      equal(hit, 0);
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="value" />`);
-
-      equal(hit, 1);
-    });
-
-    it('will prevent render with should component update', () => {
-      let hit = 0;
-
-      class CustomComponent {
-        render(props) {
-          return html`
-            <div>${props.key}</div>
-          `;
-        }
-
-        shouldComponentUpdate() {
-          hit++;
-          return false;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} key="right" />`);
-      innerHTML(this.fixture, html`<${CustomComponent} key="wrong" />`);
-
-      equal(hit, 1);
-      equal(
-        this.fixture.innerHTML.replace(whitespaceEx, ''),
-        '<div>right</div>',
-      );
-    });
-  });
-
-  describe('Transitions', () => {
-    it('will render a virtual tree with attached transition (no promise)', () => {
-      let attachedCalledWith = null;
-
-      addTransitionState('attached', el => {
-        attachedCalledWith = el;
-      });
-
+    it('will render a nested component', () => {
       class CustomComponent extends Component {
         render() {
           return html`
@@ -1546,29 +609,20 @@ describe('Component implementation', function() {
         }
       }
 
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      this.fixture = document.createElement('div');
+      document.body.appendChild(this.fixture);
 
-      equal(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Hello world</div></div>',
-      );
+      customElements.define('custom-component', CustomComponent);
+      innerHTML(this.fixture, html`<div><custom-component /></div>`);
 
-      equal(
-        attachedCalledWith,
-        this.fixture.childNodes[1],
-      );
+      const instance = this.fixture.querySelector('custom-component');
+
+      strictEqual(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+      strictEqual(this.fixture.innerHTML, '<div><custom-component></custom-component></div>');
     });
 
-    it('will re-render a virtual tree with attached transition (no promise)', () => {
-      let attachedCalledWith = null;
-      let calledCount = 0;
-
-      addTransitionState('attached', el => {
-        calledCount += 1;
-        attachedCalledWith = el;
-      });
-
-      class CustomComponent {
+    it('will re-render a component', () => {
+      class CustomComponent extends Component {
         render() {
           return html`
             <div>Hello world</div>
@@ -1576,64 +630,45 @@ describe('Component implementation', function() {
         }
       }
 
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
+      this.fixture = document.createElement('div');
+      document.body.appendChild(this.fixture);
 
-      equal(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Hello world</div></div>',
-      );
+      customElements.define('custom-component', CustomComponent);
 
-      equal(attachedCalledWith, this.fixture.childNodes[1]);
-      equal(calledCount, 1);
+      innerHTML(this.fixture, html`<custom-component />`);
+      innerHTML(this.fixture, html`<custom-component />`);
+
+      const instance = this.fixture.querySelector('custom-component');
+
+      strictEqual(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+      strictEqual(this.fixture.innerHTML, '<custom-component></custom-component>');
     });
 
-    it('will render a virtual tree with attached transition (with promise)', async () => {
-      addTransitionState('attached', el => {
-        return new Promise(resolve => {
-          el.textContent = 'Goodbye world';
-          resolve();
-        });
-      });
-
-      class CustomComponent {
+    it('will re-render a component with string props', async () => {
+      class CustomComponent extends Component {
         render() {
           return html`
-            <div>Hello world</div>
+            <div>${this.props.message}</div>
           `;
+        }
+
+        static defaultProps = {
+          message: '',
         }
       }
 
-      await innerHTML(this.fixture, html`<${CustomComponent} />`);
+      customElements.define('custom-component', CustomComponent);
 
-      equal(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Goodbye world</div></div>',
-      );
-    });
+      this.fixture = document.createElement('div');
+      document.body.appendChild(this.fixture);
 
-    it('will re-render a virtual tree with attached transition (with promise)', async () => {
-      addTransitionState('attached', el => {
-        return new Promise(resolve => {
-          el.textContent = 'Goodbye world';
-          resolve();
-        });
-      });
+      innerHTML(this.fixture, html`<custom-component message="hello" />`);
+      innerHTML(this.fixture, html`<custom-component message="world" />`);
 
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-      }
+      const instance = this.fixture.querySelector('custom-component');
 
-      await innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      equal(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Goodbye world</div></div>',
-      );
+      strictEqual(instance.shadowRoot.firstElementChild.outerHTML, '<div>world</div>');
+      strictEqual(this.fixture.innerHTML, '<custom-component message="world"></custom-component>');
     });
   });
 });

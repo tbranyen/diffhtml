@@ -1,6 +1,12 @@
-import { TransitionCache, NodeCache } from './util/caches';
 import process from './util/process';
-import { VTree, TransitionStateNames, TransitionStateName } from './util/types';
+import {
+  TransitionCache,
+  NodeCache,
+  NODE_TYPE,
+  VTree,
+  TransitionStateNames,
+  TransitionStateName,
+} from './util/types';
 
 /**
  *
@@ -70,9 +76,10 @@ export function runTransitions(setName, ...args) {
   }
 
   const [ vTree, ...rest ] = args;
+  const isElement = vTree.nodeType === NODE_TYPE.ELEMENT;
 
   // Filter out text nodes and fragments from transition callbacks.
-  if (!set.size || (setName !== 'textChanged' && vTree.nodeType !== 1)) {
+  if (!set.size || (setName !== 'textChanged' && !isElement)) {
     return promises;
   }
 

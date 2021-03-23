@@ -7,6 +7,9 @@ const reset = '\x1B[m';
 const quiet = process.argv.includes('--quiet');
 
 module.exports = new Promise(resolve => {
+  server.on('close', socket => sockets.delete(socket));
+  server.on('error', socket => sockets.delete(socket));
+
   server.on('connection', socket => {
     socket.on('close', () => sockets.delete(socket));
 

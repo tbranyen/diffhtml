@@ -42,7 +42,7 @@ use({
 // Relay the tab ID to the background page
 background.postMessage({
   tabId: chrome.devtools.inspectedWindow.tabId,
-  scriptToInject: 'scripts/contentscript.js',
+  scriptToInject: 'js/contentscript.js',
   name: 'init',
 });
 
@@ -158,6 +158,8 @@ background.onMessage.addListener(unparsedMessage => {
   switch (message.action) {
     case 'activated': {
       const clonedData = clone(message.data);
+
+      console.log(clonedData);
 
       assign(state, {
         ...clonedData,

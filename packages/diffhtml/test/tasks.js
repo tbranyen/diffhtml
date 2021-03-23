@@ -1,11 +1,10 @@
-import { equal, deepEqual, notEqual, throws } from 'assert';
+import { equal, deepEqual, notStrictEqual, throws } from 'assert';
 import html from '../lib/html';
 import release from '../lib/release';
 import Transaction from '../lib/transaction';
 import reconcileTrees from '../lib/tasks/reconcile-trees';
 import schedule from '../lib/tasks/schedule';
 import syncTrees from '../lib/tasks/sync-trees';
-import { StateCache } from '../lib/util/caches';
 import validateMemory from './util/validate-memory';
 
 describe('Tasks', function() {
@@ -251,7 +250,7 @@ describe('Tasks', function() {
       const state2 = transaction2.state;
 
       // States are different per element
-      notEqual(state1, state2);
+      notStrictEqual(state1, state2);
 
       equal(typeof transaction2.promise.then, 'function');
       equal(state1.nextTransaction, transaction2);
@@ -287,7 +286,7 @@ describe('Tasks', function() {
       const state2 = transaction2.state;
 
       // States are different per element
-      notEqual(state1, state2);
+      notStrictEqual(state1, state2);
 
       equal(typeof transaction2.promise.then, 'function');
       equal(state1.nextTransaction, transaction2);

@@ -3,7 +3,7 @@ const copy = require('./copy');
 const generate = require('./generate');
 
 const watcher = watch(process.cwd(), {
-  ignored: /[\/\\]\./,
+  ignored: /([\/\\]\.)|(node_modules)/,
   persistent: true,
 });
 

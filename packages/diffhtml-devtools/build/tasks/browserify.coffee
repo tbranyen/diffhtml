@@ -28,8 +28,3 @@ module.exports = ->
         ]
 
         exclude: ['fs']
-
-        alias:
-          'react': 'diffhtml-react-compat/dist/cjs/index'
-          'react-dom': 'diffhtml-react-compat/dist/cjs/index'
-          'diffhtml': 'diffhtml/dist/cjs/lite'

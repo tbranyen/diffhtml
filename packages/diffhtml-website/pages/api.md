@@ -1,130 +1,23 @@
 # <a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a>
 
 This documentation covers the core public API and is central to the framework.
-All methods work in the browser, with JSDOM, and directly in Node. You use this
-to construct the Virtual DOM, synchronize changes, and patch the DOM.
+All methods work in the browser, with JSDOM, and directly in Node.
 
-``` sh
-npm install diffhtml
-```
+<u>Special terms:</u>
 
-Some lingo to be aware of:
+- **VTree**: You will see them mentioned throughout the documentation. They are
+  JavaScript objects that represent a DOM node. They store information such as
+  the tagName, what the childNodes are, and more. A reference to a VTree can get
+  you access to the DOM node it represents. They are used throughout the
+  codebase to simplify and abstract the internals away from the DOM, in favor of
+  one that is virtual, hence the V.
 
-- **Transaction**: A class structure which represents a set of changes to the
-  DOM.
-- **VTree**: Virtual Tree, represents the shape of a DOM node, Component,
-  etc. These objects are created when diffHTML first loads and help regulate
-  memory usage.
-- **Mount**: Most commonly a DOM node that you want to update, but can also be
-  VTrees and other types.
+  An added bonus to this is that diffHTML can work seamlessly in Node without
+  a DOM abstraction such as JSDOM.
 
-<a name="options"></a>
-
----
-
-## <a href="#options">Options</a>
-
-- [`tasks`](#tasks)
-- [`executeScripts`](#execute-scripts)
-- [`parser`](#parser)
-
-<!--
-### inner `Boolean`
-
-Determines if the Transaction should update the DOM Node or just its children.
-Setting this to `true` will emulate the behavior of `innerHTML` and setting it
-to `false` emulates `outerHTML`.
--->
-
-### tasks `Function[]`
-
-Manipulate the tasks which run. This can allow you to do interesting things
-with the core API. You can do API changes like providing a stream or generator
-API for the return signature, you can remove syncing and provide your own
-object for patching, etc. This feature is used by the project to create the
-render-to-string module.
-
-_Caution: Only modify this in a closed environment and
-do not ship components or shared utils which attempt to modify the host tasks._
-
-#### Example
-
-Change the return value of innerHTML to be a callback.
-
-```js
-import { innerHTML, Internals } from 'diffhtml';
-
-// Start with the default tasks.
-const newTasks = new Set(Internals.defaultTasks);
-
-newTasks.delete(Internals.tasks.endAsPromise);
-
-// Update the transaction end by returning a callback instead of using a
-// Promise based API.
-newTasks.add(transaction => {
-  const { promises } = transaction;
-
-  // Change the final return value to a callback.
-  return callback => {
-    if (promises && promises.length) {
-      return transaction.promise = Promise.all(promises).then(() => {
-        transaction.end();
-        callback(transaction);
-      });
-    }
-
-    transaction.promise = Promise.resolve(transaction.end());
-    callback(transaction);
-  };
-});
-
-// You can supress this behavior by setting executeScripts to false
-innerHTML(document.body, `<h1>Hello world</h1>`, {
-  tasks: [...newTasks],
-})(transaction => {
-  console.log('Render has completed with transaction', transaction);
-});
-```
-
-### executeScripts `Boolean`
-
-Control whether or not newly appended scripts are executed or not. Tricks the
-browser by setting the `type` property to `no-execute` when a script is added.
-This prevents the browser from executing the script.
-
-#### Example
-
-```js
-import { innerHTML } from 'diffhtml';
-
-// By default scripts will execute
-innerHTML(document.body, `<script>window.alert('here')</script>`);
-
-// You can supress this behavior by setting executeScripts to false
-innerHTML(document.body, `<script>window.alert('here')</script>`, {
-  executeScripts: false,
-});
-
-```
-
-### parser `Object`
-
-These options modify the parser by making it more strict or changing which
-elements are treated as block or self closing.
-
-[Learn more about these options](/parser.html#options)
-
-#### Example
-
-This example will throw an error since the parser encountered invalid markup.
-
-```js
-import { innerHTML } from 'diffhtml';
-
-innerHTML(document.body, `
-  <h1>Hello world</h2>
-`, { parser: { strict: true } });
-```
+- **Transaction**: An object that represents a render. One is produced every
+  time you call innerHTML, outerHTML, or toString. You don't need to worry about
+  it unless you're trying to deeply understand the library.
 
 <a name="inner-html"></a>
 
@@ -155,7 +48,7 @@ scheduling pipeline and VTrees are shared across all other renders.
 | ----------- | -----------
 | **mount**   | The root DOM node to update children in, but not the node itself.
 | **input**   | New markup to replace into **mount**.
-| **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul>
+| **options** | **[Config options](#config-options)**
 
 ### Examples
 
@@ -191,6 +84,28 @@ outerHTML(document.body, '<body>Hello world</body>');
 | Name        | Description
 | ----------- | -----------
 | **mount**   | The root DOM node to update including attributes and children.
+| **input**   | New markup to replace into **mount**.
+| **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul>
+
+<a name="to-string"></a>
+
+---
+
+## <a href="#to-string">toString</a> **`(input, options)`**
+
+Takes any valid input and returns a serialized string of XML/HTML markup.
+
+Example:
+
+``` js
+toString('<body>Hello world</body>');
+// <body>Hello world</body>
+```
+
+### Arguments
+
+| Name        | Description
+| ----------- | -----------
 | **input**   | New markup to replace into **mount**.
 | **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul>
 
@@ -613,4 +528,110 @@ Property which indicates the current running version of diffHTML.
 console.log(VERSION);
 ```
 
+<a name="config-options"></a>
+
 ---
+
+## <a href="#config-options">Config options</a>
+
+- [`tasks`](#tasks)
+- [`executeScripts`](#execute-scripts)
+- [`parser`](#parser)
+
+<!--
+### inner `Boolean`
+
+Determines if the Transaction should update the DOM Node or just its children.
+Setting this to `true` will emulate the behavior of `innerHTML` and setting it
+to `false` emulates `outerHTML`.
+-->
+
+### tasks `Function[]`
+
+Manipulate the tasks which run. This can allow you to do interesting things
+with the core API. You can do API changes like providing a stream or generator
+API for the return signature, you can remove syncing and provide your own
+object for patching, etc. This feature is used by the project to create the
+toString method, which changes the return value to a string.
+
+_Caution: Only modify this in a closed environment and
+do not ship components or shared utils which attempt to modify the host tasks._
+
+#### Example
+
+Change the return value of innerHTML to be a callback.
+
+```js
+import { innerHTML, Internals } from 'diffhtml';
+
+// Start with the default tasks.
+const newTasks = new Set(Internals.defaultTasks);
+
+newTasks.delete(Internals.tasks.endAsPromise);
+
+// Update the transaction end by returning a callback instead of using a
+// Promise based API.
+newTasks.add(transaction => {
+  const { promises } = transaction;
+
+  // Change the final return value to a callback.
+  return callback => {
+    if (promises && promises.length) {
+      return transaction.promise = Promise.all(promises).then(() => {
+        transaction.end();
+        callback(transaction);
+      });
+    }
+
+    transaction.promise = Promise.resolve(transaction.end());
+    callback(transaction);
+  };
+});
+
+// You can supress this behavior by setting executeScripts to false
+innerHTML(document.body, `<h1>Hello world</h1>`, {
+  tasks: [...newTasks],
+})(transaction => {
+  console.log('Render has completed with transaction', transaction);
+});
+```
+
+### executeScripts `Boolean`
+
+Control whether or not newly appended scripts are executed or not. Tricks the
+browser by setting the `type` property to `no-execute` when a script is added.
+This prevents the browser from executing the script.
+
+#### Example
+
+```js
+import { innerHTML } from 'diffhtml';
+
+// By default scripts will execute
+innerHTML(document.body, `<script>window.alert('here')</script>`);
+
+// You can supress this behavior by setting executeScripts to false
+innerHTML(document.body, `<script>window.alert('here')</script>`, {
+  executeScripts: false,
+});
+
+```
+
+### parser `Object`
+
+These options modify the parser by making it more strict or changing which
+elements are treated as block or self closing.
+
+[Learn more about these options](/parser.html#options)
+
+#### Example
+
+This example will throw an error since the parser encountered invalid markup.
+
+```js
+import { innerHTML } from 'diffhtml';
+
+innerHTML(document.body, `
+  <h1>Hello world</h2>
+`, { parser: { strict: true } });
+```

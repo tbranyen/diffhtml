@@ -140,11 +140,13 @@ describe('Integration: innerHTML', function() {
   it('will remove script tags which are dynamically added at the root', function() {
     document.body.appendChild(this.fixture);
 
-    const { domNode } = diff.outerHTML(this.fixture, `<script>
+    diff.outerHTML(this.fixture, `<script>
       const script2 = document.createElement('script');
       script2.id = 'test';
       document.body.appendChild(script2);
-    </script>`);
+    </script>`, {
+      executeScripts: true,
+    });
 
     assert.equal(Boolean(document.querySelector('#test')), true);
 

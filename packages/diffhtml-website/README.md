@@ -12,7 +12,7 @@ built and specifying the navigation layout. Content markup is sourced and
 parsed as markdown from the [./pages](./pages) folder. Each page is written to
 [../../docs](../../docs) to be picked up by GitHub Pages.
 
-## Commands 
+## Commands
 
 **Start server (and watch for changes):**
 
@@ -26,7 +26,7 @@ npm start
 
 **Re-build:**
 
-This uses [diffhtml-render-to-string](../diffhtml-render-to-string)
+This uses [diffhtml](../diffhtml)
 under-the-hood to render the pages as HTML strings which are then written to
 files.
 

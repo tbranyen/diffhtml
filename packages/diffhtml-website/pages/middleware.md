@@ -30,10 +30,8 @@ complex operations, such as:
 - XML transformations
 - React to DevTools changes
 
-Lastly, middleware can be loaded with the [Render to
-String](https://diffhtml.org/tools.html#render-to-string) module in NodeJS. So
-if you are extra ambitious you can get your middleware to be fully
-cross-platform even during Server-Side-Rendering.
+Lastly, middleware can be used with the [toString](https://diffhtml.org/api.html#to-string) method. So if you are extra ambitious you can get your
+middleware to be fully cross-platform even during Server-Side-Rendering.
 
 The code for a basic middleware looks as simple as:
 

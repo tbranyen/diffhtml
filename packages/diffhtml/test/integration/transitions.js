@@ -1,4 +1,4 @@
-import { ok, deepEqual, equal, throws, doesNotThrow } from 'assert';
+import { ok, equal, throws, doesNotThrow } from 'assert';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validate-memory';
 

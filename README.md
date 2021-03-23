@@ -53,15 +53,6 @@ the foundation of the diffHTML ecosystem.
   APIs are very similar, if you want true React compatibility, check out the
   [diffhtml-react-compat](/packages/diffhtml-react-compat) package.
 
-* [diffhtml-render-to-string](/packages/diffhtml-render-to-string)
-
-  ```sh
-  npm install diffhtml-render-to-string
-  ```
-
-  Use to render your input to string. This is useful for server-side rendering,
-  testing, and HTML/XML transformations.
-
 * [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
 
   ```sh
@@ -108,16 +99,6 @@ the foundation of the diffHTML ecosystem.
   use `addEventListener`. Events are attached to the `body` element and
   coordinated to children through delegation.
 
-* [diffhtml-middleware-verify-state](/packages/diffhtml-middleware-verify-state)
-
-  ```sh
-  npm install diffhtml-middleware-verify-state
-  ```
-
-  Asserts that a render properly updated the old Virtual Tree and the DOM. Will
-  recursively search for inconsistencies, displays warnings unless debugging is
-  enabled, then it throws errors instead.
-
 * [diffhtml-middleware-service-worker](/packages/diffhtml-middleware-service-worker)
 
   ```sh
@@ -137,15 +118,6 @@ the foundation of the diffHTML ecosystem.
   drop-in replacement for the modules: `react` and `react-dom`. It wraps the
   [diffHTML Components](/packages/diffhtml-components) package as the base for
   the component constructors. It then layers additional React-specific APIs.
-
-* [diffhtml-static-sync](/packages/diffhtml-static-sync)
-
-  ```
-  npm install diffhtml-static-sync
-  ```
-
-  **Highly Experimental:** A work-in-progress static HTML server that automatically
-  reloads your markup as you save using Web Sockets.
 
 * [diffhtml-devtools](/packages/diffhtml-devtools)
 

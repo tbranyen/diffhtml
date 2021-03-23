@@ -6,6 +6,7 @@ import parse from './util/parse';
 import globalThis, { bindingSymbol } from './util/global';
 import innerHTML from './inner-html';
 import outerHTML from './outer-html';
+import toString from './to-string';
 import { defaultTasks } from './transaction';
 import html from './html';
 import release from './release';
@@ -31,6 +32,7 @@ api.createTree = createTree;
 api.use = use;
 api.outerHTML = outerHTML;
 api.innerHTML = innerHTML;
+api.toString = toString;
 api.html = html;
 api.Internals = internals;
 
@@ -38,25 +40,21 @@ api.Internals = internals;
 const global = globalThis;
 
 // Bind the API into the global scope. Allows middleware and other code to
-// reference the core API.
-const hasBinding = bindingSymbol in globalThis;
-
-// The first API binding wins and if you use static-sync or accidentally bundle
-// multiple versions they will not cause conflicts.
-if (hasBinding) {
+// reference the core API. Once import maps are more mainstream, we can
+// deprecate this.
+if (bindingSymbol in globalThis) {
   const existingApi = global[bindingSymbol];
 
   if (VERSION !== existingApi.VERSION) {
-    console.log(`Tried to load ${VERSION} after ${existingApi.VERSION}`);
+    console.log(`Loaded ${VERSION} after ${existingApi.VERSION}`);
   }
 }
-else {
-  global[bindingSymbol] = api;
 
-  // Automatically hook up to DevTools if they are present.
-  if (global.devTools) {
-    global.unsubscribeDevTools = use(global.devTools(internals));
-  }
+global[bindingSymbol] = api;
+
+// Automatically hook up to DevTools if they are present.
+if (global.devTools) {
+  global.unsubscribeDevTools = use(global.devTools(internals));
 }
 
 export {
@@ -68,6 +66,7 @@ export {
   use,
   outerHTML,
   innerHTML,
+  toString,
   html,
   internals as Internals,
 };

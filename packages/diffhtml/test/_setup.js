@@ -1,17 +1,17 @@
-/// <reference types="mocha" />
-
 import { JSDOM } from 'jsdom';
-import { parse } from 'url';
+import globalThis from '../lib/util/global';
 
 const { stringify } = JSON;
 const { assign } = Object;
 const instance = new JSDOM('', { runScripts: 'dangerously' });
 const { window } = instance;
 
-const location = new Proxy(parse('about:blank'), {
+const url = new URL('about:blank');
+
+const location = new Proxy(url, {
   set(obj, keyName, value) {
     if (keyName === 'href') {
-      assign(obj, parse(value));
+      assign(obj, new URL(value));
 
       if (obj.search === null) {
         obj.search = '';
@@ -26,7 +26,7 @@ const location = new Proxy(parse('about:blank'), {
   },
 });
 
-assign(global, {
+assign(globalThis, {
   customElements: window.customElements,
   document: window.document,
   Element: window.Element,

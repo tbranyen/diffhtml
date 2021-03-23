@@ -1,4 +1,4 @@
-import { StateCache } from '../util/caches';
+import { StateCache } from '../util/types';
 import Transaction from '../transaction';
 
 /**

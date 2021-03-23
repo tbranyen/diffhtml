@@ -1,7 +1,7 @@
-import globalThis from './global';
+import diff from './binding';
 
-const { Internals } = globalThis[Symbol.for('diffHTML')];
+const { Internals } = diff;
 
-(typeof window !== 'undefined' ? window : global).process = Internals.process;
+/** @type {any} */ (typeof window !== 'undefined' ? window : global).process = Internals.process;
 
 export default Internals.process;

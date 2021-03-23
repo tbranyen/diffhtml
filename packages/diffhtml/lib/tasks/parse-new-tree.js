@@ -15,12 +15,17 @@ export default function parseNewTree(transaction) {
 
     const { childNodes } = parse(input, undefined, options);
 
-    // If we are dealing with innerHTML, use all the Nodes. If we're dealing
-    // with outerHTML, we can only support diffing against a single element,
-    // so pick the first one, if there are none, just pass the entire root.
-    const vTree = createTree(
-      inner ? childNodes : childNodes[0] || childNodes
-    );
+    let vTree;
+
+    // If we are dealing with innerHTML, use all the Nodes.
+    if (inner) {
+      vTree = createTree(childNodes);
+    }
+    // If we are dealing with outerHTML, use the first element or the element
+    // itself.
+    else {
+      vTree = createTree(childNodes[0] || childNodes);
+    }
 
     if (vTree) {
       transaction.newTree = vTree;

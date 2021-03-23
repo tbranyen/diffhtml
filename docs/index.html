@@ -63,12 +63,6 @@
       
 
       
-        <a href="api.html#options" target><li>Options</li></a>
-      
-    
-      
-
-      
         <a href="api.html#inner-html" target><li>innerHTML</li></a>
       
     
@@ -76,6 +70,12 @@
 
       
         <a href="api.html#outer-html" target><li>outerHTML</li></a>
+      
+    
+      
+
+      
+        <a href="api.html#to-string" target><li>toString</li></a>
       
     
       
@@ -124,6 +124,12 @@
 
       
         <a href="api.html#version" target><li>VERSION</li></a>
+      
+    
+      
+
+      
+        <a href="api.html#config-options" target><li>Config options</li></a>
       
     
       
@@ -243,7 +249,7 @@
       
 
       
-        <a href="components.html#react" target><li>React Compatibility</li></a>
+        <a href="components.html#react-compat" target><li>React Compatibility</li></a>
       
     
       
@@ -256,18 +262,6 @@
 
       
         <a href="tools.html#babel-transform" target><li>Babel Transform</li></a>
-      
-    
-      
-
-      
-        <a href="tools.html#render-to-string" target><li>Render to String</li></a>
-      
-    
-      
-
-      
-        <a href="tools.html#live-reload-server" target><li>Live Reload Server</li></a>
       
     
       
@@ -306,32 +300,32 @@
 
         <hr></hr>
 
-        <section id="content"><p><strong>Welcome to diffHTML!</strong> A lightweight library for creating fast and reactive
-user interfaces using JavaScript. With diffHTML you can create applications,
-games, data visualizations, and much more in you web browser.</p>
-<p>Here&#39;s a simple example to show what it&#39;s all about:</p>
-<pre><code class="language-js">import { innerHTML } from &#39;//diffhtml.org/es&#39;;
-
-innerHTML(document.body, `
-  &lt;h1&gt;Hello world!&lt;/h1&gt;
-`);</code></pre>
+        <section id="content"><p><strong>Welcome to diffHTML,</strong> a lightweight library for creating fast and reactive
+user interfaces using JavaScript. Using this tool you can create applications,
+games, data visualizations, and much more! It is designed to be approachable to
+new programmers, intermediates, and professionals.</p>
 <p><a name="core-features"></a></p>
 <hr></hr>
 <h2 id="a-hrefcore-featurescore-featuresa"><a href="#core-features">Core features</a></h2>
 <ul>
-<li><span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified builds</li>
-<li><span class="list-icon fa fa-retweet"></span> Async transition hooks</li>
+<li><span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified ES5 builds</li>
+<li><span class="list-icon fa fa-retweet"></span> Async DOM transition hooks</li>
 <li><span class="list-icon fa fa-link"></span> Middleware</li>
 <li><span class="list-icon fa fa-code"></span> Efficient Virtual DOM</li>
 <li><span class="list-icon fa fa-recycle"></span> Object pooling to optimize GC</li>
-<li><span class="list-icon fa fa-codiepie"></span> Automatic memory management</li>
 <li><span class="list-icon fa fa-pencil"></span> Strict mode TypeScript via checkJS</li>
 </ul>
 <p><a name="getting-started"></a></p>
 <hr></hr>
 <h2 id="a-hrefgetting-startedgetting-starteda"><a href="#getting-started">Getting started</a></h2>
+<p>Depending on your project, preference, or both, you&#39;ll need to include diffHTML
+somehow in your code. Examples of linking using three different popular methods
+are available below.</p>
 <p><a name="node-module"></a></p>
-<h3 id="a-hrefnode-modulepackage-managera"><a href="#node-module">Package manager</a></h3>
+<h3 id="a-hrefnode-moduleupackage-managerua"><a href="#node-module"><u>Package manager</u></a></h3>
+<p>This method uses a CLI tool such as npm or yarn to download and install the
+package files directly in your Node-based project. This is useful for server-
+side applications and tools like webpack, browserify, and rollup.</p>
 <div id="install"></div>
 
 <ul>
@@ -348,11 +342,30 @@ innerHTML(document.body, `
 </li>
 </ul>
 <p><a name="using-script-tag"></a></p>
-<h3 id="a-hrefusing-script-tagscript-taga"><a href="#using-script-tag">Script tag</a></h3>
+<h3 id="a-hrefusing-script-taguscript-tagua"><a href="#using-script-tag"><u>Script tag</u></a></h3>
+<p>A script tag is useful for snippets, small projects, and possibly larger
+projects that want to have runtime control over the asset. You simply point a
+script tag to one of the files:</p>
+<ul>
+<li>
+      <a href="https://unpkg.com/diffhtml/dist/diffhtml.js" target="_blank" rel="noopener noreferrer" title="null">https://unpkg.com/diffhtml/dist/diffhtml.js</a>
+     - <em>full debug build</em></li>
+<li>
+      <a href="https://unpkg.com/diffhtml/dist/diffhtml-lite.js" target="_blank" rel="noopener noreferrer" title="null">https://unpkg.com/diffhtml/dist/diffhtml-lite.js</a>
+     - <em>lite debug build</em></li>
+<li>
+      <a href="https://unpkg.com/diffhtml/dist/diffhtml.min.js" target="_blank" rel="noopener noreferrer" title="null">https://unpkg.com/diffhtml/dist/diffhtml.min.js</a>
+     - <em>compressed full build</em></li>
+<li>
+      <a href="https://unpkg.com/diffhtml/dist/diffhtml-lite.min.js" target="_blank" rel="noopener noreferrer" title="null">https://unpkg.com/diffhtml/dist/diffhtml-lite.min.js</a>
+     - <em>compressed lite build</em></li>
+</ul>
 <pre><code class="language-html">&lt;script src=&quot;https://unpkg.com/diffhtml/dist/diffhtml.min.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- To explore the API --&gt;
 &lt;script&gt;console.log(window.diff);&lt;/script&gt;</code></pre>
 <p><a name="es-modules"></a></p>
-<h3 id="a-hrefes-moduleses-modulesa"><a href="#es-modules">ES modules</a></h3>
+<h3 id="a-hrefes-modulesues-modulesua"><a href="#es-modules"><u>ES modules</u></a></h3>
 <p>You can import diffHTML directly over HTTP using the ES modules syntax. This is
 a new feature that isn&#39;t available in all browsers yet, but you can use them
 

@@ -6,11 +6,13 @@ const marked = require('marked');
 const express = require('express');
 const getSocket = require('./socket');
 const clientScript = require('./util/client-script');
+const { Socket } = require('engine.io');
 
+const { argv } = process;
 let userDir = '.';
 
 // Find the new path to use
-process.argv.slice(2).some(arg => {
+argv.slice(2).some(arg => {
   if (!arg.includes('--')) {
     userDir = arg;
 
@@ -32,9 +34,9 @@ const CWD = join(process.cwd(), userDir);
 const gray = '\x1B[37m';
 const green = '\x1B[32m';
 const reset = '\x1B[m';
-const quiet = process.argv.includes('--quiet');
+const quiet = argv.includes('--quiet');
 
-process.argv.forEach(arg => {
+argv.forEach(arg => {
   if (arg.includes('--hook')) {
     const path = arg.split('=')[1];
     require(join(process.cwd(), path));
@@ -43,18 +45,18 @@ process.argv.forEach(arg => {
 
 const webServer = express();
 const watcher = watch(CWD, {
-  ignored: /[\/\\]\./,
+  ignored: /([\/\\]\.)|(node_modules)/,
   persistent: true,
   alwaysStat: true,
 });
 
-const read = path => new Promise((res, rej) => {
+const read = (/** @type {string} */ path) => new Promise((res, rej) => {
   readFile(join(CWD, path), (err, buffer) => {
-    if (err) { rej(err); } else { res(buffer); }
+    err ? rej(err) : res(buffer);
   });
 });
 
-const formatMarkdown = markup => `<html>
+const formatMarkdown = (/** @type {string} */ markup) => `<html>
   <body>
     ${marked(String(markup))}
   </body>
@@ -64,7 +66,7 @@ webServer.use((req, res, next) => {
   const url = req.url.split('?')[0];
   const ext = extname(url);
   const isRoot = url === '' || url.slice(-1) === '/';
-  const path = newExt => {
+  const path = (/** @type {string} */ newExt) => {
     // If the path has an extension pass through.
     if (ext && ext !== '.html') {
       throw null;
@@ -79,19 +81,14 @@ webServer.use((req, res, next) => {
   };
 
   // TODO This area needs some work with regards to extension handling.
-  new Promise((resolve, reject) => read(path('html')).then(resolve, reject))
+  return new Promise((resolve, reject) => read(path('html')).then(resolve, reject))
     .catch(() => read(path('md')).then(formatMarkdown))
     .catch(() => read(path('markdown')).then(formatMarkdown))
-    .catch(() => read(path('json')).then(resolve, reject))
-    .catch(() => read(path('svg')).then((...args) => {
-      res.header('Content-Type', 'image/svg+xml');
-      resolve(...args);
-    }, reject))
     .then(buffer => res.send(`
       ${String(buffer)}
       <script>${clientScript}</script>
     `))
-    .catch(() => res.sendFile(join(CWD, '.', url)))
+    .catch(() => res.sendFile(join(CWD, url)))
     .catch(() => next());
 });
 
@@ -103,22 +100,19 @@ webServer.listen(port, host, () => {
     console.log(`Open http://localhost:8000\n`);
   }
 
-  getSocket.then(sockets => {
-    watcher.on('change', path => {
-      if (!quiet) {
-        console.log(`${green}${path} changed${reset}`);
-      }
-
-      readFile(path, { encoding: 'utf8' }, (err, markup) => {
-        sockets.forEach(socket => {
+  watcher.on('change', path => {
+    readFile(path, { encoding: 'utf8' }, (_err, markup) => {
+      getSocket.then(sockets => {
+        if (!quiet) {
+          console.log(`${green}${path} changed${reset}`);
+        }
+        sockets.forEach((/** @type {Socket} */socket) => {
           const file = path.slice(CWD.length + 1);
           const state = { file, markup, quiet };
-
           if (state.file.includes('.md') || state.file.includes('.markdown')) {
             state.file = state.file.replace(/(\.md|\.markdown|\.html)/g, '');
             state.markup = formatMarkdown(state.markup);
           }
-
           socket.send(JSON.stringify(state));
         });
       });

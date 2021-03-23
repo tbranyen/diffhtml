@@ -1,5 +1,6 @@
 {
   "name": "diffhtml-static-sync",
+  "private": true,
   "bin": "index.js",
   "main": "index.js",
   "version": "1.0.0-beta.18",

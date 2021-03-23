@@ -275,8 +275,9 @@ class DevtoolsTransactionsPanel extends WebComponent {
       );
     }
 
+    // TODO determine if this is necessary
     // Only use up to 20 items.
-    this.state.sorted = this.state.sorted.slice(-20);
+    //this.state.sorted = this.state.sorted.slice(-20);
 
     // Reset activeTransaction if it's no longer relevant.
     if (activeTransaction && !this.state.sorted.includes(activeTransaction)) {
@@ -312,7 +313,6 @@ class DevtoolsTransactionsPanel extends WebComponent {
   }
 
   toggleExpanded = activeTransaction => () => {
-    console.log(activeTransaction);
     this.setState({ activeTransaction });
   }
 }

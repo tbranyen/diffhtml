@@ -35,27 +35,19 @@ const global = globalThis;
 
 // Bind the API into the global scope. Allows middleware and other code to
 // reference the core API.
-const hasBinding = bindingSymbol in globalThis;
-
-// The first API binding wins and if you use static-sync or accidentally bundle
-// multiple versions they will not cause conflicts.
-if (hasBinding) {
+if (bindingSymbol in globalThis) {
   const existingApi = global[bindingSymbol];
 
   if (VERSION !== existingApi.VERSION) {
-    console.log(`Tried to load ${VERSION} after ${existingApi.VERSION}`);
+    console.log(`Loaded ${VERSION} after ${existingApi.VERSION}`);
   }
-
-  // Merge the existing API in.
-  assign(api, global[bindingSymbol]);
 }
-else {
-  global[bindingSymbol] = api;
 
-  // Automatically hook up to DevTools if they are present.
-  if (global.devTools) {
-    global.unsubscribeDevTools = use(global.devTools(internals));
-  }
+global[bindingSymbol] = api;
+
+// Automatically hook up to DevTools if they are present.
+if (global.devTools) {
+  global.unsubscribeDevTools = use(global.devTools(internals));
 }
 
 export {

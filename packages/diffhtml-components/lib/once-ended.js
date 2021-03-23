@@ -1,12 +1,15 @@
 import componentDidMount from './lifecycle/component-did-mount';
 import componentWillUnmount from './lifecycle/component-will-unmount';
-import { getBinding } from '../util/binding';
+import diff from './util/binding';
+import { Transaction } from './util/types';
 
+const { NodeCache, PATCH_TYPE, decodeEntities } = diff.Internals;
 const uppercaseEx = /[A-Z]/g;
 
+/**
+ * @param {Transaction} transaction
+ */
 export default transaction => {
-  const { NodeCache, PATCH_TYPE, decodeEntities } = getBinding().Internals;
-
   if (transaction.aborted) {
     return;
   }
@@ -37,14 +40,14 @@ export default transaction => {
 
           const newName = name.replace(
             uppercaseEx,
-            ch => `-${ch.toLowerCase()}`,
+            (/** @type {string} */ ch) => `-${ch.toLowerCase()}`,
           );
 
           if (value && typeof value === 'string') {
             const decodedValue = decodeEntities(value);
 
             if (NodeCache.has(vTree)) {
-              NodeCache.get(vTree).setAttribute(newName, decodedValue);
+              /** @type {HTMLElement} */(NodeCache.get(vTree)).setAttribute(newName, decodedValue);
             }
           }
         }

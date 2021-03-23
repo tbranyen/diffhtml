@@ -1,5 +1,9 @@
 import globalThis from './global';
+import { DIFF_BINDING } from './types';
 
-export function getBinding() {
-  return globalThis[Symbol.for('diffHTML')];
-}
+/**
+ * @returns {DIFF_BINDING}
+ */
+export default /** @type {DIFF_BINDING} */ (
+  /** @type {any} */ (globalThis)[Symbol.for('diffHTML')]
+);

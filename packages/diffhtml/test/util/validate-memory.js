@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { strictEqual } from 'assert';
 import {
   StateCache,
   NodeCache,
@@ -8,7 +8,7 @@ import {
   CreateNodeHookCache,
   SyncTreeHookCache,
   ReleaseHookCache,
-} from '../../lib/util/caches';
+} from '../../lib/util/types';
 import Pool from '../../lib/util/pool';
 import { gc } from '../../lib/util/memory';
 
@@ -21,27 +21,27 @@ export default function validateMemory() {
   // Run garbage collection after each test.
   gc();
 
-  assert.equal(memory.protected.size, 0,
+  strictEqual(memory.protected.size, 0,
     'Should not leave leftover protected elements in memory');
 
-  assert.equal(memory.allocated.size, 0,
+  strictEqual(memory.allocated.size, 0,
     'Should not leave leftover element allocations in memory');
 
-  assert.equal(memory.free.size, size,
+  strictEqual(memory.free.size, size,
     'Should bring the free pool size back to the default');
 
-  assert.equal(StateCache.size, 0, 'The state cache should be empty');
-  assert.equal(NodeCache.size, 0, 'The node cache should be empty');
-  assert.equal(MiddlewareCache.size, 0, 'The middleware cache should be empty');
+  strictEqual(StateCache.size, 0, 'The state cache should be empty');
+  strictEqual(NodeCache.size, 0, 'The node cache should be empty');
+  strictEqual(MiddlewareCache.size, 0, 'The middleware cache should be empty');
 
   // Ensure specific middleware caches are empty as well.
-  assert.equal(CreateTreeHookCache.size, 0, 'The create tree hook cache should be empty');
-  assert.equal(CreateNodeHookCache.size, 0, 'The create node hook cache should be empty');
-  assert.equal(SyncTreeHookCache.size, 0, 'The sync tree hook cache should be empty');
-  assert.equal(ReleaseHookCache.size, 0, 'The release hook cache should be empty');
+  strictEqual(CreateTreeHookCache.size, 0, 'The create tree hook cache should be empty');
+  strictEqual(CreateNodeHookCache.size, 0, 'The create node hook cache should be empty');
+  strictEqual(SyncTreeHookCache.size, 0, 'The sync tree hook cache should be empty');
+  strictEqual(ReleaseHookCache.size, 0, 'The release hook cache should be empty');
 
   // Check all transition caches.
   TransitionCache.forEach((cache, name) => {
-    assert.equal(cache.size, 0, `The ${name} transition cache should be empty`);
+    strictEqual(cache.size, 0, `The ${name} transition cache should be empty`);
   })
 }
