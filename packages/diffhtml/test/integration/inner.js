@@ -144,9 +144,7 @@ describe('Integration: innerHTML', function() {
       const script2 = document.createElement('script');
       script2.id = 'test';
       document.body.appendChild(script2);
-    </script>`, {
-      executeScripts: true,
-    });
+    </script>`);
 
     assert.equal(Boolean(document.querySelector('#test')), true);
 
