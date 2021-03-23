@@ -30,6 +30,7 @@ export default function reconcileTrees(transaction) {
   }
 
   const { nodeName, attributes } = state.oldTree;
+  const inputAsVTree = /** @type {VTree} */(input);
 
   // TODO When `inner === false` this means we are doing outerHTML operation.
   // The way this works is that anything that doesn't match the oldTree element
@@ -47,15 +48,14 @@ export default function reconcileTrees(transaction) {
   // without needing to trim.
   if (
     !inner &&
-    /** @type {VTree} */(input).nodeType === NODE_TYPE.FRAGMENT &&
+    inputAsVTree.nodeType === NODE_TYPE.FRAGMENT &&
     // Do not modify the new children when comparing two fragments.
     state.oldTree.nodeType !== NODE_TYPE.FRAGMENT
   ) {
     /** @type {VTree[]} */
     let foundElements = [];
 
-    /** @type {VTree} */
-    (input).childNodes.forEach((/** @type {VTree} */ value) => {
+    inputAsVTree.childNodes.forEach(value => {
       const isText = value.nodeType === NODE_TYPE.TEXT;
 
       // This is most likely the element that is requested to compare to. Will
@@ -71,7 +71,7 @@ export default function reconcileTrees(transaction) {
     }
     // Otherwise consider the entire fragment.
     else if (foundElements.length > 1) {
-      transaction.newTree = createTree(foundElements);
+      transaction.newTree = createTree(inputAsVTree.childNodes);
     }
   }
 
