@@ -83,7 +83,6 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
       const vTree = fixtures.renderTrailingExpression();
       diff.outerHTML(this.fixture, vTree);
 
-      // This does work, but is missing the space between the div and the text.
       assert.equal(this.fixture.innerHTML.trim(), '<div></div> Hello world');
     });
 

@@ -28,6 +28,15 @@ describe('Integration: outerHTML', function() {
     strictEqual(this.fixture.firstElementChild.textContent, 'this');
   });
 
+  it('can support using whitespace and text', function() {
+    diff.outerHTML(this.fixture, html`
+      <div></div> test
+    `);
+
+    strictEqual(this.fixture.firstElementChild.tagName, 'DIV');
+    strictEqual(this.fixture.innerHTML.trim(), '<div></div> test');
+  });
+
   it('can recalculate the tree if contents are unexpectedly changed', function() {
     diff.outerHTML(this.fixture, '<div><p></p></div>');
     this.fixture.innerHTML = '<span></span>';

@@ -60,14 +60,16 @@ export default function reconcileTrees(transaction) {
 
       // This is most likely the element that is requested to compare to. Will
       // need to keep checking or more input though to be totally sure.
-      if (!isText) {
+      if (!isText || value.nodeValue.trim()) {
         foundElements.push(value);
       }
     });
 
+    // If only one element is found, we can use this directly.
     if (foundElements.length === 1) {
       transaction.newTree = foundElements[0];
     }
+    // Otherwise consider the entire fragment.
     else if (foundElements.length > 1) {
       transaction.newTree = createTree(foundElements);
     }
