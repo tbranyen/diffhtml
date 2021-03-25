@@ -1368,117 +1368,101 @@ describe('Util', function() {
 
   describe('Performance', () => {
     it(`will return a NOP when the user doesn't have search`, () => {
-      const div = document.createElement('div');
-      const vTree = createTree(div);
-      const measure = makeMeasure(div, vTree);
+      const mount = document.createElement('div');
+      const input = createTree(mount);
+      const measure = makeMeasure({ mount, input });
 
       strictEqual(measure.name, 'nop');
     });
 
     it(`will return a NOP when the user has search, but no diff`, () => {
-      const div = document.createElement('div');
-      const vTree = createTree(div);
+      const mount = document.createElement('div');
+      const input = createTree(mount);
 
       location.href = 'about:blank?';
 
-      const measure = makeMeasure(div, vTree);
+      const measure = makeMeasure({ mount, input });
       strictEqual(measure.name, 'nop');
     });
 
     it('will return a real measure function if requested', () => {
-      const div = document.createElement('div');
-      const vTree = createTree(div);
+      const mount = document.createElement('div');
+      const input = createTree(mount);
 
       location.href = 'about:blank?diff_collectmetrics';
 
-      const measure = makeMeasure(div, vTree);
+      const measure = makeMeasure({ mount, input });
 
       strictEqual(measure.name, '');
       strictEqual(measure.length, 1);
     });
 
     it('will use performance.mark on the first call', () => {
-      const div = document.createElement('div');
-      const vTree = createTree(div);
+      const mount = document.createElement('div');
+      const input = createTree(mount);
 
       location.href = 'about:blank?diff_collectmetrics';
 
-      const measure = makeMeasure(div, vTree);
+      const measure = makeMeasure({ mount, input });
 
       measure('test-1');
 
       strictEqual(performance.mark.calledOnce, true);
-      deepStrictEqual(performance.mark.firstCall.args, ['test-1']);
+      ok(performance.mark.firstCall.args[0].match(/\[\d+\] test-1/));
     });
 
     it('will use performance.measure on the second call', () => {
-      const div = document.createElement('div');
-      const vTree = createTree(div);
+      const mount = document.createElement('div');
+      const input = createTree(mount);
 
       location.href = 'about:blank?diff_collectmetrics';
 
-      const measure = makeMeasure(div, vTree);
+      const measure = makeMeasure({ mount, input });
 
       measure('test-2');
       measure('test-2');
 
       strictEqual(performance.measure.callCount, 1);
-      deepStrictEqual(performance.mark.firstCall.args, ['test-2']);
-      deepStrictEqual(performance.mark.lastCall.args, ['test-2-end']);
-      deepStrictEqual(performance.measure.firstCall.args.slice(1), [
-        'test-2',
-        'test-2-end',
-      ]);
+      ok(performance.mark.firstCall.args[0].match(/\[\d+\] test-2/));
+      ok(performance.mark.lastCall.args[0].match(/\[\d+\] test-2-end/));
 
-      const regex = /diffHTML test-2 \((.*)ms\)/;
+      const regex = /diffHTML \[\d+\] test-2 \((.*)ms\)/;
       ok(regex.exec(performance.measure.firstCall.args[0]));
     });
 
     it('will log out web component names', () => {
-      const div = document.createElement('div');
-      /** @type {any} */ (div).host = { constructor: { name: 'Component' } };
-      const vTree = createTree(div);
+      const mount = document.createElement('div');
+      /** @type {any} */ (mount).host = { constructor: { name: 'Component' } };
+      const input = createTree(mount);
 
       location.href = 'about:blank?diff_collectmetrics';
 
-      const measure = makeMeasure(div, vTree);
+      const measure = makeMeasure({ mount, input });
 
       measure('test-3');
       measure('test-3');
 
       strictEqual(performance.measure.callCount, 1);
-      deepStrictEqual(performance.mark.firstCall.args, ['Component test-3']);
-      deepStrictEqual(performance.mark.lastCall.args, ['Component test-3-end']);
-      deepStrictEqual(performance.measure.firstCall.args.slice(1), [
-        'Component test-3',
-        'Component test-3-end',
-      ]);
 
-      const regex = /diffHTML Component test-3 \((.*)ms\)/;
+      const regex = /diffHTML Component \[\d+\] test-3 \((.*)ms\)/;
       ok(regex.exec(performance.measure.firstCall.args[0]));
     });
 
     it('will log out tagName component names', () => {
       class Component {}
-      const div = document.createElement('div');
-      const vTree = createTree(Component);
+      const mount = document.createElement('div');
+      const input = createTree(Component);
 
       location.href = 'about:blank?diff_collectmetrics';
 
-      const measure = makeMeasure(div, vTree);
+      const measure = makeMeasure({ mount, input });
 
       measure('test-4');
       measure('test-4');
 
       strictEqual(performance.measure.callCount, 1);
-      deepStrictEqual(performance.mark.firstCall.args, ['Component test-4']);
-      deepStrictEqual(performance.mark.lastCall.args, ['Component test-4-end']);
-      deepStrictEqual(performance.measure.firstCall.args.slice(1), [
-        'Component test-4',
-        'Component test-4-end',
-      ]);
 
-      const regex = /diffHTML Component test-4 \((.*)ms\)/;
+      const regex = /diffHTML Component \[\d+\] test-4 \((.*)ms\)/;
       ok(regex.exec(performance.measure.firstCall.args[0]));
     });
   });

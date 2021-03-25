@@ -1,4 +1,4 @@
-import { equal, deepEqual, notStrictEqual, throws } from 'assert';
+import { strictEqual, deepStrictEqual, notStrictEqual, throws } from 'assert';
 import html from '../lib/html';
 import release from '../lib/release';
 import Transaction from '../lib/transaction';
@@ -23,7 +23,7 @@ describe('Tasks', function() {
 
       reconcileTrees(transaction);
 
-      deepEqual(transaction.oldTree, {
+      deepStrictEqual(transaction.oldTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -40,7 +40,7 @@ describe('Tasks', function() {
 
       reconcileTrees(transaction);
 
-      deepEqual(transaction.oldTree, {
+      deepStrictEqual(transaction.oldTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -63,7 +63,7 @@ describe('Tasks', function() {
 
       const { oldTree } = transaction;
 
-      deepEqual(oldTree, {
+      deepStrictEqual(oldTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -77,7 +77,7 @@ describe('Tasks', function() {
 
       reconcileTrees(secondTransaction);
 
-      deepEqual(oldTree, secondTransaction.oldTree);
+      deepStrictEqual(oldTree, secondTransaction.oldTree);
     });
 
     it('will upgrade the domNode if it is not the exact same as before', () => {
@@ -88,7 +88,7 @@ describe('Tasks', function() {
       transaction.state.previousMarkup = this.fixture.outerHTML;
       transaction.state.oldTree = transaction.oldTree;
 
-      deepEqual(transaction.oldTree, {
+      deepStrictEqual(transaction.oldTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -104,7 +104,7 @@ describe('Tasks', function() {
       const secondTransaction = Transaction.create(this.fixture, html`<div/>`, {});
       reconcileTrees(secondTransaction);
 
-      deepEqual(secondTransaction.oldTree, {
+      deepStrictEqual(secondTransaction.oldTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -131,7 +131,7 @@ describe('Tasks', function() {
 
       reconcileTrees(transaction);
 
-      deepEqual(transaction.newTree, {
+      deepStrictEqual(transaction.newTree, {
         rawNodeName: Component,
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -155,7 +155,7 @@ describe('Tasks', function() {
 
       reconcileTrees(transaction);
 
-      deepEqual(transaction.newTree, {
+      deepStrictEqual(transaction.newTree, {
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
@@ -177,7 +177,7 @@ describe('Tasks', function() {
 
       reconcileTrees(transaction);
 
-      deepEqual(transaction.newTree, {
+      deepStrictEqual(transaction.newTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -198,8 +198,8 @@ describe('Tasks', function() {
 
       const { state } = transaction;
 
-      equal(state.isRendering, true);
-      equal(state.activeTransaction, transaction);
+      strictEqual(state.isRendering, true);
+      strictEqual(state.activeTransaction, transaction);
     });
 
     it('will make a subsequent transaction wait for an existing element', async () => {
@@ -216,15 +216,15 @@ describe('Tasks', function() {
       const promise = schedule(transaction2);
       const { state } = transaction1;
 
-      equal(typeof transaction2.promise.then, 'function');
-      equal(state.nextTransaction, transaction2);
-      equal(transaction2.aborted, true);
+      strictEqual(typeof transaction2.promise.then, 'function');
+      strictEqual(state.nextTransaction, transaction2);
+      strictEqual(transaction2.aborted, true);
 
       // Wait for the promise to complete.
       await promise;
 
-      equal(transaction2.aborted, false);
-      equal(state.activeTransaction, transaction2);
+      strictEqual(transaction2.aborted, false);
+      strictEqual(state.activeTransaction, transaction2);
     });
 
     it('will make a new transaction wait for an existing parent element transaction', async () => {
@@ -252,15 +252,15 @@ describe('Tasks', function() {
       // States are different per element
       notStrictEqual(state1, state2);
 
-      equal(typeof transaction2.promise.then, 'function');
-      equal(state1.nextTransaction, transaction2);
-      equal(transaction2.aborted, true);
+      strictEqual(typeof transaction2.promise.then, 'function');
+      strictEqual(state1.nextTransaction, transaction2);
+      strictEqual(transaction2.aborted, true);
 
       // Wait for the promise to complete.
       await promise;
 
-      equal(transaction2.aborted, false);
-      equal(state2.activeTransaction, transaction2);
+      strictEqual(transaction2.aborted, false);
+      strictEqual(state2.activeTransaction, transaction2);
     });
 
     it('will make a new transaction wait for an existing child element render', async () => {
@@ -288,15 +288,15 @@ describe('Tasks', function() {
       // States are different per element
       notStrictEqual(state1, state2);
 
-      equal(typeof transaction2.promise.then, 'function');
-      equal(state1.nextTransaction, transaction2);
-      equal(transaction2.aborted, true);
+      strictEqual(typeof transaction2.promise.then, 'function');
+      strictEqual(state1.nextTransaction, transaction2);
+      strictEqual(transaction2.aborted, true);
 
       // Wait for the promise to complete.
       await promise;
 
-      equal(transaction2.aborted, false);
-      equal(state2.activeTransaction, transaction2);
+      strictEqual(transaction2.aborted, false);
+      strictEqual(state2.activeTransaction, transaction2);
     });
   });
 

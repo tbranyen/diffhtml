@@ -6,7 +6,7 @@ import Transaction from '../transaction';
  * @param {Transaction} transaction
  */
 export default function parseNewTree(transaction) {
-  const { state, input, options } = transaction;
+  const { state, input, config: options } = transaction;
   const { measure } = state;
   const { inner } = options;
 

@@ -12,21 +12,21 @@ import release from '../release';
  * @param {Transaction} transaction
  */
 export default function reconcileTrees(transaction) {
-  const { state, domNode, input, options } = transaction;
+  const { state, mount, input, config: options } = transaction;
   const { previousMarkup } = state;
   const { inner } = options;
-  const domNodeAsHTMLEl = /** @type {HTMLElement} */ (domNode);
-  const { outerHTML } = domNodeAsHTMLEl;
+  const mountAsHTMLEl = /** @type {HTMLElement} */ (mount);
+  const { outerHTML } = mountAsHTMLEl;
 
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node.
   if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
-    release(domNode);
-    state.oldTree = createTree(domNodeAsHTMLEl);
+    release(mount);
+    state.oldTree = createTree(mountAsHTMLEl);
     protectVTree(state.oldTree);
 
     // Reset the state cache after releasing.
-    StateCache.set(domNode, state);
+    StateCache.set(mount, state);
   }
 
   const { nodeName, attributes } = state.oldTree;
