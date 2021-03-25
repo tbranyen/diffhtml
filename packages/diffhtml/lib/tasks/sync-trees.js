@@ -5,7 +5,7 @@ import process from '../util/process';
 import Transaction from '../transaction';
 
 export default function syncTrees(/** @type {Transaction} */ transaction) {
-  const { state, state: { measure }, oldTree, newTree, domNode } = transaction;
+  const { state, state: { measure }, oldTree, newTree, mount } = transaction;
 
   measure('sync trees');
 
@@ -31,7 +31,7 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     // If there is no `parentNode` for the replace operation, we will need to
     // throw an error and prevent the `StateCache` from being updated.
     if (process.env.NODE_ENV !== 'production') {
-      if (!/** @type {HTMLElement} */ (domNode).parentNode) {
+      if (!/** @type {HTMLElement} */ (mount).parentNode) {
         throw new Error('Unable to replace top level node without a parent');
       }
     }
@@ -49,10 +49,10 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     const newNode = createNode(newTree);
 
     // Update the StateCache since we are changing the top level element.
-    StateCache.delete(domNode);
+    StateCache.delete(mount);
     StateCache.set(/** @type {Mount} */ (newNode), state);
 
-    transaction.domNode = /** @type {HTMLElement} */ (newNode);
+    transaction.mount = /** @type {HTMLElement} */ (newNode);
 
     if (newTree.nodeName === 'script') {
       state.scriptsToExecute.set(newTree, newTree.attributes.type || EMPTY.STR);

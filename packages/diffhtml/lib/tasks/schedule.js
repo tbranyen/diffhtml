@@ -18,20 +18,28 @@ export default function schedule(transaction) {
 
   // Loop through all existing mounts to ensure we properly wait.
   StateCache.forEach(val => {
-    // Is parent.
-    const domNode = /** @type {HTMLElement} */ (
-      val.activeTransaction && val.activeTransaction.domNode
+    const oldMount = /** @type {HTMLElement} */ (
+      val.activeTransaction && val.activeTransaction.mount
     );
-    const newNode = /** @type {HTMLElement} */ (transaction.domNode);
+    const newMount = /** @type {HTMLElement} */ (transaction.mount);
 
-    if (!domNode || !domNode.contains || !newNode || !newNode.contains) {
+    // Only consider transactions that have mounts and are rendering.
+    if (!oldMount || !newMount || !val.isRendering) {
       return;
     }
 
+    // If the new mount point exists within an existing point that is rendering,
+    // then wait for that transaction to finish.
     else if (
-      (domNode.contains(newNode) || newNode.contains(domNode)) &&
-      val.isRendering
+      oldMount.contains && oldMount.contains(newMount) ||
+      newMount.contains && newMount.contains(oldMount)
     ) {
+      state = val;
+      isRendering = true;
+    }
+    // Test if the active transaction is the same as the incoming by looking at
+    // the mount. Then look and see if the state is rendering.
+    else if (oldMount === newMount) {
       state = val;
       isRendering = true;
     }

@@ -227,8 +227,8 @@ export const Supplemental = EMPTY.OBJ;
  * @property {VTree=} oldTree
  * @property {Boolean=} isRendering
  * @property {String=} previousMarkup
- * @property {any=} activeTransaction
- * @property {any=} nextTransaction
+ * @property {import('../transaction').default} activeTransaction
+ * @property {import('../transaction').default=} nextTransaction
  * @property {Document=} ownerDocument
 */
 export const TransactionState = EMPTY.OBJ;

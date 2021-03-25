@@ -1,50 +1,55 @@
-import { Mount, ValidInput, VTree } from "./types";
-import getConfig from './config';
+import getConfig from "./config";
+import { VTree } from "./types";
 
-export const marks = new Map();
-export const prefix = 'diffHTML';
-
+const prefix = 'diffHTML';
+const marks = new Map();
 const nop = () => {};
+let count = 0;
 
 /**
+ * Creates a measure function that will collect data about the currently running
+ * transaction.
  *
- * @param {Mount} mount
- * @param {ValidInput=} input
+ * @param {import('../transaction').default} transaction
  * @return {(name: string) => void}
  */
-export default function makeMeasure(mount, input) {
-  const wantsPerfChecks = getConfig('collectMetrics', false);
-
-  // If the user has not requested they want perf checks, return a nop
-  // function.
-  if (!wantsPerfChecks) { return nop; }
-
+export default function makeMeasure(transaction) {
+  const { mount, input } = transaction;
   const inputAsVTree = /** @type {VTree} */ (input);
+  const id = count++;
+
+  // Marks will only be available if the user has requested they want to collect
+  // metrics.
+  if (!getConfig('collectMetrics', false)) { return nop; }
 
   return name => {
-    const host = /** @type any */ (mount).host;
+    name = `[${id}] ${name}`;
+
+    const { host } = /** @type {any} */ (mount);
 
     // Use the Web Component name if it's available.
     if (mount && host) {
       name = `${host.constructor.name} ${name}`;
     }
+    // Otherwise try an find the function name used.
     else if (inputAsVTree && typeof inputAsVTree.rawNodeName === 'function') {
       name = `${inputAsVTree.rawNodeName.name} ${name}`;
     }
 
     const endName = `${name}-end`;
 
-    if (!marks.has(name)) {
-      marks.set(name, performance.now());
-      performance.mark(name);
-    }
-    else {
-      const totalMs = (performance.now() - marks.get(name)).toFixed(3);
+    if (marks.has(name)) {
+      const prevMark = marks.get(name) || 0;
+      const totalMs = (performance.now() - prevMark).toFixed(3);
 
       marks.delete(name);
 
       performance.mark(endName);
       performance.measure(`${prefix} ${name} (${totalMs}ms)`, name, endName);
+    }
+    else {
+      marks.set(name, performance.now());
+      performance.mark(name);
     }
   };
 }

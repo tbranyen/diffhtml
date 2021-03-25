@@ -33,12 +33,12 @@ export const tasks = {
 export default class Transaction {
   /**
    *
-   * @param {Mount} domNode
+   * @param {Mount} mount
    * @param {ValidInput} input
    * @param {TransactionConfig} options
    */
-  static create(domNode, input, options) {
-    return new Transaction(domNode, input, options);
+  static create(mount, input, options) {
+    return new Transaction(mount, input, options);
   }
 
   /**
@@ -80,7 +80,7 @@ export default class Transaction {
    */
   static assert(transaction) {
     if (process.env.NODE_ENV !== 'production') {
-      if (typeof transaction.domNode !== 'object' || !transaction.domNode) {
+      if (typeof transaction.mount !== 'object' || !transaction.mount) {
         throw new Error('Transaction requires a DOM Node mount point');
       }
 
@@ -125,16 +125,15 @@ export default class Transaction {
    * @param {TransactionConfig} config
    */
   constructor(mount, input, config) {
-    // TODO: Rename this to mount.
-    this.domNode = mount;
+    this.mount = mount;
     this.input = input;
-    // TODO: Rename this to config.
-    this.options = config;
+    this.config = config;
 
     this.state = StateCache.get(mount) || /** @type {TransactionState} */ ({
-      measure: makeMeasure(mount, input),
+      measure: makeMeasure(this),
       svgElements: new Set(),
       scriptsToExecute: new Map(),
+      activeTransaction: this,
     });
 
     this.tasks = /** @type {Function[]} */ (
@@ -195,9 +194,9 @@ export default class Transaction {
    * @return {Transaction}
    */
   end() {
-    const { state, domNode, options } = this;
+    const { state, mount, config: options } = this;
     const { measure, svgElements, scriptsToExecute } = state;
-    const domNodeAsHTMLEl = /** @type {HTMLElement} */ (domNode);
+    const mountAsHTMLEl = /** @type {HTMLElement} */ (mount);
 
     measure('finalize');
 
@@ -218,7 +217,7 @@ export default class Transaction {
     });
 
     // Save the markup immediately after patching.
-    state.previousMarkup = 'outerHTML' in domNodeAsHTMLEl ? domNodeAsHTMLEl.outerHTML : EMPTY.STR;
+    state.previousMarkup = 'outerHTML' in mountAsHTMLEl ? mountAsHTMLEl.outerHTML : EMPTY.STR;
 
     // Only execute scripts if the configuration is set. By default this is set
     // to true. You can toggle this behavior for your app to disable script
@@ -280,10 +279,10 @@ export default class Transaction {
   state = EMPTY.OBJ;
 
   /** @type {Mount} */
-  domNode = EMPTY.STR;
+  mount = EMPTY.OBJ;
 
   /** @type {ValidInput} */
-  input = EMPTY.STR;
+  input = EMPTY.OBJ;
 
   /** @type {VTree=} */
   oldTree = undefined;
