@@ -131,14 +131,14 @@ export default class Transaction {
     this.config = config;
 
     const isDirtyCheck = () => this.state.isDirty = true;
-    const hasMutationObserver = 'MutationObserver' in globalThis.window || EMPTY.OBJ;
+    const hasObserver = 'MutationObserver' in (globalThis.window || EMPTY.OBJ);
 
     this.state = StateCache.get(mount) || /** @type {TransactionState} */ ({
       measure: makeMeasure(this),
       svgElements: new Set(),
       scriptsToExecute: new Map(),
       activeTransaction: this,
-      mutationObserver: hasMutationObserver && new globalThis.window.MutationObserver(isDirtyCheck),
+      mutationObserver: hasObserver && new globalThis.window.MutationObserver(isDirtyCheck),
     });
 
     this.tasks = /** @type {Function[]} */ (
