@@ -190,7 +190,35 @@ describe('Use (Middleware)', function() {
     release(oldTree);
   });
 
-  it('will ignoring a dynamically added DOM Node to avoid diffing', () => {
+  it('will reconcile the new dom when the same markup is used in the mounted element', () => {
+    const fixture = document.createElement('div');
+
+    innerHTML(fixture, '<p><span></span></p>');
+
+    fixture.innerHTML = fixture.innerHTML;
+
+    innerHTML(fixture, '<p></p><p><span></span></p>');
+
+    equal(fixture.innerHTML, '<p></p><p><span></span></p>');
+
+    release(fixture);
+  });
+
+  it('will reconcile the new dom when the same markup is used in a nested element', () => {
+    const fixture = document.createElement('div');
+
+    innerHTML(fixture, '<p><span></span></p>');
+
+    fixture.querySelector('p').innerHTML = fixture.querySelector('p').innerHTML;
+
+    innerHTML(fixture, '<p></p><p><span></span></p>');
+
+    equal(fixture.outerHTML, '<div><p></p><p><span></span></p></div>');
+
+    release(fixture);
+  });
+
+  it('will ignore a dynamically added DOM Node to avoid diffing', () => {
     const fixture = document.createElement('div');
 
     innerHTML(fixture, '<p></p>');

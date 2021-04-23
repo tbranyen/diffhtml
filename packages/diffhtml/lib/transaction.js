@@ -12,6 +12,7 @@ import {
 import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
+import globalThis from './util/global';
 import schedule from './tasks/schedule';
 import shouldUpdate from './tasks/should-update';
 import reconcileTrees from './tasks/reconcile-trees';
@@ -129,11 +130,15 @@ export default class Transaction {
     this.input = input;
     this.config = config;
 
+    const isDirtyCheck = () => this.state.isDirty = true;
+    const hasObserver = 'MutationObserver' in (globalThis.window || EMPTY.OBJ);
+
     this.state = StateCache.get(mount) || /** @type {TransactionState} */ ({
       measure: makeMeasure(this),
       svgElements: new Set(),
       scriptsToExecute: new Map(),
       activeTransaction: this,
+      mutationObserver: hasObserver && new globalThis.window.MutationObserver(isDirtyCheck),
     });
 
     this.tasks = /** @type {Function[]} */ (
@@ -194,8 +199,9 @@ export default class Transaction {
    * @return {Transaction}
    */
   end() {
-    const { state, mount, config: options } = this;
+    const { state, config, mount } = this;
     const { measure, svgElements, scriptsToExecute } = state;
+
     const mountAsHTMLEl = /** @type {HTMLElement} */ (mount);
 
     measure('finalize');
@@ -207,7 +213,24 @@ export default class Transaction {
 
     // Rendering is complete.
     state.isRendering = false;
+    state.isDirty = false;
 
+    // If MutationObserver is available, look for changes.
+    if (mountAsHTMLEl.ownerDocument && state.mutationObserver) {
+      state.mutationObserver.observe(mountAsHTMLEl, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      });
+    }
+    // If there is no MutationObserver, then the DOM is dirty by default and
+    // rescanned every time.
+    else {
+      state.isDirty = true;
+    }
+
+    // Execute all queued scripts.
     scriptsToExecute.forEach((type = EMPTY.STR, vTree) => {
       const oldNode = /** @type {HTMLElement} */ (NodeCache.get(vTree));
 
@@ -222,7 +245,7 @@ export default class Transaction {
     // Only execute scripts if the configuration is set. By default this is set
     // to true. You can toggle this behavior for your app to disable script
     // execution.
-    if (options.executeScripts) {
+    if (config.executeScripts) {
       // Execute deferred scripts.
       scriptsToExecute.forEach((_, vTree)=> {
         const oldNode = NodeCache.get(vTree);
