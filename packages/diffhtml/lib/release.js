@@ -7,19 +7,23 @@ import { StateCache, NodeCache, ReleaseHookCache, Mount } from './util/types';
  * @param {Mount} mount - Valid input node
  */
 export default function release(mount) {
-  // Try and find a state object for this DOM Node.
-  const state = StateCache.get(mount);
-
   // If this was a top-level rendered element, deallocate the VTree
   // and remove the StateCache reference.
-  if (state) {
+  if (StateCache.has(mount)) {
+    const { mutationObserver, oldTree } = StateCache.get(mount);
+
+    // Ensure the mutation observer is cleaned up.
+    if (mutationObserver) {
+      mutationObserver.disconnect();
+    }
+
     StateCache.delete(mount);
 
     // If there is a known root association that is not in the NodeCache,
     // remove this VTree.
-    if (state.oldTree && !NodeCache.has(state.oldTree)) {
-      ReleaseHookCache.forEach(fn => fn(state.oldTree));
-      unprotectVTree(state.oldTree);
+    if (oldTree && !NodeCache.has(oldTree)) {
+      ReleaseHookCache.forEach(fn => fn(oldTree));
+      unprotectVTree(oldTree);
     }
   }
 

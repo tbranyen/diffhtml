@@ -13,14 +13,23 @@ import release from '../release';
  */
 export default function reconcileTrees(transaction) {
   const { state, mount, input, config: options } = transaction;
-  const { previousMarkup } = state;
   const { inner } = options;
   const mountAsHTMLEl = /** @type {HTMLElement} */ (mount);
   const { outerHTML } = mountAsHTMLEl;
 
+  // Look if any changes happened before the async mutation callback.
+  if (state.mutationObserver && !state.isDirty) {
+    state.isDirty = Boolean(state.mutationObserver.takeRecords().length);
+  }
+
+  // Ensure that previous markup matches the current markup.
+  if (state.previousMarkup !== outerHTML) {
+    state.isDirty = true;
+  }
+
   // We rebuild the tree whenever the DOM Node changes, including the first
-  // time we patch a DOM Node.
-  if (previousMarkup !== outerHTML || !state.oldTree || !outerHTML) {
+  // time we patch a DOM Node. We also
+  if (state.isDirty || !state.oldTree || !outerHTML) {
     release(mount);
     state.oldTree = createTree(mountAsHTMLEl);
     protectVTree(state.oldTree);

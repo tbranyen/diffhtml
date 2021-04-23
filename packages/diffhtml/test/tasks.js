@@ -58,7 +58,6 @@ describe('Tasks', function() {
 
       reconcileTrees(transaction);
 
-      transaction.state.previousMarkup = this.fixture.outerHTML;
       transaction.state.oldTree = transaction.oldTree;
 
       const { oldTree } = transaction;
@@ -85,7 +84,6 @@ describe('Tasks', function() {
 
       reconcileTrees(transaction);
 
-      transaction.state.previousMarkup = this.fixture.outerHTML;
       transaction.state.oldTree = transaction.oldTree;
 
       deepStrictEqual(transaction.oldTree, {
@@ -97,6 +95,9 @@ describe('Tasks', function() {
         childNodes: [],
         attributes: {},
       });
+
+      // Start mutation observer for changes.
+      transaction.end();
 
       // Change the markup slightly.
       this.fixture.appendChild(document.createElement('span'));
