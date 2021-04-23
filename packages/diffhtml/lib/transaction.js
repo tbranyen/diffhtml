@@ -131,7 +131,7 @@ export default class Transaction {
     this.config = config;
 
     const isDirtyCheck = () => this.state.isDirty = true;
-    const hasMutationObserver = 'MutationObserver' in globalThis.window;
+    const hasMutationObserver = 'MutationObserver' in globalThis.window || EMPTY.OBJ;
 
     this.state = StateCache.get(mount) || /** @type {TransactionState} */ ({
       measure: makeMeasure(this),
@@ -216,12 +216,14 @@ export default class Transaction {
     state.isDirty = false;
 
     // If MutationObserver is available, look for changes.
-    state.mutationObserver && state.mutationObserver.observe(mountAsHTMLEl, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      characterData: true,
-    });
+    if (mountAsHTMLEl.ownerDocument && state.mutationObserver) {
+      state.mutationObserver.observe(mountAsHTMLEl, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      });
+    }
 
     // Execute all queued scripts.
     scriptsToExecute.forEach((type = EMPTY.STR, vTree) => {
