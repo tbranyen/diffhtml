@@ -224,6 +224,11 @@ export default class Transaction {
         characterData: true,
       });
     }
+    // If there is no MutationObserver, then the DOM is dirty by default and
+    // rescanned every time.
+    else {
+      state.isDirty = true;
+    }
 
     // Execute all queued scripts.
     scriptsToExecute.forEach((type = EMPTY.STR, vTree) => {
