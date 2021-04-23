@@ -190,6 +190,20 @@ describe('Use (Middleware)', function() {
     release(oldTree);
   });
 
+  it('will reconcile the new dom when the same markup is used', () => {
+    const fixture = document.createElement('div');
+
+    innerHTML(fixture, '<p><span></span></p>');
+
+    fixture.querySelector('p').innerHTML = fixture.querySelector('p').innerHTML;
+
+    innerHTML(fixture, '<p></p><p><span></span></p>');
+
+    equal(fixture.outerHTML, '<div><p></p><p><span></span></p></div>');
+
+    release(fixture);
+  });
+
   it('will ignoring a dynamically added DOM Node to avoid diffing', () => {
     const fixture = document.createElement('div');
 
