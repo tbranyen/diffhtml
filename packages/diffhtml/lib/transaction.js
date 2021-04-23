@@ -216,14 +216,12 @@ export default class Transaction {
     state.isDirty = false;
 
     // If MutationObserver is available, look for changes.
-    if (state.mutationObserver) {
-      state.mutationObserver.observe(mountAsHTMLEl, {
-        subtree: true,
-        childList: true,
-        attributes: true,
-        characterData: true,
-      });
-    }
+    state.mutationObserver && state.mutationObserver.observe(mountAsHTMLEl, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
+    });
 
     // Execute all queued scripts.
     scriptsToExecute.forEach((type = EMPTY.STR, vTree) => {

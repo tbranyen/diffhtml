@@ -13,9 +13,7 @@ export default function release(mount) {
     const { mutationObserver, oldTree } = StateCache.get(mount);
 
     // Ensure the mutation observer is cleaned up.
-    if (mutationObserver) {
-      mutationObserver.disconnect();
-    }
+    mutationObserver && mutationObserver.disconnect();
 
     StateCache.delete(mount);
 
