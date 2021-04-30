@@ -2,7 +2,9 @@ import createTree from './tree/create';
 import parse, { TOKEN } from './util/parse';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
+import { $$strict } from './util/symbols';
 import { EMPTY, VTree, Supplemental } from './util/types';
+import getConfig from './util/config';
 
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
@@ -40,12 +42,22 @@ export default function handleTaggedTemplate(strings, ...values) {
 
   // Parse only the text, no dynamic bits.
   if (strings.length === 1 && !values.length) {
-    const strict = handleTaggedTemplate.isStrict;
-    handleTaggedTemplate.isStrict = false;
-
     if (!strings[0]) {
       return empty;
     }
+
+    const strict = /** @type {boolean} */(
+      getConfig(
+        'strict',
+        false,
+        'boolean',
+        {
+          strict: /** @type {any} */(handleTaggedTemplate)[$$strict]
+        },
+      )
+    );
+
+    delete /** @type {any} */(handleTaggedTemplate)[$$strict];
 
     const { childNodes } = parse(strings[0], undefined, {
       parser: { strict },
@@ -110,8 +122,9 @@ export default function handleTaggedTemplate(strings, ...values) {
 
   // Determine if we are in strict mode and immediately reset for the next
   // call.
-  const strict = handleTaggedTemplate.isStrict;
-  handleTaggedTemplate.isStrict = false;
+  const strict = /** @type {boolean} */(getConfig('strict', false, 'boolean', {
+    strict: /** @type {any} */ (handleTaggedTemplate)[$$strict],
+  }));
 
   // Parse the instrumented markup to get the Virtual Tree.
   const { childNodes } = parse(HTML, supplemental, { parser: { strict } });
@@ -122,7 +135,7 @@ export default function handleTaggedTemplate(strings, ...values) {
 }
 
 // Default to loose-mode.
-handleTaggedTemplate.isStrict = false;
+delete /** @type {any} */(handleTaggedTemplate)[$$strict];
 
 /**
  * Use a strict mode similar to XHTML/JSX where tags must be properly closed
@@ -133,7 +146,7 @@ handleTaggedTemplate.isStrict = false;
  * @param  {any[]} args
  */
 function setStrictMode(markup, ...args) {
-  handleTaggedTemplate.isStrict = true;
+  /** @type {any} */(handleTaggedTemplate)[$$strict] = true;
   return handleTaggedTemplate(markup, ...args);
 }
 

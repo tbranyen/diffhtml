@@ -3,7 +3,8 @@ import parseNewTree from './tasks/parse-new-tree';
 import reconcileTrees from './tasks/reconcile-trees';
 import internals from './util/internals';
 import parse from './util/parse';
-import globalThis, { bindingSymbol } from './util/global';
+import { $$diffHTML } from './util/symbols';
+import globalThis from './util/global';
 import innerHTML from './inner-html';
 import outerHTML from './outer-html';
 import toString from './to-string';
@@ -42,15 +43,15 @@ const global = globalThis;
 // Bind the API into the global scope. Allows middleware and other code to
 // reference the core API. Once import maps are more mainstream, we can
 // deprecate this.
-if (bindingSymbol in globalThis) {
-  const existingApi = global[bindingSymbol];
+if ($$diffHTML in globalThis) {
+  const existingApi = global[$$diffHTML];
 
   if (VERSION !== existingApi.VERSION) {
     console.log(`Loaded ${VERSION} after ${existingApi.VERSION}`);
   }
 }
 
-global[bindingSymbol] = api;
+global[$$diffHTML] = api;
 
 // Automatically hook up to DevTools if they are present.
 if (global.devTools) {

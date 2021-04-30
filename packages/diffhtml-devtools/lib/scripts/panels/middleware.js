@@ -1,7 +1,7 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsMiddlewarePanel extends WebComponent {
+class DevtoolsMiddlewarePanel extends Component {
   static propTypes = {
     activeRoute: String,
     middleware: Array,

@@ -51,7 +51,6 @@ export default function schedule(transaction) {
   // transaction into a queue.
   if (isRendering) {
     const { tasks } = transaction;
-    const chainTransaction = nextTransaction || activeTransaction;
 
     // Pave over the `nextTransaction` to chain off the previous.
     state.nextTransaction = transaction;
@@ -59,7 +58,7 @@ export default function schedule(transaction) {
     // Abort the remaining tasks (but do not signal completion).
     transaction.abort();
 
-    const promise = chainTransaction.promise || Promise.resolve();
+    const promise = nextTransaction && nextTransaction.promise || activeTransaction.promise || Promise.resolve();
 
     return transaction.promise = promise.then(() => {
       // Mark the transaction as not aborted (we are running it now). This

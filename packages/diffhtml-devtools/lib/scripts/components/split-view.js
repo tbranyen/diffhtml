@@ -1,7 +1,7 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsSplitView extends WebComponent {
+class DevtoolsSplitView extends Component {
   render() {
     return html`
       <style>${this.styles()}</style>

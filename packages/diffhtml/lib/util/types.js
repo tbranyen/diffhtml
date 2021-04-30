@@ -180,7 +180,7 @@ export const Middleware = EMPTY.OBJ;
  *
  * @property {Boolean=} strict - Should the parser operate in strict mode
  * @property {Boolean=} trim - Trim surrounding whitespace nodes
- * @property {string[]=} rawElements - Set of raw tagNames, empty is all
+ * @property {string[]=} rawElements - Set of raw element tagNames, empty is all
  * @property {string[]=} selfClosingElements - Set of self closing element tagNames, empty is all
  */
 export const ParserConfig = EMPTY.OBJ;
@@ -226,9 +226,7 @@ export const Supplemental = EMPTY.OBJ;
  * @property {ValidInput=} markup
  * @property {VTree=} oldTree
  * @property {Boolean=} isRendering
- * @property {Boolean=} isDirty
  * @property {String=} previousMarkup
- * @property {MutationObserver=} mutationObserver
  * @property {import('../transaction').default} activeTransaction
  * @property {import('../transaction').default=} nextTransaction
  * @property {Document=} ownerDocument

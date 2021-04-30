@@ -2,6 +2,7 @@
 // https://github.com/ashi009/node-fast-html-parser
 
 import createTree from '../tree/create';
+import getConfig from './config';
 import process from './process';
 import { VTree, Supplemental, TransactionConfig, ParserConfig, EMPTY, NODE_TYPE } from './types';
 
@@ -22,14 +23,14 @@ const defaultSupplemental = {
 const { assign } = Object;
 const { isArray } = Array;
 
-const blockTextDefaults = [
+const rawElementsDefaults = [
   'script',
   'noscript',
   'style',
   'template',
 ];
 
-const selfClosingDefaults = [
+const selfClosingElementsDefaults = [
   'meta',
   'img',
   'link',
@@ -262,10 +263,26 @@ export default function parse(html, supplemental, options = {}) {
   }
 
   const blockText = new Set(
-    options.parser.rawElements ? options.parser.rawElements : blockTextDefaults
+    /** @type {string[]} */(
+      getConfig(
+        'rawElements',
+        rawElementsDefaults,
+        'array',
+        options.parser,
+      )
+    ),
   );
 
-  const selfClosing = new Set(options.parser.selfClosingElements || selfClosingDefaults);
+  const selfClosing = new Set(
+    /** @type {string[]} */(
+      getConfig(
+        'selfClosingElements',
+        selfClosingElementsDefaults,
+        'array',
+        options.parser,
+      )
+    ),
+  );
 
   const tagEx =
     /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;

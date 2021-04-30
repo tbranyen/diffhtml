@@ -21,10 +21,10 @@ const boundHandlers = {};
  * Binds inline transitions to the parent element and triggers for any matching
  * nested children.
  */
-export default function inlineTransitions(options = {}) {
+export default function inlineTransitions() {
   // Monitors whenever an element changes an attribute, if the attribute is a
   // valid state name, add this element into the related Set.
-  const attributeChanged = function(domNode, name, oldVal, newVal) {
+  const attributeChanged = function(domNode, name, _oldVal, newVal) {
     const prefix = name.toLowerCase().slice(0, 2);
 
     // Don't bother with non-events.
@@ -112,7 +112,6 @@ export default function inlineTransitions(options = {}) {
 
     // Remove all elements from the internal cache.
     keys(transitionsMap).forEach(name => {
-      const map = transitionsMap[name];
       const transitionName = eventsToTransitionName[name] || name;
 
       // Unbind the associated global handler.

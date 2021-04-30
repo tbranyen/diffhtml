@@ -1,4 +1,5 @@
 const { assign, keys } = Object;
+const { isArray } = Array;
 
 const defaults = {
   "tagname-lowercase": true,
@@ -41,8 +42,8 @@ const srcTagNames = [
 
 const state = {
   ids: new Set(),
-  errors: [],
-  warnings: [],
+  errors: /** @type {any} */ ([]),
+  warnings: /** @type {any} */ ([]),
 };
 
 const linter = ({ rules, renderErrors }) => {

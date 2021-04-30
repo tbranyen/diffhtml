@@ -4,7 +4,6 @@ import Transaction from '../lib/transaction';
 import use from '../lib/use';
 import release from '../lib/release';
 import validateMemory from './util/validate-memory';
-import { EMPTY } from '../lib/util/types';
 
 describe('Transaction', function() {
   const suite = /** @type {any} */(this);

@@ -1,11 +1,10 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
 const { keys } = Object;
 const { stringify } = JSON;
-const hasNonWhitespaceEx = /\S/;
 
-class DevtoolsVTree extends WebComponent {
+class DevtoolsVTree extends Component {
   static propTypes = {
     vTree: Object,
   }

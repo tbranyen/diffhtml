@@ -127,19 +127,20 @@ export default function devTools(Internals) {
 
   function devToolsTask(transaction) {
     const {
-      domNode, markup, options, state: { newTree }, state
+      mount, markup, config, state: { newTree }, state
     } = transaction;
 
-    const isFunction = typeof domNode.rawNodeName === 'function';
-    const selector = unique(domNode) ||
-      `${isFunction ? domNode.rawNodeName.displayName || domNode.rawNodeName.name : domNode.rawNodeName}`;
+    const isFunction = typeof mount.rawNodeName === 'function';
+    const selector = unique(mount) ||
+      `${isFunction ? mount.rawNodeName.displayName || mount.rawNodeName.name : mount.rawNodeName}`;
     const startDate = performance.now();
 
     const start = () => {
+      console.log('Start transaction');
       return extension.startTransaction(startDate, {
         domNode: selector,
         markup,
-        options,
+        options: config,
         state: assign({}, state, state.nextTransaction && {
           nextTransaction: undefined,
         }, {
@@ -173,7 +174,7 @@ export default function devTools(Internals) {
         const stop = () => extension.endTransaction(startDate, endDate, {
           domNode: selector,
           markup,
-          options,
+          options: config,
           state: assign({}, state, state.nextTransaction && {
             nextTransaction: undefined,
           }, {

@@ -59,7 +59,7 @@ function formatValue(value, type) {
  * @param {string} name
  * @param {unknown} defaultValue
  * @param {string} type
- * @param {{[name: string]: unknown}=} overrides
+ * @param {{[name: string]: any}=} overrides
  *
  * @return {unknown}
  */

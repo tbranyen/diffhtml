@@ -1,7 +1,7 @@
 import diff, { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsHelpPanel extends WebComponent {
+class DevtoolsHelpPanel extends Component {
   static propTypes = {
     theme: String,
     activeRoute: String,

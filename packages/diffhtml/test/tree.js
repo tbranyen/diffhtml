@@ -1,8 +1,7 @@
 import {
-  equal,
   strictEqual,
-  notEqual,
-  deepEqual,
+  notStrictEqual,
+  deepStrictEqual,
   throws,
   doesNotThrow,
 } from 'assert';
@@ -27,18 +26,18 @@ describe('Tree', function() {
       const invalidCreateTree = createTree;
       const fragment = createTree('#document-fragment');
 
-      deepEqual(invalidCreateTree(), fragment);
-      deepEqual(invalidCreateTree(null), fragment);
-      deepEqual(invalidCreateTree(undefined), fragment);
-      deepEqual(invalidCreateTree(''), fragment);
-      deepEqual(invalidCreateTree(0), fragment);
-      deepEqual(invalidCreateTree(NaN), fragment);
+      deepStrictEqual(invalidCreateTree(), fragment);
+      deepStrictEqual(invalidCreateTree(null), fragment);
+      deepStrictEqual(invalidCreateTree(undefined), fragment);
+      deepStrictEqual(invalidCreateTree(''), fragment);
+      deepStrictEqual(invalidCreateTree(0), fragment);
+      deepStrictEqual(invalidCreateTree(NaN), fragment);
     });
 
     it('will create an empty div', () => {
       const vTree = createTree('div');
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
@@ -52,7 +51,7 @@ describe('Tree', function() {
     it('will create an empty text node', () => {
       const vTree = createTree('#text');
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#text',
         nodeName: '#text',
         nodeValue: '',
@@ -66,7 +65,7 @@ describe('Tree', function() {
     it('will create a text node with some text', () => {
       const vTree = createTree('#text', 'some text');
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#text',
         nodeName: '#text',
         nodeValue: 'some text',
@@ -80,7 +79,7 @@ describe('Tree', function() {
     it('will create a text node with an array of text', () => {
       const vTree = createTree('#text', ['some text', ' ', 'chunks']);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#text',
         nodeName: '#text',
         nodeValue: 'some text chunks',
@@ -94,7 +93,7 @@ describe('Tree', function() {
     it('will ignore falsy values when creating text from an array', () => {
       const vTree = createTree('#text', ['some text', null, ' ', 'chunks']);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#text',
         nodeName: '#text',
         nodeValue: 'some text chunks',
@@ -108,7 +107,7 @@ describe('Tree', function() {
     it('will ignore null values', () => {
       const vTree = createTree('div', [null, createTree('#text', 'test')]);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
@@ -130,7 +129,7 @@ describe('Tree', function() {
     it('will will merge in a nested array', () => {
       const vTree = createTree('div', [[createTree('#text', 'test')]]);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
@@ -152,7 +151,7 @@ describe('Tree', function() {
     it('will ignore falsy values when creating children from an array', () => {
       const vTree = createTree('div', null, ['text', NaN, createTree('p')]);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
@@ -182,7 +181,7 @@ describe('Tree', function() {
     it('will create a div with some text', () => {
       const vTree = createTree('div', null, 'Hello world');
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
@@ -204,7 +203,7 @@ describe('Tree', function() {
     it('will support JSX-style children', () => {
       const vTree = createTree('div', null, createTree('li'), createTree('p'));
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'div',
         nodeName: 'div',
         nodeValue: '',
@@ -237,7 +236,7 @@ describe('Tree', function() {
         createTree('h1', 'Hello world!'),
       ]);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -279,7 +278,7 @@ describe('Tree', function() {
         null,
       ]);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -323,7 +322,7 @@ describe('Tree', function() {
         ]),
       ]);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -360,7 +359,7 @@ describe('Tree', function() {
 
     it('will mirror a key attribute to the VTree', () => {
       const vTree = createTree('div', { key: '12345' });
-      equal(vTree.key, vTree.attributes.key);
+      strictEqual(vTree.key, vTree.attributes.key);
     });
 
     it('will mirror a falsy key attribute to the VTree', () => {
@@ -370,20 +369,20 @@ describe('Tree', function() {
 
     it('will use a scripts src as key attribute', () => {
       const vTree = createTree('script', { src: '12345' });
-      equal(vTree.key, vTree.attributes.src);
+      strictEqual(vTree.key, vTree.attributes.src);
     });
 
     it('will prefer the key attribute to the scripts src', () => {
       const vTree = createTree('script', { key: 'test', src: '12345' });
-      notEqual(vTree.key, vTree.attributes.src);
-      equal(vTree.key, vTree.attributes.key);
+      notStrictEqual(vTree.key, vTree.attributes.src);
+      strictEqual(vTree.key, vTree.attributes.key);
     });
 
     it('will associate an incoming DOM Node to the NodeCache and VTree', () => {
       const div = document.createElement('div');
       const vTree = createTree(div);
 
-      equal(NodeCache.get(vTree), div);
+      strictEqual(NodeCache.get(vTree), div);
     });
 
     it('will associate incoming DOM Node children to the NodeCache and VTree', () => {
@@ -393,8 +392,8 @@ describe('Tree', function() {
 
       const vTree = createTree(div);
 
-      equal(NodeCache.get(vTree), div);
-      equal(NodeCache.get(vTree.childNodes[0]), span);
+      strictEqual(NodeCache.get(vTree), div);
+      strictEqual(NodeCache.get(vTree.childNodes[0]), span);
     });
 
     it('will not disassociate incoming DOM Node children to the NodeCache and VTree if not released', () => {
@@ -408,8 +407,8 @@ describe('Tree', function() {
 
       const vTree = createTree(div);
 
-      equal(NodeCache.get(vTree), div);
-      equal(NodeCache.get(spanTree), span);
+      strictEqual(NodeCache.get(vTree), div);
+      strictEqual(NodeCache.get(spanTree), span);
     });
 
     it('will disassociate incoming DOM Node children to the NodeCache and VTree if released', () => {
@@ -423,15 +422,15 @@ describe('Tree', function() {
 
       const vTree = createTree(div);
 
-      equal(NodeCache.get(vTree), div);
-      equal(NodeCache.get(spanTree), null);
+      strictEqual(NodeCache.get(vTree), div);
+      strictEqual(NodeCache.get(spanTree), undefined);
     });
 
     it('will mirror an empty div dom node', () => {
       const div = document.createElement('div');
       const vTree = createTree(div);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -446,7 +445,7 @@ describe('Tree', function() {
       const text = document.createTextNode('some text');
       const vTree = createTree(text);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#text',
         nodeName: '#text',
         nodeValue: 'some text',
@@ -463,7 +462,7 @@ describe('Tree', function() {
 
       const vTree = createTree(fragment);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeValue: '',
@@ -486,7 +485,7 @@ describe('Tree', function() {
       const comment = document.createComment('test');
       const vTree = createTree(comment);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#comment',
         nodeName: '#comment',
         nodeValue: '',
@@ -503,7 +502,7 @@ describe('Tree', function() {
 
       const vTree = createTree(div);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -521,7 +520,7 @@ describe('Tree', function() {
 
       const vTree = createTree(div);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -538,7 +537,7 @@ describe('Tree', function() {
 
       const vTree = createTree(div);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -555,7 +554,7 @@ describe('Tree', function() {
 
       const vTree = createTree(div);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: 'DIV',
         nodeName: 'div',
         nodeValue: '',
@@ -572,14 +571,14 @@ describe('Tree', function() {
 
       const vTree = createTree(fixture);
 
-      equal(vTree.childNodes.length, 1);
-      equal(vTree.childNodes[0].nodeName, 'p');
+      strictEqual(vTree.childNodes.length, 1);
+      strictEqual(vTree.childNodes[0].nodeName, 'p');
     });
 
     it('will ignore undefined in array of text elements', () => {
       const vTree = createTree([null, 'text content']);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeType: 11,
@@ -604,7 +603,7 @@ describe('Tree', function() {
         createTree('span', 'text content'),
       ]);
 
-      deepEqual(vTree, {
+      deepStrictEqual(vTree, {
         rawNodeName: '#document-fragment',
         nodeName: '#document-fragment',
         nodeType: 11,
@@ -653,7 +652,7 @@ describe('Tree', function() {
 
       const patches = syncTree(oldTree, newTree);
 
-      deepEqual(patches, []);
+      deepStrictEqual(patches, []);
     });
 
     it('will not error if the new tree is a document fragment', () => {
@@ -671,7 +670,7 @@ describe('Tree', function() {
 
       const firstPassPatches = syncTree(fixture, firstPass);
 
-      deepEqual(firstPassPatches, [
+      deepStrictEqual(firstPassPatches, [
         PATCH_TYPE.INSERT_BEFORE,
         fixture,
         domTree,
@@ -682,7 +681,7 @@ describe('Tree', function() {
       const secondPass = createTree('div', [p, domTree]);
       const secondPassPatches = syncTree(fixture, secondPass);
 
-      deepEqual(secondPassPatches, [
+      deepStrictEqual(secondPassPatches, [
         PATCH_TYPE.NODE_VALUE,
         createTree('#text', 'before'),
         'before',
@@ -702,7 +701,7 @@ describe('Tree', function() {
       const thirdPass = createTree('div', [newDomTree, p]);
       const thirdPassPatches = syncTree(secondPass, thirdPass);
 
-      deepEqual(thirdPassPatches, [
+      deepStrictEqual(thirdPassPatches, [
         PATCH_TYPE.REPLACE_CHILD,
         newDomTree,
         p,
@@ -727,7 +726,7 @@ describe('Tree', function() {
       const firstPass = createTree('div', [firstTree]);
       const firstPassPatches = syncTree(firstFixture, firstPass);
 
-      deepEqual(firstPassPatches, [
+      deepStrictEqual(firstPassPatches, [
         PATCH_TYPE.INSERT_BEFORE,
         firstFixture,
         firstTree,
@@ -742,7 +741,7 @@ describe('Tree', function() {
       const secondPass = createTree('div', [secondTree]);
       const secondPassPatches = syncTree(secondFixture, secondPass);
 
-      deepEqual(secondPassPatches, [
+      deepStrictEqual(secondPassPatches, [
         PATCH_TYPE.INSERT_BEFORE,
         secondFixture,
         secondTree,
@@ -768,7 +767,7 @@ describe('Tree', function() {
       `;
 
       const patches = syncTree(oldTree, newTree);
-      deepEqual(patches, []);
+      deepStrictEqual(patches, []);
     });
 
     describe('Attributes', () => {
@@ -778,7 +777,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
           oldTree,
           'id',
@@ -795,7 +794,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
           oldTree,
           'id',
@@ -817,7 +816,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
           oldTree,
           'id',
@@ -836,14 +835,14 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
           oldTree,
           'key',
           'test-key',
         ]);
 
-        equal(newTree.key, 'test-key');
+        strictEqual(newTree.key, 'test-key');
       });
 
       it('will detect string attribute changes and change old attribute', () => {
@@ -852,14 +851,14 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
           oldTree,
           'id',
           'test-two',
         ]);
 
-        equal(oldTree.attributes.id, 'test-two');
+        strictEqual(oldTree.attributes.id, 'test-two');
       });
 
       it('will detect object attribute changes and change old attribute', () => {
@@ -868,14 +867,14 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
           oldTree,
           'style',
           { fontWeight: 'bold' },
         ]);
 
-        equal(oldTree.attributes.style, newTree.attributes.style);
+        strictEqual(oldTree.attributes.style, newTree.attributes.style);
       });
 
       it('will detect an attribute to be removed', () => {
@@ -884,13 +883,13 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.REMOVE_ATTRIBUTE,
           oldTree,
           'style',
         ]);
 
-        equal(oldTree.attributes.hasOwnProperty('style'), false);
+        strictEqual(oldTree.attributes.hasOwnProperty('style'), false);
       });
 
       it('will detect many attributes to be removed', () => {
@@ -899,7 +898,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.REMOVE_ATTRIBUTE,
           oldTree,
           'id',
@@ -909,8 +908,8 @@ describe('Tree', function() {
           'style',
         ]);
 
-        equal(oldTree.attributes.hasOwnProperty('style'), false);
-        equal(oldTree.attributes.hasOwnProperty('id'), false);
+        strictEqual(oldTree.attributes.hasOwnProperty('style'), false);
+        strictEqual(oldTree.attributes.hasOwnProperty('id'), false);
       });
 
       it('will detect attributes with empty string values', () => {
@@ -918,7 +917,7 @@ describe('Tree', function() {
         const newTree = createTree('div', { autofocus: '' });
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
           oldTree,
           'autofocus',
@@ -943,7 +942,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, []);
+        deepStrictEqual(patches, []);
 
         SyncTreeHookCache.delete(hook);
       });
@@ -986,7 +985,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
             newTree.childNodes[0],
             'key',
@@ -1010,7 +1009,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
             newTree.childNodes[0],
             'key',
@@ -1041,7 +1040,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
             newTree.childNodes[0],
             'key',
@@ -1065,11 +1064,11 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
             newTree.childNodes[0],
             'key',
-            '0',
+            0,
 
             PATCH_TYPE.INSERT_BEFORE,
             oldTree,
@@ -1079,7 +1078,7 @@ describe('Tree', function() {
             PATCH_TYPE.SET_ATTRIBUTE,
             newTree.childNodes[2],
             'key',
-            '2',
+            2,
 
             PATCH_TYPE.INSERT_BEFORE,
             oldTree,
@@ -1098,7 +1097,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
             b,
             'key',
@@ -1120,7 +1119,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
             c,
             'key',
@@ -1149,7 +1148,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
             b,
             'key',
@@ -1175,7 +1174,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
             toRemove,
           ]);
@@ -1195,7 +1194,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
             toRemoveOne,
 
@@ -1218,7 +1217,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
             toRemove,
           ]);
@@ -1240,7 +1239,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
             toRemoveOne,
 
@@ -1263,7 +1262,7 @@ describe('Tree', function() {
 
           const patches = syncTree(oldTree, newTree);
 
-          deepEqual(patches, [
+          deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
             first,
             'key',
@@ -1278,6 +1277,26 @@ describe('Tree', function() {
             toRemove,
           ]);
         });
+
+        it('will remove all keyed items', () => {
+          const toRemove = [
+            createTree('div', { key: '0' }),
+            createTree('div', { key: '1' }),
+          ];
+
+          const oldTree = createTree('div', null, toRemove);
+          const newTree = createTree('div', null, []);
+
+          const patches = syncTree(oldTree, newTree);
+
+          deepStrictEqual(patches, [
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemove[0],
+
+            PATCH_TYPE.REMOVE_CHILD,
+            toRemove[1],
+          ]);
+        });
       });
     });
 
@@ -1288,7 +1307,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.INSERT_BEFORE,
           oldTree,
           newTree.childNodes[0],
@@ -1305,7 +1324,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.INSERT_BEFORE,
           oldTree,
           newTree.childNodes[0],
@@ -1330,7 +1349,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.REMOVE_CHILD,
           toRemove,
         ]);
@@ -1347,7 +1366,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.REPLACE_CHILD,
           newTree.childNodes[0],
           toReplace,
@@ -1362,7 +1381,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.NODE_VALUE,
           oldTree,
           'test-text-two',
@@ -1376,7 +1395,7 @@ describe('Tree', function() {
 
         const patches = syncTree(oldTree, newTree);
 
-        deepEqual(patches, [
+        deepStrictEqual(patches, [
           PATCH_TYPE.NODE_VALUE,
           oldTree,
           '&gla;',

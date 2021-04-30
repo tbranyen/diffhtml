@@ -24,6 +24,9 @@ const cloneTree = tree => assign({}, tree, {
 
 let Internals = null;
 
+/**
+ * @returns {any}
+ */
 const format = (patches) => {
   if (!Internals) {
     return {};
@@ -146,28 +149,27 @@ const format = (patches) => {
 /**
  * Re-usable log function. Used for during render and after render.
  *
- * @param message - Prefix for the console output.
- * @param method - Which console method to call
- * @param color - Which color styles to use
- * @param date - A date object to render
- * @param transaction - Contains: domNode, oldTree, newTree, patches, promises
- * @param options - Middleware options
+ * @param {string} message - Prefix for the console output.
+ * @param {string} method - Which console method to call
+ * @param {string} color - Which color styles to use
+ * @param {Date} _date - A date object to render
+ * @param {import('diffhtml/lib/transaction').default} transaction - Contains: domNode, oldTree, newTree, patches, promises
+ * @param {any=} completed - Middleware options
  */
-const log = (message, method, color, date, transaction, completed) => {
+const log = (message, method, color, _date, transaction, completed) => {
   const {
-    domNode,
-    oldTree,
+    mount,
     newTree,
     patches,
     promises,
-    options,
-    markup,
+    config,
+    input,
     state,
   } = transaction;
 
   // Shadow DOM rendering...
-  if (domNode.host) {
-    const { name: ctorName }  = domNode.host.constructor;
+  if (mount.host) {
+    const { name: ctorName }  = mount.host.constructor;
 
     console[method](
       `%c${ctorName} render ${completed ? 'ended' : 'started' }`,
@@ -179,19 +181,19 @@ const log = (message, method, color, date, transaction, completed) => {
     console[method](message, color, completed ? completed : '');
   }
 
-  if (!completed && domNode) {
-    console.log('%cdomNode %O', 'font-weight: bold; color: #868686', domNode);
+  if (!completed && mount) {
+    console.log('%cdomNode %O', 'font-weight: bold; color: #868686', mount);
   }
 
-  if (!completed && markup) {
-    console.log('%cmarkup %O', 'font-weight: bold; color: #868686', markup);
+  if (!completed && input) {
+    console.log('%cmarkup %O', 'font-weight: bold; color: #868686', input);
   }
 
-  if (!completed && options) {
+  if (!completed && config) {
     console.log(
       '%coptions',
       'font-weight: bold; color: #868686',
-      options
+      config
     );
   }
 
@@ -265,7 +267,7 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
    * Transaction is effectively done, but we need to listen for it to actually
    * be finished.
    */
-  return (Internals) => {
+  return () => {
     // Transaction has fully completed.
     transaction.onceEnded(() => {
       console.groupEnd();
@@ -276,7 +278,7 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
         'color: #FF78B2',
         new Date(),
         transaction,
-        ' >> Completed in: ' + humanize(Date.now() - start)
+        ' >> Completed in: ' + humanize(Date.now() - Number(start))
       );
 
       console.groupEnd();

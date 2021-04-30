@@ -353,8 +353,8 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
         // expensive, but more expressive path.
         if (!hasAttached && !hasDetached && !hasReplaced) {
           if (oldDomNode.parentNode) {
-            unprotectVTree(oldTree);
             oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+            unprotectVTree(oldTree);
           }
 
           break;
@@ -365,15 +365,10 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
         }
 
-        const attachedPromises = runTransitions('attached', newTree);
-        const detachedPromises = runTransitions('detached', oldTree);
-        const replacedPromises = runTransitions(
-          'replaced', oldTree, newDomNode
-        );
         const allPromises = [
-          ...attachedPromises,
-          ...detachedPromises,
-          ...replacedPromises,
+          ...(hasAttached && runTransitions('attached', newTree) || EMPTY.ARR),
+          ...(hasDetached && runTransitions('detached', oldTree) || EMPTY.ARR),
+          ...(hasReplaced && runTransitions('replaced', oldTree, newTree) || EMPTY.ARR),
         ];
 
         if (allPromises.length) {

@@ -1,7 +1,7 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsMountsPanel extends WebComponent {
+class DevtoolsMountsPanel extends Component {
   static propTypes = {
     mounts: Array,
     inspect: Function,

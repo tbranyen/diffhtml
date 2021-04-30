@@ -1,10 +1,10 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsPanels extends WebComponent {
-  static propTypes = {
-    route: String,
-    activeRoute: String,
+class DevtoolsPanels extends Component {
+  static defaultProps = {
+    route: '',
+    activeRoute: '',
   }
 
   render() {

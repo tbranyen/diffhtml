@@ -1,7 +1,7 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsTransactionsPanel extends WebComponent {
+class DevtoolsTransactionsPanel extends Component {
   static propTypes = {
     inProgress: Array,
     completed: Array,

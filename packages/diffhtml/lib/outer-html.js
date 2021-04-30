@@ -1,10 +1,5 @@
 import Transaction, { defaultTasks } from './transaction';
-import {
-  EMPTY,
-  ValidInput,
-  TransactionConfig,
-  Mount,
-} from './util/types';
+import { EMPTY, ValidInput, TransactionConfig, Mount } from './util/types';
 
 /**
  * @param {Mount} mount

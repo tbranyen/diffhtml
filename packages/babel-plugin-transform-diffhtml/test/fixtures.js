@@ -1,6 +1,6 @@
 'use strict';
 
-const { html } = require('diffhtml');
+const { html } = require('diffhtml/dist/cjs/lite');
 
 BASICS: {
 
@@ -149,6 +149,12 @@ BUG_FIXES: {
     return html`<div>
       Text node ${createSecond()}
     </div>`;
+  };
+
+  exports.supportsChildNodes = () => {
+    const boolean = false;
+
+    return html`<div childNodes=${boolean}></div>`;
   };
 
 }

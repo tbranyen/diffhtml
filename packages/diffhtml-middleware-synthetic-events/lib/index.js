@@ -1,3 +1,5 @@
+const { NodeCache, PATCH_TYPE, decodeEntities, createNode } = Internals;
+
 const useCapture = [
   'onload', 'onunload', 'onscroll', 'onfocus', 'onblur', 'onloadstart',
   'onprogress', 'onerror', 'onabort', 'onload', 'onloadend', 'onpointerenter',
@@ -5,7 +7,7 @@ const useCapture = [
 ];
 
 const { assign, defineProperty, getOwnPropertyDescriptor } = Object;
-const eventNames = [];
+const eventNames = /** @type {string[]} */ ([]);
 const handlers = new Map();
 const bounded = new Set();
 
@@ -21,8 +23,12 @@ for (const name in cloneDoc) {
 
 class SyntheticEvent {}
 
+/**
+ * @param {{ [key: string]: any }} ev
+ * @param {{ [key: string]: any }} ov
+ */
 const cloneEvent = (ev, ov = {}) => {
-  const newEvent = new SyntheticEvent();
+  const newEvent = /** @type {any} */ (new SyntheticEvent());
 
   // Copy over original event getters/setters first, will need some extra
   // intelligence to ensure getters/setters work, thx @kofifus.
@@ -47,7 +53,8 @@ const cloneEvent = (ev, ov = {}) => {
   return newEvent;
 }
 
-const getShadowRoot = node => {
+
+const getShadowRoot = (/** @type {any} */ node) => {
   while (node = node.parentNode) {
     if (node.toString() === "[object ShadowRoot]") {
       return node;
@@ -58,7 +65,7 @@ const getShadowRoot = node => {
 };
 
 // Set up global event delegation, once clicked call the saved handlers.
-const bindEventsTo = domNode => {
+const bindEventsTo = (/** @type {any} */ domNode) => {
   const rootNode = getShadowRoot(domNode) || domNode.ownerDocument;
   const { addEventListener } = rootNode;
 
@@ -68,7 +75,7 @@ const bindEventsTo = domNode => {
 
   bounded.add(rootNode);
 
-  eventNames.forEach(eventName => addEventListener(eventName.slice(2), ev => {
+  eventNames.forEach(eventName => addEventListener(eventName.slice(2), (/** @type {any} */ ev) => {
     let target = ev.target;
     let eventHandler = null;
 
@@ -109,12 +116,9 @@ const bindEventsTo = domNode => {
 }
 
 const syntheticEvents = () => {
-  let Internals = null;
-
   function syntheticEventsTask() {
-    return ({ patches }) => {
+    return (/** @type {any} */{ patches }) => {
       const { length } = patches;
-      const { PATCH_TYPE, decodeEntities, createNode } = Internals;
 
       let i = 0;
 
@@ -204,10 +208,6 @@ const syntheticEvents = () => {
 
   return assign(syntheticEventsTask, {
     displayName: 'syntheticEventsTask',
-
-    subscribe(_Internals) {
-      Internals = _Internals;
-    },
   });
 };
 

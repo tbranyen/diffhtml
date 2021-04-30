@@ -1,14 +1,14 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsNavigation extends WebComponent {
-  static propTypes = {
-    activeRoute: String,
+class DevtoolsNavigation extends Component {
+  static defaultProps = {
+    activeRoute: '',
   }
 
   render() {
     const { activeRoute = '' } = this.props;
-    const { nav, selected } = this.state;
+    const { nav } = this.state;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -21,7 +21,7 @@ class DevtoolsNavigation extends WebComponent {
               <span class="label">
                 ${item.icon && html`<i class="${item.icon} icon" />`}
                 ${item.label}
-                ${item.subLabel && html`<span class="faded">${item.subLabel}</span>`}
+                ${/*${item.subLabel && html`<span class="faded">${item.subLabel}</span>`}*/void 0}
               </span>
             </li>
           `)}
@@ -145,6 +145,9 @@ class DevtoolsNavigation extends WebComponent {
     ],
   }
 
+  /**
+   * @param {typeof DevtoolsNavigation['defaultProps']} nextProps
+   */
   componentWillReceiveProps(nextProps) {
     if (!nextProps.activeRoute) { return; }
     const route = nextProps.activeRoute.slice(1);
@@ -154,6 +157,9 @@ class DevtoolsNavigation extends WebComponent {
     this.state.selected = selected;
   }
 
+  /**
+   * @param {number} index
+   */
   onClick = index => {
     const { nav } = this.state;
     location.hash = nav[index].route;

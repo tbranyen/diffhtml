@@ -1,7 +1,7 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsSettingsPanel extends WebComponent {
+class DevtoolsSettingsPanel extends Component {
   state = {
     isExpanded: false,
   }

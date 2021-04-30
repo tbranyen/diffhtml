@@ -12,8 +12,10 @@ const { protect, unprotect, memory } = Pool;
 export function protectVTree(vTree) {
   protect(vTree);
 
-  for (let i = 0; i < vTree.childNodes.length; i++) {
-    protectVTree(vTree.childNodes[i]);
+  if (vTree.childNodes.length) {
+    for (let i = 0; i < vTree.childNodes.length; i++) {
+      protectVTree(vTree.childNodes[i]);
+    }
   }
 }
 
@@ -29,8 +31,10 @@ export function protectVTree(vTree) {
 export function unprotectVTree(vTree) {
   unprotect(vTree);
 
-  for (let i = 0; i < vTree.childNodes.length; i++) {
-    unprotectVTree(vTree.childNodes[i]);
+  if (vTree.childNodes.length) {
+    for (let i = 0; i < vTree.childNodes.length; i++) {
+      unprotectVTree(vTree.childNodes[i]);
+    }
   }
 
   //vTree.attributes = {};

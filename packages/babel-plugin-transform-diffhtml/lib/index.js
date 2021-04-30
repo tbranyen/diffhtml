@@ -1,14 +1,14 @@
-import { Internals } from 'diffhtml';
+import { createTree, Internals } from 'diffhtml';
 import * as babylon from 'babylon';
 
 const { parse } = Internals;
-const hasNonWhitespaceEx = /\S/;
 const TOKEN = '__DIFFHTML_BABEL__';
 const doctypeEx = /<!.*>/i;
 const tokenEx = /__DIFFHTML_BABEL__([^_]*)__/;
 const isPropEx = /(=|'|")/;
 const isAttributeEx = /(=|"|')[^><]*?$/;
 const isTagEx = /(<|\/)/;
+let ident = {};
 
 /**
  * Transpiles a matching tagged template literal to createTree calls, the
@@ -17,7 +17,7 @@ const isTagEx = /(<|\/)/;
  * @return {Object} containing the visitor handler.
  */
 export default function({ types: t }) {
-  const interpolateValues = (string, supplemental, createTree) => {
+  const interpolateValues = (string, supplemental, createTreeNode) => {
     // If this is text and not a doctype, add as a text node.
     if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
       return t.arrayExpression([t.stringLiteral('#text'), t.stringLiteral(string)]);
@@ -34,23 +34,25 @@ export default function({ types: t }) {
       // the token's position. So all we do is ensure that we're on an odd
       // index and then we can source the correct value.
       if (i % 2 === 1) {
-        const innerTree = supplemental.children[value];
-        const isFragment = innerTree.nodeType === 11;
+        const nextValue = supplemental.children[value];
+        const isFragment = nextValue && nextValue.nodeType === 11;
 
-        if (typeof innerTree.rawNodeName === 'string' && isFragment) {
-          childNodes.push(...innerTree.childNodes);
+        if (!nextValue) continue;
+
+        if (typeof nextValue.rawNodeName === 'string' && isFragment) {
+          childNodes.push(...nextValue.childNodes);
         }
         else {
-          if (innerTree.type === 'StringLiteral' || innerTree.type === 'NumberLiteral') {
-            childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), innerTree]));
+          if (nextValue.type === 'StringLiteral' || nextValue.type === 'NumberLiteral') {
+            childNodes.push(t.callExpression(createTreeNode, [t.stringLiteral('#text'), nextValue]));
           }
           else {
-            childNodes.push(innerTree);
+            childNodes.push(nextValue);
           }
         }
       }
-      else if (!doctypeEx.test(value)) {
-        childNodes.push(t.callExpression(createTree, [t.stringLiteral('#text'), t.stringLiteral(value)]));
+      else if (!doctypeEx.test(value) && value) {
+        childNodes.push(t.callExpression(createTreeNode, [t.stringLiteral('#text'), t.stringLiteral(value)]));
       }
     }
 
@@ -59,13 +61,13 @@ export default function({ types: t }) {
     // If no children were present, send back an empty text node.
     if (childNodes.length === 0) {
       retVal = t.callExpression(
-        createTree,
+        createTreeNode,
         [t.stringLiteral('#text'), t.stringLiteral('')],
       );
     }
     // Wrap multiple nodes in a fragment.
     else if (childNodes.length > 1) {
-      retVal = t.callExpression(createTree, [
+      retVal = t.callExpression(createTreeNode, [
         t.stringLiteral('#document-fragment'),
         t.arrayExpression(childNodes),
       ]);
@@ -80,22 +82,32 @@ export default function({ types: t }) {
   // Takes in a dot-notation identifier and breaks it up into a
   // MemberExpression. Useful for configuration overrides specifying the
   // tagged template function name and createTree calls.
-  const identifierToMemberExpression = identifier => {
+  const identifierToMemberExpression = (path, identifier) => {
     const identifiers = identifier.split('.');
 
     if (identifiers.length === 0) {
       return;
     }
     else if (identifiers.length === 1) {
-      return t.identifier(identifiers[0]);
+      if (!ident[identifiers[0]]) {
+        ident[identifiers[0]] = t.identifier(identifiers[0]);
+      }
+
+      return ident[identifiers[0]];
     }
     else {
       return identifiers.reduce((memo, identifier) => {
+        if (!ident[identifier]) {
+          ident[identifier] = t.identifier(identifier);
+        }
+
+        identifier = ident[identifier];
+
         if (!memo) {
-          memo = t.identifier(identifier);
+          memo = identifier;
         }
         else {
-          memo = t.memberExpression(memo, t.identifier(identifier));
+          memo = t.memberExpression(memo, identifier);
         }
 
         return memo;
@@ -163,10 +175,9 @@ export default function({ types: t }) {
 
       // Used to store markup and tokens.
       let HTML = '';
-      const dynamicBits = [];
 
-      // Nearly identical logic to the diffHTML parser, as we have the static
-      // vs dynamic parts pre-separated for us and we simply need to fuse them
+      // Nearly identical logic to the core parser, as we have the static vs
+      // dynamic parts pre-separated for us and we simply need to fuse them
       // together.
       quasis.forEach((quasi, i) => {
         HTML += quasi.value.raw;
@@ -178,9 +189,6 @@ export default function({ types: t }) {
           const isAttribute = Boolean(HTML.match(isAttributeEx));
           const isTag = Boolean(lastCharacter.match(isTagEx));
           const isString = expression.type === 'StringLiteral';
-          const isObject = expression.type === 'ObjectExpression';
-          const isArray = expression.type === 'ArrayExpression';
-          const isIdentifier = expression.type === 'Identifier';
           const token = TOKEN + i + '__';
 
           // Injected as attribute.
@@ -231,9 +239,9 @@ export default function({ types: t }) {
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');
 
-      const createTree = plugin.opts.createTree ?
-        identifierToMemberExpression(plugin.opts.createTree) :
-        identifierToMemberExpression('diff.createTree');
+      const createTreeNode = plugin.opts.createTree ?
+        identifierToMemberExpression(path, plugin.opts.createTree) :
+        identifierToMemberExpression(path, 'diff.createTree');
 
       /**
        * Replace the dynamic parts of the AST with the actual quasi
@@ -358,7 +366,7 @@ export default function({ types: t }) {
 
             const token = rawNodeName.value.match(tokenEx);
 
-            args.push(createTree, [
+            args.push(createTreeNode, [
               identifierIsInScope ? t.identifier(rawNodeName.value) : (token ? supplemental.tags[token[1]] : rawNodeName),
               attributes,
               t.arrayExpression(expressions.map(expr => expr.expression)),
@@ -369,13 +377,13 @@ export default function({ types: t }) {
             let value = nodeValue.value || '';
 
             if (value.match(tokenEx)) {
-              const values = interpolateValues(value, supplemental, createTree);
+              const values = interpolateValues(value, supplemental, createTreeNode);
 
               if (values.elements.length === 1) {
                 args.replacement = values.elements[0];
               }
               else {
-                args.push(createTree, [t.stringLiteral('#document-fragment'), values]);
+                args.push(createTreeNode, [t.stringLiteral('#document-fragment'), values]);
               }
 
               isDynamic = true;
@@ -385,13 +393,13 @@ export default function({ types: t }) {
 
               path.scope.parent.push({
                 id,
-                init: t.callExpression(createTree, [
+                init: t.callExpression(createTreeNode, [
                   t.stringLiteral('#text'),
                   nodeValue,
                 ]),
               });
 
-              args.replacement = t.callExpression(createTree, [
+              args.replacement = t.callExpression(createTreeNode, [
                 t.stringLiteral('#text'),
                 nodeValue,
               ]);
@@ -420,11 +428,11 @@ export default function({ types: t }) {
 
       replaceDynamicBits([...vTree.program.body]);
 
-      //if (vTree.program.body.length > 1) {
+      // If an array is returned convert to an inlined document fragment.
       if (t.isArrayExpression(vTree.program.body[0].expression)) {
         path.replaceWith(
           t.callExpression(
-            createTree,
+            createTreeNode,
             [
               t.stringLiteral('#document-fragment'),
               vTree.program.body[0].expression,
@@ -432,6 +440,7 @@ export default function({ types: t }) {
           ),
         );
       }
+      // Otherwise inline the expression itself.
       else {
         path.replaceWith(vTree.program.body[0]);
       }

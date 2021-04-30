@@ -1,10 +1,10 @@
 import { html, Internals } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 import SemanticUITable from '../semantic-ui/table';
 
 const { keys } = Object;
 
-class DevtoolsTransactionRow extends WebComponent {
+class DevtoolsTransactionRow extends Component {
   static propTypes = {
     index: Number,
     transaction: Object,
@@ -18,7 +18,6 @@ class DevtoolsTransactionRow extends WebComponent {
     const {
       startTime,
       endTime,
-      index,
       transaction,
       stateName,
     } = this.props;

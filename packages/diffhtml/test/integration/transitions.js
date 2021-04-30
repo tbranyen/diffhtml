@@ -322,7 +322,7 @@ describe('Integration: Transitions', function() {
       equal(result.parentNode, null);
     });
 
-    it('will provide the correct arguments to replaced', () => {
+    it.only('will provide the correct arguments to replaced', () => {
       var oldElement = null;
       var newElement = null;
 

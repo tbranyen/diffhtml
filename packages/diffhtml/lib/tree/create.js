@@ -95,14 +95,12 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     // Get the child nodes from an Element or Fragment/Shadow Root.
     if (inputAsHTMLEl.nodeType === NODE_TYPE.ELEMENT || inputAsHTMLEl.nodeType === NODE_TYPE.FRAGMENT) {
-      if (inputAsHTMLEl.childNodes.length) {
-        childNodes = [];
+      childNodes = [];
 
-        for (let i = 0; i < inputAsHTMLEl.childNodes.length; i++) {
-          /** @type {HTMLElement} */
-          const childNodeElement = (inputAsHTMLEl.childNodes[i]);
-          childNodes.push(createTree(childNodeElement));
-        }
+      for (let i = 0; i < inputAsHTMLEl.childNodes.length; i++) {
+        /** @type {HTMLElement} */
+        const childNodeElement = (inputAsHTMLEl.childNodes[i]);
+        childNodes.push(createTree(childNodeElement));
       }
     }
 
@@ -125,9 +123,10 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       childNodes,
     );
 
-    entry.attributes = attributes;
-    entry.childNodes.length = 0;
-    entry.childNodes.push(...childNodes);
+    entry.attributes = { ...entry.attributes, ...attributes };
+
+    // Use childNodes that are passed in, otherwise keep the existing nodes.
+    entry.childNodes = childNodes;
 
     NodeCache.set(entry, inputAsHTMLEl);
     return entry;
@@ -202,7 +201,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     const nodeValue = allNodes.join(EMPTY.STR);
 
     entry.nodeType = NODE_TYPE.TEXT;
-    entry.nodeValue = String(nodeValue || EMPTY.STR);
+    entry.nodeValue = String(nodeValue);
 
     return entry;
   }
@@ -216,7 +215,9 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     entry.nodeType = NODE_TYPE.ELEMENT;
   }
 
-  if (useNodes && allNodes.length) {
+  // Parse out the child nodes if they exist and are not overwritten by an
+  // attribute.
+  if (useNodes && allNodes.length && (!attributes || !attributes.childNodes)) {
     for (let i = 0; i < allNodes.length; i++) {
       const newNode = allNodes[i];
 
@@ -244,7 +245,13 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   }
 
   if (attributes && typeof attributes === 'object' && !isArray(attributes)) {
-    entry.attributes = attributes;
+    entry.attributes = { ...attributes };
+
+    // Use childNodes directly from the attributes.
+    if (attributes.childNodes) {
+      const isObject = typeof attributes.childNodes === 'object';
+      entry.childNodes.push(isObject ? createTree(attributes.childNodes) : createTree('#text', attributes.childNodes));
+    }
   }
 
   // If is a script tag and has a src attribute, key off that. We have a special

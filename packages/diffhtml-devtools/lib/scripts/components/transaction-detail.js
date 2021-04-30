@@ -1,7 +1,7 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 
-class DevtoolsTransactionDetail extends WebComponent {
+class DevtoolsTransactionDetail extends Component {
   static propTypes = {
     transaction: Object,
     stats: Object,
@@ -13,7 +13,7 @@ class DevtoolsTransactionDetail extends WebComponent {
   }
 
   render() {
-    const { transaction, stats, closeDetail } = this.props;
+    const { transaction, closeDetail } = this.props;
     const { activeTab } = this.state;
     const { setActive } = this;
 
@@ -40,14 +40,10 @@ class DevtoolsTransactionDetail extends WebComponent {
         <div class="ui styled fluid accordion">
           <div class="title">
             <i class="dropdown icon"></i>
-            What is a dog?
           </div>
           <div class="content">
-            <p class="transition hidden">A dog is a type of domesticated animal. Known for its loyalty and faithfulness, it can be found as a welcome guest in many households across the world.</p>
           </div>
           <div class="content active">
-            <p class="transition visible">Three common ways for a prospective owner to acquire a dog is from pet shops, private owners, or shelters.</p>
-            <p class="transition visible">A pet shop may be the most convenient way to buy a dog. Buying a dog from a private owner allows you to assess the pedigree and upbringing of your dog before choosing to take it home. Lastly, finding your dog from a shelter, helps give a good home to a dog who may not find one so readily.</p>
           </div>
         </div>
       </div>

@@ -1,9 +1,9 @@
 import { html } from 'diffhtml';
-import { WebComponent } from 'diffhtml-components';
+import { Component } from 'diffhtml-components';
 //import Chartist from 'chartist';
 //import ChartistGraph from 'react-chartist';
 
-class DevtoolsHealthPanel extends WebComponent {
+class DevtoolsHealthPanel extends Component {
   static propTypes = {
     activeRoute: String,
     memory: Array,
