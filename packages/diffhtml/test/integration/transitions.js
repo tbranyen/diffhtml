@@ -322,26 +322,26 @@ describe('Integration: Transitions', function() {
       equal(result.parentNode, null);
     });
 
-    it.only('will provide the correct arguments to replaced', () => {
-      var oldElement = null;
-      var newElement = null;
+    it('will provide the correct arguments to replaced', () => {
+      var oldNode = null;
+      var newNode = null;
 
       diff.innerHTML(this.fixture, '<div><p></p></div>');
 
       diff.addTransitionState('replaced', (...args) => {
-        oldElement = args[0];
-        newElement = args[1];
+        oldNode = args[0];
+        newNode = args[1];
       });
 
       var p = this.fixture.querySelector('p');
 
       diff.innerHTML(this.fixture, '<div><span></span></div>');
 
-      equal(oldElement, p);
-      equal(oldElement.parentNode, null);
+      equal(oldNode, p);
+      equal(oldNode.parentNode, null);
 
-      equal(newElement, this.fixture.querySelector('span'));
-      equal(newElement.parentNode, this.fixture.firstChild);
+      equal(newNode, this.fixture.querySelector('span'));
+      equal(newNode.parentNode, this.fixture.firstChild);
     });
 
     it('will provide the correct arguments to attributeChanged (added)', () => {
