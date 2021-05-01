@@ -2,39 +2,34 @@
 
 import { deepEqual, equal, ok } from 'assert';
 import diff from '../../lib/util/binding';
+import Component from '../../lib/component';
 import validateCaches from '../util/validate-caches';
 
 const { innerHTML, html, createTree, release } = diff;
-
 const whitespaceEx = /[ ]{2,}|\n/g;
 
-describe.skip('Web Component', function() {
-  let WebComponent = null;
-
+describe('Web Component', function() {
   beforeEach(() => {
     newJSDOMSandbox();
 
     // Make setTimeout synchronous.
     window.setTimeout = fn => fn();
 
-    delete require.cache[require.resolve('../lib/web-component')];
-    WebComponent = require('../lib/web-component');
-
     this.fixture = document.createElement('div');
     process.env.NODE_ENV = 'development';
+    Component.subscribeMiddleware();
     document.body.appendChild(this.fixture);
-    WebComponent.subscribeMiddleware();
   });
 
   afterEach(() => {
     release(this.fixture);
-    WebComponent.unsubscribeMiddleware();
+    Component.unsubscribeMiddleware();
     document.body.removeChild(this.fixture);
     validateCaches();
   });
 
   it('will render a component', () => {
-    class CustomComponent extends WebComponent {
+    class CustomComponent extends Component {
       render() {
         return html`
           <div>Hello world</div>
@@ -52,7 +47,7 @@ describe.skip('Web Component', function() {
   });
 
   it('will render a nested component', () => {
-    class CustomComponent extends WebComponent {
+    class CustomComponent extends Component {
       render() {
         return html`
           <div>Hello world</div>
@@ -70,7 +65,7 @@ describe.skip('Web Component', function() {
   });
 
   it('will re-render a component', () => {
-    class CustomComponent extends WebComponent {
+    class CustomComponent extends Component {
       render() {
         return html`
           <div>Hello world</div>
@@ -89,16 +84,16 @@ describe.skip('Web Component', function() {
     equal(this.fixture.innerHTML, '<custom-component></custom-component>');
   });
 
-  it('will re-render a component with string props', () => {
-    class CustomComponent extends WebComponent {
+  it('will re-render a component with string props', async () => {
+    class CustomComponent extends Component {
       render() {
         return html`
           <div>${this.props.message}</div>
         `;
       }
 
-      static propTypes = {
-        message: String,
+      static defaultProps = {
+        message: '',
       }
     }
 
@@ -109,22 +104,22 @@ describe.skip('Web Component', function() {
 
     const instance = this.fixture.querySelector('custom-component');
 
-    instance.forceUpdate();
+    await instance.forceUpdate();
 
     equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>world</div>');
     equal(this.fixture.innerHTML, '<custom-component message="world"></custom-component>');
   });
 
-  it('will re-render a component with object props', () => {
-    class CustomComponent extends WebComponent {
+  it('will re-render a component with object props', async () => {
+    class CustomComponent extends Component {
       render() {
         return html`
           <div>${this.props.message.contents}</div>
         `;
       }
 
-      static propTypes = {
-        message: Object,
+      static defaultProps = {
+        message: {},
       }
     }
 
@@ -140,34 +135,34 @@ describe.skip('Web Component', function() {
 
     const instance = this.fixture.querySelector('custom-component');
 
-    instance.forceUpdate();
+    await instance.forceUpdate();
 
     equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>world</div>');
     equal(this.fixture.innerHTML, '<custom-component></custom-component>');
   });
 
-  it('will re-render a nested component with object props', () => {
-    class InnerComponent extends WebComponent {
+  it('will re-render a nested component with object props', async () => {
+    class InnerComponent extends Component {
       render() {
         return html`
           <div>${this.props.message.contents}</div>
         `;
       }
 
-      static propTypes = {
-        message: Object,
+      static defaultProps = {
+        message: {},
       }
     }
 
-    class OuterComponent extends WebComponent {
+    class OuterComponent extends Component {
       render() {
         return html`
           <inner-component message=${this.props.message}></inner-component>
         `;
       }
 
-      static propTypes = {
-        message: Object,
+      static defaultProps = {
+        message: {},
       }
     }
 
@@ -188,15 +183,15 @@ describe.skip('Web Component', function() {
 
     innerHTML(this.fixture, html`<outer-component message=${{ ...message }} />`);
 
-    outer.forceUpdate();
-    inner.forceUpdate();
+    await outer.forceUpdate();
+    await inner.forceUpdate();
 
     equal(inner.shadowRoot.childNodes[1].outerHTML, '<div>world</div>');
     equal(this.fixture.innerHTML, '<outer-component></outer-component>');
   });
 
   it('will re-render a nested component', () => {
-    class CustomComponent extends WebComponent {
+    class CustomComponent extends Component {
       render() {
         return html`
           <div>Hello world</div>
@@ -216,7 +211,7 @@ describe.skip('Web Component', function() {
   });
 
   it('will re-render a nested component with props', () => {
-    class OuterComponent extends WebComponent {
+    class OuterComponent extends Component {
       render() {
         return html`
           <slot></slot>
@@ -224,15 +219,15 @@ describe.skip('Web Component', function() {
       }
     }
 
-    class InnerComponent extends WebComponent {
+    class InnerComponent extends Component {
       render() {
         return html`
           <div>${this.props.message}</div>
         `;
       }
 
-      static propTypes = {
-        message: String,
+      static defaultProps = {
+        message: '',
       }
     }
 
@@ -266,7 +261,7 @@ describe.skip('Web Component', function() {
   });
 
   it('will render a nested component', () => {
-    class InnerComponent extends WebComponent {
+    class InnerComponent extends Component {
       render() {
         return html`
           <div>Hello world</div>
@@ -274,7 +269,7 @@ describe.skip('Web Component', function() {
       }
     }
 
-    class CustomComponent extends WebComponent {
+    class CustomComponent extends Component {
       render() {
         return html`
           <div><slot></slot></div>
@@ -314,7 +309,7 @@ describe.skip('Web Component', function() {
     it('will pass properties to constructor', () => {
       let ctorMessage = null;
 
-      class CustomComponent extends WebComponent {
+      class CustomComponent extends Component {
         render({ message }) {
           return html`
             <div>${message}</div>
@@ -337,7 +332,7 @@ describe.skip('Web Component', function() {
     it('will pass children in properties to constructor', () => {
       let children = null;
 
-      class CustomComponent extends WebComponent {
+      class CustomComponent extends Component {
         render({ message }) {
           return html`
             <div>${message}</div>
@@ -365,7 +360,7 @@ describe.skip('Web Component', function() {
     });
 
     it('will pass objects as props', () => {
-      class CustomComponent extends WebComponent {
+      class CustomComponent extends Component {
         render({ data }) {
           return html`
             <div>${data.message}</div>
@@ -385,7 +380,7 @@ describe.skip('Web Component', function() {
 
   describe('JSX Compatibility', () => {
     it('will render JSX', () => {
-      customElements.define('jsx-test', class extends WebComponent {
+      customElements.define('jsx-test', class extends Component {
         render() {
           return (
             <div>Hello world</div>
@@ -403,7 +398,7 @@ describe.skip('Web Component', function() {
     });
 
     it('will render JSX with props', () => {
-      customElements.define('jsx-test', class extends WebComponent {
+      customElements.define('jsx-test', class extends Component {
         render() {
           const { message } = this.props;
 
@@ -412,8 +407,8 @@ describe.skip('Web Component', function() {
           );
         }
 
-        static propTypes = {
-          message: String,
+        static defaultProps = {
+          message: '',
         }
       });
 
@@ -435,10 +430,10 @@ describe.skip('Web Component', function() {
   });
 
   describe('Stateful components', () => {
-    it('will re-render with setState', () => {
+    it('will re-render with setState', async () => {
       let ref = null;
 
-      customElements.define('stateful-test', class extends WebComponent {
+      customElements.define('stateful-test', class extends Component {
         render() {
           const { msg } = this.state;
 
@@ -462,7 +457,7 @@ describe.skip('Web Component', function() {
         '<div>default</div>',
       );
 
-      ref.setState({ msg: 'it works' });
+      await ref.setState({ msg: 'it works' });
 
       equal(
         this.fixture.firstChild.shadowRoot.childNodes[1].outerHTML,

@@ -52,17 +52,16 @@ describe('Component implementation', function() {
     );
   });
 
-  it.skip('will not support returning falsy values', () => {
+  it('will support returning falsy values', () => {
     class NullComponent extends Component {
       render() {
         return null;
       }
     }
 
-    throws(
-      () => innerHTML(this.fixture, html`<${NullComponent} />`),
-      /Must return at least one element from render/,
-    );
+    innerHTML(this.fixture, html`<${NullComponent} />`);
+
+    strictEqual(this.fixture.innerHTML, '');
   });
 
   it('will support rendering empty tree content', () => {

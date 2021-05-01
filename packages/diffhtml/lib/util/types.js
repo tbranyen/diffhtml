@@ -226,7 +226,9 @@ export const Supplemental = EMPTY.OBJ;
  * @property {ValidInput=} markup
  * @property {VTree=} oldTree
  * @property {Boolean=} isRendering
+ * @property {Boolean=} isDirty
  * @property {String=} previousMarkup
+ * @property {MutationObserver=} mutationObserver
  * @property {import('../transaction').default} activeTransaction
  * @property {import('../transaction').default=} nextTransaction
  * @property {Document=} ownerDocument

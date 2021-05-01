@@ -7,8 +7,8 @@ import { StateCache, NodeCache, ReleaseHookCache, Mount } from './util/types';
  * @param {Mount} mount - Valid input node
  */
 export default function release(mount) {
-  // If this was a top-level rendered element, deallocate the VTree
-  // and remove the StateCache reference.
+  // If this was a top-level rendered element, deallocate the VTree and remove
+  // the StateCache reference.
   if (StateCache.has(mount)) {
     const { mutationObserver, oldTree } = StateCache.get(mount);
 
@@ -40,8 +40,8 @@ export default function release(mount) {
     }
   }
 
-  // If there is a shadowRoot attached to the DOM node, attempt
-  // to release this as well.
+  // If there is a shadowRoot attached to the DOM node, attempt to release this
+  // as well.
   if (asHTMLElement.shadowRoot) {
     release(asHTMLElement.shadowRoot);
   }
@@ -50,8 +50,8 @@ export default function release(mount) {
   // references to the associated trees.
   NodeCache.forEach((domNode, vTree) => {
     if (domNode === asHTMLElement) {
-      unprotectVTree(vTree);
       ReleaseHookCache.forEach(fn => fn(vTree));
+      unprotectVTree(vTree);
     }
   });
 }
