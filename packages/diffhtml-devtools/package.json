@@ -15,7 +15,7 @@
     "aliasify": "^2.1.0",
     "babel-plugin-add-module-exports": "^1.0.4",
     "babel-plugin-transform-custom-element-classes": "^0.1.0",
-    "babel-plugin-transform-diffhtml": "^1.0.0-beta.18",
+    "babel-plugin-transform-diffhtml": "^1.0.0-beta.19",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-es2015": "^6.24.1",
     "babelify": "^10.0.0",
@@ -59,11 +59,11 @@
     }
   },
   "dependencies": {
-    "diffhtml": "^1.0.0-beta.18",
-    "diffhtml-components": "^1.0.0-beta.18",
-    "diffhtml-middleware-inline-transitions": "^1.0.0-beta.18",
-    "diffhtml-middleware-synthetic-events": "^1.0.0-beta.18",
-    "diffhtml-react-compat": "^1.0.0-beta.18",
+    "diffhtml": "^1.0.0-beta.19",
+    "diffhtml-components": "^1.0.0-beta.19",
+    "diffhtml-middleware-inline-transitions": "^1.0.0-beta.19",
+    "diffhtml-middleware-synthetic-events": "^1.0.0-beta.19",
+    "diffhtml-react-compat": "^1.0.0-beta.19",
     "hyperlist": "^1.0.0",
     "semantic-ui-react": "^2.0.1"
   }
