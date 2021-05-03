@@ -1,4 +1,7 @@
-const { NodeCache, PATCH_TYPE, decodeEntities, createNode } = Internals;
+const globalThis = typeof global === 'object' ? global : window || {};
+const binding = globalThis[Symbol.for('diffHTML')]
+
+const { NodeCache, PATCH_TYPE, decodeEntities, createNode } = binding.Internals;
 
 const useCapture = [
   'onload', 'onunload', 'onscroll', 'onfocus', 'onblur', 'onloadstart',

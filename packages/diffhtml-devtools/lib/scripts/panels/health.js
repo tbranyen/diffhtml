@@ -4,9 +4,9 @@ import { Component } from 'diffhtml-components';
 //import ChartistGraph from 'react-chartist';
 
 class DevtoolsHealthPanel extends Component {
-  static propTypes = {
-    activeRoute: String,
-    memory: Array,
+  static defaultProps = {
+    activeRoute: '',
+    memory: [],
   }
 
   state = {

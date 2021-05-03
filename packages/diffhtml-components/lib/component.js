@@ -19,8 +19,10 @@ const RenderDebounce = new WeakMap();
 
 /**
  * @param {Props} defaultProps
+ * @returns {string[]}
  */
-const getObserved = ({ defaultProps }) => defaultProps ? keys(defaultProps) : [];
+const getObserved = ({ defaultProps }) =>
+  defaultProps ? keys(defaultProps) : EMPTY.ARR;
 
 /**
  * Creates the `component.props` object.

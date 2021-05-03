@@ -2,9 +2,9 @@ import { html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 
 class DevtoolsMiddlewarePanel extends Component {
-  static propTypes = {
-    activeRoute: String,
-    middleware: Array,
+  static defaultProps = {
+    activeRoute: '',
+    middleware: [],
   }
 
   state = {

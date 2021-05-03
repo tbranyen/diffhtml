@@ -2,10 +2,10 @@ import { html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 
 class DevtoolsTransactionDetail extends Component {
-  static propTypes = {
-    transaction: Object,
-    stats: Object,
-    closeDetail: Function,
+  static defaultProps = {
+    transaction: {},
+    stats: {},
+    closeDetail: () => {},
   }
 
   state = {

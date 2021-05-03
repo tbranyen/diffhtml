@@ -223,7 +223,6 @@ export const Supplemental = EMPTY.OBJ;
  * @property {Function} measure
  * @property {Set<VTree>} svgElements
  * @property {Map<VTree, string | undefined>} scriptsToExecute
- * @property {ValidInput=} markup
  * @property {VTree=} oldTree
  * @property {Boolean=} isRendering
  * @property {Boolean=} isDirty

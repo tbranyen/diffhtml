@@ -1,5 +1,6 @@
 import { outerHTML, html, use } from 'diffhtml';
 import inlineTransitions from 'diffhtml-middleware-inline-transitions';
+import syntheticEvents from 'diffhtml-middleware-synthetic-events';
 
 // Components
 import './components/panels';
@@ -22,7 +23,8 @@ const { stringify, parse } = JSON;
 const { assign } = Object;
 const background = chrome.runtime.connect({ name: 'devtools-page' });
 
-//use(inlineTransitions());
+use(inlineTransitions());
+use(syntheticEvents());
 
 use({
   // When dark mode is set, automatically add Semantic UI `inverted` class.
@@ -90,7 +92,8 @@ const fadeIn = el => {
     });
 };
 
-const render = () => outerHTML(main, html`<main id="main" data-theme=${state.theme}>
+const render = () => outerHTML(main, html`
+  <main id="main" data-theme=${state.theme}>
     <devtools-split-view onattached=${fadeIn}>
       ${Boolean(state.version) && html`
         <devtools-navigation
@@ -146,7 +149,8 @@ const render = () => outerHTML(main, html`<main id="main" data-theme=${state.the
         />
       </devtools-panels>
     </devtools-split-view>
-  </main>`).catch(ex => {
+  </main>
+`).catch(ex => {
   throw ex;
 });
 
@@ -158,8 +162,6 @@ background.onMessage.addListener(unparsedMessage => {
   switch (message.action) {
     case 'activated': {
       const clonedData = clone(message.data);
-
-      console.log(clonedData);
 
       assign(state, {
         ...clonedData,

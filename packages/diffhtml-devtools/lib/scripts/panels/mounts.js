@@ -2,10 +2,10 @@ import { html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 
 class DevtoolsMountsPanel extends Component {
-  static propTypes = {
-    mounts: Array,
-    inspect: Function,
-    activeRoute: String,
+  static defaultProps = {
+    mounts: [],
+    inspect: () => {},
+    activeRoute: '',
   }
 
   state = {
@@ -28,7 +28,7 @@ class DevtoolsMountsPanel extends Component {
       <style>${styles()}</style>
 
       <div class="ui tall segment">
-        <h3 onclick=${() => this.setState({ isExpanded: !isExpanded })}>
+        <h3 onClick=${() => this.setState({ isExpanded: !isExpanded })}>
           <i style="position: relative; top: -2px" class="icon chevron ${isExpanded ? 'up' : 'down'}"></i> Mounts
         </h3>
 
