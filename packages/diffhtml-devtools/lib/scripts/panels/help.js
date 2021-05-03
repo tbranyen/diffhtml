@@ -2,10 +2,10 @@ import diff, { html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 
 class DevtoolsHelpPanel extends Component {
-  static propTypes = {
-    theme: String,
-    activeRoute: String,
-    version: Number,
+  static defaultProps = {
+    theme: '',
+    activeRoute: '',
+    version: -1,
   }
 
   state = {

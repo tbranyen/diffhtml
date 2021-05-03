@@ -56,11 +56,36 @@ describe('Use (Middleware)', function() {
   it('will call unsubscribe', () => {
   });
 
+  it('will inline returned functions to execute before transaction ends', () => {
+    const domNode = document.createElement('div');
+    const span = document.createElement('span');
+
+    let count = 0;
+
+    const unsubscribe = use(() => () => {
+      count++;
+    });
+
+    innerHTML(domNode, html`
+      <div></div>
+    `);
+
+    innerHTML(span, html`
+      <div></div>
+    `);
+
+    equal(count, 2);
+
+    unsubscribe();
+    release(domNode);
+    release(span);
+  });
+
   it('will allow swapping out what node gets created', () => {
     const domNode = document.createElement('div');
     const span = document.createElement('span');
 
-    this.createNodeHook = ({ nodeName, attributes }) => {
+    this.createNodeHook = ({ nodeName }) => {
       if (nodeName === 'div') {
         return span;
       }

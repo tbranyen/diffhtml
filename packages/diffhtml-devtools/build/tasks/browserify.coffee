@@ -24,7 +24,7 @@ module.exports = ->
         transform: [
           'babelify',
           'brfs',
-          ["aliasify", { global: true }]
+          'aliasify',
         ]
 
         exclude: ['fs']

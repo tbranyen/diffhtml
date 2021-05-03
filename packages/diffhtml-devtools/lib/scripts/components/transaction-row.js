@@ -5,12 +5,12 @@ import SemanticUITable from '../semantic-ui/table';
 const { keys } = Object;
 
 class DevtoolsTransactionRow extends Component {
-  static propTypes = {
-    index: Number,
-    transaction: Object,
-    stateName: String,
-    startTime: Number,
-    endTime: Number,
+  static defaultProps = {
+    index: -1,
+    transaction: {},
+    stateName: '',
+    startTime: -1,
+    endTime: -1,
   }
 
   render() {
@@ -25,7 +25,7 @@ class DevtoolsTransactionRow extends Component {
     const stats = this.calculateStats();
 
     const {
-      domNode = '',
+      mount = '',
       aborted = false,
       promises = [],
     } = transaction;
@@ -68,7 +68,7 @@ class DevtoolsTransactionRow extends Component {
 
       <td class="ui center aligned">
         <div class="node">
-          &lt;${domNode}&gt;
+          &lt;${mount}&gt;
         </div>
       </td>
 

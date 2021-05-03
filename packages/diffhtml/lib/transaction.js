@@ -143,7 +143,7 @@ export default class Transaction {
 
     this.tasks = /** @type {Function[]} */ (
       getConfig('tasks', defaultTasks, undefined, config)
-    );
+    ).slice();
 
     // Store calls to trigger after the transaction has ended.
     this.endedCallbacks = new Set();

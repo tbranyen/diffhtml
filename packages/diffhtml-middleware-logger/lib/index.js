@@ -182,7 +182,7 @@ const log = (message, method, color, _date, transaction, completed) => {
   }
 
   if (!completed && mount) {
-    console.log('%cdomNode %O', 'font-weight: bold; color: #868686', mount);
+    console.log('%cmount %O', 'font-weight: bold; color: #868686', mount);
   }
 
   if (!completed && input) {
@@ -234,11 +234,11 @@ const log = (message, method, color, _date, transaction, completed) => {
 
 const logger = ({ minimize = false }) => assign(function loggerTask(transaction) {
   const start = new Date();
-  const { domNode } = transaction;
-  const name = domNode.name || domNode.displayName || domNode.nodeName;
+  const { mount } = transaction;
+  const name = mount.name || mount.displayName || mount.nodeName;
 
   log(
-    `%c<${transaction.domNode.nodeName}> render started  `,
+    `%c<${transaction.mount.nodeName}> render started  `,
     'groupCollapsed',
     'color: #FF0066',
     start,
@@ -259,6 +259,7 @@ const logger = ({ minimize = false }) => assign(function loggerTask(transaction)
     );
 
     console.groupEnd();
+    return;
   }
 
   transaction._cloneOldTree = oldTree && cloneTree(oldTree);

@@ -6,7 +6,7 @@ import Transaction from "../transaction";
  * @param {Transaction} transaction
  */
 export default function shouldUpdate(transaction) {
-  const { mount, input, state, state: { measure }, config: options } = transaction;
+  const { mount, input, state: { measure }, config: options } = transaction;
   const prop = options.inner ? 'innerHTML' : 'outerHTML';
 
   measure('should update');
@@ -18,9 +18,6 @@ export default function shouldUpdate(transaction) {
   // recycling to match twice.
   if (typeof input === 'string' && mountAsHTMLEl[prop]=== input) {
     return transaction.abort(true);
-  }
-  else if (typeof input === 'string') {
-    state.markup = input;
   }
 
   measure('should update');

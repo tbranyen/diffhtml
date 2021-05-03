@@ -18,8 +18,8 @@
     const { use, html, innerHTML, outerHTML } = diff;
 
     // Current broken and not letting text update for some reason...
-    //use(inlineTransitions());
-    //use(logger());
+    use(inlineTransitions());
+    use(logger());
 
     const animate = (el, ...args) => new Promise(resolve => el.animate(
       ...args

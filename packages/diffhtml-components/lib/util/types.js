@@ -3,6 +3,7 @@
  */
 export const EMPTY = {
   OBJ: {},
+  ARR: [],
   BOOL: true,
 };
 

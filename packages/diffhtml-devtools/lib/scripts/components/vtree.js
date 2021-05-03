@@ -5,8 +5,8 @@ const { keys } = Object;
 const { stringify } = JSON;
 
 class DevtoolsVTree extends Component {
-  static propTypes = {
-    vTree: Object,
+  static defaultProps = {
+    vTree: {},
   }
 
   state = {

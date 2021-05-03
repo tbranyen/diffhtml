@@ -127,7 +127,7 @@ export default function devTools(Internals) {
 
   function devToolsTask(transaction) {
     const {
-      mount, markup, config, state: { newTree }, state
+      mount, markup, config, newTree, state
     } = transaction;
 
     const isFunction = typeof mount.rawNodeName === 'function';
@@ -136,9 +136,12 @@ export default function devTools(Internals) {
     const startDate = performance.now();
 
     const start = () => {
-      console.log('Start transaction');
+      selectors.set(selector, newTree);
+
+      extension.activate(getInternals());
+
       return extension.startTransaction(startDate, {
-        domNode: selector,
+        mount: selector,
         markup,
         options: config,
         state: assign({}, state, state.nextTransaction && {
@@ -156,8 +159,6 @@ export default function devTools(Internals) {
       start();
     }
 
-    selectors.set(selector, newTree);
-
     return function() {
       // TODO Make patches a separate asynchronous operation, and only
       // aggregate when completed.
@@ -172,7 +173,7 @@ export default function devTools(Internals) {
 
         const { aborted, completed } = transaction;
         const stop = () => extension.endTransaction(startDate, endDate, {
-          domNode: selector,
+          mount: selector,
           markup,
           options: config,
           state: assign({}, state, state.nextTransaction && {
@@ -189,8 +190,6 @@ export default function devTools(Internals) {
         if (!extension) {
           cacheTask.push(() => stop());
         } else {
-
-          extension.activate(getInternals());
           stop();
         }
       });

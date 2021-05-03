@@ -13,6 +13,7 @@ if (!window.__diffHTMLDevTools) {
   window.__diffHTMLDevTools = () => ({
     activate(args={}) {
       triggerEvent('activated', args);
+      this.activated = true;
       return this;
     },
 

@@ -2,11 +2,11 @@ import { html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 
 class DevtoolsTransactionsPanel extends Component {
-  static propTypes = {
-    inProgress: Array,
-    completed: Array,
-    inspect: Function,
-    activeRoute: String,
+  static defaultProps = {
+    inProgress: [],
+    completed: [],
+    inspect: () => {},
+    activeRoute: '',
   }
 
   state = {
@@ -20,7 +20,7 @@ class DevtoolsTransactionsPanel extends Component {
   }
 
   render() {
-    const { clearEntries, inProgress, completed } = this.props;
+    const { clearEntries } = this.props;
     const {
       isExpanded,
       autoScroll,
@@ -28,7 +28,7 @@ class DevtoolsTransactionsPanel extends Component {
       activeTransaction,
       sorted,
     } = this.state;
-    const { fragment, toggleAutoscroll, toggleHideEmpty } = this;
+    const { toggleAutoscroll, toggleHideEmpty } = this;
 
     return html`
       <link rel="stylesheet" href="/styles/theme.css">
@@ -286,7 +286,7 @@ class DevtoolsTransactionsPanel extends Component {
   }
 
   componentDidUpdate() {
-    const { isExpanded, expandedIndex, autoScroll } = this.state;
+    const { expandedIndex, autoScroll } = this.state;
 
     // TODO Have more intelligent locking for scrolling.
     if (expandedIndex === -1 && autoScroll) {
