@@ -24,11 +24,6 @@
     "browserify-derequire": "^1.1.1",
     "coffeescript": "^2.5.1",
     "derequire": "^2.1.1",
-    "diffhtml": "^1.0.0-beta.18",
-    "diffhtml-components": "^1.0.0-beta.18",
-    "diffhtml-middleware-inline-transitions": "^1.0.0-beta.18",
-    "diffhtml-middleware-synthetic-events": "^1.0.0-beta.18",
-    "diffhtml-react-compat": "^1.0.0-beta.18",
     "es6-module-loader": "^0.17.11",
     "es6-module-transpiler": "^0.10.0",
     "grunt": "^1.3.0",
@@ -64,6 +59,11 @@
     }
   },
   "dependencies": {
+    "diffhtml": "^1.0.0-beta.18",
+    "diffhtml-components": "^1.0.0-beta.18",
+    "diffhtml-middleware-inline-transitions": "^1.0.0-beta.18",
+    "diffhtml-middleware-synthetic-events": "^1.0.0-beta.18",
+    "diffhtml-react-compat": "^1.0.0-beta.18",
     "hyperlist": "^1.0.0",
     "semantic-ui-react": "^2.0.1"
   }
