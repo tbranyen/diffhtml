@@ -212,6 +212,8 @@ export default class Component {
         this[$$render]()?.then(resolve);
       })));
     }
+
+    return RenderDebounce.get(this);
   }
 
   /** @type {State} */

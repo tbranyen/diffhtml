@@ -170,8 +170,6 @@ background.onMessage.addListener(unparsedMessage => {
         memory: state.memory.concat(clonedData.memory).filter(Boolean).slice(-1),
       });
 
-      console.log('mounts', state.mounts);
-
       break;
     }
 
