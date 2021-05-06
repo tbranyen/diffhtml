@@ -200,7 +200,7 @@ export default class Transaction {
    */
   end() {
     const { state, config, mount } = this;
-    const { measure, svgElements, scriptsToExecute } = state;
+    const { mutationObserver, measure, svgElements, scriptsToExecute } = state;
 
     const mountAsHTMLEl = /** @type {HTMLElement} */ (mount);
 
@@ -216,8 +216,8 @@ export default class Transaction {
     state.isDirty = false;
 
     // If MutationObserver is available, look for changes.
-    if (mountAsHTMLEl.ownerDocument && state.mutationObserver) {
-      state.mutationObserver.observe(mountAsHTMLEl, {
+    if (mountAsHTMLEl.ownerDocument && mutationObserver) {
+      mutationObserver.observe(mountAsHTMLEl, {
         subtree: true,
         childList: true,
         attributes: true,

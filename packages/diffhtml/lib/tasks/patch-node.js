@@ -10,7 +10,8 @@ import globalThis from '../util/global';
  * @return {void}
  */
 export default function patch(transaction) {
-  const { mount, state, state: { measure, scriptsToExecute }, patches } = transaction;
+  const { mount, state, patches } = transaction;
+  const { mutationObserver, measure, scriptsToExecute } = state;
 
   measure('patch node');
 
@@ -18,6 +19,11 @@ export default function patch(transaction) {
   const promises = transaction.promises || [];
 
   state.ownerDocument = ownerDocument || globalThis.document;
+
+  // Always disconnect a MutationObserver before patching.
+  if (mutationObserver) {
+    mutationObserver.disconnect();
+  }
 
   // Hook into the Node creation process to find all script tags, and mark them
   // for execution.
