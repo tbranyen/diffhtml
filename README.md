@@ -4,7 +4,7 @@
 [![Coverage
   Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
 
-Latest version: 1.0.0-beta.19
+Latest version: 1.0.0-beta.20
 
 At its core, diffHTML is an extremely lightweight and optimized HTML parser and
 Virtual DOM specifically designed for modern web UIs. These interfaces can be
