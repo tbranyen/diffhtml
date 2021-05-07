@@ -35,8 +35,5 @@
     "diffhtml-components": "^1.0.0-beta.20",
     "diffhtml-middleware-synthetic-events": "^1.0.0-beta.20",
     "prop-types": "^15.7.2"
-  },
-  "peerDependencies": {
-    "diffhtml": "^1.0.0-beta.19"
   }
 }
