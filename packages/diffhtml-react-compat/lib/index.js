@@ -31,6 +31,9 @@ use({
   createTreeHook(vTree) {
     const attributes = keys(vTree.attributes);
 
+    // Map attributes to props.
+    vTree.props = vTree.attributes;
+
     if (attributes.includes('children')) {
       const childNodes = vTree.childNodes.length
         ? vTree.childNodes
@@ -48,7 +51,7 @@ use({
       vTree.childNodes = newNodes;
     }
     else {
-      vTree.attributes.children = vTree.childNodes;
+      vTree.attributes.children = vTree.childNodes.map(x => createTree(x));
     }
 
     // Merge className into class

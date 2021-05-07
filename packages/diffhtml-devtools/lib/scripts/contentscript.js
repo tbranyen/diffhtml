@@ -34,4 +34,3 @@ document.addEventListener('diffHTML:activated', postEvent);
 document.addEventListener('diffHTML:start', postEvent);
 document.addEventListener('diffHTML:end', postEvent);
 document.addEventListener('diffHTML:ping', postEvent);
-document.addEventListener('diffHTML:gc', postEvent);

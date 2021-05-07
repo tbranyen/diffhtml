@@ -28,20 +28,15 @@ const getObserved = ({ defaultProps }) =>
  * Creates the `component.props` object.
  *
  * @param {any} domNode
- * @param {Props} newProps
+ * @param {Props} existingProps
  */
-const createProps = (domNode, newProps = {}) => {
-  const observedAttributes = getObserved(domNode.constructor);
-  /** @type {any} */const initialProps = {};
-
-  const incoming = observedAttributes.reduce((props, attr) => ({
+const createProps = (domNode, existingProps = {}) => {
+  return getObserved(domNode.constructor).reduce((props, attr) => ({
     [attr]: (
       domNode.hasAttribute(attr) ? domNode.getAttribute(attr) : domNode[attr]
-    ) || initialProps[attr],
+    ) || props[attr] || domNode.constructor.defaultProps[attr],
     ...props,
-  }), initialProps);
-
-  return assign({}, newProps, incoming);
+  }), existingProps);
 };
 
 /**

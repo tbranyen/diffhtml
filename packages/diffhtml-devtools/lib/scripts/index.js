@@ -174,8 +174,15 @@ background.onMessage.addListener(unparsedMessage => {
     }
 
     case 'start': {
+      const s = new Set();
       const inProgressData = clone(message.data);
-      state.inProgress = [...state.inProgress, inProgressData];
+      state.inProgress = [...state.inProgress, inProgressData].filter(x => {
+        if (s.has(x.startDate)) {
+          return false;
+        }
+        s.add(x.startDate);
+        return true;
+      });
 
       break;
     }

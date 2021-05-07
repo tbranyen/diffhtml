@@ -1,6 +1,26 @@
 import { html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 
+const slideIn = el => {
+  el.style.opacity = 0;
+
+  setTimeout(() => {
+    el.style.opacity = 1;
+
+    el.animate([
+      { transform: 'translateY(100%)' },
+      { transform: 'translateY(0%)' },
+    ], { duration: 140 });
+  }, 100);
+};
+
+const slideOut = el => new Promise(resolve => {
+  el.animate([
+    { transform: 'translateY(0%)' },
+    { transform: 'translateY(100%)' },
+  ], { duration: 140 }).onfinish = resolve;
+});
+
 class DevtoolsTransactionsPanel extends Component {
   static defaultProps = {
     inProgress: [],
@@ -88,29 +108,35 @@ class DevtoolsTransactionsPanel extends Component {
           </table>
 
           <table class="transaction-list ui fixed celled sortable selectable structured table striped unstackable">
-            ${sorted.length && sorted.map((transaction, index) => html`<devtools-transaction-row
-              class="ui ${transaction === activeTransaction && 'active'}"
-              key=${(transaction.endDate ? 'completed-' : 'progress-') + transaction.startDate}
-              index=${index}
-              stateName=${(transaction.endDate ? 'completed' : 'progress')}
-              transaction=${transaction.args}
-              startTime=${transaction.startDate}
-              endTime=${transaction.endDate}
-              onClick=${transaction.endDate && this.toggleExpanded(transaction)}
-            />`)}
+            ${sorted.length && sorted.map((transaction, index) => html`
+              <devtools-transaction-row
+                class="ui ${transaction === activeTransaction && 'active'}"
+                key=${(transaction.endDate ? 'completed-' : 'progress-') + transaction.startDate}
+                index=${index}
+                stateName=${(transaction.endDate ? 'completed' : 'progress')}
+                transaction=${transaction.args}
+                startTime=${transaction.startDate}
+                endTime=${transaction.endDate}
+                onClick=${transaction.endDate && this.toggleExpanded(transaction)}
+              />
+            `)}
 
-            ${!sorted.length && html`<tbody>
-              <tr class="missing">
-                <td colspan="11">
-                  No renders
-                </td>
-              </tr>
-            </tbody>`}
+            ${!sorted.length && html`
+              <tbody>
+                <tr class="missing">
+                  <td colspan="11">
+                    No renders
+                  </td>
+                </tr>
+              </tbody>
+            `}
           </table>
         </div>
 
         ${activeTransaction && html`
           <devtools-transaction-detail
+            onattached=${slideIn}
+            ondetached=${slideOut}
             class="ui"
             style="max-height: 50%"
             transaction=${activeTransaction}

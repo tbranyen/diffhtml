@@ -31,7 +31,7 @@ export function count(children) {
 }
 
 export function only(children) {
-  children = toArray(children);
+  children = toArray(children).filter(({ nodeType }) => nodeType !== 3);
 
   return children.length ? children[0] : null;
 }

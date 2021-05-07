@@ -127,7 +127,7 @@ export default function devTools(Internals) {
 
   function devToolsTask(transaction) {
     const {
-      mount, markup, config, newTree, state
+      mount, input, config, newTree, state
     } = transaction;
 
     const isFunction = typeof mount.rawNodeName === 'function';
@@ -136,13 +136,11 @@ export default function devTools(Internals) {
     const startDate = performance.now();
 
     const start = () => {
-      selectors.set(selector, newTree);
-
-      extension.activate(getInternals());
+      selectors.set(selector, input);
 
       return extension.startTransaction(startDate, {
         mount: selector,
-        markup,
+        markup: input,
         options: config,
         state: assign({}, state, state.nextTransaction && {
           nextTransaction: undefined,
@@ -154,7 +152,7 @@ export default function devTools(Internals) {
 
     // Start task.
     if (!extension) {
-      cacheTask.push(() => start());
+      //cacheTask.push(() => start());
     } else {
       start();
     }
@@ -167,14 +165,10 @@ export default function devTools(Internals) {
 
       transaction.onceEnded(() => {
         const endDate = performance.now();
-
-        // Update with the newTree after a render has completed.
-        selectors.set(selector, transaction.oldTree);
-
         const { aborted, completed } = transaction;
         const stop = () => extension.endTransaction(startDate, endDate, {
           mount: selector,
-          markup,
+          markup: input,
           options: config,
           state: assign({}, state, state.nextTransaction && {
             nextTransaction: undefined,
@@ -211,36 +205,41 @@ export default function devTools(Internals) {
   // Send a ping every 2 seconds. If we do not receive a response and time out,
   // reconnect.
   function keepAlive() {
+    // Clear timeouts every time this is called.
+    clearTimeout(scheduleTimeout);
+    clearTimeout(primaryTimeout);
+
     extension.ping();
 
     // Schedule a new keep-alive two seconds after a successful ping.
-    schedule = async () => {
+    schedule = () => {
       clearTimeout(primaryTimeout);
-      scheduleTimeout = setTimeout(keepAlive, 2000);
-      await setExtension();
+      scheduleTimeout = setTimeout(keepAlive, 4000);
+      setExtension();
     };
 
     document.removeEventListener('diffHTML:pong', schedule);
     document.addEventListener('diffHTML:pong', schedule, { once: true });
 
-    // If we do not receive a response after 1 second, try and reconnect.
-    primaryTimeout = setTimeout(async () => {
+    // If we do not receive a response after 1 second, try and reconnect after
+    // another second.
+    primaryTimeout = setTimeout(() => {
       document.removeEventListener('diffHTML:pong', schedule);
       clearTimeout(scheduleTimeout);
-      await setExtension();
-      keepAlive();
+      scheduleTimeout = setTimeout(keepAlive, 1000);
     }, 1000);
   }
 
   devToolsTask.subscribe = async () => {
+    console.log('>> Calling set extension from subscribe');
     await setExtension(true);
 
     // Start keep-alive in case we disconnect.
-    //keepAlive();
+    keepAlive();
 
     // Call existing cached tasks.
     if (cacheTask.length) {
-      cacheTask.forEach(cb => cb());
+      //cacheTask.forEach(cb => cb());
       cacheTask.length = 0;
     }
   };
