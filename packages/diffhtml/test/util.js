@@ -145,11 +145,18 @@ describe('Util', function() {
       strictEqual(vTree.childNodes[1].childNodes[0].nodeName, 'p');
     });
 
-    it('will not support brackets in attribute values', () => {
+    it('will support brackets in attribute values', () => {
+      const vTree = parse(`<a data-text="<>"></a>`).childNodes[0];
+
+      strictEqual(vTree.nodeName, 'a');
+      strictEqual(vTree.attributes['data-text'], '<>');
+    });
+
+    it('will support complex markup in attribute values', () => {
       const vTree = parse(`<a data-text="<li class='test'></li>"></a>`).childNodes[0];
 
       strictEqual(vTree.nodeName, 'a');
-      strictEqual(vTree.attributes['data-text'], '\"<li');
+      strictEqual(vTree.attributes['data-text'], '<li class=\'test\'></li>');
     });
 
     it('will parse text siblings next to elements', () => {
