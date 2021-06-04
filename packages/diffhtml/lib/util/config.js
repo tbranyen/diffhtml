@@ -4,11 +4,6 @@ import globalThis from './global';
 
 const { parseInt } = Number;
 const { parse } = JSON;
-const { location, URLSearchParams } = globalThis;
-const hasSearchParams = typeof URLSearchParams !== 'undefined';
-const hasLocation = typeof location !== 'undefined';
-const useSearchParams = hasSearchParams && hasLocation;
-const useEnv = process.env;
 
 /** @type {Config} */
 export const globalConfig = {
@@ -40,10 +35,6 @@ function formatValue(value, type) {
       return parseInt(valueAsString, 10);
     }
 
-    case 'array': {
-      return valueAsString.split(',');
-    }
-
     case 'object': {
       return parse(valueAsString);
     }
@@ -64,6 +55,12 @@ function formatValue(value, type) {
  * @return {unknown}
  */
 export default function getConfig(name, defaultValue, type = typeof defaultValue, overrides) {
+  const { location, URLSearchParams } = globalThis;
+  const hasSearchParams = typeof URLSearchParams !== 'undefined';
+  const hasLocation = typeof location !== 'undefined';
+  const useSearchParams = hasSearchParams && hasLocation;
+  const useEnv = process.env;
+
   // Allow bypassing any lookups if overrides are passed and match the config
   // being looked up.
   if (overrides && name in overrides) {
@@ -72,21 +69,23 @@ export default function getConfig(name, defaultValue, type = typeof defaultValue
 
   // The keyname for lookups via search params or env variable is DIFF_key and
   // is case-insensitive. This is why we lowercaes the entire lookup.
-  const keyName = `DIFF_${name.replace(/[^a-zA-Z0-9]/, '')}`.toLowerCase();
+  const keyName = `DIFF_${name.replace(/[^a-zA-Z0-9]/, '')}`;
 
   // Try URL search params first.
   if (useSearchParams) {
     const searchParams = new URLSearchParams(location.search);
+    const lowerKey = keyName.toLowerCase();
 
     // Use has here, because boolean values can be set with only a key.
-    if (searchParams.has(keyName)) {
-      return formatValue(decodeURIComponent(String(searchParams.get(keyName))), type);
+    if (searchParams.has(lowerKey)) {
+      return formatValue(decodeURIComponent(String(searchParams.get(lowerKey))), type);
     }
   }
 
   // Try environment variables.
-  if (useEnv && keyName in process.env) {
-    return formatValue(process.env[keyName], type);
+  const upperKey = keyName.toUpperCase();
+  if (useEnv && upperKey in process.env) {
+    return formatValue(process.env[upperKey.toUpperCase()], type);
   }
 
   return defaultValue;

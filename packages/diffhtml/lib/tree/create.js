@@ -44,8 +44,9 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     // When using an Array copy the Nodes in and ensure a valid top-level tree.
     for (let i = 0; i < length; i++) {
-      if (!input) continue;
-      childNodes.push(input[i]);
+      const hasInput = input && !input[i];
+      if (hasInput) continue;
+      input && childNodes.push(input[i]);
     }
 
     entry = createTree(fragmentName, null, childNodes);

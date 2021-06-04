@@ -90,6 +90,20 @@ describe('Tree', function() {
       });
     });
 
+    it('will ignore falsy values when creating fragment from an array', () => {
+      const vTree = createTree([createTree('div'), null, createTree('p')]);
+
+      deepStrictEqual(vTree, {
+        rawNodeName: '#document-fragment',
+        nodeName: '#document-fragment',
+        nodeValue: '',
+        nodeType: 11,
+        key: '',
+        attributes: {},
+        childNodes: [createTree('div'), createTree('p')],
+      });
+    });
+
     it('will ignore falsy values when creating text from an array', () => {
       const vTree = createTree('#text', ['some text', null, ' ', 'chunks']);
 
