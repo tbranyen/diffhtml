@@ -285,7 +285,7 @@ export default function parse(html, supplemental, options = {}) {
   );
 
   const tagEx =
-    /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(\/?)>/ig;
+    /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)((?:'|").*(?:'|"))?(\/?)>/ig;
   const root = createTree('#document-fragment', null, []);
   const stack = [root];
   let currentParent = root;
@@ -320,9 +320,18 @@ Possibly invalid markup. Opening tag was not properly closed.
 
   // Look through the HTML markup for valid tags.
   for (let match, text, i=0; match = tagEx.exec(html); i++) {
+    const [
+      fullMatch,
+      isClosingMatch,
+      tagMatch,
+      attributeMatch,
+      extraMatch,
+      selfClosingMatch,
+    ] = match;
+
     if (lastTextPos > -1) {
-      if (lastTextPos + match[0].length < tagEx.lastIndex) {
-        text = html.slice(lastTextPos, tagEx.lastIndex - match[0].length);
+      if (lastTextPos + fullMatch.length < tagEx.lastIndex) {
+        text = html.slice(lastTextPos, tagEx.lastIndex - fullMatch.length);
 
         if (text) {
           interpolateChildNodes(currentParent, text, supplemental);
@@ -330,7 +339,7 @@ Possibly invalid markup. Opening tag was not properly closed.
       }
     }
 
-    const matchOffset = tagEx.lastIndex - match[0].length;
+    const matchOffset = tagEx.lastIndex - fullMatch.length;
 
     if (lastTextPos === -1 && matchOffset > 0) {
       const string = html.slice(0, matchOffset);
@@ -342,20 +351,22 @@ Possibly invalid markup. Opening tag was not properly closed.
 
     lastTextPos = tagEx.lastIndex;
 
-    // This is a comment (TODO support these).
+    // This is a comment (TODO someday support these).
     if (match[0][1] === '!') {
       continue;
     }
 
     // Get the tag index.
-    const tokenMatch = tokenEx.exec(match[2]);
+    const tokenMatch = tokenEx.exec(tagMatch);
 
     // Normalized name, use either the tag extracted from the supplemental
-    // tags, or use match[2].
+    // tags, or use tagMatch.
     const supTag = tokenMatch && supplemental.tags[tokenMatch[1]];
-    const name = supTag ? supTag.name || supTag : match[2];
+    const name = supTag ? supTag.name || supTag : tagMatch;
 
-    if (!match[1]) {
+    let bypassMatch;
+
+    if (!isClosingMatch) {
       // not </ tags
       if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
         if (kElementsClosedByOpening[currentParent.rawNodeName][name]) {
@@ -364,9 +375,10 @@ Possibly invalid markup. Opening tag was not properly closed.
         }
       }
 
+      const attrs = attributeMatch + (extraMatch || '');
       currentParent = currentParent.childNodes[
         currentParent.childNodes.push(
-          HTMLElement(match[2], match[3], supplemental, options)
+          HTMLElement(tagMatch, attrs, supplemental, options)
         ) - 1
       ];
 
@@ -381,7 +393,7 @@ Possibly invalid markup. Opening tag was not properly closed.
           if (index === -1 && options.parser.strict && !selfClosing.has(name)) {
             // Find a subset of the markup passed in to validate.
             const markup = html
-              .slice(tagEx.lastIndex - match[0].length)
+              .slice(tagEx.lastIndex - fullMatch.length)
               .split('\n')
               .map(line => line.replace(tokenEx, (value, index) => {
                 if (!supplemental) {
@@ -416,23 +428,23 @@ Possibly invalid markup. Opening tag was not properly closed.
           else {
             lastTextPos = index + closeMarkup.length;
             tagEx.lastIndex = lastTextPos;
-            match[1] = ' ';
+            bypassMatch = true;
           }
 
-          const newText = html.slice(match.index + match[0].length, index);
+          const newText = html.slice(match.index + fullMatch.length, index);
           interpolateChildNodes(currentParent, newText, supplemental);
         }
       }
     }
 
-    if (match[1] || match[4] || selfClosing.has(name)) {
+    if (bypassMatch || isClosingMatch || selfClosingMatch || selfClosing.has(name)) {
       if (process.env.NODE_ENV !== 'production') {
         if (currentParent && name !== currentParent.rawNodeName && options.parser.strict) {
           const nodeName = currentParent.rawNodeName;
 
           // Find a subset of the markup passed in to validate.
           const markup = html
-            .slice(tagEx.lastIndex - match[0].length)
+            .slice(tagEx.lastIndex - fullMatch.length)
             .split('\n')
             .map(line => line.replace(tokenEx, (value, index) => {
               if (!supplemental) {
@@ -461,7 +473,7 @@ Possibly invalid markup. Opening tag was not properly closed.
       // </ or /> or <br> etc.
       while (currentParent) {
         // Self closing dynamic nodeName.
-        if (match[4] === '/' && tokenMatch) {
+        if (selfClosingMatch === '/' && tokenMatch) {
           stack.pop();
           currentParent = stack[stack.length - 1];
 
