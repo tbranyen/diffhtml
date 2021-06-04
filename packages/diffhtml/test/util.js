@@ -9,10 +9,12 @@ import _process from '../lib/util/process';
 import { protectVTree, unprotectVTree, gc } from '../lib/util/memory';
 import makeMeasure from '../lib/util/make-measure';
 import Pool from '../lib/util/pool';
+import getConfig from '../lib/util/config';
 import validateMemory from './util/validate-memory';
 import createSupplemental from './util/create-supplemental';
 
 const { floor } = Math;
+const { stringify } = JSON;
 
 describe('Util', function() {
   let performance;
@@ -34,7 +36,71 @@ describe('Util', function() {
   });
 
   describe('Config', () => {
+    it('will load boolean type from process.env', () => {
+      process.env.DIFF_TESTBOOL = 'true';
 
+      const actual = getConfig('test_bool', false);
+      strictEqual(actual, true);
+    });
+
+    it('will load boolean type from search params', () => {
+      location.search = '?diff_testbool=true';
+
+      const actual = getConfig('test_bool', false);
+      strictEqual(actual, true);
+    });
+
+    it('will load string type from process.env', () => {
+      process.env.DIFF_TESTSTR = 'some-str';
+
+      const actual = getConfig('test_str', '');
+      strictEqual(actual, 'some-str');
+    });
+
+    it('will load string type from search params', () => {
+      location.search = '?diff_teststr=test-str';
+
+      const actual = getConfig('test_str', '');
+      strictEqual(actual, 'some-str');
+    });
+
+    it('will load number type from process.env', () => {
+      process.env.DIFF_TESTNUM = '144';
+
+      const actual = getConfig('test_num', -1);
+      strictEqual(actual, 144);
+    });
+
+    it('will load number type from search params', () => {
+      location.search = '?diff_testnum=144';
+
+      const actual = getConfig('test_num', -1);
+      strictEqual(actual, 144);
+    });
+
+    it('will load object type from process.env', () => {
+      process.env.DIFF_TESTOBJ = stringify({ 1: true, 2: false });
+
+      const actual = getConfig('test_obj', {});
+      deepStrictEqual(actual, { 1: true, 2: false });
+    });
+
+    it('will load object type from search params', () => {
+      location.search = `?diff_testobj=${stringify({ 1: true, 2: false })}`;
+
+      const actual = getConfig('test_obj', {});
+      deepStrictEqual(actual, { 1: true, 2: false });
+    });
+
+    it('will not error if not in a browser env', () => {
+      const oldLocation = global.location;
+
+      delete global.location;
+
+      strictEqual(getConfig('t', 1), 1);
+
+      global.location = oldLocation;
+    });
   });
 
   describe('DecodeEntities', () => {

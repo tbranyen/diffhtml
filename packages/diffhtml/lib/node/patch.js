@@ -17,8 +17,8 @@ const blocklist = new Set();
 const allowlist = new Set();
 
 /**
- * Directly set this attributes, in addition to setting as properties.
- * @type {any}
+ * Directly set these attributes in addition to setting as properties.
+ * @type {string[]}
  */
 const DIRECT = ['class', 'checked', 'disabled', 'selected'];
 
@@ -69,9 +69,7 @@ const setAttribute = (vTree, domNode, name, value) => {
     const noValue = value === null || value === undefined;
 
     // If we cannot set the value as a property, try as an attribute.
-    if (lowerName) {
-      htmlElement.setAttribute(lowerName, noValue ? EMPTY.STR : value);
-    }
+    htmlElement.setAttribute(lowerName, noValue ? EMPTY.STR : value);
   }
   // Support patching an object representation of the style object.
   else if (isObject && lowerName === 'style') {
@@ -97,15 +95,14 @@ const removeAttribute = (domNode, name) => {
 
   // Runtime checking if the property can be set.
   const blocklistName = /** @type {HTMLElement} */ (domNode).nodeName + '-' + name;
+  const anyNode = /** @type {any} */ (domNode);
+
+  if (isEvent) {
+    anyNode[name] = undefined;
+  }
 
   if (allowlist.has(blocklistName)) {
-    const anyNode = /** @type {any} */ (domNode);
-
-    if (isEvent) {
-      anyNode[name] = undefined;
-    } else {
-      delete anyNode[name];
-    }
+    delete anyNode[name];
 
     if (DIRECT.includes(name)) {
       /** @type {any} */ (domNode)[name] = false;
@@ -113,12 +110,7 @@ const removeAttribute = (domNode, name) => {
   }
   else if (!blocklist.has(blocklistName)) {
     try {
-      const anyNode = /** @type {any} */ (domNode);
-      if (isEvent) {
-        anyNode[name] = undefined;
-      } else {
-        delete anyNode[name];
-      }
+      delete anyNode[name];
 
       if (DIRECT.includes(name)) {
         /** @type {any} */ (domNode)[name] = false;
@@ -184,10 +176,6 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           createNode(vTree, ownerDocument, isSVG)
         );
 
-        if (!domNode) {
-          break;
-        }
-
         const oldValue = domNode.getAttribute(name);
         const attributeChangedPromises = runTransitions(
           'attributeChanged', vTree, name, oldValue, value
@@ -218,10 +206,6 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
         const domNode = /** @type {HTMLElement} */ (
           createNode(vTree, ownerDocument, isSVG)
         );
-
-        if (!domNode) {
-          break;
-        }
 
         const oldValue = domNode.getAttribute(name);
         const attributeChangedPromises = runTransitions(
@@ -255,10 +239,6 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           createNode(vTree, ownerDocument, isSVG)
         );
 
-        if (!domNode) {
-          break;
-        }
-
         protectVTree(vTree);
 
         const textChangedPromises = runTransitions(
@@ -285,17 +265,15 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
 
         i += 4;
 
+        if (!NodeCache.has(vTree)) {
+          continue;
+        }
+
         // First attempt to locate a pre-existing DOM Node. If one hasn't been
         // created there could be a few reasons.
         let domNode = /** @type {HTMLElement} */ (
           NodeCache.get(vTree)
         );
-
-        // Patching without an existing DOM Node is a mistake, so we should not
-        // attempt to do anything in this case.
-        if (!domNode) {
-          break;
-        }
 
         const isSVG = svgElements.has(newTree);
 
@@ -352,18 +330,14 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
         // the constraints. If there are no transitions, do not use the more
         // expensive, but more expressive path.
         if (!hasAttached && !hasDetached && !hasReplaced) {
-          if (oldDomNode.parentNode) {
-            oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-            unprotectVTree(oldTree);
-          }
+          oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
+          unprotectVTree(oldTree);
 
           break;
         }
 
         // Always insert before to allow the element to transition.
-        if (oldDomNode.parentNode) {
-          oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
-        }
+        oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
 
         const allPromises = [
           ...(hasAttached && runTransitions('attached', newTree) || EMPTY.ARR),
@@ -383,9 +357,7 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           promises.push(...allPromises);
         }
         else {
-          if (oldDomNode.parentNode) {
-            oldDomNode.parentNode.removeChild(oldDomNode);
-          }
+          oldDomNode.parentNode.removeChild(oldDomNode);
           unprotectVTree(oldTree);
         }
 
@@ -416,9 +388,7 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           promises.push(...detachedPromises);
         }
         else {
-          if (domNode.parentNode) {
-            domNode.parentNode.removeChild(domNode);
-          }
+          domNode.parentNode.removeChild(domNode);
           unprotectVTree(vTree);
         }
 
