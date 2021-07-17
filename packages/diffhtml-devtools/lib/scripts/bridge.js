@@ -130,6 +130,8 @@ export default function devTools(Internals) {
       mount, input, config, newTree, state
     } = transaction;
 
+    console.log(input);
+
     const isFunction = typeof mount.rawNodeName === 'function';
     const selector = unique(mount) ||
       `${isFunction ? mount.rawNodeName.displayName || mount.rawNodeName.name : mount.rawNodeName}`;
@@ -152,7 +154,9 @@ export default function devTools(Internals) {
 
     // Start task.
     if (!extension) {
-      //cacheTask.push(() => start());
+      // FIXME Comment this out if it's causing issues... and figure out why
+      // issues are being caused.
+      cacheTask.push(() => start());
     } else {
       start();
     }

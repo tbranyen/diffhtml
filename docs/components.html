@@ -290,7 +290,7 @@
         <div class="open-menu">≡</div>
         <header>
           <h1>
-            <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
+            <a href="/" img="img" width="120" src="./images/diffhtml-logo.png"></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0-beta.20</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
@@ -300,14 +300,14 @@
 
         <hr></hr>
 
-        <section id="content"><h1 id="components-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-componentsi-classfa-fa-githubia">Components <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components"><i class="fa fa-github"></i></a></h1>
+        <section id="content"><h1 id="components-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-componentsi-classfa-fa-githubia" Components="Components" a="a" class="fa fa-github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components" i="i"></h1>
 <p>Components are useful when you have parts of your interface that you wish to
 reuse or structure. There many popular component frameworks, with React being
 one of the most popular ones. diffHTML provides component features that mimic
 what you&#39;d find in React, but in many different ways that are very flexible.</p>
 <p><a name="overview"></a></p>
 <hr></hr>
-<h2 id="a-hrefoverviewoverviewa"><a href="#overview">Overview</a></h2>
+<h2 id="a-hrefoverviewoverviewa" a="a" href="#overview">Overview</h2>
 <p>In order to use components, you must install/fetch the components package. This
 contains middleware which will render functions, stateless classes, and
 stateful classes. Unlike middleware, this package will automatically hook its
@@ -354,7 +354,7 @@ class MyComponent {
 innerHTML(document.body, html`&lt;${MyComponent} someProp=&quot;value&quot; /&gt;`);</code></pre>
 <p><a name="lifecycle-hooks"></a></p>
 <hr></hr>
-<h2 id="a-hreflifecycle-hookslifecycle-hooksa"><a href="#lifecycle-hooks">Lifecycle hooks</a></h2>
+<h2 id="a-hreflifecycle-hookslifecycle-hooksa" a="a" href="#lifecycle-hooks">Lifecycle hooks</h2>
 <p>The following hooks will be called during the respective mounting and
 unmounting flow. You do not need to extend from <code>Component</code> to use these hooks.
 Simple classes can just define them as methods and they will be called.</p>
@@ -382,7 +382,7 @@ innerHTML(document.body, html`&lt;${WillMountComponent} /&gt;`);</code></pre>
 <h4 id="componentwillunmount"><code>componentWillUnmount</code></h4>
 <p><a name="component"></a></p>
 <hr></hr>
-<h2 id="a-hrefcomponentcomponenta"><a href="#component">Component</a></h2>
+<h2 id="a-hrefcomponentcomponenta" a="a" href="#component">Component</h2>
 <p>The stateful class component, which is used by importing the <code>Component</code> class.</p>
 <pre><code class="language-js">import { Component } from &#39;diffhtml-components&#39;;</code></pre>
 <p>Once you have this base class, you can extend your ES6 class to get access to
@@ -418,7 +418,7 @@ which maps to the passed in child elements. You can access props on
 <h4 id="setstate">setState</h4>
 <p><a name="web-component"></a></p>
 <hr></hr>
-<h2 id="a-hrefweb-componentweb-componenta"><a href="#web-component">Web Component</a></h2>
+<h2 id="a-hrefweb-componentweb-componenta" a="a" href="#web-component">Web Component</h2>
 <p>The WebComponent implementation is nearly identical to the standard
 
     <a href="#component" title="null">Component</a>
@@ -428,11 +428,11 @@ element that match <code>propTypes</code> cause an automatic re-render.</p>
 <pre><code class="language-js">import { WebComponent } from &#39;diffhtml-components&#39;;</code></pre>
 <p><a name="jsx"></a></p>
 <hr></hr>
-<h2 id="a-hrefjsxjsxa"><a href="#jsx">JSX</a></h2>
+<h2 id="a-hrefjsxjsxa" a="a" href="#jsx">JSX</h2>
 <p>JSX is supported out-of-the-box.</p>
 <p><a name="react-compat"></a></p>
 <hr></hr>
-<h2 id="a-hrefreact-compatreact-compata"><a href="#react-compat">React Compat</a></h2>
+<h2 id="a-hrefreact-compatreact-compata" a="a" href="#react-compat">React Compat</h2>
 <p>This experimental module aims to replicate the public API surface-area of React
 that is sufficient to execute and render components from that ecosystem. The
 reason this is important, is that diffHTML should be able to adopt and help
