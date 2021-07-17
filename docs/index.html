@@ -247,12 +247,6 @@
       
     
       
-
-      
-        <a href="components.html#react-compat" target><li>React Compatibility</li></a>
-      
-    
-      
         <a href="tools.html"><li class="header"><h4>Additional Packages</h4></li></a>
       
 
@@ -262,24 +256,6 @@
 
       
         <a href="tools.html#babel-transform" target><li>Babel Transform</li></a>
-      
-    
-      
-        <a href="devtools.html"><li class="header"><h4>DevTools</h4></li></a>
-      
-
-      
-    
-      
-
-      
-        <a href="devtools.html#install" target><li>Install</li></a>
-      
-    
-      
-
-      
-        <a href="devtools.html#panels" target><li>Panels</li></a>
       
     
   </ul>
@@ -377,29 +353,64 @@ import { innerHTML } from &#39;https://diffhtml.org/es&#39;;</code></pre>
 <p><a name="examples"></a></p>
 <hr></hr>
 <h2 id="a-hrefexamplesexamplesa"><a href="#examples">Examples</a></h2>
-<h3 id="hello-world">Hello World</h3>
+<p>The following examples are presented using 
+      <a href="https://glitch.com" target="_blank" rel="noopener noreferrer" title="null">Glitch</a>
+    . Click
+the <em>View Source</em> button under each example to view the source code. Each project
+has a different set of requirements and complexity level. Click <em>Remix To Edit</em>
+to fork the example and mess with the code.</p>
+<p><a name="hello-world"></a></p>
+<h3 id="a-hrefhello-worlduhello-worldua"><a href="#hello-world"><u>Hello World</u></a></h3>
+<p>A simple application that renders &#39;Hello world!&#39; in a <code>&lt;div&gt;</code>
+from string markup input. Demonstrates how quickly one can start prototyping.
+Loads latest diffHTML core from this website using native JavaScript modules.</p>
 <div class="glitch-embed-wrap" style="height: 200px; width: 100%;">
   <iframe src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-helloworld on Glitch" style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div>
 
-<h3 id="clock">Clock</h3>
+<p><a name="clock"></a></p>
+<hr></hr>
+<h3 id="a-hrefclockuclockua"><a href="#clock"><u>Clock</u></a></h3>
+<p>A medium complexity application that displays a realtime clock using SVG and
+<code>requestAnimationFrame</code>. Loads latest diffHTML core from this website
+using native JavaScript modules.</p>
 <div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
   <iframe src="https://glitch.com/embed/#!/embed/diffhtml-clock?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-clock on Glitch" style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div>
 
-<h3 id="hacker-news">Hacker News</h3>
+<p><a name="hacker-news"></a></p>
+<hr></hr>
+<h3 id="a-hrefhacker-newsuhacker-newsua"><a href="#hacker-news"><u>Hacker News</u></a></h3>
+<p>A more complex application that displays Hacker News. Allows reading latest
+posts and comments. Installable as a PWA. Click the fullscreen icon next to
+<em>View Source</em> to get the install prompt. Loads latest diffHTML core and plugins
+from this website using native JavaScript modules.</p>
 <div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
   <iframe src="https://glitch.com/embed/#!/embed/diffhtml-hackernews?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-hackernews on Glitch" style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div>
 
-<h3 id="todomvc">TodoMVC</h3>
+<p><a name="todomvc"></a></p>
+<hr></hr>
+<h3 id="a-hreftodomvcutodomvcua"><a href="#todomvc"><u>TodoMVC</u></a></h3>
+<p>This application can serve as a reference for those looking into a more advanced
+build setup. Rollup bundles the source and executes 
+    <a href="/tools.html#babel-transform" title="null">babel-transform</a>
+  
+which transforms all UI markup into JavaScript at build time and replaces the core build
+with the lite version improve build size. 
+      <a href="https://github.com/google/zopfli" target="_blank" rel="noopener noreferrer" title="null">Zopfli</a>
+     is used to pre-gzip the markup
+bringing the production output size to ~14kb. Loads diffHTML and plugins from
+npm pinned to <code>1.0.0-beta.20</code>. It may be periodically updated.</p>
 <div class="glitch-embed-wrap" style="height: 400px; width: 100%;">
   <iframe src="https://glitch.com/embed/#!/embed/diffhtml-todomvc?path=lib/index.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true" title="diffhtml-todomvc on Glitch" style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div>
+
+<hr></hr>
 </section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/index.md" id="edit-on-github">

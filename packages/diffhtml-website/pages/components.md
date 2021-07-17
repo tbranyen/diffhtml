@@ -206,3 +206,5 @@ You can install it by running:
 ```sh
 npm install diffhtml-react-compat
 ```
+
+---

@@ -238,3 +238,5 @@ const vTree = Internals.parse(`
 
 innerHTML(document.body, vTree);
 ```
+
+---

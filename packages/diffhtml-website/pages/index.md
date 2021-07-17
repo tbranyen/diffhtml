@@ -91,7 +91,18 @@ import { innerHTML } from 'https://diffhtml.org/es';
 
 ## <a href="#examples">Examples</a>
 
-### Hello World
+The following examples are presented using [Glitch](https://glitch.com). Click
+the _View Source_ button under each example to view the source code. Each project
+has a different set of requirements and complexity level. Click _Remix To Edit_
+to fork the example and mess with the code.
+
+<a name="hello-world"></a>
+
+### <a href="#hello-world"><u>Hello World</u></a>
+
+A simple application that renders 'Hello world!' in a <code>&lt;div&gt;</code>
+from string markup input. Demonstrates how quickly one can start prototyping.
+Loads latest diffHTML core from this website using native JavaScript modules.
 
 <div class="glitch-embed-wrap" style="height: 200px; width: 100%;">
   <iframe
@@ -101,7 +112,15 @@ import { innerHTML } from 'https://diffhtml.org/es';
   </iframe>
 </div>
 
-### Clock
+<a name="clock"></a>
+
+---
+
+### <a href="#clock"><u>Clock</u></a>
+
+A medium complexity application that displays a realtime clock using SVG and
+<code>requestAnimationFrame</code>. Loads latest diffHTML core from this website
+using native JavaScript modules.
 
 <div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
   <iframe
@@ -111,7 +130,16 @@ import { innerHTML } from 'https://diffhtml.org/es';
   </iframe>
 </div>
 
-### Hacker News
+<a name="hacker-news"></a>
+
+---
+
+### <a href="#hacker-news"><u>Hacker News</u></a>
+
+A more complex application that displays Hacker News. Allows reading latest
+posts and comments. Installable as a PWA. Click the fullscreen icon next to
+_View Source_ to get the install prompt. Loads latest diffHTML core and plugins
+from this website using native JavaScript modules.
 
 <div class="glitch-embed-wrap glitch-clock" style="height: 300px; width: 100%;">
   <iframe
@@ -121,7 +149,18 @@ import { innerHTML } from 'https://diffhtml.org/es';
   </iframe>
 </div>
 
-### TodoMVC
+<a name="todomvc"></a>
+
+---
+
+### <a href="#todomvc"><u>TodoMVC</u></a>
+
+This application can serve as a reference for those looking into a more advanced
+build setup. Rollup bundles the source and executes [babel-transform](/tools.html#babel-transform)
+which transforms all UI markup into JavaScript at build time and replaces the core build
+with the lite version improve build size. [Zopfli](https://github.com/google/zopfli) is used to pre-gzip the markup
+bringing the production output size to ~14kb. Loads diffHTML and plugins from
+npm pinned to <code>1.0.0-beta.20</code>. It may be periodically updated.
 
 <div class="glitch-embed-wrap" style="height: 400px; width: 100%;">
   <iframe
@@ -130,3 +169,5 @@ import { innerHTML } from 'https://diffhtml.org/es';
     style="height: 100%; width: 100%; border: 0;">
   </iframe>
 </div>
+
+---

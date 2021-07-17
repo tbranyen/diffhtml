@@ -57,3 +57,5 @@ function render() {
 ```
 
 [Refer to the configuration documentation.](https://github.com/tbranyen/diffhtml/tree/master/packages/babel-plugin-transform-diffhtml#-diffhtml-babel-transform-plugin)
+
+---

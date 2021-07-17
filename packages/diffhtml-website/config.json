@@ -46,17 +46,11 @@
       "Lifecycle hooks": "#lifecycle-hooks",
       "Component": "#component",
       "Web Component": "#web-component",
-      "JSX": "#jsx",
-      "React Compatibility": "#react-compat"
+      "JSX": "#jsx"
     }],
 
     "Additional Packages": ["tools.html", {
       "Babel Transform": "#babel-transform"
-    }],
-
-    "DevTools": ["devtools.html", {
-      "Install": "#install",
-      "Panels": "#panels"
     }]
   }
 }

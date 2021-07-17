@@ -635,3 +635,5 @@ innerHTML(document.body, `
   <h1>Hello world</h2>
 `, { parser: { strict: true } });
 ```
+
+---
