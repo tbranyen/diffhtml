@@ -97,6 +97,15 @@ the foundation of the diffHTML ecosystem.
   use `addEventListener`. Events are attached to the `body` element and
   coordinated to children through delegation.
 
+* [diffhtml-middleware-service-worker](/packages/diffhtml-middleware-service-worker)
+
+  ```sh
+  npm install diffhtml-middleware-service-worker
+  ```
+
+  Helps with the creation of a service worker for PWAs, available as a
+  convenience to make development more friendlier.
+
 * [diffhtml-website](/packages/diffhtml-website)
 
   The source for the [www.diffhtml.org](https://www.diffhtml.org) website.
