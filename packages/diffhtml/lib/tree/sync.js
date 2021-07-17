@@ -1,11 +1,11 @@
 import process from '../util/process';
 import {
+  SyncTreeHookCache,
+  TransactionState,
   PATCH_TYPE,
+  NODE_TYPE,
   VTree,
   EMPTY,
-  TransactionState,
-  NODE_TYPE,
-  SyncTreeHookCache,
 } from '../util/types';
 
 const { max } = Math;

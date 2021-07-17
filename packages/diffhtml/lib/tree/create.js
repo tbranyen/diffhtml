@@ -15,6 +15,31 @@ const fragmentName = '#document-fragment';
 const textName = '#text';
 
 /**
+ * Will flatten fragments that should remain invisible. If a fragment was
+ * intentionally created to be diffed, such as a component, the rawNodeName
+ * will not match and will be preserved.
+ *
+ * @param {VTree[]} vTrees
+ * @param {VTree[]} retVal
+ *
+ * @return {VTree[]}
+ */
+function flatten(vTrees, retVal = []) {
+  for (let i = 0; i < vTrees.length; i++) {
+    const vTree = vTrees[i];
+
+    if (vTree && vTree.rawNodeName === fragmentName) {
+      flatten(vTree.childNodes, retVal);
+    }
+    else if (vTree) {
+      retVal.push(vTree);
+    }
+  }
+
+  return retVal;
+}
+
+/**
  * Typically passed either a single or list of DOM Nodes or a VTreeLike object.
  *
  * @param {ValidInput=} input
@@ -195,7 +220,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   const useAttributes = isArray(attributes) || typeof attributes !== 'object';
   const useNodes = useAttributes ? attributes : childNodes;
-  const allNodes = isArray(useNodes) ? useNodes : [useNodes];
+  const allNodes = flatten(isArray(useNodes) ? useNodes : [useNodes]);
 
   // Ensure nodeType is set correctly, and if this is a text node, return early.
   if (isTextNode) {
@@ -221,6 +246,12 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   if (useNodes && allNodes.length && (!attributes || !attributes.childNodes)) {
     for (let i = 0; i < allNodes.length; i++) {
       const newNode = allNodes[i];
+
+      if (newNode.nodeType === NODE_TYPE.FRAGMENT) {
+        if (newNode.rawNodeName === fragmentName) {
+          console.log('here');
+        }
+      }
 
       // Merge in arrays.
       if (isArray(newNode)) {

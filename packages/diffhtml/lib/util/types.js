@@ -1,5 +1,5 @@
 /**
- * @type {{ [type: string]: number }}
+ * @enum {number}
  */
 export const NODE_TYPE = {
   ELEMENT: 1,
@@ -10,12 +10,12 @@ export const NODE_TYPE = {
 };
 
 /**
- * @type {{ [type: string]: any }}
+ * @enum {any}
  */
 export const EMPTY = {
   STR: '',
   NUM: 1,
-  OBJ: {},
+  OBJ: /** @type {any} */ ({}),
   ARR: [],
   MAP: new Map(),
   SET: new Set(),
@@ -23,16 +23,15 @@ export const EMPTY = {
 };
 
 /**
- * @typedef {{ [type: string]: number }} PATCH_TYPE
- * @type {PATCH_TYPE}
+ * @enum {number}
  */
 export const PATCH_TYPE = {
-  'SET_ATTRIBUTE': 0,
-  'REMOVE_ATTRIBUTE': 1,
-  'NODE_VALUE': 2,
-  'INSERT_BEFORE': 3,
-  'REPLACE_CHILD': 4,
-  'REMOVE_CHILD': 5,
+  SET_ATTRIBUTE: 0,
+  REMOVE_ATTRIBUTE: 1,
+  NODE_VALUE: 2,
+  INSERT_BEFORE: 3,
+  REPLACE_CHILD: 4,
+  REMOVE_CHILD: 5,
 };
 
 /**
@@ -245,7 +244,7 @@ export const TransactionState = EMPTY.OBJ;
  * @property {any} memory
  * @property {any} Pool
  * @property {any} process
- * @property {PATCH_TYPE} PATCH_TYPE
+ * @property {{ [key: string]: any }} PATCH_TYPE
  * @property {Function=} parse
  * @property {Function} createNode
  * @property {Function} syncTree
