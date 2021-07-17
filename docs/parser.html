@@ -290,7 +290,7 @@
         <div class="open-menu">≡</div>
         <header>
           <h1>
-            <a href="/" img="img" width="120" src="./images/diffhtml-logo.png"></a>
+            <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0-beta.20</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
@@ -379,7 +379,7 @@ console.log(Internals.parse(`
 `));</code></pre>
 <p><a name="options"></a></p>
 <hr></hr>
-<h2 id="a-hrefoptionsoptionsa" a="a" href="#options">Options</h2>
+<h2 id="a-hrefoptionsoptionsa"><a href="#options">Options</a></h2>
 <p>The parser is somewhat configurable, allowing you to opt into a strict-mode for
 erroring if invalid markup is passed. This could be useful to pair with the
 
@@ -398,7 +398,7 @@ erroring if invalid markup is passed. This could be useful to pair with the
 </ul>
 <p><a name="strict-mode"></a></p>
 <hr></hr>
-<h3 id="a-hrefstrict-modestrict-modea" a="a" href="#strict-mode">Strict mode</h3>
+<h3 id="a-hrefstrict-modestrict-modea"><a href="#strict-mode">Strict mode</a></h3>
 <p>By default the parser operates in loose-mode which is forgiving of missing
 closing tags, poor markup, and other common issues. When opting into strict
 mode you will receive errors if you don&#39;t properly self close tags, have
@@ -432,20 +432,20 @@ html.strict`
 `;</code></pre>
 <p><a name="block-elements"></a></p>
 <hr></hr>
-<h3 id="a-hrefraw-elementsraw-elementsa" a="a" href="#raw-elements">Raw elements</h3>
+<h3 id="a-hrefraw-elementsraw-elementsa"><a href="#raw-elements">Raw elements</a></h3>
 <p>A list of elements that have their contents treated as raw text, rather than
 parsed as HTML. You can provide your own list of element names to allow this
 feature.</p>
 <p>Examples of these kinds of elements are: <code>&lt;pre&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;style&gt;</code></p>
 <p><a name="self-closing-elements"></a></p>
 <hr></hr>
-<h3 id="a-hrefself-closing-elementsself-closing-elementsa" a="a" href="#self-closing-elements">Self closing elements</h3>
+<h3 id="a-hrefself-closing-elementsself-closing-elementsa"><a href="#self-closing-elements">Self closing elements</a></h3>
 <p>A list of elements that are allowed to self close. You can provide your own list of
 element names to allow this feature.</p>
 <p>Examples of these kinds of elements are: <code>&lt;meta/&gt;</code>, <code>&lt;hr/&gt;</code>, <code>&lt;img/&gt;</code></p>
 <p><a name="dynamic-values"></a></p>
 <hr></hr>
-<h2 id="a-hrefdynamic-valuesdynamic-valuesa" a="a" href="#dynamic-values">Dynamic values</h2>
+<h2 id="a-hrefdynamic-valuesdynamic-valuesa"><a href="#dynamic-values">Dynamic values</a></h2>
 <p>The parser allows you to use dynamic values for many different parts of the
 HTML syntax. This is primarily used with tagged template literals to support
 the passing of objects and other JavaScript types.</p>
@@ -505,6 +505,21 @@ innerHTML(document.body, vTree);</code></pre>
       <script key="source">
         try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
+        
+          // Every time a refresh happens, reload the highlight code block.
+          let interval;
+
+          interval = setInterval(() => {
+            if (typeof staticSyncHandlers !== 'undefined') {
+              clearInterval(interval);
+
+              staticSyncHandlers.add(() => {
+                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+                  hljs.highlightBlock(block);
+                }));
+              });
+            }
+          }, 200);
         
 
         document.querySelector('.open-menu').onclick = ev => {

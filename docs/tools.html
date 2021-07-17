@@ -290,7 +290,7 @@
         <div class="open-menu">≡</div>
         <header>
           <h1>
-            <a href="/" img="img" width="120" src="./images/diffhtml-logo.png"></a>
+            <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0-beta.20</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
@@ -303,7 +303,7 @@
         <section id="content"><h1 id="additional-packages">Additional packages</h1>
 <p><a name="babel-transform"></a></p>
 <hr></hr>
-<h2 id="a-hrefbabel-transformbabel-transform-optimize-buildsa" a="a" href="#babel-transform">Babel Transform (Optimize builds)</h2>
+<h2 id="a-hrefbabel-transformbabel-transform-optimize-buildsa"><a href="#babel-transform">Babel Transform (Optimize builds)</a></h2>
 <p>The Babel plugin is useful after you have a working project and wish to
 optimize it at build time. The Babel plugin will perform numerous optimizations
 to your code depending on how it is written and structured. For instance,
@@ -363,6 +363,21 @@ function render() {
       <script key="source">
         try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
+        
+          // Every time a refresh happens, reload the highlight code block.
+          let interval;
+
+          interval = setInterval(() => {
+            if (typeof staticSyncHandlers !== 'undefined') {
+              clearInterval(interval);
+
+              staticSyncHandlers.add(() => {
+                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+                  hljs.highlightBlock(block);
+                }));
+              });
+            }
+          }, 200);
         
 
         document.querySelector('.open-menu').onclick = ev => {

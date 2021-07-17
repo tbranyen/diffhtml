@@ -290,7 +290,7 @@
         <div class="open-menu">≡</div>
         <header>
           <h1>
-            <a href="/" img="img" width="120" src="./images/diffhtml-logo.png"></a>
+            <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0-beta.20</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
@@ -300,7 +300,7 @@
 
         <hr></hr>
 
-        <section id="content"><h1 id="a-hrefapihtmlcore-apia-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtmli-classfa-fa-githubia" a="a" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml" Core="Core" API<="API<" class="fa fa-github" i="i"></h1>
+        <section id="content"><h1 id="a-hrefapihtmlcore-apia-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtmli-classfa-fa-githubia"><a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a></h1>
 <p>This documentation covers the core public API and is central to the framework.
 All methods work in the browser, with JSDOM, and directly in Node.</p>
 <p><u>Special terms:</u></p>
@@ -321,7 +321,7 @@ it unless you&#39;re trying to deeply understand the library.</p>
 </ul>
 <p><a name="inner-html"></a></p>
 <hr></hr>
-<h2 id="a-hrefinner-htmlinnerhtmla-mount-input-options" a="a" href="#inner-html">innerHTML <strong><code>(mount, input, options)</code></strong></h2>
+<h2 id="a-hrefinner-htmlinnerhtmla-mount-input-options"><a href="#inner-html">innerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
 <p>Compares the children of mount with input.</p>
 <p>The <code>innerHTML</code> and <code>outerHTML</code> methods are the most common to use. They allow
 you to mimic the respective browser feature, where you replace the contents of
@@ -366,7 +366,7 @@ innerHTML(document.body, `
 `);</code></pre>
 <p><a name="outer-html"></a></p>
 <hr></hr>
-<h2 id="a-hrefouter-htmlouterhtmla-mount-input-options" a="a" href="#outer-html">outerHTML <strong><code>(mount, input, options)</code></strong></h2>
+<h2 id="a-hrefouter-htmlouterhtmla-mount-input-options"><a href="#outer-html">outerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
 <p>Compares the attributes and children of mount with input.</p>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the
@@ -397,7 +397,7 @@ but this isn&#39;t really recommended.</p>
 </tbody></table>
 <p><a name="to-string"></a></p>
 <hr></hr>
-<h2 id="a-hrefto-stringtostringa-input-options" a="a" href="#to-string">toString <strong><code>(input, options)</code></strong></h2>
+<h2 id="a-hrefto-stringtostringa-input-options"><a href="#to-string">toString</a> <strong><code>(input, options)</code></strong></h2>
 <p>Takes any valid input and returns a serialized string of XML/HTML markup.</p>
 <p>Example:</p>
 <pre><code class="language-js">toString(&#39;&lt;body&gt;Hello world&lt;/body&gt;&#39;);
@@ -421,7 +421,7 @@ but this isn&#39;t really recommended.</p>
 </tbody></table>
 <p><a name="html"></a></p>
 <hr></hr>
-<h2 id="a-hrefhtmlhtmla-markup" a="a" href="#html">html <strong><code>(markup)</code></strong></h2>
+<h2 id="a-hrefhtmlhtmla-markup"><a href="#html">html</a> <strong><code>(markup)</code></strong></h2>
 <p>A 
       <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates" target="_blank" rel="noopener noreferrer" title="null">tagged
 template</a>
@@ -454,7 +454,7 @@ Although &quot;element&quot; is used, the actual input can be of various input t
 all representing an element (or many elements).</p>
 <p><a name="use"></a></p>
 <hr></hr>
-<h2 id="a-hrefuseusea-middlewarefunction-or-middlewareobject" a="a" href="#use">use <strong><code>(middlewareFunction or middlewareObject)</code></strong></h2>
+<h2 id="a-hrefuseusea-middlewarefunction-or-middlewareobject"><a href="#use">use</a> <strong><code>(middlewareFunction or middlewareObject)</code></strong></h2>
 <p>This function is used to hook plugins into your render pipeline. These plugins
 are referred to as middleware. They are meant for advanced use cases such as
 observing the render flow, modifying attributes or elements, and more.</p>
@@ -505,7 +505,7 @@ use(someTask);</code></pre>
 use(someTask);</code></pre>
 <p><a name="add-transition-state"></a></p>
 <hr></hr>
-<h2 id="a-hrefadd-transition-stateaddtransitionstatea-statename-callback" a="a" href="#add-transition-state">addTransitionState <strong><code>(stateName, callback)</code></strong></h2>
+<h2 id="a-hrefadd-transition-stateaddtransitionstatea-statename-callback"><a href="#add-transition-state">addTransitionState</a> <strong><code>(stateName, callback)</code></strong></h2>
 <p>Adds global transition listeners, which trigger in reaction to when the DOM is
 patched. If many elements are rendered quickly, this could be an expensive
 operation, so try to limit the amount of listeners added if you&#39;re concerned
@@ -593,7 +593,7 @@ Although &quot;element&quot; is used, the actual input can be of various input t
 all representing an element (or many elements).</p>
 <p><a name="remove-transition-state"></a></p>
 <hr></hr>
-<h2 id="a-hrefremove-transition-stateremovetransitionstatea-statename-callback" a="a" href="#remove-transition-state">removeTransitionState <strong><code>(stateName, callback)</code></strong></h2>
+<h2 id="a-hrefremove-transition-stateremovetransitionstatea-statename-callback"><a href="#remove-transition-state">removeTransitionState</a> <strong><code>(stateName, callback)</code></strong></h2>
 <p>Removes a global transition listener. When invoked with no arguments, this
 method will remove all transition callbacks. When invoked with the name
 argument it will remove all transition state callbacks matching the name, and
@@ -625,7 +625,7 @@ diff.removeTransitionState(&#39;attached&#39;, callbackReference);</code></pre>
 </tbody></table>
 <p><a name="create-tree"></a></p>
 <hr></hr>
-<h2 id="a-hrefcreate-treecreatetreea-nodename-attributes-childnodes" a="a" href="#create-tree">createTree <strong><code>(nodeName, attributes, ...childNodes)</code></strong></h2>
+<h2 id="a-hrefcreate-treecreatetreea-nodename-attributes-childnodes"><a href="#create-tree">createTree</a> <strong><code>(nodeName, attributes, ...childNodes)</code></strong></h2>
 <p>Creates a Virtual Tree (VTree) which can be interpolated and rendered. This has
 a similar purpose to hyperscript&#39;s <code>h()</code> and React&#39;s <code>createElement</code>.</p>
 <p>Examples:</p>
@@ -663,7 +663,7 @@ const div = createTree(&#39;div&#39;, attributes, childNodes);</code></pre>
 </tbody></table>
 <p><a name="release"></a></p>
 <hr></hr>
-<h2 id="a-hrefreleasereleasea-mount" a="a" href="#release">release <strong><code>(mount)</code></strong></h2>
+<h2 id="a-hrefreleasereleasea-mount"><a href="#release">release</a> <strong><code>(mount)</code></strong></h2>
 <p>Use this method if you need to clean up memory allocations and anything else
 internal to diffHTML associated with your element. This is very useful for unit
 testing and general cleanup when you&#39;re done with an element. Applications will
@@ -690,31 +690,31 @@ probably not use this if the app lives as long as the tab.</p>
 </ul>
 <p><a name="internals"></a></p>
 <hr></hr>
-<h2 id="a-hrefinternalsinternalsa" a="a" href="#internals">Internals</h2>
+<h2 id="a-hrefinternalsinternalsa"><a href="#internals">Internals</a></h2>
 <p>These internals are deemed public API and may be relied upon once the library
 has reached a stable version. The intention is to allow developers to tweak
 the library, observe and influence internal memory, and build tooling around
 the runtime.</p>
-<h3 id="a-namemiddleware-cache-hrefmiddleware-cachemiddlewarecachea" a="a" name="middleware-cache" href="#middleware-cache">MiddlewareCache</h3>
+<h3 id="a-namemiddleware-cache-hrefmiddleware-cachemiddlewarecachea"><a name="middleware-cache" href="#middleware-cache">MiddlewareCache</a></h3>
 <p>A JavaScript Set object that contains registered middleware functions that
 trigger whenever transaction state changes. Use this to help enable/disable
 middleware functions from running during renders.</p>
-<h3 id="a-namecreate-node-hook-cache-hrefcreate-node-hook-cachecreatenodehookcachea" a="a" name="create-node-hook-cache" href="#create-node-hook-cache">CreateNodeHookCache</h3>
+<h3 id="a-namecreate-node-hook-cache-hrefcreate-node-hook-cachecreatenodehookcachea"><a name="create-node-hook-cache" href="#create-node-hook-cache">CreateNodeHookCache</a></h3>
 <p>A JavaScript Set object that contains functions that trigger whenever a DOM
 Node is created during the patching process.</p>
-<h3 id="a-namecreate-tree-hook-cache-hrefcreate-tree-hook-cachecreatetreehookcachea" a="a" name="create-tree-hook-cache" href="#create-tree-hook-cache">CreateTreeHookCache</h3>
+<h3 id="a-namecreate-tree-hook-cache-hrefcreate-tree-hook-cachecreatetreehookcachea"><a name="create-tree-hook-cache" href="#create-tree-hook-cache">CreateTreeHookCache</a></h3>
 <p>A JavaScript Set object that contains functions that trigger whenever a Virtual
 Tree is created through <code>html</code>, <code>createTree</code>, or during the parsing process.</p>
-<h3 id="a-namerelease-hook-cache-hrefrelease-hook-cachereleasehookcachea" a="a" name="release-hook-cache" href="#release-hook-cache">ReleaseHookCache</h3>
+<h3 id="a-namerelease-hook-cache-hrefrelease-hook-cachereleasehookcachea"><a name="release-hook-cache" href="#release-hook-cache">ReleaseHookCache</a></h3>
 <p>A JavaScript Set object that contains functions that trigger whenever a Virtual
 Tree is cleaned up by diffHTML&#39;s internal garbage collection. You can do
 additional cleanup here.</p>
-<h3 id="a-namesync-tree-hook-cache-hrefsync-tree-hook-cachesynctreehookcachea" a="a" name="sync-tree-hook-cache" href="#sync-tree-hook-cache">SyncTreeHookCache</h3>
+<h3 id="a-namesync-tree-hook-cache-hrefsync-tree-hook-cachesynctreehookcachea"><a name="sync-tree-hook-cache" href="#sync-tree-hook-cache">SyncTreeHookCache</a></h3>
 <p>A JavaScript Set object that contains functions that trigger whenever Virtual
 Trees are compared. You can influence how the Virtual DOM synchronizes changes,
 by changing attributes JIT, telling diffHTML to ignore certain nodes, or tell
 diffHTML to not apply any changes to a given node.</p>
-<h3 id="a-namenode-cache-hrefnode-cachenodecachea" a="a" name="node-cache" href="#node-cache">NodeCache</h3>
+<h3 id="a-namenode-cache-hrefnode-cachenodecachea"><a name="node-cache" href="#node-cache">NodeCache</a></h3>
 <p>A Map that can be used to get access to the DOM node associated to a VTree.
 This is comparable to <code>findDOMNode</code> in React. Basically if you encounter an
 object that the documentation says is a VTree and you want to convert to a DOM
@@ -732,7 +732,7 @@ that diffHTML has re-used the VTree you have saved, so calling <code>NodeCache.g
 will yield an unexpected result. Therefore its recommended to call this method
 immediately if you need the DOM node and not save a VTree in between
 re-renders.</p>
-<h3 id="a-nametransaction-hreftransactiontransactiona" a="a" name="transaction" href="#transaction">Transaction</h3>
+<h3 id="a-nametransaction-hreftransactiontransactiona"><a name="transaction" href="#transaction">Transaction</a></h3>
 <p>A render transaction is scheduled whenever <code>innerHTML</code> or <code>outerHTML</code> are
 called. It is an instance of a <code>Transaction</code> class that has a few methods:
 <em>abort</em>, <em>end</em>, <em>onceEnded</em>, and <em>start</em>. This instance is mutable and the
@@ -769,19 +769,19 @@ asynchronous.</p>
 <li><strong>state</strong> - Internal state object for the transaction</li>
 <li><strong>tasks</strong> - Array of functions that were executed when rendering</li>
 </ul>
-<h3 id="a-nameinternals-version-hrefinternals-versionversiona" a="a" name="internals-version" href="#internals-version">VERSION</h3>
+<h3 id="a-nameinternals-version-hrefinternals-versionversiona"><a name="internals-version" href="#internals-version">VERSION</a></h3>
 <p>See 
     <a href="#version" title="null">VERSION</a>
   </p>
 <p><a name="version"></a></p>
 <hr></hr>
-<h2 id="a-hrefversionversiona" a="a" href="#version">VERSION</h2>
+<h2 id="a-hrefversionversiona"><a href="#version">VERSION</a></h2>
 <p>Property which indicates the current running version of diffHTML.</p>
 <h3 id="example">Example</h3>
 <pre><code class="language-js">console.log(VERSION);</code></pre>
 <p><a name="config-options"></a></p>
 <hr></hr>
-<h2 id="a-hrefconfig-optionsconfig-optionsa" a="a" href="#config-options">Config options</h2>
+<h2 id="a-hrefconfig-optionsconfig-optionsa"><a href="#config-options">Config options</a></h2>
 <ul>
 <li>
     <a href="#tasks" title="null"><code>tasks</code></a>
@@ -889,6 +889,21 @@ innerHTML(document.body, `
       <script key="source">
         try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
+        
+          // Every time a refresh happens, reload the highlight code block.
+          let interval;
+
+          interval = setInterval(() => {
+            if (typeof staticSyncHandlers !== 'undefined') {
+              clearInterval(interval);
+
+              staticSyncHandlers.add(() => {
+                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+                  hljs.highlightBlock(block);
+                }));
+              });
+            }
+          }, 200);
         
 
         document.querySelector('.open-menu').onclick = ev => {

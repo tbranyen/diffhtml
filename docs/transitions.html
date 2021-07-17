@@ -290,7 +290,7 @@
         <div class="open-menu">≡</div>
         <header>
           <h1>
-            <a href="/" img="img" width="120" src="./images/diffhtml-logo.png"></a>
+            <a href="/"><img width="120" src="./images/diffhtml-logo.png"></img></a>
             <div>
               <p class="name">diffHTML</p><sub>v1.0.0-beta.20</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
@@ -312,7 +312,7 @@ like
 support Promises.</p>
 <p><a name="states"></a></p>
 <hr></hr>
-<h2 id="a-hrefstatesstatesa" a="a" href="#states">States</h2>
+<h2 id="a-hrefstatesstatesa"><a href="#states">States</a></h2>
 <ul>
 <li>
     <a href="#attached" title="null"><strong>attached</strong></a>
@@ -335,7 +335,7 @@ to do filtering. You add them using the <code>addTransitionState</code> method.<
 <pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;</code></pre>
 <p><a name="attached"></a></p>
 <hr></hr>
-<h3 id="a-hrefattachedattacheda" a="a" href="#attached">Attached</h3>
+<h3 id="a-hrefattachedattacheda"><a href="#attached">Attached</a></h3>
 <p>This triggers whenever an element gets added into the DOM. Text and comment
 nodes are not included.</p>
 <pre><code class="language-js">addTransitionState(&#39;attached&#39;, (element) =&gt; {
@@ -343,14 +343,14 @@ nodes are not included.</p>
 });</code></pre>
 <p><a name="detached"></a></p>
 <hr></hr>
-<h3 id="a-hrefdetacheddetacheda" a="a" href="#detached">Detached</h3>
+<h3 id="a-hrefdetacheddetacheda"><a href="#detached">Detached</a></h3>
 <p>For when an element leaves the DOM.</p>
 <pre><code class="language-js">addTransitionState(&#39;detached&#39;, (element) =&gt; {
   console.log(element);
 });</code></pre>
 <p><a name="replaced"></a></p>
 <hr></hr>
-<h3 id="a-hrefreplacedreplaceda" a="a" href="#replaced">Replaced</h3>
+<h3 id="a-hrefreplacedreplaceda"><a href="#replaced">Replaced</a></h3>
 <p>Whenever two elements are replaced at render time this is called with the old
 and new elements.</p>
 <pre><code class="language-js">addTransitionState(&#39;replaced&#39;, (oldElement, newElement) =&gt; {
@@ -358,14 +358,14 @@ and new elements.</p>
 });</code></pre>
 <p><a name="attribute-changed"></a></p>
 <hr></hr>
-<h3 id="a-hrefattribute-changedattribute-changeda" a="a" href="#attribute-changed">Attribute changed</h3>
+<h3 id="a-hrefattribute-changedattribute-changeda"><a href="#attribute-changed">Attribute changed</a></h3>
 <p>For when attributes have changed.</p>
 <pre><code class="language-js">addTransitionState(&#39;attributeChanged&#39;, (element, attrName, oldValue, newValue) =&gt; {
   console.log(element, attrName, oldValue, newValue);
 });</code></pre>
 <p><a name="text-changed"></a></p>
 <hr></hr>
-<h3 id="a-hreftext-changedtext-changeda" a="a" href="#text-changed">Text changed</h3>
+<h3 id="a-hreftext-changedtext-changeda"><a href="#text-changed">Text changed</a></h3>
 <p>For when text has changed in either TextNodes or SVG text elements.</p>
 <pre><code class="language-js">addTransitionState(&#39;textChanged&#39;, (element, oldValue, newValue) =&gt; {
   console.log(element, oldValue, newValue);
@@ -395,6 +395,21 @@ and new elements.</p>
       <script key="source">
         try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
+        
+          // Every time a refresh happens, reload the highlight code block.
+          let interval;
+
+          interval = setInterval(() => {
+            if (typeof staticSyncHandlers !== 'undefined') {
+              clearInterval(interval);
+
+              staticSyncHandlers.add(() => {
+                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
+                  hljs.highlightBlock(block);
+                }));
+              });
+            }
+          }, 200);
         
 
         document.querySelector('.open-menu').onclick = ev => {
