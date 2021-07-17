@@ -285,7 +285,7 @@ export default function parse(html, supplemental, options = {}) {
   );
 
   const tagEx =
-    /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)((?:'|").*(?:'|"))?(\/?)>/ig;
+    /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(".*?"|'.*?')?(\/?)>/ig;
   const root = createTree('#document-fragment', null, []);
   const stack = [root];
   let currentParent = root;

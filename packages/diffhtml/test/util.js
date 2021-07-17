@@ -128,6 +128,15 @@ describe('Util', function() {
   });
 
   describe('Parse', () => {
+    it('will support single line parsing', () => {
+      const vTree = parse('<a href="#"><img src="#"></a>').childNodes[0];
+
+      strictEqual(vTree.nodeName, 'a');
+      strictEqual(vTree.attributes.href, '#');
+      strictEqual(vTree.childNodes[0].nodeName, 'img');
+      strictEqual(vTree.childNodes[0].attributes.src, '#');
+    });
+
     it('will support empty attributes', () => {
       const vTree = parse('<option value="test" selected></option>').childNodes[0];
 
