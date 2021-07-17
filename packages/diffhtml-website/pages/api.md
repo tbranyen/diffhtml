@@ -42,7 +42,9 @@ comes in handy for advanced use cases such as
 What's nice about these methods is that all renders go through the same
 scheduling pipeline and VTrees are shared across all other renders.
 
-### Arguments
+<a name="inner-html-arguments"></a>
+
+### <a href="#inner-html-arguments"><u>Arguments</u></a>
 
 | Name        | Description
 | ----------- | -----------
@@ -50,7 +52,9 @@ scheduling pipeline and VTrees are shared across all other renders.
 | **input**   | New markup to replace into **mount**.
 | **options** | **[Config options](#config-options)**
 
-### Examples
+<a name="inner-html-examples"></a>
+
+### <a href="#inner-html-examples"><u>Examples</u></a>
 
 ``` js
 import { innerHTML } from 'diffhtml';
@@ -73,19 +77,24 @@ what has changed. Additionally updates the attributes of the parent. If the
 element you're modifying has a parent, you may also change the element type,
 but this isn't really recommended.
 
-Example:
+<a name="outer-html-arguments"></a>
 
-``` js
-outerHTML(document.body, '<body>Hello world</body>');
-```
-
-### Arguments
+### <a href="#outer-html-arguments"><u>Arguments</u></a>
 
 | Name        | Description
 | ----------- | -----------
 | **mount**   | The root DOM node to update including attributes and children.
 | **input**   | New markup to replace into **mount**.
 | **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul>
+
+<a name="outer-html-examples"></a>
+
+### <a href="#outer-html-examples"><u>Examples</u></a>
+
+``` js
+outerHTML(document.body, '<body>Hello world</body>');
+```
+
 
 <a name="to-string"></a>
 
@@ -95,19 +104,23 @@ outerHTML(document.body, '<body>Hello world</body>');
 
 Takes any valid input and returns a serialized string of XML/HTML markup.
 
-Example:
+<a name="to-string-arguments"></a>
 
-``` js
-toString('<body>Hello world</body>');
-// <body>Hello world</body>
-```
-
-### Arguments
+### <a href="#to-string-arguments"><u>Arguments</u></a>
 
 | Name        | Description
 | ----------- | -----------
 | **input**   | New markup to replace into **mount**.
 | **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul>
+
+<a name="to-string-examples"></a>
+
+### <a href="#to-string-examples"><u>Examples</u></a>
+
+``` js
+toString('<body>Hello world</body>');
+// <body>Hello world</body>
+```
 
 <a name="html"></a>
 
@@ -124,8 +137,21 @@ to "interpolate" or mix dynamic values with the HTML string content. This is
 useful when working with Web Components, DOM events,
 
 When you pass a single element and provide newlines and whitespace before and
-after it, like the example below, it will be automatically trimmed. If you
-provide multiple elements, the whitespace becomes
+after it, like the examples below, they will be automatically trimmed out of the
+final tree. If you provide multiple elements, the whitespace becomes part of the
+tree.
+
+<a name="html-arguments"></a>
+
+### <a href="#html-arguments"><u>Arguments</u></a>
+
+The two required inputs are a reference element and new element to compare.
+Although "element" is used, the actual input can be of various input types
+all representing an element (or many elements).
+
+<a name="html-examples"></a>
+
+### <a href="#html-examples"><u>Examples</u></a>
 
 A simple example of its usage along with interpolation.
 
@@ -148,12 +174,6 @@ createTree('body', null, [
 To see how to run this example yourself see the [Examples](#examples) section
 below.
 
-### Arguments
-
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
-
 <a name="use"></a>
 
 ---
@@ -169,14 +189,18 @@ Middleware can be enabled and disabled via code or the browser DevTools.
 [**Refer to the Middleware documentation for documentation on writing your own
 and find existing plugins.**](/middleware.html)
 
-### Arguments
+<a name="use-arguments"></a>
+
+### <a href="#use-arguments"><u>Arguments</u></a>
 
 | Name        | Description
 | ----------- | -----------
 | **middlewareFunction** | Use this when you want total control over the task flow. Return inner functions to delve deeper into the flow. Any of the middleware object properties may be attached the function and used together.
 | **middlewareObject** | Use this when you don't care about the transaction start/stop, and want a cleaner way to monitor the VTree lifecycle. <ul><li>displayName</li><li>createNodeHook</li><li>createTreeHook</li><li>syncTreeHook</li><li>releaseHook</li><li>subscribe</li><li>unsubscribe</li></ul>
 
-### Examples
+<a name="use-examples"></a>
+
+### <a href="#use-examples"><u>Examples</u></a>
 
 #### Logging the start of a render transaction
 
@@ -240,7 +264,9 @@ If you like these transitions and want to declaratively assign them in tagged
 templates, check out the [diffhtml-inline-transitions
 plugin](middleware.html#inline-transitions).
 
-### Arguments
+<a name="add-transition-state-arguments"></a>
+
+### <a href="#add-transition-state-arguments"><u>Arguments</u></a>
 
 | Name        | Description
 | ----------- | -----------
@@ -307,7 +333,6 @@ Now the transformative operations are:
 
 1. Remove the second element
 
-
 ### Arguments
 
 The two required inputs are a reference element and new element to compare.
@@ -325,6 +350,20 @@ method will remove all transition callbacks. When invoked with the name
 argument it will remove all transition state callbacks matching the name, and
 so on for the callback.
 
+
+<a name="remove-transition-state-arguments"></a>
+
+### <a href="#remove-transition-state-arguments"><u>Arguments</u></a>
+
+| Name        | Description
+| ----------- | -----------
+| **stateName** | *Optional* Filter events to remove by a specific state
+| **callback** | *Optional* Filter events to remove by the callback reference
+
+<a name="remove-transition-examples"></a>
+
+### <a href="#remove-transition-examples"><u>Examples</u></a>
+
 ``` javascript
 // Removes all registered transition states.
 diff.removeTransitionState();
@@ -336,13 +375,6 @@ diff.removeTransitionState('attached');
 diff.removeTransitionState('attached', callbackReference);
 ```
 
-### Arguments
-
-| Name        | Description
-| ----------- | -----------
-| **stateName** | *Optional* Filter events to remove by a specific state
-| **callback** | *Optional* Filter events to remove by the callback reference
-
 <a name="create-tree"></a>
 
 ---
@@ -352,7 +384,19 @@ diff.removeTransitionState('attached', callbackReference);
 Creates a Virtual Tree (VTree) which can be interpolated and rendered. This has
 a similar purpose to hyperscript's `h()` and React's `createElement`.
 
-Examples:
+<a name="create-tree-arguments"></a>
+
+### <a href="#create-tree-arguments"><u>Arguments</u></a>
+
+| Name              | Description
+| ----------------- | -----------
+| **nodeName**      | A string for HTML, or couuld be a component or other types like functions when using middleware
+| **attributes**    | An object of DOM attributes or properties key and value or null
+| **...childNodes** | An array of child nodes, or a single element merged with any additional arguments
+
+<a name="create-tree-examples"></a>
+
+### <a href="#create-tree-examples"><u>Examples</u></a>
 
 ``` js
 const attributes = {
@@ -368,14 +412,6 @@ const childNodes = [
 const div = createTree('div', attributes, childNodes);
 ```
 
-### Arguments
-
-| Name              | Description
-| ----------------- | -----------
-| **nodeName**      | A string for HTML, or couuld be a component or other types like functions when using middleware
-| **attributes**    | An object of DOM attributes or properties key and value or null
-| **...childNodes** | An array of child nodes, or a single element merged with any additional arguments
-
 <a name="release"></a>
 
 ---
@@ -387,20 +423,13 @@ internal to diffHTML associated with your element. This is very useful for unit
 testing and general cleanup when you're done with an element. Applications will
 probably not use this if the app lives as long as the tab.
 
-### Arguments
+<a name="release-arguments"></a>
+
+### <a href="#release-arguments"><u>Arguments</u></a>
 
 | Name        | Description
 | ----------- | -----------
 | **mount**   | Release memory and all internal references to the DOM node.
-
-#### domNode
-
-*Reference element.*
-
-This argument is overloaded. Can be one of many types:
-
-- HTML Element / DOM node (Used interchangeably)
-- Virtual Tree Element (produced from `diff.html`)
 
 <a name="internals"></a>
 
