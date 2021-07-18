@@ -157,8 +157,8 @@ from this website using native JavaScript modules.
 
 This application can serve as a reference for those looking into a more advanced
 build setup. Rollup bundles the source and executes [babel-transform](/tools.html#babel-transform)
-which transforms all UI markup into JavaScript at build time and replaces the core build
-with the lite version improve build size. [Zopfli](https://github.com/google/zopfli) is used to pre-gzip the markup
+which transforms all UI markup into JavaScript at build time. Replaces the core build
+with the lite version to reduce build size. [Zopfli](https://github.com/google/zopfli) is used to pre-gzip the markup
 bringing the production output size to ~14kb. Loads diffHTML and plugins from
 npm pinned to <code>1.0.0-beta.20</code>. It may be periodically updated.
 
