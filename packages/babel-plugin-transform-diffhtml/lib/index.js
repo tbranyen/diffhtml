@@ -399,10 +399,7 @@ export default function({ types: t }) {
                 ]),
               });
 
-              args.replacement = t.callExpression(createTreeNode, [
-                t.stringLiteral('#text'),
-                nodeValue,
-              ]);
+              args.replacement = id;
             }
           }
 

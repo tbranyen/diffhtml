@@ -7,6 +7,12 @@ export const EMPTY = {
   BOOL: true,
 };
 
+/**
+ * @typedef {any[]} ActiveTreeCache
+ * @type {ActiveTreeCache}
+ */
+export const ActiveRenderState = [];
+
 export const ComponentTreeCache = new Map();
 
 /**

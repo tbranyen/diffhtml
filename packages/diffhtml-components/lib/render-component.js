@@ -1,4 +1,9 @@
-import { ComponentTreeCache, InstanceCache, VTree } from './util/types';
+import {
+  ComponentTreeCache,
+  ActiveRenderState,
+  InstanceCache,
+  VTree,
+} from './util/types';
 import { $$vTree } from './util/symbols';
 import diff from './util/binding';
 
@@ -40,7 +45,10 @@ export default function renderComponent(vTree) {
         }
       });
 
+      ActiveRenderState.push(vTree);
+      ActiveRenderState.push(instance);
       renderedTree = createTree(instance.render(props, instance.state));
+      ActiveRenderState.length = 0;
 
       if (instance.componentDidUpdate && instance.componentDidUpdate) {
         instance.componentDidUpdate(instance.props, instance.state);
@@ -62,10 +70,15 @@ export default function renderComponent(vTree) {
       instance.componentWillMount();
     }
 
+    ActiveRenderState.push(vTree);
+    ActiveRenderState.push(instance);
+
     // Initial render of the class component, this should not be called again
     // for the same component in the same position. It will be picked up
     // automatically as a class component and rendered via its own Transaction.
     const renderRetVal = instance.render(props, instance.state);
+
+    ActiveRenderState.length = 0;
 
     renderedTree = createTree(renderRetVal || '#text');
 
@@ -77,9 +90,50 @@ export default function renderComponent(vTree) {
     // Associate the instance with the vTree.
     instance[$$vTree] = vTree;
   }
-  // Function component.
+  // Function component, upgrade to a class to make it reactive.
   else {
-    renderedTree = createTree(Component(props));
+    class FunctionComponent extends Component {
+      /**
+       * @param {any} props
+       */
+      constructor(props) {
+        super(props);
+      }
+
+      /**
+       * @param {any} props
+       * @param {any} state
+       */
+      render(props, state) {
+        return createTree(Component(props, state));
+      }
+
+      /** @type {VTree | null} */
+      [$$vTree] = null;
+   }
+
+    const instance = new FunctionComponent(props)
+
+    // Associate the instance to the vTree.
+    InstanceCache.set(vTree, instance);
+
+    // Allow hooks to "hook" into the active rendering component.
+    ActiveRenderState.push(vTree);
+    ActiveRenderState.push(instance);
+
+    const renderRetVal = instance.render(props, instance.state);
+
+    ActiveRenderState.length = 0;
+
+    renderedTree = createTree(renderRetVal || '#text');
+
+    // Set up the HoC parent/child relationship.
+    if (typeof renderedTree.rawNodeName === 'function') {
+      ComponentTreeCache.set(renderedTree, vTree);
+    }
+
+    // Associate the instance with the vTree.
+    instance[$$vTree] = vTree;
   }
 
   if (renderedTree !== vTree) {
