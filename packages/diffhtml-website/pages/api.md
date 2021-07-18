@@ -333,12 +333,6 @@ Now the transformative operations are:
 
 1. Remove the second element
 
-### Arguments
-
-The two required inputs are a reference element and new element to compare.
-Although "element" is used, the actual input can be of various input types
-all representing an element (or many elements).
-
 <a name="remove-transition-state"></a>
 
 ---

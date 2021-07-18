@@ -20,6 +20,7 @@ module.exports = ({ path, page, pages, content }) => html`
           <a class="github" href="https://github.com/tbranyen/diffhtml">
             <i class="fa fa-github"></i>
           </a>
+          <!--
           <a class="stackoverflow" href="https://stackoverflow.com/search?q=diffhtml+javascript">
             <i class="fa fa-stack-overflow"></i>
           </a>
@@ -29,6 +30,7 @@ module.exports = ({ path, page, pages, content }) => html`
           <a class="reddit" href="https://reddit.com/r/diffhtml">
             <i class="fa fa-reddit"></i>
           </a>
+          -->
         </p>
 
         <${Nav} pages=${pages} />
