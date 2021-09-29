@@ -6,6 +6,7 @@ import {
 } from './util/types';
 import { $$vTree } from './util/symbols';
 import diff from './util/binding';
+import Component from './component';
 
 const { createTree } = diff;
 
@@ -19,9 +20,9 @@ const { createTree } = diff;
  * @returns {VTree | null}
  */
 export default function renderComponent(vTree) {
-  const Component = vTree.rawNodeName;
+  const RawComponent = vTree.rawNodeName;
   const props = vTree.attributes;
-  const isNewable = Component.prototype && Component.prototype.render;
+  const isNewable = RawComponent.prototype && RawComponent.prototype.render;
 
   /** @type {VTree|null} */
   let renderedTree = (null);
@@ -45,7 +46,6 @@ export default function renderComponent(vTree) {
         }
       });
 
-      ActiveRenderState.push(vTree);
       ActiveRenderState.push(instance);
       renderedTree = createTree(instance.render(props, instance.state));
       ActiveRenderState.length = 0;
@@ -60,7 +60,7 @@ export default function renderComponent(vTree) {
   }
   // New class instance.
   else if (isNewable) {
-    const instance = new Component(props);
+    const instance = new RawComponent(props);
 
     // Associate the instance to the vTree.
     InstanceCache.set(vTree, instance);
@@ -70,7 +70,6 @@ export default function renderComponent(vTree) {
       instance.componentWillMount();
     }
 
-    ActiveRenderState.push(vTree);
     ActiveRenderState.push(instance);
 
     // Initial render of the class component, this should not be called again
@@ -105,7 +104,7 @@ export default function renderComponent(vTree) {
        * @param {any} state
        */
       render(props, state) {
-        return createTree(Component(props, state));
+        return createTree(RawComponent(props, state));
       }
 
       /** @type {VTree | null} */
@@ -118,7 +117,6 @@ export default function renderComponent(vTree) {
     InstanceCache.set(vTree, instance);
 
     // Allow hooks to "hook" into the active rendering component.
-    ActiveRenderState.push(vTree);
     ActiveRenderState.push(instance);
 
     const renderRetVal = instance.render(props, instance.state);

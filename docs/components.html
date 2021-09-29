@@ -211,19 +211,25 @@
       
 
       
-        <a href="components.html#lifecycle-hooks" target><li>Lifecycle hooks</li></a>
+        <a href="components.html#function-component" target><li>Function Component</li></a>
       
     
       
 
       
-        <a href="components.html#component" target><li>Component</li></a>
+        <a href="components.html#class-component" target><li>Class Component</li></a>
       
     
       
 
       
-        <a href="components.html#web-component" target><li>Web Component</li></a>
+        <a href="components.html#create-state" target><li>createState</li></a>
+      
+    
+      
+
+      
+        <a href="components.html#create-side-effect" target><li>createSideEffect</li></a>
       
     
       
@@ -263,37 +269,19 @@
         <hr></hr>
 
         <section id="content"><h1 id="components-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-componentsi-classfa-fa-githubia">Components <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components"><i class="fa fa-github"></i></a></h1>
-<p>Components are useful when you have parts of your interface that you wish to
-reuse or structure. There many popular component frameworks, with React being
-one of the most popular ones. diffHTML provides component features that mimic
-what you&#39;d find in React, but in many different ways that are very flexible.</p>
+<p>Components are useful to organize and reuse distinct parts of your interface.</p>
 <p><a name="overview"></a></p>
 <hr></hr>
 <h2 id="a-hrefoverviewoverviewa"><a href="#overview">Overview</a></h2>
-<p>In order to use components, you must install/fetch the components package. This
-contains middleware which will render functions, stateless classes, and
-stateful classes. Unlike middleware, this package will automatically hook its
-middleware into the running diffHTML build.</p>
-<p>Using components in diffHTML always requires installing or including the base
-package:</p>
+<p>Components support is provided by a plugin and must be installed and imported
+before they will work. The middleware provided by the plugin supports functions,
+classes, and web components.</p>
 <pre><code class="language-sh">npm install --save diffhtml-components</code></pre>
-<p>If you need to import React components, install the compat package:</p>
-<pre><code class="language-sh">npm install --save diffhtml-react-compat</code></pre>
-<blockquote>
-<p>This will allow you to point <code>react</code> and <code>react-dom</code> in your project to this
-package and get the same functionality with diffHTML.</p>
-</blockquote>
-<p>There are two primary packages for components: 
-    <a href="#overview" title="null">diffhtml-components</a>
-  
-and 
-    <a href="#react-compat" title="null">diffhtml-react-compat</a>
-  .Unlike other frameworks diffHTML is
-extremely flexible with what you can return, and allows for seamless JSX
-integration, top-level fragments, and supports stateless classes that do not
-need to extend from a base class.</p>
-<h3 id="function-component">Function component</h3>
-<pre><code class="language-javascript">import { html, innerHTML } from &#39;diffhtml&#39;;
+<p><a name="function-component"></a></p>
+<hr></hr>
+<h2 id="a-hreffunction-componentfunction-componenta"><a href="#function-component">Function component</a></h2>
+<pre><code class="language-javascript">import &#39;diffhtml-components&#39;;
+import { html, innerHTML } from &#39;diffhtml&#39;;
 
 function MyComponent(props) {
   return html`
@@ -302,49 +290,9 @@ function MyComponent(props) {
 }
 
 innerHTML(document.body, html`&lt;${MyComponent} someProp=&quot;value&quot; /&gt;`);</code></pre>
-<h3 id="class-component">Class component</h3>
-<pre><code class="language-javascript">import { html, innerHTML } from &#39;diffhtml&#39;;
-
-class MyComponent {
-  render(props) {
-    return html`
-      &lt;div&gt;Some prop = ${props.someProp}&lt;/div&gt;
-    `;
-  }
-}
-
-innerHTML(document.body, html`&lt;${MyComponent} someProp=&quot;value&quot; /&gt;`);</code></pre>
-<p><a name="lifecycle-hooks"></a></p>
+<p><a name="class component"></a></p>
 <hr></hr>
-<h2 id="a-hreflifecycle-hookslifecycle-hooksa"><a href="#lifecycle-hooks">Lifecycle hooks</a></h2>
-<p>The following hooks will be called during the respective mounting and
-unmounting flow. You do not need to extend from <code>Component</code> to use these hooks.
-Simple classes can just define them as methods and they will be called.</p>
-<h3 id="hooks">Hooks</h3>
-<h4 id="componentwillmount"><code>componentWillMount</code></h4>
-<pre><code class="language-js">import { html, innerHTML } from &#39;diffhtml&#39;;
-import { Component } from &#39;diffhtml-components&#39;;
-
-class WillMountComponent extends Component {
-  render() {
-    return html`
-      &lt;div&gt;&lt;h1&gt;Hello world&lt;/h1&gt;&lt;/div&gt;
-    `;
-  }
-
-  componentWillMount() {
-    console.log(&#39;Component has mounted&#39;);
-  }
-}
-
-innerHTML(document.body, html`&lt;${WillMountComponent} /&gt;`);</code></pre>
-<h4 id="componentdidupdate"><code>componentDidUpdate</code></h4>
-<h4 id="componentwillreceiveprops"><code>componentWillReceiveProps</code></h4>
-<h4 id="shouldcomponentupdate"><code>shouldComponentUpdate</code></h4>
-<h4 id="componentwillunmount"><code>componentWillUnmount</code></h4>
-<p><a name="component"></a></p>
-<hr></hr>
-<h2 id="a-hrefcomponentcomponenta"><a href="#component">Component</a></h2>
+<h2 id="a-hrefclass-componentclass-componenta"><a href="#class-component">Class Component</a></h2>
 <p>The stateful class component, which is used by importing the <code>Component</code> class.</p>
 <pre><code class="language-js">import { Component } from &#39;diffhtml-components&#39;;</code></pre>
 <p>Once you have this base class, you can extend your ES6 class to get access to
@@ -369,41 +317,99 @@ innerHTML(document.body, html`
     &lt;${ListComponent} items=${[&#39;List item 1&#39;, &#39;List item 2&#39;]} /&gt;
   &lt;/ul&gt;
 `);</code></pre>
-<h3 id="props">Props</h3>
+<p>These components can be registered as Custom Elements, making them Web
+Components.</p>
+<p><a name="component-props"></a></p>
+<h3 id="a-hrefcomponent-propsupropsua"><a href="#component-props"><u>Props</u></a></h3>
 <p>These are incoming values that map to the props you set using the element
 attributes. Like in React, there will be a <code>children</code> prop automatically added
 which maps to the passed in child elements. You can access props on
 <code>this.props</code> or in the <code>render(props) {}</code> method.</p>
-<h3 id="proptypes">PropTypes</h3>
-<h3 id="state">State</h3>
+<p><a name="component-state"></a></p>
+<h3 id="a-hrefcomponent-stateustateua"><a href="#component-state"><u>State</u></a></h3>
 <h4 id="forceupdate">forceUpdate</h4>
 <h4 id="setstate">setState</h4>
-<p><a name="web-component"></a></p>
-<hr></hr>
-<h2 id="a-hrefweb-componentweb-componenta"><a href="#web-component">Web Component</a></h2>
-<p>The WebComponent implementation is nearly identical to the standard
+<p><a name="lifecycle-hooks"></a></p>
+<h3 id="a-hreflifecycle-hooksulifecycle-hooksua"><a href="#lifecycle-hooks"><u>Lifecycle hooks</u></a></h3>
+<p>The following hooks will be called during the respective mounting and
+unmounting flow. You do not need to extend from <code>Component</code> to use these hooks.
+Simple classes can just define them as methods and they will be called.</p>
+<h4 id="componentwillmount"><code>componentWillMount</code></h4>
+<pre><code class="language-js">import { html, innerHTML } from &#39;diffhtml&#39;;
+import { Component } from &#39;diffhtml-components&#39;;
 
-    <a href="#component" title="null">Component</a>
-  , except <code>this</code> points to an HTML element, children are
-rendered into the Shadow DOM, and when props and attributes are set on an
-element that match <code>propTypes</code> cause an automatic re-render.</p>
-<pre><code class="language-js">import { WebComponent } from &#39;diffhtml-components&#39;;</code></pre>
+class WillMountComponent extends Component {
+  render() {
+    return html`
+      &lt;div&gt;&lt;h1&gt;Hello world&lt;/h1&gt;&lt;/div&gt;
+    `;
+  }
+
+  componentWillMount() {
+    console.log(&#39;Component has mounted&#39;);
+  }
+}
+
+innerHTML(document.body, html`&lt;${WillMountComponent} /&gt;`);</code></pre>
+<h4 id="componentdidupdate"><code>componentDidUpdate</code></h4>
+<pre><code class="language-js">import { html, innerHTML } from &#39;diffhtml&#39;;
+import { Component } from &#39;diffhtml-components&#39;;
+
+class DidUpdateComponent extends Component {
+  render() {
+    return html`
+      &lt;div&gt;&lt;h1&gt;Hello world&lt;/h1&gt;&lt;/div&gt;
+    `;
+  }
+
+  componentDidUpdate() {
+    console.log(&#39;Component was updated&#39;);
+  }
+}
+
+innerHTML(document.body, html`&lt;${WillMountComponent} /&gt;`);</code></pre>
+<h4 id="componentwillreceiveprops"><code>componentWillReceiveProps</code></h4>
+<h4 id="shouldcomponentupdate"><code>shouldComponentUpdate</code></h4>
+<h4 id="componentwillunmount"><code>componentWillUnmount</code></h4>
+<p><a name="create-state"></a></p>
+<hr></hr>
+<h2 id="a-hrefcreate-statecreatestatea"><a href="#create-state">createState</a></h2>
+<p>The function <code>createState</code> is used to make a stateful component out of a
+function component. It mimics the API of <code>useState</code> from React. Essentially you
+must execute this function in the same spot at the same time every render.</p>
+<p><a name="create-state-examples"></a></p>
+<h3 id="a-hrefcreate-state-examplesuexamplesua"><a href="#create-state-examples"><u>Examples</u></a></h3>
+<pre><code class="language-javascript">import { innerHTML, html } from &#39;diffhtml&#39;;
+import { createState } from &#39;diffhtml-components&#39;;
+
+function Example() {
+  // Declare a new state variable, which we&#39;ll call &quot;count&quot;
+  const [ count, setCount ] = createState(0);
+
+  return html`
+    &lt;div&gt;
+      &lt;p&gt;You clicked ${String(count)} times&lt;/p&gt;
+      &lt;button onClick=${() =&gt; setCount(count + 1)}&gt;Click me&lt;/button&gt;
+    &lt;/div&gt;
+  `;
+}
+
+innerHTML(main, html`&lt;${Example} /&gt;`);</code></pre>
 <p><a name="jsx"></a></p>
 <hr></hr>
 <h2 id="a-hrefjsxjsxa"><a href="#jsx">JSX</a></h2>
-<p>JSX is supported out-of-the-box.</p>
-<p><a name="react-compat"></a></p>
-<hr></hr>
-<h2 id="a-hrefreact-compatreact-compata"><a href="#react-compat">React Compat</a></h2>
-<p>This experimental module aims to replicate the public API surface-area of React
-that is sufficient to execute and render components from that ecosystem. The
-reason this is important, is that diffHTML should be able to adopt and help
-contribute back to the community that it borrows so much from. It also helps
-keep down the level of fragmentation required and initial investment if someone
-wants to try out diffHTML in an existing React project.</p>
-<p>You can install it by running:</p>
-<pre><code class="language-sh">npm install diffhtml-react-compat</code></pre>
-<hr></hr>
+<p>JSX is supported out-of-the-box. You will need to configure your compiler to
+use <code>createTree</code>, or alias it to <code>h</code> or whatever is expected.</p>
+<pre><code class="language-jsx">import { createTree as h } from &#39;diffhtml&#39;;
+
+function SomeComponent() {
+  return (
+    &lt;&gt;
+      &lt;div&gt;Using JSX&lt;/div&gt;
+      &lt;span onClick={() =&gt; console.log(&#39;clicked&#39;)}&gt;&lt;/span&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
 </section>
 
         <a href="https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/components.md" id="edit-on-github">

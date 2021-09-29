@@ -1,13 +1,18 @@
 # Transitions
 
-A unique concept to diffHTML, these transitions are activated as first class
-events whenever elements are added, removed, changed, and when attributes or
-text have changed.
+A first-class global event system that triggers whenever Node operations are
+patched into the DOM. You can bind to several states, such as attached or
+detached. All states are described below.
 
-By returning promises you can halt rendering until they have completed. This
-could allow you to easily build keyframe based animations or integrate tools
-like [anime.js](https://animejs.com/documentation/#finishedPromise) that
-support Promises.
+Returning a Promise from the callback will halt future renders until it is
+fulfilled. This could allow you to easily build keyframe based animations or
+integrate tools like
+[anime.js](https://animejs.com/documentation/#finishedPromise) which support
+Promises.
+
+You can use transitions for more than just animations. It can be useful for
+modifying a DOM node based on some condition when it enters the page, such as
+backfilling an unavailable/unstable API.
 
 <a name="states"></a>
 
@@ -15,14 +20,14 @@ support Promises.
 
 ## <a href="#states">States</a>
 
+The following states are available to hook into through the Virtual DOM
+operations.
+
 - [**attached**](#attached)
 - [**detached**](#detached)
 - [**replaced**](#replaced)
 - [**attributeChanged**](#attribute-changed)
 - [**textChanged**](#text-changed)
-
-There are many states you can listen to, they get added globally and allow you
-to do filtering. You add them using the `addTransitionState` method.
 
 ```js
 import { addTransitionState } from 'diffhtml';

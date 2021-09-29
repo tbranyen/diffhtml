@@ -1,7 +1,7 @@
 # <a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a>
 
-This documentation covers the core public API and is central to the framework.
-All methods work in the browser, with JSDOM, and directly in Node.
+This documentation covers the core public API. All methods can work in the
+browser, with JSDOM, and directly in Node without JSDOM.
 
 <u>Special terms:</u>
 
@@ -25,22 +25,20 @@ All methods work in the browser, with JSDOM, and directly in Node.
 
 ## <a href="#inner-html">innerHTML</a> **`(mount, input, options)`**
 
-Compares the children of mount with input.
+Takes input and compares to the children Nodes inside mount. Does not compare
+any attributes on the mounted element. Both mount and input can be either
+VTrees, DOM Nodes, including fragments, and input may also be a string.
 
-The `innerHTML` and `outerHTML` methods are the most common to use. They allow
-you to mimic the respective browser feature, where you replace the contents of
-a DOM node and in the case of `outerHTML` replace the top-level element
-attributes as well.  You may call this once in a complex application where the
-individual components re-render themselves, or in a game you would call this on
-every render tick, if you're building something simple, you can call it
-whenever the state changes.
+The `innerHTML` method is the most common to use. The behavior mimics what you
+would expect from the browser API of the same name. You give a Node and markup
+which becomes the new contents of the element.
 
-These methods can work in the browser and browser-like environments like JSDOM.
-An interesting feature is that you can pass in more than just DOM nodes. This
-comes in handy for advanced use cases such as
+You may call this once in a complex application where the individual components
+re-render themselves, or in a game you would call this on every render tick, if
+you're building something simple, you can call it whenever the state changes.
 
-What's nice about these methods is that all renders go through the same
-scheduling pipeline and VTrees are shared across all other renders.
+All renders go through the same scheduling pipeline which means VTrees are
+shared across all other renders.
 
 <a name="inner-html-arguments"></a>
 
@@ -130,16 +128,17 @@ toString('<body>Hello world</body>');
 
 A [tagged
 template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates)
-function that parses HTML and creates VTree's under-the-hood. Can also be used
-like a normal function. Effectively creates the manual `createTree(nodeName,
-attributes, children)` calls automatically by parsing the HTML. You are allowed
-to "interpolate" or mix dynamic values with the HTML string content. This is
-useful when working with Web Components, DOM events,
+function that [parses string markup](/parser.html) and creates VTree
+under-the-hood. Can also be used like a normal function, where you pass markup
+as the first argument, and values as `param2`, `param3`, `...`. You are able to
+"interpolate" or mix dynamic values with the HTML string content. This is
+useful when passing event handlers, objects to DOM elements, passing properties
+to components, and more.
 
 When you pass a single element and provide newlines and whitespace before and
-after it, like the examples below, they will be automatically trimmed out of the
-final tree. If you provide multiple elements, the whitespace becomes part of the
-tree.
+after it, like the examples below, they will be automatically trimmed out of
+the final tree. If you provide multiple elements, the whitespace will become
+part of the tree.
 
 <a name="html-arguments"></a>
 

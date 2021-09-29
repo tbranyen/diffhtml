@@ -6,8 +6,9 @@ import {
   Transaction,
   VTree,
   State,
+  ActiveRenderState,
 } from './util/types';
-import { $$render, $$vTree, $$unsubscribe, $$type } from './util/symbols';
+import { $$render, $$vTree, $$unsubscribe, $$type, $$hooks } from './util/symbols';
 import diff from './util/binding';
 import middleware from './middleware';
 
@@ -220,6 +221,9 @@ export default class Component {
   /** @type {VTree | null} */
   [$$vTree] = null;
 
+  /** @type {Function[]} */
+  [$$hooks] = [];
+
   /**
    * Stateful render. Used when a component changes and needs to re-render
    * itself. This is triggered on `setState` and `forceUpdate` calls.
@@ -235,11 +239,15 @@ export default class Component {
       this.props = createProps(this, this.props);
       this.state = createState(this, this.state);
 
+      ActiveRenderState.push(this);
+
       /** @type {Promise<Transaction>} */
       const promise = (innerHTML(
         /** @type {any} */ (this).shadowRoot,
         this.render(this.props, this.state),
       ));
+
+      ActiveRenderState.length = 0;
 
       this.componentDidUpdate(oldProps, oldState);
       return promise;
@@ -284,7 +292,9 @@ export default class Component {
     const { parentNode } = domNode;
 
     // Render directly from the Component.
+    ActiveRenderState.push(this);
     let renderTree = this.render(this.props, this.state);
+    ActiveRenderState.length = 0;
 
     // Do not render.
     if (!renderTree) {

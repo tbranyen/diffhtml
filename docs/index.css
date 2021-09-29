@@ -57,11 +57,14 @@ layer#navigation {
   padding: 0 20px;
   padding-right: 0;
   width: 240px;
+  min-width: 240px;
   height: 100%;
   flex-direction: column;
   overflow-y: scroll;
   overflow-x: hidden;
   transition: opacity linear 280ms;
+  scrollbar-width: thin;
+  scrollbar-color: #CACACA #e8e8e8;
 }
 
 layer#navigation::-webkit-scrollbar {
@@ -263,7 +266,7 @@ layer#main ul {
 
 body.home layer#main ul {
   margin-left: 0;
-  list-style: none;
+  list-style: inside;
 }
 
 body.home #content {
@@ -386,7 +389,7 @@ h1 a.github:hover {
 }
 
 /* Tablet */
-@media only screen and (max-width : 1175px) {
+@media only screen and (max-width : 760px) {
   html, body {
     background-color: #FFF;
     background: #FFF;

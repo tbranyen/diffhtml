@@ -1,11 +1,14 @@
 # Parser
 
-A core feature of diffHTML is the HTML/XML/SVG parser. This is used whenever
-you pass a string of markup or [use the html tagged template](/api.html#html)
-to [innerHTML](/api.html#inner-html)/[outerHTML](/api.html#ouuter-html). While
-this code is optimized specifically for the VDOM and is very fast, you may want
-to optimize out the parser using the [Babel
-plugin](/tools.html#babel-transform).
+One of the best features of diffHTML is the parser. This drives the compiling
+of declarative markup and supports a variety of syntaxes. You can make compound
+documents that are comprised of HTML, SVG, or XML. The result is a JSX-like
+object which is used by the core engine and the Babel transform.
+
+When you use `innerHTML`, `outerHTML`, or `html` and pass markup, it will run
+through this very fast and efficient parser. Usually production code does not
+run the parser. You will pre-compile your markup using the [Babel
+transform](/tools.html#babel-transform).
 
 The parser can read full HTML documents including doctype, html/head/body/title
 etc tags, unwrapped fragments, and more!
@@ -205,7 +208,7 @@ JavaScript view layer.
 ```
 
 When parsing diffHTML will create a "Supplemental" object, which contains the
-keys: `tags`, `attributes`, `children`. Denoting the position in which the
+keys: `tags`, `attributes`, `children`. This denotes the position in which the
 value was located. The template is rewritten with the unique keys and then are
 applied once the tree has been created.
 

@@ -211,19 +211,25 @@
       
 
       
-        <a href="components.html#lifecycle-hooks" target><li>Lifecycle hooks</li></a>
+        <a href="components.html#function-component" target><li>Function Component</li></a>
       
     
       
 
       
-        <a href="components.html#component" target><li>Component</li></a>
+        <a href="components.html#class-component" target><li>Class Component</li></a>
       
     
       
 
       
-        <a href="components.html#web-component" target><li>Web Component</li></a>
+        <a href="components.html#create-state" target><li>createState</li></a>
+      
+    
+      
+
+      
+        <a href="components.html#create-side-effect" target><li>createSideEffect</li></a>
       
     
       
@@ -263,18 +269,24 @@
         <hr></hr>
 
         <section id="content"><h1 id="transitions">Transitions</h1>
-<p>A unique concept to diffHTML, these transitions are activated as first class
-events whenever elements are added, removed, changed, and when attributes or
-text have changed.</p>
-<p>By returning promises you can halt rendering until they have completed. This
-could allow you to easily build keyframe based animations or integrate tools
-like 
+<p>A first-class global event system that triggers whenever Node operations are
+patched into the DOM. You can bind to several states, such as attached or
+detached. All states are described below.</p>
+<p>Returning a Promise from the callback will halt future renders until it is
+fulfilled. This could allow you to easily build keyframe based animations or
+integrate tools like
+
       <a href="https://animejs.com/documentation/#finishedPromise" target="_blank" rel="noopener noreferrer" title="null">anime.js</a>
-     that
-support Promises.</p>
+     which support
+Promises.</p>
+<p>You can use transitions for more than just animations. It can be useful for
+modifying a DOM node based on some condition when it enters the page, such as
+backfilling an unavailable/unstable API.</p>
 <p><a name="states"></a></p>
 <hr></hr>
 <h2 id="a-hrefstatesstatesa"><a href="#states">States</a></h2>
+<p>The following states are available to hook into through the Virtual DOM
+operations.</p>
 <ul>
 <li>
     <a href="#attached" title="null"><strong>attached</strong></a>
@@ -292,8 +304,6 @@ support Promises.</p>
     <a href="#text-changed" title="null"><strong>textChanged</strong></a>
   </li>
 </ul>
-<p>There are many states you can listen to, they get added globally and allow you
-to do filtering. You add them using the <code>addTransitionState</code> method.</p>
 <pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;</code></pre>
 <p><a name="attached"></a></p>
 <hr></hr>

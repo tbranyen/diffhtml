@@ -42,9 +42,10 @@
 
     "Components": ["components.html", {
       "Overview": "#overview",
-      "Lifecycle hooks": "#lifecycle-hooks",
-      "Component": "#component",
-      "Web Component": "#web-component",
+      "Function Component": "#function-component",
+      "Class Component": "#class-component",
+      "createState": "#create-state",
+      "createSideEffect": "#create-side-effect",
       "JSX": "#jsx"
     }],
 

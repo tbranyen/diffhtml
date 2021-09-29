@@ -1,5 +1,6 @@
 import { EMPTY, ComponentTreeCache, InstanceCache, VTree } from '../util/types';
 import diff from '../util/binding';
+import { $$hooks } from '../util/symbols';
 
 const { release, Internals } = diff;
 
@@ -83,6 +84,9 @@ export default function componentWillUnmount(vTree) {
 
   const instance = InstanceCache.get(componentTree);
   InstanceCache.delete(componentTree);
+
+  // Empty out all hooks for gc.
+  instance[$$hooks].length = 0;
 
   ComponentTreeCache.delete(vTree);
 

@@ -1,9 +1,6 @@
 # Components <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components"><i class="fa fa-github"></i></a>
 
-Components are useful when you have parts of your interface that you wish to
-reuse or structure. There many popular component frameworks, with React being
-one of the most popular ones. diffHTML provides component features that mimic
-what you'd find in React, but in many different ways that are very flexible.
+Components are useful to organize and reuse distinct parts of your interface.
 
 <a name="overview"></a>
 
@@ -11,36 +8,22 @@ what you'd find in React, but in many different ways that are very flexible.
 
 ## <a href="#overview">Overview</a>
 
-In order to use components, you must install/fetch the components package. This
-contains middleware which will render functions, stateless classes, and
-stateful classes. Unlike middleware, this package will automatically hook its
-middleware into the running diffHTML build.
-
-Using components in diffHTML always requires installing or including the base
-package:
+Components support is provided by a plugin and must be installed and imported
+before they will work. The middleware provided by the plugin supports functions,
+classes, and web components.
 
 ``` sh
 npm install --save diffhtml-components
 ```
 
-If you need to import React components, install the compat package:
+<a name="function-component"></a>
 
-``` sh
-npm install --save diffhtml-react-compat
-```
+---
 
-> This will allow you to point `react` and `react-dom` in your project to this
-package and get the same functionality with diffHTML.
-
-There are two primary packages for components: [diffhtml-components](#overview)
-and [diffhtml-react-compat](#react-compat).Unlike other frameworks diffHTML is
-extremely flexible with what you can return, and allows for seamless JSX
-integration, top-level fragments, and supports stateless classes that do not
-need to extend from a base class.
-
-### Function component
+## <a href="#function-component">Function component</a>
 
 ```javascript
+import 'diffhtml-components';
 import { html, innerHTML } from 'diffhtml';
 
 function MyComponent(props) {
@@ -52,69 +35,11 @@ function MyComponent(props) {
 innerHTML(document.body, html`<${MyComponent} someProp="value" />`);
 ```
 
-### Class component
-
-```javascript
-import { html, innerHTML } from 'diffhtml';
-
-class MyComponent {
-  render(props) {
-    return html`
-      <div>Some prop = ${props.someProp}</div>
-    `;
-  }
-}
-
-innerHTML(document.body, html`<${MyComponent} someProp="value" />`);
-```
-
-<a name="lifecycle-hooks"></a>
+<a name="class component"></a>
 
 ---
 
-## <a href="#lifecycle-hooks">Lifecycle hooks</a>
-
-The following hooks will be called during the respective mounting and
-unmounting flow. You do not need to extend from `Component` to use these hooks.
-Simple classes can just define them as methods and they will be called.
-
-### Hooks
-
-#### `componentWillMount`
-
-```js
-import { html, innerHTML } from 'diffhtml';
-import { Component } from 'diffhtml-components';
-
-class WillMountComponent extends Component {
-  render() {
-    return html`
-      <div><h1>Hello world</h1></div>
-    `;
-  }
-
-  componentWillMount() {
-    console.log('Component has mounted');
-  }
-}
-
-innerHTML(document.body, html`<${WillMountComponent} />`);
-```
-
-#### `componentDidUpdate`
-
-#### `componentWillReceiveProps`
-
-#### `shouldComponentUpdate`
-
-#### `componentWillUnmount`
-
-
-<a name="component"></a>
-
----
-
-## <a href="#component">Component</a>
+## <a href="#class-component">Class Component</a>
 
 The stateful class component, which is used by importing the `Component` class.
 
@@ -148,37 +73,116 @@ innerHTML(document.body, html`
 `);
 ```
 
-### Props
+These components can be registered as Custom Elements, making them Web
+Components.
+
+<a name="component-props"></a>
+
+### <a href="#component-props"><u>Props</u></a>
 
 These are incoming values that map to the props you set using the element
 attributes. Like in React, there will be a `children` prop automatically added
 which maps to the passed in child elements. You can access props on
 `this.props` or in the `render(props) {}` method.
 
-### PropTypes
+<a name="component-state"></a>
 
-### State
+### <a href="#component-state"><u>State</u></a>
 
 #### forceUpdate
 
 #### setState
 
-<a name="web-component"></a>
+<a name="lifecycle-hooks"></a>
+
+### <a href="#lifecycle-hooks"><u>Lifecycle hooks</u></a>
+
+The following hooks will be called during the respective mounting and
+unmounting flow. You do not need to extend from `Component` to use these hooks.
+Simple classes can just define them as methods and they will be called.
+
+#### `componentWillMount`
+
+```js
+import { html, innerHTML } from 'diffhtml';
+import { Component } from 'diffhtml-components';
+
+class WillMountComponent extends Component {
+  render() {
+    return html`
+      <div><h1>Hello world</h1></div>
+    `;
+  }
+
+  componentWillMount() {
+    console.log('Component has mounted');
+  }
+}
+
+innerHTML(document.body, html`<${WillMountComponent} />`);
+```
+
+#### `componentDidUpdate`
+
+```js
+import { html, innerHTML } from 'diffhtml';
+import { Component } from 'diffhtml-components';
+
+class DidUpdateComponent extends Component {
+  render() {
+    return html`
+      <div><h1>Hello world</h1></div>
+    `;
+  }
+
+  componentDidUpdate() {
+    console.log('Component was updated');
+  }
+}
+
+innerHTML(document.body, html`<${WillMountComponent} />`);
+```
+
+#### `componentWillReceiveProps`
+
+#### `shouldComponentUpdate`
+
+#### `componentWillUnmount`
+
+
+
+<a name="create-state"></a>
 
 ---
 
-## <a href="#web-component">Web Component</a>
+## <a href="#create-state">createState</a>
 
-The WebComponent implementation is nearly identical to the standard
-[Component](#component), except `this` points to an HTML element, children are
-rendered into the Shadow DOM, and when props and attributes are set on an
-element that match `propTypes` cause an automatic re-render.
+The function `createState` is used to make a stateful component out of a
+function component. It mimics the API of `useState` from React. Essentially you
+must execute this function in the same spot at the same time every render.
 
-```js
-import { WebComponent } from 'diffhtml-components';
+<a name="create-state-examples"></a>
+
+### <a href="#create-state-examples"><u>Examples</u></a>
+
+```javascript
+import { innerHTML, html } from 'diffhtml';
+import { createState } from 'diffhtml-components';
+
+function Example() {
+  // Declare a new state variable, which we'll call "count"
+  const [ count, setCount ] = createState(0);
+
+  return html`
+    <div>
+      <p>You clicked ${String(count)} times</p>
+      <button onClick=${() => setCount(count + 1)}>Click me</button>
+    </div>
+  `;
+}
+
+innerHTML(main, html`<${Example} />`);
 ```
-
-
 
 <a name="jsx"></a>
 
@@ -186,25 +190,18 @@ import { WebComponent } from 'diffhtml-components';
 
 ## <a href="#jsx">JSX</a>
 
-JSX is supported out-of-the-box.
+JSX is supported out-of-the-box. You will need to configure your compiler to
+use `createTree`, or alias it to `h` or whatever is expected.
 
-<a name="react-compat"></a>
+```jsx
+import { createTree as h } from 'diffhtml';
 
----
-
-## <a href="#react-compat">React Compat</a>
-
-This experimental module aims to replicate the public API surface-area of React
-that is sufficient to execute and render components from that ecosystem. The
-reason this is important, is that diffHTML should be able to adopt and help
-contribute back to the community that it borrows so much from. It also helps
-keep down the level of fragmentation required and initial investment if someone
-wants to try out diffHTML in an existing React project.
-
-You can install it by running:
-
-```sh
-npm install diffhtml-react-compat
+function SomeComponent() {
+  return (
+    <>
+      <div>Using JSX</div>
+      <span onClick={() => console.log('clicked')}></span>
+    </>
+  );
+}
 ```
-
----

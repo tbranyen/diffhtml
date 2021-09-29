@@ -1,7 +1,7 @@
 **Welcome to diffHTML,** a lightweight library for creating fast and reactive
-user interfaces using JavaScript. Using this tool you can create applications,
-games, data visualizations, and much more! It is designed to be approachable to
-new programmers, intermediates, and professionals.
+user interfaces using JavaScript and HTML. With this tool you can create
+applications, games, data visualizations, and much more! It is designed to be
+approachable to new programmers, intermediates, and professionals.
 
 <a name="core-features"></a>
 
@@ -9,12 +9,13 @@ new programmers, intermediates, and professionals.
 
 ## <a href="#core-features">Core features</a>
 
-- <span class="list-icon fa fa-exchange"></span> ESM/CJS/UMD + Minified ES5 builds
-- <span class="list-icon fa fa-retweet"></span> Async DOM transition hooks
-- <span class="list-icon fa fa-link"></span> Middleware
-- <span class="list-icon fa fa-code"></span> Efficient Virtual DOM
-- <span class="list-icon fa fa-recycle"></span> Object pooling to optimize GC
-- <span class="list-icon fa fa-pencil"></span> Strict mode TypeScript via checkJS
+- No build step required to prototype
+- ESM/CJS/UMD + Minified ES5 builds
+- Async DOM transition hooks
+- Middleware
+- Efficient Virtual DOM
+- Object pooling to optimize GC
+- Strict mode TypeScript via checkJS
 
 <a name="getting-started"></a>
 

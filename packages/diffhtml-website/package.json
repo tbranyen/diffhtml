@@ -12,7 +12,7 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.15.1",
+    "@fortawesome/fontawesome-free": "^5.15.3",
     "chokidar": "^3.5.0",
     "cli-spinner": "^0.2.10",
     "combyne": "^2.0.0",
