@@ -169,6 +169,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
     }
 
     const testValue = match[6] || match[5] || match[4];
+    /** @type {unknown} */
     const value = tokenValue || testValue || (isHTML ? match[1] : testValue || true);
     let valueMatchesToken = String(value).match(tokenEx);
 
@@ -180,6 +181,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
       const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
 
       for (let i = 0; i < parts.length; i++) {
+        /** @type {string} */
         const value = parts[i];
 
         if (!value) { continue; }
