@@ -1,9 +1,9 @@
 # <a href="/api.html">Core API</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml"><i class="fa fa-github"></i></a>
 
 This documentation covers the core public API. All methods can work in the
-browser, with JSDOM, and directly in Node without JSDOM.
+browser, with JSDOM, and directly in NodeJS without JSDOM.
 
-<u>Special terms:</u>
+<u>Terminology:</u>
 
 - **VTree**: You will see them mentioned throughout the documentation. They are
   JavaScript objects that represent a DOM node. They store information such as

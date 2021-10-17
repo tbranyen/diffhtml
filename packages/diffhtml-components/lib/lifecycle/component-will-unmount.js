@@ -85,8 +85,11 @@ export default function componentWillUnmount(vTree) {
   const instance = InstanceCache.get(componentTree);
   InstanceCache.delete(componentTree);
 
-  // Empty out all hooks for gc.
-  instance[$$hooks].length = 0;
+  // Empty out all hooks for gc. If using a stateless class or function, they
+  // may not have this value set.
+  if (instance[$$hooks]) {
+    instance[$$hooks].length = 0;
+  }
 
   ComponentTreeCache.delete(vTree);
 
