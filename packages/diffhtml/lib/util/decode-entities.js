@@ -1,8 +1,10 @@
 import globalThis from './global';
 import { EMPTY } from './types';
 
-// Support loading diffHTML in non-browser environments.
-const element = /** @type {any} */ (globalThis).document ? document.createElement('div') : null;
+// Safely lookup if we have access to a DIV element for decoding entities.
+const element = /** @type {any} */ (globalThis).document
+  ? /** @type {HTMLDivElement} */ (document.createElement('div'))
+  : null;
 
 /**
  * Decodes HTML strings.

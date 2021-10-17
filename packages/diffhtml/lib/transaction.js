@@ -22,6 +22,7 @@ import endAsPromise from './tasks/end-as-promise';
 import release from './release';
 import Pool from './util/pool';
 import getConfig from './util/config';
+import hasModule from './util/has-module';
 
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
@@ -246,12 +247,13 @@ export default class Transaction {
     // to true. You can toggle this behavior for your app to disable script
     // execution.
     if (config.executeScripts) {
-      // Execute deferred scripts.
+      // Execute deferred scripts by cloning them and reattaching into the same
+      // position.
       scriptsToExecute.forEach((_, vTree)=> {
         const oldNode = NodeCache.get(vTree);
         const newNode = /** @type {any} */ (oldNode).cloneNode(true);
 
-        if (!oldNode) {
+        if (!oldNode || (hasModule() && newNode.type === 'nomodule')) {
           return;
         }
 

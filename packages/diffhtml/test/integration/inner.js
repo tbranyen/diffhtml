@@ -74,6 +74,22 @@ describe('Integration: innerHTML', function() {
     document.body.removeChild(this.fixture);
   });
 
+  it('will respect nomodule attribute on script tag', function() {
+    document.body.appendChild(this.fixture);
+
+    diff.innerHTML(this.fixture, `
+      <script type="nomodule">
+        const script1 = document.createElement('script');
+        script1.id = 'test';
+        document.body.firstElementChild.appendChild(script1);
+      </script>
+    `, { executeScripts: true });
+
+    assert.equal(Boolean(document.querySelector('#test')), false);
+
+    document.body.removeChild(this.fixture);
+  });
+
   it('will remove script tags which are dynamically added', function() {
     document.body.appendChild(this.fixture);
 
