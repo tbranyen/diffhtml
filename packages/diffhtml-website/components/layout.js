@@ -10,7 +10,7 @@ module.exports = ({ path, page, pages, content }) => html`
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>diffHTML: An easy-to-use HTML Virtual DOM built for the web!</title>
-      <link rel="stylesheet" href="./index.css">
+      <link rel="stylesheet" href="https://tbranyen.github.io/diffhtml/index.css">
     </head>
 
     <body class=${page.toLowerCase().replace(/\s/g, '-')}>
@@ -72,8 +72,8 @@ module.exports = ({ path, page, pages, content }) => html`
         </footer>
       </layer>
 
-      <script src="//diffhtml.org/master/diffhtml/dist/diffhtml.min.js"></script>
-      <script src="/scripts/highlight.min.js"></script>
+      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js"></script>
+      <script src="https://tbranyen.github.io/diffhtml/scripts/highlight.min.js"></script>
       <script key="source">
         try { hljs.initHighlightingOnLoad(); } catch (ex) {}
 
