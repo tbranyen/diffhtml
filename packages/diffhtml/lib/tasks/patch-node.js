@@ -1,4 +1,4 @@
-import patchNode from '../node/patch';
+import patch from '../node/patch';
 import Transaction from '../transaction';
 import { CreateNodeHookCache, VTree } from '../util/types';
 import globalThis from '../util/global';
@@ -9,7 +9,7 @@ import globalThis from '../util/global';
  * @param {Transaction} transaction
  * @return {void}
  */
-export default function patch(transaction) {
+export default function patchNode(transaction) {
   const { mount, state, patches } = transaction;
   const { mutationObserver, measure, scriptsToExecute } = state;
 
@@ -37,7 +37,7 @@ export default function patch(transaction) {
 
   // Skip patching completely if we aren't in a DOM environment.
   if (state.ownerDocument) {
-    promises.push(...patchNode(patches, state));
+    promises.push(...patch(patches, state));
   }
 
   CreateNodeHookCache.delete(collectScripts);
