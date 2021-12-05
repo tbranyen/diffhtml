@@ -9,9 +9,9 @@ import {
   TransactionState,
   EMPTY,
 } from './util/types';
-import { gc } from './util/memory';
 import makeMeasure from './util/make-measure';
 import process from './util/process';
+import { protectVTree, gc } from './util/memory';
 import globalThis from './util/global';
 import schedule from './tasks/schedule';
 import shouldUpdate from './tasks/should-update';
@@ -20,7 +20,6 @@ import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
 import endAsPromise from './tasks/end-as-promise';
 import release from './release';
-import Pool from './util/pool';
 import getConfig from './util/config';
 import hasModule from './util/has-module';
 
@@ -275,12 +274,6 @@ export default class Transaction {
     // Empty the scripts to execute.
     scriptsToExecute.clear();
 
-     // Defer garbage collection if the current size is more than double the
-     // current allocation.
-    if (Pool.memory.free.size < Pool.memory.allocated.size * 2) {
-      gc();
-    }
-
     // Trigger all `onceEnded` callbacks, so that middleware can know the
     // transaction has ended.
     this.endedCallbacks.forEach(callback => callback(this));
@@ -289,6 +282,15 @@ export default class Transaction {
     // Mark the end to rendering.
     measure('finalize');
     measure('render');
+
+    // Ensure the tree is fully protected before ending the transaction.
+    if (state.oldTree) protectVTree(state.oldTree);
+
+    // Run garbage collection after every successful render. Ensure that the
+    // oldTree (current state) is solidified to not accidentially deallocate
+    // something required. This allows VTrees to be reused quicker and reduce
+    // memory overload.
+    gc();
 
     return this;
   }
