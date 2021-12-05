@@ -20,6 +20,11 @@ export default function reconcileTrees(transaction) {
   if (state.mutationObserver && !state.isDirty) {
     state.isDirty = Boolean(state.mutationObserver.takeRecords().length);
   }
+  // If no mutation observer exists, then we cannot determine if the root is
+  // dirty. Disable the isDirty check in these cases.
+  else if (!state.mutationObserver) {
+    state.isDirty = false;
+  }
 
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node. We also
