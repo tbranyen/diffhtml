@@ -15,14 +15,14 @@ export default function release(mount) {
     // Ensure the mutation observer is cleaned up.
     mutationObserver && mutationObserver.disconnect();
 
-    StateCache.delete(mount);
-
     // If there is a known root association that is not in the NodeCache,
     // remove this VTree.
     if (oldTree && !NodeCache.has(oldTree)) {
       ReleaseHookCache.forEach(fn => fn(oldTree));
       unprotectVTree(oldTree);
     }
+
+    StateCache.delete(mount);
   }
 
   // The rest of this function only pertains to real HTML element nodes. If

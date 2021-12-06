@@ -247,12 +247,6 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     for (let i = 0; i < allNodes.length; i++) {
       const newNode = allNodes[i];
 
-      if (newNode.nodeType === NODE_TYPE.FRAGMENT) {
-        if (newNode.rawNodeName === fragmentName) {
-          console.log('here');
-        }
-      }
-
       // Merge in arrays.
       if (isArray(newNode)) {
         entry.childNodes.push(...newNode);

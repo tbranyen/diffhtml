@@ -35,10 +35,6 @@ export function unprotectVTree(vTree) {
     }
   }
 
-  //vTree.attributes = {};
-  //vTree.childNodes.length = 0;
-
-  StateCache.delete(NodeCache.get(vTree));
   NodeCache.delete(vTree);
   unprotect(vTree);
 }

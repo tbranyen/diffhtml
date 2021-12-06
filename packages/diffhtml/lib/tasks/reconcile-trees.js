@@ -15,6 +15,7 @@ export default function reconcileTrees(transaction) {
   const { state, mount, input, config: options } = transaction;
   const { inner } = options;
   const mountAsHTMLEl = /** @type {HTMLElement} */ (mount);
+  const inputAsVTree = /** @type {VTree} */(input);
 
   // Look if any changes happened before the async mutation callback.
   if (state.mutationObserver && !state.isDirty) {
@@ -27,18 +28,29 @@ export default function reconcileTrees(transaction) {
   }
 
   // We rebuild the tree whenever the DOM Node changes, including the first
-  // time we patch a DOM Node. We also
+  // time we patch a DOM Node. This is currently problematic when someone
+  // passes a DOM Node as an interpolated value we empty the VTree of its
+  // contents, but the newTree still has a reference and is expecting
+  // populated values.
   if (state.isDirty || !state.oldTree) {
-    release(mount);
+    release(mountAsHTMLEl);
+
+    // Ensure the mutation observer is reconnected.
+    if (mountAsHTMLEl.ownerDocument && state.mutationObserver) {
+      state.mutationObserver.observe(mountAsHTMLEl, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      });
+    }
+
     state.oldTree = createTree(mountAsHTMLEl);
     protectVTree(state.oldTree);
-
-    // Reset the state cache after releasing.
     StateCache.set(mount, state);
   }
 
   const { nodeName, attributes } = state.oldTree;
-  const inputAsVTree = /** @type {VTree} */(input);
 
   // TODO When `inner === false` this means we are doing outerHTML operation.
   // The way this works is that anything that doesn't match the oldTree element
@@ -63,7 +75,8 @@ export default function reconcileTrees(transaction) {
     /** @type {VTree[]} */
     let foundElements = [];
 
-    inputAsVTree.childNodes.forEach(value => {
+    for (let i = 0; i < inputAsVTree.childNodes.length; i++) {
+      const value = inputAsVTree.childNodes[i];
       const isText = value.nodeType === NODE_TYPE.TEXT;
 
       // This is most likely the element that is requested to compare to. Will
@@ -71,7 +84,7 @@ export default function reconcileTrees(transaction) {
       if (!isText || value.nodeValue.trim()) {
         foundElements.push(value);
       }
-    });
+    }
 
     // If only one element is found, we can use this directly.
     if (foundElements.length === 1) {
@@ -89,6 +102,7 @@ export default function reconcileTrees(transaction) {
   if (!transaction.newTree) {
     // Reset the old tree with the newly created VTree association.
     transaction.newTree = createTree(input);
+
   }
 
   // Associate the old tree with this brand new transaction.
