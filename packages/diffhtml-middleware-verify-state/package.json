@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-verify-state",
-  "version": "1.0.0-beta.20",
+  "version": "1.0.0-beta.21",
   "description": "Verifies render state middleware, useful for sanity checking",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
@@ -27,8 +27,8 @@
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.20",
-    "diffhtml": "^1.0.0-beta.20",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.21",
+    "diffhtml": "^1.0.0-beta.21",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-hypothetical": "^2.1.0",
