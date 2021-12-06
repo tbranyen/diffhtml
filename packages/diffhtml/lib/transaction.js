@@ -290,7 +290,7 @@ export default class Transaction {
     // oldTree (current state) is solidified to not accidentially deallocate
     // something required. This allows VTrees to be reused quicker and reduce
     // memory overload.
-    { gc }
+    gc();
 
     return this;
   }
