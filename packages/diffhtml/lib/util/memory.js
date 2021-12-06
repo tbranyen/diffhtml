@@ -1,5 +1,5 @@
 import Pool from './pool';
-import { NodeCache, VTree } from './types';
+import { NodeCache, StateCache, VTree } from './types';
 
 const { protect, unprotect, memory } = Pool;
 
@@ -29,8 +29,6 @@ export function protectVTree(vTree) {
  * @return {void}
  */
 export function unprotectVTree(vTree) {
-  unprotect(vTree);
-
   if (vTree.childNodes.length) {
     for (let i = 0; i < vTree.childNodes.length; i++) {
       unprotectVTree(vTree.childNodes[i]);
@@ -40,7 +38,9 @@ export function unprotectVTree(vTree) {
   //vTree.attributes = {};
   //vTree.childNodes.length = 0;
 
+  StateCache.delete(NodeCache.get(vTree));
   NodeCache.delete(vTree);
+  unprotect(vTree);
 }
 
 /**
