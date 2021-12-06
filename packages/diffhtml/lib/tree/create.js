@@ -132,8 +132,8 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
     // FIXME This is going to hurt performance. Is there a better way to find a
     // VTree from a DOM Node?
-    NodeCache.forEach((node, vTree) => {
-      if (node === input) {
+    NodeCache.forEach((domNode, vTree) => {
+      if (domNode === input) {
         entry = vTree;
       }
     });
