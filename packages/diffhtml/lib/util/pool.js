@@ -83,11 +83,8 @@ const Pool = {
    * @param {VTree} vTree - Virtual Tree to unprotect and deallocate
    */
   unprotect(vTree) {
-    if (protect.has(vTree)) {
+    if (protect.has(vTree) || allocate.has(vTree)) {
       protect.delete(vTree);
-      free.add(vTree);
-    }
-    else if (allocate.has(vTree)) {
       allocate.delete(vTree);
       free.add(vTree);
     }
