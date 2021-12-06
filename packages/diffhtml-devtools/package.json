@@ -54,8 +54,7 @@
   "aliasify": {
     "aliases": {
       "react": "diffhtml-react-compat",
-      "react-dom": "diffhtml-react-compat",
-      "diffhtml": "diffhtml/dist/cjs/lite"
+      "react-dom": "diffhtml-react-compat"
     }
   },
   "dependencies": {

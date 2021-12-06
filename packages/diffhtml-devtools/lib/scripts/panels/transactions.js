@@ -88,7 +88,7 @@ class DevtoolsTransactionsPanel extends Component {
             <thead>
               <tr>
                 <th rowspan="2"></th>
-                <th class="center aligned" rowspan="2">Duration</th>
+                <th class="center aligned" rowspan="2">TTR</th>
                 <th class="center aligned" rowspan="2">Status</th>
                 <th class="center aligned" rowspan="2">Mount</th>
                 <th class="center aligned" rowspan="2">Transitions</th>
