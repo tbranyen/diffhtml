@@ -1,6 +1,6 @@
 # <±/> diffHTML ServiceWorker Middleware
 
-Stable Version: 1.0.0-beta.20
+Stable Version: 1.0.0-beta.21
 
 while this does not really benefit from being a middleware, i made it as such
 since it looks nice when added to `use()` and can be disabled if the middleware

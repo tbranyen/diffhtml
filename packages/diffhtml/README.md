@@ -3,7 +3,7 @@
 *The foundation and core of the diffHTML ecosystem. Parses HTML, reconciles
 changes, applies middleware, handles transitions, and keeps the DOM in sync.*
 
-Latest version: 1.0.0-beta.20
+Latest version: 1.0.0-beta.21
 
 Refer to the website [https://diffhtml.org/](https://diffhtml.org/) for
 documentation.
