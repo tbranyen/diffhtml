@@ -80,8 +80,10 @@ innerHTML(document.body, html`
   <${MyComponent} message="setting props via class" />
 `);
 
-// Defining your component as a web component is completely optional, but can be
-// an interesting way to
+// Defining your component as a web component is completely optional and easy,
+// just use the standard `customElements.define` function and provide a tag
+// name. Now <my-component prop=value>childNodes[]</my-component> should work
+// as expected.
 customElements.define('my-component', MyComponent);
 
 innerHTML(document.body, html`
@@ -158,6 +160,23 @@ like.
 
 ### Function components
 
+Using a function component is a good way to have lightweight components without
+the overhead of a class. You map the incoming attributes as arguments and the
+return value is a VTree created by `html` or `createTree`.
+
+```js
+import { html, innerHTML } from 'diffhtml';
+import 'diffhtml-components';
+
+function SimpleClock({ now }) {
+  return html`
+    <strong>The current unix timestamp is:</strong> ${now}
+  `;
+}
+
+innerHTML(document.body, html`<${SimpleClock} now=${Date.now()} />`);
+```
+
 ### Class components
 
 Useful when you need minimal React features for new projects. This is not
@@ -195,7 +214,8 @@ innerHTML(document.body, html`<${SimpleClock} />`);
 ### Web Components
 
 All diffHTML Components extend HTMLElement and can be registered with the V1
-Custom Elements registry. This is entirely optional.
+Custom Elements registry. It is optional to utilize them as Web Components. To
+do so, use the `customElements.define` function.
 
 [Full browser availability](https://caniuse.com/custom-elementsv1)
 
@@ -203,6 +223,8 @@ Custom Elements registry. This is entirely optional.
 - **Firefox:** Stable
 - **Safari:** Stable
 - **Edge:** Stable
+
+#### Example:
 
 ``` js
 import { html, innerHTML } from 'diffhtml';
