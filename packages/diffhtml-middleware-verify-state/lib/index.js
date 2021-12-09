@@ -1,8 +1,9 @@
 const root = typeof global !== 'undefined' ? global : window;
+const { assign } = Object;
+const binding = globalThis[Symbol.for('diffHTML')]
 
-let NodeCache = null;
-let decodeEntities = null;
-let Pool = null;
+const { NodeCache, decodeEntities, Pool } = binding.Internals;
+const { createTree } = binding;
 
 const getValue = (vTree, keyName) => {
   if (vTree instanceof Node && vTree.attributes) {
@@ -15,6 +16,7 @@ const getValue = (vTree, keyName) => {
 
 const setupDebugger = options => message => {
   if (options.debug) {
+    debugger;
     throw new Error(message);
   }
   else {
@@ -50,7 +52,7 @@ const verifyTreeNodeAssociation = (debug, vTree) => {
   const node = NodeCache.get(vTree);
 
   if (!node) {
-    debug(`[Missing DOM Node] ${vTree.nodeName} has no DOM Node association`);
+    //debug(`[Missing DOM Node] ${vTree.nodeName} has no DOM Node association`);
   }
   else if (node.nodeName.toLowerCase() !== vTree.nodeName) {
     debug(`[Mismatched DOM Node] ${vTree.nodeName} has an invalid DOM Node association with ${node.nodeName}`);
@@ -60,52 +62,50 @@ const verifyTreeNodeAssociation = (debug, vTree) => {
   }
 
   // Recursively search for problems.
-  vTree.childNodes.forEach(verifyTreeNodeAssociation);
+  vTree.childNodes.forEach(_vTree => verifyTreeNodeAssociation(debug, _vTree));
 };
 
-const compareTrees = (options, transaction, oldTree, newTree, verifyTree) => {
-  const { promises } = transaction;
+const compareTrees = (options, transaction, mount, newTree, verifyTree) => {
+  const { promises } = transaction; const debug = setupDebugger(options);
 
-  const debug = setupDebugger(options);
-
-  let oldAttrKeys = Object.keys(oldTree.attributes || {}).sort().filter(Boolean);
+  let oldAttrKeys = Object.keys(verifyTree.attributes || {}).sort().filter(Boolean);
   let newAttrKeys = Object.keys(newTree.attributes || {}).sort().filter(Boolean);
 
-  const oldTreeIsNode = oldTree instanceof Node;
+  const oldTreeIsNode = verifyTree instanceof Node;
   const oldLabel = oldTreeIsNode ? 'ON DOM NODE' : 'OLD';
 
   if (oldTreeIsNode) {
     newTree = flattenFragments(newTree);
   }
 
-  const oldValue = decodeEntities(oldTree.nodeValue || '').replace(/\r?\n|\r/g, '');
+  const oldValue = decodeEntities(verifyTree.nodeValue || '').replace(/\r?\n|\r/g, '');
   const newValue = decodeEntities(newTree.nodeValue || '').replace(/\r?\n|\r/g, '');
 
-  if (oldTree.nodeName.toLowerCase() !== newTree.nodeName.toLowerCase() && newTree.nodeType !== 11) {
-    debug(`[Mismatched nodeName] ${oldLabel}: ${oldTree.nodeName} NEW TREE: ${newTree.nodeName}`);
+  if (verifyTree.nodeName.toLowerCase() !== newTree.nodeName.toLowerCase() && newTree.nodeType !== 11) {
+    debug(`[Mismatched nodeName] ${oldLabel}: ${verifyTree.nodeName} NEW TREE: ${newTree.nodeName}`);
   }
-  else if (oldTree.nodeValue && newTree.nodeValue && oldValue !== newValue) {
+  else if (verifyTree.nodeValue && newTree.nodeValue && oldValue !== newValue) {
     debug(`[Mismatched nodeValue] ${oldLabel}: ${oldValue} NEW TREE: ${newValue}`);
   }
-  else if (oldTree.nodeType !== newTree.nodeType && newTree.nodeType !== 11) {
-    debug(`[Mismatched nodeType] ${oldLabel}: ${oldTree.nodeType} NEW TREE: ${newTree.nodeType}`);
+  else if (verifyTree.nodeType !== newTree.nodeType && newTree.nodeType !== 11) {
+    debug(`[Mismatched nodeType] ${oldLabel}: ${verifyTree.nodeType} NEW TREE: ${newTree.nodeType}`);
   }
-  else if (oldTree.childNodes.length !== newTree.childNodes.length) {
-    debug(`[Mismatched childNodes length] ${oldLabel}: ${oldTree.childNodes.length} NEW TREE: ${newTree.childNodes.length}`);
+  else if (verifyTree.childNodes.length !== newTree.childNodes.length) {
+    debug(`[Mismatched childNodes length] ${oldLabel}: ${verifyTree.childNodes.length} NEW TREE: ${newTree.childNodes.length}`);
   }
 
   if (oldTreeIsNode && oldTree.attributes) {
-    oldAttrKeys = [...oldTree.attributes].map(s => String(s.name)).sort();
+    oldAttrKeys = [...verifyTree.attributes].map(s => String(s.name)).sort();
   }
 
-  if (!oldTreeIsNode && !NodeCache.has(oldTree)) {
-    debug(`Tree does not have an associated DOM Node`);
-  }
+  //if (!oldTreeIsNode && !NodeCache.has(oldTree)) {
+  //  debug(`Tree does not have an associated DOM Node`);
+  //}
 
   // Look for attribute differences.
   if (newTree.nodeType !== 11) {
     for (let i = 0; i < oldAttrKeys.length; i++) {
-      const oldValue = getValue(oldTree, oldAttrKeys[i]) || '';
+      const oldValue = getValue(verifyTree, oldAttrKeys[i]) || '';
       const newValue = getValue(newTree, newAttrKeys[i]) || '';
 
       // If names are different report it out.
@@ -126,34 +126,63 @@ const compareTrees = (options, transaction, oldTree, newTree, verifyTree) => {
       }
     }
 
-    for (let i = 0; i < oldTree.childNodes.length; i++) {
-      if (oldTree.childNodes[i] && newTree.childNodes[i]) {
-        compareTrees(options, transaction, oldTree.childNodes[i], newTree.childNodes[i], verifyTree);
+    for (let i = 0; i < verifyTree.childNodes.length; i++) {
+      if (verifyTree.childNodes[i] && newTree.childNodes[i]) {
+        compareTrees(
+          options,
+          transaction,
+          verifyTree.childNodes[i],
+          newTree.childNodes[i],
+          verifyTree.childNodes[i],
+        );
       }
     }
   }
 
-  verifyTreeNodeAssociation(verifyTree);
+  verifyTreeNodeAssociation(debug, verifyTree);
 };
 
-export default (options={}) => assign(function verifyStateTask() {
+function reduceEntry(inputAsVTree) {
+  /** @type {VTree[]} */
+  let foundElements = [];
+
+  for (let i = 0; i < inputAsVTree.childNodes.length; i++) {
+    const value = inputAsVTree.childNodes[i];
+    const isText = value.nodeType === 3;
+
+    // This is most likely the element that is requested to compare to. Will
+    // need to keep checking or more input though to be totally sure.
+    if (!isText || value.nodeValue.trim()) {
+      foundElements.push(value);
+    }
+  }
+
+  // If only one element is found, we can use this directly.
+  if (foundElements.length === 1) {
+    return foundElements[0];
+  }
+  // Otherwise consider the entire fragment.
+  else if (foundElements.length > 1) {
+    return createTree(inputAsVTree.childNodes);
+  }
+  else {
+    return createTree(inputAsVTree);
+  }
+}
+
+export default (options={}) => function verifyStateTask() {
   return transaction => {
-    const { domNode, state } = transaction;
-    const oldTree = transaction.oldTree || state.oldTree;
-    const newTree = transaction.newTree;
+    const { mount, state } = transaction;
+    const oldTree = reduceEntry(transaction.oldTree || state.oldTree);
+    const newTree = reduceEntry(transaction.newTree);
 
     if (oldTree && newTree) {
       compareTrees(options, transaction, oldTree, newTree, oldTree);
     }
 
     transaction.onceEnded(() => {
-      compareTrees(options, transaction, domNode, newTree, newTree);
+      //compareTrees(options, transaction, mount, newTree, newTree);
+      compareTrees(options, transaction, mount, newTree, oldTree);
     });
   };
-}, {
-  subscribe(Internals) {
-    NodeCache = Internals.NodeCache;
-    decodeEntities = Internals.decodeEntities;
-    Pool = Internals.Pool;
-  },
-});
+};
