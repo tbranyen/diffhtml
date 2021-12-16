@@ -8,6 +8,7 @@ const { keys } = Object;
 // Ensure Components middleware is loaded since Layout is a class
 // component and toString will pick it up automatically.
 require('diffhtml-components');
+use(require('diffhtml-middleware-linter')());
 
 // Do some marked magic to fix the target="blank" security issue.
 const renderer = new marked.Renderer();
