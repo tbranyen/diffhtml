@@ -26,6 +26,8 @@ const background = chrome.runtime.connect({ name: 'devtools-page' });
 use(inlineTransitions());
 use(syntheticEvents());
 
+const cacheStyles = new Map();
+
 use({
   // When dark mode is set, automatically add Semantic UI `inverted` class.
   createTreeHook(vTree) {
@@ -38,6 +40,23 @@ use({
         }
       }
     }
+
+    /*
+    if (vTree.nodeName === 'link') {
+      // Prime the cache.
+      if (!cacheStyles.has(vTree.attributes.href)) {
+        fetch(vTree.attributes.href)
+          .then(resp => resp.text())
+          .then(text => cacheStyles.set(vTree.attributes.href, text));
+      }
+      else {
+        vTree.nodeName = vTree.rawNodeName = 'style';
+        vTree.nodeValue = cacheStyles.get(vTree.attributes.href);
+      }
+
+      console.log(vTree);
+    }
+    */
   }
 });
 

@@ -35,8 +35,8 @@ class DevtoolsMountsPanel extends Component {
 
         ${isExpanded && html`
           <p>
-            Shows the rendered VTree for a given mount point. This could be a
-            top-level render or a component rendering itself.
+            Shows the top-level rendered mounts. Attempts to create a unique
+            selector for each element.
           </p>
         `}
       </div>

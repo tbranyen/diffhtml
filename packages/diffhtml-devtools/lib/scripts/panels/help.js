@@ -75,11 +75,18 @@ class DevtoolsHelpPanel extends Component {
           `} />
         </div>
 
-        <div class="ui bottom attached tab about segment ${activeTab === 'about' && 'active'}">
-          <p>
-            <div class="ui logo" src="/icons/logo-128.png" />
-            <h3 class="version">diffHTML: ${version}</h3>
-          </p>
+        <div class="ui bottom attached tab about segment ${activeTab === 'about' && 'active'}" >
+          <div style="display: flex">
+            <p>
+              <div class="ui logo" src="/icons/logo-128.png" />
+              <div style="padding: 24px">
+                <h2>diffHTML: ${version}</h2>
+                <h3 style="margin-top: 14px">Created by Tim Branyen</h3>
+              </div>
+            </p>
+          </div>
+
+          <p>I apologise in advance if this software ever causes you bother.</p>
         </div>
 
         <div class="ui bottom attached tab segment ${activeTab === 'chat' && 'active'}">

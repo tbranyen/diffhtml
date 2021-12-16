@@ -32,3 +32,10 @@ module.exports = ->
         '--no-message-box'
         '--headless'
       ].join(' ')
+
+    'clean-css':
+      command: [
+        'cleancss -o',
+        path.resolve('chrome-extension/dist/extension/styles/theme.css'),
+        path.resolve('lib/styles/theme.css'),
+      ].join(' ')

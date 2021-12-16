@@ -1,25 +1,35 @@
 import { html } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 
-const slideIn = el => {
+const slideIn = async (parent, child) => {
+  if (parent !== child) {
+    return;
+  }
+
+  const el = parent;
+
   el.style.opacity = 0;
+  el.style.height = '100%';
 
-  setTimeout(() => {
-    el.style.opacity = 1;
+  await new Promise(resolve => setTimeout(resolve, 100));
 
-    el.animate([
-      { transform: 'translateY(100%)' },
-      { transform: 'translateY(0%)' },
-    ], { duration: 140 });
-  }, 100);
+  el.style.opacity = 0.1;
+
+  const frames = [
+    { opacity: 0.1, transform: 'translateY(100%)' },
+    { opacity: 1, transform: 'translateY(0%)' },
+  ];
+
+  await el.animate(frames, { duration: 100 }).finished;
+
+  el.style.opacity = 1;
+  el.style.height = '100%';
 };
 
-const slideOut = el => new Promise(resolve => {
-  el.animate([
-    { transform: 'translateY(0%)' },
-    { transform: 'translateY(100%)' },
-  ], { duration: 140 }).onfinish = resolve;
-});
+const slideOut = dir => el => el.animate([
+  { transform: 'translateY(0%)' },
+  { transform: `translateY(${dir === 'up' ? '-' : ''}100%)` },
+], { duration: 140 }).finished;
 
 class DevtoolsTransactionsPanel extends Component {
   static defaultProps = {
@@ -34,8 +44,9 @@ class DevtoolsTransactionsPanel extends Component {
     activeTransaction: null,
     autoScroll: true,
     hideEmpty: false,
+    maxSorted: 20,
     sortBy: 'startDate',
-    sortDir: 'asc',
+    sortDir: 'desc',
     sorted: [],
   }
 
@@ -62,7 +73,9 @@ class DevtoolsTransactionsPanel extends Component {
 
           ${isExpanded && html`
             <p>
-              This panel shows you when a render occured and what was patched.
+              You can use this view to see TTR (Time to Render), the mounted
+              DOM Node, transitions which executed, and most importantly the
+              deltas between the previous render.
             </p>
 
             <div class="ui toggle checkbox">
@@ -83,7 +96,7 @@ class DevtoolsTransactionsPanel extends Component {
       </div>
 
       <div class="wrapper">
-        <div class="rows">
+        <div class="rows" ${Boolean(activeTransaction) && ({ style: 'flex: 0' })}>
           <table class="header ui fixed celled sortable selectable structured table striped unstackable">
             <thead>
               <tr>
@@ -133,12 +146,11 @@ class DevtoolsTransactionsPanel extends Component {
           </table>
         </div>
 
-        ${activeTransaction && html`
+        ${Boolean(activeTransaction) && html`
           <devtools-transaction-detail
             onattached=${slideIn}
-            ondetached=${slideOut}
+            ondetached=${slideOut('down')}
             class="ui"
-            style="max-height: 50%"
             transaction=${activeTransaction}
             closeDetail=${this.toggleExpanded(null)}
           />
@@ -285,7 +297,12 @@ class DevtoolsTransactionsPanel extends Component {
   }
 
   componentWillReceiveProps(nextProps, nextState = this.state) {
-    const { hideEmpty, sortBy, sortDir, activeTransaction } = nextState;
+    const { hideEmpty, sortBy, maxSorted, sortDir, activeTransaction } = nextState;
+
+    //if (nextProps.inProgress) {
+    //  this.state.sorted = nextProps.inProgress
+    //    .sort((a, b) => sortDir === 'asc' ? a[sortBy] < b[sortBy] : a[sortBy] > b[sortBy]);
+    //}
 
     if (nextProps.completed) {
       this.state.sorted = nextProps.completed
@@ -293,17 +310,9 @@ class DevtoolsTransactionsPanel extends Component {
         .filter(({ args }) => hideEmpty ? args.patches.length : true);
     }
 
-    if (nextProps.inProgress) {
-      this.state.sorted.push(
-        ...nextProps.inProgress.sort(
-          (a, b) => sortDir === 'asc' ? a[sortBy] < b[sortBy] : a[sortBy] > b[sortBy]
-        )
-      );
-    }
-
     // TODO determine if this is necessary
-    // Only use up to 20 items.
-    //this.state.sorted = this.state.sorted.slice(-20);
+    // Only use up to 50 items.
+    this.state.sorted = this.state.sorted.reverse();
 
     // Reset activeTransaction if it's no longer relevant.
     if (activeTransaction && !this.state.sorted.includes(activeTransaction)) {

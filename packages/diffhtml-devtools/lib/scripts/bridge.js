@@ -21,12 +21,13 @@ export default function devTools(Internals) {
   let extension = null;
   let schedule = null;
   let interval = null;
-  let primaryTimeout = null;
+  let ackTimeout = null;
   let scheduleTimeout = null;
+  let pollingForDiffHTML = false;
 
   // Toggle if a middleware is enabled/disabled.
   document.addEventListener('diffHTML:toggleMiddleware', ev => {
-    const detail = parse(ev.detail);
+    const detail = typeof ev.detail === 'string' ? parse(ev.detail) : ev.detail;
 
     Internals.MiddlewareCache.forEach((userMiddleware, i) => {
       const [ raw, name ] = getMiddlewareName(userMiddleware);
@@ -141,7 +142,10 @@ export default function devTools(Internals) {
       return extension.startTransaction(startDate, {
         mount: selector,
         markup: input,
-        options: config,
+        config: {
+          ...config,
+          tasks: config.tasks.map(task => task.displayName || task.name),
+        },
         state: assign({}, state, state.nextTransaction && {
           nextTransaction: undefined,
         }, {
@@ -154,7 +158,7 @@ export default function devTools(Internals) {
     if (!extension) {
       // FIXME Comment this out if it's causing issues... and figure out why
       // issues are being caused.
-      cacheTask.push(() => start());
+      //cacheTask.push(() => start());
     } else {
       start();
     }
@@ -171,7 +175,10 @@ export default function devTools(Internals) {
         const stop = () => extension.endTransaction(startDate, endDate, {
           mount: selector,
           markup: input,
-          options: config,
+          config: {
+            ...config,
+            tasks: config.tasks.map(task => task.displayName || task.name),
+          },
           state: assign({}, state, state.nextTransaction && {
             nextTransaction: undefined,
           }, {
@@ -193,7 +200,9 @@ export default function devTools(Internals) {
   }
 
   async function setExtension(initial) {
+    pollingForDiffHTML = true;
     const devToolsExtension = await pollForFunction();
+    pollingForDiffHTML = false;
 
     extension = devToolsExtension().activate({
       // Reset counts per unique activation.
@@ -204,36 +213,36 @@ export default function devTools(Internals) {
     });
   }
 
-  // Send a ping every 2 seconds. If we do not receive a response and time out,
+  // Send a ping every 4 seconds. If we do not receive a response and time out,
   // reconnect.
   function keepAlive() {
     // Clear timeouts every time this is called.
     clearTimeout(scheduleTimeout);
-    clearTimeout(primaryTimeout);
+    clearTimeout(ackTimeout);
 
+    // Send ping on every keepAlive call.
     extension.ping();
 
-    // Schedule a new keep-alive two seconds after a successful ping.
+    // After a successful ping, schedule another keepAlive after 5 seconds..
     schedule = () => {
-      clearTimeout(primaryTimeout);
-      scheduleTimeout = setTimeout(keepAlive, 4000);
-      setExtension();
+      clearTimeout(ackTimeout);
+      scheduleTimeout = setTimeout(keepAlive, 1000);
+      !pollingForDiffHTML && setExtension();
     };
-
-    document.removeEventListener('diffHTML:pong', schedule);
-    document.addEventListener('diffHTML:pong', schedule, { once: true });
 
     // If we do not receive a response after 1 second, try and reconnect after
     // another second.
-    primaryTimeout = setTimeout(() => {
+    ackTimeout = setTimeout(() => {
       document.removeEventListener('diffHTML:pong', schedule);
       clearTimeout(scheduleTimeout);
       scheduleTimeout = setTimeout(keepAlive, 1000);
     }, 1000);
+
+    document.removeEventListener('diffHTML:pong', schedule);
+    document.addEventListener('diffHTML:pong', schedule, { once: true });
   }
 
   devToolsTask.subscribe = async () => {
-    console.log('>> Calling set extension from subscribe');
     await setExtension(true);
 
     // Start keep-alive in case we disconnect.
@@ -241,14 +250,16 @@ export default function devTools(Internals) {
 
     // Call existing cached tasks.
     if (cacheTask.length) {
-      //cacheTask.forEach(cb => cb());
-      cacheTask.length = 0;
+      setTimeout(() => {
+        cacheTask.forEach(cb => cb());
+        cacheTask.length = 0;
+      }, 1000);
     }
   };
 
   devToolsTask.unsubscribe = async () => {
     clearInterval(interval);
-    clearTimeout(primaryTimeout);
+    clearTimeout(ackTimeout);
     clearTimeout(scheduleTimeout);
 
     document.removeEventListener('diffHTML:pong', schedule);

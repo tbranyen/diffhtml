@@ -2,6 +2,7 @@ module.exports = ->
   @loadNpmTasks 'grunt-contrib-copy'
 
   chromeDest = 'chrome-extension/dist/extension'
+  assetsDest = 'chrome-extension/dist/extension/styles/'
 
   npmDeps = [
     'node_modules/diffhtml/dist/diffhtml.js'
@@ -9,13 +10,22 @@ module.exports = ->
     'node_modules/diffhtml-components/dist/cjs/*.js'
     'node_modules/diffhtml-synthetic-events/dist/synthetic-events.js'
     'node_modules/semantic-ui-css/semantic.min.css'
-    'node_modules/semantic-ui-icon/**/*'
     'node_modules/chartist/dist/*'
+  ]
+
+  icons = [
+    'assets/**/*'
   ]
 
   @config 'copy',
     'chrome-extension':
       files: [
+        {
+          src: icons
+          expand: true
+          cwd: 'node_modules/semantic-ui-icon'
+          dest: assetsDest
+        }
         {
           src: npmDeps
           expand: true

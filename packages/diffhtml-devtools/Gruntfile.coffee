@@ -22,4 +22,5 @@ module.exports = ->
     'browserify:chrome-extension'
     'compress:chrome-extension'
     'shell:chrome-extension'
+    'shell:clean-css'
   ]

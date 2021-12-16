@@ -116,7 +116,7 @@ class DevtoolsVTree extends Component {
         color: #FFF;
       }
 
-      .vtree-children:hover {
+      .vtree:hover > .vtree-children, .vtree-children:hover {
         border-left: 2px solid #E8F4FF;
       }
 

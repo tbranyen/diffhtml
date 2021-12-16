@@ -101,7 +101,7 @@ class DevtoolsHealthPanel extends Component {
                         fill="transparent"
                         stroke="#FF9800"
                         stroke-width="10"
-                        stroke-dasharray="calc(${(series[1][0] / series[0][0]) * 100} * 31.4 / 100) 31.4"
+                        stroke-dasharray="calc(${(series[1][0] / (series[0][0] + series[1][0])) * 100} * 31.4 / 100) 31.4"
                         transform="rotate(-90) translate(-20)"
                       />
                     `}

@@ -10,27 +10,32 @@ const bridgeModule = fs.readFileSync(path.join(__dirname, '/../../chrome-extensi
 const injectorModule = fs.readFileSync(path.join(__dirname, '/injector.js'), 'utf8');
 const { parse } = JSON;
 
-const middleware = document.createElement('script')
-middleware.appendChild(document.createTextNode(bridgeModule));
-document.documentElement.appendChild(middleware);
-middleware.parentNode.removeChild(middleware);
+// Only initialize once per page, saves resources.
+if (!document.documentElement.__diffHTMLDevToolsInit) {
+  document.documentElement.__diffHTMLDevToolsInit = true;
 
-const injector = document.createElement('script')
-injector.appendChild(document.createTextNode(injectorModule));
-document.documentElement.appendChild(injector);
-injector.parentNode.removeChild(injector);
+  const middleware = document.createElement('script')
+  middleware.appendChild(document.createTextNode(bridgeModule));
+  document.documentElement.appendChild(middleware);
+  middleware.remove();
 
-const postMessage = body => chrome.runtime.sendMessage(body);
+  const injector = document.createElement('script')
+  injector.appendChild(document.createTextNode(injectorModule));
+  document.documentElement.appendChild(injector);
+  injector.remove();
 
-chrome.runtime.onMessage.addListener(ev => document.dispatchEvent(
-  new CustomEvent(`diffHTML:${ev.type}`, {
-    detail: ev,
-  })
-));
+  const postMessage = body => chrome.runtime.sendMessage(body);
 
-const postEvent = ev => postMessage(ev.detail);
+  chrome.runtime.onMessage.addListener(ev => document.dispatchEvent(
+    new CustomEvent(`diffHTML:${ev.type}`, {
+      detail: ev,
+    })
+  ));
 
-document.addEventListener('diffHTML:activated', postEvent);
-document.addEventListener('diffHTML:start', postEvent);
-document.addEventListener('diffHTML:end', postEvent);
-document.addEventListener('diffHTML:ping', postEvent);
+  const postEvent = ev => postMessage(ev.detail);
+
+  document.addEventListener('diffHTML:activated', postEvent);
+  document.addEventListener('diffHTML:start', postEvent);
+  document.addEventListener('diffHTML:end', postEvent);
+  document.addEventListener('diffHTML:ping', postEvent);
+}
