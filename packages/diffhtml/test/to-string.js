@@ -59,7 +59,7 @@ describe('toString', function() {
 
   it('can render a value-less attribute', () => {
     const actual = toString(html`<div disabled/>`);
-    const expected = `<div disabled="disabled"></div>`;
+    const expected = `<div disabled></div>`;
 
     strictEqual(actual, expected);
   });

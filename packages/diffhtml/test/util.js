@@ -141,7 +141,7 @@ describe('Util', function() {
       const vTree = parse('<option value="test" selected></option>').childNodes[0];
 
       strictEqual(vTree.attributes.value, 'test');
-      strictEqual(vTree.attributes.selected, 'selected');
+      strictEqual(vTree.attributes.selected, true);
     });
 
     it('will support quote-less values', () => {
@@ -264,7 +264,7 @@ describe('Util', function() {
       const vTrees = parse(`<input ${token}/>`).childNodes;
 
       strictEqual(vTrees[0].nodeName, 'input');
-      deepStrictEqual(vTrees[0].attributes, { [token]: token });
+      deepStrictEqual(vTrees[0].attributes, { [token]: true });
     });
 
     it('will parse out partial attributes', () => {
@@ -290,7 +290,7 @@ describe('Util', function() {
       const vTrees = parse(`<input ${token}/>`, supplemental).childNodes;
 
       strictEqual(vTrees[0].nodeName, 'input');
-      deepStrictEqual(vTrees[0].attributes, { disabled: 'disabled' });
+      deepStrictEqual(vTrees[0].attributes, { disabled: true });
     });
 
     it('will support passing childNodes as an attribute', () => {
@@ -863,7 +863,7 @@ describe('Util', function() {
           key: '',
           childNodes: [],
           attributes: {
-            checked,
+            checked: true,
           },
         }],
         attributes: {},

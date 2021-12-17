@@ -294,7 +294,7 @@ export default function({ types: t }) {
           // tokens and inject.
           attributes.properties.forEach((property, i, properties) => {
             const keysMatched = property.key.value.split(tokenEx);
-            const valuesMatched = property.value.value.split(tokenEx);
+            const valuesMatched = String(property.value.value).split(tokenEx);
 
             const keys = [];
             const values = [];

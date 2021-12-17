@@ -170,7 +170,8 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
 
     const testValue = match[6] || match[5] || match[4];
     /** @type {unknown} */
-    const value = tokenValue || testValue || (isHTML ? match[1] : testValue || true);
+    const rawValue = tokenValue || testValue || (isHTML ? match[1] : testValue || true);
+    const value = rawValue === `''` || rawValue === `""` ? EMPTY.STR : rawValue;
     let valueMatchesToken = String(value).match(tokenEx);
 
     // If we have multiple interpolated values in an attribute, we must
@@ -191,12 +192,13 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
         // an odd index and then we can source the correct value.
         if (i % 2 === 1) {
           const isObject = typeof newName === 'object';
+          const hasSupValue = value in supplemental.attributes;
           const supValue = supplemental.attributes[value];
           const fallback = `${TOKEN}${value}__`;
 
           // Allow interpolating multiple values into a single attribute.
           if (attributes[newName]) {
-            attributes[newName] += value in supplemental.attributes ? supValue : fallback;
+            attributes[newName] += hasSupValue ? supValue : fallback;
           }
           // Merge object attributes directly into the existing attributes.
           else if (isObject) {
@@ -210,7 +212,8 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
             }
           }
           else if (newName) {
-            attributes[newName] = value in supplemental.attributes ? supValue : fallback;
+            const defaultValue = hasSupValue ? supValue : fallback;
+            attributes[newName] = testValue ? defaultValue : true;
           }
         }
         // Otherwise this is a static iteration, simply concat the raw value into the attribute.
@@ -232,14 +235,16 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
         assign(attributes, nameAndValue);
       }
       else {
-        attributes[nameAndValue] = EMPTY.STR;
+        attributes[nameAndValue] = value;
       }
     }
     // If the remaining value is a string, directly assign to the attribute
     // name. If the value is anything else, treat it as unknown and default to
     // a boolean.
     else {
-      attributes[name] = value === `''` || value === `""` ? EMPTY.STR : value;
+      // If no test value was found, this means no real value was provided, use
+      // the default value of true.
+      attributes[name] = testValue !== undefined ? value : true;
     }
   }
 

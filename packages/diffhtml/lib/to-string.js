@@ -63,6 +63,10 @@ function serializeAttributes(attributes) {
     const isFalsy = !value;
     const isDynamic = typeof value === 'object' || typeof value === 'function';
 
+    if (value === true) {
+      return keyName;
+    }
+
     return `${keyName}${(!isFalsy && !isDynamic) ? `="${String(value)}"` : ''}`;
   }).join(' ') : '';
 }
