@@ -31,27 +31,20 @@ const rawElementsDefaults = [
 ];
 
 const selfClosingElementsDefaults = [
-  'meta',
-  'img',
-  'link',
+  'source',
+  'embed',
+  'param',
+  'track',
   'input',
-  'area',
-  'br',
-  'hr',
+  'meta',
+  'link',
   'area',
   'base',
-  'br',
   'col',
-  'embed',
-  'hr',
-  'img',
-  'input',
-  'link',
-  'meta',
-  'param',
-  'source',
-  'track',
   'wbr',
+  'img',
+  'br',
+  'hr',
 ];
 
 /** @type {any} */
