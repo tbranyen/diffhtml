@@ -70,7 +70,7 @@ describe('HTML (Tagged template)', function() {
     const checked = 'checked';
     const input = html`<input type="checkbox" ${checked}>`;
 
-    equal(input.attributes.checked, 'checked');
+    equal(input.attributes.checked, true);
   });
 
   it('will interpolate multiple type values in an attribute', function() {
