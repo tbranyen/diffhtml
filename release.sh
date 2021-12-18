@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Always set current dir to where release script is located (root).
+cd "${0%/*}"
+
 OLD_BETA=21
 NEW_BETA=22
 
