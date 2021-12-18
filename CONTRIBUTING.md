@@ -1,6 +1,14 @@
 # CONTRIBUTING.md
 
-## How to Make a Release
+## How to Make a Release (Modern)
+
+Run the folowing command in the project root directory.
+
+``` sh
+./release.sh
+```
+
+## How to Make a Release (Legacy)
 
 While Lerna takes care of most of the hardwork, we'll want to still make sure
 to follow a series of instructions to cut a release. 
