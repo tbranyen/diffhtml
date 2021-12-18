@@ -2,7 +2,10 @@
 
 ## How to Make a Release (Modern)
 
-Run the folowing command in the project root directory.
+Edit the `./release.sh` file top level variables to indicate the new version
+and old version.
+
+Then run the following command in the project root directory:
 
 ``` sh
 ./release.sh
