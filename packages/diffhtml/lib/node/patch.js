@@ -69,7 +69,7 @@ const setAttribute = (vTree, domNode, name, value) => {
     const noValue = value === null || value === undefined;
 
     // If we cannot set the value as a property, try as an attribute.
-    htmlElement.setAttribute(lowerName, noValue ? EMPTY.STR : value);
+    htmlElement.setAttribute(lowerName, noValue ? EMPTY.STR : (value === true ? '' : value));
   }
   // Support patching an object representation of the style object.
   else if (isObject && lowerName === 'style') {
