@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 
 # Always set current dir to where release script is located (root).
 cd "${0%/*}"
