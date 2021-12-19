@@ -66,10 +66,11 @@ const setAttribute = (vTree, domNode, name, value) => {
   // set as an attribute. If the value is one of the excluded types, they
   // will be set below.
   if (!isObject && !isFunction && !isSymbol) {
-    const noValue = value === null || value === undefined;
+    const emptyValue = value === null || value === undefined || value === true;
 
-    // If we cannot set the value as a property, try as an attribute.
-    htmlElement.setAttribute(lowerName, noValue ? EMPTY.STR : (value === true ? '' : value));
+    // For boolean/empty attributes, do not try and set a value, just an empty
+    // string.
+    htmlElement.setAttribute(lowerName, emptyValue ? EMPTY.STR : value);
   }
   // Support patching an object representation of the style object.
   else if (isObject && lowerName === 'style') {

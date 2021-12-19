@@ -414,6 +414,13 @@ describe('Integration: innerHTML', function() {
   });
 
   describe('Attributes', function() {
+    it('can support boolean attributes', function() {
+      diff.innerHTML(this.fixture, '<video disabled></video>');
+
+      // when using DOM outerHTML, boolean attrs will always have a `=""` added.
+      assert.equal(this.fixture.firstChild.outerHTML, '<video disabled=""></video>');
+    });
+
     it('can change attributes', function() {
       diff.innerHTML(this.fixture, '<div class="hello"></div>');
 
