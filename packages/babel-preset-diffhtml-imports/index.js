@@ -18,6 +18,7 @@ const ForOf = require('@babel/plugin-transform-for-of').default;
 const ComputedProperties = require('@babel/plugin-transform-computed-properties').default;
 const ElementClasses = require('babel-plugin-transform-custom-element-classes');
 const NewTarget = require('@babel/plugin-transform-new-target');
+const OptionalCatchBinding = require('@babel/plugin-proposal-optional-catch-binding').default;
 
 
 const esmFunc = join(__dirname, 'utils/replace-esm.js');
@@ -42,6 +43,7 @@ if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
     ForOf,
     OptionalChaining,
     NewTarget,
+    OptionalCatchBinding,
   ];
 }
 
@@ -54,6 +56,7 @@ if (NODE_ENV === 'cjs') {
     ClassProperties,
     ElementClasses,
     OptionalChaining,
+    OptionalCatchBinding,
   ];
 }
 
@@ -73,6 +76,7 @@ if (NODE_ENV === 'test' || NODE_ENV === 'test+cov') {
     ObjectRestSpread,
     ClassProperties,
     OptionalChaining,
+    OptionalCatchBinding,
   ];
 };
 
