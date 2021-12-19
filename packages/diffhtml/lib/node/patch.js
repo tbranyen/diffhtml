@@ -17,12 +17,6 @@ const blocklist = new Set();
 const allowlist = new Set();
 
 /**
- * Directly set these attributes in addition to setting as properties.
- * @type {string[]}
- */
-const DIRECT = ['class', 'checked', 'disabled', 'selected'];
-
-/**
  * Sets an attribute on an element.
  *
  * @param {VTree} vTree
@@ -33,8 +27,6 @@ const DIRECT = ['class', 'checked', 'disabled', 'selected'];
  * @return {void}
  */
 const setAttribute = (vTree, domNode, name, value) => {
-  // Triggered either synchronously or asynchronously depending on if a
-  // transition was invoked.
   const isObject = typeof value === 'object' && value;
   const isFunction = typeof value === 'function';
   const isSymbol = typeof value === 'symbol';
@@ -90,38 +82,26 @@ const setAttribute = (vTree, domNode, name, value) => {
  * @return {void}
  */
 const removeAttribute = (domNode, name) => {
-  const isEvent = name.indexOf('on') === 0;
-
-  /** @type {HTMLElement} */ (domNode).removeAttribute(name);
-
   // Runtime checking if the property can be set.
   const blocklistName = /** @type {HTMLElement} */ (domNode).nodeName + '-' + name;
   const anyNode = /** @type {any} */ (domNode);
 
-  if (isEvent) {
-    anyNode[name] = undefined;
-  }
-
   if (allowlist.has(blocklistName)) {
+    anyNode[name] = undefined;
     delete anyNode[name];
-
-    if (DIRECT.includes(name)) {
-      /** @type {any} */ (domNode)[name] = false;
-    }
   }
   else if (!blocklist.has(blocklistName)) {
     try {
+      anyNode[name] = undefined;
       delete anyNode[name];
-
-      if (DIRECT.includes(name)) {
-        /** @type {any} */ (domNode)[name] = false;
-      }
 
       allowlist.add(blocklistName);
     } catch (unhandledException) {
       blocklist.add(blocklistName);
     }
   }
+
+  /** @type {HTMLElement} */ (domNode).removeAttribute(name);
 };
 
 /**
