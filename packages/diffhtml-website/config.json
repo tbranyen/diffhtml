@@ -19,7 +19,7 @@
       "release": "#release",
       "Internals": "#internals",
       "VERSION": "#version",
-      "Config options": "#config-options"
+      "Options": "#options"
     }],
 
     "Parser": ["parser.html", {

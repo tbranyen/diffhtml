@@ -303,7 +303,7 @@ function MyComponent(props) {
 }
 
 innerHTML(document.body, html`&lt;${MyComponent} someProp=&quot;value&quot; /&gt;`);</code></pre>
-<p><a name="class component"></a></p>
+<p><a name="class-component"></a></p>
 <hr></hr>
 <h2 id="a-hrefclass-componentclass-componenta"><a href="#class-component">Class Component</a></h2>
 <p>The stateful class component, which is used by importing the <code>Component</code> class.</p>
@@ -334,14 +334,21 @@ innerHTML(document.body, html`
 Components.</p>
 <p><a name="component-props"></a></p>
 <h3 id="a-hrefcomponent-propsupropsua"><a href="#component-props"><u>Props</u></a></h3>
-<p>These are incoming values that map to the props you set using the element
-attributes. Like in React, there will be a <code>children</code> prop automatically added
-which maps to the passed in child elements. You can access props on
-<code>this.props</code> or in the <code>render(props) {}</code> method.</p>
+<p>Incoming attribute values which are mapped into a <code>props</code> object, <code>children</code> is
+a special property which is provided that maps to the VTree <code>childNodes</code>. You
+can access props on <code>this.props</code> or in the <code>render(props) {}</code> method.</p>
 <p><a name="component-state"></a></p>
 <h3 id="a-hrefcomponent-stateustateua"><a href="#component-state"><u>State</u></a></h3>
-<h4 id="forceupdate">forceUpdate</h4>
+<p>A mutable object that can be updated with <code>setState</code>. You can also manually
+modify this object and call <code>forceUpdate</code> to simulate what <code>setState</code> does.
+This notion of state is what makes a component reactive. Without it, components
+only re-render when their parent has rendered.</p>
 <h4 id="setstate">setState</h4>
+<p>This is the most common way of updating state that is local to a component. You
+use it to update the <code>state</code> object and trigger a re-render.</p>
+<h4 id="forceupdate">forceUpdate</h4>
+<p>Calling this function schedules a re-render of the current component. It is
+useful to call this when you know the state has changed and want it reflected.</p>
 <p><a name="lifecycle-hooks"></a></p>
 <h3 id="a-hreflifecycle-hooksulifecycle-hooksua"><a href="#lifecycle-hooks"><u>Lifecycle hooks</u></a></h3>
 <p>The following hooks will be called during the respective mounting and

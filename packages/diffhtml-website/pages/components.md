@@ -37,7 +37,7 @@ function MyComponent(props) {
 innerHTML(document.body, html`<${MyComponent} someProp="value" />`);
 ```
 
-<a name="class component"></a>
+<a name="class-component"></a>
 
 ---
 
@@ -82,18 +82,28 @@ Components.
 
 ### <a href="#component-props"><u>Props</u></a>
 
-These are incoming values that map to the props you set using the element
-attributes. Like in React, there will be a `children` prop automatically added
-which maps to the passed in child elements. You can access props on
-`this.props` or in the `render(props) {}` method.
+Incoming attribute values which are mapped into a `props` object, `children` is
+a special property which is provided that maps to the VTree `childNodes`. You
+can access props on `this.props` or in the `render(props) {}` method.
 
 <a name="component-state"></a>
 
 ### <a href="#component-state"><u>State</u></a>
 
-#### forceUpdate
+A mutable object that can be updated with `setState`. You can also manually
+modify this object and call `forceUpdate` to simulate what `setState` does.
+This notion of state is what makes a component reactive. Without it, components
+only re-render when their parent has rendered.
 
 #### setState
+
+This is the most common way of updating state that is local to a component. You
+use it to update the `state` object and trigger a re-render.
+
+#### forceUpdate
+
+Calling this function schedules a re-render of the current component. It is
+useful to call this when you know the state has changed and want it reflected.
 
 <a name="lifecycle-hooks"></a>
 

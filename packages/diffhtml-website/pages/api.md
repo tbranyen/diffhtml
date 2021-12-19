@@ -36,7 +36,7 @@ Transaction, invokes [middleware](/middleware.html), compares old and new markup
 | ----------- | -----------
 | **mount**   | DOM Node or VTree to sync or patch the **childNodes** of.
 | **input**   | New markup to replace into **mount**.
-| **options** | **[Config options](#config-options)**, `inner` is always `true`
+| **options** | **[Config options](#options)**, `inner` is always `true`
 
 <a name="inner-html-examples"></a>
 
@@ -72,7 +72,7 @@ but this can sometimes result in unexpected behavior.
 | ----------- | -----------
 | **mount**   | DOM Node or VTree to sync or patch.
 | **input**   | New markup to replace into **mount**.
-| **options** | **[Config options](#config-options)**, `inner` is always `false`
+| **options** | **[Config options](#options)**, `inner` is always `false`
 
 <a name="outer-html-examples"></a>
 
@@ -105,7 +105,7 @@ All middleware run during this, so features like components and logging work.
 | Name        | Description
 | ----------- | -----------
 | **input**   | New markup to replace into **mount**.
-| **options** | **[Config options](#config-options)**, `inner` and `executeScripts` have no effect
+| **options** | **[Config options](#options)**, `inner` and `executeScripts` have no effect
 
 <a name="to-string-examples"></a>
 
@@ -548,20 +548,30 @@ Property which indicates the current running version of diffHTML.
 console.log(VERSION);
 ```
 
-<a name="config-options"></a>
+<a name="options"></a>
 
 ---
 
-## <a href="#config-options">Config options</a>
+## <a href="#options">Options</a>
 
-- [`inner`](#config-options-inner)
-- [`tasks`](#config-options-tasks)
-- [`executeScripts`](#config-options-execute-scripts)
-- [`parser`](#config-options-parser)
+Allows configuring runtime rendering behavior. These options are accessible via
+`transaction.config` and can be set via query string, environment variables, or
+passing a config object to `innerHTML`, `outerHTML`, and `toString`.
 
-<a name="config-options-inner" />
+In the case of query string and environment variables, uppercase the variables
+and prefix with `DIFF_`. So `inner` becomes `DIFF_INNER`. For `parser` use a
+JSON string: `JSON.stringify({ parser: { strict: true } })`.
 
-### <a href="#config-options-inner">inner `Boolean`</a>
+- [`inner`](#options-inner)
+- [`tasks`](#options-tasks)
+- [`executeScripts`](#options-execute-scripts)
+- [`parser`](#options-parser)
+
+<a name="options-inner" />
+
+---
+
+### <a href="#options-inner">inner `Boolean`</a>
 
 Determines if the Transaction should update the DOM Node or just its children.
 Setting this to `true` will emulate the behavior of `innerHTML` and setting it
@@ -569,9 +579,9 @@ to `false` emulates `outerHTML`. You cannot set this using `innerHTML` or
 `outerHTML`, and it has no effect with `toString` so it is only useful if you
 manually create Transactions which is an advanced use case.
 
-<a name="config-options-tasks" />
+<a name="options-tasks" />
 
-### <a href="#config-options-tasks">tasks `Function[]`</a>
+### <a href="#options-tasks">tasks `Function[]`</a>
 
 Manipulate the tasks which run. This can allow you to do interesting things
 with the core API. You can do API changes like providing a stream or generator
@@ -621,9 +631,9 @@ innerHTML(document.body, `<h1>Hello world</h1>`, {
 });
 ```
 
-<a name="config-options-execute-scripts" />
+<a name="options-execute-scripts" />
 
-### <a href="#config-options-execute-scripts">executeScripts `Boolean`</a>
+### <a href="#options-execute-scripts">executeScripts `Boolean`</a>
 
 Control whether or not newly appended scripts are executed or not. When
 enabled, tricks the browser by setting the `type` property to `no-execute` when
@@ -644,9 +654,9 @@ innerHTML(document.body, `<script>window.alert('here')</script>`, {
 
 ```
 
-<a name="config-options-parser" />
+<a name="options-parser" />
 
-### <a href="#config-options-parser">parser `Object`</a>
+### <a href="#options-parser">parser `Object`</a>
 
 These options modify the parser by making it more strict or changing which
 elements are treated as block or self closing.
