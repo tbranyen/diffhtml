@@ -120,7 +120,7 @@
       
 
       
-        <a href="api.html#config-options" target><li>Config options</li></a>
+        <a href="api.html#options" target><li>Options</li></a>
       
     
       
@@ -327,7 +327,7 @@ Transaction, invokes
 <tr>
 <td><strong>options</strong></td>
 <td><strong>
-    <a href="#config-options" title="null">Config options</a>
+    <a href="#options" title="null">Config options</a>
   </strong>, <code>inner</code> is always <code>true</code></td>
 </tr>
 </tbody></table>
@@ -369,7 +369,7 @@ but this can sometimes result in unexpected behavior.</p>
 <tr>
 <td><strong>options</strong></td>
 <td><strong>
-    <a href="#config-options" title="null">Config options</a>
+    <a href="#options" title="null">Config options</a>
   </strong>, <code>inner</code> is always <code>false</code></td>
 </tr>
 </tbody></table>
@@ -402,7 +402,7 @@ helps you create static markup from complex renders to a simple <code>VTree</cod
 <tr>
 <td><strong>options</strong></td>
 <td><strong>
-    <a href="#config-options" title="null">Config options</a>
+    <a href="#options" title="null">Config options</a>
   </strong>, <code>inner</code> and <code>executeScripts</code> have no effect</td>
 </tr>
 </tbody></table>
@@ -778,34 +778,41 @@ asynchronous.</p>
 <p>Property which indicates the current running version of diffHTML.</p>
 <h3 id="example">Example</h3>
 <pre><code class="language-js">console.log(VERSION);</code></pre>
-<p><a name="config-options"></a></p>
+<p><a name="options"></a></p>
 <hr></hr>
-<h2 id="a-hrefconfig-optionsconfig-optionsa"><a href="#config-options">Config options</a></h2>
+<h2 id="a-hrefoptionsoptionsa"><a href="#options">Options</a></h2>
+<p>Allows configuring runtime rendering behavior. These options are accessible via
+<code>transaction.config</code> and can be set via query string, environment variables, or
+passing a config object to <code>innerHTML</code>, <code>outerHTML</code>, and <code>toString</code>.</p>
+<p>In the case of query string and environment variables, uppercase the variables
+and prefix with <code>DIFF_</code>. So <code>inner</code> becomes <code>DIFF_INNER</code>. For <code>parser</code> use a
+JSON string: <code>JSON.stringify({ parser: { strict: true } })</code>.</p>
 <ul>
 <li>
-    <a href="#config-options-inner" title="null"><code>inner</code></a>
+    <a href="#options-inner" title="null"><code>inner</code></a>
   </li>
 <li>
-    <a href="#config-options-tasks" title="null"><code>tasks</code></a>
+    <a href="#options-tasks" title="null"><code>tasks</code></a>
   </li>
 <li>
-    <a href="#config-options-execute-scripts" title="null"><code>executeScripts</code></a>
+    <a href="#options-execute-scripts" title="null"><code>executeScripts</code></a>
   </li>
 <li>
-    <a href="#config-options-parser" title="null"><code>parser</code></a>
+    <a href="#options-parser" title="null"><code>parser</code></a>
   </li>
 </ul>
-<a name="config-options-inner"></a>
+<a name="options-inner"></a>
 
-<h3 id="a-hrefconfig-options-innerinner-booleana"><a href="#config-options-inner">inner <code>Boolean</code></a></h3>
+<hr></hr>
+<h3 id="a-hrefoptions-innerinner-booleana"><a href="#options-inner">inner <code>Boolean</code></a></h3>
 <p>Determines if the Transaction should update the DOM Node or just its children.
 Setting this to <code>true</code> will emulate the behavior of <code>innerHTML</code> and setting it
 to <code>false</code> emulates <code>outerHTML</code>. You cannot set this using <code>innerHTML</code> or
 <code>outerHTML</code>, and it has no effect with <code>toString</code> so it is only useful if you
 manually create Transactions which is an advanced use case.</p>
-<a name="config-options-tasks"></a>
+<a name="options-tasks"></a>
 
-<h3 id="a-hrefconfig-options-taskstasks-functiona"><a href="#config-options-tasks">tasks <code>Function[]</code></a></h3>
+<h3 id="a-hrefoptions-taskstasks-functiona"><a href="#options-tasks">tasks <code>Function[]</code></a></h3>
 <p>Manipulate the tasks which run. This can allow you to do interesting things
 with the core API. You can do API changes like providing a stream or generator
 API for the return signature, you can remove syncing and provide your own
@@ -847,9 +854,9 @@ innerHTML(document.body, `&lt;h1&gt;Hello world&lt;/h1&gt;`, {
 })(transaction =&gt; {
   console.log(&#39;Render has completed with transaction&#39;, transaction);
 });</code></pre>
-<a name="config-options-execute-scripts"></a>
+<a name="options-execute-scripts"></a>
 
-<h3 id="a-hrefconfig-options-execute-scriptsexecutescripts-booleana"><a href="#config-options-execute-scripts">executeScripts <code>Boolean</code></a></h3>
+<h3 id="a-hrefoptions-execute-scriptsexecutescripts-booleana"><a href="#options-execute-scripts">executeScripts <code>Boolean</code></a></h3>
 <p>Control whether or not newly appended scripts are executed or not. When
 enabled, tricks the browser by setting the <code>type</code> property to <code>no-execute</code> when
 a script is added. This prevents the browser from executing the script.</p>
@@ -864,9 +871,9 @@ innerHTML(document.body, `&lt;script&gt;window.alert(&#39;here&#39;)&lt;/script&
   executeScripts: false,
 });
 </code></pre>
-<a name="config-options-parser"></a>
+<a name="options-parser"></a>
 
-<h3 id="a-hrefconfig-options-parserparser-objecta"><a href="#config-options-parser">parser <code>Object</code></a></h3>
+<h3 id="a-hrefoptions-parserparser-objecta"><a href="#options-parser">parser <code>Object</code></a></h3>
 <p>These options modify the parser by making it more strict or changing which
 elements are treated as block or self closing.</p>
 <p>
