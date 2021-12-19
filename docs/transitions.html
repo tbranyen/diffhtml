@@ -6,12 +6,11 @@
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
       <title>diffHTML: An easy-to-use HTML Virtual DOM built for the web!</title>
-      <link rel="stylesheet" href="https://tbranyen.github.io/diffhtml/index.css"></link>
+      <link rel="stylesheet" href="/styles/index.css"></link>
     </head>
 
     <body class="transitions">
       <layer id="navigation">
-
         <p class="social">
           <a class="github" href="https://github.com/tbranyen/diffhtml">
             <i class="fa fa-github"></i>
@@ -151,6 +150,12 @@
       
 
       
+        <a href="transitions.html#promises" target><li>Promises</li></a>
+      
+    
+      
+
+      
         <a href="transitions.html#states" target><li>States</li></a>
       
     
@@ -269,19 +274,42 @@
         <hr></hr>
 
         <section id="content"><h1 id="transitions">Transitions</h1>
-<p>A first-class global event system that triggers whenever Node operations are
-patched into the DOM. You can bind to several states, such as attached or
-detached. All states are described below.</p>
-<p>Returning a Promise from the callback will halt future renders until it is
-fulfilled. This could allow you to easily build keyframe based animations or
-integrate tools like
-
-      <a href="https://animejs.com/documentation/#finishedPromise" target="_blank" rel="noopener noreferrer" title="null">anime.js</a>
-     which support
-Promises.</p>
+<p>A first-class global event system that triggers callbacks whenever nodes,
+attributes, and text values are added, removed, and replaced in the DOM. All
+states are described below.</p>
 <p>You can use transitions for more than just animations. It can be useful for
 modifying a DOM node based on some condition when it enters the page, such as
-backfilling an unavailable/unstable API.</p>
+backfilling an unavailable/unstable API. You are operating on the actual DOM
+node when it enters and leaves the page, so you can install and unhook any
+code.</p>
+<p><a name="promises"></a></p>
+<hr></hr>
+<h2 id="a-hrefpromisespromisesa"><a href="#promises">Promises</a></h2>
+<p>You may optionally return a Promise in the transition hook to halt future
+renders and pause the current operation until it resolves. This is very useful
+for animating out an element before it is removed from the DOM. This API makes
+it easy to integrate with 
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Animation/finished" target="_blank" rel="noopener noreferrer" title="null">Web
+Animations</a>
+    
+and 
+      <a href="https://animejs.com/documentation/#finishedPromise" target="_blank" rel="noopener noreferrer" title="null">Anime.js</a>
+    . This could
+be used to enable serial or parallel animations.</p>
+<pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;
+
+// Demonstrates a transition hook that can animate any element
+// that is added to the DOM.
+addTransitionState(&#39;attached&#39;, domElement =&gt; {
+  const frames = [
+    { transform: &#39;translateY(-100%)&#39; },
+    { transform: &#39;translateY(0)&#39; },
+  ];
+
+  // `animate` is from Web Animations and `finished` is a Promise
+  // which resolves once the animation completes.
+  return domElement.animate(frames, { duration: 1000 }).finished;
+});</code></pre>
 <p><a name="states"></a></p>
 <hr></hr>
 <h2 id="a-hrefstatesstatesa"><a href="#states">States</a></h2>
@@ -362,31 +390,9 @@ and new elements.</p>
         </footer>
       </layer>
 
-      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js"></script>
-      <script src="https://tbranyen.github.io/diffhtml/scripts/highlight.min.js"></script>
-      <script key="source">
-        try { hljs.initHighlightingOnLoad(); } catch (ex) {}
-
-        
-
-        document.querySelector('.open-menu').onclick = ev => {
-          ev.stopImmediatePropagation();
-
-          const body = document.querySelector('body');
-          const content = document.querySelector('section#content');
-
-          if (body.classList.contains('open')) {
-            return body.onclick();
-          }
-
-          body.classList.add('open');
-
-          body.onclick = () => {
-            body.classList.remove('open');
-            body.onclick = null;
-          };
-        };
-      </script>
+      <script>window.NODE_ENV = 'production';</script>
+      <script src="/scripts/highlight.min.js"></script>
+      <script type="module" src="/scripts/index.js"></script>
     </body>
   </html>
 

@@ -10,12 +10,11 @@ module.exports = ({ path, page, pages, content }) => html`
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>diffHTML: An easy-to-use HTML Virtual DOM built for the web!</title>
-      <link rel="stylesheet" href="https://tbranyen.github.io/diffhtml/index.css">
+      <link rel="stylesheet" href="/styles/index.css">
     </head>
 
     <body class=${page.toLowerCase().replace(/\s/g, '-')}>
       <layer id="navigation">
-
         <p class="social">
           <a class="github" href="https://github.com/tbranyen/diffhtml">
             <i class="fa fa-github"></i>
@@ -72,46 +71,9 @@ module.exports = ({ path, page, pages, content }) => html`
         </footer>
       </layer>
 
-      <script src="https://diffhtml.org/master/diffhtml/dist/diffhtml.min.js"></script>
-      <script src="https://tbranyen.github.io/diffhtml/scripts/highlight.min.js"></script>
-      <script key="source">
-        try { hljs.initHighlightingOnLoad(); } catch (ex) {}
-
-        ${NODE_ENV !== 'production' && html`
-          // Every time a refresh happens, reload the highlight code block.
-          let interval;
-
-          interval = setInterval(() => {
-            if (typeof staticSyncHandlers !== 'undefined') {
-              clearInterval(interval);
-
-              staticSyncHandlers.add(() => {
-                setTimeout(() => [...document.querySelectorAll('pre code')].forEach(block => {
-                  hljs.highlightBlock(block);
-                }));
-              });
-            }
-          }, 200);
-        `}
-
-        document.querySelector('.open-menu').onclick = ev => {
-          ev.stopImmediatePropagation();
-
-          const body = document.querySelector('body');
-          const content = document.querySelector('section#content');
-
-          if (body.classList.contains('open')) {
-            return body.onclick();
-          }
-
-          body.classList.add('open');
-
-          body.onclick = () => {
-            body.classList.remove('open');
-            body.onclick = null;
-          };
-        };
-      </script>
+      <script>window.NODE_ENV = '${NODE_ENV}';</script>
+      <script src="/scripts/highlight.min.js"></script>
+      <script type="module" src="/scripts/index.js"></script>
     </body>
   </html>
 `;

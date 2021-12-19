@@ -28,6 +28,7 @@
     }],
 
     "Transitions": ["transitions.html", {
+      "Promises": "#promises",
       "States": "#states"
     }],
 

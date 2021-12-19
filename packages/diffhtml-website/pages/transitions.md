@@ -1,18 +1,45 @@
 # Transitions
 
-A first-class global event system that triggers whenever Node operations are
-patched into the DOM. You can bind to several states, such as attached or
-detached. All states are described below.
-
-Returning a Promise from the callback will halt future renders until it is
-fulfilled. This could allow you to easily build keyframe based animations or
-integrate tools like
-[anime.js](https://animejs.com/documentation/#finishedPromise) which support
-Promises.
+A first-class global event system that triggers callbacks whenever nodes,
+attributes, and text values are added, removed, and replaced in the DOM. All
+states are described below.
 
 You can use transitions for more than just animations. It can be useful for
 modifying a DOM node based on some condition when it enters the page, such as
-backfilling an unavailable/unstable API.
+backfilling an unavailable/unstable API. You are operating on the actual DOM
+node when it enters and leaves the page, so you can install and unhook any
+code.
+
+<a name="promises"></a>
+
+---
+
+## <a href="#promises">Promises</a>
+
+You may optionally return a Promise in the transition hook to halt future
+renders and pause the current operation until it resolves. This is very useful
+for animating out an element before it is removed from the DOM. This API makes
+it easy to integrate with [Web
+Animations](https://developer.mozilla.org/en-US/docs/Web/API/Animation/finished)
+and [Anime.js](https://animejs.com/documentation/#finishedPromise). This could
+be used to enable serial or parallel animations.
+
+```js
+import { addTransitionState } from 'diffhtml';
+
+// Demonstrates a transition hook that can animate any element
+// that is added to the DOM.
+addTransitionState('attached', domElement => {
+  const frames = [
+    { transform: 'translateY(-100%)' },
+    { transform: 'translateY(0)' },
+  ];
+
+  // `animate` is from Web Animations and `finished` is a Promise
+  // which resolves once the animation completes.
+  return domElement.animate(frames, { duration: 1000 }).finished;
+});
+```
 
 <a name="states"></a>
 
