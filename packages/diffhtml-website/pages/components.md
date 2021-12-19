@@ -1,6 +1,8 @@
-# Components <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-components"><i class="fa fa-github"></i></a>
+# Components
 
-Components are useful to organize and reuse distinct parts of your interface.
+Components are used to organize and reuse distinct parts of your interface.
+They can be defined as either classes or functions. You may register any
+component as a Custom Element.
 
 <a name="overview"></a>
 
@@ -23,8 +25,8 @@ npm install --save diffhtml-components
 ## <a href="#function-component">Function component</a>
 
 ```javascript
-import 'diffhtml-components';
 import { html, innerHTML } from 'diffhtml';
+import 'diffhtml-components';
 
 function MyComponent(props) {
   return html`
@@ -150,6 +152,44 @@ innerHTML(document.body, html`<${WillMountComponent} />`);
 #### `componentWillUnmount`
 
 
+<a name="custom-element"></a>
+
+---
+
+## <a href="#custom-element">Custom Element</a>
+
+You may register any component as a Custom Element using
+`customElements.define`. This will allow you to embed components using a more
+natural syntax.
+
+```js
+import { html } from 'diffhtml';
+import { Component } from 'diffhtml-components';
+
+class ClassComponent extends Component {
+  render() {
+    const { prop } = this.props;
+
+    return html`
+      <div>Hello world with prop ${prop}</div>
+    `;
+  }
+}
+
+customElements.define('custom-element', ClassComponent);
+```
+
+Class components must use tagged template interpolation:
+
+```js
+html`<${ClassComponent} prop=${value} />`
+```
+
+Where Custom Elements may be referenced like any other HTML element:
+
+```js
+html`<custom-element prop=${value} />`
+```
 
 <a name="create-state"></a>
 
@@ -178,6 +218,36 @@ function Example() {
       <p>You clicked ${String(count)} times</p>
       <button onClick=${() => setCount(count + 1)}>Click me</button>
     </div>
+  `;
+}
+
+innerHTML(main, html`<${Example} />`);
+```
+
+<a name="create-side-effect"></a>
+
+---
+
+## <a href="#create-side-effect">createSideEffect</a>
+
+The function `createSideEffect` is used to schedule some work after a component
+has updated.
+
+<a name="create-side-effect-examples"></a>
+
+### <a href="#create-side-effect-examples"><u>Examples</u></a>
+
+```javascript
+import { innerHTML, html } from 'diffhtml';
+import { createSideEffect } from 'diffhtml-components';
+
+function Example() {
+  createSideEffect(() => {
+    console.log('Component has rendered');
+  });
+
+  return html`
+    <div>Hello world</div>
   `;
 }
 
