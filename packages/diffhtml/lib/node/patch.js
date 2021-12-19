@@ -166,8 +166,6 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           'attributeChanged', vTree, name, oldValue, value
         );
 
-        //protectVTree(vTree);
-
         const setOrRemove = isSet ? setAttribute : removeAttribute;
 
         if (attributeChangedPromises.length) {
