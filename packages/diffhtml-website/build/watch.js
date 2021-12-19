@@ -8,6 +8,6 @@ const watcher = watch(process.cwd(), {
 });
 
 watcher.on('change', path => {
-  copy();
+  //copy();
   generate()
 });

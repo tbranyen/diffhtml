@@ -281,7 +281,7 @@
 
         <section id="content"><h1 id="core-api">Core API</h1>
 <p>This documentation covers the core public API. All methods can work in the
-browser, with JSDOM, and directly in NodeJS without JSDOM.</p>
+browser, and directly in Node.js with or without jsdom.</p>
 <p><u>Terminology:</u></p>
 <ul>
 <li><p><strong>VTree</strong>: You will see them mentioned throughout the documentation. They are
@@ -290,8 +290,8 @@ the tagName, what the childNodes are, and more. A reference to a VTree can get
 you access to the DOM node it represents. They are used throughout the
 codebase to simplify and abstract the internals away from the DOM, in favor of
 one that is virtual, hence the V.</p>
-<p>An added bonus to this is that diffHTML can work seamlessly in Node without
-a DOM abstraction such as JSDOM.</p>
+<p>An added bonus to this is that diffHTML can work seamlessly in Node.js without
+a DOM abstraction such as jsdom.</p>
 </li>
 <li><p><strong>Transaction</strong>: An object that represents a render. One is produced every
 time you call innerHTML, outerHTML, or toString. You don&#39;t need to worry about
@@ -301,17 +301,12 @@ it unless you&#39;re trying to deeply understand the library.</p>
 <p><a name="inner-html"></a></p>
 <hr></hr>
 <h2 id="a-hrefinner-htmlinnerhtmla-mount-input-options"><a href="#inner-html">innerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
-<p>Takes input and compares to the children Nodes inside mount. Does not compare
-any attributes on the mounted element. Both mount and input can be either
-VTrees, DOM Nodes, including fragments, and input may also be a string.</p>
-<p>The <code>innerHTML</code> method is the most common to use. The behavior mimics what you
-would expect from the browser API of the same name. You give a Node and markup
-which becomes the new contents of the element.</p>
-<p>You may call this once in a complex application where the individual components
-re-render themselves, or in a game you would call this on every render tick, if
-you&#39;re building something simple, you can call it whenever the state changes.</p>
-<p>All renders go through the same scheduling pipeline which means VTrees are
-shared across all other renders.</p>
+<p>Compares and updates the contents of <code>mount</code> with the <code>input</code>. Creates a
+Transaction, invokes 
+    <a href="/middleware.html" title="null">middleware</a>
+  , compares old and new markup, runs 
+    <a href="/transitions.html" title="null">transitions</a>
+  , and patches the DOM.</p>
 <p><a name="inner-html-arguments"></a></p>
 <h3 id="a-hrefinner-html-argumentsuargumentsua"><a href="#inner-html-arguments"><u>Arguments</u></a></h3>
 <table>
@@ -323,7 +318,7 @@ shared across all other renders.</p>
 </thead>
 <tbody><tr>
 <td><strong>mount</strong></td>
-<td>The root DOM node to update children in, but not the node itself.</td>
+<td>DOM Node or VTree to sync or patch the <strong>childNodes</strong> of.</td>
 </tr>
 <tr>
 <td><strong>input</strong></td>
@@ -333,7 +328,7 @@ shared across all other renders.</p>
 <td><strong>options</strong></td>
 <td><strong>
     <a href="#config-options" title="null">Config options</a>
-  </strong></td>
+  </strong>, <code>inner</code> is always <code>true</code></td>
 </tr>
 </tbody></table>
 <p><a name="inner-html-examples"></a></p>
@@ -346,11 +341,14 @@ innerHTML(document.body, `
 <p><a name="outer-html"></a></p>
 <hr></hr>
 <h2 id="a-hrefouter-htmlouterhtmla-mount-input-options"><a href="#outer-html">outerHTML</a> <strong><code>(mount, input, options)</code></strong></h2>
-<p>Compares the attributes and children of mount with input.</p>
+<p>Same as 
+    <a href="#inner-html" title="null"><code>innerHTML</code></a>
+   except compares the <code>input</code> directly to the
+<code>mount</code>, instead of the <code>childNodes</code>.</p>
 <p>Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the
 element you&#39;re modifying has a parent, you may also change the element type,
-but this isn&#39;t really recommended.</p>
+but this can sometimes result in unexpected behavior.</p>
 <p><a name="outer-html-arguments"></a></p>
 <h3 id="a-hrefouter-html-argumentsuargumentsua"><a href="#outer-html-arguments"><u>Arguments</u></a></h3>
 <table>
@@ -362,7 +360,7 @@ but this isn&#39;t really recommended.</p>
 </thead>
 <tbody><tr>
 <td><strong>mount</strong></td>
-<td>The root DOM node to update including attributes and children.</td>
+<td>DOM Node or VTree to sync or patch.</td>
 </tr>
 <tr>
 <td><strong>input</strong></td>
@@ -370,16 +368,24 @@ but this isn&#39;t really recommended.</p>
 </tr>
 <tr>
 <td><strong>options</strong></td>
-<td><ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul></td>
+<td><strong>
+    <a href="#config-options" title="null">Config options</a>
+  </strong>, <code>inner</code> is always <code>false</code></td>
 </tr>
 </tbody></table>
 <p><a name="outer-html-examples"></a></p>
 <h3 id="a-hrefouter-html-examplesuexamplesua"><a href="#outer-html-examples"><u>Examples</u></a></h3>
-<pre><code class="language-js">outerHTML(document.body, &#39;&lt;body&gt;Hello world&lt;/body&gt;&#39;);</code></pre>
+<pre><code class="language-js">import { outerHTML } from &#39;diffhtml&#39;;
+
+outerHTML(document.body, `
+  &lt;body&gt;Hello world&lt;/body&gt;
+`);</code></pre>
 <p><a name="to-string"></a></p>
 <hr></hr>
 <h2 id="a-hrefto-stringtostringa-input-options"><a href="#to-string">toString</a> <strong><code>(input, options)</code></strong></h2>
-<p>Takes any valid input and returns a serialized string of XML/HTML markup.</p>
+<p>Takes any valid input and returns a serialized string of XML/HTML markup. This
+helps you create static markup from complex renders to a simple <code>VTree</code>.</p>
+<p>All middleware run during this, so features like components and logging work.</p>
 <p><a name="to-string-arguments"></a></p>
 <h3 id="a-hrefto-string-argumentsuargumentsua"><a href="#to-string-arguments"><u>Arguments</u></a></h3>
 <table>
@@ -395,12 +401,16 @@ but this isn&#39;t really recommended.</p>
 </tr>
 <tr>
 <td><strong>options</strong></td>
-<td><ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul></td>
+<td><strong>
+    <a href="#config-options" title="null">Config options</a>
+  </strong>, <code>inner</code> and <code>executeScripts</code> have no effect</td>
 </tr>
 </tbody></table>
 <p><a name="to-string-examples"></a></p>
 <h3 id="a-hrefto-string-examplesuexamplesua"><a href="#to-string-examples"><u>Examples</u></a></h3>
-<pre><code class="language-js">toString(&#39;&lt;body&gt;Hello world&lt;/body&gt;&#39;);
+<pre><code class="language-js">import { toString } from &#39;diffhtml&#39;;
+
+toString(&#39;&lt;body&gt;Hello world&lt;/body&gt;&#39;);
 // &lt;body&gt;Hello world&lt;/body&gt;</code></pre>
 <p><a name="html"></a></p>
 <hr></hr>
@@ -761,7 +771,8 @@ asynchronous.</p>
 <p>See 
     <a href="#version" title="null">VERSION</a>
   </p>
-<p><a name="version"></a></p>
+<a name="version"></a>
+
 <hr></hr>
 <h2 id="a-hrefversionversiona"><a href="#version">VERSION</a></h2>
 <p>Property which indicates the current running version of diffHTML.</p>
@@ -772,18 +783,29 @@ asynchronous.</p>
 <h2 id="a-hrefconfig-optionsconfig-optionsa"><a href="#config-options">Config options</a></h2>
 <ul>
 <li>
-    <a href="#tasks" title="null"><code>tasks</code></a>
+    <a href="#config-options-inner" title="null"><code>inner</code></a>
   </li>
 <li>
-    <a href="#execute-scripts" title="null"><code>executeScripts</code></a>
+    <a href="#config-options-tasks" title="null"><code>tasks</code></a>
   </li>
 <li>
-    <a href="#parser" title="null"><code>parser</code></a>
+    <a href="#config-options-execute-scripts" title="null"><code>executeScripts</code></a>
+  </li>
+<li>
+    <a href="#config-options-parser" title="null"><code>parser</code></a>
   </li>
 </ul>
+<a name="config-options-inner"></a>
 
+<h3 id="a-hrefconfig-options-innerinner-booleana"><a href="#config-options-inner">inner <code>Boolean</code></a></h3>
+<p>Determines if the Transaction should update the DOM Node or just its children.
+Setting this to <code>true</code> will emulate the behavior of <code>innerHTML</code> and setting it
+to <code>false</code> emulates <code>outerHTML</code>. You cannot set this using <code>innerHTML</code> or
+<code>outerHTML</code>, and it has no effect with <code>toString</code> so it is only useful if you
+manually create Transactions which is an advanced use case.</p>
+<a name="config-options-tasks"></a>
 
-<h3 id="tasks-function">tasks <code>Function[]</code></h3>
+<h3 id="a-hrefconfig-options-taskstasks-functiona"><a href="#config-options-tasks">tasks <code>Function[]</code></a></h3>
 <p>Manipulate the tasks which run. This can allow you to do interesting things
 with the core API. You can do API changes like providing a stream or generator
 API for the return signature, you can remove syncing and provide your own
@@ -825,10 +847,12 @@ innerHTML(document.body, `&lt;h1&gt;Hello world&lt;/h1&gt;`, {
 })(transaction =&gt; {
   console.log(&#39;Render has completed with transaction&#39;, transaction);
 });</code></pre>
-<h3 id="executescripts-boolean">executeScripts <code>Boolean</code></h3>
-<p>Control whether or not newly appended scripts are executed or not. Tricks the
-browser by setting the <code>type</code> property to <code>no-execute</code> when a script is added.
-This prevents the browser from executing the script.</p>
+<a name="config-options-execute-scripts"></a>
+
+<h3 id="a-hrefconfig-options-execute-scriptsexecutescripts-booleana"><a href="#config-options-execute-scripts">executeScripts <code>Boolean</code></a></h3>
+<p>Control whether or not newly appended scripts are executed or not. When
+enabled, tricks the browser by setting the <code>type</code> property to <code>no-execute</code> when
+a script is added. This prevents the browser from executing the script.</p>
 <h4 id="example-2">Example</h4>
 <pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
 
@@ -840,7 +864,9 @@ innerHTML(document.body, `&lt;script&gt;window.alert(&#39;here&#39;)&lt;/script&
   executeScripts: false,
 });
 </code></pre>
-<h3 id="parser-object">parser <code>Object</code></h3>
+<a name="config-options-parser"></a>
+
+<h3 id="a-hrefconfig-options-parserparser-objecta"><a href="#config-options-parser">parser <code>Object</code></a></h3>
 <p>These options modify the parser by making it more strict or changing which
 elements are treated as block or self closing.</p>
 <p>

@@ -1,7 +1,7 @@
 # Core API
 
 This documentation covers the core public API. All methods can work in the
-browser, with JSDOM, and directly in NodeJS without JSDOM.
+browser, and directly in Node.js with or without jsdom.
 
 <u>Terminology:</u>
 
@@ -12,8 +12,8 @@ browser, with JSDOM, and directly in NodeJS without JSDOM.
   codebase to simplify and abstract the internals away from the DOM, in favor of
   one that is virtual, hence the V.
 
-  An added bonus to this is that diffHTML can work seamlessly in Node without
-  a DOM abstraction such as JSDOM.
+  An added bonus to this is that diffHTML can work seamlessly in Node.js without
+  a DOM abstraction such as jsdom.
 
 - **Transaction**: An object that represents a render. One is produced every
   time you call innerHTML, outerHTML, or toString. You don't need to worry about
@@ -25,20 +25,8 @@ browser, with JSDOM, and directly in NodeJS without JSDOM.
 
 ## <a href="#inner-html">innerHTML</a> **`(mount, input, options)`**
 
-Takes input and compares to the children Nodes inside mount. Does not compare
-any attributes on the mounted element. Both mount and input can be either
-VTrees, DOM Nodes, including fragments, and input may also be a string.
-
-The `innerHTML` method is the most common to use. The behavior mimics what you
-would expect from the browser API of the same name. You give a Node and markup
-which becomes the new contents of the element.
-
-You may call this once in a complex application where the individual components
-re-render themselves, or in a game you would call this on every render tick, if
-you're building something simple, you can call it whenever the state changes.
-
-All renders go through the same scheduling pipeline which means VTrees are
-shared across all other renders.
+Compares and updates the contents of `mount` with the `input`. Creates a
+Transaction, invokes [middleware](/middleware.html), compares old and new markup, runs [transitions](/transitions.html), and patches the DOM.
 
 <a name="inner-html-arguments"></a>
 
@@ -46,9 +34,9 @@ shared across all other renders.
 
 | Name        | Description
 | ----------- | -----------
-| **mount**   | The root DOM node to update children in, but not the node itself.
+| **mount**   | DOM Node or VTree to sync or patch the **childNodes** of.
 | **input**   | New markup to replace into **mount**.
-| **options** | **[Config options](#config-options)**
+| **options** | **[Config options](#config-options)**, `inner` is always `true`
 
 <a name="inner-html-examples"></a>
 
@@ -68,12 +56,13 @@ innerHTML(document.body, `
 
 ## <a href="#outer-html">outerHTML</a> **`(mount, input, options)`**
 
-Compares the attributes and children of mount with input.
+Same as [`innerHTML`](#inner-html) except compares the `input` directly to the
+`mount`, instead of the `childNodes`.
 
 Replaces the contents of a DOM node with the passed in markup, only updates
 what has changed. Additionally updates the attributes of the parent. If the
 element you're modifying has a parent, you may also change the element type,
-but this isn't really recommended.
+but this can sometimes result in unexpected behavior.
 
 <a name="outer-html-arguments"></a>
 
@@ -81,16 +70,20 @@ but this isn't really recommended.
 
 | Name        | Description
 | ----------- | -----------
-| **mount**   | The root DOM node to update including attributes and children.
+| **mount**   | DOM Node or VTree to sync or patch.
 | **input**   | New markup to replace into **mount**.
-| **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul>
+| **options** | **[Config options](#config-options)**, `inner` is always `false`
 
 <a name="outer-html-examples"></a>
 
 ### <a href="#outer-html-examples"><u>Examples</u></a>
 
 ``` js
-outerHTML(document.body, '<body>Hello world</body>');
+import { outerHTML } from 'diffhtml';
+
+outerHTML(document.body, `
+  <body>Hello world</body>
+`);
 ```
 
 
@@ -100,7 +93,10 @@ outerHTML(document.body, '<body>Hello world</body>');
 
 ## <a href="#to-string">toString</a> **`(input, options)`**
 
-Takes any valid input and returns a serialized string of XML/HTML markup.
+Takes any valid input and returns a serialized string of XML/HTML markup. This
+helps you create static markup from complex renders to a simple `VTree`.
+
+All middleware run during this, so features like components and logging work.
 
 <a name="to-string-arguments"></a>
 
@@ -109,13 +105,15 @@ Takes any valid input and returns a serialized string of XML/HTML markup.
 | Name        | Description
 | ----------- | -----------
 | **input**   | New markup to replace into **mount**.
-| **options** | <ul><li><strong>tasks:</strong> An array of tasks to run. Can swap these out to modify the render flow.</li><li><strong>parser:</strong> Settings which influence the HTML parser.</li></ul>
+| **options** | **[Config options](#config-options)**, `inner` and `executeScripts` have no effect
 
 <a name="to-string-examples"></a>
 
 ### <a href="#to-string-examples"><u>Examples</u></a>
 
 ``` js
+import { toString } from 'diffhtml';
+
 toString('<body>Hello world</body>');
 // <body>Hello world</body>
 ```
@@ -536,7 +534,7 @@ Transactions have a number of properties available to access:
 
 See [VERSION](#version)
 
-<a name="version"></a>
+<a name="version" />
 
 ---
 
@@ -556,19 +554,24 @@ console.log(VERSION);
 
 ## <a href="#config-options">Config options</a>
 
-- [`tasks`](#tasks)
-- [`executeScripts`](#execute-scripts)
-- [`parser`](#parser)
+- [`inner`](#config-options-inner)
+- [`tasks`](#config-options-tasks)
+- [`executeScripts`](#config-options-execute-scripts)
+- [`parser`](#config-options-parser)
 
-<!--
-### inner `Boolean`
+<a name="config-options-inner" />
+
+### <a href="#config-options-inner">inner `Boolean`</a>
 
 Determines if the Transaction should update the DOM Node or just its children.
 Setting this to `true` will emulate the behavior of `innerHTML` and setting it
-to `false` emulates `outerHTML`.
--->
+to `false` emulates `outerHTML`. You cannot set this using `innerHTML` or
+`outerHTML`, and it has no effect with `toString` so it is only useful if you
+manually create Transactions which is an advanced use case.
 
-### tasks `Function[]`
+<a name="config-options-tasks" />
+
+### <a href="#config-options-tasks">tasks `Function[]`</a>
 
 Manipulate the tasks which run. This can allow you to do interesting things
 with the core API. You can do API changes like providing a stream or generator
@@ -618,11 +621,13 @@ innerHTML(document.body, `<h1>Hello world</h1>`, {
 });
 ```
 
-### executeScripts `Boolean`
+<a name="config-options-execute-scripts" />
 
-Control whether or not newly appended scripts are executed or not. Tricks the
-browser by setting the `type` property to `no-execute` when a script is added.
-This prevents the browser from executing the script.
+### <a href="#config-options-execute-scripts">executeScripts `Boolean`</a>
+
+Control whether or not newly appended scripts are executed or not. When
+enabled, tricks the browser by setting the `type` property to `no-execute` when
+a script is added. This prevents the browser from executing the script.
 
 #### Example
 
@@ -639,7 +644,9 @@ innerHTML(document.body, `<script>window.alert('here')</script>`, {
 
 ```
 
-### parser `Object`
+<a name="config-options-parser" />
+
+### <a href="#config-options-parser">parser `Object`</a>
 
 These options modify the parser by making it more strict or changing which
 elements are treated as block or self closing.
