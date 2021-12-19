@@ -31,6 +31,7 @@ const setAttribute = (vTree, domNode, name, value) => {
   const isFunction = typeof value === 'function';
   const isSymbol = typeof value === 'symbol';
   const isEvent = name.indexOf('on') === 0;
+  const anyNode = /** @type {any} */ (domNode);
 
   // Events must be lowercased otherwise they will not be set correctly.
   const lowerName = isEvent ? name.toLowerCase() : name;
@@ -43,13 +44,14 @@ const setAttribute = (vTree, domNode, name, value) => {
 
   // Since this is a property value it gets set directly on the node.
   if (allowlist.has(blocklistName)) {
-    /** @type {any} */ (domNode)[lowerName] = value;
+    anyNode[lowerName] = value;
   }
   else if (!blocklist.has(blocklistName)) {
     try {
-      /** @type {any} */ (domNode)[lowerName] = value;
+      anyNode[lowerName] = value;
       allowlist.add(blocklistName);
-    } catch (unhandledException) {
+    }
+    catch {
       blocklist.add(blocklistName);
     }
   }
@@ -58,10 +60,9 @@ const setAttribute = (vTree, domNode, name, value) => {
   // set as an attribute. If the value is one of the excluded types, they
   // will be set below.
   if (!isObject && !isFunction && !isSymbol) {
-    const emptyValue = value === null || value === undefined || value === true;
-
     // For boolean/empty attributes, do not try and set a value, just an empty
     // string.
+    const emptyValue = value === null || value === undefined || value === true;
     htmlElement.setAttribute(lowerName, emptyValue ? EMPTY.STR : value);
   }
   // Support patching an object representation of the style object.
@@ -77,13 +78,14 @@ const setAttribute = (vTree, domNode, name, value) => {
 /**
  * Removes an attribute from an element.
  *
+ * @param {VTree} vTree
  * @param {ValidNode} domNode
  * @param {string} name
  * @return {void}
  */
-const removeAttribute = (domNode, name) => {
+const removeAttribute = (vTree, domNode, name) => {
   // Runtime checking if the property can be set.
-  const blocklistName = /** @type {HTMLElement} */ (domNode).nodeName + '-' + name;
+  const blocklistName = vTree.nodeName + '-' + name;
   const anyNode = /** @type {any} */ (domNode);
 
   if (allowlist.has(blocklistName)) {
@@ -94,9 +96,9 @@ const removeAttribute = (domNode, name) => {
     try {
       anyNode[name] = undefined;
       delete anyNode[name];
-
       allowlist.add(blocklistName);
-    } catch (unhandledException) {
+    }
+    catch {
       blocklist.add(blocklistName);
     }
   }
@@ -145,12 +147,14 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
     }
 
     switch(patchType) {
+      case PATCH_TYPE.REMOVE_ATTRIBUTE:
       case PATCH_TYPE.SET_ATTRIBUTE: {
+        const isSet = patchType === PATCH_TYPE.SET_ATTRIBUTE;
         const vTree = patches[i + 1];
         const name = patches[i + 2];
-        const value = decodeEntities(patches[i + 3]);
+        const value = isSet ? decodeEntities(patches[i + 3]) : null;
 
-        i += 4;
+        i += isSet ? 4 : 3;
 
         const isSVG = svgElements.has(vTree);
         const domNode = /** @type {HTMLElement} */ (
@@ -162,47 +166,18 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           'attributeChanged', vTree, name, oldValue, value
         );
 
-        protectVTree(vTree);
+        //protectVTree(vTree);
+
+        const setOrRemove = isSet ? setAttribute : removeAttribute;
 
         if (attributeChangedPromises.length) {
           Promise.all(attributeChangedPromises)
-            .then(() => setAttribute(vTree, domNode, name, value));
+            .then(() => setOrRemove(vTree, domNode, name, value));
 
           promises.push(...attributeChangedPromises);
         }
         else {
-          setAttribute(vTree, domNode, name, value);
-        }
-
-        break;
-      }
-
-      case PATCH_TYPE.REMOVE_ATTRIBUTE: {
-        const vTree = patches[i + 1];
-        const name = patches[i + 2];
-
-        i += 3;
-
-        const isSVG = svgElements.has(vTree);
-        const domNode = /** @type {HTMLElement} */ (
-          createNode(vTree, ownerDocument, isSVG)
-        );
-
-        const oldValue = domNode.getAttribute(name);
-        const attributeChangedPromises = runTransitions(
-          'attributeChanged', vTree, name, oldValue, null
-        );
-
-        protectVTree(vTree);
-
-        if (attributeChangedPromises.length) {
-          Promise.all(attributeChangedPromises)
-            .then(() => removeAttribute(domNode, name));
-
-          promises.push(...attributeChangedPromises);
-        }
-        else {
-          removeAttribute(domNode, name);
+          setOrRemove(vTree, domNode, name, value);
         }
 
         break;

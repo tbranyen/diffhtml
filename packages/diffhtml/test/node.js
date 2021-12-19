@@ -651,9 +651,8 @@ describe('Node', function() {
     it('will remove invalid properties without erroring', () => {
       const vTree = html`<div />`;
       const domNode = createNode(vTree);
-      const func = () => {};
 
-      defineProperty(domNode, 'test', {
+      defineProperty(domNode, 'error', {
         get() { return true; },
         set() { throw null; },
       });
@@ -661,22 +660,21 @@ describe('Node', function() {
       const patches = [
         PATCH_TYPE.REMOVE_ATTRIBUTE,
         vTree,
-        'test',
+        'error',
       ];
 
       patchNode(patches);
       release(domNode);
 
-      equal(domNode.test, true);
-      equal(domNode.getAttribute('test'), undefined);
+      equal(domNode.error, true);
+      equal(domNode.getAttribute('error'), undefined);
     });
 
     it('will remove known invalid properties without erroring', () => {
       const vTree = html`<div />`;
       const domNode = createNode(vTree);
-      const func = () => {};
 
-      defineProperty(domNode, 'test', {
+      defineProperty(domNode, 'error', {
         get() { return true; },
         set() { throw null; },
       });
@@ -684,19 +682,19 @@ describe('Node', function() {
       patchNode([
         PATCH_TYPE.REMOVE_ATTRIBUTE,
         vTree,
-        'test',
+        'error',
       ]);
 
       patchNode([
         PATCH_TYPE.REMOVE_ATTRIBUTE,
         vTree,
-        'test',
+        'error',
       ]);
 
       release(domNode);
 
-      equal(domNode.test, true);
-      equal(domNode.getAttribute('test'), undefined);
+      equal(domNode.error, true);
+      equal(domNode.getAttribute('error'), undefined);
     });
 
     it('will remove attribute after promise resolution', async () => {
