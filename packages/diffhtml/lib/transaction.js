@@ -23,6 +23,8 @@ import release from './release';
 import getConfig from './util/config';
 import hasModule from './util/has-module';
 
+const { assign } = Object;
+
 export const defaultTasks = [
   schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
 ];
@@ -230,46 +232,49 @@ export default class Transaction {
       state.isDirty = true;
     }
 
-    // Execute all queued scripts.
-    scriptsToExecute.forEach((type = EMPTY.STR, vTree) => {
-      const oldNode = /** @type {HTMLElement} */ (NodeCache.get(vTree));
-
-      // Reset the type value.
-      if (type) oldNode.setAttribute('type', type);
-      else oldNode.removeAttribute('type');
-    });
-
-    // Save the markup immediately after patching.
-    state.previousMarkup = 'outerHTML' in mountAsHTMLEl ? mountAsHTMLEl.outerHTML : EMPTY.STR;
-
     // Only execute scripts if the configuration is set. By default this is set
     // to true. You can toggle this behavior for your app to disable script
     // execution.
-    if (config.executeScripts) {
-      // Execute deferred scripts by cloning them and reattaching into the same
-      // position.
-      scriptsToExecute.forEach((_, vTree)=> {
-        const oldNode = NodeCache.get(vTree);
-        const newNode = /** @type {any} */ (oldNode).cloneNode(true);
+    // Execute deferred scripts by cloning them and reattaching into the same
+    // position.
+    scriptsToExecute.forEach((type, vTree)=> {
+      const oldNode = NodeCache.get(vTree);
 
-        if (!oldNode || (hasModule() && newNode.type === 'nomodule')) {
-          return;
-        }
+      // Reset the type attribute back to the original.
+      oldNode.type = type;
 
-        // If the script is now the root element, make sure we cleanup and
-        // re-assign.
-        if (StateCache.has(oldNode)) {
-          release(oldNode);
-          StateCache.set(newNode, state);
-        }
+      if (!config.executeScripts || (hasModule() && type === 'nomodule')) {
+        return;
+      }
 
-        // Replace the node association.
-        NodeCache.set(vTree, newNode);
+      // Copy over properties to the new script element.
+      const newNode = assign(
+        oldNode.ownerDocument.createElement('script'),
+        oldNode,
+      );
 
-        // Replace the scripts to trigger default browser behavior.
-        oldNode.parentNode && oldNode.parentNode.replaceChild(newNode, oldNode);
-      });
-    }
+      // Copy over attributes.
+      for (let key in vTree.attributes) {
+        const value = vTree.attributes[key];
+        newNode.setAttribute(key, value);
+      }
+
+      // Copy over body.
+      newNode.textContent = oldNode.textContent;
+
+      // If the script is now the root element, make sure we cleanup and
+      // re-assign.
+      if (StateCache.has(oldNode)) {
+        release(oldNode);
+        StateCache.set(newNode, state);
+      }
+
+      // Replace the node association.
+      NodeCache.set(vTree, newNode);
+
+      // Replace the scripts to trigger default browser behavior.
+      oldNode.parentNode && oldNode.parentNode.replaceChild(newNode, oldNode);
+    });
 
     // Empty the scripts to execute.
     scriptsToExecute.clear();

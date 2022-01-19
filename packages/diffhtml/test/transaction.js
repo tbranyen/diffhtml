@@ -322,15 +322,6 @@ describe('Transaction', function() {
       strictEqual(transaction.completed, true);
     });
 
-    it('will set the state', () => {
-      const { mount, input, config } = suite;
-      const transaction = Transaction.create(mount, input, config);
-
-      transaction.end();
-
-      strictEqual(transaction.state.previousMarkup, '<div></div>');
-    });
-
     it('will change isRendering', () => {
       const { mount, input, config } = suite;
       const transaction = Transaction.create(mount, input, config);
