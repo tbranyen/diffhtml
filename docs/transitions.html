@@ -290,16 +290,17 @@ node when it enters and leaves the page, so you can install and unhook any
 code.</p>
 <p><a name="promises"></a></p>
 <hr></hr>
-<h2 id="a-hrefpromisespromisesa"><a href="#promises">Promises</a></h2>
+<h2 id="promises"><a href="#promises">Promises</a></h2>
 <p>You may optionally return a Promise in the transition hook to halt future
 renders and pause the current operation until it resolves. This is very useful
 for animating out an element before it is removed from the DOM. This API makes
 it easy to integrate with 
-      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Animation/finished" target="_blank" rel="noopener noreferrer" title="null">Web
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Animation/finished" target="_blank" rel="noopener noreferrer" title="Web
+Animations">Web
 Animations</a>
     
 and 
-      <a href="https://animejs.com/documentation/#finishedPromise" target="_blank" rel="noopener noreferrer" title="null">Anime.js</a>
+      <a href="https://animejs.com/documentation/#finishedPromise" target="_blank" rel="noopener noreferrer" title="Anime.js">Anime.js</a>
     . This could
 be used to enable serial or parallel animations.</p>
 <pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;
@@ -315,67 +316,74 @@ addTransitionState(&#39;attached&#39;, domElement =&gt; {
   // `animate` is from Web Animations and `finished` is a Promise
   // which resolves once the animation completes.
   return domElement.animate(frames, { duration: 1000 }).finished;
-});</code></pre>
+});
+</code></pre>
 <p><a name="states"></a></p>
 <hr></hr>
-<h2 id="a-hrefstatesstatesa"><a href="#states">States</a></h2>
+<h2 id="states"><a href="#states">States</a></h2>
 <p>The following states are available to hook into through the Virtual DOM
 operations.</p>
 <ul>
 <li>
-    <a href="#attached" title="null"><strong>attached</strong></a>
+    <a href="#attached" title="<strong>attached</strong>"><strong>attached</strong></a>
   </li>
 <li>
-    <a href="#detached" title="null"><strong>detached</strong></a>
+    <a href="#detached" title="<strong>detached</strong>"><strong>detached</strong></a>
   </li>
 <li>
-    <a href="#replaced" title="null"><strong>replaced</strong></a>
+    <a href="#replaced" title="<strong>replaced</strong>"><strong>replaced</strong></a>
   </li>
 <li>
-    <a href="#attribute-changed" title="null"><strong>attributeChanged</strong></a>
+    <a href="#attribute-changed" title="<strong>attributeChanged</strong>"><strong>attributeChanged</strong></a>
   </li>
 <li>
-    <a href="#text-changed" title="null"><strong>textChanged</strong></a>
+    <a href="#text-changed" title="<strong>textChanged</strong>"><strong>textChanged</strong></a>
   </li>
 </ul>
-<pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;</code></pre>
+<pre><code class="language-js">import { addTransitionState } from &#39;diffhtml&#39;;
+</code></pre>
 <p><a name="attached"></a></p>
 <hr></hr>
-<h3 id="a-hrefattachedattacheda"><a href="#attached">Attached</a></h3>
+<h3 id="attached"><a href="#attached">Attached</a></h3>
 <p>This triggers whenever an element gets added into the DOM. Text and comment
 nodes are not included.</p>
 <pre><code class="language-js">addTransitionState(&#39;attached&#39;, (element) =&gt; {
   console.log(element);
-});</code></pre>
+});
+</code></pre>
 <p><a name="detached"></a></p>
 <hr></hr>
-<h3 id="a-hrefdetacheddetacheda"><a href="#detached">Detached</a></h3>
+<h3 id="detached"><a href="#detached">Detached</a></h3>
 <p>For when an element leaves the DOM.</p>
 <pre><code class="language-js">addTransitionState(&#39;detached&#39;, (element) =&gt; {
   console.log(element);
-});</code></pre>
+});
+</code></pre>
 <p><a name="replaced"></a></p>
 <hr></hr>
-<h3 id="a-hrefreplacedreplaceda"><a href="#replaced">Replaced</a></h3>
+<h3 id="replaced"><a href="#replaced">Replaced</a></h3>
 <p>Whenever two elements are replaced at render time this is called with the old
 and new elements.</p>
 <pre><code class="language-js">addTransitionState(&#39;replaced&#39;, (oldElement, newElement) =&gt; {
   console.log(oldElement, newElement);
-});</code></pre>
+});
+</code></pre>
 <p><a name="attribute-changed"></a></p>
 <hr></hr>
-<h3 id="a-hrefattribute-changedattribute-changeda"><a href="#attribute-changed">Attribute changed</a></h3>
+<h3 id="attribute-changed"><a href="#attribute-changed">Attribute changed</a></h3>
 <p>For when attributes have changed.</p>
 <pre><code class="language-js">addTransitionState(&#39;attributeChanged&#39;, (element, attrName, oldValue, newValue) =&gt; {
   console.log(element, attrName, oldValue, newValue);
-});</code></pre>
+});
+</code></pre>
 <p><a name="text-changed"></a></p>
 <hr></hr>
-<h3 id="a-hreftext-changedtext-changeda"><a href="#text-changed">Text changed</a></h3>
+<h3 id="text-changed"><a href="#text-changed">Text changed</a></h3>
 <p>For when text has changed in either TextNodes or SVG text elements.</p>
 <pre><code class="language-js">addTransitionState(&#39;textChanged&#39;, (element, oldValue, newValue) =&gt; {
   console.log(element, oldValue, newValue);
-});</code></pre>
+});
+</code></pre>
 <hr></hr>
 </section>
 
@@ -396,7 +404,7 @@ and new elements.</p>
         </footer>
       </layer>
 
-      <script>window.NODE_ENV = 'production';</script>
+      <script>window.NODE_ENV = 'development';</script>
       <script src="/scripts/highlight.min.js"></script>
       <script type="module" src="/scripts/index.js"></script>
     </body>

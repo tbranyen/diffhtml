@@ -287,7 +287,8 @@ object which is used by the core engine and the Babel transform.</p>
 <p>When you use <code>innerHTML</code>, <code>outerHTML</code>, or <code>html</code> and pass markup, it will run
 through this very fast and efficient parser. Usually production code does not
 run the parser. You will pre-compile your markup using the 
-    <a href="/tools.html#babel-transform" title="null">Babel
+    <a href="/tools.html#babel-transform" title="Babel
+transform">Babel
 transform</a>
   .</p>
 <p>The parser can read full HTML documents including doctype, html/head/body/title
@@ -296,19 +297,22 @@ etc tags, unwrapped fragments, and more!</p>
 <pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
 
 // Using innerHTML will parse the HTML markup from a string literal.
-innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);</code></pre>
+innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);
+</code></pre>
 <p>This produces a single top level element <code>&lt;div/&gt;</code> with a nested <code>#text</code> node.</p>
 <p>If you were to structure your code like this:</p>
 <pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
 
 // Using innerHTML will parse the HTML markup from a string literal.
-innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);</code></pre>
+innerHTML(document.body, &#39;&lt;div&gt;Hello world&lt;/div&gt;&#39;);
+</code></pre>
 <p>This would become:</p>
 <pre><code class="language-js">import { createTree } from &#39;diffhtml&#39;;
 
 innerHTML(document.body, createTree(&#39;div&#39;, null, [
   createTree(&#39;#text&#39;, &#39;Hello world&#39;)
-]));</code></pre>
+]));
+</code></pre>
 <p>You&#39;ll notice the top-level element returned is &#39;div&#39;. From there you may
 think:</p>
 <pre><code class="language-js">import { innerHTML } from &#39;diffhtml&#39;;
@@ -316,7 +320,8 @@ think:</p>
 // Using innerHTML will parse the HTML markup from a string literal.
 innerHTML(document.body, `
   &lt;div&gt;Hello world&lt;/div&gt;
-`);</code></pre>
+`);
+</code></pre>
 <p>Would produce similar behavior, but it does not. The returned value mirrors
 what is embedded precisely, becoming:</p>
 <pre><code class="language-js">import { createTree } from &#39;diffhtml&#39;;
@@ -325,7 +330,8 @@ innerHTML(document.body, createTree(&#39;#document-fragment&#39;, [
   createTree(&#39;#text&#39;, &#39;\n&#39;),
   createTree(&#39;div&#39;, null, [createTree(&#39;#text&#39;, &#39;Hello world&#39;)]),
   createTree(&#39;#text&#39;, &#39;\n&#39;),
-]));</code></pre>
+]));
+</code></pre>
 <p>This can be useful knowledge for optimizing, but for more applications it
 should be fine to keep them in for developer convenience.</p>
 <p><strong>Using with outerHTML:</strong></p>
@@ -334,7 +340,8 @@ should be fine to keep them in for developer convenience.</p>
 // Using outerHTML will parse the HTML markup and apply around the element.
 outerHTML(document.body, `
   &lt;body&gt;Hello world&lt;/body&gt;
-`);</code></pre>
+`);
+</code></pre>
 <p><strong>Using with html:</strong></p>
 <pre><code class="language-js">import { html } from &#39;diffhtml&#39;;
 
@@ -342,7 +349,8 @@ outerHTML(document.body, `
 // dynamic values directly.
 console.log(html`
   &lt;div&gt;Hello world&lt;/div&gt;
-`);</code></pre>
+`);
+</code></pre>
 <p><strong>Using directly from Internals:</strong></p>
 <pre><code class="language-js">import { Internals } from &#39;diffhtml&#39;;
 
@@ -351,29 +359,30 @@ console.log(html`
 // about this in the dynamic values section below.
 console.log(Internals.parse(`
   &lt;div&gt;Hello world&lt;/div&gt;
-`));</code></pre>
+`));
+</code></pre>
 <p><a name="options"></a></p>
 <hr></hr>
-<h2 id="a-hrefoptionsoptionsa"><a href="#options">Options</a></h2>
+<h2 id="options"><a href="#options">Options</a></h2>
 <p>The parser is somewhat configurable, allowing you to opt into a strict-mode for
 erroring if invalid markup is passed. This could be useful to pair with the
 
-    <a href="/middleware.html#html-linter" title="null">HTML Linter Middleware</a>
+    <a href="/middleware.html#html-linter" title="HTML Linter Middleware">HTML Linter Middleware</a>
   .</p>
 <ul>
 <li>
-    <a href="#strict-mode" title="null"><code>strict</code></a>
+    <a href="#strict-mode" title="<code>strict</code>"><code>strict</code></a>
    - Toggle strict mode parsing</li>
 <li>
-    <a href="#block-elements" title="null"><code>rawElements</code></a>
+    <a href="#block-elements" title="<code>rawElements</code>"><code>rawElements</code></a>
    - Modify the list of elements that have raw values</li>
 <li>
-    <a href="#self-closing" title="null"><code>selfClosingElements</code></a>
+    <a href="#self-closing" title="<code>selfClosingElements</code>"><code>selfClosingElements</code></a>
    - Modify the list of elements that can self close</li>
 </ul>
 <p><a name="strict-mode"></a></p>
 <hr></hr>
-<h3 id="a-hrefstrict-modestrict-modea"><a href="#strict-mode">Strict mode</a></h3>
+<h3 id="strict-mode"><a href="#strict-mode">Strict mode</a></h3>
 <p>By default the parser operates in loose-mode which is forgiving of missing
 closing tags, poor markup, and other common issues. When opting into strict
 mode you will receive errors if you don&#39;t properly self close tags, have
@@ -394,40 +403,44 @@ innerHTML(document.body, `
 // Will throw since the elements do not match
 innerHTML(document.body, `
   &lt;h1&gt;Hello world&lt;/h2&gt;
-`, options);</code></pre>
+`, options);
+</code></pre>
 <p>Unlike the other two options below, this feature can be configured using the
 tagged template 
-    <a href="/api.html#html" title="null"><code>html</code></a>
+    <a href="/api.html#html" title="<code>html</code>"><code>html</code></a>
    directly.</p>
 <pre><code class="language-js">import { html } from &#39;diffhtml&#39;;
 
 // Will throw an error due to the tag mismatch
 html.strict`
   &lt;p&gt;&lt;/div&gt;
-`;</code></pre>
+`;
+</code></pre>
 <p><a name="block-elements"></a></p>
 <hr></hr>
-<h3 id="a-hrefraw-elementsraw-elementsa"><a href="#raw-elements">Raw elements</a></h3>
+<h3 id="raw-elements"><a href="#raw-elements">Raw elements</a></h3>
 <p>A list of elements that have their contents treated as raw text, rather than
 parsed as HTML. You can provide your own list of element names to allow this
 feature.</p>
 <p>Examples of these kinds of elements are: <code>&lt;pre&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;style&gt;</code></p>
 <p><a name="self-closing-elements"></a></p>
 <hr></hr>
-<h3 id="a-hrefself-closing-elementsself-closing-elementsa"><a href="#self-closing-elements">Self closing elements</a></h3>
+<h3 id="self-closing-elements"><a href="#self-closing-elements">Self closing elements</a></h3>
 <p>A list of elements that are allowed to self close. You can provide your own list of
 element names to allow this feature.</p>
 <p>Examples of these kinds of elements are: <code>&lt;meta/&gt;</code>, <code>&lt;hr/&gt;</code>, <code>&lt;img/&gt;</code></p>
 <p><a name="dynamic-values"></a></p>
 <hr></hr>
-<h2 id="a-hrefdynamic-valuesdynamic-valuesa"><a href="#dynamic-values">Dynamic values</a></h2>
+<h2 id="dynamic-values"><a href="#dynamic-values">Dynamic values</a></h2>
 <p>The parser allows you to use dynamic values for many different parts of the
 HTML syntax. This is primarily used with tagged template literals to support
 the passing of objects and other JavaScript types.</p>
 <p>You can put dynamic values in either: <em>tag</em>, <em>attribute</em>, or <em>children</em> locations.
 This makes it incredibly easy to compose dynamic template-driven UIs from your
 JavaScript view layer.</p>
-<pre><code>&lt;TAG ATTRIBUTE&gt;CHILDREN&lt;/TAG&gt;</code></pre><p>When parsing diffHTML will create a &quot;Supplemental&quot; object, which contains the
+<pre><code>&lt;TAG ATTRIBUTE&gt;CHILDREN&lt;/TAG&gt;
+</code></pre>
+<p>When parsing diffHTML will create a &quot;Supplemental&quot; object, which contains the
 keys: <code>tags</code>, <code>attributes</code>, <code>children</code>. This denotes the position in which the
 value was located. The template is rewritten with the unique keys and then are
 applied once the tree has been created.</p>
@@ -455,7 +468,8 @@ const vTree = Internals.parse(`
   },
 });
 
-innerHTML(document.body, vTree);</code></pre>
+innerHTML(document.body, vTree);
+</code></pre>
 <hr></hr>
 </section>
 
@@ -476,7 +490,7 @@ innerHTML(document.body, vTree);</code></pre>
         </footer>
       </layer>
 
-      <script>window.NODE_ENV = 'production';</script>
+      <script>window.NODE_ENV = 'development';</script>
       <script src="/scripts/highlight.min.js"></script>
       <script type="module" src="/scripts/index.js"></script>
     </body>

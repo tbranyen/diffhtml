@@ -280,23 +280,23 @@
         <hr></hr>
 
         <section id="content"><h1 id="middleware">Middleware</h1>
-<p>One of the primary ways of extending diffHTML is to write middleware.
-Middleware are added using the top-level 
-    <a href="/api.html#use" title="null"><code>use()</code></a>
-   API.  This
-injects functions into the render pipeline, which grants access the state
-before and after a sync/patch render.</p>
-<p>Additionally, you can hook into when diffHTML creates new elements, elements
-are released, and handle these events. You can change how elements are created,
-and much more. Middleware should be designed to allow being enabled and
-disabled, as this enables DevTools to toggle your plugin.</p>
+<p>While you can get very far with just the basic rendering features of diffHTML,
+you may find yourself wanting to extend or hook into the Transaction flow. A
+good way of hooking into the lifecycle is to use middleware. These are objects
+or functions that are provided by the top-level 
+    <a href="/api.html#use" title="<code>use()</code>"><code>use()</code></a>
+   API.</p>
+<pre><code class="language-js">import { use } from &#39;diffhtml&#39;;
+
+// Use the logger middleware
+use(logger());
+</code></pre>
 <p><a name="writing-middleware"></a></p>
 <hr></hr>
-<h2 id="a-hrefwriting-middlewarewriting-middlewarea"><a href="#writing-middleware">Writing middleware</a></h2>
-<p>Authoring middleware with diffHTML should not feel daunting; it was designed to
-be straightforward for simple things like tracking when renders occur, what the
-previous and next (X)HTML trees look like, and what the given set of DOM
-updates were for the render.</p>
+<h2 id="writing-middleware"><a href="#writing-middleware">Writing middleware</a></h2>
+<p>Authoring middleware was designed to be straightforward for simple things like
+tracking when renders occur, what the previous and next VTrees look like, and
+what the given set of DOM updates were for the render.</p>
 <p>While simple things are easy to access, the API allows for significantly more
 complex operations, such as:</p>
 <ul>
@@ -307,7 +307,7 @@ complex operations, such as:</p>
 <li>React to DevTools changes</li>
 </ul>
 <p>Lastly, middleware can be used with the 
-      <a href="https://diffhtml.org/api.html#to-string" target="_blank" rel="noopener noreferrer" title="null">toString</a>
+      <a href="https://diffhtml.org/api.html#to-string" target="_blank" rel="noopener noreferrer" title="toString">toString</a>
      method. So if you are extra ambitious you can get your
 middleware to be fully cross-platform even during Server-Side-Rendering.</p>
 <p>The code for a basic middleware looks as simple as:</p>
@@ -323,27 +323,31 @@ use(transaction =&gt; {
       console.log(&#39;Render transaction has completed&#39;);
     });
   };
-});</code></pre>
+});
+</code></pre>
 <p>There are several core middleware modules already written that you could use as
 a reference. A good starting one to look at is the 
-    <a href="/middleware#logger" title="null">Logger</a>
+    <a href="/middleware#logger" title="Logger">Logger</a>
   
 if you&#39;re interested in logging the render transaction flow.</p>
 <p>If you wanted to track when an element enters and leaves the DOM you could use
 the 
-    <a href="/transitions.html#available-states" title="null">attached and detached transition
+    <a href="/transitions.html#available-states" title="attached and detached transition
+states">attached and detached transition
 states</a>
   . You could also check the
 transaction when rendering is complete to see what is being attached and
 removed.</p>
 <pre><code class="language-js">use(() =&gt; ({ patches }) =&gt; {
   console.log(patches);
-});</code></pre>
+});
+</code></pre>
 <p><a name="inline-transitions"></a></p>
 <hr></hr>
-<h2 id="a-hrefinline-transitionsinline-transitionsa-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-inline-transitionsi-classfa-fa-githubia"><a href="#inline-transitions">Inline Transitions</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions"><i class="fa fa-github"></i></a></h2>
+<h2 id="inline-transitions-"><a href="#inline-transitions">Inline Transitions</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions"><i class="fa fa-github"></i></a></h2>
 <p>Tiny module to support binding/unbinding declarative diffHTML transition hooks.</p>
-<pre><code class="language-sh">npm install diffhtml-middleware-inline-transitions</code></pre>
+<pre><code class="language-sh">npm install diffhtml-middleware-inline-transitions
+</code></pre>
 <p>Full events and args list:</p>
 <table>
 <thead>
@@ -389,16 +393,18 @@ function fadeIn(body, domNode) {
 
 innerHTML(document.body, html`&lt;body onattached=${fadeIn}&gt;
   &lt;p&gt;Watch me fade in slowly!&lt;/p&gt;
-&lt;/body&gt;`);</code></pre>
+&lt;/body&gt;`);
+</code></pre>
 <p><a name="logger"></a></p>
 <hr></hr>
-<h2 id="a-hrefloggerloggera-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-loggeri-classfa-fa-github-a"><a href="#logger">Logger</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger"><i class="fa fa-github"></i></a></h2>
+<h2 id="logger-"><a href="#logger">Logger</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-logger"><i class="fa fa-github"></i></a></h2>
 <p>Use with diffHTML to <code>console.log</code> out render
 
-      <a href="https://diffhtml.org/#transaction" target="_blank" rel="noopener noreferrer" title="null">Transaction</a>
+      <a href="https://diffhtml.org/#transaction" target="_blank" rel="noopener noreferrer" title="Transaction">Transaction</a>
      operations. This will nest
 sub-component renders if they happen during a parent render.</p>
-<pre><code class="language-sh">npm install diffhtml-middleware-logger</code></pre>
+<pre><code class="language-sh">npm install diffhtml-middleware-logger
+</code></pre>
 <img src="https://cloud.githubusercontent.com/assets/181635/23392088/32cacd8a-fd2e-11e6-9b95-e3124d827eea.png" width="100%"></img>
 
 
@@ -406,19 +412,21 @@ sub-component renders if they happen during a parent render.</p>
 <pre><code class="language-javascript">import { use } from &#39;diffhtml&#39;;
 import logger from &#39;diffhtml-middleware-logger&#39;;
 
-use(logger());</code></pre>
+use(logger());
+</code></pre>
 <p>This is not a very performant middleware, so please do not use this in
 production where performance is critical. Use only in development or behind a
 flag.</p>
 <p><a name="service-worker"></a></p>
 <hr></hr>
-<h2 id="a-hrefservice-workerservice-workera-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-service-workeri-classfa-fa-github-a"><a href="#service-worker">Service Worker</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker"><i class="fa fa-github"></i></a></h2>
+<h2 id="service-worker-"><a href="#service-worker">Service Worker</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-service-worker"><i class="fa fa-github"></i></a></h2>
 <p>While this does not really benefit from being a middleware, I made it as such
 since it looks nice in the use and can be disabled if the middleware is
 unsubscribed. I&#39;ve added some developer niceties, like auto clearing the caches
 for development. It&#39;s also possible to disable the worker completely if you get
 annoyed with some behavior.</p>
-<pre><code class="language-sh">npm install diffhtml-middleware-service-worker</code></pre>
+<pre><code class="language-sh">npm install diffhtml-middleware-service-worker
+</code></pre>
 <h3 id="example-2">Example</h3>
 <pre><code class="language-javascript">import { use } from &#39;diffhtml&#39;;
 import serviceWorker from &#39;diffhtml-middleware-service-worker&#39;;
@@ -431,14 +439,16 @@ use(serviceWorker({
   disable: location.search.includes(&#39;diff_disable&#39;),
   quiet: location.search.includes(&#39;diff_quiet&#39;),
   options: {},
-}));</code></pre>
+}));
+</code></pre>
 <p><a name="synthetic-events"></a></p>
 <hr></hr>
-<h2 id="a-hrefsynthetic-eventssynthetic-eventsa-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-synthetic-eventsi-classfa-fa-github-a"><a href="#synthetic-events">Synthetic Events</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events"><i class="fa fa-github"></i></a></h2>
+<h2 id="synthetic-events-"><a href="#synthetic-events">Synthetic Events</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-synthetic-events"><i class="fa fa-github"></i></a></h2>
 <p>Changes the event binding from inline event handlers like <code>onclick = fn</code> to use
 <code>addEventListener</code>. Hooks are attached to the <code>body</code> element and coordinated
 using event delegation.</p>
-<pre><code class="language-sh">npm install diffhtml-middleware-synthetic-events</code></pre>
+<pre><code class="language-sh">npm install diffhtml-middleware-synthetic-events
+</code></pre>
 <h3 id="example-3">Example</h3>
 <pre><code class="language-js">import { use, html, innerHTML } from &#39;diffhtml&#39;;
 import syntheticEvents from &#39;diffhtml-middleware-synthetic-events&#39;;
@@ -452,17 +462,19 @@ function render() {
 }
 
 // Binds the event on div using `addEventListener`.
-innerHTML(document.body, render());</code></pre>
+innerHTML(document.body, render());
+</code></pre>
 <p>A good use case for this middleware is building a Chrome Extension where using
 inline event handlers is not possible. Supports non-bubbling events via the
 <code>useCapture</code> flag.</p>
 <p><a name="verify-state"></a></p>
 <hr></hr>
-<h2 id="a-hrefverify-stateverify-statea-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-verify-statei-classfa-fa-github-a"><a href="#verify-state">Verify State</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state"><i class="fa fa-github"></i></a></h2>
+<h2 id="verify-state-"><a href="#verify-state">Verify State</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-verify-state"><i class="fa fa-github"></i></a></h2>
 <p>Asserts that a render properly updated the old Virtual Tree and the DOM. Will
 recursively search for inconsistencies, displays warnings unless debugging is
 enabled, then it throws errors instead.</p>
-<pre><code class="language-sh">npm install diffhtml-middleware-verify-state</code></pre>
+<pre><code class="language-sh">npm install diffhtml-middleware-verify-state
+</code></pre>
 <img src="https://cloud.githubusercontent.com/assets/181635/23392650/1d7dfdcc-fd32-11e6-8f41-b412279cea55.png" width="100%"></img>
 
 <h3 id="example-4">Example</h3>
@@ -470,14 +482,16 @@ enabled, then it throws errors instead.</p>
 import verifyState from &#39;diffhtml-middleware-verify-state&#39;;
 
 // Throw when debug is truthy (when location.search has `?debug`)
-use(verifyState({ debug: location.search.includes(&#39;debug&#39;) }));</code></pre>
+use(verifyState({ debug: location.search.includes(&#39;debug&#39;) }));
+</code></pre>
 <p><a name="html-linter"></a></p>
 <hr></hr>
-<h2 id="a-hrefhtml-linterhtml-lintera-a-classgithub-hrefhttpsgithubcomtbranyendiffhtmltreemasterpackagesdiffhtml-middleware-linteri-classfa-fa-github-a"><a href="#html-linter">HTML Linter</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter"><i class="fa fa-github"></i></a></h2>
+<h2 id="html-linter-"><a href="#html-linter">HTML Linter</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-linter"><i class="fa fa-github"></i></a></h2>
 <p>Validates your passed in markup against rules established in the 
-      <a href="https://htmlhint.com/" target="_blank" rel="noopener noreferrer" title="null">HTMLHint</a>
+      <a href="https://htmlhint.com/" target="_blank" rel="noopener noreferrer" title="HTMLHint">HTMLHint</a>
      project.</p>
-<pre><code class="language-sh">npm install diffhtml-middleware-linter</code></pre>
+<pre><code class="language-sh">npm install diffhtml-middleware-linter
+</code></pre>
 <h3 id="example-5">Example</h3>
 <pre><code class="language-js">import { use } from &#39;diffhtml&#39;;
 import linter from &#39;diffhtml-middleware-linter&#39;;
@@ -501,7 +515,8 @@ use(linter({
   },
 
   renderErrors: true // by default is false
-}));</code></pre>
+}));
+</code></pre>
 <hr></hr>
 </section>
 
@@ -522,7 +537,7 @@ use(linter({
         </footer>
       </layer>
 
-      <script>window.NODE_ENV = 'production';</script>
+      <script>window.NODE_ENV = 'development';</script>
       <script src="/scripts/highlight.min.js"></script>
       <script type="module" src="/scripts/index.js"></script>
     </body>

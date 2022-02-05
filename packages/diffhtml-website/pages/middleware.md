@@ -1,14 +1,16 @@
 # Middleware
 
-One of the primary ways of extending diffHTML is to write middleware.
-Middleware are added using the top-level [`use()`](/api.html#use) API.  This
-injects functions into the render pipeline, which grants access the state
-before and after a sync/patch render.
+While you can get very far with just the basic rendering features of diffHTML,
+you may find yourself wanting to extend or hook into the Transaction flow. A
+good way of hooking into the lifecycle is to use middleware. These are objects
+or functions that are provided by the top-level [`use()`](/api.html#use) API.
 
-Additionally, you can hook into when diffHTML creates new elements, elements
-are released, and handle these events. You can change how elements are created,
-and much more. Middleware should be designed to allow being enabled and
-disabled, as this enables DevTools to toggle your plugin.
+```js
+import { use } from 'diffhtml';
+
+// Use the logger middleware
+use(logger());
+```
 
 <a name="writing-middleware"></a>
 
@@ -16,10 +18,9 @@ disabled, as this enables DevTools to toggle your plugin.
 
 ## <a href="#writing-middleware">Writing middleware</a>
 
-Authoring middleware with diffHTML should not feel daunting; it was designed to
-be straightforward for simple things like tracking when renders occur, what the
-previous and next (X)HTML trees look like, and what the given set of DOM
-updates were for the render.
+Authoring middleware was designed to be straightforward for simple things like
+tracking when renders occur, what the previous and next VTrees look like, and
+what the given set of DOM updates were for the render.
 
 While simple things are easy to access, the API allows for significantly more
 complex operations, such as:

@@ -1,7 +1,7 @@
 const { readFileSync, writeFileSync, existsSync } = require('fs');
 const { join } = require('path');
 const { html, toString, use } = require('diffhtml');
-const marked = require('marked');
+const { marked } = require('marked');
 const flattenPages = require('./util/flatten-pages');
 const { keys } = Object;
 
@@ -10,11 +10,13 @@ const { keys } = Object;
 require('diffhtml-components');
 //use(require('diffhtml-middleware-linter')());
 
-// Do some marked magic to fix the target="blank" security issue.
-const renderer = new marked.Renderer();
+const renderer = {};
 
 // Patch the renderer to allow for better anchor tags to be generated.
-renderer.link = (href, title = text, text) => {
+renderer.link = (href, title, text) => {
+  title = title || text;
+
+  // External URLs
   if (href.indexOf('http') === 0) {
     return `
       <a
@@ -26,10 +28,13 @@ renderer.link = (href, title = text, text) => {
     `;
   }
 
+  // Local URLs
   return `
     <a href="${href}" title="${title}">${text}</a>
   `;
 };
+
+marked.use({ renderer });
 
 function generate() {
   delete require.cache[require.resolve('../components/layout')];
@@ -51,7 +56,7 @@ function generate() {
     const mdPath = toPages(path.replace('.html', '.md'));
 
     if (existsSync(mdPath)) {
-      markup = marked(String(readFileSync(mdPath)), { renderer });
+      markup = marked.parse(String(readFileSync(mdPath)));
     }
 
     const contents = toString(html`

@@ -1,9 +1,10 @@
 # Core API
 
-This documentation covers the core public API. All methods can work in the
-browser, and directly in Node.js with or without jsdom.
+This documentation covers the core public API. All methods and internals work
+in the browser and directly in [Node.js](https://nodejs.org/en/) with or without
+[jsdom](https://github.com/jsdom/jsdom).
 
-<u>Terminology:</u>
+**Terminology:**
 
 - **VTree**: You will see them mentioned throughout the documentation. They are
   JavaScript objects that represent a DOM node. They store information such as
