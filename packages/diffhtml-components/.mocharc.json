@@ -3,5 +3,6 @@
   "loader": "extless-loader",
   "colors": true,
   "bail": true,
-  "parallel": true
+  "parallel": true,
+  "jobs": 2
 }

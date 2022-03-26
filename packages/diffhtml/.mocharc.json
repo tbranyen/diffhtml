@@ -1,7 +1,8 @@
 {
+  "require": ["test/_setup.js"],
   "loader": "extless-loader",
   "colors": true,
   "bail": true,
-  "require": ["test/_setup.js"],
-  "parallel": true
+  "parallel": true,
+  "jobs": 2
 }

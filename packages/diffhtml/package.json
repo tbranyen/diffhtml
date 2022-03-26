@@ -46,7 +46,7 @@
     "coveralls": "^3.1.0",
     "extless-loader": "^1.0.0",
     "jsdom": "^16.5.3",
-    "mocha": "^8.2.1",
+    "mocha": "^9.2.2",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-hypothetical": "^2.1.0",
