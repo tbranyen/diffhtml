@@ -43,7 +43,7 @@
     "build-umd": "NODE_ENV=umd rollup -c rollup.config.js",
     "build-main-min": "NODE_ENV=min rollup -c rollup.main.config.js && uglifyjs dist/components.min.js -o dist/components.min.js -m -c",
     "watch-main": "NODE_ENV=umd rollup -c rollup.main.config.js -w",
-    "test": "NODE_ENV=test mocha test/_setup test/**",
+    "test": "NODE_ENV=test mocha test/**",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test/**",
     "test:ci": "npm run test-cov",
     "test-cov": "NODE_ENV=test+cov c8 -r=lcov mocha test/_setup test/**"

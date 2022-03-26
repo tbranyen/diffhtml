@@ -1,6 +1,7 @@
 {
-  "require": ["diffhtml"],
+  "require": ["diffhtml", "test/_setup.js"],
   "loader": "extless-loader",
   "colors": true,
-  "bail": true
+  "bail": true,
+  "parallel": true
 }

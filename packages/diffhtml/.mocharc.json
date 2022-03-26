@@ -1,5 +1,7 @@
 {
   "loader": "extless-loader",
   "colors": true,
-  "bail": true
+  "bail": true,
+  "require": ["test/_setup.js"],
+  "parallel": true
 }
