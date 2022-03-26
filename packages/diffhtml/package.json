@@ -2,6 +2,7 @@
   "name": "diffhtml",
   "version": "1.0.0-beta.23",
   "description": "Build JavaScript components and apps using a Virtual DOM",
+  "type": "module",
   "main": "dist/cjs/index",
   "module": "dist/es/index",
   "jsnext:main": "dist/es/index",
@@ -19,9 +20,8 @@
     "min": "npm run build && npm run build-main-min && npm run build-lite-min",
     "check-js": "tsc -p jsconfig.json --noEmit false",
     "build": "npm run clean && npm run check-js && npm run build-main && npm run build-lite && npm run build-cjs && npm run build-esm",
-    "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs",
+    "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs && sh ../../post-cjs.sh",
     "build-esm": "NODE_ENV=esm babel lib -d dist/es",
-    "build-node-esm": "NODE_ENV=esm babel lib -d dist/node-es && rename -v .js .mjs dist/node-es/*.js && rename -v .js .mjs dist/node-es/**/*.js && cp -R dist/node-es/* dist/es && rm -rf dist/node-es",
     "build-main": "NODE_ENV=umd rollup -c rollup.main.config.js",
     "build-lite": "NODE_ENV=umd rollup -c rollup.lite.config.js",
     "build-main-min": "NODE_ENV=min rollup -c rollup.main.config.js && uglifyjs dist/diffhtml.min.js -o dist/diffhtml.min.js -m -c",
@@ -30,7 +30,7 @@
     "watch-lite": "NODE_ENV=umd rollup -c rollup.lite.main.config.js -w",
     "test": "NODE_ENV=test mocha test/_setup test test/integration/*.js",
     "test:ci": "npm run test-cov && cat coverage/lcov.info | coveralls",
-    "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test test/integration/*.js",
+    "test-cov": "NODE_ENV=test+cov c8 -r=lcov mocha test/_setup test test/integration/*.js",
     "test-watch": "NODE_ENV=test mocha --color test/_setup test test/integration/*.js -w",
     "test-debug": "NODE_ENV=test mocha --inspect --debug-brk test/_setup test test/integration/*.js"
   },
@@ -38,15 +38,15 @@
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
-    "@babel/register": "^7.12.10",
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.25",
     "babel-plugin-istanbul": "^6.0.0",
     "babel-preset-diffhtml-imports": "^1.0.0-beta.23",
+    "c8": "^7.11.0",
     "coveralls": "^3.1.0",
+    "extless-loader": "^1.0.0",
     "jsdom": "^16.5.3",
     "mocha": "^8.2.1",
-    "nyc": "^15.1.0",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-hypothetical": "^2.1.0",
@@ -57,12 +57,5 @@
     "sinon": "^9.2.3",
     "typescript": "4.1.3",
     "uglify-js": "backports"
-  },
-  "nyc": {
-    "require": [
-      "@babel/register"
-    ],
-    "sourceMap": false,
-    "instrument": false
   }
 }

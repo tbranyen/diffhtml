@@ -3,7 +3,6 @@
   "plugins": [
     "babel-plugin-transform-class-properties",
     "babel-plugin-transform-custom-element-classes",
-    "@babel/plugin-transform-classes",
-    ["transform-react-jsx", { "pragma": "createTree" }]
+    "@babel/plugin-transform-classes"
   ]
 }

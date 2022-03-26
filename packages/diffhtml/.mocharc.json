@@ -1,5 +1,5 @@
 {
-  "require": ["@babel/register"],
+  "loader": "extless-loader",
   "colors": true,
   "bail": true
 }

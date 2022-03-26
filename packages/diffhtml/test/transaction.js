@@ -1,9 +1,13 @@
 import { ok, deepStrictEqual, strictEqual, doesNotThrow, throws } from 'assert';
-import { spy, stub, SinonSpy } from 'sinon';
+import * as Sinon from 'sinon';
 import Transaction from '../lib/transaction';
 import use from '../lib/use';
 import release from '../lib/release';
+
 import validateMemory from './util/validate-memory';
+
+// To appease nodejs
+const { spy, stub, SinonSpy, ...rest } = Sinon.default;
 
 describe('Transaction', function() {
   const suite = /** @type {any} */(this);
