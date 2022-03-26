@@ -8,7 +8,7 @@ module.exports = (originalPath, filePath) => {
     return './fake-prop-types.js';
   }
 
-  if (originalPath.indexOf('diffhtml') !== 0) {
+  if (originalPath[0] === '.' || originalPath[0] === '/') {
     // Ensure this path has a trailing extension.
     if (!extname(originalPath)) {
       originalPath += '.js';
