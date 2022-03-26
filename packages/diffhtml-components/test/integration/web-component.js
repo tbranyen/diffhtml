@@ -1,12 +1,23 @@
 /// <reference types="mocha" />
 
 import { deepEqual, equal, ok } from 'assert';
+import babel from '@babel/core';
 import diff from '../../lib/util/binding';
 import Component from '../../lib/component';
 import validateCaches from '../util/validate-caches';
 
 const { innerHTML, html, createTree, release } = diff;
 const whitespaceEx = /[ ]{2,}|\n/g;
+
+async function compileJSX(sourceCode) {
+  const { code } = await babel.transformAsync(sourceCode, {
+    plugins: [
+      ["transform-react-jsx", { "pragma": "createTree" }]
+    ],
+  });
+
+  return code;
+}
 
 describe('Web Component', function() {
   beforeEach(() => {
@@ -379,16 +390,18 @@ describe('Web Component', function() {
   });
 
   describe('JSX Compatibility', () => {
-    it('will render JSX', () => {
-      customElements.define('jsx-test', class extends Component {
-        render() {
-          return (
-            <div>Hello world</div>
-          );
-        }
-      });
+    it('will render JSX', async () => {
+      eval(await compileJSX(`
+        customElements.define('jsx-test', class extends Component {
+          render() {
+            return (
+              <div>Hello world</div>
+            );
+          }
+        });
 
-      innerHTML(this.fixture, <jsx-test />);
+        innerHTML(this.fixture, <jsx-test />);
+      `));
 
       const output = document.createElement('div');
       output.appendChild(this.fixture.firstChild.shadowRoot);
@@ -397,25 +410,28 @@ describe('Web Component', function() {
       equal(this.fixture.innerHTML, '<jsx-test></jsx-test>');
     });
 
-    it('will render JSX with props', () => {
-      customElements.define('jsx-test', class extends Component {
-        render() {
-          const { message } = this.props;
-
-          return (
-            <div>{message}</div>
-          );
-        }
-
-        static defaultProps = {
-          message: '',
-        }
-      });
-
+    it('will render JSX with props', async () => {
       const domNode = document.createElement('div');
-      this.fixture.appendChild(domNode);
 
-      innerHTML(domNode, <jsx-test message="Hello world!" />);
+      eval(await compileJSX(`
+        customElements.define('jsx-test', class extends Component {
+          render() {
+            const { message } = this.props;
+
+            return (
+              <div>{message}</div>
+            );
+          }
+
+          static defaultProps = {
+            message: '',
+          }
+        });
+
+        this.fixture.appendChild(domNode);
+
+        innerHTML(domNode, <jsx-test message="Hello world!" />);
+      `));
 
       equal(
         domNode.firstChild.shadowRoot.querySelector('div').outerHTML,

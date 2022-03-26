@@ -9,15 +9,15 @@ const { html, release, innerHTML, toString, createTree } = diff;
 const { document } = globalThis;
 
 describe('Component', function() {
-  beforeEach(() => {
+  beforeEach(async () => {
     process.env.NODE_ENV = 'development';
     newJSDOMSandbox();
-    require('../lib/component').subscribeMiddleware();
+    (await import('../lib/component')).default.subscribeMiddleware();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     release(this.fixture);
-    require('../lib/component').unsubscribeMiddleware();
+    (await import('../lib/component')).default.unsubscribeMiddleware();
     validateCaches();
   });
 

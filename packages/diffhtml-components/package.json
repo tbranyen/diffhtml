@@ -10,16 +10,16 @@
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
     "@babel/plugin-transform-classes": "^7.12.1",
-    "@babel/register": "^7.12.10",
     "@types/mocha": "^8.2.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-custom-element-classes": "^0.1.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-diffhtml-imports": "^1.0.0-beta.23",
+    "c8": "^7.11.0",
     "diffhtml": "^1.0.0-beta.23",
+    "extless-loader": "^1.0.0",
     "jsdom": "^16.4.0",
     "mocha": "^8.2.1",
-    "nyc": "^15.1.0",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",
@@ -44,8 +44,8 @@
     "build-main-min": "NODE_ENV=min rollup -c rollup.main.config.js && uglifyjs dist/components.min.js -o dist/components.min.js -m -c",
     "watch-main": "NODE_ENV=umd rollup -c rollup.main.config.js -w",
     "test": "NODE_ENV=test mocha test/_setup test/**",
-    "test-watch": "NODE_ENV=test mocha -w test/_setup test",
+    "test-watch": "NODE_ENV=test mocha -w test/_setup test/**",
     "test:ci": "npm run test-cov",
-    "test-cov": "NODE_ENV=test+cov nyc -r=lcov mocha test/_setup test"
+    "test-cov": "NODE_ENV=test+cov c8 -r=lcov mocha test/_setup test/**"
   }
 }

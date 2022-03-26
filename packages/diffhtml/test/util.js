@@ -1,5 +1,5 @@
 import { ok, strictEqual, deepStrictEqual, throws, doesNotThrow } from 'assert';
-import { spy } from 'sinon';
+import * as Sinon from 'sinon';
 import createTree from '../lib/tree/create';
 import { NodeCache } from '../lib/util/types';
 import decodeEntities from '../lib/util/decode-entities';
@@ -12,6 +12,9 @@ import Pool from '../lib/util/pool';
 import getConfig from '../lib/util/config';
 import validateMemory from './util/validate-memory';
 import createSupplemental from './util/create-supplemental';
+
+// To appease nodejs
+const { spy } = Sinon.default;
 
 const { floor } = Math;
 const { stringify } = JSON;
