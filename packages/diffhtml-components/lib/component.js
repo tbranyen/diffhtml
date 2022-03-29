@@ -20,7 +20,6 @@ import diff from './util/binding';
 import middleware from './middleware';
 
 const { outerHTML, innerHTML, createTree, release, Internals } = diff;
-const { NodeCache, memory, createNode } = Internals;
 const { isArray } = Array;
 const { setPrototypeOf, defineProperty, keys, assign } = Object;
 const RenderDebounce = new WeakMap();
@@ -279,9 +278,6 @@ export default class Component {
     // component.
     vTree && getChildTrees(childTrees, vTree);
 
-    // Map all VTree's into DOM Nodes.
-    const childNodes = childTrees.map(x => NodeCache.get(x));
-
     // Render directly from the Component.
     ActiveRenderState.push(this);
     let renderTree = this.render(this.props, this.state);
@@ -310,7 +306,7 @@ export default class Component {
 
     // Inject a custom task after syncing has finished, but before patching has
     // occured. This gives us time to add additional patch logic per render.
-    tasks.splice(syncTreesIndex + 1, 0, (transaction) => {
+    tasks.splice(syncTreesIndex + 1, 0, (/** @type {Transaction} */transaction) => {
       let lastTree = null;
 
       // Reconcile all top-level replacements and additions.
