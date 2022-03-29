@@ -1,5 +1,5 @@
 {
-  "require": ["diffhtml", "test/_setup.js"],
+  "require": ["../diffhtml/lib/index.js", "test/_setup.js"],
   "loader": "extless-loader",
   "recursive": true,
   "colors": true,
