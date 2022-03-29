@@ -11,6 +11,7 @@ import {
   NodeCache,
   TransitionCache,
 } from '../util/types';
+import { $$insertAfter } from '../util/symbols';
 
 const { keys } = Object;
 const blocklist = new Set();
@@ -217,11 +218,11 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
       case PATCH_TYPE.INSERT_BEFORE: {
         const vTree = patches[i + 1];
         const newTree = patches[i + 2];
-        const refTree = patches[i + 3];
+        let refTree = patches[i + 3];
 
         i += 4;
 
-        if (!NodeCache.has(vTree)) {
+        if (!NodeCache.has(vTree) && vTree !== $$insertAfter) {
           continue;
         }
 
@@ -230,6 +231,19 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
         let domNode = /** @type {HTMLElement} */ (
           NodeCache.get(vTree)
         );
+
+        // This allows turning insertBefore into insertAfter. It is only used
+        // for Components, but could be used externally as well.
+        if (vTree === $$insertAfter) {
+          const refNode = NodeCache.get(refTree);
+
+          // Try and find the parentNode if it exists.
+          if (refNode) {
+            domNode = refNode.parentNode;
+
+            refTree = refNode.nextSibling ? refNode.nextSibling : null;
+          }
+        }
 
         const isSVG = svgElements.has(newTree);
 

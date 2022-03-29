@@ -8,12 +8,18 @@ import {
   State,
   ActiveRenderState,
 } from './util/types';
-import { $$render, $$vTree, $$unsubscribe, $$type, $$hooks } from './util/symbols';
+import {
+  $$render,
+  $$vTree,
+  $$unsubscribe,
+  $$type,
+  $$hooks,
+  $$insertAfter,
+} from './util/symbols';
 import diff from './util/binding';
 import middleware from './middleware';
 
 const { outerHTML, innerHTML, createTree, release, Internals } = diff;
-const { NodeCache, memory, createNode } = Internals;
 const { isArray } = Array;
 const { setPrototypeOf, defineProperty, keys, assign } = Object;
 const RenderDebounce = new WeakMap();
@@ -49,6 +55,8 @@ const createProps = (domNode, existingProps = {}) => {
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
 /**
+ * Finds all VTrees associated with a component.
+ *
  * @param {VTree[]} childTrees
  * @param {VTree} vTree
  */
@@ -270,27 +278,6 @@ export default class Component {
     // component.
     vTree && getChildTrees(childTrees, vTree);
 
-    // Map all VTree's into DOM Nodes.
-    const childNodes = childTrees.map(x => NodeCache.get(x));
-
-    /**
-     * By default assume a single top/root-level element, if there are multiple
-     * elements returned at the root-level, then we'll do a diff and replace a
-     * fragment from this root point.
-     *
-     * @type {HTMLElement | any}
-     */
-    const domNode = (childNodes[0]);
-
-    // Do not attempt to re-render if we do not have prior children.
-    // TODO This is cheating until there is a better way to determine if a
-    // component has rendered or not.
-    if (!domNode || !domNode.parentNode) {
-      return;
-    }
-
-    const { parentNode } = domNode;
-
     // Render directly from the Component.
     ActiveRenderState.push(this);
     let renderTree = this.render(this.props, this.state);
@@ -314,48 +301,56 @@ export default class Component {
 
     // Put all the nodes together into a fragment for diffing.
     const fragment = createTree(childTrees);
+    const tasks = [...Internals.defaultTasks];
+    const syncTreesIndex = tasks.indexOf(Internals.tasks.syncTrees);
+
+    // Inject a custom task after syncing has finished, but before patching has
+    // occured. This gives us time to add additional patch logic per render.
+    tasks.splice(syncTreesIndex + 1, 0, (/** @type {Transaction} */transaction) => {
+      let lastTree = null;
+
+      // Reconcile all top-level replacements and additions.
+      for (let i = 0; i < fragment.childNodes.length; i++) {
+        const childTree = fragment.childNodes[i];
+
+        // Replace if the nodes are different.
+        if (childTree && childTrees[i] && childTrees[i] !== childTree) {
+          transaction.patches.push(
+            Internals.PATCH_TYPE.REPLACE_CHILD,
+            childTree,
+            childTrees[i],
+          );
+
+          lastTree = childTree;
+        }
+        // Add if there is no old Node.
+        else if (lastTree && !childTrees[i]) {
+          transaction.patches.push(
+            Internals.PATCH_TYPE.INSERT_BEFORE,
+            $$insertAfter,
+            childTree,
+            lastTree,
+          );
+
+          lastTree = childTree;
+        }
+        // Keep the old node.
+        else {
+          lastTree = childTrees[i];
+        }
+
+        ComponentTreeCache.set(childTree, vTree);
+      }
+
+      return transaction;
+    });
 
     /**
      * Compare the existing component node(s) to the new node(s).
      *
      * @type {Promise<Transaction>}
      */
-    const promise = (outerHTML(fragment, renderTree));
-
-    // Track the last known node so when insertions happen they are easily
-    // executed adjacent to this element.
-    let lastNode = domNode;
-
-    // Reconcile all top-level replacements and additions.
-    fragment.childNodes.forEach((childTree, i) => {
-      const newNode = createNode(childTree);
-      const oldNode = NodeCache.get(childTrees[i]);
-
-      // Replace if the nodes are different.
-      if (newNode && oldNode && childTrees[i] !== childTree) {
-        parentNode.replaceChild(newNode, oldNode);
-
-        // Reset last node, since it has been replaced.
-        lastNode = newNode;
-
-        ComponentTreeCache.set(childTree, vTree);
-        memory.protectVTree(childTree);
-      }
-      // Add if there is no old Node.
-      else if (lastNode && !oldNode) {
-        lastNode.after(newNode);
-        lastNode = newNode;
-
-        ComponentTreeCache.set(childTree, vTree);
-        memory.protectVTree(childTree);
-      }
-      // Keep the old node.
-      else {
-        ComponentTreeCache.set(childTree, vTree);
-        memory.protectVTree(childTree);
-        lastNode = oldNode;
-      }
-    });
+    const promise = (outerHTML(fragment, renderTree, { tasks }));
 
     return promise.then(transaction => {
       // Empty the fragment after using.

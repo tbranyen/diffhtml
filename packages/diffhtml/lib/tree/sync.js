@@ -196,7 +196,7 @@ export default function syncTree(
   }
 
   /** @type {VTree[]} */
-  const oldChildNodes = (oldTree.childNodes);
+  const oldChildNodes = (oldTree.childNodes) || [];
 
   // Used when skipping over nodes during syncTreeHook.
   let maxLength = max(newChildNodes.length, oldChildNodes.length);
