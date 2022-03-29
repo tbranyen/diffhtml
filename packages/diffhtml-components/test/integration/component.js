@@ -530,7 +530,6 @@ describe('Component implementation', function() {
     });
 
     it('will allow inserting top level elements with setState', async () => {
-      console.log('it is');
       class CustomComponent extends Component {
         render() {
           const { count } = this.state;

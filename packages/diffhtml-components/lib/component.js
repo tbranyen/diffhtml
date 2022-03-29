@@ -8,7 +8,14 @@ import {
   State,
   ActiveRenderState,
 } from './util/types';
-import { $$render, $$vTree, $$unsubscribe, $$type, $$hooks } from './util/symbols';
+import {
+  $$render,
+  $$vTree,
+  $$unsubscribe,
+  $$type,
+  $$hooks,
+  $$insertAfter,
+} from './util/symbols';
 import diff from './util/binding';
 import middleware from './middleware';
 
@@ -49,6 +56,8 @@ const createProps = (domNode, existingProps = {}) => {
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
 /**
+ * Finds all VTrees associated with a component.
+ *
  * @param {VTree[]} childTrees
  * @param {VTree} vTree
  */
@@ -297,48 +306,45 @@ export default class Component {
     // Put all the nodes together into a fragment for diffing.
     const fragment = createTree(childTrees);
     const tasks = [...Internals.defaultTasks];
+    const syncTreesIndex = tasks.indexOf(Internals.tasks.syncTrees);
 
     // Inject a custom task after syncing has finished, but before patching has
     // occured. This gives us time to add additional patch logic per render.
-    tasks.splice(tasks.indexOf(Internals.tasks.syncTrees) + 1, 0, (transaction) => {
+    tasks.splice(syncTreesIndex + 1, 0, (transaction) => {
       let lastTree = null;
 
-      console.log(transaction.patches);
-
       // Reconcile all top-level replacements and additions.
-      //fragment.childNodes.forEach((childTree, i) => {
-      //  // Replace if the nodes are different.
-      //  if (childTree && childTrees[i] && childTrees[i] !== childTree) {
-      //    transaction.patches.push(
-      //      Internals.PATCH_TYPE.REPLACE_CHILD,
-      //      childTree,
-      //      childTrees[i],
-      //    );
+      for (let i = 0; i < fragment.childNodes.length; i++) {
+        const childTree = fragment.childNodes[i];
 
-      //    lastTree = childTree;
+        // Replace if the nodes are different.
+        if (childTree && childTrees[i] && childTrees[i] !== childTree) {
+          transaction.patches.push(
+            Internals.PATCH_TYPE.REPLACE_CHILD,
+            childTree,
+            childTrees[i],
+          );
 
-      //    ComponentTreeCache.set(childTree, vTree);
-      //  }
-      //  // Add if there is no old Node.
-      //  else if (lastTree && !childTrees[i]) {
-      //    transaction.patches.push(
-      //      Internals.PATCH_TYPE.INSERT_BEFORE,
-      //      ,
-      //      childTree,
-      //      lastTree,
-      //    );
+          lastTree = childTree;
+        }
+        // Add if there is no old Node.
+        else if (lastTree && !childTrees[i]) {
+          transaction.patches.push(
+            Internals.PATCH_TYPE.INSERT_BEFORE,
+            $$insertAfter,
+            childTree,
+            lastTree,
+          );
 
-      //    lastTree = childTree;
+          lastTree = childTree;
+        }
+        // Keep the old node.
+        else {
+          lastTree = childTrees[i];
+        }
 
-      //    ComponentTreeCache.set(childTree, vTree);
-
-      //  }
-      //  // Keep the old node.
-      //  else {
-      //    ComponentTreeCache.set(childTree, vTree);
-      //    lastTree = childTrees[i];
-      //  }
-      //});
+        ComponentTreeCache.set(childTree, vTree);
+      }
 
       return transaction;
     });
