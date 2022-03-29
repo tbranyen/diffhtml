@@ -7,6 +7,10 @@ const { NodeCache, PATCH_TYPE, decodeEntities } = diff.Internals;
 const uppercaseEx = /[A-Z]/g;
 
 /**
+ * Once the transaction has ended we can know for certain that DOM operations
+ * have completed and can trigger lifecycle methods like componentDidMount or
+ * componentWillUnmount.
+ *
  * @param {Transaction} transaction
  */
 export default transaction => {
@@ -22,6 +26,7 @@ export default transaction => {
   while (true) {
     const patchType = patches[i];
 
+    // Exhausted remaining patches.
     if (i === length) {
       break;
     }

@@ -1,4 +1,4 @@
-import { ComponentTreeCache, VTree, Transaction } from './util/types';
+import { EMPTY, ComponentTreeCache, VTree, Transaction } from './util/types';
 import globalThis from './util/global';
 import onceEnded from './once-ended';
 import componentWillUnmount from './lifecycle/component-will-unmount';
@@ -100,9 +100,20 @@ const syncTreeHook = (oldTree, newTree) => {
   // Loop through childNodes seeking out components to render.
   for (let i = 0; i < newTree.childNodes.length; i++) {
     const newChildTree = newTree.childNodes[i];
+    const oldChildTree = (oldTree.childNodes && oldTree.childNodes[i]) || EMPTY.OBJ;
 
+    const isOldFunction = Boolean(ComponentTreeCache.get(oldChildTree));
+    const isNewFunction = typeof newChildTree.rawNodeName === 'function';
+
+    // Previous slot was a component and the new slot is not, therefore we
+    // should be indicating this component is unmounting.
+    if (isOldFunction && !isNewFunction) {
+        releaseHook(oldChildTree);
+    }
+
+    // If the old slot was not a component, and the new tree is, then we are
+    // rendering a brand new component.
     if (typeof newChildTree.rawNodeName === 'function') {
-      const oldChildTree = oldTree.childNodes && oldTree.childNodes[i];
       const renderTree = render(oldChildTree, newChildTree);
 
       // If nothing was rendered, return the oldTree.
