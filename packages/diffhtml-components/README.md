@@ -3,7 +3,7 @@
 *Provides a way to use function, class, and stateful components with diffHTML.
 Inspired by React and other component based frameworks.*
 
-Stable Version: 1.0.0-beta.24
+Stable Version: 1.0.0-beta.25
 
 The exported class `Component` is designed to be used as either a vanilla JS
 class component, or registered as a Web Component.

@@ -3,8 +3,8 @@
 # Always set current dir to where release script is located (root).
 cd "${0%/*}"
 
-OLD_BETA=23
-NEW_BETA=24
+OLD_BETA=24
+NEW_BETA=25
 
 OLD_VERSION="1.0.0-beta.$OLD_BETA"
 NEW_VERSION="1.0.0-beta.$NEW_BETA"
@@ -29,7 +29,6 @@ sed -i -e "s/1.0.0.$OLD_BETA/1.0.0.$NEW_BETA/g" ./packages/diffhtml-devtools/chr
 # Make a descriptive commit.
 git commit -am"Update JavaScript and REAMDE files to $NEW_VERSION."
 
-npm run build
 npm test
 
 lerna publish
