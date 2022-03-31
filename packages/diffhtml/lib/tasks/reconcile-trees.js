@@ -15,7 +15,6 @@ export default function reconcileTrees(transaction) {
   const { state, mount, input, config: options } = transaction;
   const { inner } = options;
   const mountAsHTMLEl = /** @type {HTMLElement} */ (mount);
-  const inputAsVTree = /** @type {VTree} */(input);
 
   // Look if any changes happened before the async mutation callback.
   if (state.mutationObserver && !state.isDirty) {
@@ -52,15 +51,25 @@ export default function reconcileTrees(transaction) {
 
   const { nodeName, attributes } = state.oldTree;
 
-  // TODO When `inner === false` this means we are doing outerHTML operation.
-  // The way this works is that anything that doesn't match the oldTree element
-  // gets diffed internally. Anything that matches the root element at the top
-  // level gets absorbed into the root element. Order is not important. Elements
-  // which are matched subsequently are merged, but only the first occurance of
-  // an attribute is counted. The rules are complicated, but if we match the
-  // browser behavior here, it will be significantly easier to convince of it's
-  // validity and to document.
 
+  // If we are in a render transaction where no markup was previously parsed
+  // then reconcile trees will attempt to create a tree based on the incoming
+  // markup (JSX/html/etc).
+  if (!transaction.newTree) {
+    transaction.newTree = createTree(input);
+  }
+
+  const inputAsVTree = /** @type {VTree} */(transaction.newTree);
+
+  // When `inner === false` this means we are doing outerHTML operation.  The
+  // way this works is that anything that doesn't match the oldTree element
+  // gets diffed internally. Anything that matches the root element at the top
+  // level gets absorbed into the root element. Order is not important.
+  // Elements which are matched subsequently are merged, but only the first
+  // occurance of an attribute is counted. The rules are complicated, but if we
+  // match the browser behavior here, it will be significantly easier to
+  // convince of it's validity and to document.
+  //
   // To mimic browser behavior, we loop the input and take any tree that matches
   // the root element and unwrap into the root element. We take the attributes
   // from that element and apply to the root element. This ultimately renders a
@@ -94,15 +103,6 @@ export default function reconcileTrees(transaction) {
     else if (foundElements.length > 1) {
       transaction.newTree = createTree(inputAsVTree.childNodes);
     }
-  }
-
-  // If we are in a render transaction where no markup was previously parsed
-  // then reconcile trees will attempt to create a tree based on the incoming
-  // markup (JSX/html/etc).
-  if (!transaction.newTree) {
-    // Reset the old tree with the newly created VTree association.
-    transaction.newTree = createTree(input);
-
   }
 
   // Associate the old tree with this brand new transaction.

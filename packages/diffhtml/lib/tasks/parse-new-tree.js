@@ -14,18 +14,7 @@ export default function parseNewTree(transaction) {
     measure('parsing input for new tree');
 
     const { childNodes } = parse(input, undefined, options);
-
-    let vTree;
-
-    // If we are dealing with innerHTML, use all the Nodes.
-    if (inner) {
-      vTree = createTree(childNodes);
-    }
-    // If we are dealing with outerHTML, use the first element or the element
-    // itself.
-    else {
-      vTree = createTree(childNodes[0] || childNodes);
-    }
+    const vTree = createTree(childNodes);
 
     if (vTree) {
       transaction.newTree = vTree;
