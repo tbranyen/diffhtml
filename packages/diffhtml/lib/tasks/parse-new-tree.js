@@ -8,7 +8,6 @@ import Transaction from '../transaction';
 export default function parseNewTree(transaction) {
   const { state, input, config: options } = transaction;
   const { measure } = state;
-  const { inner } = options;
 
   if (typeof input === 'string') {
     measure('parsing input for new tree');
