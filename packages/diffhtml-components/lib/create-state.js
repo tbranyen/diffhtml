@@ -29,7 +29,7 @@ export function createState(defaultValue = {}) {
    */
   const setState = newValue => {
     retVal[0] = newValue;
-    activeComponent.forceUpdate();
+    return activeComponent.forceUpdate();
   };
 
   if (retVal.length === 1) {

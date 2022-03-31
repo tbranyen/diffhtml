@@ -2,13 +2,16 @@ import { $$hooks } from './util/symbols';
 import { EMPTY, ActiveRenderState } from './util/types';
 
 /**
- * Allow a function component to hook into lifecycle in a manner consistent
- * with class components.
+ * Allow a function component to hook into lifecycle methods in a manner
+ * consistent with class components.
  *
- * @param {Function} sideEffectFn
+ * @param {Function} sideEffectFn - A function that is called whenever the
+ * component is mounted or updated. To invoke cleanup pass a second function
+ * which will run whenever the component is removed.
+ *
  * @returns {void}
  */
-export function createSideEffect(sideEffectFn = EMPTY.FUN) {
+export function createSideEffect(sideEffectFn) {
   if (ActiveRenderState.length === 0) {
     throw new Error('Cannot create side effect unless in render function');
   }
@@ -22,15 +25,9 @@ export function createSideEffect(sideEffectFn = EMPTY.FUN) {
 
   // Only do this the first time.
   if (!activeHook) {
-    /** @type {function} */
-    let unMount = EMPTY.FUN;
-
     // First schedule a componentDidMount
     activeComponent.componentDidMount = activeComponent.componentDidUpdate = () => {
-      // Always unmount first
-      unMount();
-
-      unMount = sideEffectFn() || EMPTY.FUN;
+      const unMount = sideEffectFn() || EMPTY.FUN;
 
       if (typeof unMount === 'function') {
         activeComponent.componentWillUnmount = () => unMount();

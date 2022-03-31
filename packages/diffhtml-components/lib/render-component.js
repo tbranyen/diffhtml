@@ -119,7 +119,16 @@ export default function renderComponent(vTree) {
     // Allow hooks to "hook" into the active rendering component.
     ActiveRenderState.push(instance);
 
-    const renderRetVal = instance.render(props, instance.state);
+    let renderRetVal = null;
+
+    try {
+      renderRetVal = instance.render(props, instance.state);
+    }
+    catch (e) {
+      // Clean up after a potential failure.
+      ActiveRenderState.length = 0;
+      throw e;
+    }
 
     ActiveRenderState.length = 0;
 
