@@ -48,7 +48,7 @@ export default function createNode(vTreeLike, ownerDocument = globalThis.documen
   isSVG = isSVG || nodeName === 'svg';
 
   /** @type {ValidNode | null} */
-  let domNode = null;
+  let domNodeCheck = null;
 
   /** @type {ValidNode | null | void} */
   let retVal = null;
@@ -57,21 +57,27 @@ export default function createNode(vTreeLike, ownerDocument = globalThis.documen
     // Invoke all the `createNodeHook` functions passing along the vTree as the
     // only argument. These functions must return a valid DOM Node value.
     if (retVal = fn(vTree)) {
-      domNode = retVal;
+      domNodeCheck = retVal;
     }
   });
 
   // It is not possible to continue if this object is falsy. By returning null,
   // patching can gracefully no-op.
   if (!ownerDocument) {
-    return domNode;
+    return domNodeCheck;
   }
 
-  // If no DOM Node was provided by CreateNode hooks, we must create it
-  // ourselves.
-  if (domNode === null) {
-    // Create empty text elements. They will get filled in during the patch
-    // process.
+  /**
+   * If no DOM Node was provided by CreateNode hooks, we must create it
+   * ourselves.
+   *
+   * @type {ValidNode | null}
+   */
+  let domNode = domNodeCheck;
+
+  // Create empty text elements. They will get filled in during the patch
+  // process.
+  if (!domNode) {
     if (nodeName === '#text') {
       domNode = ownerDocument.createTextNode(vTree.nodeValue || EMPTY.STR);
     }
@@ -96,19 +102,18 @@ export default function createNode(vTreeLike, ownerDocument = globalThis.documen
     }
   }
 
-  /** @type {HTMLElement | DocumentFragment | Text} */
-  const validNode = (domNode);
-
   // Add to the domNodes cache.
-  NodeCache.set(vTree, validNode);
+  NodeCache.set(vTree, domNode);
 
   // Append all the children into the domNode, making sure to run them
   // through this `createNode` function as well.
   for (let i = 0; i < childNodes.length; i++) {
-    /** @type {HTMLElement | DocumentFragment | Text} */
-    const validChildNode = (createNode(childNodes[i], ownerDocument, isSVG));
-    validNode.appendChild(validChildNode);
+    const validChildNode = createNode(childNodes[i], ownerDocument, isSVG);
+
+    if (domNode && validChildNode) {
+      domNode.appendChild(validChildNode);
+    }
   }
 
-  return validNode;
+  return domNode;
 }

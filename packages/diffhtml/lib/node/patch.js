@@ -41,7 +41,7 @@ const setAttribute = (vTree, domNode, name, value) => {
   const blocklistName = vTree.nodeName + '-' + lowerName;
 
   /** @type {HTMLElement} */
-  const htmlElement = (domNode);
+  const htmlElement = /** @type {any} */ (domNode);
 
   // Since this is a property value it gets set directly on the node.
   if (allowlist.has(blocklistName)) {
