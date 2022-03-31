@@ -256,7 +256,15 @@ innerHTML(main, html`<${Example} />`);
 
 The function `createSideEffect` is used to schedule some work after a component
 has mounted, unmounted, or updated. This works similar to the `useEffect` hook
-found in React.
+found in React. There are some differences though. With React, a useEffect hook
+is triggered on both mount and update with the same function. The unmount logic
+is also triggered before every update.
+
+With `createSideEffect` you will pass one or two functions which represent
+mount and unmount respectively. Only one is required. They map directly to
+`componentDidMount` and `componentWillUnmount`. If you wish to hook into
+`componentDidUpdate`, simply return a new function from the `componentDidMount`
+handler.
 
 <a name="create-side-effect-examples"></a>
 
@@ -268,11 +276,13 @@ import { createSideEffect } from 'diffhtml-components';
 
 function Example() {
   createSideEffect(() => {
-    console.log('Component has mounted or updated');
+    console.log('Component has mounted');
 
     return () => {
-      console.log('Component has unmounted');
+      console.log('Component has updated');
     };
+  }, () => {
+    console.log('Component has unmounted');
   });
 
   return html`

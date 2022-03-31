@@ -101,6 +101,7 @@ describe('Hooks', function() {
       function Component() {
         createSideEffect(() => {
           firedOnUpdate++;
+          return () => firedOnUpdate++;
         });
 
         return html`<div></div>`;
@@ -120,6 +121,7 @@ describe('Hooks', function() {
       function Component() {
         createSideEffect(() => {
           firedOnUpdate++;
+          return () => firedOnUpdate++;
         });
 
         return html`<div></div>`;
@@ -139,7 +141,7 @@ describe('Hooks', function() {
       let firedOnUnmount = 0;
 
       function Component() {
-        createSideEffect(() => () => {
+        createSideEffect(null, () => {
           firedOnUnmount++;
         });
 
@@ -164,13 +166,16 @@ describe('Hooks', function() {
 
         setState = setValue;
 
-        createSideEffect(() => {
-          firedOnUpdate++;
+        createSideEffect(
+          () => {
+            firedOnUpdate++;
+            return () => firedOnUpdate++;
+          },
 
-          return () => {
+          () => {
             firedOnUnmount++;
-          };
-        });
+          }
+        );
 
         return html`<div></div>`;
       }
