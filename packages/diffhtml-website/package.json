@@ -12,7 +12,7 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.15.4",
+    "@fortawesome/fontawesome-free": "^6.1.1",
     "chokidar": "^3.5.3",
     "cli-spinner": "^0.2.10",
     "combyne": "^2.0.0",
@@ -20,7 +20,7 @@
     "diffhtml-components": "^1.0.0-beta.25",
     "diffhtml-middleware-linter": "^1.0.0-beta.25",
     "diffhtml-static-sync": "^1.0.0-beta.25",
-    "express": "^4.17.2",
+    "express": "^4.17.3",
     "marked": "^4.0.12",
     "ncp": "^2.0.0",
     "serve-favicon": "^2.5.0"
