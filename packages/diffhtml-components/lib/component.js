@@ -250,7 +250,7 @@ export default class Component {
       ActiveRenderState.push(this);
 
       /** @type {Promise<Transaction>} */
-      const promise = (innerHTML(
+      const promise = /** @type {any} */ (innerHTML(
         /** @type {any} */ (this).shadowRoot,
         this.render(this.props, this.state),
       ));
@@ -350,7 +350,7 @@ export default class Component {
      *
      * @type {Promise<Transaction>}
      */
-    const promise = (outerHTML(fragment, renderTree, { tasks }));
+    const promise = /** @type {any} */ (outerHTML(fragment, renderTree, { tasks }));
 
     return promise.then(transaction => {
       // Empty the fragment after using.
