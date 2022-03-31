@@ -17,8 +17,26 @@ describe('Integration: Basics', function() {
   });
 
   describe('Expose API', function() {
-    it('exposes diffhtml global', function() {
+    it('will expose the diffhtml global', function() {
       assert.equal(typeof diff, 'object');
+    });
+
+    it('will use the last core version loaded', async function() {
+      delete global[Symbol.for('diffHTML')];
+      const testBinding = { VERSION: 'test' };
+      global[Symbol.for('diffHTML')] = testBinding;
+      const { default: api } = await import('../../lib/index?' + Date.now());
+
+      assert.strictEqual(global[Symbol.for('diffHTML')], api);
+    });
+
+    it('will use the last lite version loaded', async function() {
+      delete global[Symbol.for('diffHTML')];
+      const testBinding = { VERSION: 'test' };
+      global[Symbol.for('diffHTML')] = testBinding;
+      const { default: api } = await import('../../lib/lite?' + Date.now());
+
+      assert.strictEqual(global[Symbol.for('diffHTML')], api);
     });
   });
 

@@ -101,6 +101,24 @@ describe('Integration: outerHTML', function() {
     strictEqual(this.fixture.firstChild.tagName, 'P');
   });
 
+  it('will respect executeScripts option', function() {
+    document.body.appendChild(this.fixture);
+
+    diff.outerHTML(this.fixture, `
+      <div>
+        <script>
+          const script1 = document.createElement('script');
+          script1.id = 'test';
+          document.body.firstElementChild.appendChild(script1);
+        </script>
+      </div>
+    `, { executeScripts: true });
+
+    strictEqual(Boolean(document.querySelector('#test')), true);
+
+    document.body.removeChild(this.fixture);
+  });
+
   it('can use a virtual dom element', function() {
     diff.outerHTML(this.fixture.firstChild, {
       nodeName: 'div',
