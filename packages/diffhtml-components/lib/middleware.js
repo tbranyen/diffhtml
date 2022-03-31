@@ -102,15 +102,6 @@ const syncTreeHook = (oldTree, newTree) => {
     const newChildTree = newTree.childNodes[i];
     const oldChildTree = (oldTree.childNodes && oldTree.childNodes[i]) || EMPTY.OBJ;
 
-    const isOldFunction = Boolean(ComponentTreeCache.get(oldChildTree));
-    const isNewFunction = typeof newChildTree.rawNodeName === 'function';
-
-    // Previous slot was a component and the new slot is not, therefore we
-    // should be indicating this component is unmounting.
-    if (isOldFunction && !isNewFunction) {
-        releaseHook(oldChildTree);
-    }
-
     // If the old slot was not a component, and the new tree is, then we are
     // rendering a brand new component.
     if (typeof newChildTree.rawNodeName === 'function') {
