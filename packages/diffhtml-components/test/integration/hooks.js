@@ -43,6 +43,22 @@ describe('Hooks', function() {
       }, /Missing function for side effect/);
     });
 
+    it('will support componentDidMount with empty render', async () => {
+      let firedOnMount = 0;
+
+      function Component() {
+        createSideEffect(() => {
+          firedOnMount++;
+        });
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+
+      strictEqual(firedOnMount, 1);
+    });
+
     it('will support componentDidMount', async () => {
       let firedOnMount = 0;
 

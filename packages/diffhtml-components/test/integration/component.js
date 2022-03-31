@@ -195,6 +195,60 @@ describe('Component implementation', function() {
   });
 
   describe('Lifecycle', () => {
+    it('will fire on undefined render return value', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return undefined;
+        }
+
+        componentDidMount() {
+          wasCalled = true;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
+
+      ok(wasCalled);
+    });
+
+    it('will fire on empty fragment render return value', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return undefined;
+        }
+
+        componentDidMount() {
+          wasCalled = true;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
+
+      ok(wasCalled);
+    });
+
+    it('will fire on empty fragment array render return value', () => {
+      let wasCalled = false;
+
+      class CustomComponent extends Component {
+        render() {
+          return html`${[]}`;
+        }
+
+        componentDidMount() {
+          wasCalled = true;
+        }
+      }
+
+      innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
+
+      ok(wasCalled);
+    });
+
     it('will map to componentDidMount', () => {
       let wasCalled = false;
 

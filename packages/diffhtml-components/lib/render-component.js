@@ -81,6 +81,14 @@ export default function renderComponent(vTree) {
 
     renderedTree = createTree(renderRetVal || '#text');
 
+    if (
+      typeof renderedTree.rawNodeName !== 'function' &&
+      renderedTree.nodeType === 11 &&
+      !renderedTree.childNodes.length
+    ) {
+      renderedTree = createTree('#text');
+    }
+
     // Set up the HoC parent/child relationship.
     if (typeof renderedTree.rawNodeName === 'function') {
       ComponentTreeCache.set(renderedTree, vTree);
@@ -133,6 +141,16 @@ export default function renderComponent(vTree) {
     ActiveRenderState.length = 0;
 
     renderedTree = createTree(renderRetVal || '#text');
+
+    // If the rendered return value is an empty fragment, default to an empty
+    // text value.
+    if (
+      typeof renderedTree.rawNodeName !== 'function' &&
+      renderedTree.nodeType === 11 &&
+      !renderedTree.childNodes.length
+    ) {
+      renderedTree = createTree('#text');
+    }
 
     // Set up the HoC parent/child relationship.
     if (typeof renderedTree.rawNodeName === 'function') {
