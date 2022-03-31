@@ -294,6 +294,9 @@ classes, and web components.</p>
 <p><a name="function-component"></a></p>
 <hr></hr>
 <h2 id="function-component"><a href="#function-component">Function component</a></h2>
+<p>Functions are a simple and powerful way of creating UI components that allow
+you to focus on incoming properties and returning markup. They are stateless
+and require the parent component to re-render before they will update.</p>
 <pre><code class="language-javascript">import { html, innerHTML } from &#39;diffhtml&#39;;
 import &#39;diffhtml-components&#39;;
 
@@ -305,6 +308,12 @@ function MyComponent(props) {
 
 innerHTML(document.body, html`&lt;${MyComponent} someProp=&quot;value&quot; /&gt;`);
 </code></pre>
+<p>You can make them stateful though using hooks inspired by React. The currently
+available hooks are:</p>
+<ul>
+<li><a href="#create-state">createState</a></li>
+<li><a href="#create-side-effect">createSideEffect</a></li>
+</ul>
 <p><a name="class-component"></a></p>
 <hr></hr>
 <h2 id="class-component"><a href="#class-component">Class Component</a></h2>
@@ -430,6 +439,7 @@ customElements.define(&#39;custom-element&#39;, ClassComponent);
 <p>The function <code>createState</code> is used to make a stateful component out of a
 function component. It mimics the API of <code>useState</code> from React. Essentially you
 must execute this function in the same spot at the same time every render.</p>
+<p>This API is similar to <code>useState</code> from React.</p>
 <p><a name="create-state-examples"></a></p>
 <h3 id="examples"><a href="#create-state-examples"><u>Examples</u></a></h3>
 <pre><code class="language-javascript">import { innerHTML, html } from &#39;diffhtml&#39;;
@@ -453,7 +463,8 @@ innerHTML(main, html`&lt;${Example} /&gt;`);
 <hr></hr>
 <h2 id="createsideeffect"><a href="#create-side-effect">createSideEffect</a></h2>
 <p>The function <code>createSideEffect</code> is used to schedule some work after a component
-has updated.</p>
+has mounted, unmounted, or updated. This works similar to the <code>useEffect</code> hook
+found in React.</p>
 <p><a name="create-side-effect-examples"></a></p>
 <h3 id="examples-1"><a href="#create-side-effect-examples"><u>Examples</u></a></h3>
 <pre><code class="language-javascript">import { innerHTML, html } from &#39;diffhtml&#39;;
@@ -461,7 +472,11 @@ import { createSideEffect } from &#39;diffhtml-components&#39;;
 
 function Example() {
   createSideEffect(() =&gt; {
-    console.log(&#39;Component has rendered&#39;);
+    console.log(&#39;Component has mounted or updated&#39;);
+
+    return () =&gt; {
+      console.log(&#39;Component has unmounted&#39;);
+    };
   });
 
   return html`
@@ -506,7 +521,7 @@ function SomeComponent() {
         </footer>
       </layer>
 
-      <script>window.NODE_ENV = 'development';</script>
+      <script>window.NODE_ENV = 'production';</script>
       <script src="/scripts/highlight.min.js"></script>
       <script type="module" src="/scripts/index.js"></script>
     </body>

@@ -24,6 +24,10 @@ npm install --save diffhtml-components
 
 ## <a href="#function-component">Function component</a>
 
+Functions are a simple and powerful way of creating UI components that allow
+you to focus on incoming properties and returning markup. They are stateless
+and require the parent component to re-render before they will update.
+
 ```javascript
 import { html, innerHTML } from 'diffhtml';
 import 'diffhtml-components';
@@ -36,6 +40,14 @@ function MyComponent(props) {
 
 innerHTML(document.body, html`<${MyComponent} someProp="value" />`);
 ```
+
+You can make them stateful though using hooks inspired by React. The currently
+available hooks are:
+
+- <a href="#create-state">createState</a>
+- <a href="#create-side-effect">createSideEffect</a>
+
+
 
 <a name="class-component"></a>
 
@@ -245,8 +257,6 @@ innerHTML(main, html`<${Example} />`);
 The function `createSideEffect` is used to schedule some work after a component
 has mounted, unmounted, or updated. This works similar to the `useEffect` hook
 found in React.
-
-This API is similar to `useEffect` from React.
 
 <a name="create-side-effect-examples"></a>
 
