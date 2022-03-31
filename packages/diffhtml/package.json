@@ -1,6 +1,6 @@
 {
   "name": "diffhtml",
-  "version": "1.0.0-beta.24",
+  "version": "1.0.0-beta.25",
   "description": "Build JavaScript components and apps using a Virtual DOM",
   "type": "module",
   "main": "dist/cjs/index",
@@ -41,7 +41,7 @@
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.25",
     "babel-plugin-istanbul": "^6.0.0",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.24",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.25",
     "c8": "^7.11.0",
     "coveralls": "^3.1.0",
     "extless-loader": "^1.0.0",
