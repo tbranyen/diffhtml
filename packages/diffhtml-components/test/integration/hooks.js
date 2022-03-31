@@ -101,6 +101,7 @@ describe('Hooks', function() {
       function Component() {
         createSideEffect(() => {
           firedOnUpdate++;
+          return () => firedOnUpdate++;
         });
 
         return html`<div></div>`;
@@ -120,6 +121,7 @@ describe('Hooks', function() {
       function Component() {
         createSideEffect(() => {
           firedOnUpdate++;
+          return () => firedOnUpdate++;
         });
 
         return html`<div></div>`;
@@ -139,7 +141,7 @@ describe('Hooks', function() {
       let firedOnUnmount = 0;
 
       function Component() {
-        createSideEffect(() => () => {
+        createSideEffect(null, () => {
           firedOnUnmount++;
         });
 
@@ -151,6 +153,40 @@ describe('Hooks', function() {
       await innerHTML(this.fixture, html`<${Component} />`);
       await innerHTML(this.fixture, html``);
 
+      strictEqual(firedOnUnmount, 1);
+    });
+
+    it('will work with createState', async () => {
+      let firedOnUpdate = 0;
+      let firedOnUnmount = 0;
+      let setState;
+
+      function Component() {
+        const [ value, setValue ] = createState({});
+
+        setState = setValue;
+
+        createSideEffect(
+          () => {
+            firedOnUpdate++;
+            return () => firedOnUpdate++;
+          },
+
+          () => {
+            firedOnUnmount++;
+          }
+        );
+
+        return html`<div></div>`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+      await setState({});
+      await innerHTML(this.fixture, html``);
+
+      strictEqual(firedOnUpdate, 2);
       strictEqual(firedOnUnmount, 1);
     });
   });

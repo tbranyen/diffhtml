@@ -229,8 +229,8 @@ export default class Component {
   /** @type {VTree | null} */
   [$$vTree] = null;
 
-  /** @type {Function[]} */
-  [$$hooks] = [];
+  /** @type {{ fns: Function[], i: number }} */
+  [$$hooks] = { fns: [], i: 0 };
 
   /**
    * Stateful render. Used when a component changes and needs to re-render
@@ -248,6 +248,10 @@ export default class Component {
       this.state = createState(this, this.state);
 
       ActiveRenderState.push(this);
+
+      if ($$hooks in this) {
+        this[$$hooks].i = 0;
+      }
 
       /** @type {Promise<Transaction>} */
       const promise = /** @type {any} */ (innerHTML(
@@ -280,6 +284,11 @@ export default class Component {
 
     // Render directly from the Component.
     ActiveRenderState.push(this);
+
+    if ($$hooks in this) {
+      this[$$hooks].i = 0;
+    }
+
     let renderTree = this.render(this.props, this.state);
     ActiveRenderState.length = 0;
 

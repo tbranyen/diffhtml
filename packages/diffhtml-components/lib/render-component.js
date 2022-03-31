@@ -4,7 +4,7 @@ import {
   InstanceCache,
   VTree,
 } from './util/types';
-import { $$vTree } from './util/symbols';
+import { $$hooks, $$vTree } from './util/symbols';
 import diff from './util/binding';
 import Component from './component';
 
@@ -47,6 +47,8 @@ export default function renderComponent(vTree) {
       });
 
       ActiveRenderState.push(instance);
+      // Reset the hooks iterator.
+      instance[$$hooks].i = 0;
       renderedTree = createTree(instance.render(props, instance.state));
       ActiveRenderState.length = 0;
 
