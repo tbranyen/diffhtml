@@ -211,6 +211,8 @@ The function `createState` is used to make a stateful component out of a
 function component. It mimics the API of `useState` from React. Essentially you
 must execute this function in the same spot at the same time every render.
 
+This API is similar to `useState` from React.
+
 <a name="create-state-examples"></a>
 
 ### <a href="#create-state-examples"><u>Examples</u></a>
@@ -241,7 +243,10 @@ innerHTML(main, html`<${Example} />`);
 ## <a href="#create-side-effect">createSideEffect</a>
 
 The function `createSideEffect` is used to schedule some work after a component
-has updated.
+has mounted, unmounted, or updated. This works similar to the `useEffect` hook
+found in React.
+
+This API is similar to `useEffect` from React.
 
 <a name="create-side-effect-examples"></a>
 
@@ -253,7 +258,11 @@ import { createSideEffect } from 'diffhtml-components';
 
 function Example() {
   createSideEffect(() => {
-    console.log('Component has rendered');
+    console.log('Component has mounted or updated');
+
+    return () => {
+      console.log('Component has unmounted');
+    };
   });
 
   return html`

@@ -1,11 +1,12 @@
 import { strictEqual } from 'assert';
 import diff from '../../lib/util/binding';
-import { ComponentTreeCache, InstanceCache } from '../../lib/util/types';
+import { ActiveRenderState, ComponentTreeCache, InstanceCache } from '../../lib/util/types';
 
 /**
  * Validates that the caches has been successfully cleaned per render.
  */
 export default function validateCaches() {
+  strictEqual(ActiveRenderState.length, 0, 'The ActiveRenderState global should be empty');
   strictEqual(ComponentTreeCache.size, 0, 'The ComponentTree cache should be empty');
   strictEqual(InstanceCache.size, 0, 'The instance cache should be empty');
 
