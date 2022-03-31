@@ -3,7 +3,7 @@
 *Babel transform for pre-parsing and compiling diffHTML template functions to
 createTree calls which reduces runtime HTML parse cost.*
 
-Latest version: 1.0.0-beta.25
+Latest version: 1.0.0-beta.26
 
 Refer to the website [https://diffhtml.org/tools.html#babel-transform](https://diffhtml.org/tools.html#babel-transform) for documentation.
 

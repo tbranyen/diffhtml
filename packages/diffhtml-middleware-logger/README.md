@@ -1,6 +1,6 @@
 # <±/> diffHTML Logger Middleware
 
-Stable Version: 1.0.0-beta.25
+Stable Version: 1.0.0-beta.26
 
 Use with diffHTML to `console.log` out [render
 transaction](https://diffhtml.org/#transaction) operations. This will nest

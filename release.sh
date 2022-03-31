@@ -3,14 +3,16 @@
 # Always set current dir to where release script is located (root).
 cd "${0%/*}"
 
-OLD_BETA=24
-NEW_BETA=25
+OLD_BETA=25
+NEW_BETA=26
 
 OLD_VERSION="1.0.0-beta.$OLD_BETA"
 NEW_VERSION="1.0.0-beta.$NEW_BETA"
 
-# TODO Update this script to be safer around potential collisions. It has
-# worked so far for years so no need for any immediate changes.
+# Ensure that all packages are bootstrapped and the build works before
+# continuing a release.
+lerna bootstrap
+npm run build
 
 # Update all README.md files.
 sed -i -e "s/$OLD_VERSION/$NEW_VERSION/g" **/README.md
