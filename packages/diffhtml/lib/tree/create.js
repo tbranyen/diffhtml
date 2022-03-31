@@ -124,7 +124,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       childNodes = [];
 
       for (let i = 0; i < inputAsHTMLEl.childNodes.length; i++) {
-        /** @type {HTMLElement} */
+        /** @type {ValidInput} */
         const childNodeElement = (inputAsHTMLEl.childNodes[i]);
         childNodes.push(createTree(childNodeElement));
       }
@@ -168,7 +168,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
       attributes,
       childNodes,
       children,
-    } = (input);
+    } = (/** @type {any} */(input));
 
     const treeName = rawNodeName || nodeName;
 

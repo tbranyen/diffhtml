@@ -17,38 +17,40 @@ const dests = {
   umd: 'dist/diffhtml-lite.js',
 }
 
-export const input = entries[NODE_ENV];
-export const context = 'this';
+export default {
+  input: entries[NODE_ENV],
+  context: 'this',
 
-export const output = [{
-  file: dests[NODE_ENV],
-  format: 'umd',
-  exports: 'named',
-  name: 'diff',
-  sourcemap: false,
-}];
+  output: [{
+    file: dests[NODE_ENV],
+    format: 'umd',
+    exports: 'named',
+    name: 'diff',
+    sourcemap: false,
+  }],
 
-export const plugins = [
-  replace({
-    'process.env.NODE_ENV': stringify('production')
-  }),
-  babel({ comments: false }),
-  nodeResolve({ mainFields: ['module'] }),
-  hypothetical({
-    allowFallthrough: true,
-    files: {
-      './lib/util/performance.js': `
-        export default () => () => {};
-      `,
+  plugins: [
+    replace({
+      'process.env.NODE_ENV': stringify('production')
+    }),
+    babel({ comments: false }),
+    nodeResolve({ mainFields: ['module'] }),
+    hypothetical({
+      allowFallthrough: true,
+      files: {
+        './lib/util/performance.js': `
+          export default () => () => {};
+        `,
 
-      './lib/util/process.js': `
-        export default {
-          env: { NODE_ENV: 'production' },
-        };
-      `,
-    }
-  }),
-  NODE_ENV === 'umd' && Visualizer({
-    filename: './dist/lite-build-size.html'
-  }),
-];
+        './lib/util/process.js': `
+          export default {
+            env: { NODE_ENV: 'production' },
+          };
+        `,
+      }
+    }),
+    NODE_ENV === 'umd' && Visualizer({
+      filename: './dist/lite-build-size.html'
+    }),
+  ],
+};

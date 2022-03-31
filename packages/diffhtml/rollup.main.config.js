@@ -15,20 +15,20 @@ const dests = {
 
 const { NODE_ENV = 'umd' } = process.env;
 
-export const input = entries[NODE_ENV];
-export const context = 'this';
-
-export const output = [{
-  file: dests[NODE_ENV],
-  format: 'umd',
-  exports: 'named',
-  name: 'diff',
-  sourcemap: false,
-}];
-
-export const plugins = [
-  NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
-  babel({ comments: false }),
-  nodeResolve({ mainFields: ['module'] }),
-  NODE_ENV === 'umd' && Visualizer({ filename: './dist/main-build-size.html' }),
-];
+export default {
+  input: entries[NODE_ENV],
+  context: 'this',
+  output: [{
+    file: dests[NODE_ENV],
+    format: 'umd',
+    exports: 'named',
+    name: 'diff',
+    sourcemap: false,
+  }],
+  plugins: [
+    NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
+    babel({ comments: false }),
+    nodeResolve({ mainFields: ['module'] }),
+    NODE_ENV === 'umd' && Visualizer({ filename: './dist/main-build-size.html' }),
+  ],
+};

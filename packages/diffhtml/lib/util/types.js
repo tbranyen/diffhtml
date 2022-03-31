@@ -134,7 +134,7 @@ export const VTree = EMPTY.OBJ;
  * @typedef {Object} VTreeLike
 
  * @property {any=} rawNodeName - unaltered extracted nodeName
- * @property {string} nodeName - lowercased, string, nodeName, only required value
+ * @property {string=} nodeName - lowercased, string, nodeName, only required value
  * @property {string=} elementName - lowercased, string, elementName
  * @property {string=} nodeValue - defines the text value associated
  * @property {number=} nodeType - the type of Node this is representing
@@ -146,7 +146,7 @@ export const VTree = EMPTY.OBJ;
 export const VTreeLike = EMPTY.OBJ;
 
 /**
- * @typedef {HTMLElement | Text | Comment | DocumentFragment | Function | string | string[] | VTree | VTree[] | VTreeLike | VTreeLike[]} ValidInput
+ * @typedef {HTMLElement | ChildNode | Element | Text | Comment | DocumentFragment | Function | string | string[] | VTree | VTree[] | VTreeLike | VTreeLike[]} ValidInput
  */
 export const ValidInput = EMPTY.OBJ;
 
