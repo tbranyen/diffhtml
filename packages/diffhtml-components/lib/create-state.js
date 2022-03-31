@@ -20,7 +20,8 @@ export function createState(defaultValue = {}) {
   }
 
   const [ activeComponent ] = ActiveRenderState;
-  const activeHook = activeComponent[$$hooks].shift();
+  const hooks = activeComponent[$$hooks];
+  const activeHook = hooks.fns[hooks.i];
   const currentValue = activeHook ? activeHook[0] : defaultValue;
   const retVal = activeHook || [currentValue];
 
@@ -37,6 +38,10 @@ export function createState(defaultValue = {}) {
   }
 
   // Return currentValue and setState.
-  activeComponent[$$hooks].push(retVal);
+  hooks.fns[hooks.i] = retVal;
+
+  // Increment the hooks count.
+  hooks.i += 1;
+
   return retVal;
 }

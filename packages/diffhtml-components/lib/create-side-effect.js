@@ -21,20 +21,20 @@ export function createSideEffect(sideEffectFn) {
   }
 
   const [ activeComponent ] = ActiveRenderState;
-  const activeHook = activeComponent[$$hooks].shift();
+  const hooks = activeComponent[$$hooks];
 
-  // Only do this the first time.
-  if (!activeHook) {
-    // First schedule a componentDidMount
-    activeComponent.componentDidMount = activeComponent.componentDidUpdate = () => {
-      const unMount = sideEffectFn() || EMPTY.FUN;
+  // First schedule a componentDidMount
+  activeComponent.componentDidMount = activeComponent.componentDidUpdate = () => {
+    const unMount = sideEffectFn() || EMPTY.FUN;
 
-      if (typeof unMount === 'function') {
-        activeComponent.componentWillUnmount = () => unMount();
-      }
-    };
+    if (typeof unMount === 'function') {
+      activeComponent.componentWillUnmount = () => unMount();
+    }
+  };
 
-    // Return currentValue and setState.
-    activeComponent[$$hooks].push(sideEffectFn);
-  }
+  // Return currentValue and setState.
+  hooks.fns[hooks.i] = sideEffectFn;
+
+  // Increment the hooks count.
+  hooks.i += 1;
 }
