@@ -184,8 +184,8 @@ observing the render flow, modifying attributes or elements, and more.
 
 Middleware can be enabled and disabled via code or the browser DevTools.
 
-[**Refer to the Middleware documentation for documentation on writing your own
-and find existing plugins.**](/middleware.html)
+**[Refer to the Middleware documentation for documentation on writing your own
+and find existing plugins.](/middleware.html)**
 
 <a name="use-arguments"></a>
 
