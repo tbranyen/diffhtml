@@ -464,7 +464,14 @@ innerHTML(main, html`&lt;${Example} /&gt;`);
 <h2 id="createsideeffect"><a href="#create-side-effect">createSideEffect</a></h2>
 <p>The function <code>createSideEffect</code> is used to schedule some work after a component
 has mounted, unmounted, or updated. This works similar to the <code>useEffect</code> hook
-found in React.</p>
+found in React. There are some differences though. With React, a useEffect hook
+is triggered on both mount and update with the same function. The unmount logic
+is also triggered before every update.</p>
+<p>With <code>createSideEffect</code> you will pass one or two functions which represent
+mount and unmount respectively. Only one is required. They map directly to
+<code>componentDidMount</code> and <code>componentWillUnmount</code>. If you wish to hook into
+<code>componentDidUpdate</code>, simply return a new function from the <code>componentDidMount</code>
+handler.</p>
 <p><a name="create-side-effect-examples"></a></p>
 <h3 id="examples-1"><a href="#create-side-effect-examples"><u>Examples</u></a></h3>
 <pre><code class="language-javascript">import { innerHTML, html } from &#39;diffhtml&#39;;
@@ -472,11 +479,13 @@ import { createSideEffect } from &#39;diffhtml-components&#39;;
 
 function Example() {
   createSideEffect(() =&gt; {
-    console.log(&#39;Component has mounted or updated&#39;);
+    console.log(&#39;Component has mounted&#39;);
 
     return () =&gt; {
-      console.log(&#39;Component has unmounted&#39;);
+      console.log(&#39;Component has updated&#39;);
     };
+  }, () =&gt; {
+    console.log(&#39;Component has unmounted&#39;);
   });
 
   return html`
