@@ -165,6 +165,20 @@ describe('Integration: Basics', function() {
 
       diff.Internals.memory.gc();
     });
+
+    it('will support safely removing properties with delete disabled', function() {
+      const element = new Proxy(document.createElement('div'), {
+        deleteProperty() {
+          throw new Error('Should not cause uncaught failure');
+        }
+      });
+
+      assert.doesNotThrow(() => {
+        diff.outerHTML(element, diff.html`<div of="true" />`);
+        diff.outerHTML(element, diff.html`<div />`);
+        diff.release(element);
+      });
+    });
   });
 
   describe('Special features', function() {

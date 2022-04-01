@@ -38,7 +38,7 @@ const setAttribute = (vTree, domNode, name, value) => {
   const lowerName = isEvent ? name.toLowerCase() : name;
 
   // Runtime checking if the property can be set.
-  const blocklistName = vTree.nodeName + '-' + lowerName;
+  const blocklistName = 's-' + vTree.nodeName + '-' + lowerName;
 
   /** @type {HTMLElement} */
   const htmlElement = /** @type {any} */ (domNode);
@@ -86,7 +86,7 @@ const setAttribute = (vTree, domNode, name, value) => {
  */
 const removeAttribute = (vTree, domNode, name) => {
   // Runtime checking if the property can be set.
-  const blocklistName = vTree.nodeName + '-' + name;
+  const blocklistName = 'r-' + vTree.nodeName + '-' + name;
   const anyNode = /** @type {any} */ (domNode);
 
   if (allowlist.has(blocklistName)) {

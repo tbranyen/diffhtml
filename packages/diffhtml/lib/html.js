@@ -147,7 +147,13 @@ delete /** @type {any} */(handleTaggedTemplate)[$$strict];
  */
 function setStrictMode(markup, ...args) {
   /** @type {any} */(handleTaggedTemplate)[$$strict] = true;
-  return handleTaggedTemplate(markup, ...args);
+  try {
+    return handleTaggedTemplate(markup, ...args);
+  }
+  catch (e) {
+    /** @type {any} */(handleTaggedTemplate)[$$strict] = false;
+    throw e;
+  }
 }
 
 handleTaggedTemplate.strict = setStrictMode;
