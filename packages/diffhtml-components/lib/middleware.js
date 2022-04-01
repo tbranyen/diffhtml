@@ -1,4 +1,4 @@
-import { EMPTY, InstanceCache, ComponentTreeCache, VTree, Transaction } from './util/types';
+import { EMPTY, ComponentTreeCache, VTree, Transaction } from './util/types';
 import globalThis from './util/global';
 import onceEnded from './once-ended';
 import componentWillUnmount from './lifecycle/component-will-unmount';
