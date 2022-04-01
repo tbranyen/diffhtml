@@ -3,8 +3,8 @@
 # Always set current dir to where release script is located (root).
 cd "${0%/*}"
 
-OLD_BETA=25
-NEW_BETA=26
+OLD_BETA=26
+NEW_BETA=27
 
 OLD_VERSION="1.0.0-beta.$OLD_BETA"
 NEW_VERSION="1.0.0-beta.$NEW_BETA"
