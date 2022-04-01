@@ -39,13 +39,6 @@ export default function renderComponent(vTree) {
       instance.shouldComponentUpdate &&
       instance.shouldComponentUpdate(props, instance.state)
     ) {
-      // Wipe out all old references before re-rendering.
-      ComponentTreeCache.forEach((parentTree, childTree) => {
-        if (parentTree === vTree) {
-          ComponentTreeCache.delete(childTree);
-        }
-      });
-
       ActiveRenderState.push(instance);
       // Reset the hooks iterator.
       instance[$$hooks].i = 0;

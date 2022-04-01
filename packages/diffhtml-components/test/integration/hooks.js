@@ -156,6 +156,79 @@ describe('Hooks', function() {
       strictEqual(firedOnUnmount, 1);
     });
 
+    it('will support multiple side effects', async () => {
+      let firedOnMount = 0;
+      let firedOnUnmount = 0;
+
+      function Component() {
+        createSideEffect(() => {
+          firedOnMount++;
+        });
+
+        createSideEffect(null, () => {
+          firedOnUnmount++;
+        });
+
+        return html`<div></div>`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+      await innerHTML(this.fixture, html``);
+
+      strictEqual(firedOnMount, 1);
+      strictEqual(firedOnUnmount, 1);
+    });
+
+    it('will support multiple didMount side effects', async () => {
+      let firedOnMount = 0;
+
+      function Component() {
+        createSideEffect(() => {
+          firedOnMount++;
+        });
+
+        createSideEffect(() => {
+          firedOnMount++;
+        });
+
+        return html`<div></div>`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+
+      strictEqual(firedOnMount, 2);
+    });
+
+    it('will support multiple didUpdate side effects', async () => {
+      let firedOnUpdate = 0;
+
+      function Component() {
+        createSideEffect(() => () => {
+          firedOnUpdate++;
+        });
+
+        createSideEffect(() => () => {
+          firedOnUpdate++;
+        });
+
+        return html`<div></div>`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+      strictEqual(firedOnUpdate, 0);
+      await innerHTML(this.fixture, html`<${Component} test="prop" />`);
+      strictEqual(firedOnUpdate, 2);
+      await innerHTML(this.fixture, html`<${Component} test="change" />`);
+
+      strictEqual(firedOnUpdate, 4);
+    });
+
     it('will work with createState', async () => {
       let firedOnUpdate = 0;
       let firedOnUnmount = 0;
