@@ -18,3 +18,4 @@ jobs:
         with:
           github-token: ${{ github.token }}
           path-to-lcov: ./packages/diffhtml/coverage/lcov.info
+          base-path: ./packages/diffhtml
