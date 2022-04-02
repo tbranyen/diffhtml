@@ -1,6 +1,6 @@
 # <±/> diffHTML
 
-[![Build Status](https://travis-ci.com/tbranyen/diffhtml.svg?branch=master)](https://travis-ci.com/tbranyen/diffhtml)
+[![Build Status](https://github.com/tbranyen/diffhtml/actions/workflows/build-ci.yml/badge.svg)](https://github.com/tbranyen/diffhtml/actions/workflows/build-ci.yml)
 [![Coverage
   Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
 
