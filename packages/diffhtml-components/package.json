@@ -4,8 +4,6 @@
   "main": "dist/cjs/index",
   "type": "module",
   "module": "dist/es/index",
-  "jsnext:main": "dist/es/index",
-  "esnext:main": "dist/es/index",
   "devDependencies": {
     "@babel/cli": "^7.17.6",
     "@babel/core": "^7.17.8",

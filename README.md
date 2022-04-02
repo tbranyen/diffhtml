@@ -24,6 +24,9 @@ your ideas.
 - **React-like** Components which can be rendered as **Web Components**.
 - A **lite** build which has a smaller size, meant for optimizing production code.
 
+Works great with legacy and modern browsers, Node.js, Deno, and with whatever
+your favorite JavaScript runtime is.
+
 ## Packages
 
 The following list of modules are nested in the `/packages` folder. They form
