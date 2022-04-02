@@ -1,56 +1,8 @@
-import { EMPTY, ComponentTreeCache, InstanceCache, VTree } from '../util/types';
+import { ComponentTreeCache, InstanceCache, VTree } from '../util/types';
 import diff from '../util/binding';
 import { $$hooks } from '../util/symbols';
 
 const { release, Internals } = diff;
-
-/**
- * @param {any} target
- * @param {VTree} vTree
- */
-const invokeRef = (target = EMPTY.OBJ, vTree) => {
-  let { ref } = target.props || target;
-
-  // Allow refs to be passed to HTML elements. When in a DOM environment
-  // a Node will be passed to the ref function and assigned.
-  if (!ref) {
-    ref = vTree.attributes.ref;
-  }
-
-  if (typeof ref === 'function') {
-    ref(null);
-  }
-  else if (typeof ref === 'object' && ref) {
-    ref.current = null;
-  }
-  else if (typeof ref === 'string') {
-    target.refs = { ...target.refs, [ref]: null };
-  }
-};
-
-const invokeRefsForVTrees = (/** @type {(VTree | null)[]} */ ...vTrees) => {
-  for (let i = 0; i < vTrees.length; i++) {
-    const vTree = vTrees[i];
-
-    if (!vTree) continue;
-
-    const componentTree = ComponentTreeCache.get(vTree);
-    const instance = InstanceCache.get(componentTree || vTree);
-
-    if (vTree.childNodes.length) {
-      invokeRefsForVTrees(...vTree.childNodes);
-    }
-
-    if (!instance) {
-      invokeRef(Internals.NodeCache.get(vTree), vTree);
-      continue;
-    }
-
-    // If any instances exist, loop through them and invoke the respective `ref`
-    // logic.
-    invokeRef(instance, vTree);
-  }
-}
 
 /**
  * Called whenever a component is being removed.
@@ -69,14 +21,14 @@ export default function componentWillUnmount(vTree) {
     }
   });
 
-  invokeRefsForVTrees(vTree);
-
   const domNode = Internals.NodeCache.get(vTree);
 
   // Clean up attached Shadow DOM.
   if (domNode && /** @type {any} */ (domNode).shadowRoot) {
     release(/** @type {any} */ (domNode).shadowRoot);
   }
+
+  vTree.childNodes.forEach(componentWillUnmount);
 
   if (!InstanceCache.has(componentTree)) {
     return;

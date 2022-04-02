@@ -23,6 +23,12 @@ export const ComponentTreeCache = new Map();
 export const InstanceCache = new Map();
 
 /**
+ * @typedef {Map<Transaction, Set<any>>} MountCache
+ * @type {MountCache}
+ */
+export const MountCache = new Map();
+
+/**
  * @typedef {Function} RenderFunction
  *
  * @property {Props} props

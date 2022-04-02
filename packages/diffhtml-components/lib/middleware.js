@@ -1,18 +1,29 @@
-import { EMPTY, ComponentTreeCache, VTree, Transaction } from './util/types';
+import {
+  EMPTY,
+  ComponentTreeCache,
+  MountCache,
+  VTree,
+  Transaction,
+} from './util/types';
 import globalThis from './util/global';
-import onceEnded from './once-ended';
+import { $$vTree } from './util/symbols';
+import diff from './util/binding';
+import beforeMount from './before-mount';
 import componentWillUnmount from './lifecycle/component-will-unmount';
+import { invokeRef } from './lifecycle/invoke-refs';
 import renderComponent from './render-component';
 
 const { assign } = Object;
+const { tasks } = diff.Internals;
 
 /**
  * @param {VTree} oldTree
  * @param {VTree} newTree
+ * @param {Transaction} transaction
  *
  * @returns {VTree | null}
  */
-function render(oldTree, newTree) {
+function render(oldTree, newTree, transaction) {
   let oldComponentTree = null;
 
   // When there is an oldTree and it has childNodes, attempt to look up first
@@ -30,7 +41,7 @@ function render(oldTree, newTree) {
   // If there is no old component, or if the components do not match, then we
   // are rendering a brand new component.
   if (!oldComponentTree || oldComponentTree.rawNodeName !== newTree.rawNodeName) {
-    return renderComponent(newTree);
+    return renderComponent(newTree, transaction);
   }
 
   // Otherwise re-use the existing component if the constructors are the same.
@@ -38,7 +49,7 @@ function render(oldTree, newTree) {
     // Update the incoming props/attrs.
     assign(oldComponentTree.attributes, newTree.attributes);
 
-    return renderComponent(oldComponentTree);
+    return renderComponent(oldComponentTree, transaction);
   }
 
   return oldTree;
@@ -80,8 +91,9 @@ const createNodeHook = vTree => {
 /**
  * @param {VTree} oldTree
  * @param {VTree} newTree
+ * @param {Transaction} transaction
  */
-const syncTreeHook = (oldTree, newTree) => {
+const syncTreeHook = (oldTree, newTree, transaction) => {
   // Render components during synchronization.
   if (
     // When child is a Component
@@ -90,7 +102,7 @@ const syncTreeHook = (oldTree, newTree) => {
     // render.
     (oldTree && oldTree.rawNodeName ? oldTree.rawNodeName !== newTree.rawNodeName : false)
   ) {
-    return render(oldTree, newTree);
+    return render(oldTree, newTree, transaction);
   }
 
   if (!newTree.childNodes) {
@@ -101,10 +113,11 @@ const syncTreeHook = (oldTree, newTree) => {
   for (let i = 0; i < newTree.childNodes.length; i++) {
     const newChildTree = newTree.childNodes[i];
     const oldChildTree = (oldTree.childNodes && oldTree.childNodes[i]) || EMPTY.OBJ;
+    const isNewFunction = typeof newChildTree.rawNodeName === 'function';
 
     // Search through the DOM tree for more components to render.
-    if (typeof newChildTree.rawNodeName === 'function') {
-      const renderTree = render(oldChildTree, newChildTree);
+    if (isNewFunction) {
+      const renderTree = render(oldChildTree, newChildTree, transaction);
 
       // If nothing was rendered, return the oldTree.
       if (!renderTree) {
@@ -136,7 +149,39 @@ const syncTreeHook = (oldTree, newTree) => {
 };
 
 export default () => assign(
-  (/** @type {Transaction} */transaction) => transaction.onceEnded(onceEnded),
+  (/** @type {Transaction} */transaction) => {
+    MountCache.set(transaction, new Set());
+
+    // Splice after syncTrees to handle componentWillUnmount and modifying
+    // attributes.
+    if (transaction.tasks.includes(tasks.syncTrees)) {
+      const syncTreesIndex = transaction.tasks.indexOf(tasks.syncTrees);
+      transaction.tasks.splice(syncTreesIndex + 1, 0, function beforeMountLifecycle() {
+        beforeMount(transaction);
+        return transaction;
+      });
+    }
+
+    // Splice after patchNode to handle componentDidMount and refs.
+    if (transaction.tasks.includes(tasks.patchNode)) {
+      const patchNodeIndex = transaction.tasks.indexOf(tasks.patchNode);
+
+      transaction.tasks.splice(patchNodeIndex + 1, 0, function afterMountLifecycle() {
+        MountCache.get(transaction)?.forEach(instance => {
+          invokeRef(instance, instance[$$vTree]);
+
+          if (typeof instance.componentDidMount === 'function') {
+            instance.componentDidMount();
+          }
+        });
+        return transaction;
+      });
+    }
+
+    return (/** @type {Transaction} */ transaction) => {
+      MountCache.delete(transaction);
+    };
+  },
   {
     displayName: 'componentTask',
     syncTreeHook,

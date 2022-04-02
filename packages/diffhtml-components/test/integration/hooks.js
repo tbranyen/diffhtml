@@ -77,6 +77,104 @@ describe('Hooks', function() {
       strictEqual(firedOnMount, 1);
     });
 
+    it('will support componentDidMount in a nested component', async () => {
+      let firedOnMount = 0;
+
+      function Wrapper() {
+        return html`
+          <div>
+            ${html`
+              <div>
+                <${Component} />
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      function Component() {
+        createSideEffect(() => {
+          firedOnMount++;
+        });
+
+        return html`<div></div>`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Wrapper} />`);
+
+      strictEqual(firedOnMount, 1);
+    });
+
+    it('will support componentDidUpdate in a nested component', async () => {
+      let firedOnUpdate = 0;
+      let forceUpdate;
+
+      function Wrapper() {
+        return html`
+          <div>
+            ${html`
+              <div>
+                <${Component} />
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      function Component() {
+        const [ _, _forceUpdate ] = createState();
+
+        forceUpdate = _forceUpdate;
+
+        createSideEffect(() => () => {
+          firedOnUpdate++;
+        });
+
+        return html`<div></div>`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Wrapper} />`);
+      await forceUpdate();
+      await forceUpdate();
+
+      strictEqual(firedOnUpdate, 2);
+    });
+
+    it('will support componentWillUnmount in a nested component', async () => {
+      let firedOnUnmount = 0;
+
+      function Wrapper() {
+        return html`
+          <div>
+            ${html`
+              <div>
+                <${Component} />
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      function Component() {
+        createSideEffect(null, () => {
+          firedOnUnmount++;
+        });
+
+        return html`<div></div>`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Wrapper} />`);
+      await innerHTML(this.fixture, html``);
+
+      strictEqual(firedOnUnmount, 1);
+    });
+
     it('will support componentWillUnmount', async () => {
       let firedOnMount = 0;
 

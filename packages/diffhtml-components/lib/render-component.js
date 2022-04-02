@@ -1,8 +1,10 @@
 import {
+  MountCache,
   ComponentTreeCache,
   ActiveRenderState,
   InstanceCache,
   VTree,
+  Transaction,
 } from './util/types';
 import { $$hooks, $$vTree } from './util/symbols';
 import diff from './util/binding';
@@ -16,10 +18,11 @@ const { createTree } = diff;
  * methods.
  *
  * @param {VTree} vTree - tree to render
+ * @param {Transaction} transaction - used to key mounts to a transaction
  *
  * @returns {VTree | null}
  */
-export default function renderComponent(vTree) {
+export default function renderComponent(vTree, transaction) {
   const RawComponent = vTree.rawNodeName;
   const props = vTree.attributes;
   const isNewable = RawComponent.prototype && RawComponent.prototype.render;
@@ -60,11 +63,6 @@ export default function renderComponent(vTree) {
     // Associate the instance to the vTree.
     InstanceCache.set(vTree, instance);
 
-    // Signal the component is about to mount.
-    if (instance.componentWillMount) {
-      instance.componentWillMount();
-    }
-
     ActiveRenderState.push(instance);
 
     // Initial render of the class component, this should not be called again
@@ -73,6 +71,7 @@ export default function renderComponent(vTree) {
     const renderRetVal = instance.render(props, instance.state);
 
     ActiveRenderState.length = 0;
+    MountCache.get(transaction)?.add(instance);
 
     renderedTree = createTree(renderRetVal || '#text');
 
@@ -130,10 +129,13 @@ export default function renderComponent(vTree) {
     catch (e) {
       // Clean up after a potential failure.
       ActiveRenderState.length = 0;
+      MountCache.delete(transaction);
       throw e;
     }
 
     ActiveRenderState.length = 0;
+
+    MountCache.get(transaction)?.add(instance);
 
     renderedTree = createTree(renderRetVal || '#text');
 

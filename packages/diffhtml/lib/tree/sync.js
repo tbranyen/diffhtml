@@ -1,3 +1,4 @@
+import Transaction from '../transaction';
 import process from '../util/process';
 import {
   SyncTreeHookCache,
@@ -20,7 +21,8 @@ const textName = '#text';
  * @param {Partial<VTree> | null=} newTree
  * @param {any[]} patches
  * @param {Partial<TransactionState>} state
- * @param {boolean} attributesOnly
+ * @param {Transaction} transaction
+ * @param {boolean=} attributesOnly
  *
  * @return {any[] | false | null}
  */
@@ -29,7 +31,8 @@ export default function syncTree(
   newTree,
   patches = [],
   state = {},
-  attributesOnly = false,
+  transaction = EMPTY.OBJ,
+  attributesOnly,
 ) {
   if (!oldTree) oldTree = /** @type {VTree} */ (EMPTY.OBJ);
   if (!newTree) newTree = /** @type {VTree} */ (EMPTY.OBJ);
@@ -57,7 +60,7 @@ export default function syncTree(
       // Call the user provided middleware function for a single root node.
       // Allow the consumer to specify a return value of a different VTree
       // (useful for components).
-      const entry = fn(oldTree, newTree);
+      const entry = fn(oldTree, newTree, transaction);
 
       // If the value returned matches the original element, then short circuit
       // and do not dig further.
@@ -162,7 +165,7 @@ export default function syncTree(
     for (let i = 0; i < newChildNodes.length; i++) {
       // Ensure all SVG elements are tracked.
       isSVG && svgElements.add(newChildNodes[i]);
-      syncTree(null, newChildNodes[i], patches, state, true);
+      syncTree(null, newChildNodes[i], patches, state, transaction, true);
     }
 
     return patches;
@@ -217,7 +220,7 @@ export default function syncTree(
     // node is something we want to preserve, we can migrate it to the new
     // nodes.
     if (!newChildNode) {
-      if (syncTree(oldChildNode, null, patches, state, true) === false) {
+      if (syncTree(oldChildNode, null, patches, state, transaction, true) === false) {
         newChildNodes.splice(i, 0, oldChildNode);
       }
 
@@ -229,7 +232,7 @@ export default function syncTree(
       oldChildNodes.push(newChildNode);
 
       // Crawl this Node for any changes to apply.
-      syncTree(null, newChildNode, patches, state, true);
+      syncTree(null, newChildNode, patches, state, transaction, true);
 
       patches.push(
         PATCH_TYPE.INSERT_BEFORE,
@@ -251,7 +254,7 @@ export default function syncTree(
       // Remove the old node instead of replacing.
       if (!oldInNew && !newInOld) {
         oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
-        syncTree(null, newChildNode, patches, state, true);
+        syncTree(null, newChildNode, patches, state, transaction, true);
 
         patches.push(PATCH_TYPE.REPLACE_CHILD, newChildNode, oldChildNode);
 
@@ -282,7 +285,7 @@ export default function syncTree(
         }
 
         // Crawl this Node for any changes to apply.
-        syncTree(null, optimalNewNode, patches, state, true);
+        syncTree(null, optimalNewNode, patches, state, transaction, true);
 
         patches.push(
           PATCH_TYPE.INSERT_BEFORE,
@@ -297,7 +300,7 @@ export default function syncTree(
     }
 
     const sameType = oldChildNode.nodeName === newChildNode.nodeName;
-    const retVal = syncTree(oldChildNode, newChildNode, patches, state, !sameType);
+    const retVal = syncTree(oldChildNode, newChildNode, patches, state, transaction, !sameType);
 
     if (retVal === false) {
       newChildNodes.splice(i, 0, oldChildNode);

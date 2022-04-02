@@ -195,7 +195,7 @@ describe('Component implementation', function() {
   });
 
   describe('Lifecycle', () => {
-    it('will fire on undefined render return value', () => {
+    it('will fire didMount on undefined render return value', () => {
       let wasCalled = false;
 
       class CustomComponent extends Component {

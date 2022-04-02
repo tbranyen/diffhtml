@@ -65,6 +65,7 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
       newTree || null,
       [],
       state,
+      transaction,
     );
   }
 
