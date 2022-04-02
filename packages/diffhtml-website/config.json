@@ -46,6 +46,7 @@
       "Function Component": "#function-component",
       "Class Component": "#class-component",
       "Custom Element": "#custom-element",
+      "Lifecycle methods": "#lifecycle-methods",
       "createState": "#create-state",
       "createSideEffect": "#create-side-effect",
       "JSX": "#jsx"

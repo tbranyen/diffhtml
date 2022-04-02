@@ -234,6 +234,12 @@
       
 
       
+        <a href="components.html#lifecycle-methods" target><li>Lifecycle methods</li></a>
+      
+    
+      
+
+      
         <a href="components.html#create-state" target><li>createState</li></a>
       
     
@@ -280,9 +286,9 @@
         <hr></hr>
 
         <section id="content"><h1 id="components">Components</h1>
-<p>Components are used to organize and reuse distinct parts of your interface.
-They can be defined as either classes or functions. You may register any
-component as a Custom Element.</p>
+<p>Components are used to organize and reuse common parts of your UI. They can be
+defined as either classes or functions. You may register any component as a
+Web Component.</p>
 <p><a name="overview"></a></p>
 <hr></hr>
 <h2 id="overview"><a href="#overview">Overview</a></h2>
@@ -367,23 +373,23 @@ useful to call this when you know the state has changed and want it reflected.</
 <p>The following hooks will be called during the respective mounting and
 unmounting flow. You do not need to extend from <code>Component</code> to use these hooks.
 Simple classes can just define them as methods and they will be called.</p>
-<h4 id="componentwillmount"><code>componentWillMount</code></h4>
+<h4 id="componentdidmount"><code>componentDidMount</code></h4>
 <pre><code class="language-js">import { html, innerHTML } from &#39;diffhtml&#39;;
 import { Component } from &#39;diffhtml-components&#39;;
 
-class WillMountComponent extends Component {
+class DidMountComponent extends Component {
   render() {
     return html`
       &lt;div&gt;&lt;h1&gt;Hello world&lt;/h1&gt;&lt;/div&gt;
     `;
   }
 
-  componentWillMount() {
+  componentDidMount() {
     console.log(&#39;Component has mounted&#39;);
   }
 }
 
-innerHTML(document.body, html`&lt;${WillMountComponent} /&gt;`);
+innerHTML(document.body, html`&lt;${DidMountComponent} /&gt;`);
 </code></pre>
 <h4 id="componentdidupdate"><code>componentDidUpdate</code></h4>
 <pre><code class="language-js">import { html, innerHTML } from &#39;diffhtml&#39;;
@@ -436,12 +442,11 @@ customElements.define(&#39;custom-element&#39;, ClassComponent);
 <p><a name="create-state"></a></p>
 <hr></hr>
 <h2 id="createstate"><a href="#create-state">createState</a></h2>
-<p>The function <code>createState</code> is used to make a stateful component out of a
-function component. It mimics the API of <code>useState</code> from React. Essentially you
-must execute this function in the same spot at the same time every render.</p>
-<p>This API is similar to <code>useState</code> from React.</p>
+<p>The function <code>createState</code> is used to make a function component stateful, which
+is the ability to re-render itself. It mimics the API of <code>useState</code> from React.</p>
 <p><a name="create-state-examples"></a></p>
 <h3 id="examples"><a href="#create-state-examples"><u>Examples</u></a></h3>
+<p>Simple example demonstrating an incrementing counter.</p>
 <pre><code class="language-javascript">import { innerHTML, html } from &#39;diffhtml&#39;;
 import { createState } from &#39;diffhtml-components&#39;;
 
@@ -464,14 +469,8 @@ innerHTML(main, html`&lt;${Example} /&gt;`);
 <h2 id="createsideeffect"><a href="#create-side-effect">createSideEffect</a></h2>
 <p>The function <code>createSideEffect</code> is used to schedule some work after a component
 has mounted, unmounted, or updated. This works similar to the <code>useEffect</code> hook
-found in React. There are some differences though. With React, a useEffect hook
-is triggered on both mount and update with the same function. The unmount logic
-is also triggered before every update.</p>
-<p>With <code>createSideEffect</code> you will pass one or two functions which represent
-mount and unmount respectively. Only one is required. They map directly to
-<code>componentDidMount</code> and <code>componentWillUnmount</code>. If you wish to hook into
-<code>componentDidUpdate</code>, simply return a new function from the <code>componentDidMount</code>
-handler.</p>
+found in React and maps directly to the class lifecycle hooks:
+<code>componentDidMount</code>, <code>componentDidUpdate</code>, and <code>componentWillUnmount</code>.</p>
 <p><a name="create-side-effect-examples"></a></p>
 <h3 id="examples-1"><a href="#create-side-effect-examples"><u>Examples</u></a></h3>
 <pre><code class="language-javascript">import { innerHTML, html } from &#39;diffhtml&#39;;

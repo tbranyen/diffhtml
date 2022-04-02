@@ -1,8 +1,8 @@
 # Components
 
-Components are used to organize and reuse distinct parts of your interface.
-They can be defined as either classes or functions. You may register any
-component as a Custom Element.
+Components are used to organize and reuse common parts of your UI. They can be
+defined as either classes or functions. You may register any component as a
+Web Component.
 
 <a name="overview"></a>
 
@@ -125,25 +125,25 @@ The following hooks will be called during the respective mounting and
 unmounting flow. You do not need to extend from `Component` to use these hooks.
 Simple classes can just define them as methods and they will be called.
 
-#### `componentWillMount`
+#### `componentDidMount`
 
 ```js
 import { html, innerHTML } from 'diffhtml';
 import { Component } from 'diffhtml-components';
 
-class WillMountComponent extends Component {
+class DidMountComponent extends Component {
   render() {
     return html`
       <div><h1>Hello world</h1></div>
     `;
   }
 
-  componentWillMount() {
+  componentDidMount() {
     console.log('Component has mounted');
   }
 }
 
-innerHTML(document.body, html`<${WillMountComponent} />`);
+innerHTML(document.body, html`<${DidMountComponent} />`);
 ```
 
 #### `componentDidUpdate`
@@ -219,15 +219,14 @@ html`<custom-element prop=${value} />`
 
 ## <a href="#create-state">createState</a>
 
-The function `createState` is used to make a stateful component out of a
-function component. It mimics the API of `useState` from React. Essentially you
-must execute this function in the same spot at the same time every render.
-
-This API is similar to `useState` from React.
+The function `createState` is used to make a function component stateful, which
+is the ability to re-render itself. It mimics the API of `useState` from React.
 
 <a name="create-state-examples"></a>
 
 ### <a href="#create-state-examples"><u>Examples</u></a>
+
+Simple example demonstrating an incrementing counter.
 
 ```javascript
 import { innerHTML, html } from 'diffhtml';
@@ -256,15 +255,8 @@ innerHTML(main, html`<${Example} />`);
 
 The function `createSideEffect` is used to schedule some work after a component
 has mounted, unmounted, or updated. This works similar to the `useEffect` hook
-found in React. There are some differences though. With React, a useEffect hook
-is triggered on both mount and update with the same function. The unmount logic
-is also triggered before every update.
-
-With `createSideEffect` you will pass one or two functions which represent
-mount and unmount respectively. Only one is required. They map directly to
-`componentDidMount` and `componentWillUnmount`. If you wish to hook into
-`componentDidUpdate`, simply return a new function from the `componentDidMount`
-handler.
+found in React and maps directly to the class lifecycle hooks:
+`componentDidMount`, `componentDidUpdate`, and `componentWillUnmount`.
 
 <a name="create-side-effect-examples"></a>
 

@@ -1,8 +1,7 @@
 # <±/> diffHTML
 
 [![Build Status](https://github.com/tbranyen/diffhtml/actions/workflows/build-ci.yml/badge.svg)](https://github.com/tbranyen/diffhtml/actions/workflows/build-ci.yml)
-[![Coverage
-  Status](https://coveralls.io/repos/tbranyen/diffhtml/badge.svg?branch=master&service=github)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/tbranyen/diffhtml/badge.svg?branch=master)](https://coveralls.io/github/tbranyen/diffhtml?branch=master)
 
 Latest version: 1.0.0-beta.27
 
