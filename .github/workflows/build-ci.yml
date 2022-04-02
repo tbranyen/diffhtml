@@ -1,0 +1,20 @@
+name: build-ci
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+      - uses: browser-actions/setup-chrome@latest
+      - run: chrome --version
+      - run: npm install
+      - run: lerna run build
+      - run: lerna run min
+      - name: Run tests
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: lerna run test:ci
+
