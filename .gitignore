@@ -3,4 +3,3 @@ dist
 coverage
 .nyc_output
 lerna-debug.log
-package-lock.json
