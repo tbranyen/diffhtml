@@ -4,6 +4,7 @@
   "description": "Compiles tagged templates into createTree calls",
   "main": "dist/index.js",
   "scripts": {
+    "min": "npm run build",
     "build": "npm run clean && NODE_ENV=umd browserify --im -x diffhtml -u diffhtml -s transform -g babelify lib/index.js -x ./global.js -o dist/index.js",
     "clean": "rm -rf dist/* && mkdir -p dist",
     "watch": "NODE_ENV=umd watchify --im -s transform -g babelify lib/index.js -o dist/index.js -v",
