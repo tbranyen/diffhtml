@@ -1,16 +1,12 @@
-import componentDidMount from './lifecycle/component-did-mount';
 import componentWillUnmount from './lifecycle/component-will-unmount';
+import { invokeRef, invokeRefsForVTree } from './lifecycle/invoke-refs';
 import diff from './util/binding';
 import { Transaction } from './util/types';
 
-const { NodeCache, PATCH_TYPE, decodeEntities } = diff.Internals;
+const { createNode, NodeCache, PATCH_TYPE, decodeEntities } = diff.Internals;
 const uppercaseEx = /[A-Z]/g;
 
 /**
- * Once the transaction has ended we can know for certain that DOM operations
- * have completed and can trigger lifecycle methods like componentDidMount or
- * componentWillUnmount.
- *
  * @param {Transaction} transaction
  */
 export default transaction => {
@@ -57,6 +53,10 @@ export default transaction => {
           }
         }
 
+        if (name === 'ref') {
+          invokeRef(createNode(vTree), vTree);
+        }
+
         i += 4;
         break;
       }
@@ -66,34 +66,24 @@ export default transaction => {
         break;
       }
 
-      case PATCH_TYPE.NODE_VALUE: {
-        i += 4;
-        break;
-      }
-
-      case PATCH_TYPE.INSERT_BEFORE: {
-        const newTree = patches[i + 2];
-
-        componentDidMount(newTree);
-
-        i += 4;
-        break;
-      }
-
       case PATCH_TYPE.REPLACE_CHILD: {
-        const newTree = patches[i + 1];
         const oldTree = patches[i + 2];
 
         componentWillUnmount(oldTree);
-        componentDidMount(newTree);
 
         i += 3;
         break;
       }
 
+      case PATCH_TYPE.NODE_VALUE:
+      case PATCH_TYPE.INSERT_BEFORE: {
+        i += 4;
+        break;
+      }
+
       case PATCH_TYPE.REMOVE_CHILD: {
         const vTree = patches[i + 1];
-
+        invokeRefsForVTree(vTree, null);
         componentWillUnmount(vTree);
 
         i += 2;

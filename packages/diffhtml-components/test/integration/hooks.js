@@ -83,7 +83,11 @@ describe('Hooks', function() {
       function Wrapper() {
         return html`
           <div>
-            ${html`<${Component} />`}
+            ${html`
+              <div>
+                <${Component} />
+              </div>
+            `}
           </div>
         `;
       }
@@ -110,7 +114,11 @@ describe('Hooks', function() {
       function Wrapper() {
         return html`
           <div>
-            ${html`<${Component} />`}
+            ${html`
+              <div>
+                <${Component} />
+              </div>
+            `}
           </div>
         `;
       }
@@ -142,7 +150,11 @@ describe('Hooks', function() {
       function Wrapper() {
         return html`
           <div>
-            ${html`<${Component} />`}
+            ${html`
+              <div>
+                <${Component} />
+              </div>
+            `}
           </div>
         `;
       }

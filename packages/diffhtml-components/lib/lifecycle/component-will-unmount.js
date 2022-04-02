@@ -1,7 +1,6 @@
 import { ComponentTreeCache, InstanceCache, VTree } from '../util/types';
 import diff from '../util/binding';
 import { $$hooks } from '../util/symbols';
-import { invokeRefsForVTrees } from './invoke-refs';
 
 const { release, Internals } = diff;
 
@@ -22,8 +21,6 @@ export default function componentWillUnmount(vTree) {
     }
   });
 
-  invokeRefsForVTrees(vTree);
-
   const domNode = Internals.NodeCache.get(vTree);
 
   // Clean up attached Shadow DOM.
@@ -31,16 +28,10 @@ export default function componentWillUnmount(vTree) {
     release(/** @type {any} */ (domNode).shadowRoot);
   }
 
+  vTree.childNodes.forEach(componentWillUnmount);
+
   if (!InstanceCache.has(componentTree)) {
     return;
-  }
-
-  for (let i = 0; i < childTrees.length; i++) {
-    const childTree = childTrees[i];
-
-    if (childTree.childNodes.length) {
-      childTree.childNodes.forEach(componentWillUnmount);
-    }
   }
 
   const instance = InstanceCache.get(componentTree);
