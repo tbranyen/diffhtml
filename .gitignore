@@ -1,5 +1,5 @@
 node_modules
 dist
+docs
 coverage
-.nyc_output
 lerna-debug.log

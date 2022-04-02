@@ -8,7 +8,7 @@
     "build": "lerna run build && lerna run min && lerna run generate",
     "test": "lerna run test",
     "test-cov": "lerna run test-cov",
-    "postinstall": "lerna bootstrap --no-ci --concurrency=1 --force-local"
+    "postinstall": "lerna bootstrap"
   },
   "repository": {
     "type": "git",
@@ -17,12 +17,10 @@
   "keywords": [
     "diffhtml",
     "virtual dom",
+    "components",
     "user interfaces"
   ],
   "author": "Tim Branyen (@tbranyen)",
-  "contributors": [
-    "James DiGioia <jamesorodig@gmail.com> (http://jamesdigioia.com)"
-  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/tbranyen/diffhtml/issues"

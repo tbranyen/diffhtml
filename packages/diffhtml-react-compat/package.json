@@ -5,8 +5,6 @@
   "type": "module",
   "main": "dist/react-compat.js",
   "module": "dist/es/index",
-  "jsnext:main": "dist/es/index",
-  "esnext:main": "dist/es/index",
   "scripts": {
     "prepublishOnly": "npm run min",
     "clean": "rm -rf dist/* && mkdir -p dist",
