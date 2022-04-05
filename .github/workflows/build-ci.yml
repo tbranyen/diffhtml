@@ -6,13 +6,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: bahmutov/npm-install@v1.6.0
+        with:
+          useRollingCache: true
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
       - run: lerna run min
-      - name: Run tests
-        uses: GabrielBB/xvfb-action@v1
-        with:
-          run: lerna run test-cov
+      - run: lerna run test-cov
       - name: Publish to coveralls.io
         uses: coverallsapp/github-action@v1.1.2
         with:
