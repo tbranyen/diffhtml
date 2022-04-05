@@ -109,8 +109,8 @@ Loads latest diffHTML core from this website using native JavaScript modules.
   <iframe
     src="https://glitch.com/embed/#!/embed/diffhtml-helloworld?path=hello-world.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-helloworld on Glitch"
-    style="height: 100%; width: 100%; border: 0;">
-    loading="lazy"
+    style="height: 100%; width: 100%; border: 0;"
+    loading="lazy">
   </iframe>
 </div>
 
@@ -128,8 +128,8 @@ using native JavaScript modules.
   <iframe
     src="https://glitch.com/embed/#!/embed/diffhtml-clock?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-clock on Glitch"
-    style="height: 100%; width: 100%; border: 0;">
-    loading="lazy"
+    style="height: 100%; width: 100%; border: 0;"
+    loading="lazy">
   </iframe>
 </div>
 
@@ -148,8 +148,8 @@ from this website using native JavaScript modules.
   <iframe
     src="https://glitch.com/embed/#!/embed/diffhtml-hackernews?path=script.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-hackernews on Glitch"
-    style="height: 100%; width: 100%; border: 0;">
-    loading="lazy"
+    style="height: 100%; width: 100%; border: 0;"
+    loading="lazy">
   </iframe>
 </div>
 
@@ -170,8 +170,8 @@ npm pinned to <code>1.0.0-beta.20</code>. It may be periodically updated.
   <iframe
     src="https://glitch.com/embed/#!/embed/diffhtml-todomvc?path=lib/index.js&previewSize=100&attributionHidden=true&previewFirst=true&sidebarCollapsed=true"
     title="diffhtml-todomvc on Glitch"
-    style="height: 100%; width: 100%; border: 0;">
-    loading="lazy"
+    style="height: 100%; width: 100%; border: 0;"
+    loading="lazy">
   </iframe>
 </div>
 
