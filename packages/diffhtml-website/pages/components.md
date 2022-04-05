@@ -169,10 +169,18 @@ innerHTML(document.body, html`<${WillMountComponent} />`);
 
 #### `componentWillReceiveProps`
 
+This method is triggered whenever a component is about to receive props and
+potentially re-render.
+
 #### `shouldComponentUpdate`
+
+This method allows a developer to determine if a component should go through
+a re-render cycle or not.
 
 #### `componentWillUnmount`
 
+This method will trigger right before patching occurs and the component is to
+be unmounted.
 
 <a name="custom-element"></a>
 
