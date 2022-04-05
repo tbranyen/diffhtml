@@ -1,5 +1,6 @@
 name: build-ci
 on: [push]
+runs-on: self-hosted
 jobs:
   test:
     runs-on: ubuntu-latest
