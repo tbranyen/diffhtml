@@ -39,7 +39,7 @@ module.exports = ({ path, page, pages, content }) => html`
         <div class="open-menu">≡</div>
         <header>
           <h1>
-            <a href="/"><img width="120" height="41" src="./images/diffhtml-logo-fit.png"></a>
+            <a href="/"><img width="120" height="51" src="./images/diffhtml-logo-fit.png"></a>
             <div>
               <p class="name">diffHTML</p><sub>v${version}</sub>
               <p>An easy-to-use Virtual DOM built for the web!</p>
