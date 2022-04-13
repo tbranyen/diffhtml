@@ -59,7 +59,7 @@ export default function getConfig(name, defaultValue, type = typeof defaultValue
   const hasSearchParams = typeof URLSearchParams !== 'undefined';
   const hasLocation = typeof location !== 'undefined';
   const useSearchParams = hasSearchParams && hasLocation;
-  const useEnv = process.env;
+  const useEnv = typeof process !== 'undefined' && process.env;
 
   // Allow bypassing any lookups if overrides are passed and match the config
   // being looked up.
