@@ -21,21 +21,6 @@ describe('toString', function() {
     strictEqual(actual, expected);
   });
 
-  it('can support strict html parsing, throwing on error', () => {
-    throws(() => {
-      toString('<p>Hello world', { parser: { strict: true } });
-    }, {
-      name: 'Error',
-      message: `
-
-<p>Hello world
- ^
-    Possibly invalid markup. <p> must be closed in strict mode.
-            `
-    });
-
-  });
-
   it('can render simple vTree', () => {
     const actual = toString(html`<div>Hello world</div>`);
     const expected = `<div>Hello world</div>`;

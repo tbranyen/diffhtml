@@ -12,7 +12,7 @@ export default function parseNewTree(transaction) {
   if (typeof input === 'string') {
     measure('parsing input for new tree');
 
-    const { childNodes } = Internals.parse(input, undefined, options);
+    const { childNodes } = Internals.parse(input, options);
     const vTree = createTree(childNodes);
 
     if (vTree) {

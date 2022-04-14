@@ -1,27 +1,12 @@
-// Adapted implementation from:
-// https://github.com/ashi009/node-fast-html-parser
-
 import createTree from '../tree/create';
 import getConfig from './config';
-import internalProcess from './process';
-import { VTree, Supplemental, TransactionConfig, ParserConfig, EMPTY, NODE_TYPE } from './types';
-
-// Magic token used for interpolation.
-export const TOKEN = '__DIFFHTML__';
-
-const doctypeEx = /<!DOCTYPE.*>/i;
-const spaceEx = /[^ ]/;
-const tokenEx = new RegExp(`${TOKEN}([^_]*)__`);
-
-/** @type {Supplemental} */
-const defaultSupplemental = {
-  tags: [],
-  attributes: {},
-  children: {},
-}
-
-const { assign } = Object;
-const { isArray } = Array;
+import {
+  NODE_TYPE,
+  EMPTY,
+  TransactionConfig,
+  VTree,
+  ParserConfig,
+} from './types';
 
 const rawElementsDefaults = [
   'script',
@@ -30,238 +15,111 @@ const rawElementsDefaults = [
   'template',
 ];
 
-const selfClosingElementsDefaults = [
-  'source',
-  'embed',
-  'param',
-  'track',
-  'input',
-  'meta',
-  'link',
+/**
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Glossary/Void_element
+ */
+const voidElementsDefaults = [
   'area',
   'base',
-  'col',
-  'wbr',
-  'img',
   'br',
+  'col',
+  'embed',
   'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
 ];
 
-/** @type {any} */
-const kElementsClosedByOpening = {
-  li: { li: true },
-  p: { p: true, div: true },
-  td: { td: true, th: true },
-  th: { td: true, th: true },
+/**
+ * These are elements that support omitting a closing tag when certain criteria
+ * are met.
+ *
+ * @see https://html.spec.whatwg.org/multipage/syntax.html#syntax-tag-omission
+ * @type {any}
+ */
+const endTagOmissionRules = {
+  li: { li: EMPTY.NUM },
+  dt: { dt: EMPTY.NUM, dd: EMPTY.NUM },
+  dd: { dt: EMPTY.NUM, dd: EMPTY.NUM },
+  td: { td: EMPTY.NUM, th: EMPTY.NUM },
+  th: { td: EMPTY.NUM, th: EMPTY.NUM },
+  tbody: { tbody: EMPTY.NUM, tfoot: EMPTY.NUM },
+  tfoot: { tbody: EMPTY.NUM, tfoot: EMPTY.NUM },
 };
 
-/** @type {any} */
-const kElementsClosedByClosing = {
-  li: { ul: true, ol: true },
-  a: { div: true },
-  b: { div: true },
-  i: { div: true },
-  p: { div: true },
-  td: { tr: true, table: true },
-  th: { tr: true, table: true },
-};
+// List of regular expressions to match various HTML features.
+export const openComment = /<!--/g;
+export const closeComment = /-->/g;
+
+// Extract the tagName from an opening tag. There must not be any whitespace
+// between the opening angle bracket and the word/namespace.
+export const openTag = /<([^\s\\/>]*)\s?/g;
+export const closeTag = /\s?(\/>)|(<\/(.*?)>)/g;
+
+// Find all values within quotes and up to `>`. Support interpolated values
+// with __DIFFHTML_TOKEN__ format.
+export const attribute = /([^>\/\n ])*?(["'])(?:(?=(\\?))\3.)*?\2|.*?(?=\/>|>|\n| )/gsm;
+export const parseAttr = /([^=]*)=(.*)|([^>])/gsm;
+
+// Text nodes are anything that isn't <.
+export const text = /([^<]*)/g;
 
 /**
- * Interpolates children from dynamic supplemental values into the parent node.
+ * Removes "", '', or `` wrapping quotes from attributes when they are
+ * parsed directly from the markup.
  *
- * @param {VTree} currentParent - Active element VTree
- * @param {string} markup - Incoming partial HTML markup
- * @param {Supplemental} supplemental - Dynamic interpolated data values
+ * @param {string} value
+ * @return {string}
  */
-const interpolateChildNodes = (currentParent, markup, supplemental) => {
-  if ('childNodes' in currentParent.attributes) {
-    return;
+function removeQuotes(value) {
+  if (typeof value !== 'string') {
+    return value;
   }
 
-  // If this is text and not a doctype, add as a text node.
-  if (markup && !doctypeEx.test(markup) && !tokenEx.test(markup)) {
-    return currentParent.childNodes.push(/** @type {VTree} */ (createTree('#text', markup)));
+  const quotes = ['"', '\''];
+  const rootQuote = quotes.indexOf(value[0]);
+  const hasRootQuote = rootQuote !== -1;
+  const trailingQuote = hasRootQuote && quotes.indexOf(value[value.length - 1]);
+
+  if (rootQuote !== -1 && trailingQuote === rootQuote) {
+    return value.slice(1, value.length - 1);
   }
 
-  const childNodes = [];
-  const parts = markup.split(tokenEx);
-
-  for (let i = 0; i < parts.length; i++) {
-    const value = parts[i];
-
-    if (!value) { continue; }
-
-    // When we split on the token expression, the capture group will replace
-    // the token's position. So all we do is ensure that we're on an odd
-    // index and then we can source the correct value.
-    if (i % 2 === 1) {
-      const supValue = supplemental.children[value];
-      const innerTree = value in supplemental.children ? supValue : createTree(
-        '#text',
-        `${TOKEN}${value}__`,
-      );
-
-      if (!innerTree) continue;
-
-      const isFragment = innerTree.nodeType === NODE_TYPE.FRAGMENT;
-
-      if (typeof innerTree.rawNodeName === 'string' && isFragment) {
-        childNodes.push(...innerTree.childNodes);
-      }
-      else {
-        childNodes.push(innerTree);
-      }
-    }
-    else if (!doctypeEx.test(value)) {
-      childNodes.push(createTree('#text', value));
-    }
-  }
-
-  currentParent.childNodes.push(...childNodes);
-};
-
-/**
- * HTMLElement, which contains a set of children.
- *
- * Note: this is a minimalist implementation, no complete tree structure
- * provided (no parentNode, nextSibling, previousSibling etc).
- *
- * @param {String} nodeName - DOM Node name
- * @param {String} rawAttrs - DOM Node Attributes
- * @param {Supplemental} supplemental - Interpolated data from a tagged template
- * @param {TransactionConfig} options
- * @return {VTree} vTree
- */
-const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
-  let match = null;
-  const attrEx = /([_@$#a-z][^\s\x00-\x1F"'>\/=\uFDD0-\uFDEF\uFFFE\uFFFF]*)\s*(=\s*("([^"]+)"|'([^']+)'|(\S+)))?/ig;
-
-  // Support dynamic tag names like: `<${MyComponent} />`.
-  if (match = tokenEx.exec(nodeName)) {
-    return HTMLElement(
-      supplemental.tags[match[1]],
-      rawAttrs,
-      supplemental,
-      options
-    );
-  }
-
-  /** @type {{ [key: string]: any }} */
-  const attributes = {};
-
-  // Migrate raw attributes into the attributes object used by the VTree.
-  for (let match; match = attrEx.exec(rawAttrs || EMPTY.STR);) {
-    const isHTML = typeof nodeName === 'string';
-    const name = match[1];
-
-    let tokenValue;
-
-    if (name === '') {
-      const match = rawAttrs.match(tokenEx);
-      tokenValue = match ? match[0] : '';
-    }
-
-    const testValue = match[6] || match[5] || match[4];
-    /** @type {unknown} */
-    const rawValue = tokenValue || testValue || (isHTML ? match[1] : testValue || true);
-    const value = rawValue === `''` || rawValue === `""` ? EMPTY.STR : rawValue;
-    let valueMatchesToken = String(value).match(tokenEx);
-
-    // If we have multiple interpolated values in an attribute, we must
-    // flatten to a string. There are no other valid options.
-    if (valueMatchesToken && valueMatchesToken.length) {
-      const parts = String(value).split(tokenEx);
-      const hasToken = tokenEx.exec(name);
-      const newName = hasToken ? supplemental.attributes[hasToken[1]] : name;
-
-      for (let i = 0; i < parts.length; i++) {
-        /** @type {string} */
-        const value = parts[i];
-
-        if (!value) { continue; }
-
-        // When we split on the token expression, the capture group will
-        // replace the token's position. So all we do is ensure that we're on
-        // an odd index and then we can source the correct value.
-        if (i % 2 === 1) {
-          const isObject = typeof newName === 'object';
-          const hasSupValue = value in supplemental.attributes;
-          const supValue = supplemental.attributes[value];
-          const fallback = `${TOKEN}${value}__`;
-
-          // Allow interpolating multiple values into a single attribute.
-          if (attributes[newName]) {
-            attributes[newName] += hasSupValue ? supValue : fallback;
-          }
-          // Merge object attributes directly into the existing attributes.
-          else if (isObject) {
-            if (newName && !isArray(newName)) {
-              assign(attributes, newName);
-            }
-            else {
-              if (internalProcess.env.NODE_ENV !== 'production') {
-                throw new Error('Arrays cannot be spread as attributes');
-              }
-            }
-          }
-          else if (newName) {
-            const defaultValue = hasSupValue ? supValue : fallback;
-            attributes[newName] = testValue ? defaultValue : true;
-          }
-        }
-        // Otherwise this is a static iteration, simply concat the raw value into the attribute.
-        else if (attributes[newName]) {
-          attributes[newName] += value;
-        }
-        // Set the initial attribute value.
-        else {
-          attributes[newName] = value;
-        }
-      }
-    }
-    // If the name was injected, pull from attributes and assign as either
-    // empty or truthy.
-    else if (valueMatchesToken = tokenEx.exec(name)) {
-      const nameAndValue = supplemental.attributes[valueMatchesToken[1]];
-
-      if (typeof nameAndValue === 'object' && !isArray(nameAndValue)) {
-        assign(attributes, nameAndValue);
-      }
-      else {
-        attributes[nameAndValue] = value;
-      }
-    }
-    // If the remaining value is a string, directly assign to the attribute
-    // name. If the value is anything else, treat it as unknown and default to
-    // a boolean.
-    else {
-      // If no test value was found, this means no real value was provided, use
-      // the default value of true.
-      attributes[name] = testValue !== undefined ? value : true;
-    }
-  }
-
-  return createTree(nodeName, attributes, attributes.childNodes || []);
-};
+  return value;
+}
 
 /**
  * Parses HTML and returns a root element
  *
  * @param {String} html - String of HTML markup to parse into a Virtual Tree
- * @param {Supplemental=} supplemental - Dynamic interpolated data values
- * @param {TransactionConfig=} options - Contains options like silencing warnings
+ * @param {TransactionConfig=} options - Contains additional options
  * @return {VTree} - Parsed Virtual Tree Element
  */
-export default function parse(html, supplemental, options = {}) {
+export default function parse(html, options = {}) {
+  // Always start with a fragment container when parsing.
+  const root = createTree('#document-fragment', null, []);
+
+  // If no markup is provided, return an empty text node. This is a fast path
+  // to circumvent extra work in this case.
+  if (!html) {
+    root.childNodes.push(createTree('#text', EMPTY.STR));
+    return root;
+  }
+
+  // If there are no parser configuration options passed, use an empty object.
   if (!options.parser) {
     /** @type {ParserConfig} */
-    options.parser = {};
+    options.parser = EMPTY.OBJ;
   }
 
-  if (!supplemental) {
-    supplemental = defaultSupplemental;
-  }
-
+  // Elements that have all nested children converted into text, like script
+  // and style tags.
   const blockText = new Set(
     /** @type {string[]} */(
       getConfig(
@@ -273,281 +131,257 @@ export default function parse(html, supplemental, options = {}) {
     ),
   );
 
-  const selfClosing = new Set(
+  // Elements that are automatically self closed, and never contain children.
+  const voidElements = new Set(
     /** @type {string[]} */(
       getConfig(
-        'selfClosingElements',
-        selfClosingElementsDefaults,
+        'voidElements',
+        voidElementsDefaults,
         'array',
         options.parser,
       )
     ),
   );
 
-  const tagEx =
-    /<!--[^]*?(?=-->)-->|<(\/?)([a-z\-\_][a-z0-9\-\_]*)\s*([^>]*?)(".*?"|'.*?')?(\/?)>/ig;
-  const root = createTree('#document-fragment', null, []);
-  const stack = [root];
-  let currentParent = root;
-  let lastTextPos = -1;
-
-  if (internalProcess.env.NODE_ENV !== 'production') {
-    const markup = [html];
-
-    if (!html.includes('<') && options.parser.strict) {
-      markup.splice(1, 0, `
-Possibly invalid markup. Opening tag was not properly opened.
-      `);
-
-      throw new Error(`\n\n${markup.join('\n')}`);
-    }
-
-    if (!html.includes('>') && options.parser.strict) {
-      markup.splice(1, 0, `
-Possibly invalid markup. Opening tag was not properly closed.
-      `);
-
-      throw new Error(`\n\n${markup.join('\n')}`);
-    }
-  }
-
-  // If there are no HTML elements, treat the passed in html as a single
-  // text node.
-  if (!html.includes('<') && html) {
-    interpolateChildNodes(currentParent, html, supplemental);
+  // If there are no brackets, we can avoid some extra work by treating this as
+  // text. This is a fast path for text.
+  if (!html.includes('<') && !html.includes('>')) {
+    const newTree = createTree('#text', html);
+    root.childNodes.push(newTree);
     return root;
   }
 
-  // Look through the HTML markup for valid tags.
-  for (let match, text, i=0; match = tagEx.exec(html); i++) {
-    const [
-      fullMatch,
-      isClosingMatch,
-      tagMatch,
-      attributeMatch,
-      extraMatch,
-      selfClosingMatch,
-    ] = match;
+  // Contains the active hierarchy, its length will be that of the deepest
+  // element crawled.
+  const stack = [root];
 
-    if (lastTextPos > -1) {
-      if (lastTextPos + fullMatch.length < tagEx.lastIndex) {
-        text = html.slice(lastTextPos, tagEx.lastIndex - fullMatch.length);
+  // Cursor into the markup that we use when parsing.
+  let i = 0;
 
-        if (text) {
-          interpolateChildNodes(currentParent, text, supplemental);
-        }
-      }
+  // The active element being crawled.
+  let pointer = root;
+
+  // The pointer is open when looking for attributes, self closing, or open
+  // tag closing.
+  let isOpen = false;
+
+  /**
+   * Allow short-circuiting if never found.
+   * @type {number|null}
+   */
+  let lastCommentIndex = html.indexOf('<!--');
+
+  // This loop treats the `i` as a cursor into the markup determining what is
+  // being parsed. This is useful for setting the `lastIndex` values of the
+  // regular expressions defined above. Once this value matches the length of
+  // the input markup, we know we have finished parsing.
+  while (i < html.length) {
+    // Set the lastIndex for all stateful regexes to avoid slicing the html
+    // string and getting the latest match each time.
+    openComment.lastIndex = i;
+    closeComment.lastIndex = i;
+    openTag.lastIndex = i;
+    closeTag.lastIndex = i;
+    attribute.lastIndex = i;
+    text.lastIndex = i;
+
+    // Reset parseAttr for each iteration.
+    parseAttr.lastIndex = 0;
+
+    /**
+     * First check for open comments this allows bypassing any other parsing
+     * if a comment has been opened.
+     * @type {Boolean}
+     */
+    const shouldSeekComment = Boolean(
+      lastCommentIndex !== null && lastCommentIndex <= i
+    );
+
+    const {
+      // @ts-ignore
+      index: openCommentIndex,
+    } = shouldSeekComment && openComment.exec(html) || EMPTY.OBJ;
+
+    // There are no remaining comments, so skip this check. This is very
+    // important for performance reasons, otherwise on every loop tick we are
+    // crawling the entire markup for something we know isn't there.
+    if (shouldSeekComment) {
+      lastCommentIndex = openCommentIndex;
+    }
+    if (openCommentIndex === -1) {
+      lastCommentIndex = null;
     }
 
-    const matchOffset = tagEx.lastIndex - fullMatch.length;
+    // If an element is a block text element (such as script) we should not
+    // parse anything under it, except as text.
+    const isBlockElement = pointer && blockText.has(pointer.nodeName);
 
-    if (lastTextPos === -1 && matchOffset > 0) {
-      const string = html.slice(0, matchOffset);
+    // If a comment exists, search for the close and treat everything between
+    // as a string. There may be dynamic supplemental values to interpolate,
+    // these will be toString'd before injection.
+    if (openCommentIndex === i) {
+      // Find the first close comment instance.
+      let { index: closeCommentIndex } = closeComment.exec(html) || EMPTY.OBJ;
 
-      if (string && !doctypeEx.exec(string)) {
-        interpolateChildNodes(currentParent, string, supplemental);
+      // Default to the end of the markup if no end comment is found.
+      if (closeCommentIndex === -1) {
+        closeCommentIndex = html.length;
       }
-    }
 
-    lastTextPos = tagEx.lastIndex;
+      const comment = createTree('#comment');
+      comment.nodeValue = html.slice(i + 4, closeCommentIndex);
+      pointer.childNodes.push(comment);
 
-    // This is a comment (TODO someday support these).
-    if (match[0][1] === '!') {
+      i = closeCommentIndex + 3;
       continue;
     }
 
-    // Get the tag index.
-    const tokenMatch = tokenEx.exec(tagMatch);
+    // Open tags.
+    const {
+      0: fullOpenTagMatch,
+      1: tagName,
+      index: openTagIndex,
+    } = openTag.exec(html) || EMPTY.OBJ;
 
-    // Normalized name, use either the tag extracted from the supplemental
-    // tags, or use tagMatch.
-    const supTag = tokenMatch && supplemental.tags[tokenMatch[1]];
-    const name = supTag ? supTag.name || supTag : tagMatch;
-
-    let bypassMatch;
-
-    if (!isClosingMatch) {
-      // not </ tags
-      if (!match[4] && kElementsClosedByOpening[currentParent.rawNodeName]) {
-        if (kElementsClosedByOpening[currentParent.rawNodeName][name]) {
-          stack.pop();
-          currentParent = stack[stack.length - 1];
-        }
+    // Only open a tag if it contains a tag name.
+    if (openTagIndex === i && tagName && !isBlockElement) {
+      // If a doctype, skip to the end, we don't parse these.
+      if (tagName[0] === '!') {
+        // Find the next > since the open tag.
+        i = html.indexOf('>', openTagIndex) + 1;
+        continue;
       }
 
-      const attrs = attributeMatch + (extraMatch || '');
-      currentParent = currentParent.childNodes[
-        currentParent.childNodes.push(
-          HTMLElement(tagMatch, attrs, supplemental, options)
-        ) - 1
-      ];
+      // If not a doctype, create an element.
+      const newTree = createTree(tagName);
 
-      stack.push(currentParent);
+      const supportsEndTagOmission = endTagOmissionRules[tagName];
 
-      if (options.parser.strict || blockText.has(name)) {
-        // A little test to find next </script> or </style> ...
-        const closeMarkup = `</${name}>`;
-        const index = html.indexOf(closeMarkup, tagEx.lastIndex);
-
-        if (internalProcess.env.NODE_ENV !== 'production') {
-          if (index === -1 && options.parser.strict && !selfClosing.has(name)) {
-            // Find a subset of the markup passed in to validate.
-            const markup = html
-              .slice(tagEx.lastIndex - fullMatch.length)
-              .split('\n')
-              .map(line => line.replace(tokenEx, (value, index) => {
-                if (!supplemental) {
-                  return value;
-                }
-
-                const { tags, children, attributes } = supplemental;
-                return tags[index] || children[index] || attributes[index];
-              }))
-              .slice(0, 3);
-
-            // Position the caret next to the first non-whitespace character.
-            const lookup = spaceEx.exec(markup[0]);
-            const caret = Array(
-              (lookup ? lookup.index - 1 : 0) + closeMarkup.length - 1
-            ).join(' ') + '^';
-
-            // Craft the warning message and inject it into the markup.
-            markup.splice(1, 0, `${caret}
-    Possibly invalid markup. <${name}> must be closed in strict mode.
-            `);
-
-            // Throw an error message if the markup isn't what we expected.
-            throw new Error(`\n\n${markup.join('\n')}`);
-          }
-        }
-
-        if (blockText.has(name)) {
-          if (index === -1) {
-            lastTextPos = tagEx.lastIndex = html.length + 1;
-          }
-          else {
-            lastTextPos = index + closeMarkup.length;
-            tagEx.lastIndex = lastTextPos;
-            bypassMatch = true;
-          }
-
-          const newText = html.slice(match.index + fullMatch.length, index);
-          interpolateChildNodes(currentParent, newText, supplemental);
-        }
+      // We can't nested a div inside a p, we can't nest an li inside an li
+      if (supportsEndTagOmission && supportsEndTagOmission[pointer.nodeName]) {
+        stack.pop();
+        pointer = stack[stack.length - 1];
       }
+
+      pointer.childNodes.push(newTree);
+      pointer = newTree;
+      stack.push(pointer);
+
+      isOpen = true;
+      i = openTagIndex + fullOpenTagMatch.length;
+      continue;
     }
 
-    if (bypassMatch || isClosingMatch || selfClosingMatch || selfClosing.has(name)) {
-      if (internalProcess.env.NODE_ENV !== 'production') {
-        if (currentParent && name !== currentParent.rawNodeName && options.parser.strict) {
-          const nodeName = currentParent.rawNodeName;
+    // Attributes.
+    const {
+      0: fullAttributeMatch,
+      index: attributeIndex,
+    } = attribute.exec(html) || EMPTY.OBJ;
 
-          // Find a subset of the markup passed in to validate.
-          const markup = html
-            .slice(tagEx.lastIndex - fullMatch.length)
-            .split('\n')
-            .map(line => line.replace(tokenEx, (value, index) => {
-              if (!supplemental) {
-                return value;
-              }
+    const attributeMatchTrim = attributeIndex === i && fullAttributeMatch.trim();
 
-              const { tags, children, attributes } = supplemental;
-              return tags[index] || children[index] || attributes[index];
-            }))
-            .slice(0, 3);
+    if (isOpen && attributeIndex === i) {
+      // Skip whitespace
+      if (!attributeMatchTrim) {
+        i = i + fullAttributeMatch.length + 1;
 
-          // Position the caret next to the first non-whitespace character.
-          const lookup = spaceEx.exec(markup[0]);
-          const caret = Array(lookup ? lookup.index : 0).join(' ') + '^';
-
-          // Craft the warning message and inject it into the markup.
-          markup.splice(1, 0, `${caret}
-  Possibly invalid markup. Saw ${name}, expected ${nodeName}...
-          `);
-
-          // Throw an error message if the markup isn't what we expected.
-          throw new Error(`\n\n${markup.join('\n')}`);
-        }
-      }
-
-      // </ or /> or <br> etc.
-      while (currentParent) {
-        // Self closing dynamic nodeName.
-        if (selfClosingMatch === '/' && tokenMatch) {
-          stack.pop();
-          currentParent = stack[stack.length - 1];
-
-          break;
-        }
-        // Not self-closing, so seek out the next match.
-        else if (supTag) {
-          if (currentParent.rawNodeName === name) {
+        // TBD Refactor this so its not duplicated
+        if (html[i - 1] === '>') {
+          // Self closing
+          if (html[i - 2] === '/' || voidElements.has(pointer.nodeName)) {
             stack.pop();
-            currentParent = stack[stack.length - 1];
-
-            break;
+            pointer = stack[stack.length - 1];
           }
+          isOpen = false;
         }
 
-        if (currentParent.rawNodeName === name) {
-          stack.pop();
-          currentParent = stack[stack.length - 1];
-
-          break;
-        }
-        else {
-          const tag = kElementsClosedByClosing[currentParent.rawNodeName];
-
-          // Trying to close current tag, and move on
-          if (tag) {
-            if (tag[name]) {
-              stack.pop();
-              currentParent = stack[stack.length - 1];
-
-              continue;
-            }
-          }
-
-          // Use aggressive strategy to handle unmatching markups.
-          break;
-        }
+        continue;
       }
+
+      const {
+        1: key = fullAttributeMatch,
+        2: value = fullAttributeMatch,
+      } = parseAttr.exec(attributeMatchTrim) || EMPTY.OBJ;
+
+      const isBoolean = key === value || value === undefined;
+      const trimKey = key.trim();
+
+      pointer.attributes[trimKey] = isBoolean ? Boolean(value) : removeQuotes(value);
+
+      i = attributeIndex + fullAttributeMatch.length;
+      continue;
     }
-  }
 
-  // Find any last remaining text after the parsing completes over tags.
-  const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos);
+    // When in a block element, find the nearest closing element, otherwise
+    // use the entire input.
+    if (isBlockElement) {
+      const closeTag = `</${pointer.nodeName}>`;
+      let closeTagIndex = html.indexOf(closeTag, i + 1);
 
-  if (internalProcess.env.NODE_ENV !== 'production') {
-    if ((remainingText.includes('>') || remainingText.includes('<')) && options.parser.strict) {
-      // Find a subset of the markup passed in to validate.
-      const markup = [remainingText];
-
-      // Position the caret next to the first non-whitespace character.
-      const lookup = spaceEx.exec(markup[0]);
-      const caret = Array(lookup ? lookup.index : 0).join(' ') + '^';
-
-      // Craft the warning message and inject it into the markup.
-      if (remainingText.includes('>')) {
-        markup.splice(1, 0, `${caret}
-  Possibly invalid markup. Opening tag was not properly opened.
-        `);
-      }
-      else {
-        markup.splice(1, 0, `${caret}
-  Possibly invalid markup. Opening tag was not properly closed.
-        `);
+      if (closeTagIndex === -1) {
+        closeTagIndex = html.length;
       }
 
-      // Throw an error message if the markup isn't what we expected.
-      throw new Error(`\n\n${markup.join('\n')}`);
+      const innerText = html.slice(i, closeTagIndex);
+
+      if (innerText) {
+        pointer.childNodes.push(createTree('#text', innerText));
+      }
+
+      i = closeTagIndex + closeTag.length;
+      isOpen = false;
+      stack.pop();
+      pointer = stack[stack.length - 1];
+      continue;
     }
-  }
 
-  // Ensure that all values are properly interpolated through the remaining
-  // markup after parsing.
-  if (remainingText) {
-    interpolateChildNodes(currentParent, remainingText, supplemental);
+    // Close opened tags.
+    if (html[i] === '>') {
+      isOpen = false;
+      i = i + 1;
+
+      // Automatically close void elements.
+      if (voidElements.has(pointer.nodeName)) {
+        stack.pop();
+        pointer = stack[stack.length - 1];
+      }
+      continue;
+    }
+
+    // Close tags.
+    const {
+      0: fullCloseTagMatch,
+      index: closeTagIndex,
+    } = closeTag.exec(html) || EMPTY.OBJ;
+
+
+    // Look for closing tags
+    if (closeTagIndex === i && fullCloseTagMatch) {
+      if (fullCloseTagMatch[1] === '/' && pointer !== root) {
+        stack.pop();
+        pointer = stack[stack.length - 1];
+      }
+      isOpen = false;
+      i = closeTagIndex + fullCloseTagMatch.length;
+      continue;
+    }
+
+    // Text.
+    const {
+      0: fullTextMatch,
+      index: textIndex,
+    } = text.exec(html) || EMPTY.OBJ;
+
+    if (!isOpen && textIndex === i && fullTextMatch.length) {
+      const newTree = createTree('#text', fullTextMatch);
+      pointer.childNodes.push(newTree);
+      i = textIndex + fullTextMatch.length;
+      continue;
+    }
+
+    // Use remaining values as text
+    pointer.childNodes.push(createTree('#text', html.slice(i, html.length)));
+    i = html.length;
   }
 
   // This is an entire document, so only allow the HTML children to be

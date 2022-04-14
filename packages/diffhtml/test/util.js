@@ -1,10 +1,11 @@
-import { ok, strictEqual, deepStrictEqual, throws, doesNotThrow } from 'assert';
+// @ts-nocheck
+import { ok, notEqual, strictEqual, deepStrictEqual, throws, doesNotThrow, deepEqual } from 'assert';
 import * as Sinon from 'sinon';
 import createTree from '../lib/tree/create';
 import { NodeCache } from '../lib/util/types';
 import decodeEntities from '../lib/util/decode-entities';
 import escape from '../lib/util/escape';
-import parse from '../lib/util/parse';
+import parse, { openComment, closeComment, openTag, closeTag, attribute, text } from '../lib/util/parse';
 import _process from '../lib/util/process';
 import { protectVTree, unprotectVTree, gc } from '../lib/util/memory';
 import makeMeasure from '../lib/util/make-measure';
@@ -13,13 +14,15 @@ import getConfig from '../lib/util/config';
 import validateMemory from './util/validate-memory';
 import createSupplemental from './util/create-supplemental';
 
+const { it, describe } = globalThis;
+
 // To appease nodejs
 const { spy } = Sinon.default;
 
 const { floor } = Math;
 const { stringify } = JSON;
 
-describe('Util', function() {
+describe('Util', () => {
   let performance;
 
   beforeEach(() => {
@@ -130,8 +133,402 @@ describe('Util', function() {
     });
   });
 
+  describe('Parser regex', () => {
+    beforeEach(() => {
+      openComment.lastIndex = 0;
+      closeComment.lastIndex = 0;
+      openTag.lastIndex = 0;
+      closeTag.lastIndex = 0;
+      attribute.lastIndex = 0;
+      text.lastIndex = 0;
+    });
+
+    it('will parse openComment match', () => {
+      const input = '<!--';
+      const output = openComment.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will set openComment index to non-0 when leading with whitespace', () => {
+      const input = ' <!--';
+      const output = openComment.exec(input);
+
+      notEqual(output.index, 0);
+    });
+
+    it('will set openComment result to null when no match is found', () => {
+      const input = 'test';
+      const output = openComment.exec(input);
+
+      strictEqual(output, null);
+    });
+
+    it('will parse closeComment match', () => {
+      const input = '-->';
+      const output = closeComment.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will set closeComment index to non-0 when leading with whitespace', () => {
+      const input = ' -->';
+      const output = closeComment.exec(input);
+
+      notEqual(output.index, 0);
+    });
+
+    it('will set closeComment result to null when no match is found', () => {
+      const input = 'test';
+      const output = closeComment.exec(input);
+
+      strictEqual(output, null);
+    });
+
+    it('will match openTag div', () => {
+      const input = '<div';
+      const output = openTag.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match openTag with custom element', () => {
+      const input = '<custom-element';
+      const output = openTag.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match openTag with custom token', () => {
+      const input = '<__DIFFHTML_TOKEN_1__';
+      const output = openTag.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match self closeTag', () => {
+      const input = '/>';
+      const output = closeTag.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match closeTag div', () => {
+      const input = '</div>';
+      const output = closeTag.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match closeTag custom element', () => {
+      const input = '</custom-element>';
+      const output = closeTag.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match closeTag custom token', () => {
+      const input = '</__DIFFHTML_TOKEN_1__>';
+      const output = closeTag.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with self closing no space', () => {
+      const input = 'attr=value/>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'attr=value');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with self closing with space', () => {
+      const input = 'attr=value />';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'attr=value');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with close', () => {
+      const input = 'attr=value>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'attr=value');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with close across new lines', () => {
+      const input = `attr=value
+      >`;
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'attr=value');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match simple attribute without quotes', () => {
+      const input = 'attr=value>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'attr=value');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with key only', () => {
+      const input = 'attr>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'attr');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with custom token key', () => {
+      const input = '__DIFFHTML_TOKEN_1__>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], '__DIFFHTML_TOKEN_1__');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with custom token key and value', () => {
+      const input = '__DIFFHTML_TOKEN_1__=__DIFFHTML_TOKEN_2__>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], '__DIFFHTML_TOKEN_1__=__DIFFHTML_TOKEN_2__');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with quotes', () => {
+      const input = 'attr="value">';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'attr="value"');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with markup in value', () => {
+      const input = 'attr="<test>value</test>"';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with quotes in value', () => {
+      const input = 'attr="<test>"value"</test>"';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'attr="<test>"');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with quotes in value part 2', () => {
+      const input = 'value"</test>"';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with special symbols in key and value', () => {
+      const input = '@test=@value>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], '@test=@value');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute value with forward slash in quotes', () => {
+      const input = 'test="/"';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute value with forward slash without quotes', () => {
+      const input = 'test=/>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'test=');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute value with url without quotes', () => {
+      const input = 'test=https://google.com>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'test=https://google.com');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match attribute with forward slash directly after token', () => {
+      const input = 'test=__DIFFHTML_TOKEN_1__/>';
+      const output = attribute.exec(input);
+
+      strictEqual(output[0], 'test=__DIFFHTML_TOKEN_1__');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match text', () => {
+      const input = 'Hello world';
+      const output = text.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+
+    it('will match text with entity tags', () => {
+      const input = 'Hello world&gt;';
+      const output = text.exec(input);
+
+      strictEqual(output[0], 'Hello world&gt;');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match text with emoji', () => {
+      const input = 'Hello world 😊';
+      const output = text.exec(input);
+
+      strictEqual(output[0], 'Hello world 😊');
+      strictEqual(output.index, 0);
+    });
+
+    it('will match text across multiple lines', () => {
+      const input = `
+        Hello world
+      `;
+      const output = text.exec(input);
+
+      strictEqual(output[0], input);
+      strictEqual(output.index, 0);
+    });
+  });
+
   describe('Parse', () => {
-    it('will support single line parsing', () => {
+    // Comments
+    // Text
+    // Doc types
+    // Elements
+
+    it('will parse a comment', () => {
+      const vTree = parse('<!-- This is a comment -->');
+
+      strictEqual(vTree.childNodes[0].nodeName, '#comment');
+      strictEqual(vTree.childNodes[0].nodeValue.trim(), 'This is a comment');
+    });
+
+    it('will parse a comment with html in it', () => {
+      const className = 'test';
+      const vTree = parse(`
+        <!--
+        <input
+          class=${className}
+        />
+        -->
+      `);
+
+      strictEqual(vTree.childNodes[1].nodeName, '#comment');
+      strictEqual(vTree.childNodes[1].nodeValue.trim(), '<input\n          class=test\n        />');
+    });
+
+    it('will parse a multi-line comment', () => {
+      const vTree = parse(`<!--
+          This is a comment
+      -->`);
+
+      strictEqual(vTree.childNodes[0].nodeName, '#comment');
+      strictEqual(vTree.childNodes[0].nodeValue.trim(), 'This is a comment');
+    });
+
+    it('will parse multiple comments', () => {
+      const vTree = parse('<!-- Comment 1 --><!-- Comment 2 -->');
+
+      strictEqual(vTree.childNodes[0].nodeName, '#comment');
+      strictEqual(vTree.childNodes[0].nodeValue.trim(), 'Comment 1');
+
+      strictEqual(vTree.childNodes[1].nodeName, '#comment');
+      strictEqual(vTree.childNodes[1].nodeValue.trim(), 'Comment 2');
+    });
+
+    it('will parse comment without closing tag', () => {
+      const vTree = parse('<!-- Comment 1 ');
+
+      strictEqual(vTree.childNodes[0].nodeName, '#comment');
+      strictEqual(vTree.childNodes[0].nodeValue.trim(), 'Comment 1');
+    });
+
+    it('will parse comment with html markup', () => {
+      const vTree = parse('<!-- <div></div> -->');
+
+      strictEqual(vTree.childNodes[0].nodeName, '#comment');
+      strictEqual(vTree.childNodes[0].nodeValue.trim(), '<div></div>');
+    });
+
+    it('will parse text', () => {
+      const vTree = parse('This is text');
+
+      strictEqual(vTree.childNodes[0].nodeName, '#text');
+      strictEqual(vTree.childNodes[0].nodeValue, 'This is text');
+    });
+
+    it('will parse multi-line text', () => {
+      const vTree = parse(`
+        This is text
+      `);
+
+      strictEqual(vTree.childNodes[0].nodeName, '#text');
+      strictEqual(vTree.childNodes[0].nodeValue.trim(), 'This is text');
+    });
+
+    it('will ignore doctypes', () => {
+      const vTree = parse('<!doctype html>').childNodes[0];
+      strictEqual(vTree, undefined);
+    });
+
+    it('will parse text after an element', () => {
+      const vTrees = parse(`<div></div> Hello world`).childNodes;
+
+      strictEqual(vTrees[0].nodeName, 'div');
+      strictEqual(vTrees[1].nodeName, '#text');
+      strictEqual(vTrees[1].nodeValue, ' Hello world');
+    });
+
+    it('will parse text before an element', () => {
+      const vTrees = parse(`Hello <div></div>`).childNodes;
+
+      strictEqual(vTrees.length, 2);
+      strictEqual(vTrees[0].nodeName, '#text');
+      strictEqual(vTrees[0].nodeValue, 'Hello ');
+      strictEqual(vTrees[1].nodeName, 'div');
+    });
+
+    it('will parse invalid markup as text', () => {
+      const vTrees = parse(`
+      <>"']/;
+      test
+      `).childNodes;
+
+      strictEqual(vTrees[1].nodeValue, `<>"']/;\n      test\n      `);
+    });
+
+    it('will parse an open tag', () => {
+      const vTree = parse('<div>');
+
+      strictEqual(vTree.childNodes[0].nodeName, 'div');
+    });
+
+    it('will support single line parsing with nested element', () => {
       const vTree = parse('<a href="#"><img src="#"></a>').childNodes[0];
 
       strictEqual(vTree.nodeName, 'a');
@@ -140,11 +537,16 @@ describe('Util', function() {
       strictEqual(vTree.childNodes[0].attributes.src, '#');
     });
 
-    it('will support empty attributes', () => {
+    it('will support boolean attributes', () => {
       const vTree = parse('<option value="test" selected></option>').childNodes[0];
 
       strictEqual(vTree.attributes.value, 'test');
       strictEqual(vTree.attributes.selected, true);
+    });
+
+    it('will parse links without quotes', () => {
+      const vTree = parse('<a href=http://google.com>Google</a>').childNodes[0];
+      strictEqual(vTree.attributes.href, 'http://google.com');
     });
 
     it('will support quote-less values', () => {
@@ -154,8 +556,7 @@ describe('Util', function() {
 
     it('will not parse whitespace from inside <html></html> tags', () => {
       const vTree = parse('<html>\n</html>').childNodes[0];
-
-      strictEqual(vTree.childNodes.length, 2);
+      strictEqual(vTree.childNodes.length, 2); // head & body
     });
 
     it('will support simple text attributes alongside an empty attribute', () => {
@@ -176,13 +577,10 @@ describe('Util', function() {
       strictEqual(vTree.attributes['dot.value'], 'test');
     });
 
-    it('will support spreading interpolated attribute objects', () => {
-      const supplemental = createSupplemental({
-        attributes: [{ value: 'test' }]
-      })
-      const vTree = parse('<option __DIFFHTML__0__></option>', supplemental).childNodes[0];
+    it('will properly separate elements on a single line', () => {
+      const { childNodes } = parse(`<div attr="1" /><p attr="2">test</p>`);
 
-      strictEqual(vTree.attributes.value, 'test');
+      strictEqual(childNodes.length, 2);
     });
 
     it('will move elements found between the ends of body and html', () => {
@@ -237,31 +635,6 @@ describe('Util', function() {
       strictEqual(vTree.attributes['data-text'], '<li class=\'test\'></li>');
     });
 
-    it('will parse text siblings next to elements', () => {
-      const vTrees = parse(`<div></div> Hello world`).childNodes;
-
-      strictEqual(vTrees[0].nodeName, 'div');
-      strictEqual(vTrees[1].nodeName, '#text');
-      strictEqual(vTrees[1].nodeValue, ' Hello world');
-    });
-
-    it('will support parsing text before element', () => {
-      const vTrees = parse(`Hello <div></div>`).childNodes;
-
-      strictEqual(vTrees.length, 2);
-      strictEqual(vTrees[0].nodeName, '#text');
-      strictEqual(vTrees[0].nodeValue, 'Hello ');
-      strictEqual(vTrees[1].nodeName, 'div');
-    });
-
-    it('will support parsing just text', () => {
-      const vTrees = parse(`Hello`).childNodes;
-
-      strictEqual(vTrees.length, 1);
-      strictEqual(vTrees[0].nodeName, '#text');
-      strictEqual(vTrees[0].nodeValue, 'Hello');
-    });
-
     it('will parse out full token attributes', () => {
       const token = '__DIFFHTML_BABEL__';
       const vTrees = parse(`<input ${token}/>`).childNodes;
@@ -270,54 +643,6 @@ describe('Util', function() {
       deepStrictEqual(vTrees[0].attributes, { [token]: true });
     });
 
-    it('will parse out partial attributes', () => {
-      const token = '__DIFFHTML__0__';
-      const supplemental = {
-        attributes: ['test'],
-        tags: [],
-        children: [],
-      };
-      const vTrees = parse(`<input value=${token}/>`, supplemental).childNodes;
-
-      strictEqual(vTrees[0].nodeName, 'input');
-      deepStrictEqual(vTrees[0].attributes, { value: 'test' });
-    });
-
-    it('will parse a key-only attribute', () => {
-      const token = '__DIFFHTML__0__';
-      const supplemental = {
-        tags: [],
-        attributes: ['disabled'],
-        children: [],
-      };
-      const vTrees = parse(`<input ${token}/>`, supplemental).childNodes;
-
-      strictEqual(vTrees[0].nodeName, 'input');
-      deepStrictEqual(vTrees[0].attributes, { disabled: true });
-    });
-
-    it('will support passing childNodes as an attribute', () => {
-      const supplemental = createSupplemental({
-        attributes: ['hello world']
-      })
-      const vTrees = parse(`<div childNodes=__DIFFHTML__0__ />`, supplemental).childNodes;
-
-      deepStrictEqual(vTrees[0].childNodes, [createTree('#text', 'hello world')]);
-    });
-
-    it('will support passing childNodes as an attribute to pave over existing children', () => {
-      const supplemental = createSupplemental({
-        attributes: ['hello world']
-      });
-      const vTrees = parse(`<div childNodes=__DIFFHTML__0__>test</div>`, supplemental).childNodes;
-
-      deepStrictEqual(vTrees[0].childNodes, [createTree('#text', 'hello world')]);
-    });
-
-    it('will ignore parsing doctypes', () => {
-      const vTree = parse(`<!doctype html>`).childNodes[0];
-      strictEqual(vTree, undefined);
-    });
 
     it('will support mixed cased elements being self closed', () => {
       const vTrees = parse(`<CustomElement
@@ -331,24 +656,30 @@ describe('Util', function() {
       strictEqual(vTrees[1].childNodes[0].nodeValue, 'Hello world');
     });
 
+    it('will support closing a self closed element', () => {
+      const vTrees = parse(`
+          <meta id="test"></meta><div>test</div>
+      `).childNodes;
+
+      strictEqual(vTrees[1].nodeName, 'meta');
+      strictEqual(vTrees[2].nodeName, 'div');
+    });
+
     it('will support passing custom self closing elements', () => {
-      const vTrees = parse(`<div childNodes="test" />`, null, {
+      const vTrees = parse(`<div childNodes="test" />`, {
         parser: {
-          strict: true,
           selfClosingElements: ['div'],
         }
       }).childNodes;
 
       strictEqual(vTrees.length, 1);
       strictEqual(vTrees[0].nodeName, 'div');
-      strictEqual(vTrees[0].childNodes[0].nodeName, '#text');
-      strictEqual(vTrees[0].childNodes[0].nodeValue, 'test');
+      strictEqual(vTrees[0].attributes.childNodes, 'test');
     });
 
     it('will support passing custom raw elements', () => {
-      const vTrees = parse(`<div><p></p></div>`, null, {
+      const vTrees = parse(`<div><p></p></div>`, {
         parser: {
-          strict: true,
           rawElements: ['div'],
         }
       }).childNodes;
@@ -360,7 +691,7 @@ describe('Util', function() {
     });
 
     it('will leave tokens in the children if no value is found', () => {
-      const vTrees = parse('__DIFFHTML__0__', null).childNodes;
+      const vTrees = parse('__DIFFHTML__0__').childNodes;
 
       strictEqual(vTrees.length, 1);
       strictEqual(vTrees[0].nodeName, '#text');
@@ -368,70 +699,14 @@ describe('Util', function() {
     });
 
     it('will leave tokens in the attributes if no value is found', () => {
-      const vTrees = parse('<a href=__DIFFHTML__0__>test</a>', null).childNodes;
+      const vTrees = parse('<a href=__DIFFHTML__0__>test</a>').childNodes;
 
       strictEqual(vTrees.length, 1);
       strictEqual(vTrees[0].nodeName, 'a');
       deepStrictEqual(vTrees[0].attributes, { href: '__DIFFHTML__0__' });
     });
 
-    it('will throw if arrays are tried to be spread as attributes', () => {
-      const supplemental = createSupplemental({ attributes: [[]] })
-
-      throws(
-        () => parse(`<div __DIFFHTML__0__ />`, supplemental),
-        /Arrays cannot be spread as attributes/
-      );
-    });
-
-    it('will throw on invalid closing tag when in strict mode', () => {
-      const opts = { parser: { strict: true } };
-      const markup = `
-        <span></span><div><div></div>
-        <ul>
-          <li>test</p>
-        </ul>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-      `;
-
-      throws(
-        () => parse(markup, null, opts),
-        /Possibly invalid markup. <li> must be closed in strict mode./,
-      );
-    });
-
-    it('will throw on invalid interpolated closing tag when in strict mode', () => {
-      const opts = { parser: { strict: true } };
-      const supplemental = createSupplemental({
-        attributes: { 0: 'test' },
-        tags: { 1: 'li', 2: 'p' },
-      });
-      const markup = `
-        <span class=__DIFFHTML__0__></span><div><div></div>
-        <ul>
-          <__DIFFHTML__1__></li>
-          <__DIFFHTML__2__>test</li>
-        </ul>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-      `;
-
-      throws(
-        () => parse(markup, supplemental, opts),
-        /Possibly invalid markup. <p> must be closed in strict mode./,
-      );
-    });
-
-    it('will not throw on invalid markup when strict mode is false', () => {
+    it('will not throw on invalid markup', () => {
       doesNotThrow(() => {
         parse(`
           <span></span><div><div></div>
@@ -444,7 +719,7 @@ describe('Util', function() {
           <div></div>
           <div></div>
           <div></div>
-        `, null, { parser: { strict: false } }).childNodes[0];
+        `).childNodes[0];
       });
     });
 
@@ -500,663 +775,75 @@ describe('Util', function() {
       strictEqual(vTrees[0].childNodes[0].nodeValue, '<pre></pre>');
     });
 
-    it('will support self closing elements', () => {
-      const vTrees = parse(`
-        <meta/>
-        <img/>
-        <link/>
-        <input/>
-        <area/>
-        <br/>
-        <hr/>
-      `.trim()).childNodes.filter(el => el.nodeType === 1);
+    describe('Tag omission', () => {
+      it('will support self closing elements', () => {
+        const vTrees = parse(`
+          <meta/>
+          <img/>
+          <link/>
+          <input/>
+          <area/>
+          <br/>
+          <hr/>
+        `.trim()).childNodes.filter(el => el.nodeType === 1);
 
-      strictEqual(vTrees.length, 7);
-    });
-
-    it('will support top-level interpolated string tag names', () => {
-      const div = 'div';
-      const supplemental = createSupplemental({ tags: [div] });
-      const vTree = parse('<__DIFFHTML__0__ />', supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: div,
-          nodeName: div,
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {},
-        }],
-        attributes: {},
+        strictEqual(vTrees.length, 7);
       });
-    });
 
-    it('will support nested interpolated string tag names', () => {
-      const div = 'div';
-      const p = 'p';
-      const supplemental = createSupplemental({ tags: [div, p] });
-      const vTree = parse('<__DIFFHTML__0__><__DIFFHTML__1__ /></__DIFFHTML__0__>', supplemental);
+      it('will support end tag omission for LI elements', () => {
+        const vTree = parse(`
+          <li>Hello
+          <li>World
+        `.trim());
 
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: div,
-          nodeName: div,
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [{
-            rawNodeName: p,
-            nodeName: p,
-            nodeValue: '',
-            nodeType: 1,
-            key: '',
-            attributes: {},
-            childNodes: [],
-          }],
-          attributes: {},
-        }],
-        attributes: {},
+        deepStrictEqual(vTree, createTree([
+          createTree('li', null, createTree('#text', 'Hello\n          ')),
+          createTree('li', null, createTree('#text', 'World')),
+        ]));
       });
-    });
 
+      it('will support end tag omission for DT elements', () => {
+        const vTreeWithDT = parse(`
+          <dt>Hello
+          <dt>World
+        `.trim());
 
-    it('will support function tag names, treating as fragment', () => {
-      const Empty = () => {};
-      const supplemental = createSupplemental({ tags: [Empty] });
-      const vTree = parse('<__DIFFHTML__0__ />', supplemental);
+        deepStrictEqual(vTreeWithDT, createTree([
+          createTree('dt', null, createTree('#text', 'Hello\n          ')),
+          createTree('dt', null, createTree('#text', 'World')),
+        ]));
 
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: Empty,
-          nodeName: '#document-fragment',
-          nodeValue: '',
-          nodeType: 11,
-          key: '',
-          childNodes: [],
-          attributes: {},
-        }],
-        attributes: {},
+        const vTreeWithDD = parse(`
+          <dt>Hello
+          <dd>World
+        `.trim());
+
+        deepStrictEqual(vTreeWithDD, createTree([
+          createTree('dt', null, createTree('#text', 'Hello\n          ')),
+          createTree('dd', null, createTree('#text', 'World')),
+        ]));
       });
-    });
 
-    it('will support closing custom tag names', () => {
-      const Div = () => {};
-      const supplemental = createSupplemental({ tags: [Div, Div] })
-      const vTree = parse(`
-        <__DIFFHTML__0__></__DIFFHTML__1__>
-      `.trim(), supplemental);
+      it('will support end tag omission for DD elements', () => {
+        const vTreeWithDD = parse(`
+          <dd>Hello
+          <dd>World
+        `.trim());
 
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: Div,
-          nodeName: '#document-fragment',
-          nodeValue: '',
-          nodeType: 11,
-          key: '',
-          childNodes: [],
-          attributes: {},
-        }],
-        attributes: {},
-      });
-    });
+        deepStrictEqual(vTreeWithDD, createTree([
+          createTree('dd', null, createTree('#text', 'Hello\n          ')),
+          createTree('dd', null, createTree('#text', 'World')),
+        ]));
 
-    it('will allow dynamic components to be closed', () => {
-      const Component = () => {};
-      const supplemental = createSupplemental({
-        tags: [Component, Component],
-      });
-      const vTree = parse('<__DIFFHTML__0__>Hello world</__DIFFHTML__1__>', supplemental);
+        const vTreeWithDT = parse(`
+          <dd>Hello
+          <dt>World
+        `.trim());
 
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: Component,
-          nodeName: '#document-fragment',
-          nodeValue: '',
-          nodeType: 11,
-          key: '',
-          childNodes: [{
-            rawNodeName: '#text',
-            nodeName: '#text',
-            nodeValue: 'Hello world',
-            nodeType: 3,
-            key: '',
-            childNodes: [],
-            attributes: {},
-          }],
-          attributes: {},
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will support interpolating children', () => {
-      const text = createTree('#text', 'Hello world');
-      const supplemental = createSupplemental({
-        children: [text],
-      })
-      const vTree = parse(`
-        <div>__DIFFHTML__0__</div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [{
-            attributes: {},
-            childNodes: [],
-            key: '',
-            nodeName: '#text',
-            nodeType: 3,
-            nodeValue: 'Hello world',
-            rawNodeName: '#text',
-          }],
-          attributes: {},
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will support flattening fragments', () => {
-      const fragment = createTree('#document-fragment', null,
-        createTree('span', null, 'Hello world')
-      );
-      const supplemental = createSupplemental({ children: [fragment] });
-      const vTree = parse(`
-        <div>__DIFFHTML__0__</div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [{
-            rawNodeName: 'span',
-            nodeName: 'span',
-            nodeValue: '',
-            nodeType: 1,
-            key: '',
-            childNodes: [{
-              attributes: {},
-              childNodes: [],
-              key: '',
-              nodeName: '#text',
-              nodeType: 3,
-              nodeValue: 'Hello world',
-              rawNodeName: '#text',
-            }],
-            attributes: {},
-          }],
-          attributes: {},
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will support interpolating between text', () => {
-      const text = createTree('#text', 'world');
-      const supplemental = createSupplemental({
-        children: [text],
-      })
-      const vTree = parse(`
-        <div>Hello __DIFFHTML__0__</div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [{
-            attributes: {},
-            childNodes: [],
-            key: '',
-            nodeName: '#text',
-            nodeType: 3,
-            nodeValue: 'Hello ',
-            rawNodeName: '#text',
-          }, {
-            attributes: {},
-            childNodes: [],
-            key: '',
-            nodeName: '#text',
-            nodeType: 3,
-            nodeValue: 'world',
-            rawNodeName: '#text',
-          }],
-          attributes: {},
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will ignore empty children', () => {
-      const supplemental = createSupplemental({ children: [undefined] })
-      const vTree = parse(`
-        <div>Hello __DIFFHTML__0__</div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [{
-            attributes: {},
-            childNodes: [],
-            key: '',
-            nodeName: '#text',
-            nodeType: 3,
-            nodeValue: 'Hello ',
-            rawNodeName: '#text',
-          }],
-          attributes: {},
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will interpolate a single attribute', () => {
-      const className = 'test';
-      const supplemental = createSupplemental({
-        attributes: [className],
-      })
-      const vTree = parse(`
-        <div class=__DIFFHTML__0__></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            class: className,
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will interpolate an attribute without a value', () => {
-      const checked = 'checked';
-      const supplemental = createSupplemental({
-        attributes: [checked],
-      })
-      const vTree = parse(`
-        <div __DIFFHTML__0__></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            checked: true,
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will interpolate multiple attributes', () => {
-      const className = 'test';
-      const dataTest = 'fixture';
-      const supplemental = createSupplemental({
-        attributes: [className, dataTest],
-      })
-      const vTree = parse(`
-        <div class=__DIFFHTML__0__ data-test=__DIFFHTML__1__></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            class: className,
-            'data-test': dataTest,
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will prepend a value into a single attribute', () => {
-      const hello = 'hello';
-      const world = 'world';
-      const supplemental = createSupplemental({
-        attributes: [hello],
-      })
-      const vTree = parse(`
-        <div class="__DIFFHTML__0__ ui"></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            class: 'hello ui',
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will append a value into a single attribute', () => {
-      const hello = 'hello';
-      const world = 'world';
-      const supplemental = createSupplemental({
-        attributes: [hello],
-      })
-      const vTree = parse(`
-        <div class="ui __DIFFHTML__0__"></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            class: 'ui hello',
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will interpolate multiple values into a single attribute', () => {
-      const hello = 'hello';
-      const world = 'world';
-      const supplemental = createSupplemental({
-        attributes: [hello, world],
-      })
-      const vTree = parse(`
-        <div class="__DIFFHTML__0__-__DIFFHTML__1__"></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            class: 'hello-world',
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will interpolate an attribute with an empty string', () => {
-      const key = 'key';
-      const supplemental = createSupplemental({
-        attributes: [key],
-      })
-      const vTree = parse(`
-        <div __DIFFHTML__0__=""></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            [key]: '',
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will interpolate an attribute with empty single quotes', () => {
-      const key = 'key';
-      const supplemental = createSupplemental({
-        attributes: [key],
-      })
-      const vTree = parse(`
-        <div __DIFFHTML__0__=''></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            [key]: '',
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will interpolate an attribute with an empty value', () => {
-      const key = 'key';
-      const value = '';
-      const supplemental = createSupplemental({
-        attributes: [key, value],
-      })
-      const vTree = parse(`
-        <div __DIFFHTML__0__=__DIFFHTML__1__></div>
-      `.trim(), supplemental);
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'div',
-          nodeName: 'div',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [],
-          attributes: {
-            [key]: '',
-          },
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will ignore parsing comments until a later version', () => {
-      const vTree = parse('<!-- Test -->Test');
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: '#text',
-          nodeName: '#text',
-          nodeValue: 'Test',
-          nodeType: 3,
-          key: '',
-          childNodes: [],
-          attributes: {},
-        }],
-        attributes: {},
-      });
-    });
-
-    it('will support elements that can optionally omit a close tag', () => {
-      const vTree = parse(`
-        <li>Hello
-        <li>World
-      `.trim());
-
-      deepStrictEqual(vTree, {
-        rawNodeName: '#document-fragment',
-        nodeName: '#document-fragment',
-        nodeValue: '',
-        nodeType: 11,
-        key: '',
-        childNodes: [{
-          rawNodeName: 'li',
-          nodeName: 'li',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [{
-            rawNodeName: '#text',
-            nodeName: '#text',
-            nodeValue: 'Hello\n        ',
-            nodeType: 3,
-            key: '',
-            childNodes: [],
-            attributes: {},
-          }],
-          attributes: {},
-        }, {
-          rawNodeName: 'li',
-          nodeName: 'li',
-          nodeValue: '',
-          nodeType: 1,
-          key: '',
-          childNodes: [{
-            rawNodeName: '#text',
-            nodeName: '#text',
-            nodeValue: 'World',
-            nodeType: 3,
-            key: '',
-            childNodes: [],
-            attributes: {},
-          }],
-          attributes: {},
-        }],
-        attributes: {},
+        deepStrictEqual(vTreeWithDT, createTree([
+          createTree('dd', null, createTree('#text', 'Hello\n          ')),
+          createTree('dt', null, createTree('#text', 'World')),
+        ]));
       });
     });
 
@@ -1217,6 +904,16 @@ describe('Util', function() {
       });
     });
 
+    it('will support self closing elements', () => {
+      const vTree = parse(`
+        <base url="http://diffhtml.com">
+        <meta name="test">
+      `);
+
+      strictEqual(vTree.childNodes[1].nodeName, 'base');
+      strictEqual(vTree.childNodes[3].nodeName, 'meta');
+    });
+
     it('will support parsing malformed markup with not closing', () => {
       const vTree = parse(`<script>`);
 
@@ -1237,6 +934,38 @@ describe('Util', function() {
         }],
         attributes: {},
       });
+    });
+
+    it('will support nesting elements without self close', () => {
+      const vTree = parse(`
+        <div><p></p><div></div></div>
+      `.trim());
+
+      strictEqual(vTree.childNodes[0].nodeName, 'div');
+      strictEqual(vTree.childNodes[0].childNodes[0].nodeName, 'p');
+      strictEqual(vTree.childNodes[0].childNodes[1].nodeName, 'div');
+    });
+
+    it('will separate dynamic attribute values', () => {
+      const vTree = parse(`
+        <input
+          type="checkbox"
+          value=__DIFFHTML_0__
+          __DIFFHTML_1__
+        />
+      `);
+
+      strictEqual(vTree.childNodes[1].attributes.value, '__DIFFHTML_0__');
+      strictEqual(vTree.childNodes[1].attributes.__DIFFHTML_1__, true);
+    });
+
+    it('will separate dynamic key from value', () => {
+      const vTree = parse(`
+        <input __DIFFHTML_0__ class=__DIFFHTML_1__ />
+      `);
+
+      strictEqual(vTree.childNodes[1].attributes['__DIFFHTML_0__'], true);
+      strictEqual(vTree.childNodes[1].attributes.class, '__DIFFHTML_1__');
     });
 
     it('will correctly parse surrounding text nodes', () => {

@@ -82,6 +82,8 @@ function open() {
       ) {
         const children = html(markup);
 
+        console.log(children, markup);
+
         if (children.childNodes.length > 1) {
           outerHTML(document.documentElement, children.childNodes[1]);
         }

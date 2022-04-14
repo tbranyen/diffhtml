@@ -159,8 +159,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   }
 
   // Assume any remaining objects are VTree-like.
-  if (isObject) {
-
+  if (isObject && !attributes) {
     /** @type {VTreeLike} */
     const {
       rawNodeName,
@@ -219,6 +218,8 @@ export default function createTree(input, attributes, childNodes, ...rest) {
   entry.childNodes.length = 0;
   entry.attributes = {};
 
+  // Were childNodes passed as attributes? If so, use the attributes parameter
+  // instead.
   const useAttributes = isArray(attributes) || typeof attributes !== 'object';
   const useNodes = useAttributes ? attributes : childNodes;
   const allNodes = flatten(isArray(useNodes) ? useNodes : [useNodes]);

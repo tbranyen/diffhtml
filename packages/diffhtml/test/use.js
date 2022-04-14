@@ -96,7 +96,7 @@ describe('Use (Middleware)', function() {
     `);
 
     equal(domNode.innerHTML.trim(), '<span></span>');
-    equal(domNode.childNodes[1], span);
+    equal(domNode.childNodes[0], span);
 
     release(domNode);
   });
@@ -108,10 +108,6 @@ describe('Use (Middleware)', function() {
     let i = 0;
 
     this.createTreeHook = ({ rawNodeName, attributes }) => {
-      if (i === 4) {
-        return;
-      }
-
       if (typeof rawNodeName === 'function') {
         i++;
         return rawNodeName(attributes);

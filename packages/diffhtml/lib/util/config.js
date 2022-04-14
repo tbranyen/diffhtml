@@ -16,7 +16,7 @@ export const globalConfig = {
  * @param {unknown} value
  * @param {string} type
  *
- * @returns {unknown}
+ * @return {unknown}
  */
 function formatValue(value, type) {
   const valueAsString = String(value);

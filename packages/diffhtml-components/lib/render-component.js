@@ -109,7 +109,7 @@ export default function renderComponent(vTree, transaction) {
       render(props, state) {
         // Always render the latest `rawNodeName` of a VTree in case of
         // hot-reloading the cached value above wouldn't be correct.
-        return createTree(vTree.rawNodeName(props, state));
+        return createTree(RawComponent(props, state));
       }
 
       /** @type {VTree | null} */

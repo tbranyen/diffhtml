@@ -151,10 +151,10 @@ describe('Integration: outerHTML', function() {
   });
 
   describe('Comments', function() {
-    it('ignores comments', function() {
+    it('does not ignore comments', function() {
       diff.outerHTML(this.fixture, '<div><p><!-- test --></p></div>');
 
-      strictEqual(this.fixture.innerHTML, '<p></p>');
+      strictEqual(this.fixture.innerHTML, '<p><!-- test --></p>');
     });
   });
 

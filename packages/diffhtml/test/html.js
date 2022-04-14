@@ -1,12 +1,13 @@
+// @ts-nocheck
 import { equal, deepEqual, doesNotThrow, throws } from 'assert';
 import html from '../lib/html';
 import Internals from '../lib/util/internals';
 import parse from '../lib/util/parse';
 import createTree from '../lib/tree/create';
-import validateMemory from './util/validate-memory';
 import { NodeCache } from '../lib/util/types';
+import validateMemory from './util/validate-memory';
 
-describe('HTML (Tagged template)', function() {
+describe('HTML (Tagged template)', () => {
   beforeEach(() => {
     Internals.parse = parse;
   });
@@ -32,14 +33,14 @@ describe('HTML (Tagged template)', function() {
     equal(vTree.nodeName, 'div');
   });
 
-  it('will interpolate a single string value in an attribute', function() {
+  it('will interpolate a single string value in an attribute', () => {
     const foo = 'foo';
     const span = html`<span class="${foo}" />`;
 
     equal(span.attributes.class, 'foo');
   });
 
-  it('will interpolate multiple string values in an attribute', function() {
+  it('will interpolate multiple string values in an attribute', () => {
     const foo = 'foo';
     const bar = 'bar';
 
@@ -48,44 +49,70 @@ describe('HTML (Tagged template)', function() {
     equal(multipleValues.attributes.class, 'foo bar');
   });
 
-  it('will support invalid characters in attributes', function() {
-    const div = html`<div
-      @ns@key="value"
-      $ns$key="value"
-      #ns#key="value"
-    />`;
+  it('will support invalid characters in attributes', () => {
+    const div = html`
+      <div
+        @ns@key="value"
+        $ns$key="value"
+        #ns#key="value"
+      />
+    `;
 
     equal(div.attributes['@ns@key'], 'value');
     equal(div.attributes['$ns$key'], 'value');
     equal(div.attributes['#ns#key'], 'value');
   });
 
-  it('will support namespace attributes', function() {
+  it('will support namespace attributes', () => {
     const div = html`<div ns:key="value" />`;
 
     equal(div.attributes['ns:key'], 'value');
   });
 
-  it('will support dot attributes', function() {
+  it('will support dot attributes', () => {
     const div = html`<div ns.key="value" />`;
 
     equal(div.attributes['ns.key'], 'value');
   });
 
-  it('will interpolate value-less attributes', function() {
+  it('will interpolate static value-less attributes', () => {
+    const input = html`<input type="checkbox" checked>`;
+
+    equal(input.attributes.checked, true);
+  });
+
+  it('will interpolate dynamic value-less attributes', () => {
     const checked = 'checked';
     const input = html`<input type="checkbox" ${checked}>`;
 
     equal(input.attributes.checked, true);
   });
 
-  it('will interpolate multiple type values in an attribute', function() {
+  it('will interpolate multiple value-less attributes', () => {
+    const checked = 'checked';
+    const disabled = 'disabled'
+    const input = html`<input type="checkbox" ${checked} ${disabled}>`;
+
+    equal(input.attributes.checked, true);
+    equal(input.attributes.disabled, true);
+  });
+
+  it('will interpolate multiple type values in an attribute', () => {
     const foo = 'foo';
     const bar = {};
 
     const multipleValues = html`<span class="${foo} ${bar}" />`;
 
     equal(multipleValues.attributes.class, 'foo [object Object]');
+  });
+
+  it('will interpolate multiple type values in an attribute with toString', () => {
+    const foo = 'foo';
+    const bar = { toString() { return 'replacement'; } };
+
+    const multipleValues = html`<span class="${foo} ${bar}" />`;
+
+    equal(multipleValues.attributes.class, 'foo replacement');
   });
 
   it('will interpolate attribute values with text', () => {
@@ -244,7 +271,7 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('will support aligning attributes on new lines', function() {
+  it('will support aligning attributes on new lines', () => {
     const multipleValues = html`
       <span class="
         ${'foo'}
@@ -269,7 +296,7 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('will interpolate a string child', function() {
+  it('will interpolate a string child', () => {
     const span = html`<span>${'foo'}</span>`;
 
     deepEqual(span.childNodes[0], {
@@ -283,7 +310,7 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('will interpolate a string child with html entities', function() {
+  it('will interpolate a string child with html entities', () => {
     const span = html`<span>${'&infin;'}</span>`;
 
     deepEqual(span.childNodes[0], {
@@ -297,7 +324,7 @@ describe('HTML (Tagged template)', function() {
     });
   });
 
-  it('will interpolate a VTree child', function() {
+  it('will interpolate a VTree child', () => {
     const span = html`<span>${createTree('#text', 'foo')}</span>`;
 
     deepEqual(span.childNodes[0], {
@@ -318,7 +345,7 @@ describe('HTML (Tagged template)', function() {
     equal(NodeCache.get(vTree), domNode);
   });
 
-  it('will interpolate a Text Node', function() {
+  it('will interpolate a Text Node', () => {
     const textNode = document.createTextNode('foo');
     const span = html`<span>${textNode}</span>`;
     const vTree = createTree(textNode);
@@ -327,7 +354,7 @@ describe('HTML (Tagged template)', function() {
     equal(NodeCache.get(vTree), textNode);
   });
 
-  it('will interpolate a DOM Node', function() {
+  it('will interpolate a DOM Node', () => {
     const domNode = document.createElement('div');
     const span = html`<span>${domNode}</span>`;
     const vTree = createTree(domNode);
@@ -345,7 +372,7 @@ describe('HTML (Tagged template)', function() {
     equal(NodeCache.get(vTree), domNode);
   });
 
-  it('will interpolate an array of children', function() {
+  it('will interpolate an array of children', () => {
     const fixture = [createTree('#text', 'foo'), createTree('#text', 'bar')];
     const span = html`<span>${fixture}</span>`;
 
@@ -381,21 +408,38 @@ describe('HTML (Tagged template)', function() {
     const span = html`<!--<span>${fixtures[0]}</span>--><span>${fixtures[1]}</span>`;
 
     deepEqual(span, {
-      rawNodeName: 'span',
-      nodeName: 'span',
-      nodeType: 1,
-      nodeValue: '',
-      key: '',
+      rawNodeName: '#document-fragment',
+      nodeName: '#document-fragment',
       attributes: {},
+      nodeValue: '',
+      nodeType: 11,
+      key: '',
+
       childNodes: [{
-        rawNodeName: '#text',
-        nodeName: '#text',
-        nodeType: 3,
-        nodeValue: 'this',
+        rawNodeName: '#comment',
+        nodeName: '#comment',
+        nodeValue: '<span>test</span>',
+        nodeType: 8,
+        key: '',
+        childNodes: [],
+        attributes: {},
+      }, {
+        rawNodeName: 'span',
+        nodeName: 'span',
+        nodeType: 1,
+        nodeValue: '',
         key: '',
         attributes: {},
-        childNodes: [],
-      }],
+        childNodes: [{
+          rawNodeName: '#text',
+          nodeName: '#text',
+          nodeType: 3,
+          nodeValue: 'this',
+          key: '',
+          attributes: {},
+          childNodes: [],
+        }],
+      }]
     });
   });
 
@@ -500,120 +544,5 @@ describe('HTML (Tagged template)', function() {
     equal(vTree.childNodes[0].childNodes.length, 1);
     equal(vTree.childNodes[0].childNodes[0].nodeName, '#text');
     equal(vTree.childNodes[0].childNodes[0].nodeValue, 'inner');
-  });
-
-  describe('Strict mode', () => {
-    it('will clean up after an error', () => {
-      throws(() => html.strict`
-        <web-component>
-      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
-
-      // Test a second time to ensure clean up occured before the failure.
-      throws(() => html.strict`
-        <web-component>
-      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
-    });
-
-    it('will error if tags cannot self-close', () => {
-      throws(() => html.strict`
-        <web-component>
-      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
-    });
-
-    it('will error if the closing tag does not match', () => {
-      throws(() => html.strict`
-        <web-component></not-component>
-      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
-    });
-
-    it('will error if tag is not closed', () => {
-      throws(() => html.strict`
-        <web-component
-      `, /Possibly invalid markup. Opening tag was not properly closed/);
-    });
-
-    it('will error if tag is not closed along with proper markup', () => {
-      throws(() => html.strict`
-        <proper></proper>
-        <web-component
-      `, /Possibly invalid markup. Opening tag was not properly closed/);
-
-      throws(() => html.strict`
-        <web-component
-        <proper></proper>
-      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
-
-      throws(() => html.strict`
-        <proper></proper>
-        <web-component
-        <proper></proper>
-      `, /Possibly invalid markup. <web-component> must be closed in strict mode/);
-    });
-
-    it('will error if tag is not opened', () => {
-      throws(() => html.strict`
-        web-component>
-      `, /Possibly invalid markup. Opening tag was not properly opened/);
-    });
-
-    it('will error when a custom component is not closed', () => {
-      const Component = () => {};
-
-      throws(() => html.strict`
-        <${Component}>
-      `, /Possibly invalid markup. <Component> must be closed in strict mode/);
-    });
-
-    it('will not error on doctype', () => {
-      doesNotThrow(() => html.strict`
-        <!doctype>
-        <html></html>
-      `);
-
-      const actual = html.strict`<!doctype>
-        <html></html>`;
-
-      deepEqual(actual, {
-        rawNodeName: 'html',
-        nodeName: 'html',
-        nodeValue: '',
-        nodeType: 1,
-        key: '',
-        childNodes:
-         [ { rawNodeName: 'head',
-             nodeName: 'head',
-             nodeValue: '',
-             nodeType: 1,
-             key: '',
-             childNodes: [],
-             attributes: {} },
-           { rawNodeName: 'body',
-             nodeName: 'body',
-             nodeValue: '',
-             nodeType: 1,
-             key: '',
-             childNodes: [],
-             attributes: {} } ],
-        attributes: {}
-      });
-    });
-
-    it('will error if tag is not opened along with proper markup', () => {
-      throws(() => html.strict`
-        <proper></proper>
-        web-component>
-      `, /Possibly invalid markup. Opening tag was not properly opened./);
-
-      //throws(() => html.strict`
-      //  web-component>
-      //  <proper></proper>
-      //`, /Possibly invalid markup. <web-component> must be closed in strict mode/);
-
-      //throws(() => html.strict`
-      //  <proper></proper>
-      //  web-component>
-      //  <proper></proper>
-      //`, /Possibly invalid markup. <web-component> must be closed in strict mode/);
-    });
   });
 });

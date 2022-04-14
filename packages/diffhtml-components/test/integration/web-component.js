@@ -53,7 +53,7 @@ describe('Web Component', function() {
 
     const instance = this.fixture.querySelector('custom-component');
 
-    equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+    equal(instance.shadowRoot.childNodes[0].outerHTML, '<div>Hello world</div>');
     equal(this.fixture.innerHTML, '<custom-component></custom-component>');
   });
 
@@ -71,7 +71,7 @@ describe('Web Component', function() {
 
     const instance = this.fixture.querySelector('custom-component');
 
-    equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+    equal(instance.shadowRoot.childNodes[0].outerHTML, '<div>Hello world</div>');
     equal(this.fixture.innerHTML, '<div><custom-component></custom-component></div>');
   });
 
@@ -91,7 +91,7 @@ describe('Web Component', function() {
 
     const instance = this.fixture.querySelector('custom-component');
 
-    equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+    equal(instance.shadowRoot.childNodes[0].outerHTML, '<div>Hello world</div>');
     equal(this.fixture.innerHTML, '<custom-component></custom-component>');
   });
 
@@ -217,7 +217,7 @@ describe('Web Component', function() {
 
     const instance = this.fixture.querySelector('custom-component');
 
-    equal(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+    equal(instance.shadowRoot.childNodes[0].outerHTML, '<div>Hello world</div>');
     equal(this.fixture.innerHTML, '<div><custom-component></custom-component></div>');
   });
 
@@ -301,7 +301,7 @@ describe('Web Component', function() {
     const inner = this.fixture.querySelector('inner-component');
 
     equal(
-      instance.shadowRoot.childNodes[1].outerHTML,
+      instance.shadowRoot.childNodes[0].outerHTML,
       '<div><slot></slot></div>',
     );
 

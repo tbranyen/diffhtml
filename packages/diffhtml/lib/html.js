@@ -2,16 +2,14 @@ import createTree from './tree/create';
 import Internals from './util/internals';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
-import { $$strict } from './util/symbols';
-import { EMPTY, VTree, Supplemental } from './util/types';
-import getConfig from './util/config';
+import internalProcess from './util/process';
+import { EMPTY, VTree, Supplemental, NODE_TYPE } from './util/types';
 
 // Magic token used for interpolation.
 const TOKEN = '__DIFFHTML__';
 
 const { getOwnPropertyNames } = Object;
 const { isArray } = Array;
-const isTagEx = /(<|\/)/;
 const tokenEx = new RegExp(`${TOKEN}([^_]*)__`);
 
 // Get the next value from the list. If the next value is a string, make sure
@@ -34,37 +32,137 @@ const nextValue = (/** @type {any[]} */ values) => {
  */
 const interpolateAndFlatten = (childNode, supplemental) => {
   let match = null;
+  let newNodeName = childNode.rawNodeName;
+
+  // Comments
+  if (childNode.nodeType === NODE_TYPE.COMMENT) {
+    const parts = childNode.nodeValue.split(tokenEx);
+    let newValue = '';
+
+    for (let i = 0; i < parts.length; i++) {
+      const isDynamic = i % 2 !== 0;
+
+      if (isDynamic) {
+        newValue += supplemental.attributes[parts[i]];
+      }
+      else {
+        newValue += parts[i];
+      }
+    }
+
+    childNode.nodeValue = newValue;
+  }
 
   // Node name
   if (match = tokenEx.exec(childNode.rawNodeName)) {
-    childNode.rawNodeName = supplemental.tags[match[1]];
-    childNode.nodeName = '#document-fragment';
-    childNode.nodeType = 11;
+    newNodeName = supplemental.tags[match[1]];
+
+    childNode = createTree(
+      newNodeName,
+      childNode.attributes,
+      childNode.childNodes,
+    );
   }
 
   // Attributes
   for (const keyName of getOwnPropertyNames(childNode.attributes)) {
-    const value = childNode.attributes[keyName];
-    let newKey = keyName;
-    let newValue = value;
+    keyName.split(' ').forEach(keyName => {
+      const value = childNode.attributes[keyName];
+      let newValue = value;
+      let newKey = keyName;
 
-    // Check for dynamic key
-    if (match = tokenEx.exec(keyName)) {
-      newKey = supplemental.attributes[match[1]];
-      delete childNode.attributes[keyName];
-    }
+      // Check for dynamic value and assign to newValue.
+      if (match = tokenEx.exec(value)) {
+        const parts = value.split(tokenEx);
+        newValue = '';
 
-    // Check for dynamic value
-    if (match = tokenEx.exec(value)) {
-      newValue = supplemental.attributes[match[1]];
-    }
+        // A value is always split between two other elements.
+        if (parts.length === 3 && parts[0] === EMPTY.STR && parts[2] === EMPTY.STR) {
+          newValue = supplemental.attributes[parts[1]];
+        }
+        else {
+          for (let i = 0; i < parts.length; i++) {
+            const isDynamic = i % 2 !== 0;
 
-    childNode.attributes[newKey] = newValue;
+            if (isDynamic) {
+              newValue += supplemental.attributes[parts[i]];
+            }
+            else {
+              newValue += parts[i];
+            }
+          }
+        }
+      }
+
+      // Check for dynamic key and assign to newKey.
+      if (match = tokenEx.exec(keyName)) {
+        const parts = keyName.split(tokenEx);
+
+        for (let i = 0; i < parts.length; i++) {
+          if (i % 2 !== 0) {
+            newKey = supplemental.attributes[parts[i]];
+          }
+        }
+      }
+
+      if (newKey) {
+        if (typeof newKey !== 'string') {
+          if (Array.isArray(newKey)) {
+            if (internalProcess.env.NODE_ENV !== 'production') {
+              throw new Error('Arrays cannot be spread as attributes');
+            }
+
+            delete childNode.attributes[keyName];
+          }
+          else {
+            delete childNode.attributes[keyName];
+            Object.assign(childNode.attributes, newKey);
+          }
+        }
+        else {
+          delete childNode.attributes[keyName];
+
+          if (newKey === 'childNodes') {
+            childNode.childNodes.length = 0;
+            if (typeof newValue !== 'string') {
+              childNode.childNodes.push(createTree(newValue));
+            }
+            else {
+              childNode.childNodes.push(createTree('#text', newValue));
+            }
+          }
+
+          childNode.attributes[newKey] = newValue === undefined ? true : newValue;
+        }
+      }
+
+      if (childNode.attributes.key) {
+        childNode.key = childNode.attributes.key;
+      }
+
+      if (childNode.nodeName === 'script' && childNode.attributes.src) {
+        childNode.key = childNode.attributes.src;
+      }
+    });
   }
 
   // Node value
   if (match = tokenEx.exec(childNode.nodeValue)) {
-    return supplemental.children[match[1]];
+    const parts = childNode.nodeValue.split(tokenEx);
+    const fragment = createTree();
+
+    for (let i = 0; i < parts.length; i++) {
+      if (i % 2 !== 0) {
+        fragment.childNodes.push(
+          createTree(supplemental.children[parts[i]])
+        );
+      }
+      else if (parts[i]) {
+        fragment.childNodes.push(createTree('#text', parts[i]));
+      }
+    }
+
+    return fragment;
   }
 
   // Children
@@ -74,7 +172,7 @@ const interpolateAndFlatten = (childNode, supplemental) => {
 
     if (vTree.nodeName === '#document-fragment' && vTree.rawNodeName === vTree.nodeName) {
       childNode.childNodes.splice(i, 1, ...vTree.childNodes);
-      i += vTree.childNodes.length;
+      i -= 1;
     }
     else {
       childNode.childNodes[i] = vTree;
@@ -114,22 +212,34 @@ export default function handleTaggedTemplate(strings, ...values) {
       return empty;
     }
 
-    const strict = /** @type {boolean} */(
-      getConfig(
-        'strict',
-        false,
-        'boolean',
-        {
-          strict: /** @type {any} */(handleTaggedTemplate)[$$strict]
-        },
-      )
-    );
+    let { childNodes } = Internals.parse(strings[0]);
 
-    delete /** @type {any} */(handleTaggedTemplate)[$$strict];
+    const startNode = childNodes[0];
+    const endNode = childNodes[childNodes.length - 1];
+    const isStartText = startNode.nodeType === NODE_TYPE.TEXT;
+    const isEndText = endNode.nodeType === NODE_TYPE.TEXT;
 
-    const { childNodes } = Internals.parse(strings[0], undefined, {
-      parser: { strict },
-    });
+    // Trim surrounding text if only one single element was returned.
+    if (isStartText || isEndText) {
+      /** @type {VTree[]} */
+      const trimmedNodes = [].concat(...childNodes);
+
+      for (let i = 0; i < trimmedNodes.length; i++) {
+        const node = trimmedNodes[i];
+
+        if (
+          (node === startNode || node === endNode) &&
+          node.nodeType === NODE_TYPE.TEXT &&
+          !node.nodeValue.trim()
+        ) {
+          trimmedNodes.splice(i, 1);
+        }
+      }
+
+      if (trimmedNodes.length === 1) {
+        childNodes = trimmedNodes;
+      }
+    }
 
     return createTree(childNodes.length === 1 ? childNodes[0] : childNodes);
   }
@@ -160,8 +270,9 @@ export default function handleTaggedTemplate(strings, ...values) {
     if (values.length) {
       const value = nextValue(values);
       const lastCharacter = HTML.trim().slice(-1);
+      const lastTwoCharacters = HTML.trim().slice(-2);
       const isAttribute = HTML.lastIndexOf('>') < HTML.lastIndexOf('<');
-      const isTag = Boolean(lastCharacter.match(isTagEx));
+      const isTag = Boolean(lastCharacter === '<' || lastTwoCharacters === '</');
       const isObject = typeof value === 'object';
       const token = `${TOKEN}${i}__`;
 
@@ -188,46 +299,17 @@ export default function handleTaggedTemplate(strings, ...values) {
     }
   });
 
-  // Determine if we are in strict mode and immediately reset for the next
-  // call.
-  const strict = /** @type {boolean} */(getConfig('strict', false, 'boolean', {
-    strict: /** @type {any} */ (handleTaggedTemplate)[$$strict],
-  }));
-
   // Parse the instrumented markup to get the Virtual Tree.
-  const { childNodes } = Internals.parse(HTML, supplemental, {
-    parser: { strict },
-  });
+  const { childNodes } = Internals.parse(HTML);
 
-  // This makes it easier to work with a single element as a root, opposed to
-  // always returning an array.
-  const retVal = createTree(childNodes.length === 1 ? childNodes[0] : childNodes);
+  // Pass through flatten and interpolate dynamic data.
+  const vTree = interpolateAndFlatten(createTree(childNodes), supplemental);
 
   // Loop through all nodes and apply the dynamic attributes and flatten
   // fragments.
-  return interpolateAndFlatten(retVal, supplemental);
-}
-
-// Default to loose-mode.
-delete /** @type {any} */(handleTaggedTemplate)[$$strict];
-
-/**
- * Use a strict mode similar to XHTML/JSX where tags must be properly closed
- * and malformed markup is treated as an error. The default is to silently fail
- * just like HTML.
- *
- * @param {string | string[] | TemplateStringsArray} markup
- * @param  {any[]} args
- */
-function setStrictMode(markup, ...args) {
-  /** @type {any} */(handleTaggedTemplate)[$$strict] = true;
-  try {
-    return handleTaggedTemplate(markup, ...args);
+  if (vTree.nodeType === NODE_TYPE.FRAGMENT && vTree.childNodes.length === 1) {
+    return vTree.childNodes[0];
   }
-  catch (e) {
-    /** @type {any} */(handleTaggedTemplate)[$$strict] = false;
-    throw e;
-  }
-}
 
-handleTaggedTemplate.strict = setStrictMode;
+  return vTree;
+}
