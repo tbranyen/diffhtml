@@ -6,7 +6,7 @@ import escape from './escape';
 import makeMeasure from './make-measure';
 import * as memory from './memory';
 import Pool from './pool';
-import process from './process';
+import internalProcess from './process';
 import { globalConfig } from './config';
 import {
   PATCH_TYPE,
@@ -41,7 +41,7 @@ export default /** @type {Internals} */ ({
   makeMeasure,
   memory,
   Pool,
-  process,
+  process: internalProcess,
   PATCH_TYPE,
   globalConfig,
 

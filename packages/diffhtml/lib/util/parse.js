@@ -3,7 +3,7 @@
 
 import createTree from '../tree/create';
 import getConfig from './config';
-import process from './process';
+import internalProcess from './process';
 import { VTree, Supplemental, TransactionConfig, ParserConfig, EMPTY, NODE_TYPE } from './types';
 
 // Magic token used for interpolation.
@@ -199,7 +199,7 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
               assign(attributes, newName);
             }
             else {
-              if (process.env.NODE_ENV !== 'production') {
+              if (internalProcess.env.NODE_ENV !== 'production') {
                 throw new Error('Arrays cannot be spread as attributes');
               }
             }
@@ -291,7 +291,7 @@ export default function parse(html, supplemental, options = {}) {
   let currentParent = root;
   let lastTextPos = -1;
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (internalProcess.env.NODE_ENV !== 'production') {
     const markup = [html];
 
     if (!html.includes('<') && options.parser.strict) {
@@ -389,7 +389,7 @@ Possibly invalid markup. Opening tag was not properly closed.
         const closeMarkup = `</${name}>`;
         const index = html.indexOf(closeMarkup, tagEx.lastIndex);
 
-        if (process.env.NODE_ENV !== 'production') {
+        if (internalProcess.env.NODE_ENV !== 'production') {
           if (index === -1 && options.parser.strict && !selfClosing.has(name)) {
             // Find a subset of the markup passed in to validate.
             const markup = html
@@ -438,7 +438,7 @@ Possibly invalid markup. Opening tag was not properly closed.
     }
 
     if (bypassMatch || isClosingMatch || selfClosingMatch || selfClosing.has(name)) {
-      if (process.env.NODE_ENV !== 'production') {
+      if (internalProcess.env.NODE_ENV !== 'production') {
         if (currentParent && name !== currentParent.rawNodeName && options.parser.strict) {
           const nodeName = currentParent.rawNodeName;
 
@@ -518,7 +518,7 @@ Possibly invalid markup. Opening tag was not properly closed.
   // Find any last remaining text after the parsing completes over tags.
   const remainingText = html.slice(lastTextPos === -1 ? 0 : lastTextPos);
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (internalProcess.env.NODE_ENV !== 'production') {
     if ((remainingText.includes('>') || remainingText.includes('<')) && options.parser.strict) {
       // Find a subset of the markup passed in to validate.
       const markup = [remainingText];

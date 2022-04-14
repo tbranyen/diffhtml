@@ -1,4 +1,4 @@
-import process from './util/process';
+import internalProcess from './util/process';
 import {
   TransitionCache,
   NodeCache,
@@ -15,7 +15,7 @@ import {
  * @return {void}
  */
 export function addTransitionState(stateName, callback) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (internalProcess.env.NODE_ENV !== 'production') {
     if (!TransitionStateNames.includes(stateName)) {
       throw new Error(`Invalid state name '${stateName}'`);
     }
@@ -35,7 +35,7 @@ export function addTransitionState(stateName, callback) {
  * @return {void}
  */
 export function removeTransitionState(stateName, callback) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (internalProcess.env.NODE_ENV !== 'production') {
     // Only validate the stateName if the caller provides one.
     if (stateName && !TransitionStateNames.includes(stateName)) {
       throw new Error(`Invalid state name '${stateName}'`);

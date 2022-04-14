@@ -10,7 +10,7 @@ import {
   EMPTY,
 } from './util/types';
 import makeMeasure from './util/make-measure';
-import process from './util/process';
+import internalProcess from './util/process';
 import { protectVTree, gc } from './util/memory';
 import globalThis from './util/global';
 import schedule from './tasks/schedule';
@@ -82,7 +82,7 @@ export default class Transaction {
    * @param {Transaction} transaction
    */
   static assert(transaction) {
-    if (process.env.NODE_ENV !== 'production') {
+    if (internalProcess.env.NODE_ENV !== 'production') {
       if (typeof transaction.mount !== 'object' || !transaction.mount) {
         throw new Error('Transaction requires a DOM Node mount point');
       }
@@ -157,7 +157,7 @@ export default class Transaction {
    * @return {Promise<Transaction> | unknown}
    */
   start() {
-    if (process.env.NODE_ENV !== 'production') {
+    if (internalProcess.env.NODE_ENV !== 'production') {
       Transaction.assert(this);
     }
 

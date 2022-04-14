@@ -1,4 +1,4 @@
-import process from '../util/process';
+import internalProcess from '../util/process';
 import globalThis from '../util/global';
 import {
   NodeCache,
@@ -23,7 +23,7 @@ const namespace = 'http://www.w3.org/2000/svg';
  * @return {ValidNode | null} A DOM Node matching the vTree
  */
 export default function createNode(vTreeLike, ownerDocument = globalThis.document, isSVG) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (internalProcess.env.NODE_ENV !== 'production') {
     if (!vTreeLike) {
       throw new Error('Missing VTree when trying to create DOM Node');
     }
