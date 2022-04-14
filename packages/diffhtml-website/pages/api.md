@@ -670,7 +670,7 @@ import { innerHTML } from 'diffhtml';
 
 // No MutationObserver will observe if document.body changes outside of diffHTML.
 innerHTML(document.body, `Some value`, {
-  disableMutationObserver: false,
+  disableMutationObserver: true,
 });
 ```
 
