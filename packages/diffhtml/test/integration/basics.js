@@ -1,6 +1,10 @@
 import assert from 'assert';
+import * as Sinon from 'sinon';
 import * as diff from '../../lib/index';
 import validateMemory from '../util/validate-memory';
+
+// To appease nodejs
+const { spy, SinonSpy } = Sinon.default;
 
 describe('Integration: Basics', function() {
   beforeEach(function() {
@@ -37,6 +41,17 @@ describe('Integration: Basics', function() {
       const { default: api } = await import('../../lib/lite?' + Date.now());
 
       assert.strictEqual(global[Symbol.for('diffHTML')], api);
+    });
+
+    it('will support disabling MutationObserver', async function() {
+      const oldMutationObserver = global.window.MutationObserver;
+      global.window.MutationObserver = spy(oldMutationObserver);
+      const { innerHTML } = await import('../../lib/index?' + Date.now());
+
+      innerHTML(this.fixture, 'Hello world', { disableMutationObserver: true });
+
+      assert.strictEqual(/** @type {SinonSpy} */(global.window.MutationObserver).called, false);
+      global.window.MutationObserver = oldMutationObserver;
     });
   });
 
