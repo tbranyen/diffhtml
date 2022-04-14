@@ -1,5 +1,5 @@
 import Transaction from '../transaction';
-import process from '../util/process';
+import internalProcess from '../util/process';
 import {
   SyncTreeHookCache,
   TransactionState,
@@ -186,7 +186,7 @@ export default function syncTree(
         const vTree = nodes[i];
 
         if (vTree.key) {
-          if (process.env.NODE_ENV !== 'production') {
+          if (internalProcess.env.NODE_ENV !== 'production') {
             if (map.has(vTree.key)) {
               throw new Error(`Key: ${vTree.key} cannot be duplicated`);
             }

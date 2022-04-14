@@ -1,7 +1,7 @@
 import syncTree from '../tree/sync';
 import createNode from '../node/create';
 import { StateCache, NODE_TYPE, PATCH_TYPE, EMPTY, Mount } from '../util/types';
-import process from '../util/process';
+import internalProcess from '../util/process';
 import Transaction from '../transaction';
 
 export default function syncTrees(/** @type {Transaction} */ transaction) {
@@ -9,7 +9,7 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
 
   measure('sync trees');
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (internalProcess.env.NODE_ENV !== 'production') {
     if (!oldTree) {
       throw new Error('Missing old tree during synchronization');
     }
@@ -30,7 +30,7 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
   ) {
     // If there is no `parentNode` for the replace operation, we will need to
     // throw an error and prevent the `StateCache` from being updated.
-    if (process.env.NODE_ENV !== 'production') {
+    if (internalProcess.env.NODE_ENV !== 'production') {
       if (!/** @type {HTMLElement} */ (mount).parentNode) {
         throw new Error('Unable to replace top level node without a parent');
       }

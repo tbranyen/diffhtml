@@ -1,4 +1,4 @@
-import process from './process';
+import internalProcess from './process';
 import { Config } from './types';
 import globalThis from './global';
 
@@ -59,7 +59,7 @@ export default function getConfig(name, defaultValue, type = typeof defaultValue
   const hasSearchParams = typeof URLSearchParams !== 'undefined';
   const hasLocation = typeof location !== 'undefined';
   const useSearchParams = hasSearchParams && hasLocation;
-  const useEnv = typeof process !== 'undefined' && process.env;
+  const useEnv = internalProcess.env;
 
   // Allow bypassing any lookups if overrides are passed and match the config
   // being looked up.
@@ -84,8 +84,8 @@ export default function getConfig(name, defaultValue, type = typeof defaultValue
 
   // Try environment variables.
   const upperKey = keyName.toUpperCase();
-  if (useEnv && upperKey in process.env) {
-    return formatValue(process.env[upperKey.toUpperCase()], type);
+  if (useEnv && upperKey in internalProcess.env) {
+    return formatValue(internalProcess.env[upperKey.toUpperCase()], type);
   }
 
   return defaultValue;

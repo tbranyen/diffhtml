@@ -1,6 +1,6 @@
 import babel from 'rollup-plugin-babel';
 import nodeResolve from 'rollup-plugin-node-resolve';
-import replace from 'rollup-plugin-replace';
+import replace from '@rollup/plugin-replace';
 import hypothetical from 'rollup-plugin-hypothetical';
 import Visualizer from 'rollup-plugin-visualizer';
 
@@ -30,10 +30,10 @@ export default {
   }],
 
   plugins: [
-    replace({
-      'process.env.NODE_ENV': stringify('production')
-    }),
     babel({ comments: false }),
+    replace({
+      'internalProcess.env.NODE_ENV': stringify('production')
+    }),
     nodeResolve({ mainFields: ['module'] }),
     hypothetical({
       allowFallthrough: true,

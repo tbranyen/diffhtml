@@ -7,7 +7,7 @@ import {
   ParseHookCache,
   Middleware,
 } from './util/types';
-import process from './util/process';
+import internalProcess from './util/process';
 import Internals from './util/internals';
 
 const { isArray } = Array;
@@ -45,7 +45,7 @@ export default function use(middleware) {
   const isFunction = typeof middleware === 'function';
   const isObject = typeof middleware === 'object';
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (internalProcess.env.NODE_ENV !== 'production') {
     if (!middleware || (!isFunction && !isObject) || isArray(middleware)) {
       throw new Error('Middleware must be a function or plain object');
     }

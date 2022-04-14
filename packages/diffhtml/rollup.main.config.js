@@ -1,6 +1,6 @@
 import babel from 'rollup-plugin-babel';
 import nodeResolve from 'rollup-plugin-node-resolve';
-import replace from 'rollup-plugin-replace';
+import replace from '@rollup/plugin-replace';
 import Visualizer from 'rollup-plugin-visualizer';
 
 const entries = {
@@ -26,7 +26,7 @@ export default {
     sourcemap: false,
   }],
   plugins: [
-    NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
+    NODE_ENV === 'min' && replace({ 'internalProcess.env.NODE_ENV': JSON.stringify('production') }),
     babel({ comments: false }),
     nodeResolve({ mainFields: ['module'] }),
     NODE_ENV === 'umd' && Visualizer({ filename: './dist/main-build-size.html' }),
