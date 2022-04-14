@@ -133,14 +133,14 @@ export default class Transaction {
     this.config = config;
 
     const isDirtyCheck = () => this.state.isDirty = true;
-    const hasObserver = 'MutationObserver' in (globalThis.window || EMPTY.OBJ);
+    const useObserver = !config.disableMutationObserver && 'MutationObserver' in (globalThis.window || EMPTY.OBJ);
 
     this.state = StateCache.get(mount) || /** @type {TransactionState} */ ({
       measure: makeMeasure(this),
       svgElements: new Set(),
       scriptsToExecute: new Map(),
       activeTransaction: this,
-      mutationObserver: hasObserver && new globalThis.window.MutationObserver(isDirtyCheck),
+      mutationObserver: useObserver && new globalThis.window.MutationObserver(isDirtyCheck),
     });
 
     this.tasks = /** @type {Function[]} */ (
@@ -181,7 +181,7 @@ export default class Transaction {
   /**
    * This will immediately call the last flow task and terminate the flow. We
    * call the last task to ensure that the control flow completes. This should
-   * end psuedo-synchronously. Think `Promise.resolve()`, `callback()`, and
+   * end pseudo-synchronously. Think `Promise.resolve()`, `callback()`, and
    * `return someValue` to provide the most accurate performance reading. This
    * doesn't matter practically besides that.
    *
@@ -292,7 +292,7 @@ export default class Transaction {
     if (state.oldTree) protectVTree(state.oldTree);
 
     // Run garbage collection after every successful render. Ensure that the
-    // oldTree (current state) is solidified to not accidentially deallocate
+    // oldTree (current state) is solidified to not accidentally deallocate
     // something required. This allows VTrees to be reused quicker and reduce
     // memory overload.
     gc();
