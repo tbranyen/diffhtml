@@ -184,13 +184,14 @@ export const Middleware = EMPTY.OBJ;
  */
 export const ParserConfig = EMPTY.OBJ;
 
- /**
+/**
  * @typedef {Object} TransactionConfig
  *
  * @property {Boolean=} inner - to diff children or root
  * @property {Boolean=} executeScripts - to execute scripts or not
  * @property {Function[]=} tasks - to override tasks
  * @property {ParserConfig=} parser - override parser options
+ * @property {Boolean=} disableMutationObserver - to disable mutation observer (enabled by default if available)
  */
 export const TransactionConfig = EMPTY.OBJ;
 
