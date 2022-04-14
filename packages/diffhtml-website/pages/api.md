@@ -566,6 +566,7 @@ JSON string: `JSON.stringify({ parser: { strict: true } })`.
 - [`inner`](#options-inner)
 - [`tasks`](#options-tasks)
 - [`executeScripts`](#options-execute-scripts)
+- [`disableMutationObserver`](#options-disable-mutation-observer)
 - [`parser`](#options-parser)
 
 <a name="options-inner" />
@@ -653,6 +654,24 @@ innerHTML(document.body, `<script>window.alert('here')</script>`, {
   executeScripts: false,
 });
 
+```
+
+<a name="options-disable-mutation-observer" />
+
+### <a href="#options-disable-mutation-observer">disableMutationObserver `Boolean`</a>
+
+Allows disabling the MutationObserver feature if the mount is known to never
+become dirty.
+
+#### Example
+
+```js
+import { innerHTML } from 'diffhtml';
+
+// No MutationObserver will observe if document.body changes outside of diffHTML.
+innerHTML(document.body, `Some value`, {
+  disableMutationObserver: false,
+});
 ```
 
 <a name="options-parser" />
