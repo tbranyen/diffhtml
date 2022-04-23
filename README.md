@@ -49,9 +49,9 @@ the foundation of the diffHTML ecosystem.
   npm install diffhtml-components
   ```
 
-  Provides constructors and middleware to rendering stateful/stateless
-  components seamlessly with diffHTML. The API will be very familiar to anyone
-  who has used React as the class methods and structure is the same.
+  Provides constructors and middleware for rendering stateful/stateless
+  components seamlessly. The API will be very familiar to anyone
+  who has used React as the class methods and structure are the same.
 
 * [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
 
@@ -68,8 +68,9 @@ the foundation of the diffHTML ecosystem.
   npm install diffhtml-middleware-inline-transitions
   ```
 
-  By default diffHTML provides transition hooks at a global level. This
-  middleware turns them into scoped, performant, event hooks.
+  By default diffHTML invokes transition hooks globally to all elements. This
+  middleware turns them into scoped, performant, event hooks that are bound 
+  inline on the markup tags.
 
 * [diffhtml-middleware-linter](/packages/diffhtml-middleware-linter)
 
