@@ -18,7 +18,6 @@ const { stringify } = JSON;
  */
 export const createNodeWorker = (workerPath, { socket, workerOpts }) => {
   const worker = new Worker(workerPath, { ...(workerOpts || {}) });
-  let buffer = null;
 
   /**
    * @type {string} msg
@@ -28,17 +27,7 @@ export const createNodeWorker = (workerPath, { socket, workerOpts }) => {
   };
 
   worker.on('message', data => {
-    const { type, ...rest } = data;
-
-    if (type === 'sab') {
-      buffer = new Int32Array(rest.buffer);
-    }
-    else if (type === 'get') {
-      console.log('get property', rest.keyName);
-    }
-    else {
-      socket.send(stringify(data));
-    }
+    socket.send(stringify(data));
   })
   .on('error', (error) => {
     console.error(error);

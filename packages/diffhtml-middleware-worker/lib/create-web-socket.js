@@ -9,8 +9,9 @@ export const createWebSocket = (socketUrl, { mount, socketOptions }) => {
   socket.addEventListener('message', async e => {
     const { type, ...rest } = parse(e.data);
 
-    // TODO Deprecate this, we should be smarter to link up
-    // renders to avoid duplication.
+    // TODO Deprecate the 'clear' event. This is currently used in the Node
+    // worker when an error is encountered. This cleans up the markup to avoid
+    // issues during rendering.
     if (type === 'clear') {
       mount.innerHTML = '';
     }

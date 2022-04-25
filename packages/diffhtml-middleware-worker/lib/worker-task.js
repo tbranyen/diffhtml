@@ -5,7 +5,6 @@ import { getUUID } from './get-uuid.js';
 
 const { Internals } = diff;
 const { assign } = Object;
-const { wait, exchange } = Atomics;
 
 const linker = new WeakMap();
 const reloadable = new Map();
@@ -26,28 +25,8 @@ export const workerTask = ({
   callers = new Map(),
   live,
 } = {}) => assign(function workerTask(transaction) {
-  const createEventProxy = () => new Proxy({}, {
-    get(target, keyName) {
-      console.log('get event property', keyName);
-    },
-  });
-
   if (!isNode) {
     send = postMessage;
-
-    self.addEventListener('message', e => {
-      const { type, ...rest } = e.data;
-
-      // Handle function call
-      if (type === 'event') {
-        const { __caller } = rest;
-
-        if (callers.has(__caller)) {
-          const eventProxy = createEventProxy();
-          callers.get(__caller)(eventProxy);
-        }
-      }
-    });
   }
   else {
     // Don't let a thread last longer than 12 hours, they will be
@@ -59,21 +38,6 @@ export const workerTask = ({
     setTimeout(() => { process.exit(); }, MAX_TTL);
 
     send = message => parentPort.postMessage(message);
-
-    // Listen for incoming bi-directional messages.
-    parentPort.on('message', e  => {
-      const { type, ...rest } = JSON.parse(Buffer.from(e).toString());
-
-      // Handle function call
-      if (type === 'event') {
-        const { __caller } = rest;
-
-        if (callers.has(__caller)) {
-          const eventProxy = createEventProxy();
-          callers.get(__caller)(eventProxy);
-        }
-      }
-    });
 
     if (live) {
       async function reload(url) {
@@ -116,15 +80,6 @@ export const workerTask = ({
   if (transaction.config.skipWorker) {
     return undefined;
   }
-
-  // Use a shared array buffer and atomics to facilitate synchronous
-  // communication within a worker.
-  const buffer = new SharedArrayBuffer(1024);
-  view = new Int32Array(buffer);
-
-  // Always generate a SharedArrayBuffer first. As our worker needs to be able
-  // to immediately execute synchronous code and be safely blocked.
-  send({ type: 'sab', buffer });
 
   const currentTasks = transaction.tasks;
   const indexOfPatchNode = currentTasks.indexOf(Internals.tasks.patchNode);
@@ -189,65 +144,6 @@ export const workerTask = ({
   });
 }, {
   subscribe: () => {
-    /**
-     *
-     * @param {string} target
-     */
-    const trackGlobal = (target) => {
-      const cacheMap = new Map();
-
-      globalThis[target] = new Proxy({}, {
-        set: (_target, keyName, value) => {
-          let newValue = null;
-
-          // Generate a caller for the function.
-          if (typeof value === 'function') {
-            const __caller = value.__caller || getUUID();
-            callers.set(__caller, value);
-            value.__caller = __caller;
-            newValue = { __caller };
-          }
-
-          send({
-            type: 'set',
-            target,
-            keyName,
-            value: newValue,
-          });
-
-          wait(view, 0, 0);
-          exchange(view, 0, 0);
-
-          return true;
-        },
-
-        get: (_target, keyName) => {
-          const id = target+':'+keyName;
-
-          // If fetched in the same tick, reuse the cache value.
-          if (cacheMap.has(id)) {
-            return cacheMap.get(id);
-          }
-
-          send({ type: 'get', target, keyName });
-          wait(view, 0, 0);
-          exchange(view, 0, 0);
-
-          // On next tick clear out the cache.
-          setTimeout(() => cacheMap.delete(id));
-
-          cacheMap.set(id, view[1]);
-
-          return view[1];
-        },
-      });
-    };
-
-    trackGlobal('window');
-    trackGlobal('document');
-
-    const oldLog = console.log;
-
     console.log = (message, ...rest) => {
       send({ type: 'log', level: 'log', message: [message].concat(rest) });
       return oldLog.apply(null, [message].concat(rest));
