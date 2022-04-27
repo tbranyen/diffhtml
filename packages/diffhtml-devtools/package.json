@@ -23,7 +23,7 @@
     "derequire": "^2.1.1",
     "es6-module-loader": "^0.17.11",
     "es6-module-transpiler": "^0.10.0",
-    "grunt": "^1.4.1",
+    "grunt": "^1.5.2",
     "grunt-browserify": "^6.0.0",
     "grunt-cli": "^1.4.3",
     "grunt-contrib-clean": "^2.0.0",
