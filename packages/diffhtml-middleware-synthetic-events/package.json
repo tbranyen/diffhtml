@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-synthetic-events",
-  "version": "1.0.0-beta.27",
+  "version": "1.0.0-beta.28",
   "description": "Global event delegation middleware, avoids inline events",
   "type": "module",
   "main": "dist/cjs/index",
@@ -26,8 +26,8 @@
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.27",
-    "diffhtml": "^1.0.0-beta.27",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.28",
+    "diffhtml": "^1.0.0-beta.28",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-node-resolve": "^5.2.0",
