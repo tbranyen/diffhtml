@@ -8,9 +8,8 @@
   "scripts": {
     "prepublishOnly": "npm run min",
     "clean": "rm -rf dist/* && mkdir -p dist",
-    "min": "npm run build && npm run build-min",
-    "build": "npm run clean && npm run build-umd && npm run build-cjs && npm run build-esm && sh ../../post-cjs.sh",
-    "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs",
+    "build": "npm run clean && npm run build-umd && npm run build-cjs && npm run build-esm && npm run build-min",
+    "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs && sh ../../post-cjs.sh",
     "build-esm": "NODE_ENV=esm babel lib -d dist/es",
     "build-umd": "NODE_ENV=umd rollup -c rollup.config.js",
     "build-min": "NODE_ENV=min rollup -c rollup.config.js && uglifyjs dist/worker.min.js -o dist/worker.min.js -m -c",
