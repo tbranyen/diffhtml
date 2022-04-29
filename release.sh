@@ -6,8 +6,10 @@ cd "${0%/*}"
 # Ensure the correct version of Node is setup.
 export NVM_DIR=$HOME/.nvm;
 source $NVM_DIR/nvm.sh;
-
 nvm use
+
+# Ensure an npm user is logged in.
+npm whoami
 
 OLD_BETA=26
 NEW_BETA=27
