@@ -3,6 +3,12 @@
 # Always set current dir to where release script is located (root).
 cd "${0%/*}"
 
+# Ensure the correct version of Node is setup.
+export NVM_DIR=$HOME/.nvm;
+source $NVM_DIR/nvm.sh;
+
+nvm use
+
 OLD_BETA=26
 NEW_BETA=27
 
