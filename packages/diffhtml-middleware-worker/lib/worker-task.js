@@ -144,10 +144,10 @@ export const workerTask = ({
   });
 }, {
   subscribe: () => {
-    console.log = (message, ...rest) => {
-      send({ type: 'log', level: 'log', message: [message].concat(rest) });
-      return oldLog.apply(null, [message].concat(rest));
-    };
+    //console.log = (message, ...rest) => {
+    //  send({ type: 'log', level: 'log', message: [message].concat(rest) });
+    //  return oldLog.apply(null, [message].concat(rest));
+    //};
   },
 
   createTreeHook: (vTree) => {

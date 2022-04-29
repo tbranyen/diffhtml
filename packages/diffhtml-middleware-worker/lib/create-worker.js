@@ -1,13 +1,7 @@
 import { type } from './util/types';
+import NodeWorker from './util/node-worker-threads';
 
-let NodeWorker = null;
 const isNode = typeof global !== 'undefined';
-
-// TODO Better isNode check
-if (isNode) {
-  NodeWorker = (await import('worker_threads')).Worker;
-}
-
 const SafeWorker = typeof Worker !== 'undefined' ? Worker : NodeWorker;
 const { stringify } = JSON;
 
@@ -15,11 +9,10 @@ const { stringify } = JSON;
  *
  * @param {string} workerInit - Location of worker script, Object URL pointing
  * to Blob, or a Worker instance itself.
- * @param {Object} options
- * @param {Object} options.workerOpts
+ * @param {Object} workerOpts
  * @returns {Worker}
  */
-export const createWorker = (workerInit, { workerOpts }) => callback => {
+export const createWorker = (workerInit, workerOpts = {}) => callback => {
   const safeWorkerOpts = workerOpts || {};
 
   let worker = null;
@@ -35,15 +28,25 @@ export const createWorker = (workerInit, { workerOpts }) => callback => {
     worker = new SafeWorker(workerInit, { ...safeWorkerOpts });
   }
 
-  const onMessage = data => callback(data);
+  const onMessage = message => {
+    const { type, ...rest } = isNode ? message : message.data;
+
+    if (type === 'patches') {
+      callback({ type, ...rest });
+    }
+  };
 
   const onError = (error) => {
-    console.error(error);
+    // Extra logging to the Node console, in the browser the error will bubble
+    // automatically so this isn't needed.
+    if (isNode) {
+      console.error(error);
+    }
 
     callback({
       type: 'log',
       level: 'error',
-      message: String(error.stack),
+      message: String(error.stack || error.message),
     });
 
     return true;

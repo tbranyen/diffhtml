@@ -33,20 +33,22 @@ const pluginDynamicImports = (options = {}) => ({
   name: 'dynamic-imports',
   transform(code, filename) {
     const transformedCode = code.replace(/import\(['"`](?![\.\/])(.*?)['"`]\)/gi, (match, request) => {
-      console.log(request);
+      return 'Promise.resolve(null)';
       if (request in options.globals) {
         return `Promise.resolve(global["${options.globals[request]}"])`;
       }
 
       return 'Promise.resolve(null)';
-    })
+    });
 
-    return transformedCode
+    return transformedCode;
+  },
+  moduleParsed(moduleInfo) {
+    console.log('here', moduleInfo);
   },
 });
 
 export const plugins = [
-  NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   pluginDynamicImports({
     globals: {
       'fs': 'NodeFS',
@@ -54,6 +56,7 @@ export const plugins = [
       'worker_threads': 'NodeWorkerThreads',
     }
   }),
+  NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
   babel(),
   nodeResolve({
     preferBuiltins: true,
@@ -62,9 +65,6 @@ export const plugins = [
   hypothetical({
     allowFallthrough: true,
     files: {
-      './lib/create-node-worker.js': `
-        export const createNodeWorker = () => {};
-      `,
       './lib/util/node-buffer.js': `
         export default undefined;
       `,
