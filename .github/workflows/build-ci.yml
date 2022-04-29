@@ -14,7 +14,7 @@ jobs:
           useRollingCache: true
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
-      - run: lerna run min
+      - run: lerna run build
       - run: lerna run test-cov
       - name: Publish to coveralls.io
         uses: coverallsapp/github-action@v1.1.2

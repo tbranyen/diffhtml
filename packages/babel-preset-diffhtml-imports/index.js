@@ -45,6 +45,7 @@ if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
     NewTarget,
     OptionalCatchBinding,
   ];
+  exportObj.minified = true;
 }
 
 if (NODE_ENV === 'cjs') {
@@ -58,6 +59,7 @@ if (NODE_ENV === 'cjs') {
     OptionalChaining,
     OptionalCatchBinding,
   ];
+  exportObj.minified = true;
 }
 
 if (NODE_ENV === 'esm') {
@@ -66,6 +68,7 @@ if (NODE_ENV === 'esm') {
     ObjectRestSpread,
     ClassProperties,
   ];
+  exportObj.minified = true;
 }
 
 if (NODE_ENV === 'test' || NODE_ENV === 'test+cov') {

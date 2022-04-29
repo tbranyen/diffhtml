@@ -82,7 +82,7 @@ The website pulls version information from the package.json files. The version
 gets bumped from the previous command. Now you need to run:
 
 ```sh
-lerna run generate
+lerna run build --scope=diffhtml-website
 ```
 
 To get the latest docs files built. Commit and push these:

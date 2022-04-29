@@ -1,5 +1,5 @@
-const { readFileSync, writeFileSync, existsSync } = require('fs');
-const { join } = require('path');
+const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('fs');
+const { join, dirname } = require('path');
 const { html, toString, use } = require('diffhtml');
 const { marked } = require('marked');
 const flattenPages = require('./util/flatten-pages');
@@ -76,6 +76,10 @@ function generate() {
     // Only write out if the contents have changed.
     if (contents !== existingContents) {
       console.log(`${toPublic(path)} changed, writing to disk`);
+
+      // Ensure directory exists, otherwise create it.
+      mkdirSync(dirname(publicPath), { recursive: true });
+
       writeFileSync(publicPath, contents);
     }
   });
