@@ -2,7 +2,7 @@
 
 *Static server that livereloads using VDOM on the entire page along with CSS.*
 
-Stable Version: 1.0.0-beta.27
+Stable Version: 1.0.0-beta.28
 
 Provides a static HTTP server that monitors the folder it was executed in for
 changes. Whenever a file changes, it is read from disk and sent to the page

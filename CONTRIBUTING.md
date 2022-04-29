@@ -2,7 +2,7 @@
 
 ## How to Make a Release (Modern)
 
-Edit the top level variables related to the versions to publish in `release.sh`.
+IMPORTANT: Edit the top level variables related to the versions to publish in `release.sh`.
 
 Then run the following command:
 
