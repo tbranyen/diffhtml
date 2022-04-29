@@ -11,7 +11,7 @@ NEW_VERSION="1.0.0-beta.$NEW_BETA"
 
 # Ensure that all packages are bootstrapped and the build works before
 # continuing a release.
-lerna bootstrap
+npm install
 npm run build
 
 # Update all README.md files.
@@ -38,7 +38,7 @@ lerna publish
 # Update the root package version.
 sed -i -e "s/$OLD_VERSION/$NEW_VERSION/g" ./packages/*/package.json
 
-lerna run generate
+lerna run build --scope=diffhtml-website
 
 git commit -am"Update website to $NEW_VERSION"
 git push
