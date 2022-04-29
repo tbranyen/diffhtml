@@ -29,8 +29,31 @@ export const output = [{
   globals: { diffhtml: 'diff' },
 }];
 
+const pluginDynamicImports = (options = {}) => ({
+  name: 'dynamic-imports',
+  transform(code, filename) {
+    const transformedCode = code.replace(/import\(['"`](?![\.\/])(.*?)['"`]\)/gi, (match, request) => {
+      console.log(request);
+      if (request in options.globals) {
+        return `Promise.resolve(global["${options.globals[request]}"])`;
+      }
+
+      return 'Promise.resolve(null)';
+    })
+
+    return transformedCode
+  },
+});
+
 export const plugins = [
   NODE_ENV === 'min' && replace({ 'process.env.NODE_ENV': JSON.stringify('production') }),
+  pluginDynamicImports({
+    globals: {
+      'fs': 'NodeFS',
+      'path': 'NodePath',
+      'worker_threads': 'NodeWorkerThreads',
+    }
+  }),
   babel(),
   nodeResolve({
     preferBuiltins: true,

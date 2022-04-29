@@ -1,9 +1,10 @@
 import { type } from './util/types';
 
-let Worker = null;
+let NodeWorker = null;
 
+// TODO Better isNode check
 if (typeof global !== 'undefined') {
-  Worker = (await import('worker_threads')).Worker;
+  NodeWorker = (await import('worker_threads')).Worker;
 }
 
 const { stringify } = JSON;
@@ -19,13 +20,6 @@ const { stringify } = JSON;
 export const createNodeWorker = (workerPath, { socket, workerOpts }) => {
   const worker = new Worker(workerPath, { ...(workerOpts || {}) });
 
-  /**
-   * @type {string} msg
-   */
-  const onSocketMessage = (msg) => {
-    worker.postMessage(msg);
-  };
-
   worker.on('message', data => {
     socket.send(stringify(data));
   })
@@ -38,23 +32,8 @@ export const createNodeWorker = (workerPath, { socket, workerOpts }) => {
       message: String(error.stack),
     }));
 
-    socket.send(stringify({
-      type: 'clear',
-    }));
-
     return true;
-  })
-  .on('exit', () => {
-    socket.off('message', onSocketMessage);
-
-    setTimeout(() => {
-      createNodeWorker(workerPath, { socket, workerOpts });
-    }, 2000);
   });
-
-  // Handle incoming messages, must be on main thread to support synchronous
-  // worker calls.
-  socket.on('message', onSocketMessage);
 
   return worker;
 };
