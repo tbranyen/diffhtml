@@ -17,11 +17,6 @@ NEW_BETA=28
 OLD_VERSION="1.0.0-beta.$OLD_BETA"
 NEW_VERSION="1.0.0-beta.$NEW_BETA"
 
-# Ensure that all packages are bootstrapped and the build works before
-# continuing a release.
-npm install
-npm run build
-
 # Update all README.md files.
 sed -i -e "s/$OLD_VERSION/$NEW_VERSION/g" **/README.md
 
@@ -35,6 +30,11 @@ sed -i -e "s/$OLD_VERSION/$NEW_VERSION/g" ./package.json
 # increment this version as it has no bearing on any kind of semantics. We haven't
 # published this yet, so this version isn't really meaningful.
 sed -i -e "s/1.0.0.$OLD_BETA/1.0.0.$NEW_BETA/g" ./packages/diffhtml-devtools/chrome-extension/manifest.json
+
+# Ensure that all packages are bootstrapped and the build works before
+# continuing a release.
+npm install
+npm run build
 
 # Make a descriptive commit.
 git commit -am"Update JavaScript and REAMDE files to $NEW_VERSION."

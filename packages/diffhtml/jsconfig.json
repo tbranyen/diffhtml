@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "noEmit": false,
     "strict": true,
     "target": "es2017",
     "declaration": true,
