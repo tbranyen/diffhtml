@@ -4,7 +4,8 @@ import { NodeCache, VTree } from './types';
 const { protect, unprotect, memory } = Pool;
 
 /**
- * Ensures that vTree is not recycled during a render cycle.
+ * Ensures that vTree is not recycled during a render cycle. This effectively
+ * allocates a VTree to a DOM node representation for as long as it's needed.
  *
  * @param {VTree} vTree
  * @return {void}
@@ -20,9 +21,9 @@ export function protectVTree(vTree) {
 }
 
 /**
- * Recycles a VTree by unprotecting itself, removing its DOM Node reference, and
- * recursively unprotecting all nested children. Resets the VTree's attributes
- * and childNode properties afterwards, as these can contribute to unwanted
+ * Recycles a VTree by unprotecting itself, removing its DOM Node reference,
+ * and recursively unprotecting all nested children. Resets the VTree
+ * attributes and childNode properties as these can contribute to unwanted
  * increases in the heap.
  *
  * @param {VTree} vTree

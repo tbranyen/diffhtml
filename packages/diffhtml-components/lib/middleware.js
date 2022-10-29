@@ -28,12 +28,12 @@ function render(oldTree, newTree, transaction) {
 
   // When there is an oldTree and it has childNodes, attempt to look up first
   // by the top-level element, or by the first element.
-  if (oldTree && oldTree.childNodes) {
+  if (oldTree) {
     // First try and lookup the old tree as a component.
     oldComponentTree = ComponentTreeCache.get(oldTree);
 
     // If that fails, try looking up its first child.
-    if (!oldComponentTree) {
+    if (!oldComponentTree && oldTree.childNodes) {
       oldComponentTree = ComponentTreeCache.get(oldTree.childNodes[0]);
     }
   }

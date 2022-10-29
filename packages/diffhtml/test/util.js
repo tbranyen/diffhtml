@@ -1457,7 +1457,7 @@ describe('Util', function() {
       const input = createTree(mount);
       const measure = makeMeasure({ mount, input });
 
-      strictEqual(measure.name, 'nop');
+      strictEqual(measure.name, 'FUN');
     });
 
     it(`will return a NOP when the user has search, but no diff`, () => {
@@ -1467,7 +1467,7 @@ describe('Util', function() {
       location.href = 'about:blank?';
 
       const measure = makeMeasure({ mount, input });
-      strictEqual(measure.name, 'nop');
+      strictEqual(measure.name, 'FUN');
     });
 
     it('will return a real measure function if requested', () => {

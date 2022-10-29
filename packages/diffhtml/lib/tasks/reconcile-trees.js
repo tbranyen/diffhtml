@@ -29,9 +29,11 @@ export default function reconcileTrees(transaction) {
   // We rebuild the tree whenever the DOM Node changes, including the first
   // time we patch a DOM Node. This is currently problematic when someone
   // passes a DOM Node as an interpolated value we empty the VTree of its
-  // contents, but the newTree still has a reference and is expecting
-  // populated values.
+  // contents, but the newTree still has a reference and is expecting populated
+  // values.
   if (state.isDirty || !state.oldTree) {
+    // Always release when the state is dirty. This ensures a completely clean
+    // slate.
     release(mountAsHTMLEl);
 
     // Ensure the mutation observer is reconnected.
@@ -69,11 +71,11 @@ export default function reconcileTrees(transaction) {
   // match the browser behavior here, it will be significantly easier to
   // convince of it's validity and to document.
   //
-  // To mimic browser behavior, we loop the input and take any tree that matches
-  // the root element and unwrap into the root element. We take the attributes
-  // from that element and apply to the root element. This ultimately renders a
-  // flat tree and allows for whitespace to be provided in the `html` function
-  // without needing to trim.
+  // To mimic browser behavior, we loop the input and take any tree that
+  // matches the root element and unwrap into the root element. We take the
+  // attributes from that element and apply to the root element. This
+  // ultimately renders a flat tree and allows for whitespace to be provided in
+  // the `html` function without needing to trim.
   if (
     !inner &&
     inputAsVTree.nodeType === NODE_TYPE.FRAGMENT &&
