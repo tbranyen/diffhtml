@@ -1,7 +1,7 @@
 {
   "name": "diffhtml",
   "private": true,
-  "version": "1.0.0-beta.28",
+  "version": "1.0.0-beta.29",
   "description": "Build web user interfaces with JavaScript",
   "type": "module",
   "scripts": {
