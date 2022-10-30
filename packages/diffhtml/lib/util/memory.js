@@ -40,15 +40,23 @@ export function unprotectVTree(vTree) {
 }
 
 /**
- * Collects any unused VTree's and puts them back into the free Set. This is
- * primarily used by tests, but could also be useful for specific niche cases
- * as a way to ease memory/CPU pressure when lots of temporary trees are
- * created but never used.
+ * Collects any unused VTrees and puts them back into circulation. Scrubs all
+ * attributes and childNodes from the object to minimize memory impact. This
+ * function is scheduled after each render with either setTimeout or
+ * requestIdleCallback.
+ *
+ * This is also called automatically during tests to ensure all objects are
+ * tracked correctly.
  *
  * @return {void}
  */
 export function gc() {
   memory.allocated.forEach(vTree => {
+    // Scrub a VTree of attributes and childNodes to avoid ever increasing RAM.
+    vTree.attributes = {};
+    vTree.childNodes.length = 0;
+
+    // Make the VTree available for future renders.
     memory.free.add(vTree);
     memory.allocated.delete(vTree);
     NodeCache.delete(vTree);

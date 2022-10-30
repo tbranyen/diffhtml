@@ -11,7 +11,7 @@ import {
 } from './util/types';
 import makeMeasure from './util/make-measure';
 import internalProcess from './util/process';
-import { protectVTree, gc } from './util/memory';
+import { protectVTree } from './util/memory';
 import globalThis from './util/global';
 import schedule from './tasks/schedule';
 import shouldUpdate from './tasks/should-update';
@@ -290,12 +290,6 @@ export default class Transaction {
 
     // Ensure the tree is fully protected before ending the transaction.
     if (state.oldTree) protectVTree(state.oldTree);
-
-    // Run garbage collection after every successful render. Ensure that the
-    // oldTree (current state) is solidified to not accidentally deallocate
-    // something required. This allows VTrees to be reused quicker and reduce
-    // memory overload.
-    gc();
 
     return this;
   }
