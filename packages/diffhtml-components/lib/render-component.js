@@ -23,8 +23,8 @@ const { createTree } = diff;
  * @returns {VTree | null}
  */
 export default function renderComponent(vTree, transaction) {
-  const RawComponent = vTree.rawNodeName;
   const props = vTree.attributes;
+  const RawComponent = vTree.rawNodeName;
   const isNewable = RawComponent.prototype && RawComponent.prototype.render;
 
   /** @type {VTree|null} */
@@ -106,7 +106,9 @@ export default function renderComponent(vTree, transaction) {
        * @param {any} state
        */
       render(props, state) {
-        return createTree(RawComponent(props, state));
+        // Always render the latest `rawNodeName` of a VTree in case of
+        // hot-reloading the cached value above wouldn't be correct.
+        return createTree(vTree.rawNodeName(props, state));
       }
 
       /** @type {VTree | null} */
