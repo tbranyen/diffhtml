@@ -51,7 +51,6 @@ export default function reconcileTrees(transaction) {
 
   const { nodeName, attributes } = state.oldTree;
 
-
   // If we are in a render transaction where no markup was previously parsed
   // then reconcile trees will attempt to create a tree based on the incoming
   // markup (JSX/html/etc).

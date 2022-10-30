@@ -1,8 +1,24 @@
-import { unprotectVTree } from './util/memory';
+import { gc, unprotectVTree } from './util/memory';
 import { StateCache, NodeCache, ReleaseHookCache, Mount } from './util/types';
 
+// Supports the idle callback API. NodeJS does not, so we'll use setTimeout
+// there instead.
+const hasIdle = typeof requestIdleCallback !== 'undefined';
+
 /**
- * Releases state and memory associated to a DOM Node.
+ * A global callback timeout id used to debounce gc calls.
+ * @type {number}
+ */
+let gcTimerId = -1;
+
+/** @param {TimerHandler & IdleRequestCallback} fn */
+const scheduleTimeout = fn => (hasIdle ? requestIdleCallback : setTimeout)(fn);
+/** @param {number} id */
+const cancelTimeout = id => (hasIdle ? cancelIdleCallback : clearTimeout)(id);
+
+/**
+ * Releases state and memory associated to a DOM Node. Schedules a `gc()` which
+ * will fire on `requestIdleCallback`.
  *
  * @param {Mount} mount - Valid input node
  */
@@ -54,4 +70,8 @@ export default function release(mount) {
       unprotectVTree(vTree);
     }
   });
+
+  // Schedule a gc(), this is a global interval.
+  cancelTimeout(gcTimerId);
+  gcTimerId = /** @type {number} */(scheduleTimeout(gc));
 }
