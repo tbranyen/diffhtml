@@ -35,6 +35,8 @@ export const tasks = {
 
 export default class Transaction {
   /**
+   * This abstracts away the concept of `new` in case in the future we want
+   * to migrate a Transaction off of a class.
    *
    * @param {Mount} mount
    * @param {ValidInput} input
@@ -132,7 +134,6 @@ export default class Transaction {
     this.input = input;
     this.config = config;
 
-    const isDirtyCheck = () => this.state.isDirty = true;
     const useObserver = !config.disableMutationObserver && 'MutationObserver' in (globalThis.window || EMPTY.OBJ);
 
     this.state = StateCache.get(mount) || /** @type {TransactionState} */ ({
@@ -140,7 +141,7 @@ export default class Transaction {
       svgElements: new Set(),
       scriptsToExecute: new Map(),
       activeTransaction: this,
-      mutationObserver: useObserver && new globalThis.window.MutationObserver(isDirtyCheck),
+      mutationObserver: useObserver && new globalThis.window.MutationObserver(EMPTY.FUN),
     });
 
     this.tasks = /** @type {Function[]} */ (
@@ -228,6 +229,9 @@ export default class Transaction {
     }
     // If there is no MutationObserver, then the DOM is dirty by default and
     // rescanned every time.
+    //
+    // FIXME This should be smarter for NodeJS, otherwise this is dirty every
+    // re-render.
     else {
       state.isDirty = true;
     }

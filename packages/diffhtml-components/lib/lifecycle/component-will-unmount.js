@@ -5,7 +5,8 @@ import { $$hooks } from '../util/symbols';
 const { release, Internals } = diff;
 
 /**
- * Called whenever a component is being removed.
+ * This is called whenever a component is removed or in the case of a function
+ * component is called whenever a component is updated.
  *
  * @param {VTree} vTree - The respecting tree pointing to the component
  */

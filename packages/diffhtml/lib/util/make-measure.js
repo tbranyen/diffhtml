@@ -1,9 +1,8 @@
 import getConfig from "./config";
-import { VTree } from "./types";
+import { EMPTY, VTree } from "./types";
 
 const prefix = 'diffHTML';
 const marks = new Map();
-const nop = () => {};
 let count = 0;
 
 /**
@@ -20,7 +19,7 @@ export default function makeMeasure(transaction) {
 
   // Marks will only be available if the user has requested they want to collect
   // metrics.
-  if (!getConfig('collectMetrics', false)) { return nop; }
+  if (!getConfig('collectMetrics', false)) { return EMPTY.FUN; }
 
   return name => {
     name = `[${id}] ${name}`;

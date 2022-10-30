@@ -20,6 +20,7 @@ export const EMPTY = {
   MAP: new Map(),
   SET: new Set(),
   DOM: /** @type {HTMLElement} */ ({}),
+  FUN: () => {},
 };
 
 /**

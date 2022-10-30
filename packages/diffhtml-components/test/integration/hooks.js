@@ -415,5 +415,70 @@ describe('Hooks', function() {
 
       strictEqual(this.fixture.outerHTML, `<div>true</div>`);
     });
+
+    it('will support nested setState with top-level re-rendering', async () => {
+      let setComponentValue = null;
+      let setNestedValue = null;
+
+      function Nested() {
+        const [ value, _setValue ] = createState(false);
+
+        setNestedValue = _setValue;
+
+        return html`${String(value)}`;
+      }
+
+      function Component() {
+        const [ value, _setValue ] = createState(false);
+
+        setComponentValue = _setValue;
+
+        return html`<${Nested} />`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+      await setNestedValue(123);
+      strictEqual(this.fixture.outerHTML, `<div>123</div>`);
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+      strictEqual(this.fixture.outerHTML, `<div>123</div>`);
+    });
+
+    it('will support nested createSideEffect with top-level re-rendering', async () => {
+      let setComponentValue = null;
+      let setNestedValue = null;
+      let i = 0;
+
+      function Nested() {
+        const [ value, _setValue ] = createState(false);
+
+        createSideEffect(() => {
+          i = i + 1;
+        });
+
+        setNestedValue = _setValue;
+
+        return html`${String(value)}`;
+      }
+
+      function Component() {
+        const [ value, _setValue ] = createState(false);
+
+        setComponentValue = _setValue;
+
+        return html`<${Nested} />`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+      await setNestedValue(123);
+      strictEqual(i, 1);
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+      strictEqual(i, 1);
+    });
   });
 });

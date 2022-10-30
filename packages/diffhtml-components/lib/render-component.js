@@ -26,12 +26,13 @@ export default function renderComponent(vTree, transaction) {
   const props = vTree.attributes;
   const RawComponent = vTree.rawNodeName;
   const isNewable = RawComponent.prototype && RawComponent.prototype.render;
+  const isInstance = InstanceCache.has(vTree);
 
   /** @type {VTree|null} */
   let renderedTree = (null);
 
   // Existing class component rerender.
-  if (InstanceCache.has(vTree)) {
+  if (isInstance) {
     const instance = InstanceCache.get(vTree);
 
     if (instance.componentWillReceiveProps) {
@@ -113,7 +114,7 @@ export default function renderComponent(vTree, transaction) {
 
       /** @type {VTree | null} */
       [$$vTree] = null;
-   }
+    }
 
     const instance = new FunctionComponent(props)
 
