@@ -1,5 +1,4 @@
 import { outerHTML, html, use } from 'diffhtml';
-import inlineTransitions from 'diffhtml-middleware-inline-transitions';
 import syntheticEvents from 'diffhtml-middleware-synthetic-events';
 
 // Components

@@ -12,28 +12,17 @@
   <footer></footer>
 
   <script src="../node_modules/diffhtml/dist/diffhtml.js"></script>
-  <script src="../../diffhtml-middleware-inline-transitions/dist/inline-transitions.js"></script>
   <script src="../../diffhtml-middleware-logger/dist/logger.js"></script>
   <script>
     const { use, html, innerHTML, outerHTML } = diff;
 
-    // Current broken and not letting text update for some reason...
-    use(inlineTransitions());
     use(logger());
-
-    const animate = (el, ...args) => new Promise(resolve => el.animate(
-      ...args
-    ).onfinish = () => resolve());
-
-    const fade = el => animate(el, [{ opacity: 0 }, { opacity: 1 }], {
-      duration: 1000,
-    });
 
     const render = () => {
       innerHTML(document.querySelector('main'), html`
         <div id="test">
           <span>Current date: </span>
-          <span ontextchanged=${fade}>${new Date().toLocaleString()}</span>
+          <span>${new Date().toLocaleString()}</span>
 
           <p>
             <button onClick=${render}>Re-render</button>

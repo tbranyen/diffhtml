@@ -27,7 +27,6 @@
 
     "Middleware": ["middleware.html", {
       "Writing middleware": "#writing-middleware",
-      "Inline Transitions": "#inline-transitions",
       "Logger": "#logger",
       "Service Worker": "#service-worker",
       "Synthetic Events": "#synthetic-events",
