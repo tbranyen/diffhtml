@@ -74,8 +74,8 @@ class DevtoolsTransactionsPanel extends Component {
           ${isExpanded && html`
             <p>
               You can use this view to see TTR (Time to Render), the mounted
-              DOM Node, transitions which executed, and most importantly the
-              deltas between the previous render.
+              DOM Node, and most importantly the deltas between the previous
+              render.
             </p>
 
             <div class="ui toggle checkbox">
@@ -104,7 +104,6 @@ class DevtoolsTransactionsPanel extends Component {
                 <th class="center aligned" rowspan="2">TTR</th>
                 <th class="center aligned" rowspan="2">Status</th>
                 <th class="center aligned" rowspan="2">Mount</th>
-                <th class="center aligned" rowspan="2">Transitions</th>
                 <th class="center aligned" colspan="4">DOM Tree Changes</th>
                 <th class="center aligned" colspan="2">Attribute Changes</th>
               </tr>
@@ -137,7 +136,7 @@ class DevtoolsTransactionsPanel extends Component {
             ${!sorted.length && html`
               <tbody>
                 <tr class="missing">
-                  <td colspan="11">
+                  <td colspan="10">
                     No renders
                   </td>
                 </tr>

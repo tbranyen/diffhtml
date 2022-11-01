@@ -22,7 +22,6 @@ const { stringify, parse } = JSON;
 const { assign } = Object;
 const background = chrome.runtime.connect({ name: 'devtools-page' });
 
-use(inlineTransitions());
 use(syntheticEvents());
 
 const cacheStyles = new Map();

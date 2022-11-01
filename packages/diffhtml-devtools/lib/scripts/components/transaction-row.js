@@ -27,7 +27,6 @@ class DevtoolsTransactionRow extends Component {
     const {
       mount = '',
       aborted = false,
-      promises = [],
     } = transaction;
 
     let unnecessaryRender = true;
@@ -70,10 +69,6 @@ class DevtoolsTransactionRow extends Component {
         <div class="node">
           &lt;${mount}&gt;
         </div>
-      </td>
-
-      <td class="ui center aligned">
-        <strong><a>${String(promises.length)}</a></strong>
       </td>
 
       <td class="ui center aligned ${getColorFromStat(stats.insert)}">

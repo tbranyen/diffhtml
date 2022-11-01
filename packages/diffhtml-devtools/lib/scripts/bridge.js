@@ -146,11 +146,7 @@ export default function devTools(Internals) {
           ...config,
           tasks: config.tasks.map(task => task.displayName || task.name),
         },
-        state: assign({}, state, state.nextTransaction && {
-          nextTransaction: undefined,
-        }, {
-          activeTransaction: undefined,
-        }),
+        state,
       });
     };
 
@@ -167,7 +163,6 @@ export default function devTools(Internals) {
       // TODO Make patches a separate asynchronous operation, and only
       // aggregate when completed.
       const patches = parse(stringify(transaction.patches));
-      const promises = transaction.promises.slice();
 
       transaction.onceEnded(() => {
         const endDate = performance.now();
@@ -179,13 +174,8 @@ export default function devTools(Internals) {
             ...config,
             tasks: config.tasks.map(task => task.displayName || task.name),
           },
-          state: assign({}, state, state.nextTransaction && {
-            nextTransaction: undefined,
-          }, {
-            activeTransaction: undefined,
-          }),
+          state,
           patches,
-          promises,
           completed,
           aborted,
         });

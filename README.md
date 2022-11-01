@@ -19,7 +19,6 @@ your ideas.
 
 - Parses real **HTML** and supports **JSX & Tagged Templates**.
 - Memory efficient VDOM rendering that utilizes **object pooling**.
-- **Transitions** for animations and hooking into DOM changes.
 - Powerful **middleware** extends diffHTML with additional features.
 - **React-like** Components which can be rendered as **Web Components**.
 - A **lite** build which has a smaller size, meant for optimizing production code.
