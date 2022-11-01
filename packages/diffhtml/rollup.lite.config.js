@@ -1,5 +1,5 @@
-import babel from 'rollup-plugin-babel';
-import nodeResolve from 'rollup-plugin-node-resolve';
+import babel from '@rollup/plugin-babel';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import hypothetical from 'rollup-plugin-hypothetical';
 import Visualizer from 'rollup-plugin-visualizer';
@@ -30,9 +30,14 @@ export default {
   }],
 
   plugins: [
-    babel({ comments: false }),
+    babel({
+      comments: false,
+      babelHelpers: 'runtime',
+      skipPreflightCheck: true,
+    }),
     replace({
-      'internalProcess.env.NODE_ENV': stringify('production')
+      'internalProcess.env.NODE_ENV': stringify('production'),
+      preventAssignment: true,
     }),
     nodeResolve({ mainFields: ['module'] }),
     hypothetical({
@@ -49,7 +54,7 @@ export default {
         `,
       }
     }),
-    NODE_ENV === 'umd' && Visualizer({
+    NODE_ENV === 'umd' && Visualizer.default({
       filename: './dist/lite-build-size.html'
     }),
   ],

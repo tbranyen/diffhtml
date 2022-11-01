@@ -13,8 +13,6 @@
       "toString": "#to-string",
       "html": "#html",
       "use": "#use",
-      "addTransitionState": "#add-transition-state",
-      "removeTransitionState": "#remove-transition-state",
       "createTree": "#create-tree",
       "release": "#release",
       "Internals": "#internals",
@@ -25,11 +23,6 @@
     "Parser": ["parser.html", {
       "Options": "#options",
       "Dynamic values": "#dynamic-values"
-    }],
-
-    "Transitions": ["transitions.html", {
-      "Promises": "#promises",
-      "States": "#states"
     }],
 
     "Middleware": ["middleware.html", {

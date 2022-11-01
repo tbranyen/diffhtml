@@ -190,7 +190,8 @@ export default class Component {
         this.componentWillReceiveProps(this.props, this.state);
 
         if (this.shouldComponentUpdate(this.props, this.state)) {
-          this[$$render]()?.then(resolve);
+          this[$$render]();
+          resolve();
         }
         else {
           resolve(null);
@@ -213,7 +214,8 @@ export default class Component {
 
         this.componentWillReceiveProps(this.props, this.state);
 
-        this[$$render]()?.then(resolve);
+        this[$$render]();
+        resolve();
       })));
     }
 
@@ -253,16 +255,16 @@ export default class Component {
         this[$$hooks].i = 0;
       }
 
-      /** @type {Promise<Transaction>} */
-      const promise = /** @type {any} */ (innerHTML(
+      /** @type {Transaction} */
+      const transaction = innerHTML(
         /** @type {any} */ (this).shadowRoot,
         this.render(this.props, this.state),
-      ));
+      );
 
       ActiveRenderState.length = 0;
 
       this.componentDidUpdate(oldProps, oldState);
-      return promise;
+      return transaction;
     }
 
     // Get the fragment tree associated with this component. This is used to
@@ -357,18 +359,16 @@ export default class Component {
     /**
      * Compare the existing component node(s) to the new node(s).
      *
-     * @type {Promise<Transaction>}
+     * @type {Transaction}
      */
-    const promise = /** @type {any} */ (outerHTML(fragment, renderTree, { tasks }));
+    const transaction = outerHTML(fragment, renderTree, { tasks });
 
-    return promise.then(transaction => {
-      // Empty the fragment after using.
-      fragment.childNodes.length = 0;
-      release(fragment);
+    // Empty the fragment after using.
+    fragment.childNodes.length = 0;
+    release(fragment);
 
-      this.componentDidUpdate(this.props, this.state);
-      return transaction;
-    });
+    this.componentDidUpdate(this.props, this.state);
+    return transaction;
   }
 
   connectedCallback() {

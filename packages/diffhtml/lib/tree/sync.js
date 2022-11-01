@@ -9,6 +9,7 @@ import {
   EMPTY,
 } from '../util/types';
 
+const { assign } = Object;
 const { max } = Math;
 const keyNames = ['old', 'new'];
 const textName = '#text';
@@ -38,14 +39,7 @@ export default function syncTree(
   if (!newTree) newTree = /** @type {VTree} */ (EMPTY.OBJ);
 
   const { svgElements = new Set() } = state;
-  const oldNodeName = oldTree.nodeName;
-  const newNodeName = newTree.nodeName;
   const isEmpty = oldTree === EMPTY.OBJ || attributesOnly;
-
-  // Check for SVG in parent.
-  const isSVG = newNodeName === 'svg' || svgElements.has(
-    /** @type {VTree} */ (newTree)
-  );
 
   let shortCircuit = null;
 
@@ -72,9 +66,9 @@ export default function syncTree(
       else if (entry === false) {
         shortCircuit = false;
       }
-      // If the user has returned a value, treat it as the new tree.
+      // Merge the returned tree into the newTree.
       else if (entry) {
-        newTree = entry;
+        assign(/** @type {Partial<VTree>} */ (newTree), entry);
       }
     });
   }
@@ -82,6 +76,14 @@ export default function syncTree(
   if (shortCircuit !== null || !newTree) {
     return shortCircuit;
   }
+
+  const oldNodeName = oldTree.nodeName;
+  const newNodeName = newTree.nodeName;
+
+  // Check for SVG in parent.
+  const isSVG = newNodeName === 'svg' || svgElements.has(
+    /** @type {VTree} */ (newTree)
+  );
 
   // Text nodes are low level and frequently change, so this path is accounted
   // for first.
@@ -118,7 +120,7 @@ export default function syncTree(
   // Seek out attribute changes first, but only from element Nodes.
   if (newTree.nodeType === NODE_TYPE.ELEMENT) {
     const oldAttributes = isEmpty ? EMPTY.OBJ : oldTree.attributes;
-    const newAttributes = newTree.attributes || {};
+    const newAttributes = newTree.attributes || EMPTY.OBJ;
 
     // Search for sets and changes.
     for (let key in newAttributes) {
@@ -253,12 +255,8 @@ export default function syncTree(
     if (oldKey || newKey) {
       // Remove the old node instead of replacing.
       if (!oldInNew && !newInOld) {
-        oldChildNodes.splice(oldChildNodes.indexOf(oldChildNode), 1, newChildNode);
-        syncTree(null, newChildNode, patches, state, transaction, true);
-
+        syncTree(oldChildNode, newChildNode, patches, state, transaction, true);
         patches.push(PATCH_TYPE.REPLACE_CHILD, newChildNode, oldChildNode);
-
-        i = i - 1;
 
         continue;
       }

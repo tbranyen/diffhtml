@@ -6,15 +6,11 @@ import html from '../lib/html';
 import validateMemory from './util/validate-memory';
 import release from '../lib/release';
 import createTree from '../lib/tree/create';
-import { addTransitionState, removeTransitionState } from '../lib/transition';
 
 const { defineProperty } = Object;
 
 describe('Node', function() {
   afterEach(() => {
-    ['attached', 'detached', 'replaced', 'textChanged', 'attributeChanged']
-      .forEach(transitionName => removeTransitionState(transitionName));
-
     validateMemory();
   });
 
@@ -552,32 +548,6 @@ describe('Node', function() {
       equal(domNode.dataset.test, 'here');
     });
 
-    it('will set attribute after promise resolution', async () => {
-      const vTree = html`<div />`;
-      const domNode = createNode(vTree);
-
-      const patches = [
-        PATCH_TYPE.SET_ATTRIBUTE,
-        vTree,
-        'id',
-        'test',
-      ];
-
-      const promise = Promise.resolve();
-
-      addTransitionState('attributeChanged', () => promise);
-      const promises = patchNode(patches);
-
-      equal(domNode.outerHTML, '<div></div>');
-
-      await Promise.all(promises);
-
-      release(domNode);
-
-      equal(promises[0], promise);
-      equal(domNode.outerHTML, '<div id="test"></div>');
-    });
-
     it('will remove data attributes', () => {
       const vTree = html`<div data-test="true" />`;
       const domNode = createNode(vTree);
@@ -697,32 +667,6 @@ describe('Node', function() {
       equal(domNode.getAttribute('error'), undefined);
     });
 
-    it('will remove attribute after promise resolution', async () => {
-      const vTree = html`<div />`;
-      const domNode = createNode(vTree);
-      domNode.setAttribute('id', 'test');
-
-      const patches = [
-        PATCH_TYPE.REMOVE_ATTRIBUTE,
-        vTree,
-        'id',
-      ];
-
-      const promise = Promise.resolve();
-
-      addTransitionState('attributeChanged', () => promise);
-      const promises = patchNode(patches);
-
-      equal(domNode.outerHTML, '<div id="test"></div>');
-
-      await Promise.all(promises);
-
-      release(domNode);
-
-      equal(promises[0], promise);
-      equal(domNode.outerHTML, '<div></div>');
-    });
-
     it('will set value for empty text node', () => {
       const vTree = html``;
       const domNode = createNode(vTree);
@@ -809,33 +753,6 @@ describe('Node', function() {
       equal(domNode.innerHTML, 'inner contents');
     });
 
-    it('will set value after promise resolution', async () => {
-      const text = html`old contents`;
-      const vTree = html`<pre>${text}</pre>`;
-      const domNode = createNode(vTree);
-
-      const patches = [
-        PATCH_TYPE.NODE_VALUE,
-        text,
-        'new contents',
-        null,
-      ];
-
-      const promise = Promise.resolve();
-
-      addTransitionState('textChanged', () => promise);
-      const promises = patchNode(patches);
-
-      equal(domNode.innerHTML, 'old contents');
-
-      await Promise.all(promises);
-
-      release(domNode);
-
-      equal(promises[0], promise);
-      equal(domNode.innerHTML, 'new contents');
-    });
-
     it('will insert node into container', () => {
       const vTree = html`<div />`;
       const nested = html`<span />`;
@@ -907,33 +824,6 @@ describe('Node', function() {
       equal(createNode(vTree).innerHTML, '');
     });
 
-    it('will insert node before promise resolution', async () => {
-      const vTree = html`<div />`;
-      const nested = html`<span />`;
-      const domNode = createNode(vTree);
-
-      const patches = [
-        PATCH_TYPE.INSERT_BEFORE,
-        vTree,
-        nested,
-        null,
-      ];
-
-      const promise = Promise.resolve();
-
-      addTransitionState('attached', () => promise);
-      const promises = patchNode(patches);
-
-      equal(domNode.innerHTML, '<span></span>');
-
-      await Promise.all(promises);
-
-      release(domNode);
-
-      equal(promises[0], promise);
-      equal(domNode.innerHTML, '<span></span>');
-    });
-
     it('will replace if nodes are different', () => {
       const old = html`<span />`;
       const next = html`<p />`;
@@ -968,33 +858,6 @@ describe('Node', function() {
       equal(createNode(vTree).innerHTML, '<span></span>');
     });
 
-    it('will replace after promise resolution, but will insert before', async () => {
-      const old = html`<span />`;
-      const next = html`<p />`;
-      const vTree = html`<div>${old}</div>`;
-      const domNode = createNode(vTree);
-
-      const patches = [
-        PATCH_TYPE.REPLACE_CHILD,
-        next,
-        old,
-      ];
-
-      const promise = Promise.resolve();
-
-      addTransitionState('replaced', () => promise);
-      const promises = patchNode(patches);
-
-      equal(domNode.innerHTML, '<p></p><span></span>');
-
-      await Promise.all(promises);
-
-      release(domNode);
-
-      equal(promises[0], promise);
-      equal(domNode.innerHTML, '<p></p>');
-    });
-
     it('will remove node', () => {
       const old = html`<span />`;
       const vTree = html`<div>${old}</div>`;
@@ -1023,31 +886,6 @@ describe('Node', function() {
       patchNode(patches);
 
       equal(createNode(vTree).innerHTML, '<span></span>');
-    });
-
-    it('will remove after promise resolution', async () => {
-      const old = html`<span />`;
-      const vTree = html`<div>${old}</div>`;
-      const domNode = createNode(vTree);
-
-      const patches = [
-        PATCH_TYPE.REMOVE_CHILD,
-        old,
-      ];
-
-      const promise = Promise.resolve();
-
-      addTransitionState('detached', () => promise);
-      const promises = patchNode(patches);
-
-      equal(domNode.innerHTML, '<span></span>');
-
-      await Promise.all(promises);
-
-      release(domNode);
-
-      equal(promises[0], promise);
-      equal(domNode.innerHTML, '');
     });
   });
 });

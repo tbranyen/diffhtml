@@ -1,5 +1,5 @@
-import babel from 'rollup-plugin-babel';
-import nodeResolve from 'rollup-plugin-node-resolve';
+import babel from '@rollup/plugin-babel';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import Visualizer from 'rollup-plugin-visualizer';
 
@@ -26,9 +26,16 @@ export default {
     sourcemap: false,
   }],
   plugins: [
-    NODE_ENV === 'min' && replace({ 'internalProcess.env.NODE_ENV': JSON.stringify('production') }),
-    babel({ comments: false }),
+    NODE_ENV === 'min' && replace({
+      'internalProcess.env.NODE_ENV': JSON.stringify('production'),
+      preventAssignment: true,
+    }),
+    babel({
+      comments: false,
+      babelHelpers: 'runtime',
+      skipPreflightCheck: true,
+    }),
     nodeResolve({ mainFields: ['module'] }),
-    NODE_ENV === 'umd' && Visualizer({ filename: './dist/main-build-size.html' }),
+    NODE_ENV === 'umd' && Visualizer.default({ filename: './dist/main-build-size.html' }),
   ],
 };

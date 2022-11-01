@@ -11,7 +11,6 @@ approachable to new programmers, intermediates, and professionals.
 
 - No build step required to prototype
 - ESM/CJS/UMD + Minified ES5 builds
-- Async DOM transition hooks
 - Middleware
 - Efficient Virtual DOM
 - Object pooling to optimize GC

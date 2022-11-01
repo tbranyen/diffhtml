@@ -10,7 +10,6 @@ describe('Integration: SVG', function() {
 
   afterEach(function() {
     diff.release(this.fixture);
-    diff.removeTransitionState();
 
     validateMemory();
   });

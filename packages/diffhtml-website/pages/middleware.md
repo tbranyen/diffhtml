@@ -56,60 +56,10 @@ There are several core middleware modules already written that you could use as
 a reference. A good starting one to look at is the [Logger](/middleware#logger)
 if you're interested in logging the render transaction flow.
 
-If you wanted to track when an element enters and leaves the DOM you could use
-the [attached and detached transition
-states](/transitions.html#available-states). You could also check the
-transaction when rendering is complete to see what is being attached and
-removed.
-
 ``` js
 use(() => ({ patches }) => {
   console.log(patches);
 });
-```
-
-<a name="inline-transitions"></a>
-
----
-
-## <a href="#inline-transitions">Inline Transitions</a> <a class="github" href="https://github.com/tbranyen/diffhtml/tree/master/packages/diffhtml-middleware-inline-transitions"><i class="fa fa-github"></i></a>
-
-Tiny module to support binding/unbinding declarative diffHTML transition hooks.
-
-``` sh
-npm install diffhtml-middleware-inline-transitions
-```
-
-Full events and args list:
-
-| Event Name           | Args
-| :------------------- | :----------------------------------------------------------
-| **onattached**         | `(eventTarget, domNode)`
-| **ondetached**         | `(eventTarget, domNode)`
-| **onreplaced**         | `(eventTarget, oldNode, newNode)`
-| **onattributechanged** | `(eventTarget, oldNode, attributeName, oldValue, newValue)`
-| **ontextchanged**      | `(eventTarget, oldNode, oldValue, newValue)`
-
-### Example
-
-Apply to an element by passing the function to the associated state name:
-
-``` js
-import $ from 'jquery';
-import { innerHTML, html, use } from 'diffhtml';
-import inlineTransitions from 'diffhtml-middleware-inline-transitions';
-
-// Enable the monitoring of attributes for changes.
-use(inlineTransitions());
-
-// Use jQuery to return a promise and fade in the body and paragraph.
-function fadeIn(body, domNode) {
-  return $(domNode).fadeOut(0).fadeIn(1000).promise();
-}
-
-innerHTML(document.body, html`<body onattached=${fadeIn}>
-  <p>Watch me fade in slowly!</p>
-</body>`);
 ```
 
 <a name="logger"></a>

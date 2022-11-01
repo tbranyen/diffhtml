@@ -12,7 +12,6 @@ import { defaultTasks } from './transaction';
 import html from './html';
 import release from './release';
 import use from './use';
-import { addTransitionState, removeTransitionState } from './transition';
 import { __VERSION__ as VERSION } from './version';
 
 // At startup inject the HTML parser into the default set of tasks.
@@ -26,8 +25,6 @@ internals.VERSION = VERSION;
 const api = {};
 
 api.VERSION = VERSION;
-api.addTransitionState = addTransitionState;
-api.removeTransitionState = removeTransitionState;
 api.release = release;
 api.createTree = createTree;
 api.use = use;
@@ -60,8 +57,6 @@ if (global.devTools) {
 
 export {
   VERSION,
-  addTransitionState,
-  removeTransitionState,
   release,
   createTree,
   use,

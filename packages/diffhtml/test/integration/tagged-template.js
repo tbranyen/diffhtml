@@ -11,7 +11,6 @@ describe('Integration: Tagged template', function() {
 
   afterEach(function() {
     diff.release(this.fixture);
-    diff.removeTransitionState();
 
     validateMemory();
   });

@@ -1,5 +1,4 @@
 import createNode from './create';
-import { runTransitions } from '../transition';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
 import {
@@ -9,7 +8,6 @@ import {
   EMPTY,
   TransactionState,
   NodeCache,
-  TransitionCache,
 } from '../util/types';
 import { $$insertAfter } from '../util/symbols';
 
@@ -108,33 +106,11 @@ const removeAttribute = (vTree, domNode, name) => {
 };
 
 /**
- * Changes the nodeValue (text) content of an element.
- *
- * @param {ValidNode} domNode
- * @param {string} nodeValue
- *
- * @return {void}
- */
-const changeNodeValue = (domNode, nodeValue) => {
-  const htmlElement = /** @type {HTMLElement} */ (domNode);
-
-  if (nodeValue.includes('&')) {
-    htmlElement.nodeValue = decodeEntities(nodeValue);
-  }
-  else {
-    htmlElement.nodeValue = nodeValue;
-  }
-};
-
-/**
  *
  * @param {*} patches
  * @param {TransactionState=} state
- *
- * @return {Promise<any>[]}
  */
 export default function patchNode(patches, state = EMPTY.OBJ) {
-  const promises = [];
   const { ownerDocument, svgElements = new Set() } = state;
   const { length } = patches;
 
@@ -162,24 +138,11 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           createNode(vTree, ownerDocument, isSVG)
         );
 
-        const oldValue = domNode.getAttribute(name);
-        const attributeChangedPromises = runTransitions(
-          'attributeChanged', vTree, name, oldValue, value
-        );
-
         protectVTree(vTree);
 
         const setOrRemove = isSet ? setAttribute : removeAttribute;
 
-        if (attributeChangedPromises.length) {
-          Promise.all(attributeChangedPromises)
-            .then(() => setOrRemove(vTree, domNode, name, value));
-
-          promises.push(...attributeChangedPromises);
-        }
-        else {
-          setOrRemove(vTree, domNode, name, value);
-        }
+        setOrRemove(vTree, domNode, name, value);
 
         break;
       }
@@ -187,7 +150,6 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
       case PATCH_TYPE.NODE_VALUE: {
         const vTree = patches[i + 1];
         const nodeValue = patches[i + 2];
-        const oldValue = patches[i + 3];
         const isSVG = svgElements.has(vTree);
 
         i += 4;
@@ -198,18 +160,11 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
 
         protectVTree(vTree);
 
-        const textChangedPromises = runTransitions(
-          'textChanged', vTree, oldValue, nodeValue
-        );
-
-        if (textChangedPromises.length) {
-          Promise.all(textChangedPromises)
-            .then(() => changeNodeValue(domNode, nodeValue));
-
-          promises.push(...textChangedPromises);
+        if (nodeValue.includes('&')) {
+          domNode.nodeValue = decodeEntities(nodeValue);
         }
         else {
-          changeNodeValue(domNode, nodeValue);
+          domNode.nodeValue = nodeValue;
         }
 
         break;
@@ -261,8 +216,6 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
         // `appendChild`.
         domNode.insertBefore(newNode, refNode || null);
 
-        promises.push(...runTransitions('attached', newTree));
-
         break;
       }
 
@@ -289,47 +242,9 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
         // This is due to the `connectedCallback` in Web Components firing off,
         // and possibly causing a `gc()` to wipe this out.
         protectVTree(newTree);
-
-        // Check if there are any transitions, if none, then we can skip
-        // inserting and removing, and instead use a much faster replaceChild.
-        const hasAttached = TransitionCache.get('attached')?.size;
-        const hasDetached = TransitionCache.get('detached')?.size;
-        const hasReplaced = TransitionCache.get('replaced')?.size;
-
-        // In the hot path, ensure we always use the fastest operation given
-        // the constraints. If there are no transitions, do not use the more
-        // expensive, but more expressive path.
-        if (!hasAttached && !hasDetached && !hasReplaced) {
-          oldDomNode.parentNode.replaceChild(newDomNode, oldDomNode);
-          unprotectVTree(oldTree);
-
-          break;
-        }
-
-        // Always insert before to allow the element to transition.
         oldDomNode.parentNode.insertBefore(newDomNode, oldDomNode);
-
-        const allPromises = [
-          ...(hasAttached && runTransitions('attached', newTree) || EMPTY.ARR),
-          ...(hasDetached && runTransitions('detached', oldTree) || EMPTY.ARR),
-          ...(hasReplaced && runTransitions('replaced', oldTree, newTree) || EMPTY.ARR),
-        ];
-
-        if (allPromises.length) {
-          // Do full replace and cleanup once transitions have completed.
-          Promise.all(allPromises).then(() => {
-            if (oldDomNode.parentNode) {
-              oldDomNode.parentNode.removeChild(oldDomNode);
-            }
-            unprotectVTree(oldTree);
-          });
-
-          promises.push(...allPromises);
-        }
-        else {
-          oldDomNode.parentNode.removeChild(oldDomNode);
-          unprotectVTree(oldTree);
-        }
+        oldDomNode.parentNode.removeChild(oldDomNode);
+        unprotectVTree(oldTree);
 
         break;
       }
@@ -345,27 +260,11 @@ export default function patchNode(patches, state = EMPTY.OBJ) {
           break;
         }
 
-        const detachedPromises = runTransitions('detached', vTree);
-
-        if (detachedPromises.length) {
-          Promise.all(detachedPromises).then(() => {
-            if (domNode.parentNode) {
-              domNode.parentNode.removeChild(domNode);
-            }
-            unprotectVTree(vTree);
-          });
-
-          promises.push(...detachedPromises);
-        }
-        else {
-          domNode.parentNode.removeChild(domNode);
-          unprotectVTree(vTree);
-        }
+        domNode.parentNode.removeChild(domNode);
+        unprotectVTree(vTree);
 
         break;
       }
     }
   }
-
-  return promises;
 }

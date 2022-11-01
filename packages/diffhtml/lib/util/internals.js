@@ -13,7 +13,6 @@ import {
   Internals,
   StateCache,
   NodeCache,
-  TransitionCache,
   MiddlewareCache,
   CreateTreeHookCache,
   CreateNodeHookCache,
@@ -25,7 +24,6 @@ import {
 const caches = {
   StateCache,
   NodeCache,
-  TransitionCache,
   MiddlewareCache,
   CreateTreeHookCache,
   CreateNodeHookCache,

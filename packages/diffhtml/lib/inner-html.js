@@ -7,7 +7,7 @@ import { EMPTY, ValidInput, TransactionConfig, Mount } from './util/types';
  * @param {ValidInput} input
  * @param {TransactionConfig} config
  *
- * @return {Promise<Transaction> | unknown}
+ * @return {Transaction | unknown}
  */
 export default function innerHTML(mount, input = EMPTY.STR, config = {}) {
   config.inner = true;

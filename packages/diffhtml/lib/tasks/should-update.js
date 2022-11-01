@@ -1,4 +1,4 @@
-import Transaction from "../transaction";
+import Transaction from '../transaction';
 
 /**
  * Allows the transaction to terminate early if no contents have changed.

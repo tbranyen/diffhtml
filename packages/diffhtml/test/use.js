@@ -339,14 +339,14 @@ describe('Use (Middleware)', function() {
     release(oldTree);
   });
 
-  it('will call a release hook when a mounted element is released', async () => {
+  it('will call a release hook when a mounted element is released', () => {
     const domNode = document.createElement('div');
     const releaseTrees = [];
 
     this.releaseHook = oldTree => releaseTrees.push(oldTree);
 
     const newTree = html`<h1></h1>`;
-    const transaction = await innerHTML(domNode, newTree);
+    const transaction = innerHTML(domNode, newTree);
     const oldTree = transaction.oldTree;
 
     release(domNode);

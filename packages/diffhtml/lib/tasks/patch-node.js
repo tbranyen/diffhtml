@@ -16,7 +16,6 @@ export default function patchNode(transaction) {
   measure('patch node');
 
   const { ownerDocument } = /** @type {HTMLElement} */ (mount);
-  const promises = transaction.promises || [];
 
   state.ownerDocument = ownerDocument || globalThis.document;
 
@@ -37,11 +36,10 @@ export default function patchNode(transaction) {
 
   // Skip patching completely if we aren't in a DOM environment.
   if (state.ownerDocument) {
-    promises.push(...patch(patches, state));
+    patch(patches, state);
   }
 
   CreateNodeHookCache.delete(collectScripts);
 
-  transaction.promises = promises;
   measure('patch node');
 }
