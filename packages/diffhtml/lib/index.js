@@ -18,21 +18,21 @@ import { __VERSION__ as VERSION } from './version';
 defaultTasks.splice(defaultTasks.indexOf(reconcileTrees), 0, parseNewTree);
 
 // Add build flavor internals when executed.
-internals.parse = parse;
-internals.VERSION = VERSION;
+internals['parse'] = parse;
+internals['VERSION'] = VERSION;
 
 // Build up the full public API.
 const api = {};
 
-api.VERSION = VERSION;
-api.release = release;
-api.createTree = createTree;
-api.use = use;
-api.outerHTML = outerHTML;
-api.innerHTML = innerHTML;
-api.toString = toString;
-api.html = html;
-api.Internals = internals;
+api['VERSION'] = VERSION;
+api['release'] = release;
+api['createTree'] = createTree;
+api['use'] = use;
+api['outerHTML'] = outerHTML;
+api['innerHTML'] = innerHTML;
+api['toString'] = toString;
+api['html'] = html;
+api['Internals'] = internals;
 
 /** @type {any} */
 const global = globalThis;
@@ -43,7 +43,7 @@ const global = globalThis;
 if ($$diffHTML in globalThis) {
   const existingApi = global[$$diffHTML];
 
-  if (VERSION !== existingApi.VERSION) {
+  if (VERSION !== existingApi['VERSION']) {
     console.log(`Loaded ${VERSION} after ${existingApi.VERSION}`);
   }
 }

@@ -54,7 +54,7 @@ export default {
         `,
       }
     }),
-    NODE_ENV === 'umd' && Visualizer.default({
+    NODE_ENV === 'min' && Visualizer.default({
       filename: './dist/lite-build-size.html'
     }),
   ],

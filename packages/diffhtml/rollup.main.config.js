@@ -36,6 +36,6 @@ export default {
       skipPreflightCheck: true,
     }),
     nodeResolve({ mainFields: ['module'] }),
-    NODE_ENV === 'umd' && Visualizer.default({ filename: './dist/main-build-size.html' }),
+    NODE_ENV === 'min' && Visualizer.default({ filename: './dist/main-build-size.html' }),
   ],
 };

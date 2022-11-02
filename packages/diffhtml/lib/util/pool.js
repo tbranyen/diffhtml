@@ -19,8 +19,8 @@ const shape = () => ({
 // Creates a pool to query new or reused values from.
 const memory = { free, allocated: allocate, protected: protect };
 
-// Cache the values object, we'll refer to this iterator which is faster
-// than calling it every single time. It gets replaced once exhausted.
+// Cache the values object, we'll refer to this iterator which is faster than
+// calling it every single time. It gets replaced once exhausted.
 let freeValues = free.values();
 
 // A pool contains Virtual Tree objects which are a deterministic, pre-created
