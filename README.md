@@ -61,16 +61,6 @@ the foundation of the diffHTML ecosystem.
   Transforms your input into function calls. This eliminates the need for
   runtime parsing. This is similar to how React compiles down JSX.
 
-* [diffhtml-middleware-inline-transitions](/packages/diffhtml-middleware-inline-transitions)
-
-  ```sh
-  npm install diffhtml-middleware-inline-transitions
-  ```
-
-  By default diffHTML invokes transition hooks globally to all elements. This
-  middleware turns them into scoped, performant, event hooks that are bound 
-  inline on the markup tags.
-
 * [diffhtml-middleware-linter](/packages/diffhtml-middleware-linter)
 
   ```sh
