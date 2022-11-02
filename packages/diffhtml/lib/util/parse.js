@@ -4,7 +4,7 @@
 import createTree from '../tree/create';
 import getConfig from './config';
 import internalProcess from './process';
-import { EMPTY, NODE_TYPE } from './types';
+import { VTree, Supplemental, TransactionConfig, ParserConfig, EMPTY, NODE_TYPE } from './types';
 
 // Magic token used for interpolation.
 export const TOKEN = '__DIFFHTML__';
@@ -13,7 +13,7 @@ const doctypeEx = /<!DOCTYPE.*>/i;
 const spaceEx = /[^ ]/;
 const tokenEx = new RegExp(`${TOKEN}([^_]*)__`);
 
-/** @type {import('./types').Supplemental} */
+/** @type {Supplemental} */
 const defaultSupplemental = {
   tags: [],
   attributes: {},
@@ -69,9 +69,9 @@ const kElementsClosedByClosing = {
 /**
  * Interpolates children from dynamic supplemental values into the parent node.
  *
- * @param {import('./types').VTree} currentParent - Active element VTree
+ * @param {VTree} currentParent - Active element VTree
  * @param {string} markup - Incoming partial HTML markup
- * @param {import('./types').Supplemental} supplemental - Dynamic interpolated data values
+ * @param {Supplemental} supplemental - Dynamic interpolated data values
  */
 const interpolateChildNodes = (currentParent, markup, supplemental) => {
   if ('childNodes' in currentParent.attributes) {
@@ -80,7 +80,7 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
 
   // If this is text and not a doctype, add as a text node.
   if (markup && !doctypeEx.test(markup) && !tokenEx.test(markup)) {
-    return currentParent.childNodes.push(/** @type {import('./types').VTree} */ (createTree('#text', markup)));
+    return currentParent.childNodes.push(/** @type {VTree} */ (createTree('#text', markup)));
   }
 
   const childNodes = [];
@@ -128,9 +128,9 @@ const interpolateChildNodes = (currentParent, markup, supplemental) => {
  *
  * @param {String} nodeName - DOM Node name
  * @param {String} rawAttrs - DOM Node Attributes
- * @param {import('./types').Supplemental} supplemental - Interpolated data from a tagged template
- * @param {import('./types').TransactionConfig} options
- * @return {import('./types').VTree} vTree
+ * @param {Supplemental} supplemental - Interpolated data from a tagged template
+ * @param {TransactionConfig} options
+ * @return {VTree} vTree
  */
 const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
   let match = null;
@@ -248,13 +248,13 @@ const HTMLElement = (nodeName, rawAttrs, supplemental, options) => {
  * Parses HTML and returns a root element
  *
  * @param {String} html - String of HTML markup to parse into a Virtual Tree
- * @param {import('./types').Supplemental=} supplemental - Dynamic interpolated data values
- * @param {import('./types').TransactionConfig=} options - Contains options like silencing warnings
- * @return {import('./types').VTree} - Parsed Virtual Tree Element
+ * @param {Supplemental=} supplemental - Dynamic interpolated data values
+ * @param {TransactionConfig=} options - Contains options like silencing warnings
+ * @return {VTree} - Parsed Virtual Tree Element
  */
 export default function parse(html, supplemental, options = {}) {
   if (!options.parser) {
-    /** @type {import('./types').ParserConfig} */
+    /** @type {ParserConfig} */
     options.parser = {};
   }
 
@@ -554,9 +554,9 @@ Possibly invalid markup. Opening tag was not properly closed.
   // body or head.
   if (root.childNodes.length && root.childNodes[0].nodeName === 'html') {
     // Store elements from before body end and after body end.
-    /** @type {{ [name: string]: import('./types').VTree[] }} */
+    /** @type {{ [name: string]: VTree[] }} */
     const head = { before: [], after: [] };
-    /** @type {{ [name: string]: import('./types').VTree[] }} */
+    /** @type {{ [name: string]: VTree[] }} */
     const body = { after: [] };
     const HTML = root.childNodes[0];
 
