@@ -6,7 +6,6 @@ import innerHTML from './inner-html';
 import outerHTML from './outer-html';
 import release from './release';
 import use from './use';
-import { addTransitionState, removeTransitionState } from './transition';
 import { __VERSION__ } from './version';
 
 const { assign } = Object;
@@ -21,8 +20,6 @@ assign(internals, {
 const api = {};
 
 api.VERSION = VERSION;
-api.addTransitionState = addTransitionState;
-api.removeTransitionState = removeTransitionState;
 api.release = release;
 api.createTree = createTree;
 api.use = use;
@@ -53,8 +50,6 @@ if (global.devTools) {
 
 export {
   VERSION,
-  addTransitionState,
-  removeTransitionState,
   release,
   createTree,
   use,

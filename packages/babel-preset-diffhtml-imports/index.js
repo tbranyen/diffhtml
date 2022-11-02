@@ -29,21 +29,6 @@ const exportObj = {};
 
 if (NODE_ENV === 'umd' || NODE_ENV === 'min') {
   exportObj.plugins = [
-    ObjectRestSpread,
-    ClassProperties,
-    ComputedProperties,
-    BlockScoping,
-    ArrowFunctions,
-    ShorthandProperties,
-    ObjectDestructuring,
-    Parameters,
-    Spread,
-    TemplateLiterals,
-    Classes,
-    ForOf,
-    OptionalChaining,
-    NewTarget,
-    OptionalCatchBinding,
   ];
   exportObj.minified = true;
 }

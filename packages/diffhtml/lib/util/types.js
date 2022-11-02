@@ -36,31 +36,6 @@ export const PATCH_TYPE = {
 };
 
 /**
- * @typedef {TransitionStateName[]} TransitionStateNames
- * @type {TransitionStateNames}
- */
-export const TransitionStateNames = [
-  'attached',
-  'detached',
-  'replaced',
-  'attributeChanged',
-  'textChanged',
-];
-
-/**
- * Creates a mapping of TransitionState
- *
- * @typedef {Map<TransitionStateName, Set<Function>>} TransitionCache
- */
-export const TransitionCache = new Map([
-  ['attached', new Set()],
-  ['detached', new Set()],
-  ['replaced', new Set()],
-  ['attributeChanged', new Set()],
-  ['textChanged', new Set()],
-]);
-
-/**
  * Associates active transaction mount with state.
  *
  * @typedef {Map<Mount, TransactionState>} StateCache
@@ -106,11 +81,6 @@ export const ReleaseHookCache = new Set();
  * @typedef {Set<Function>} ParseHookCache
  */
 export const ParseHookCache = new Set();
-
-/**
- * @typedef {'attached' | 'detached' | 'replaced' | 'attributeChanged' | 'textChanged'} TransitionStateName
- */
-export const TransitionStateName = EMPTY.OBJ;
 
 /**
  * @typedef {{ [key: string]: any }} VTreeAttributes
@@ -228,8 +198,6 @@ export const Supplemental = EMPTY.OBJ;
  * @property {Boolean=} isRendering
  * @property {Boolean=} isDirty
  * @property {MutationObserver=} mutationObserver
- * @property {import('../transaction').default} activeTransaction
- * @property {import('../transaction').default=} nextTransaction
  * @property {Document=} ownerDocument
 */
 export const TransactionState = EMPTY.OBJ;
@@ -254,7 +222,6 @@ export const TransactionState = EMPTY.OBJ;
  * @property {{ [key: string]: any }} tasks
  * @property {StateCache} StateCache
  * @property {NodeCache} NodeCache
- * @property {TransitionCache} TransitionCache
  * @property {MiddlewareCache} MiddlewareCache
  * @property {CreateTreeHookCache} CreateTreeHookCache
  * @property {CreateNodeHookCache} CreateNodeHookCache

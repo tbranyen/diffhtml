@@ -13,8 +13,6 @@
       "toString": "#to-string",
       "html": "#html",
       "use": "#use",
-      "addTransitionState": "#add-transition-state",
-      "removeTransitionState": "#remove-transition-state",
       "createTree": "#create-tree",
       "release": "#release",
       "Internals": "#internals",
@@ -27,14 +25,8 @@
       "Dynamic values": "#dynamic-values"
     }],
 
-    "Transitions": ["transitions.html", {
-      "Promises": "#promises",
-      "States": "#states"
-    }],
-
     "Middleware": ["middleware.html", {
       "Writing middleware": "#writing-middleware",
-      "Inline Transitions": "#inline-transitions",
       "Logger": "#logger",
       "Service Worker": "#service-worker",
       "Synthetic Events": "#synthetic-events",

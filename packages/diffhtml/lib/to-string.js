@@ -21,8 +21,8 @@ export default function toString(input, config = {}) {
   const activeTasks = new Set(config.tasks || defaultTasks);
 
   activeTasks.delete(tasks.patchNode);
-  // Replace the `endAsPromise` task with the string return value.
-  activeTasks.delete(tasks.endAsPromise);
+  // Replace the `endAsTransaction` task with the string return value.
+  activeTasks.delete(tasks.endAsTransaction);
   activeTasks.add(function endAsString(/** @type {Transaction} */ transaction) {
     return serializeVTree(transaction.oldTree);
   });

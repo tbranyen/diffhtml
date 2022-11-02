@@ -27,7 +27,7 @@ in the browser and directly in [Node.js](https://nodejs.org/en/) with or without
 ## <a href="#inner-html">innerHTML</a> **`(mount, input, options)`**
 
 Compares and updates the contents of `mount` with the `input`. Creates a
-Transaction, invokes [middleware](/middleware.html), compares old and new markup, runs [transitions](/transitions.html), and patches the DOM.
+Transaction, invokes [middleware](/middleware.html), compares old and new markup, and patches the DOM.
 
 <a name="inner-html-arguments"></a>
 
@@ -219,8 +219,7 @@ function someTask(transaction) {
   return () => {
     console.log('End of render transaction scheduled');
 
-    // Must wait until all transitions complete to know for sure that the
-    // render action has completed.
+    // Will fire once the transaction has fully ended.
     transaction.onceEnded(() => {
       console.log('End of render transaction completed');
     });
@@ -228,143 +227,6 @@ function someTask(transaction) {
 }
 
 use(someTask);
-```
-
-<a name="add-transition-state"></a>
-
----
-
-## <a href="#add-transition-state">addTransitionState</a> **`(stateName, callback)`**
-
-Adds global transition listeners, which trigger in reaction to when the DOM is
-patched. If many elements are rendered quickly, this could be an expensive
-operation, so try to limit the amount of listeners added if you're concerned
-about performance.
-
-Since the callback triggers with various elements, most of which you probably
-don't care about, you'll want to filter.  A good way of filtering is to use the
-DOM `matches` method.  It's fairly well supported
-(http://caniuse.com/#feat=matchesselector) and may suit many projects.  If you
-need backwards compatibility, consider using jQuery's `is`.
-
-You can do fun, highly specific, filters:
-
-``` javascript
-addTransitionState('attached', element => {
-  // Fade in the main container after it's attached into the DOM.
-  if (element.matches('body main.container')) {
-    $(element).stop(true, true).fadeIn();
-  }
-});
-```
-
-If you like these transitions and want to declaratively assign them in tagged
-templates, check out the [diffhtml-inline-transitions
-plugin](middleware.html#inline-transitions).
-
-<a name="add-transition-state-arguments"></a>
-
-### <a href="#add-transition-state-arguments"><u>Arguments</u></a>
-
-| Name        | Description
-| ----------- | -----------
-| **stateName** | One of the valid transition states: attached \| detached \| replaced \| attributeChanged \| textChanged
-| **callback** | Triggers either an async (returns Promise) or sync function which does something when the specific DOM node has entered a transition state.
-
-### About detached/replaced element accuracy
-
-When rendering Nodes that contain lists of identical elements, you may not
-receive the elements you expect in the detached and replaced transition state
-hooks. This is a known limitation of string diffing and allows for better
-performance. By default if no key is specified, the last element will be
-removed and the subsequent elements from the one that was removed will be
-mutated via replace.
-
-What you should do here is add a `key` attribute with a unique `value` that
-persists between renders.
-
-For example, when the following markup...
-
-``` html
-<ul>
-  <li>Test</li>
-  <li>This</li>
-  <li>Out</li>
-</ul>
-```
-
-...is changed into...
-
-``` html
-<ul>
-  <li>Test</li>
-  <li>Out</li>
-</ul>
-```
-
-The transformative operations are:
-
-1. Remove the last element
-2. Replace the text of the second element to 'out'
-
-What we intended, however, was to simply remove the second item. And to achieve
-that, decorate your markup like so...
-
-``` html
-<ul>
-  <li key="1">Test</li>
-  <li key="2">This</li>
-  <li key="3">Out</li>
-</ul>
-```
-
-...and update with matching attributes...
-
-``` html
-<ul>
-  <li key="1">Test</li>
-  <li key="3">Out</li>
-</ul>
-```
-
-Now the transformative operations are:
-
-1. Remove the second element
-
-<a name="remove-transition-state"></a>
-
----
-
-## <a href="#remove-transition-state">removeTransitionState</a> **`(stateName, callback)`**
-
-Removes a global transition listener. When invoked with no arguments, this
-method will remove all transition callbacks. When invoked with the name
-argument it will remove all transition state callbacks matching the name, and
-so on for the callback.
-
-
-<a name="remove-transition-state-arguments"></a>
-
-### <a href="#remove-transition-state-arguments"><u>Arguments</u></a>
-
-| Name        | Description
-| ----------- | -----------
-| **stateName** | *Optional* Filter events to remove by a specific state
-| **callback** | *Optional* Filter events to remove by the callback reference
-
-<a name="remove-transition-examples"></a>
-
-### <a href="#remove-transition-examples"><u>Examples</u></a>
-
-``` javascript
-// Removes all registered transition states.
-diff.removeTransitionState();
-
-// Removes states by name.
-diff.removeTransitionState('attached');
-
-// Removes states by name and callback reference.
-diff.removeTransitionState('attached', callbackReference);
 ```
 
 <a name="create-tree"></a>
@@ -501,10 +363,6 @@ on the build flavor, full or runtime, you will get a different set of tasks. By
 default transactions run synchronously and you can observe a result immediately
 after running `innerHTML` or `outerHTML`.
 
-If you use `addTransitionState` and return a Promise to delay rendering, this
-could cause multiple renders to stack up and then transactions will be
-asynchronous.
-
 ```sh
 > schedule        # If another transaction is running, this will run after
 > shouldUpdate    # If nothing has changed, abort early
@@ -526,8 +384,6 @@ Transactions have a number of properties available to access:
 - **oldTree** - The old tree which may already be updated with **newTree**
 - **options** - Options used when updating markup
 - **patches** - What has been updated in the DOM
-- **promise** - The raw promise backing the tranasction completeness
-- **promises** - All promises attached to the transaction from transitions
 - **state** - Internal state object for the transaction
 - **tasks** - Array of functions that were executed when rendering
 

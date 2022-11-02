@@ -10,8 +10,6 @@ const {
   html,
   release,
   Internals,
-  addTransitionState,
-  removeTransitionState,
 } = diff;
 
 const { process } = Internals;
@@ -27,9 +25,6 @@ describe('Component implementation', function() {
   });
 
   afterEach(() => {
-    ['attached', 'detached', 'replaced', 'textChanged', 'attributeChanged']
-      .forEach(transitionName => removeTransitionState(transitionName));
-
     release(this.fixture);
     Component.unsubscribeMiddleware();
     validateCaches();
@@ -478,10 +473,11 @@ describe('Component implementation', function() {
       strictEqual(refNode.getAttribute('ref'), null);
       strictEqual(this.fixture.nodeName, 'DIV');
 
+      console.log(html``);
       innerHTML(this.fixture, html``);
 
-      ok(!refNode);
       strictEqual(count, 2);
+      ok(!refNode);
     });
   });
 
@@ -1491,113 +1487,6 @@ describe('Component implementation', function() {
       strictEqual(
         this.fixture.innerHTML.replace(whitespaceEx, ''),
         '<div>right</div>',
-      );
-    });
-  });
-
-  describe('Transitions', () => {
-    it('will render a virtual tree with attached transition (no promise)', () => {
-      let attachedCalledWith = null;
-
-      addTransitionState('attached', el => {
-        attachedCalledWith = el;
-      });
-
-      class CustomComponent extends Component {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      strictEqual(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Hello world</div></div>',
-      );
-
-      strictEqual(
-        attachedCalledWith,
-        this.fixture.childNodes[1],
-      );
-    });
-
-    it('will re-render a virtual tree with attached transition (no promise)', () => {
-      let attachedCalledWith = null;
-      let calledCount = 0;
-
-      addTransitionState('attached', el => {
-        calledCount += 1;
-        attachedCalledWith = el;
-      });
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-      }
-
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-      innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      strictEqual(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Hello world</div></div>',
-      );
-
-      strictEqual(attachedCalledWith, this.fixture.childNodes[1]);
-      strictEqual(calledCount, 1);
-    });
-
-    it('will render a virtual tree with attached transition (with promise)', async () => {
-      addTransitionState('attached', el => {
-        return new Promise(resolve => {
-          el.textContent = 'Goodbye world';
-          resolve();
-        });
-      });
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-      }
-
-      await innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      strictEqual(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Goodbye world</div></div>',
-      );
-    });
-
-    it('will re-render a virtual tree with attached transition (with promise)', async () => {
-      addTransitionState('attached', el => {
-        return new Promise(resolve => {
-          el.textContent = 'Goodbye world';
-          resolve();
-        });
-      });
-
-      class CustomComponent {
-        render() {
-          return html`
-            <div>Hello world</div>
-          `;
-        }
-      }
-
-      await innerHTML(this.fixture, html`<${CustomComponent} />`);
-
-      strictEqual(
-        this.fixture.outerHTML.replace(whitespaceEx, ''),
-        '<div><div>Goodbye world</div></div>',
       );
     });
   });

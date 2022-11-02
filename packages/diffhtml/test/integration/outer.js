@@ -12,7 +12,6 @@ describe('Integration: outerHTML', function() {
   afterEach(function() {
     diff.release(this.fixture.firstChild);
     diff.release(this.fixture);
-    diff.removeTransitionState();
 
     validateMemory();
   });

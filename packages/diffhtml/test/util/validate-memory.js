@@ -3,7 +3,6 @@ import {
   StateCache,
   NodeCache,
   MiddlewareCache,
-  TransitionCache,
   CreateTreeHookCache,
   CreateNodeHookCache,
   SyncTreeHookCache,
@@ -39,9 +38,4 @@ export default function validateMemory() {
   strictEqual(CreateNodeHookCache.size, 0, 'The create node hook cache should be empty');
   strictEqual(SyncTreeHookCache.size, 0, 'The sync tree hook cache should be empty');
   strictEqual(ReleaseHookCache.size, 0, 'The release hook cache should be empty');
-
-  // Check all transition caches.
-  TransitionCache.forEach((cache, name) => {
-    strictEqual(cache.size, 0, `The ${name} transition cache should be empty`);
-  })
 }

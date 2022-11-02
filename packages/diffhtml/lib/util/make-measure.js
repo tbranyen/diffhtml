@@ -1,5 +1,5 @@
-import getConfig from "./config";
-import { EMPTY, VTree } from "./types";
+import getConfig from './config';
+import { EMPTY } from './types';
 
 const prefix = 'diffHTML';
 const marks = new Map();
@@ -14,7 +14,7 @@ let count = 0;
  */
 export default function makeMeasure(transaction) {
   const { mount, input } = transaction;
-  const inputAsVTree = /** @type {VTree} */ (input);
+  const inputAsVTree = /** @type {import('./types').VTree} */ (input);
   const id = count++;
 
   // Marks will only be available if the user has requested they want to collect

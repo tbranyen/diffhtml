@@ -1,11 +1,10 @@
 import internalProcess from './process';
-import { Config } from './types';
 import globalThis from './global';
 
 const { parseInt } = Number;
 const { parse } = JSON;
 
-/** @type {Config} */
+/** @type {import('./types').Config} */
 export const globalConfig = {
   collectMetrics: true,
   executeScripts: true,

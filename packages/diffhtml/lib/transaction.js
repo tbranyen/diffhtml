@@ -13,12 +13,11 @@ import makeMeasure from './util/make-measure';
 import internalProcess from './util/process';
 import { protectVTree } from './util/memory';
 import globalThis from './util/global';
-import schedule from './tasks/schedule';
 import shouldUpdate from './tasks/should-update';
 import reconcileTrees from './tasks/reconcile-trees';
 import syncTrees from './tasks/sync-trees';
 import patchNode from './tasks/patch-node';
-import endAsPromise from './tasks/end-as-promise';
+import endAsTransaction from './tasks/end-as-transaction';
 import release from './release';
 import getConfig from './util/config';
 import hasModule from './util/has-module';
@@ -26,11 +25,11 @@ import hasModule from './util/has-module';
 const { assign } = Object;
 
 export const defaultTasks = [
-  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
+  shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsTransaction,
 ];
 
 export const tasks = {
-  schedule, shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsPromise,
+  shouldUpdate, reconcileTrees, syncTrees, patchNode, endAsTransaction,
 };
 
 export default class Transaction {
@@ -50,7 +49,7 @@ export default class Transaction {
    * @param {Transaction} transaction
    * @param {any} tasks
    *
-   * @return {Promise<Transaction> | unknown}
+   * @return {Transaction}
    */
   static flow(transaction, tasks) {
     let retVal = transaction;
@@ -140,7 +139,6 @@ export default class Transaction {
       measure: makeMeasure(this),
       svgElements: new Set(),
       scriptsToExecute: new Map(),
-      activeTransaction: this,
       mutationObserver: useObserver && new globalThis.window.MutationObserver(EMPTY.FUN),
     });
 
@@ -155,7 +153,7 @@ export default class Transaction {
   }
 
   /**
-   * @return {Promise<Transaction> | unknown}
+   * @return {Transaction | unknown}
    */
   start() {
     if (internalProcess.env.NODE_ENV !== 'production') {
@@ -319,12 +317,6 @@ export default class Transaction {
 
   /** @type {VTree=} */
   newTree = undefined;
-
-  /** @type {Promise<any>=} */
-  promise = undefined
-
-  /** @type {Promise<any>[]=} */
-  promises = undefined
 
   /** @type {Function[]} */
   tasks = []

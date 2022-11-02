@@ -12,30 +12,27 @@ import { defaultTasks } from './transaction';
 import html from './html';
 import release from './release';
 import use from './use';
-import { addTransitionState, removeTransitionState } from './transition';
 import { __VERSION__ as VERSION } from './version';
 
 // At startup inject the HTML parser into the default set of tasks.
 defaultTasks.splice(defaultTasks.indexOf(reconcileTrees), 0, parseNewTree);
 
 // Add build flavor internals when executed.
-internals.parse = parse;
-internals.VERSION = VERSION;
+internals['parse'] = parse;
+internals['VERSION'] = VERSION;
 
 // Build up the full public API.
 const api = {};
 
-api.VERSION = VERSION;
-api.addTransitionState = addTransitionState;
-api.removeTransitionState = removeTransitionState;
-api.release = release;
-api.createTree = createTree;
-api.use = use;
-api.outerHTML = outerHTML;
-api.innerHTML = innerHTML;
-api.toString = toString;
-api.html = html;
-api.Internals = internals;
+api['VERSION'] = VERSION;
+api['release'] = release;
+api['createTree'] = createTree;
+api['use'] = use;
+api['outerHTML'] = outerHTML;
+api['innerHTML'] = innerHTML;
+api['toString'] = toString;
+api['html'] = html;
+api['Internals'] = internals;
 
 /** @type {any} */
 const global = globalThis;
@@ -46,7 +43,7 @@ const global = globalThis;
 if ($$diffHTML in globalThis) {
   const existingApi = global[$$diffHTML];
 
-  if (VERSION !== existingApi.VERSION) {
+  if (VERSION !== existingApi['VERSION']) {
     console.log(`Loaded ${VERSION} after ${existingApi.VERSION}`);
   }
 }
@@ -60,8 +57,6 @@ if (global.devTools) {
 
 export {
   VERSION,
-  addTransitionState,
-  removeTransitionState,
   release,
   createTree,
   use,

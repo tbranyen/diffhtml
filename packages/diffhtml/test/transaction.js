@@ -52,8 +52,6 @@ describe('Transaction', function() {
         newTree: undefined,
         oldTree: undefined,
         patches: [],
-        promise: undefined,
-        promises: undefined,
       });
     });
   });
@@ -284,7 +282,7 @@ describe('Transaction', function() {
       const token = {};
       const tasks = [() => token];
       const transaction = Transaction.create(mount, input, { tasks });
-      const returnValue = await transaction.start();
+      const returnValue = transaction.start();
 
       strictEqual(returnValue, token);
     });

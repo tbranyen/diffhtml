@@ -190,7 +190,7 @@ export default class Component {
         this.componentWillReceiveProps(this.props, this.state);
 
         if (this.shouldComponentUpdate(this.props, this.state)) {
-          this[$$render]()?.then(resolve);
+          resolve(this[$$render]());
         }
         else {
           resolve(null);
@@ -213,7 +213,7 @@ export default class Component {
 
         this.componentWillReceiveProps(this.props, this.state);
 
-        this[$$render]()?.then(resolve);
+        resolve(this[$$render]());
       })));
     }
 
@@ -236,7 +236,7 @@ export default class Component {
    * Stateful render. Used when a component changes and needs to re-render
    * itself. This is triggered on `setState` and `forceUpdate` calls.
    *
-   * @return {Promise<Transaction> | undefined}
+   * @return {Transaction | undefined}
    */
   [$$render]() {
     // This is a WebComponent, so do something different.
@@ -253,8 +253,7 @@ export default class Component {
         this[$$hooks].i = 0;
       }
 
-      /** @type {Promise<Transaction>} */
-      const promise = /** @type {any} */ (innerHTML(
+      const transaction = /** @type {Transaction} */(innerHTML(
         /** @type {any} */ (this).shadowRoot,
         this.render(this.props, this.state),
       ));
@@ -262,7 +261,7 @@ export default class Component {
       ActiveRenderState.length = 0;
 
       this.componentDidUpdate(oldProps, oldState);
-      return promise;
+      return transaction;
     }
 
     // Get the fragment tree associated with this component. This is used to
@@ -354,21 +353,15 @@ export default class Component {
       return transaction;
     });
 
-    /**
-     * Compare the existing component node(s) to the new node(s).
-     *
-     * @type {Promise<Transaction>}
-     */
-    const promise = /** @type {any} */ (outerHTML(fragment, renderTree, { tasks }));
+    // Compare the existing component node(s) to the new node(s).
+    const transaction = /** @type {Transaction} */(outerHTML(fragment, renderTree, { tasks }));
 
-    return promise.then(transaction => {
-      // Empty the fragment after using.
-      fragment.childNodes.length = 0;
-      release(fragment);
+    // Empty the fragment after using.
+    fragment.childNodes.length = 0;
+    release(fragment);
 
-      this.componentDidUpdate(this.props, this.state);
-      return transaction;
-    });
+    this.componentDidUpdate(this.props, this.state);
+    return transaction;
   }
 
   connectedCallback() {
