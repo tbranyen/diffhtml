@@ -1,0 +1,9 @@
+{
+  "name": "diffhtml-rust-parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/parser.js",
+  "type": "module",
+  "author": "Tim Branyen (@tbranyen)",
+  "license": "MIT"
+}
