@@ -55,6 +55,17 @@ the foundation of the diffHTML ecosystem.
 * [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
 
   ```sh
+  npm install diffhtml-rust-parser
+  ```
+
+  **Coming soon**
+
+  An alternative parser written in Rust, providing a wrapper around the
+  [tl](https://docs.rs/tl/latest/tl/) library.
+
+* [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
+
+  ```sh
   npm install babel-plugin-transform-diffhtml
   ```
 

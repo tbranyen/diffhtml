@@ -1,10 +1,11 @@
 'use strict';
 
-const fixtures = require('./.__fixtures__');
-const assert = require('assert');
-const diff = require('diffhtml');
+import assert from 'assert';
+import diff from 'diffhtml';
+import * as normalParser from './.__fixtures_normal__';
+import * as wasmParser from './.__fixtures_wasm__';
 
-describe('diffHTML Tagged Template Babel Plugin', function() {
+function runTests(fixtures) {
   beforeEach(() => {
     this.fixture = document.createElement('div');
   });
@@ -76,7 +77,7 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
     it('can render a nested template interpolated mixed expression', () => {
       const vTree = fixtures.renderNestedTemplateInterpolatedMixedExpression();
       diff.innerHTML(this.fixture, vTree);
-      assert.equal(this.fixture.innerHTML.trim(), '<div>\n      \n        <div>Hello world!</div>\n      \n    </div>');
+      assert.equal(this.fixture.innerHTML, '<div>\n    \n      <div>Hello world!</div>\n    \n  </div>');
     });
 
     it('can render a trailing interpolated mixed expression', () => {
@@ -157,4 +158,11 @@ describe('diffHTML Tagged Template Babel Plugin', function() {
       ]);
     });
   });
+}
+
+describe('diffHTML Tagged Template Babel Plugin', function() {
+  return runTests.call(this, normalParser);
+});
+describe('diffHTML Tagged Template Babel Plugin (Using WASM)', function() {
+  return runTests.call(this, wasmParser);
 });

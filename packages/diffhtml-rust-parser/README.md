@@ -35,3 +35,34 @@ innerHTML(document.body, html`
 // Simple HTML strings are also automatically parsed using WASM now
 innerHTML(document.body, '<div>Also parsed with WASM</div>');
 ```
+
+## Using with the Babel plugin
+
+To use the WASM plugin with you need to enable the Node WASM support as part of
+your build step. This is done with the `NODE_OPTIONS` env var and the
+`--experimental-wasm-modules` flag.
+
+```json
+{
+    "scripts": {
+        "build": "NODE_OPTIONS=--experimental-wasm-modules babel input.js -o output.js"
+    }
+}
+```
+
+You need to use the JS version of the Babel config in order to pass the dynamic
+value. The JSON `.babelrc` is not compatible with the WASM parser.
+
+A `babel.config.js` config could look something like:
+
+```js
+import { parse } from 'diffhtml-rust-parser';
+
+export default {
+  plugins: [
+    ['transform-diffhtml', {
+      parse,
+    }]
+  ],
+};
+```

@@ -1,4 +1,9 @@
 {
-  "require": ["@babel/register"],
-  "colors": true
+  "require": ["test/_setup.js"],
+  "loader": "extless-loader",
+  "recursive": true,
+  "colors": true,
+  "bail": true,
+  "parallel": true,
+  "jobs": 2
 }

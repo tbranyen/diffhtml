@@ -1,7 +1,6 @@
 import { createTree, Internals } from 'diffhtml';
 import * as babylon from 'babylon';
 
-const { parse } = Internals;
 const TOKEN = '__DIFFHTML_BABEL__';
 const doctypeEx = /<!.*>/i;
 const tokenEx = /__DIFFHTML_BABEL__([^_]*)__/;
@@ -16,7 +15,7 @@ let ident = {};
  *
  * @return {Object} containing the visitor handler.
  */
-export default function({ types: t }) {
+export default function({ types: t, ...rest }) {
   const interpolateValues = (string, supplemental, createTreeNode) => {
     // If this is text and not a doctype, add as a text node.
     if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
@@ -145,6 +144,10 @@ export default function({ types: t }) {
         tagName = memberExpressionToString(path.node.tag);
       }
 
+      if (plugin.opts.parse) {
+        Internals.parse = plugin.opts.parse;
+      }
+
       if (tagName.indexOf((plugin.opts.tagName || 'html')) !== 0) {
         return;
       }
@@ -235,7 +238,7 @@ export default function({ types: t }) {
         }
       });
 
-      const root = parse(HTML, null, { strict }).childNodes;
+      const root = createTree(Internals.parse(HTML, null, { strict })).childNodes;
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');
 
