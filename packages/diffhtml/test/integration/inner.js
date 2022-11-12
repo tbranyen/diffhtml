@@ -18,11 +18,8 @@ describe('Integration: innerHTML', function() {
 
   it('can recalculate the tree if contents are unexpectedly changed', function() {
     diff.innerHTML(this.fixture, '<p></p>');
-    console.log(this.fixture);
     this.fixture.innerHTML = '<span></span>';
     diff.innerHTML(this.fixture, '<p>this</p>');
-
-    console.log(this.fixture.outerHTML);
 
     assert.equal(this.fixture.firstChild.tagName, 'P');
     assert.equal(this.fixture.firstChild.textContent, 'this');
