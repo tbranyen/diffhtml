@@ -214,7 +214,7 @@ export const TransactionState = EMPTY.OBJ;
  * @property {any} Pool
  * @property {any} process
  * @property {{ [key: string]: any }} PATCH_TYPE
- * @property {Function=} parse
+ * @property {Function} parse
  * @property {Function} createNode
  * @property {Function} syncTree
  * @property {unknown} Transaction

@@ -9,7 +9,6 @@
     "watch": "NODE_ENV=umd watchify --im -s transform -g babelify lib/index.js -o dist/index.js -v",
     "build-fixtures": "NODE_ENV=test babel --ignore node_modules test/fixtures.js -o test/.__fixtures__.js",
     "test": "NODE_ENV=test npm run build-fixtures && mocha test/_setup test/assertions",
-    "test:ci": "npm run test",
     "test-watch": "npm run test -- -w"
   },
   "author": "Tim Branyen (@tbranyen)",

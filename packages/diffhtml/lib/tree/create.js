@@ -160,6 +160,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
 
   // Assume any remaining objects are VTree-like.
   if (isObject) {
+
     /** @type {VTreeLike} */
     const {
       rawNodeName,
@@ -276,7 +277,7 @@ export default function createTree(input, attributes, childNodes, ...rest) {
     // Use childNodes directly from the attributes.
     if (attributes.childNodes) {
       const isObject = typeof attributes.childNodes === 'object';
-      entry.childNodes.push(isObject ? createTree(attributes.childNodes) : createTree('#text', attributes.childNodes));
+      entry.childNodes.push(isObject ? createTree(attributes.childNodes) : createTree(textName, attributes.childNodes));
     }
   }
 

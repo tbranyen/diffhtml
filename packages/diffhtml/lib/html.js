@@ -1,19 +1,76 @@
 import createTree from './tree/create';
-import parse, { TOKEN } from './util/parse';
+import Internals from './util/internals';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 import { $$strict } from './util/symbols';
 import { EMPTY, VTree, Supplemental } from './util/types';
 import getConfig from './util/config';
 
+// Magic token used for interpolation.
+const TOKEN = '__DIFFHTML__';
+
+const { getOwnPropertyNames } = Object;
 const { isArray } = Array;
 const isTagEx = /(<|\/)/;
+const tokenEx = new RegExp(`${TOKEN}([^_]*)__`);
 
 // Get the next value from the list. If the next value is a string, make sure
 // it is escaped.
 const nextValue = (/** @type {any[]} */ values) => {
   const value = values.shift();
   return typeof value === 'string' ? escape(decodeEntities(value)) : value;
+};
+
+/**
+ * Iterates over the result from the parser and interpolates the supplemental
+ * dynamic data into place. This allows parsers to only worry about strings
+ * and returning minimal structures.
+ * 
+ * @param {VTree} childNode
+ * @param {Supplemental} supplemental
+ * @return {VTree}
+ */
+const interpolateSupplemental = (childNode, supplemental) => {
+  let match = null;
+
+  // Node name
+  if (match = tokenEx.exec(childNode.rawNodeName)) {
+    childNode.rawNodeName = supplemental.tags[match[1]];
+    childNode.nodeName = '#document-fragment';
+    childNode.nodeType = 11;
+  }
+
+  // Attributes
+  for (const keyName of getOwnPropertyNames(childNode.attributes)) {
+    const value = childNode.attributes[keyName];
+    let newKey = keyName;
+    let newValue = value;
+
+    // Check for dynamic key
+    if (match = tokenEx.exec(keyName)) {
+      newKey = supplemental.attributes[match[1]];
+      delete childNode.attributes[keyName];
+    }
+
+    // Check for dynamic value
+    if (match = tokenEx.exec(value)) {
+      newValue = supplemental.attributes[match[1]];
+    }
+
+    childNode.attributes[newKey] = newValue;
+  }
+
+  // Node value
+  if (match = tokenEx.exec(childNode.nodeValue)) {
+    return supplemental.children[match[1]];
+  }
+
+  // Children
+  for (let i = 0; i < childNode.childNodes.length; i++) {
+    childNode.childNodes[i] = interpolateSupplemental(childNode.childNodes[i], supplemental);
+  }
+
+  return childNode;
 };
 
 /**
@@ -59,7 +116,7 @@ export default function handleTaggedTemplate(strings, ...values) {
 
     delete /** @type {any} */(handleTaggedTemplate)[$$strict];
 
-    const { childNodes } = parse(strings[0], undefined, {
+    const { childNodes } = Internals.parse(strings[0], undefined, {
       parser: { strict },
     });
 
@@ -70,7 +127,7 @@ export default function handleTaggedTemplate(strings, ...values) {
   let HTML = EMPTY.STR;
 
   // We filter the supplemental values by where they are used. Values are
-  // either, children, or tags (for components).
+  // either attributes, children, or tags (for components).
   /** @type {Supplemental} */
   const supplemental = ({
     attributes: {},
@@ -127,11 +184,16 @@ export default function handleTaggedTemplate(strings, ...values) {
   }));
 
   // Parse the instrumented markup to get the Virtual Tree.
-  const { childNodes } = parse(HTML, supplemental, { parser: { strict } });
+  const { childNodes } = Internals.parse(HTML, supplemental, {
+    parser: { strict },
+  });
 
   // This makes it easier to work with a single element as a root, opposed to
   // always returning an array.
-  return createTree(childNodes.length === 1 ? childNodes[0] : childNodes);
+  const retVal = createTree(childNodes.length === 1 ? childNodes[0] : childNodes);
+
+  // Loop through all nodes and apply the dynamic attributes.
+  return interpolateSupplemental(retVal, supplemental);
 }
 
 // Default to loose-mode.

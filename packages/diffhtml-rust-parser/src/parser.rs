@@ -1,25 +1,45 @@
-//extern crate wee_alloc;
+extern crate wasm_bindgen;
 
 use tl::{Node, Parser};
-use serde_wasm_bindgen::to_value;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::{intern};
-use js_sys::{Reflect, JsString};
+use wasm_bindgen::{prelude::*};
+use js_sys::{Reflect};
 use js_sys::Array;
 use js_sys::Object;
+use std::cell::RefCell;
+use std::collections::HashMap;
 
-// Opt for a smaller allocator to save on resources.
-//#[global_allocator]
-//static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+struct Cache {
+    entries: RefCell<HashMap<String, JsValue>>,
+}
+
+thread_local! {
+    static CACHE: Cache = Cache {
+        entries: RefCell::new(HashMap::new()),
+    };
+}
 
 #[wasm_bindgen(getter_with_clone)]
 pub struct VTree {
-    pub rawNodeName: String,
-    pub nodeName: String,
-    pub nodeValue: String,
+    pub rawNodeName: Option<String>,
+    pub nodeName: Option<String>,
+    pub nodeValue: Option<String>,
     pub attributes: Object,
     pub childNodes: Array,
 }
+
+// Caches and reuses a given JsValue from a string reference.
+fn intern_and_return_cached(input_str: &str) -> JsValue {
+    CACHE.with(|cache| {
+        let mut cache = cache.entries.borrow_mut();
+
+        if !cache.contains_key(input_str) {
+            cache.insert(input_str.to_owned(), JsValue::from(input_str));
+        }
+
+        cache.get(input_str).into()
+    })
+}
+
 
 // Find properties, attributes, and children and populate into a VTree struct
 // which is returned.
@@ -27,11 +47,13 @@ pub fn crawl_node(dom_node: &Node, parser: &Parser) -> VTree {
     let attributes = Object::new();
     let child_nodes = Array::new();
     let node_tag = dom_node.as_tag();
-    let mut node_name = "#text".to_string();
+    let mut node_name = intern_and_return_cached("#text");
+    let mut node_value = intern_and_return_cached("");
 
     match node_tag {
         Some(html_tag) => {
-            node_name = html_tag.name().as_utf8_str().to_string();
+            let tag_name = html_tag.name().as_utf8_str();
+            node_name = intern_and_return_cached(tag_name.trim());
 
             // Add the attributes
             for attr in html_tag.attributes().iter() {
@@ -43,11 +65,16 @@ pub fn crawl_node(dom_node: &Node, parser: &Parser) -> VTree {
                     }
                 };
 
-                // FIXME Look into performance improvements this is a very expensive line.
-                Reflect::set(&attributes, &JsValue::from_str(key), &JsValue::from_str(value));
+                // Cache the JsValue internally and replace when injecting over-the-wire.
+                let keyJS = intern_and_return_cached(key);
+                let valueJS = intern_and_return_cached(value);
+
+                Reflect::set(&attributes, &keyJS, &valueJS);
             }
         }
-        None => {}
+        None => {
+            node_value = intern_and_return_cached(dom_node.inner_text(parser).to_string().as_str());
+        }
     }
 
     // Loop over the children and build them up into the child_nodes array.
@@ -59,9 +86,9 @@ pub fn crawl_node(dom_node: &Node, parser: &Parser) -> VTree {
     }
 
     VTree {
-        rawNodeName: node_name.clone(),
-        nodeName: node_name.clone(),
-        nodeValue: node_name.clone(),
+        rawNodeName: node_name.as_string(),
+        nodeName: node_name.as_string(),
+        nodeValue: node_value.as_string(),
         childNodes: child_nodes,
         attributes,
     }
@@ -78,7 +105,7 @@ pub extern "C" fn parse(markup: &str) -> VTree {
     let dom = tl::parse(markup, tl::ParserOptions::default()).unwrap();
     let parser = dom.parser();
     let child_nodes = Array::new();
-    let fragment_name = "#document-fragment".to_string();
+    let fragment_name = intern_and_return_cached("#document-fragment");
 
     // Use the DOM and map into the VTree structure diffHTML expects.
     for dom_node in dom.children().iter() {
@@ -88,9 +115,9 @@ pub extern "C" fn parse(markup: &str) -> VTree {
 
     // Root node is always a document fragment.
     VTree {
-        rawNodeName: fragment_name.clone(),
-        nodeName: fragment_name.clone(),
-        nodeValue: "".to_string(),
+        rawNodeName: fragment_name.as_string(),
+        nodeName: fragment_name.as_string(),
+        nodeValue: intern_and_return_cached("").as_string(),
         childNodes: child_nodes,
         attributes: Object::new(),
     }
