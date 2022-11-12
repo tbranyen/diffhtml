@@ -16,6 +16,9 @@ jobs:
         with:
           toolchain: nightly
           target: wasm32-unknown-unknown
+      - uses: jetli/wasm-bindgen-action@v0.1.0
+        with:
+          version: 'latest'
       - run: rustup target add wasm32-unknown-unknown
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
