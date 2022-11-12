@@ -25,12 +25,14 @@ const nextValue = (/** @type {any[]} */ values) => {
  * Iterates over the result from the parser and interpolates the supplemental
  * dynamic data into place. This allows parsers to only worry about strings
  * and returning minimal structures.
- * 
+ *
+ * This also flattens fragments.
+ *
  * @param {VTree} childNode
  * @param {Supplemental} supplemental
  * @return {VTree}
  */
-const interpolateSupplemental = (childNode, supplemental) => {
+const interpolateAndFlatten = (childNode, supplemental) => {
   let match = null;
 
   // Node name
@@ -67,7 +69,16 @@ const interpolateSupplemental = (childNode, supplemental) => {
 
   // Children
   for (let i = 0; i < childNode.childNodes.length; i++) {
-    childNode.childNodes[i] = interpolateSupplemental(childNode.childNodes[i], supplemental);
+    // Flatten fragments.
+    const vTree = interpolateAndFlatten(childNode.childNodes[i], supplemental);
+
+    if (vTree.nodeName === '#document-fragment' && vTree.rawNodeName === vTree.nodeName) {
+      childNode.childNodes.splice(i, 1, ...vTree.childNodes);
+      i += vTree.childNodes.length;
+    }
+    else {
+      childNode.childNodes[i] = vTree;
+    }
   }
 
   return childNode;
@@ -192,8 +203,9 @@ export default function handleTaggedTemplate(strings, ...values) {
   // always returning an array.
   const retVal = createTree(childNodes.length === 1 ? childNodes[0] : childNodes);
 
-  // Loop through all nodes and apply the dynamic attributes.
-  return interpolateSupplemental(retVal, supplemental);
+  // Loop through all nodes and apply the dynamic attributes and flatten
+  // fragments.
+  return interpolateAndFlatten(retVal, supplemental);
 }
 
 // Default to loose-mode.

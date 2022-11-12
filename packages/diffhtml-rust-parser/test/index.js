@@ -108,6 +108,14 @@ describe('Basic', () => {
         attributes: {},
         childNodes: [],
       }, {
+        rawNodeName: '#text',
+        nodeName: '#text',
+        key: '',
+        nodeType: 3,
+        nodeValue: ' ',
+        childNodes: [],
+        attributes: {},
+      }, {
         rawNodeName: 'p',
         nodeName: 'p',
         key: '',

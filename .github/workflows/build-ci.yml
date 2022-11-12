@@ -12,19 +12,15 @@ jobs:
       - uses: bahmutov/npm-install@v1.6.0
         with:
           useRollingCache: true
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: wasm32-unknown-unknown
+      - run: rustup target add wasm32-unknown-unknown
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
-      - run: lerna run build
-      - uses: actions-rs/toolchain@v1
-        working-directory: ./packages/diffhtml-rust-parser
-        with:
-          toolchain: stable
-      - uses: actions-rs/cargo@v1
-        working-directory: ./packages/diffhtml-rust-parser
-        with:
-          command: build
-          args: --release --all-features
-      - run: lerna run test-cov
+      - run: npm run build
+      - run: npm run test-cov
       - name: Publish to coveralls.io
         uses: coverallsapp/github-action@v1.1.2
         with:
