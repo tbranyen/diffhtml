@@ -15,7 +15,7 @@ let ident = {};
  *
  * @return {Object} containing the visitor handler.
  */
-export default function({ types: t, ...rest }) {
+export default function({ types: t }) {
   const interpolateValues = (string, supplemental, createTreeNode) => {
     // If this is text and not a doctype, add as a text node.
     if (string && !doctypeEx.test(string) && !tokenEx.test(string)) {
@@ -238,6 +238,10 @@ export default function({ types: t, ...rest }) {
         }
       });
 
+      // We call `createTree` here to ensure consistent structures when
+      // serializing later. Using WASM the objects returned have getters which
+      // are lost to the JSON.stringify call. By using createTree the values
+      // are plucked and applied to the VTree object.
       const root = createTree(Internals.parse(HTML, null, { strict })).childNodes;
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');

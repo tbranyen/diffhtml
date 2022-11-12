@@ -2,7 +2,8 @@
   "name": "babel-plugin-transform-diffhtml",
   "version": "1.0.0-beta.29",
   "description": "Compiles tagged templates into createTree calls",
-  "main": "dist/index.js",
+  "main": "dist/cjs/index",
+  "module": "dist/es/index",
   "type": "module",
   "scripts": {
     "build": "npm run clean && npm run build-cjs && npm run build-esm",
