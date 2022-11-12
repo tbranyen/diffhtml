@@ -1,3 +1,3 @@
 node_modules
 dist
-test/.__fixtures__.js
+test/.__fixtures_*

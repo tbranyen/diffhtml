@@ -4,4 +4,3 @@ docs
 coverage
 target
 lerna-debug.log
-.__fixtures_*
