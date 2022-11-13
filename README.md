@@ -52,7 +52,7 @@ the foundation of the diffHTML ecosystem.
   components seamlessly. The API will be very familiar to anyone
   who has used React as the class methods and structure are the same.
 
-* [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
+* [diffhtml-rust-parser](/packages/diffhtml-rust-parser)
 
   ```sh
   npm install diffhtml-rust-parser
@@ -60,8 +60,9 @@ the foundation of the diffHTML ecosystem.
 
   **Coming soon**
 
-  An alternative parser written in Rust, providing a wrapper around the
-  [tl](https://docs.rs/tl/latest/tl/) library.
+  An alternative parser written in Rust and compiled to WASM, providing a
+  wrapper around the [tl](https://docs.rs/tl/latest/tl/) HTML parsing library
+  which is then converted into a compatible diffHTML VDOM structure.
 
 * [babel-plugin-transform-diffhtml](/packages/babel-plugin-transform-diffhtml)
 
