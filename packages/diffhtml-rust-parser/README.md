@@ -66,3 +66,13 @@ export default {
   ],
 };
 ```
+
+## Using with Webpack
+
+This module is generated with bundlers and Node in mind. You should be able to
+consume it with a bundler that supports loading WASM like webpack. A sample
+example of how you could integrate the WASM parser in both development and
+production is available.
+
+- [Sample webpack example](./examples/webpack)
+
