@@ -11,9 +11,16 @@ export default {
   },
   output: {
     path: dist,
-    filename: 'build.js'
+    filename: 'build.js',
+    publicPath: '/dist/',
+    clean: true,
   },
   experiments: {
     futureDefaults: true,
   },
+  devServer: {
+    static: {
+      directory: '.',
+    }
+  }
 };

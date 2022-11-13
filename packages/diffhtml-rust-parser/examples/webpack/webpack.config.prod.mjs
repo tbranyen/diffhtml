@@ -1,5 +1,12 @@
 import webpack from 'webpack';
 import config from './webpack.config.mjs';
+import VirtualModulesPlugin from 'webpack-virtual-modules';
+
+const virtualModules = new VirtualModulesPlugin({
+  './empty.js': `
+    export const parse = () => {};
+  `,
+});
 
 export default {
   ...config,
@@ -25,8 +32,9 @@ export default {
   resolve: {
     alias: {
       'diffhtml': 'diffhtml/dist/es/lite.js',
-      'diffhtml-rust-parser/dist/parser_bg.wasm': './empty.js',
       'diffhtml-rust-parser': './empty.js',
     },
   },
+
+  plugins: [ virtualModules ],
 };
