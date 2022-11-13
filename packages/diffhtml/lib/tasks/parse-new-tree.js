@@ -1,4 +1,4 @@
-import parse from '../util/parse';
+import Internals from '../util/internals';
 import createTree from '../tree/create';
 import Transaction from '../transaction';
 
@@ -12,7 +12,7 @@ export default function parseNewTree(transaction) {
   if (typeof input === 'string') {
     measure('parsing input for new tree');
 
-    const { childNodes } = parse(input, undefined, options);
+    const { childNodes } = Internals.parse(input, undefined, options);
     const vTree = createTree(childNodes);
 
     if (vTree) {

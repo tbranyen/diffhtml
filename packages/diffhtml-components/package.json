@@ -42,7 +42,6 @@
     "watch-main": "NODE_ENV=umd rollup -c rollup.main.config.js -w",
     "test": "mocha",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test/**",
-    "test:ci": "npm run test-cov",
     "test-cov": "NODE_ENV=test+cov c8 -r=lcov mocha test/_setup test/**"
   }
 }

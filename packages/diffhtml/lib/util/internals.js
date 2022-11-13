@@ -9,6 +9,7 @@ import Pool from './pool';
 import internalProcess from './process';
 import { globalConfig } from './config';
 import {
+  EMPTY,
   PATCH_TYPE,
   Internals,
   StateCache,
@@ -42,6 +43,7 @@ export default /** @type {Internals} */ ({
   process: internalProcess,
   PATCH_TYPE,
   globalConfig,
+  parse: EMPTY.FUN,
 
   // Core.
   createNode,

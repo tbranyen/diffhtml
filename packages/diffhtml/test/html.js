@@ -1,10 +1,16 @@
 import { equal, deepEqual, doesNotThrow, throws } from 'assert';
 import html from '../lib/html';
+import Internals from '../lib/util/internals';
+import parse from '../lib/util/parse';
 import createTree from '../lib/tree/create';
 import validateMemory from './util/validate-memory';
 import { NodeCache } from '../lib/util/types';
 
 describe('HTML (Tagged template)', function() {
+  beforeEach(() => {
+    Internals.parse = parse;
+  });
+
   afterEach(() => validateMemory());
 
   it('will return an empty text node when passed a falsy value', () => {

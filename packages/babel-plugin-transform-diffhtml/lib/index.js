@@ -1,7 +1,6 @@
 import { createTree, Internals } from 'diffhtml';
 import * as babylon from 'babylon';
 
-const { parse } = Internals;
 const TOKEN = '__DIFFHTML_BABEL__';
 const doctypeEx = /<!.*>/i;
 const tokenEx = /__DIFFHTML_BABEL__([^_]*)__/;
@@ -145,6 +144,10 @@ export default function({ types: t }) {
         tagName = memberExpressionToString(path.node.tag);
       }
 
+      if (plugin.opts.parse) {
+        Internals.parse = plugin.opts.parse;
+      }
+
       if (tagName.indexOf((plugin.opts.tagName || 'html')) !== 0) {
         return;
       }
@@ -235,7 +238,11 @@ export default function({ types: t }) {
         }
       });
 
-      const root = parse(HTML, null, { strict }).childNodes;
+      // We call `createTree` here to ensure consistent structures when
+      // serializing later. Using WASM the objects returned have getters which
+      // are lost to the JSON.stringify call. By using createTree the values
+      // are plucked and applied to the VTree object.
+      const root = createTree(Internals.parse(HTML, null, { strict })).childNodes;
       const strRoot = JSON.stringify(root.length === 1 ? root[0] : root);
       const vTree = babylon.parse('(' + strRoot + ')');
 

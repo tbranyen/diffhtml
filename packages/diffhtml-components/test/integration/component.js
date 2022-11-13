@@ -473,7 +473,6 @@ describe('Component implementation', function() {
       strictEqual(refNode.getAttribute('ref'), null);
       strictEqual(this.fixture.nodeName, 'DIV');
 
-      console.log(html``);
       innerHTML(this.fixture, html``);
 
       strictEqual(count, 2);

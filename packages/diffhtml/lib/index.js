@@ -1,7 +1,7 @@
 import createTree from './tree/create';
 import parseNewTree from './tasks/parse-new-tree';
 import reconcileTrees from './tasks/reconcile-trees';
-import internals from './util/internals';
+import Internals from './util/internals';
 import parse from './util/parse';
 import { $$diffHTML } from './util/symbols';
 import globalThis from './util/global';
@@ -17,9 +17,8 @@ import { __VERSION__ as VERSION } from './version';
 // At startup inject the HTML parser into the default set of tasks.
 defaultTasks.splice(defaultTasks.indexOf(reconcileTrees), 0, parseNewTree);
 
-// Add build flavor internals when executed.
-internals['parse'] = parse;
-internals['VERSION'] = VERSION;
+Internals['VERSION'] = VERSION;
+Internals['parse'] = parse;
 
 // Build up the full public API.
 const api = {};
@@ -32,7 +31,7 @@ api['outerHTML'] = outerHTML;
 api['innerHTML'] = innerHTML;
 api['toString'] = toString;
 api['html'] = html;
-api['Internals'] = internals;
+api['Internals'] = Internals;
 
 /** @type {any} */
 const global = globalThis;
@@ -52,7 +51,7 @@ global[$$diffHTML] = api;
 
 // Automatically hook up to DevTools if they are present.
 if (global.devTools) {
-  global.unsubscribeDevTools = use(global.devTools(internals));
+  global.unsubscribeDevTools = use(global.devTools(Internals));
 }
 
 export {
@@ -64,7 +63,7 @@ export {
   innerHTML,
   toString,
   html,
-  internals as Internals,
+  Internals,
 };
 
 export default api;
