@@ -15,7 +15,7 @@ make
 ## Test
 
 ```
-node --experimental-wasm-modules .
+npm t
 ```
 
 ## Using with diffHTML
