@@ -1,12 +1,12 @@
 name: build-ci
 
 on:
-  push:
   pull_request:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v3
       - uses: bahmutov/npm-install@v1.6.0
