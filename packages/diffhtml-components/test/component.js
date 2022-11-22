@@ -244,11 +244,12 @@ describe('Component', function() {
       strictEqual(componentVTree.rawNodeName, TestComponent);
     });
 
-    it('will associate the whitespace from the start of a fragment', () => {
+    it('will associate the first element from the start of a fragment', () => {
       class TestComponent extends Component {
         render() {
           return html`
             <div />
+            <p />
           `;
         }
       }
@@ -257,8 +258,6 @@ describe('Component', function() {
       innerHTML(this.fixture, TestComponent);
 
       const componentVTree = ComponentTreeCache.get(this.fixture.childNodes[0]);
-      // FIXME This should be a comment to make it more portable. Although text
-      // will work for now.
       strictEqual(this.fixture.childNodes[0].nodeName, '#text');
       strictEqual(componentVTree.rawNodeName, TestComponent);
     });
@@ -617,7 +616,7 @@ describe('Component', function() {
 
       const instance = this.fixture.querySelector('custom-component');
 
-      strictEqual(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+      strictEqual(instance.shadowRoot.childNodes[0].outerHTML, '<div>Hello world</div>');
       strictEqual(this.fixture.innerHTML, '<div><custom-component></custom-component></div>');
     });
 
@@ -640,7 +639,7 @@ describe('Component', function() {
 
       const instance = this.fixture.querySelector('custom-component');
 
-      strictEqual(instance.shadowRoot.childNodes[1].outerHTML, '<div>Hello world</div>');
+      strictEqual(instance.shadowRoot.childNodes[0].outerHTML, '<div>Hello world</div>');
       strictEqual(this.fixture.innerHTML, '<custom-component></custom-component>');
     });
 

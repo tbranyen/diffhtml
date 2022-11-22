@@ -166,10 +166,10 @@ describe('Integration: Basics', function() {
       });
     });
 
-    it('will error if arrays are attempted to be spread in strict mode', function() {
+    it('will error when arrays are spread since they are invalid', function() {
       const obj = [1, false];
 
-      assert.throws(() => diff.html.strict`
+      assert.throws(() => diff.html`
         <div
           class="test"
           ${obj}

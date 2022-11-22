@@ -148,8 +148,6 @@ export const Middleware = EMPTY.OBJ;
 /**
  * @typedef {Object} ParserConfig
  *
- * @property {Boolean=} strict - Should the parser operate in strict mode
- * @property {Boolean=} trim - Trim surrounding whitespace nodes
  * @property {string[]=} rawElements - Set of raw element tagNames, empty is all
  * @property {string[]=} selfClosingElements - Set of self closing element tagNames, empty is all
  */

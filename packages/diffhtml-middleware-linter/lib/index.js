@@ -1,30 +1,39 @@
 const { assign, keys } = Object;
 const { isArray } = Array;
 
+/**
+ * @see https://htmlhint.com/docs/user-guide/list-rules
+ */
 const defaults = {
-  "tagname-lowercase": true,
+  // Doctype and Head
+  "doctype-first": true,                  // requires parser change
+  "doctype-html5": true,                  // requires parser change
+  "html-lang-require": true,              // requires parser change
+  "head-script-disabled": true,
+  "style-disabled": false,
+  "script-disabled": false,
+  "title-require": true,
+
+  // Attributes
   "attr-lowercase": true,
+  "attr-no-duplication": true,            // requires parser change
+  "attr-no-unnecessary-whitespace": true, // requires parser change
   "attr-value-double-quotes": true,       // requires parser change
   "attr-value-not-empty": false,
-  "attr-no-duplication": true,            // requires parser change
-  "doctype-first": true,                  // requires parser change
   "tag-pair": true,                       // requires parser change
   "empty-tag-not-self-closed": true,      // requires parser change
   "spec-char-escape": true,               // requires parser change
+  "tagname-lowercase": true,
   "id-unique": true,
   "src-not-empty": true,
-  "title-require": true,
   "alt-require": true,
-  "doctype-html5": true,                  // requires parser change
   "id-class-value": "dash",
-  "style-disabled": false,
   "inline-style-disabled": false,
   "inline-script-disabled": false,
   "space-tab-mixed-disabled": "space",    // requires parser change
   "id-class-ad-disabled": false,          // tbd
   "href-abs-or-rel": false,               // tbd
   "attr-unsafe-chars": true,
-  "head-script-disabled": true,
 };
 
 const unsafeRegexp = /[\u0000-\u0009\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/;

@@ -13,7 +13,7 @@ approachable to new programmers, intermediates, and professionals.
 - ESM/CJS/UMD + Minified ES5 builds
 - Middleware
 - Efficient Virtual DOM
-- Object pooling to optimize GC
+- Object pooling and custom HTML parser to optimize GC
 - Strict mode TypeScript via checkJS
 
 <a name="getting-started"></a>

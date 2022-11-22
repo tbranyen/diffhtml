@@ -78,7 +78,10 @@ export default function createNode(vTreeLike, ownerDocument = globalThis.documen
   // Create empty text elements. They will get filled in during the patch
   // process.
   if (!domNode) {
-    if (nodeName === '#text') {
+    if (nodeName === '#comment') {
+      domNode = ownerDocument.createComment(vTree.nodeValue || EMPTY.STR);
+    }
+    else if (nodeName === '#text') {
       domNode = ownerDocument.createTextNode(vTree.nodeValue || EMPTY.STR);
     }
     // Support dynamically creating document fragments.

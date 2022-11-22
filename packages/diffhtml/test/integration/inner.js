@@ -175,9 +175,7 @@ describe('Integration: innerHTML', function() {
       <div></div>
     `);
 
-    assert.equal(this.fixture.outerHTML, `<div>
-      <div></div>
-    </div>`);
+    assert.equal(this.fixture.outerHTML, `<div><div></div></div>`);
 
     diff.innerHTML(this.fixture, html`
       <h1></h1>
@@ -359,10 +357,10 @@ describe('Integration: innerHTML', function() {
   });
 
   describe('Comments', function() {
-    it('ignores comments', function() {
+    it('supports comments', function() {
       diff.innerHTML(this.fixture, '<div><p><!-- test --></p></div>');
 
-      assert.equal(this.fixture.firstChild.innerHTML, '<p></p>');
+      assert.equal(this.fixture.firstChild.innerHTML, '<p><!-- test --></p>');
     });
   });
 

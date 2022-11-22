@@ -3,11 +3,11 @@
 @import 'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css';
 
 html, body {
+  width: 100%;
   max-height: 100%;
-  margin: 0 auto;
+  margin: 0;
   display: flex;
   font-family: Lato, Arial, Helvetica, sans-serif;
-  background: linear-gradient(to right, #F3F3F3 0%, #FCFDF0 calc(50% - 650px), #F3F3F3 50%, #F3F3F3 100%);
   touch-action: manipulation;
 }
 
@@ -53,7 +53,7 @@ pre code {
 
 layer#navigation {
   display: flex;
-  background-color: rgba(252, 253, 240, 1);
+  background-color: #fcffee;
   padding: 0 20px;
   padding-right: 0;
   width: 240px;
@@ -145,12 +145,12 @@ layer#navigation li.header h4 {
 
 layer#main {
   background-color: #FFF;
-  max-width: 960px;
   overflow-y: scroll;
   line-height: 30px;
   font-size: 18px;
   color: #333;
   box-sizing: border-box;
+  width: 100%;
 }
 
 layer#main header {
@@ -406,6 +406,12 @@ h1 a.github:hover {
   line-height: 280px;
 }
 
+/* Page content */
+div.page-content {
+  max-width: 960px;
+  margin: auto;
+}
+
 /* Tablet */
 @media only screen and (max-width : 760px) {
   html, body {
@@ -422,7 +428,7 @@ h1 a.github:hover {
   }
 
   body.open {
-    background: linear-gradient(to right, #333 248px, #F3F3F3 248px, #F3F3F3 100%);
+    background: #F3F3F3;
     user-select: none;
     overflow: hidden;
   }
@@ -430,6 +436,14 @@ h1 a.github:hover {
   nav {
     display: block;
     right: auto;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
   }
 
   center {
@@ -450,7 +464,6 @@ h1 a.github:hover {
   }
 
   body.open layer#navigation {
-    background-color: rgba(252, 253, 240, 0.9);
     transition: transform cubic-bezier(.17,.67,.83,.67) 140ms;
     transform: translate3d(0, 0, 0);
     padding: 0 18px;
@@ -497,7 +510,7 @@ h1 a.github:hover {
     text-align: left;
     margin-left: 0;
     padding-left: 0;
-    padding-top: 4px;
+    padding-top: 15px;
     padding-bottom: 0;
     display: inline-block;
     max-width: calc(100% - 55px);
@@ -557,7 +570,7 @@ h1 a.github:hover {
   .open-menu {
     display: inline-block;
     color: #333;
-    top: -5px;
+    top: -15px;
     padding: 10px 20px;
     cursor: pointer;
     z-index: 100;

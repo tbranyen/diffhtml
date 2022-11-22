@@ -1,12 +1,14 @@
 # Core API
 
+The 
+
 This documentation covers the core public API. All methods and internals work
 in the browser and directly in [Node.js](https://nodejs.org/en/) with or without
 [jsdom](https://github.com/jsdom/jsdom).
 
 **Terminology:**
 
-- **VTree**: You will see them mentioned throughout the documentation. They are
+- **VTree**: The internal VDOM structure. They are
   JavaScript objects that represent a DOM node. They store information such as
   the tagName, what the childNodes are, and more. A reference to a VTree can get
   you access to the DOM node it represents. They are used throughout the
@@ -417,7 +419,7 @@ passing a config object to `innerHTML`, `outerHTML`, and `toString`.
 
 In the case of query string and environment variables, uppercase the variables
 and prefix with `DIFF_`. So `inner` becomes `DIFF_INNER`. For `parser` use a
-JSON string: `JSON.stringify({ parser: { strict: true } })`.
+JSON string: `JSON.stringify({ parser: { rawElements: ['div'] } })`.
 
 - [`inner`](#options-inner)
 - [`tasks`](#options-tasks)
@@ -534,8 +536,8 @@ innerHTML(document.body, `Some value`, {
 
 ### <a href="#options-parser">parser `Object`</a>
 
-These options modify the parser by making it more strict or changing which
-elements are treated as block or self closing.
+These options modify the parser by  changing which elements are treated as
+block or self closing.
 
 [Learn more about these options](/parser.html#options)
 
@@ -548,7 +550,7 @@ import { innerHTML } from 'diffhtml';
 
 innerHTML(document.body, `
   <h1>Hello world</h2>
-`, { parser: { strict: true } });
+`, { parser: { rawElements: ['div'] } });
 ```
 
 ---

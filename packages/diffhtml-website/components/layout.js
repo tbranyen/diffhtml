@@ -36,27 +36,29 @@ module.exports = ({ path, page, pages, content }) => html`
       </layer>
 
       <layer id="main">
-        <div class="open-menu">≡</div>
-        <header>
-          <h1>
-            <a href="/"><img width="120" height="51" src="./images/diffhtml-logo-fit.png"></a>
-            <div>
-              <p class="name">diffHTML</p><sub>v${version}</sub>
-              <p>An easy-to-use Virtual DOM built for the web!</p>
-            </div>
-          </h1>
-        </header>
+        <div class="page-content">
+          <div class="open-menu">≡</div>
+          <header>
+            <h1>
+              <a href="/"><img width="120" height="51" src="./images/diffhtml-logo-fit.png"></a>
+              <div>
+                <p class="name">diffHTML</p><sub>v${version}</sub>
+                <p>An easy-to-use Virtual DOM built for the web!</p>
+              </div>
+            </h1>
+          </header>
 
-        <hr />
+          <hr />
 
-        <section id="content">${content}</section>
+          <section id="content">${content}</section>
 
-        <a
-          href=${`https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/${path.replace('.html', '.md')}`}
-          id="edit-on-github"
-        >
-          Edit on GitHub &nbsp; <span class="fa fa-github"></span>
-        </a>
+          <a
+            href=${`https://github.com/tbranyen/diffhtml/edit/master/packages/diffhtml-website/pages/${path.replace('.html', '.md')}`}
+            id="edit-on-github"
+          >
+            Edit on GitHub &nbsp; <span class="fa fa-github"></span>
+          </a>
+        </div>
 
         <footer>
           <a target="_blank" href="https://twitter.com/tbranyen" style="text-decoration: none;">

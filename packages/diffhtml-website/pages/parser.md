@@ -2,16 +2,21 @@
 
 One of the best features of diffHTML is the parser. This drives the compiling
 of declarative markup and supports a variety of syntaxes. You can make compound
-documents that are comprised of HTML, SVG, or XML. The result is a JSX-like
-object which is used by the core engine and the Babel transform.
+documents that are comprised of HTML, SVG, or XML. The result is a VTree which
+makes it equivalent to the `createTree` function. 
 
-When you use `innerHTML`, `outerHTML`, or `html` and pass markup, it will run
-through this very fast and efficient parser. Usually production code does not
-run the parser. You will pre-compile your markup using the [Babel
-transform](/tools.html#babel-transform).
+Usually production code does not run the parser. You will pre-compile your markup
+using the [Babel transform](/tools.html#babel-transform) that also conveniently
+uses the same parser to ensure parity.
 
-The parser can read full HTML documents including doctype, html/head/body/title
-etc tags, unwrapped fragments, and more!
+The built in parser can read full HTML documents including comments, doctype,
+html/head/body/title page tags, multiple unwrapped top-level root elements,
+and has support for optional tags. It even supports nested markup within tags,
+such as <code>srcdoc="<some markup />"</code> in <code>&lt;iframe/&gt;</code>.
+
+While the parser works for most use cases out-of-the-box, you may want to use
+something else. The parser is fully overrieable and allows for any string-based
+input, so long as it can be compiled to a tree structure.
 
 **Using with innerHTML:**
 
@@ -113,56 +118,12 @@ console.log(Internals.parse(`
 
 ## <a href="#options">Options</a>
 
-The parser is somewhat configurable, allowing you to opt into a strict-mode for
-erroring if invalid markup is passed. This could be useful to pair with the
-[HTML Linter Middleware](/middleware.html#html-linter).
+The parser is somewhat configurable, allowing you to change the list of self
+closing items. This could be useful to pair with the [HTML Linter
+Middleware](/middleware.html#html-linter).
 
-- [`strict`](#strict-mode) - Toggle strict mode parsing
-- [`rawElements`](#block-elements) - Modify the list of elements that have raw values
-- [`selfClosingElements`](#self-closing) - Modify the list of elements that can self close
-
-<a name="strict-mode"></a>
-
----
-
-### <a href="#strict-mode">Strict mode</a>
-
-By default the parser operates in loose-mode which is forgiving of missing
-closing tags, poor markup, and other common issues. When opting into strict
-mode you will receive errors if you don't properly self close tags, have
-mismatched tag names, etc.
-
-```js
-import { innerHTML } from 'diffhtml';
-
-const options = {
-  parser: {
-    strict: true,
-  }
-};
-
-// Will be fine since the elements match
-innerHTML(document.body, `
-  <h1>Hello world</h1>
-`, options);
-
-// Will throw since the elements do not match
-innerHTML(document.body, `
-  <h1>Hello world</h2>
-`, options);
-```
-
-Unlike the other two options below, this feature can be configured using the
-tagged template [`html`](/api.html#html) directly.
-
-```js
-import { html } from 'diffhtml';
-
-// Will throw an error due to the tag mismatch
-html.strict`
-  <p></div>
-`;
-```
+- [`rawElements`](#block-elements) - Modify the list of elements that have text values instead of markup
+- [`voidElements`](#self-closing) - Modify the list of elements that can self close
 
 <a name="block-elements"></a>
 

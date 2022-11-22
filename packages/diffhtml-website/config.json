@@ -22,7 +22,8 @@
 
     "Parser": ["parser.html", {
       "Options": "#options",
-      "Dynamic values": "#dynamic-values"
+      "Dynamic values": "#dynamic-values",
+      "Rust WASM": "#rust-wasm"
     }],
 
     "Middleware": ["middleware.html", {

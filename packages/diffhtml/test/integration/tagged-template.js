@@ -254,4 +254,21 @@ describe('Integration: Tagged template', function() {
 
     assert.equal(this.fixture.childNodes[1].checked, false);
   });
+
+  it('can parse a comment with html in it', function() {
+    const className = 'test';
+
+    diff.innerHTML(this.fixture, html`
+      <!--
+      <input
+        class=${className}
+      />
+      -->
+    `);
+
+    assert.strictEqual(this.fixture.childNodes[1].nodeName, '#comment');
+    assert.strictEqual(this.fixture.childNodes[1].nodeValue.trim(), `<input
+        class=test
+      />`);
+  });
 });
