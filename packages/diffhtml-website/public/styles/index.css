@@ -26,6 +26,10 @@ img {
   max-width: 100%;
 }
 
+header img {
+  max-width: unset;
+}
+
 code {
   font-family: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
   border-radius: 4px;
