@@ -11,12 +11,12 @@ uses the same parser to ensure parity.
 
 The built in parser can read full HTML documents including comments, doctype,
 html/head/body/title page tags, multiple unwrapped top-level root elements,
-and has support for optional tags. It even supports nested markup within tags,
+and has support for optional tags. It even supports nested markup within attributes,
 such as <code>srcdoc="<some markup />"</code> in <code>&lt;iframe/&gt;</code>.
 
 While the parser works for most use cases out-of-the-box, you may want to use
-something else. The parser is fully overrieable and allows for any string-based
-input, so long as it can be compiled to a tree structure.
+something else. The parser is overrideable and allows for any string-based
+input, so long as it returns a DOM-like structure.
 
 **Using with innerHTML:**
 
@@ -149,6 +149,30 @@ element names to allow this feature.
 
 Examples of these kinds of elements are: `<meta/>`, `<hr/>`, `<img/>`
 
+<a name="override"></a>
+
+---
+
+## <a href="#override-parser">Override parser</a>
+
+The parser is a simple function that takes in a string and returns a VTree or DOM-like object structure. This
+function can be changed by mutating the `Internals` object.
+
+```js
+import { Internals } from 'diffhtml';
+
+Internals.parse = input => {
+  // Convert the input into a tree-like structure following the VTree format
+  return {
+    rawNodeName: 'div', // this can be any JS value, represents the tag / component
+    nodeName: 'div', // must be string, represents the DOM value
+    nodeValue: '', // for comments and text nodes, represents the actual value of the node
+    key: '', // used to identify a node when doing keyed renders
+    attributes: {}, // key val of attributes or props
+    childNodes: [], // children of this node
+  };
+};
+```
 
 <a name="dynamic-values"></a>
 

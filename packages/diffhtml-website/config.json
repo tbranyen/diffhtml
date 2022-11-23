@@ -22,6 +22,7 @@
 
     "Parser": ["parser.html", {
       "Options": "#options",
+      "Override parser": "#override-parser",
       "Dynamic values": "#dynamic-values",
       "Rust WASM": "#rust-wasm"
     }],
