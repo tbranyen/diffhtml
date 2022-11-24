@@ -2,6 +2,7 @@ const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('fs');
 const { join, dirname } = require('path');
 const { html, toString, use } = require('diffhtml');
 const { marked } = require('marked');
+const mermaid = require('mermaid');
 const flattenPages = require('./util/flatten-pages');
 const { keys } = Object;
 
@@ -9,6 +10,15 @@ const { keys } = Object;
 // component and toString will pick it up automatically.
 require('diffhtml-components');
 //use(require('diffhtml-middleware-linter')());
+
+// Mermaid parsing
+use({
+  createTreeHook(...all) {
+    if (all[0].nodeName === 'mermaid') {
+      console.log(all);
+    }
+  },
+});
 
 const renderer = {};
 

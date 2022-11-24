@@ -22,6 +22,7 @@
     "diffhtml-static-sync": "^1.0.0-beta.29",
     "express": "^4.17.3",
     "marked": "^4.0.12",
+    "mermaid": "^9.2.2",
     "ncp": "^2.0.0",
     "serve-favicon": "^2.5.0"
   }
