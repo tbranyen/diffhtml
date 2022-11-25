@@ -35,10 +35,14 @@ use({
   createTreeHook({ nodeName, childNodes }) {
     if (nodeName === 'mermaid') {
       if (childNodes[0].nodeType === Internals.NODE_TYPE.TEXT) {
-        mermaid.render('mermaid', childNodes[0].nodeValue.trim(), svg => {
-          // Replace with the newly rendered SVG
-          childNodes[0] = html(svg);
-        });
+        try {
+          mermaid.render('mermaid', childNodes[0].nodeValue.trim(), svg => {
+            // Replace with the newly rendered SVG
+            childNodes[0] = html(svg);
+          });
+        } catch (e) {
+          childNodes[0] = html`<pre>${e.stack}</pre>`;
+        }
       }
     }
   },

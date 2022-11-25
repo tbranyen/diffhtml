@@ -377,12 +377,14 @@ export default function parse(html, options = {}) {
     // Close tags.
     const {
       0: fullCloseTagMatch,
+      3: closeTagName,
       index: closeTagIndex,
     } = closeTag.exec(html) || EMPTY.OBJ;
 
     // Look for closing tags
     if (closeTagIndex === i && fullCloseTagMatch) {
-      if (fullCloseTagMatch[1] === '/' && isNotRoot) {
+      const isVoidElement = voidElements.has(closeTagName);
+      if (fullCloseTagMatch[1] === '/' && isNotRoot && !isVoidElement) {
         resetPointer();
       }
       isOpen = false;
