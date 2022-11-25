@@ -914,6 +914,21 @@ describe('Util', () => {
       strictEqual(vTree.childNodes[3].nodeName, 'meta');
     });
 
+    it('will support closing void elements', () => {
+      const vTree = parse(`
+        <head>
+          <meta name="test"></meta>
+          <meta name="test2"></meta>
+        </head>
+      `);
+
+      strictEqual(vTree.childNodes[1].nodeName, 'head');
+      strictEqual(vTree.childNodes[1].childNodes[1].nodeName, 'meta');
+      strictEqual(vTree.childNodes[1].childNodes[1].attributes.name, 'test');
+      strictEqual(vTree.childNodes[1].childNodes[3].nodeName, 'meta');
+      strictEqual(vTree.childNodes[1].childNodes[3].attributes.name, 'test2');
+    });
+
     it('will support parsing malformed markup with not closing', () => {
       const vTree = parse(`<script>`);
 

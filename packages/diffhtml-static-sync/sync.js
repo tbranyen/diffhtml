@@ -5,7 +5,7 @@ process.env.NODE_ENV = 'production';
 
 let interval = null;
 const domNodes = new Map();
-const { html, outerHTML } = diffhtml;
+const { outerHTML, html } = diffhtml;
 
 window.staticSyncHandlers = new Set();
 window.staticSyncSocket = undefined;
@@ -80,16 +80,7 @@ function open() {
           ext === 'md'
         )
       ) {
-        const children = html(markup);
-
-        console.log(children, markup);
-
-        if (children.childNodes.length > 1) {
-          outerHTML(document.documentElement, children.childNodes[1]);
-        }
-        else {
-          outerHTML(document.documentElement, children);
-        }
+        outerHTML(document.documentElement, html(markup));
       }
       // All other files cause a full page reload.
       else {

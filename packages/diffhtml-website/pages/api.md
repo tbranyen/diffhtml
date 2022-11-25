@@ -1,7 +1,5 @@
 # Core API
 
-The 
-
 This documentation covers the core public API. All methods and internals work
 in the browser and directly in [Node.js](https://nodejs.org/en/) with or without
 [jsdom](https://github.com/jsdom/jsdom).
