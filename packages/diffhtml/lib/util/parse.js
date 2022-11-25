@@ -171,6 +171,18 @@ export default function parse(html, options = {}) {
    */
   let lastCommentIndex = html.indexOf('<!--');
 
+  // Closes the current element and calls createTree to allow middleware to tap
+  // into it. Resets the pointer to the parent.
+  const resetPointer = () => {
+    // Create tree is called to normalize the stack into VTree and allow
+    // middleware to hook into the parser.
+    const newTree = createTree(stack.pop());
+
+    // Create the tree once closed.
+    pointer = stack[stack.length - 1];
+    pointer.childNodes.push(newTree);
+  };
+
   // This loop treats the `i` as a cursor into the markup determining what is
   // being parsed. This is useful for setting the `lastIndex` values of the
   // regular expressions defined above. Once this value matches the length of
@@ -212,6 +224,8 @@ export default function parse(html, options = {}) {
       lastCommentIndex = null;
     }
 
+    const isNotRoot = pointer !== root;
+
     // If an element is a block text element (such as script) we should not
     // parse anything under it, except as text.
     const isBlockElement = pointer && blockText.has(pointer.nodeName);
@@ -252,18 +266,22 @@ export default function parse(html, options = {}) {
         continue;
       }
 
-      // If not a doctype, create an element.
-      const newTree = createTree(tagName);
-
+      // Don't call createTree yet, otherwise we won't have access to the
+      // completed element. So create a fake VTree, to build up the object
+      // until we have attributes and child nodes.
+      const newTree = {
+        rawNodeName: tagName,
+        nodeName: tagName,
+        childNodes: [],
+        attributes: {},
+      };
       const supportsEndTagOmission = endTagOmissionRules[tagName];
 
       // We can't nested a div inside a p, we can't nest an li inside an li
       if (supportsEndTagOmission && supportsEndTagOmission[pointer.nodeName]) {
-        stack.pop();
-        pointer = stack[stack.length - 1];
+        resetPointer();
       }
 
-      pointer.childNodes.push(newTree);
       pointer = newTree;
       stack.push(pointer);
 
@@ -287,11 +305,13 @@ export default function parse(html, options = {}) {
 
         // TBD Refactor this so its not duplicated
         if (html[i - 1] === '>') {
+          const isEnd = i === html.length;
+
           // Self closing
-          if (html[i - 2] === '/' || voidElements.has(pointer.nodeName)) {
-            stack.pop();
-            pointer = stack[stack.length - 1];
+          if (html[i - 2] === '/' || voidElements.has(pointer.nodeName) || isEnd) {
+            resetPointer();
           }
+
           isOpen = false;
         }
 
@@ -316,7 +336,7 @@ export default function parse(html, options = {}) {
     // use the entire input.
     if (isBlockElement) {
       const closeTag = `</${pointer.nodeName}>`;
-      let closeTagIndex = html.indexOf(closeTag, i + 1);
+      let closeTagIndex = html.indexOf(closeTag, i);
 
       if (closeTagIndex === -1) {
         closeTagIndex = html.length;
@@ -330,8 +350,7 @@ export default function parse(html, options = {}) {
 
       i = closeTagIndex + closeTag.length;
       isOpen = false;
-      stack.pop();
-      pointer = stack[stack.length - 1];
+      resetPointer();
       continue;
     }
 
@@ -342,9 +361,9 @@ export default function parse(html, options = {}) {
 
       // Automatically close void elements.
       if (voidElements.has(pointer.nodeName)) {
-        stack.pop();
-        pointer = stack[stack.length - 1];
+        resetPointer();
       }
+
       continue;
     }
 
@@ -354,14 +373,13 @@ export default function parse(html, options = {}) {
       index: closeTagIndex,
     } = closeTag.exec(html) || EMPTY.OBJ;
 
-
     // Look for closing tags
     if (closeTagIndex === i && fullCloseTagMatch) {
-      if (fullCloseTagMatch[1] === '/' && pointer !== root) {
-        stack.pop();
-        pointer = stack[stack.length - 1];
+      if (fullCloseTagMatch[1] === '/' && isNotRoot) {
+        resetPointer();
       }
       isOpen = false;
+
       i = closeTagIndex + fullCloseTagMatch.length;
       continue;
     }
@@ -376,6 +394,11 @@ export default function parse(html, options = {}) {
       const newTree = createTree('#text', fullTextMatch);
       pointer.childNodes.push(newTree);
       i = textIndex + fullTextMatch.length;
+
+      if (i === html.length && isNotRoot) {
+        resetPointer();
+      }
+
       continue;
     }
 
