@@ -172,13 +172,14 @@ export default function parse(html, options = {}) {
   let lastCommentIndex = html.indexOf('<!--');
 
   // Closes the current element and calls createTree to allow middleware to tap
-  // into it. Resets the pointer to the parent.
+  // into it. Resets the pointer to the parent. This function should never be
+  // called with the root element, otherwise it will set a null pointer.
   const resetPointer = () => {
     // Create tree is called to normalize the stack into VTree and allow
     // middleware to hook into the parser.
     const newTree = createTree(stack.pop());
 
-    // Create the tree once closed.
+    // Reset the pointer to the parent.
     pointer = stack[stack.length - 1];
     pointer.childNodes.push(newTree);
   };
