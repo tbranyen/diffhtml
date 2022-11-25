@@ -105,11 +105,8 @@ describe('Use (Middleware)', function() {
     const Fn = ({ message }) => html`<marquee>${message}</marquee>`;
     const domNode = document.createElement('div');
 
-    let i = 0;
-
     this.createTreeHook = ({ rawNodeName, attributes }) => {
       if (typeof rawNodeName === 'function') {
-        i++;
         return rawNodeName(attributes);
       }
     };
@@ -122,6 +119,45 @@ describe('Use (Middleware)', function() {
       <marquee>Hello world</marquee>
     </div>`);
 
+    release(domNode);
+  });
+
+  it('will allow access to attributes during create', () => {
+    const domNode = document.createElement('div');
+
+    let message = null;
+
+    this.createTreeHook = ({ nodeName, attributes }) => {
+      if (nodeName === 'div' && attributes.message) {
+        message = attributes.message;
+      }
+    };
+
+    innerHTML(domNode, html`
+      <div message="Hello world" />
+    `);
+
+    equal(message, 'Hello world');
+    release(domNode);
+  });
+
+  it('will allow access to childNodes during create', () => {
+    const domNode = document.createElement('div');
+
+    let message = null;
+
+    this.createTreeHook = ({ nodeName, childNodes }) => {
+      if (nodeName === 'p') {
+        // Access the parsed childNodes
+        message = childNodes[0].attributes.message;
+      }
+    };
+
+    innerHTML(domNode, html`
+      <p><div message="Hello world" /></p>
+    `);
+
+    equal(message, 'Hello world');
     release(domNode);
   });
 
