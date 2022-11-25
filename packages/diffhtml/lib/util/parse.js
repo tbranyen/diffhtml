@@ -271,7 +271,6 @@ export default function parse(html, options = {}) {
       // completed element. So create a fake VTree, to build up the object
       // until we have attributes and child nodes.
       const newTree = {
-        rawNodeName: tagName,
         nodeName: tagName,
         childNodes: [],
         attributes: {},
