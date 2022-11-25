@@ -158,7 +158,10 @@ export default function parse(html, options = {}) {
   // Cursor into the markup that we use when parsing.
   let i = 0;
 
-  // The active element being crawled.
+  /**
+   * The active element being crawled.
+   * @type {VTree}
+   */
   let pointer = root;
 
   // The pointer is open when looking for attributes, self closing, or open
@@ -271,9 +274,13 @@ export default function parse(html, options = {}) {
       // completed element. So create a fake VTree, to build up the object
       // until we have attributes and child nodes.
       const newTree = {
+        rawNodeName: tagName,
         nodeName: tagName,
         childNodes: [],
         attributes: {},
+        nodeType: EMPTY.NUM,
+        nodeValue: EMPTY.STR,
+        key: EMPTY.STR,
       };
       const supportsEndTagOmission = endTagOmissionRules[tagName];
 
