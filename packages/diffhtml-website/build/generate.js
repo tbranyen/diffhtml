@@ -1,21 +1,45 @@
 const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('fs');
 const { join, dirname } = require('path');
-const { html, toString, use } = require('diffhtml');
+const { html, toString, use, Internals } = require('diffhtml');
 const { marked } = require('marked');
 const mermaid = require('mermaid');
 const flattenPages = require('./util/flatten-pages');
-const { keys } = Object;
+const { assign, keys } = Object;
 
 // Ensure Components middleware is loaded since Layout is a class
 // component and toString will pick it up automatically.
 require('diffhtml-components');
 //use(require('diffhtml-middleware-linter')());
 
+// Create a jsdom and svgdom merged environment for Mermaid to work.
+const SVG = require('svgdom');
+const { JSDOM } = require('jsdom');
+const { window } = new JSDOM('');
+
+// Patch the Element constructor which is inherited by SVGElement to contain
+// the getBBox method to avoid runtime errors with mermaid.
+window.Element.prototype.getBBox = SVG.SVGGraphicsElement.prototype.getBBox;
+
+// Unfortunately this patching has to occur in order for the sanitize method
+// to return the input and not break under mermaid. Would be great to have
+// a fix that didn't involve this.
+Object.prototype.sanitize = x => x;
+
+assign(globalThis, {
+  document: window.document,
+  window,
+});
+
 // Mermaid parsing
 use({
-  createTreeHook(...all) {
-    if (all[0].nodeName === 'mermaid') {
-      console.log(all);
+  createTreeHook({ nodeName, childNodes }) {
+    if (nodeName === 'mermaid') {
+      if (childNodes[0].nodeType === Internals.NODE_TYPE.TEXT) {
+        mermaid.render('mermaid', childNodes[0].nodeValue.trim(), svg => {
+          // Replace with the newly rendered SVG
+          childNodes[0] = html(svg);
+        });
+      }
     }
   },
 });

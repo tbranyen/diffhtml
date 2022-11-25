@@ -11,6 +11,7 @@ import { globalConfig } from './config';
 import {
   EMPTY,
   PATCH_TYPE,
+  NODE_TYPE,
   Internals,
   StateCache,
   NodeCache,
@@ -41,9 +42,15 @@ export default /** @type {Internals} */ ({
   memory,
   Pool,
   process: internalProcess,
-  PATCH_TYPE,
   globalConfig,
+
+  // Set parse to an empty function by default to avoid bundling the parser
+  // here.
   parse: EMPTY.FUN,
+
+  // Enum.
+  PATCH_TYPE,
+  NODE_TYPE,
 
   // Core.
   createNode,
