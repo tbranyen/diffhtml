@@ -416,8 +416,7 @@ describe('Hooks', function() {
       strictEqual(this.fixture.outerHTML, `<div>true</div>`);
     });
 
-    it('will support nested setState with top-level re-rendering', async () => {
-      let setComponentValue = null;
+    it('will support nested createState with top-level re-rendering', async () => {
       let setNestedValue = null;
 
       function Nested() {
@@ -429,10 +428,6 @@ describe('Hooks', function() {
       }
 
       function Component() {
-        const [ value, _setValue ] = createState(false);
-
-        setComponentValue = _setValue;
-
         return html`<${Nested} />`;
       }
 
@@ -443,6 +438,33 @@ describe('Hooks', function() {
       strictEqual(this.fixture.outerHTML, `<div>123</div>`);
 
       await innerHTML(this.fixture, html`<${Component} />`);
+      strictEqual(this.fixture.outerHTML, `<div>123</div>`);
+    });
+
+    it('will support nested createState with top-level createState', async () => {
+      let setComponentValue = null;
+      let setNestedValue = null;
+
+      function Nested() {
+        const [ value, _setValue ] = createState(false);
+        setNestedValue = _setValue;
+        return html`${String(value)}`;
+      }
+
+      function Component() {
+        const [ _, _setValue ] = createState();
+        setComponentValue = _setValue;
+        return html`<${Nested} />`;
+      }
+
+      this.fixture = document.createElement('div');
+
+      await innerHTML(this.fixture, html`<${Component} />`);
+      await setNestedValue(123);
+      strictEqual(this.fixture.outerHTML, `<div>123</div>`);
+      console.log('>>> set component value <<<');
+
+      await setComponentValue();
       strictEqual(this.fixture.outerHTML, `<div>123</div>`);
     });
 
@@ -465,9 +487,7 @@ describe('Hooks', function() {
 
       function Component() {
         const [ value, _setValue ] = createState(false);
-
         setComponentValue = _setValue;
-
         return html`<${Nested} />`;
       }
 

@@ -289,6 +289,7 @@ export default class Component {
     }
 
     let renderTree = this.render(this.props, this.state);
+    console.log('Clearing render state', renderTree, this);
     ActiveRenderState.length = 0;
 
     // Do not render.
@@ -352,6 +353,8 @@ export default class Component {
 
       return transaction;
     });
+
+    console.log('diff into fragment', renderTree);
 
     // Compare the existing component node(s) to the new node(s).
     const transaction = /** @type {Transaction} */(outerHTML(fragment, renderTree, { tasks }));
