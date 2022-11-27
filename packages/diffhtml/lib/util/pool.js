@@ -53,6 +53,10 @@ const Pool = {
   },
 
   /**
+   *
+   * Moves a VTree from the "free" state to the "allocated" state. If the pool
+   * is empty, it creates a new object.
+   *
    * @return {VTree}
    */
   get() {
@@ -72,6 +76,9 @@ const Pool = {
   },
 
   /**
+   * Moves a VTree from "allocated" state to "protected" state. This means that
+   * the VTrees will persist between transactions.
+   *
    * @param {VTree} vTree - Virtual Tree to protect
    */
   protect(vTree) {
@@ -80,13 +87,15 @@ const Pool = {
   },
 
   /**
+   * Moves a VTree from "protected" state to "allocated" state. They will be
+   * brought back into "free" circulation during a GC.
+   *
    * @param {VTree} vTree - Virtual Tree to unprotect and deallocate
    */
   unprotect(vTree) {
     if (protect.has(vTree) || allocate.has(vTree)) {
       protect.delete(vTree);
-      allocate.delete(vTree);
-      free.add(vTree);
+      allocate.add(vTree);
     }
   },
 };

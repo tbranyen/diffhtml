@@ -1,5 +1,5 @@
 import Pool from './pool';
-import { NodeCache } from './types';
+import { EMPTY, NodeCache } from './types';
 
 const { protect, unprotect, memory } = Pool;
 
@@ -56,6 +56,7 @@ export function gc() {
     // Scrub a VTree of attributes and childNodes to avoid ever increasing RAM.
     vTree.attributes = {};
     vTree.childNodes.length = 0;
+    vTree.key = EMPTY.STR;
 
     // Make the VTree available for future renders.
     memory.free.add(vTree);
