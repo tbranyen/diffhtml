@@ -4,36 +4,38 @@
   "description": "Official diffHTML Chrome DevTools Extension",
   "permissions": [
     "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
     "*://*/*",
+    "file://*/*",
     "http://*/*",
     "https://*/*"
   ],
   "background": {
-    "scripts": ["js/background.js"]
+    "service_worker": "js/background.js"
   },
-  "content_scripts": [{
-    "matches": ["<all_urls>", "*://*/*", "http://*/*", "https://*/*"],
-    "js": ["js/contentscript.js"],
-    "run_at": "document_start"
+  "web_accessible_resources": [{
+    "resources": [
+      "devtools.es5.js",
+      "scripts/*",
+      "scripts/**/*",
+      "styles/*",
+      "styles/**/*",
+      "node_modules/**/*",
+      "markup/*",
+      "markup/**/*",
+      "icons/*",
+      "icons/**/*"
+    ],
+    "matches": ["<all_urls>"]
   }],
-  "web_accessible_resources": [
-    "devtools.es5.js",
-    "scripts/*",
-    "scripts/**/*",
-    "styles/*",
-    "styles/**/*",
-    "node_modules/**/*",
-    "markup/*",
-    "markup/**/*",
-    "icons/*",
-    "icons/**/*"
-  ],
   "icons": {
     "16": "icons/logo-16.png",
     "48": "icons/logo-48.png",
     "128": "icons/logo-128.png"
   },
   "devtools_page": "markup/devtools.html",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "default_locale": "en"
 }

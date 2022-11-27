@@ -167,9 +167,7 @@ const render = () => outerHTML(main, html`
       </devtools-panels>
     </devtools-split-view>
   </main>
-`).catch(ex => {
-  throw ex;
-});
+`);
 
 const clone = x => parse(stringify(x));
 

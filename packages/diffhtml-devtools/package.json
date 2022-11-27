@@ -2,6 +2,9 @@
   "name": "diffhtml-devtools",
   "private": true,
   "main": "module/devtools.es5.js",
+  "scripts": {
+    "build": "grunt"
+  },
   "devDependencies": {
     "@babel/core": "^7.17.8",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
@@ -43,6 +46,13 @@
     "semantic-ui-icon": "^2.3.3",
     "uglifyify": "^5.0.2",
     "unique-selector": "^0.5.0"
+  },
+  "dependencies": {
+    "babel-plugin-transform-diffhtml": "^1.0.0-beta.29",
+    "diffhtml": "^1.0.0-beta.29",
+    "diffhtml-components": "^1.0.0-beta.29",
+    "diffhtml-react-compat": "^1.0.0-beta.29",
+    "diffhtml-middleware-synthetic-events": "^1.0.0-beta.29"
   },
   "aliasify": {
     "aliases": {

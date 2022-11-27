@@ -19,7 +19,8 @@ class DevtoolsMountsPanel extends Component {
     const { isExpanded, activeTab } = this.state;
     const { styles, setActive } = this;
 
-    const options = mounts.map(({ selector }) => ({
+    // FIXME Shouldn't need to concat and filter.
+    const options = [].concat(mounts).filter(Boolean).map(({ selector }) => ({
       text: selector,
       value: selector,
     }));
@@ -52,7 +53,7 @@ class DevtoolsMountsPanel extends Component {
         <div class="ui attached tabular menu">
           ${options.map((option, i) => html`
             <div class="ui item ${activeTab === i && 'active'}">
-              <a href="#" onClick=${setActive(i)}>&lt;${option.text.trim()}&gt;</a>
+              <a href="#" onClick=${setActive(i)}>&lt;${String(option.text).trim()}&gt;</a>
             </div>
           `)}
         </div>
