@@ -1166,6 +1166,51 @@ describe('Util', () => {
       strictEqual(Pool.memory.protected.size, 0);
     });
 
+    it('will only reset attributes once garbage collected', () => {
+      const expected = 'somestr';
+      const vTree = createTree('div', { someAttr: expected });
+
+      protectVTree(vTree);
+      strictEqual(vTree.attributes.someAttr, expected);
+
+      unprotectVTree(vTree);
+      strictEqual(vTree.attributes.someAttr, expected);
+
+      gc();
+
+      strictEqual(vTree.attributes.someAttr, undefined);
+    });
+
+    it('will only reset childNodes once garbage collected', () => {
+      const expected = 'somestr';
+      const vTree = createTree('div', null, createTree('span'));
+
+      protectVTree(vTree);
+      strictEqual(vTree.childNodes.length, 1);
+
+      unprotectVTree(vTree);
+      strictEqual(vTree.childNodes.length, 1);
+
+      gc();
+
+      strictEqual(vTree.childNodes.length, 0);
+    });
+
+    it('will only reset key once garbage collected', () => {
+      const expected = 'somestr';
+      const vTree = createTree('div', { key: expected });
+
+      protectVTree(vTree);
+      strictEqual(vTree.key, expected);
+
+      unprotectVTree(vTree);
+      strictEqual(vTree.key, expected);
+
+      gc();
+
+      strictEqual(vTree.key, '');
+    });
+
     it('will garbage collect DOM Node associations', () => {
       const domNode = document.createElement('div');
       const vTree = createTree(domNode);
