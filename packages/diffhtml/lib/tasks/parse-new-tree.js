@@ -1,6 +1,8 @@
+/**
+ * @typedef {import('../transaction').default} Transaction
+ */
 import Internals from '../util/internals';
 import createTree from '../tree/create';
-import Transaction from '../transaction';
 
 /**
  * @param {Transaction} transaction

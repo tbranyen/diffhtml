@@ -1,8 +1,10 @@
+/**
+ * @typedef {import('../util/types').ValidInput} ValidInput
+ * @typedef {import('../util/types').VTree} VTree
+ * @typedef {import('../util/types').VTreeLike} VTreeLike
+ */
 import Pool from '../util/pool';
 import {
-  VTree,
-  VTreeLike,
-  ValidInput,
   EMPTY,
   NODE_TYPE,
   NodeCache,

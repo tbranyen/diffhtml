@@ -1,4 +1,6 @@
-import Transaction from '../transaction';
+/**
+ * @typedef {import('../transaction').default} Transaction
+ */
 
 /**
  * Allows the transaction to terminate early if no contents have changed.

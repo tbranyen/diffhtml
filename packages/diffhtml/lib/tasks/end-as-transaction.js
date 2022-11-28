@@ -1,4 +1,6 @@
-import Transaction from '../transaction';
+/**
+ * @typedef {import('../transaction').default} Transaction
+ */
 
 /**
  * End flow, this terminates the transaction and returns itself when completed.

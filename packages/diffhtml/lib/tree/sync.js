@@ -1,11 +1,13 @@
-import Transaction from '../transaction';
+/**
+ * @typedef {import('../util/types').TransactionState} TransactionState
+ * @typedef {import('../util/types').VTree} VTree
+ * @typedef {import('../transaction').default} Transaction
+ */
 import internalProcess from '../util/process';
 import {
   SyncTreeHookCache,
-  TransactionState,
   PATCH_TYPE,
   NODE_TYPE,
-  VTree,
   EMPTY,
 } from '../util/types';
 

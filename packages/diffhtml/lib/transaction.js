@@ -1,14 +1,11 @@
-import {
-  MiddlewareCache,
-  StateCache,
-  NodeCache,
-  VTree,
-  ValidInput,
-  Mount,
-  TransactionConfig,
-  TransactionState,
-  EMPTY,
-} from './util/types';
+/**
+ * @typedef {import('./util/types').ValidInput} ValidInput
+ * @typedef {import('./util/types').TransactionConfig} TransactionConfig
+ * @typedef {import('./util/types').TransactionState} TransactionState
+ * @typedef {import('./util/types').VTree} VTree
+ * @typedef {import('./util/types').Mount} Mount
+ */
+import { MiddlewareCache, StateCache, NodeCache, EMPTY } from './util/types';
 import makeMeasure from './util/make-measure';
 import internalProcess from './util/process';
 import { protectVTree } from './util/memory';

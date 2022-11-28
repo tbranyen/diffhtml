@@ -1,6 +1,9 @@
+/**
+ * @typedef {import('../transaction').default} Transaction
+ * @typedef {import('../util/types').VTree} VTree
+ */
 import patch from '../node/patch';
-import Transaction from '../transaction';
-import { CreateNodeHookCache, VTree } from '../util/types';
+import { CreateNodeHookCache } from '../util/types';
 import globalThis from '../util/global';
 
 /**

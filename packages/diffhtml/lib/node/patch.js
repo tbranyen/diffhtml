@@ -1,14 +1,12 @@
+/**
+ * @typedef {import('../util/types').ValidNode} ValidNode
+ * @typedef {import('../util/types').VTree} VTree
+ * @typedef {import('../util/types').TransactionState} TransactionState
+ */
 import createNode from './create';
 import { protectVTree, unprotectVTree } from '../util/memory';
 import decodeEntities from '../util/decode-entities';
-import {
-  PATCH_TYPE,
-  ValidNode,
-  VTree,
-  EMPTY,
-  TransactionState,
-  NodeCache,
-} from '../util/types';
+import { PATCH_TYPE, EMPTY, NodeCache } from '../util/types';
 import { $$insertAfter } from '../util/symbols';
 
 const { keys } = Object;

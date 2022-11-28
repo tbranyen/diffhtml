@@ -1,5 +1,8 @@
+/**
+ * @typedef {import('./util/types').Mount} Mount
+ */
 import { gc, unprotectVTree } from './util/memory';
-import { StateCache, NodeCache, ReleaseHookCache, Mount } from './util/types';
+import { StateCache, NodeCache, ReleaseHookCache } from './util/types';
 
 // Supports the idle callback API. NodeJS does not, so we'll use setTimeout
 // there instead.

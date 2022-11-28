@@ -99,7 +99,6 @@ export const VTreeAttributes = EMPTY.OBJ;
  * @property {VTree[]} childNodes - Any nested elements
  * @property {VTreeAttributes} attributes - Any key/val attributes for the Node
  */
-export const VTree = EMPTY.OBJ;
 
 /**
  * @typedef {Object} VTreeLike
@@ -114,22 +113,18 @@ export const VTree = EMPTY.OBJ;
  * @property {VTreeLike[]=} children - Any nested elements
  * @property {any=} attributes - Any key/val attributes for the Node
  */
-export const VTreeLike = EMPTY.OBJ;
 
 /**
  * @typedef {HTMLElement | ChildNode | Element | Text | Comment | DocumentFragment | Function | string | string[] | VTree | VTree[] | VTreeLike | VTreeLike[]} ValidInput
  */
-export const ValidInput = EMPTY.OBJ;
 
 /**
  * @typedef {Element | HTMLElement | Text | DocumentFragment | ChildNode} ValidNode
  */
-export const ValidNode = EMPTY.OBJ;
 
 /**
  * @typedef {ValidNode | VTree | VTree[] | VTreeLike | VTreeLike[]} Mount
  */
-export const Mount = EMPTY.OBJ;
 
 /**
  * @typedef {Object} Middleware
@@ -143,7 +138,6 @@ export const Mount = EMPTY.OBJ;
  * @property {Function=} releaseHook
  * @property {Function=} parseHook
  */
-export const Middleware = EMPTY.OBJ;
 
 /**
  * @typedef {Object} ParserConfig
@@ -151,7 +145,6 @@ export const Middleware = EMPTY.OBJ;
  * @property {string[]=} rawElements - Set of raw element tagNames, empty is all
  * @property {string[]=} selfClosingElements - Set of self closing element tagNames, empty is all
  */
-export const ParserConfig = EMPTY.OBJ;
 
 /**
  * @typedef {Object} TransactionConfig
@@ -162,7 +155,6 @@ export const ParserConfig = EMPTY.OBJ;
  * @property {ParserConfig=} parser - override parser options
  * @property {Boolean=} disableMutationObserver - to disable mutation observer (enabled by default if available)
  */
-export const TransactionConfig = EMPTY.OBJ;
 
 /**
  * @typedef {Object} GlobalConfig
@@ -170,12 +162,10 @@ export const TransactionConfig = EMPTY.OBJ;
  * @property {string=} NODE_ENV - To set the runtime execution mode
  * @property {Boolean=} collectMetrics - to collect performance metrics, defaults to false
  */
-export const GlobalConfig = EMPTY.OBJ;
 
 /**
  * @typedef {TransactionConfig & GlobalConfig & { [key: string]: unknown }} Config
  */
-export const Config = {};
 
 /**
  * @typedef {Object} Supplemental
@@ -184,7 +174,6 @@ export const Config = {};
  * @property {{ [key: string]: any }} attributes
  * @property {{ [key: string]: any }} children
  */
-export const Supplemental = EMPTY.OBJ;
 
 /**
  * @typedef {Object} TransactionState
@@ -198,7 +187,6 @@ export const Supplemental = EMPTY.OBJ;
  * @property {MutationObserver=} mutationObserver
  * @property {Document=} ownerDocument
 */
-export const TransactionState = EMPTY.OBJ;
 
 /**
  * @typedef {Object} Internals
@@ -227,4 +215,3 @@ export const TransactionState = EMPTY.OBJ;
  * @property {ReleaseHookCache} ReleaseHookCache
  * @property {ParseHookCache} ParseHookCache
  */
-export const Internals = EMPTY.OBJ;
