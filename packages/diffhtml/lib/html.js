@@ -1,9 +1,13 @@
+/**
+ * @typedef {import('./util/types').VTree} VTree
+ * @typedef {import('./util/types').Supplemental} Supplemental
+ */
 import createTree from './tree/create';
 import Internals from './util/internals';
 import escape from './util/escape';
 import decodeEntities from './util/decode-entities';
 import internalProcess from './util/process';
-import { EMPTY, VTree, Supplemental, NODE_TYPE } from './util/types';
+import { EMPTY, NODE_TYPE } from './util/types';
 
 // Magic token used for interpolation.
 const TOKEN = '__DIFFHTML__';

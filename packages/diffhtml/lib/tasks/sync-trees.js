@@ -1,8 +1,11 @@
+/**
+ * @typedef {import('../util/types').Mount} Mount
+ * @typedef {import('../transaction').default} Transaction
+ */
 import syncTree from '../tree/sync';
 import createNode from '../node/create';
-import { StateCache, NODE_TYPE, PATCH_TYPE, EMPTY, Mount } from '../util/types';
+import { StateCache, NODE_TYPE, PATCH_TYPE, EMPTY } from '../util/types';
 import internalProcess from '../util/process';
-import Transaction from '../transaction';
 
 export default function syncTrees(/** @type {Transaction} */ transaction) {
   const { state, state: { measure }, oldTree, newTree, mount } = transaction;

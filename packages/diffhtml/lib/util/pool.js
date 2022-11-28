@@ -1,4 +1,7 @@
-import { EMPTY, NODE_TYPE, VTree } from './types';
+/**
+ * @typedef {import('./types').VTree} VTree
+ */
+import { EMPTY, NODE_TYPE } from './types';
 import getConfig from './config';
 
 const size = /** @type {Number} */ (getConfig('initialPoolSize', 5000));

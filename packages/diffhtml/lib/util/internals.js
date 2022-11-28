@@ -1,3 +1,6 @@
+/**
+ * @typedef {import('./types').Internals} Internals
+ */
 import Transaction, { defaultTasks, tasks } from '../transaction';
 import createNode from '../node/create';
 import syncTree from '../tree/sync';
@@ -12,7 +15,6 @@ import {
   EMPTY,
   PATCH_TYPE,
   NODE_TYPE,
-  Internals,
   StateCache,
   NodeCache,
   MiddlewareCache,

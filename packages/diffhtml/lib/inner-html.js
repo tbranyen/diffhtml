@@ -1,5 +1,10 @@
+/**
+ * @typedef {import('./util/types').ValidInput} ValidInput
+ * @typedef {import('./util/types').TransactionConfig} TransactionConfig
+ * @typedef {import('./util/types').Mount} Mount
+ */
 import Transaction, { defaultTasks } from './transaction';
-import { EMPTY, ValidInput, TransactionConfig, Mount } from './util/types';
+import { EMPTY } from './util/types';
 
 /**
  *

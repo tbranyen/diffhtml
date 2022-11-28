@@ -1,7 +1,10 @@
-import { StateCache, NODE_TYPE, VTree } from '../util/types';
+/**
+ * @typedef {import('../transaction').default} Transaction
+ * @typedef {import('../util/types').VTree} VTree
+ */
+import { StateCache, NODE_TYPE } from '../util/types';
 import { protectVTree } from '../util/memory';
 import createTree from '../tree/create';
-import Transaction from '../transaction';
 import release from '../release';
 
 /**

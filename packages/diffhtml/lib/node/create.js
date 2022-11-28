@@ -1,13 +1,11 @@
+/**
+ * @typedef {import('../util/types').VTreeLike} VTreeLike
+ * @typedef {import('../util/types').VTree} VTree
+ * @typedef {import('../util/types').ValidNode} ValidNode
+ */
 import internalProcess from '../util/process';
 import globalThis from '../util/global';
-import {
-  NodeCache,
-  CreateNodeHookCache,
-  VTreeLike,
-  VTree,
-  ValidNode,
-  EMPTY,
-} from '../util/types';
+import { NodeCache, CreateNodeHookCache, EMPTY } from '../util/types';
 import createTree from '../tree/create';
 
 const namespace = 'http://www.w3.org/2000/svg';

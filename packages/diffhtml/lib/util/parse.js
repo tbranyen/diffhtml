@@ -1,12 +1,11 @@
+/**
+ * @typedef {import('./types').TransactionConfig} TransactionConfig
+ * @typedef {import('./types').ParserConfig} ParserConfig
+ * @typedef {import('./types').VTree} VTree
+ */
 import createTree from '../tree/create';
 import getConfig from './config';
-import {
-  NODE_TYPE,
-  EMPTY,
-  TransactionConfig,
-  VTree,
-  ParserConfig,
-} from './types';
+import { NODE_TYPE, EMPTY } from './types';
 
 const rawElementsDefaults = [
   'script',

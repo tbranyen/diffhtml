@@ -1,3 +1,6 @@
+/**
+ * @typedef {import('./util/types').Middleware} Middleware
+ */
 import {
   MiddlewareCache,
   CreateTreeHookCache,
@@ -5,7 +8,6 @@ import {
   SyncTreeHookCache,
   ReleaseHookCache,
   ParseHookCache,
-  Middleware,
 } from './util/types';
 import internalProcess from './util/process';
 import Internals from './util/internals';

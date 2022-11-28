@@ -1,5 +1,10 @@
+/**
+ * @typedef {import('./util/types').ValidInput} ValidInput
+ * @typedef {import('./util/types').TransactionConfig} TransactionConfig
+ * @typedef {import('./util/types').VTree} VTree
+ * @typedef {import('./util/types').VTreeAttributes} VTreeAttributes
+ */
 import createTree from './tree/create';
-import { TransactionConfig, ValidInput, VTree, VTreeAttributes } from './util/types';
 import Transaction, { defaultTasks, tasks } from './transaction';
 import release from './release';
 

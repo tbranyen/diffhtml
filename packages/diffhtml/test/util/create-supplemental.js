@@ -1,4 +1,6 @@
-import { Supplemental } from '../../lib/util/types';
+/**
+ * @typedef {import('../../lib/util/types').Supplemental} Supplemental
+ */
 
 /**
  * Converts a partial Supplemental object to a full Supplemental object.
