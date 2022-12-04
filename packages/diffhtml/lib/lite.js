@@ -28,24 +28,21 @@ api.innerHTML = innerHTML;
 api.html = createTree;
 api.Internals = internals;
 
-/** @type {any} */
-const global = globalThis;
-
 // Bind the API into the global scope. Allows middleware and other code to
 // reference the core API.
 if ($$diffHTML in globalThis) {
-  const existingApi = global[$$diffHTML];
+  const existingApi = globalThis[$$diffHTML];
 
   if (VERSION !== existingApi.VERSION) {
     console.log(`Loaded ${VERSION} after ${existingApi.VERSION}`);
   }
 }
 
-global[$$diffHTML] = api;
+globalThis[$$diffHTML] = api;
 
 // Automatically hook up to DevTools if they are present.
-if (global.devTools) {
-  global.unsubscribeDevTools = use(global.devTools(internals));
+if (globalThis.devTools) {
+  globalThis.unsubscribeDevTools = use(globalThis.devTools(internals));
 }
 
 export {
