@@ -444,11 +444,13 @@ describe('Hooks', function() {
     it('will support nested createState with top-level createState', async () => {
       let setComponentValue = null;
       let setNestedValue = null;
+      let i = 0;
 
       function Nested() {
+        i++;
         const [ value, _setValue ] = createState(false);
         setNestedValue = _setValue;
-        return html`${String(value)}`;
+        return html`${String(value) + i}`;
       }
 
       function Component() {
@@ -461,11 +463,11 @@ describe('Hooks', function() {
 
       await innerHTML(this.fixture, html`<${Component} />`);
       await setNestedValue(123);
-      strictEqual(this.fixture.outerHTML, `<div>123</div>`);
+      strictEqual(this.fixture.outerHTML, `<div>1232</div>`);
       console.log('>>> set component value <<<');
 
       await setComponentValue();
-      strictEqual(this.fixture.outerHTML, `<div>123</div>`);
+      strictEqual(this.fixture.outerHTML, `<div>1233</div>`);
     });
 
     it('will support nested createSideEffect with top-level re-rendering', async () => {

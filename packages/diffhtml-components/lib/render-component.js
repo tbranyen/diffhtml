@@ -28,6 +28,8 @@ export default function renderComponent(vTree, transaction) {
   const isNewable = RawComponent.prototype && RawComponent.prototype.render;
   const isInstance = InstanceCache.has(vTree);
 
+  console.log('Rendering', vTree, InstanceCache.get(vTree));
+
   /** @type {VTree|null} */
   let renderedTree = (null);
 
@@ -107,8 +109,6 @@ export default function renderComponent(vTree, transaction) {
        * @param {any} state
        */
       render(props, state) {
-        // Always render the latest `rawNodeName` of a VTree in case of
-        // hot-reloading the cached value above wouldn't be correct.
         return createTree(RawComponent(props, state));
       }
 

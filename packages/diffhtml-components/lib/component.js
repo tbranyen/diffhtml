@@ -55,24 +55,22 @@ const createProps = (domNode, existingProps = {}) => {
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
 /**
- * Finds all VTrees associated with a component.
+ * Recreates the VTree used for diffing a stateful component.
  *
- * @param {VTree[]} childTrees
- * @param {VTree} vTree
+ * @param {VTree} vTree - vTree to seed the recreation process
+ * @return {VTree} Recreated VTree including component references
  */
-const getChildTrees = (childTrees, vTree) => {
+const recreateVTree = vTree => {
+  // Sucks that we need to loop this entire cache every time we re-render. This
+  // information should be more easily attained.
   ComponentTreeCache.forEach((parentTree, childTree) => {
     if (parentTree === vTree) {
       ComponentTreeCache.delete(childTree);
-
-      if (typeof childTree.rawNodeName !== 'function') {
-        childTrees.push(childTree);
-      }
-      else {
-        getChildTrees(childTrees, childTree);
-      }
+      vTree.childNodes.push(childTree);
     }
   });
+
+  return vTree;
 };
 
 /**
@@ -234,12 +232,20 @@ export default class Component {
 
   /**
    * Stateful render. Used when a component changes and needs to re-render
-   * itself. This is triggered on `setState` and `forceUpdate` calls.
+   * itself and the trees it contains. This is triggered on `setState` and
+   * `forceUpdate` calls with class components and createState updates with
+   * function components.
    *
-   * @return {Transaction | undefined}
+   * Web Components are easy to implement using the Shadow DOM to encapsulate
+   * the mount point using `innerHTML`.
+   *
+   * React-like components are supported by recreating the previous component
+   * tree and comparing this to the new tree using `outerHTML`.
+   *
+   * @return {Transaction | unknown | undefined}
    */
   [$$render]() {
-    // This is a WebComponent, so do something different.
+    // This is a WebComponent, which allows for simplified logic.
     if (this[$$type] === 'web') {
       const oldProps = this.props;
       const oldState = this.state;
@@ -264,107 +270,90 @@ export default class Component {
       return transaction;
     }
 
-    // Get the fragment tree associated with this component. This is used to
-    // lookup rendered children.
-    let vTree = this[$$vTree];
+    /**
+     * Get the vTree associated with this component.
+     *
+     * @type {VTree | null}
+     */
+    const vTree = this[$$vTree];
+
+    console.log('Recreating tree for', vTree.rawNodeName.name);
 
     /**
-     * Find all previously rendered top-level children associated to this
-     * component. This will be used to diff against the newly rendered
-     * elements.
+     * Recreate the existing tree including this component. This is not
+     * directly stored anywhere, as the VDOM tree is flattened, and must be
+     * recreated per render.
      *
-     * @type {VTree[]}
+     * @type {VTree}
      */
-    const childTrees = [];
-
-    // Lookup all DOM nodes that were associated at the top level with this
-    // component.
-    vTree && getChildTrees(childTrees, vTree);
-
-    // Render directly from the Component.
-    ActiveRenderState.push(this);
-
-    if ($$hooks in this) {
-      this[$$hooks].i = 0;
-    }
-
-    let renderTree = this.render(this.props, this.state);
-    console.log('Clearing render state', renderTree, this);
-    ActiveRenderState.length = 0;
-
-    // Do not render.
-    if (!renderTree) {
-      return;
-    }
-
-    const renderTreeAsVTree = /** @type {VTree} */ (renderTree);
-
-    // Always compare a fragment to a fragment. If the renderTree was not
-    // wrapped, ensure it is here.
-    if (renderTreeAsVTree.nodeType !== 11) {
-      const isList = 'length' in renderTree;
-      const renderTreeAsList = /** @type {VTree[]} */ (renderTree);
-
-      renderTree = createTree(isList ? renderTreeAsList : [renderTreeAsVTree]);
-    }
-
-    // Put all the nodes together into a fragment for diffing.
-    const fragment = createTree(childTrees);
+    const fragment = recreateVTree(vTree); //tbd
+    const childTrees = [].concat(fragment.childNodes);
     const tasks = [...Internals.defaultTasks];
     const syncTreesIndex = tasks.indexOf(Internals.tasks.syncTrees);
 
+    // Ensure this fragment isn't cleaned up until we are done rendering.
+    Internals.memory.protectVTree(fragment);
+
     // Inject a custom task after syncing has finished, but before patching has
-    // occured. This gives us time to add additional patch logic per render.
-    tasks.splice(syncTreesIndex + 1, 0, (/** @type {Transaction} */transaction) => {
-      let lastTree = null;
+    // occured. This gives us time to add additional patch logic per render to
+    // support multiple top level elements.
+    tasks.splice(
+      syncTreesIndex + 1, 0,
+      function componentReconciler(/** @type {Transaction} */transaction) {
+        let lastTree = null;
 
-      // Reconcile all top-level replacements and additions.
-      for (let i = 0; i < fragment.childNodes.length; i++) {
-        const childTree = fragment.childNodes[i];
+        console.log('>>', transaction.patches);
+        // Reconcile all top-level replacements and additions.
+        for (let i = 0; i < fragment.childNodes.length; i++) {
+          const childTree = fragment.childNodes[i];
 
-        // Replace if the nodes are different.
-        if (childTree && childTrees[i] && childTrees[i] !== childTree) {
-          transaction.patches.push(
-            Internals.PATCH_TYPE.REPLACE_CHILD,
-            childTree,
-            childTrees[i],
-          );
+          // Replace if the nodes are different.
+          if (childTree && fragment.childNodes[i] && childTrees[i] !== childTree) {
+            transaction.patches.push(
+              Internals.PATCH_TYPE.REPLACE_CHILD,
+              childTree,
+              childTrees[i],
+            );
 
-          lastTree = childTree;
+            lastTree = childTree;
+          }
+          // Add if there is no old Node.
+          else if (lastTree && !childTrees[i]) {
+            transaction.patches.push(
+              Internals.PATCH_TYPE.INSERT_BEFORE,
+              $$insertAfter,
+              childTree,
+              lastTree,
+            );
+
+            lastTree = childTree;
+          }
+          // Keep the old node.
+          else {
+            lastTree = childTrees[i];
+          }
+
+          ComponentTreeCache.set(childTree, vTree);
         }
-        // Add if there is no old Node.
-        else if (lastTree && !childTrees[i]) {
-          transaction.patches.push(
-            Internals.PATCH_TYPE.INSERT_BEFORE,
-            $$insertAfter,
-            childTree,
-            lastTree,
-          );
 
-          lastTree = childTree;
-        }
-        // Keep the old node.
-        else {
-          lastTree = childTrees[i];
-        }
+        return transaction;
+      },
+    );
 
-        ComponentTreeCache.set(childTree, vTree);
-      }
-
-      return transaction;
-    });
-
-    console.log('diff into fragment', renderTree);
+    console.log('compare', fragment, 'with', vTree);
 
     // Compare the existing component node(s) to the new node(s).
-    const transaction = /** @type {Transaction} */(outerHTML(fragment, renderTree, { tasks }));
+    const transaction = /** @type {Transaction} */(
+      outerHTML(fragment, vTree, { tasks })
+    );
+
+    console.log('here', fragment);
 
     // Empty the fragment after using.
-    fragment.childNodes.length = 0;
+    //fragment.childNodes.length = 0;
     release(fragment);
 
     this.componentDidUpdate(this.props, this.state);
-    return transaction;
   }
 
   connectedCallback() {

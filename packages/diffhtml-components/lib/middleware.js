@@ -36,7 +36,12 @@ function render(oldTree, newTree, transaction) {
     if (!oldComponentTree && oldTree.childNodes) {
       oldComponentTree = ComponentTreeCache.get(oldTree.childNodes[0]);
     }
+
+    if (!oldComponentTree && typeof oldTree.rawNodeName === 'function') {
+      oldComponentTree = oldTree;
+    }
   }
+
 
   // If there is no old component, or if the components do not match, then we
   // are rendering a brand new component.
@@ -46,6 +51,7 @@ function render(oldTree, newTree, transaction) {
 
   // Otherwise re-use the existing component if the constructors are the same.
   if (oldComponentTree) {
+
     // Update the incoming props/attrs.
     assign(oldComponentTree.attributes, newTree.attributes);
 
@@ -96,11 +102,10 @@ const createNodeHook = vTree => {
 const syncTreeHook = (oldTree, newTree, transaction) => {
   // Render components during synchronization.
   if (
-    // When child is a Component
-    typeof newTree.rawNodeName === 'function' &&
     // If there is an oldTree and it's not the existing component, trigger a
-    // render.
-    (oldTree && oldTree.rawNodeName ? oldTree.rawNodeName !== newTree.rawNodeName : false)
+    // render. Or if the components match, re-render.
+    (oldTree && typeof oldTree.rawNodeName === 'function') ||
+    (newTree && typeof newTree.rawNodeName === 'function')
   ) {
     return render(oldTree, newTree, transaction);
   }

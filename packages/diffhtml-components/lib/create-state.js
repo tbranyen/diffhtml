@@ -25,7 +25,7 @@ export function createState(defaultValue = {}) {
   const currentValue = activeHook ? activeHook[0] : defaultValue;
   const retVal = activeHook || [currentValue];
 
-  console.log(activeComponent, currentValue);
+  //console.log(activeComponent.toString(), currentValue.toString());
 
   /**
    * @param {any} newValue
