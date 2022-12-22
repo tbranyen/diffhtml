@@ -3,7 +3,6 @@ import { createSideEffect } from '../../lib/create-side-effect';
 import { createState } from '../../lib/create-state';
 import diff from '../../lib/util/binding';
 import globalThis from '../../lib/util/global';
-import { ComponentTreeCache } from '../../lib/util/types';
 import validateCaches from '../util/validate-caches';
 
 const { html, release, innerHTML, toString, createTree } = diff;
@@ -450,7 +449,7 @@ describe('Hooks', function() {
         i++;
         const [ value, _setValue ] = createState(false);
         setNestedValue = _setValue;
-        return html`${String(value) + i}`;
+        return html`${String(value)} ${i}`;
       }
 
       function Component() {
@@ -462,12 +461,14 @@ describe('Hooks', function() {
       this.fixture = document.createElement('div');
 
       await innerHTML(this.fixture, html`<${Component} />`);
+      strictEqual(this.fixture.outerHTML, `<div>false 1</div>`);
+      console.log('>> set first value');
       await setNestedValue(123);
-      strictEqual(this.fixture.outerHTML, `<div>1232</div>`);
+      strictEqual(this.fixture.outerHTML, `<div>123 2</div>`);
       console.log('>>> set component value <<<');
 
       await setComponentValue();
-      strictEqual(this.fixture.outerHTML, `<div>1233</div>`);
+      strictEqual(this.fixture.outerHTML, `<div>123 3</div>`);
     });
 
     it('will support nested createSideEffect with top-level re-rendering', async () => {

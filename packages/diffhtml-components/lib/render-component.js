@@ -1,23 +1,25 @@
 import {
   MountCache,
-  ComponentTreeCache,
   ActiveRenderState,
   InstanceCache,
   VTree,
   Transaction,
 } from './util/types';
-import { $$hooks, $$vTree } from './util/symbols';
+import { $$children, $$hooks, $$vTree } from './util/symbols';
 import diff from './util/binding';
 import Component from './component';
 
-const { createTree } = diff;
+const { createTree, Internals } = diff;
 
 /**
  * Used during a synchronization flow. Takes in a vTree and a context object
  * and renders the component as a class or a function. Calls standard lifecycle
  * methods.
+ * 
+ * This is a recursive function and will continue to render until all components
+ * are done or a non-component VTree is hit.
  *
- * @param {VTree} vTree - tree to render
+ * @param {VTree} vTree - VTree to render
  * @param {Transaction} transaction - used to key mounts to a transaction
  *
  * @returns {VTree | null}
@@ -27,8 +29,6 @@ export default function renderComponent(vTree, transaction) {
   const RawComponent = vTree.rawNodeName;
   const isNewable = RawComponent.prototype && RawComponent.prototype.render;
   const isInstance = InstanceCache.has(vTree);
-
-  console.log('Rendering', vTree, InstanceCache.get(vTree));
 
   /** @type {VTree|null} */
   let renderedTree = (null);
@@ -51,16 +51,18 @@ export default function renderComponent(vTree, transaction) {
       renderedTree = createTree(instance.render(props, instance.state));
       ActiveRenderState.length = 0;
 
+
       if (instance.componentDidUpdate && instance.componentDidUpdate) {
         instance.componentDidUpdate(instance.props, instance.state);
       }
     }
     else {
-      return null;
+      return renderedTree;
     }
   }
   // New class instance.
   else if (isNewable) {
+    /** @type {Component} */
     const instance = new RawComponent(props);
 
     // Associate the instance to the vTree.
@@ -80,19 +82,13 @@ export default function renderComponent(vTree, transaction) {
 
     if (
       typeof renderedTree.rawNodeName !== 'function' &&
-      renderedTree.nodeType === 11 &&
+      renderedTree.nodeType === Internals.NODE_TYPE.FRAGMENT &&
       !renderedTree.childNodes.length
     ) {
       renderedTree = createTree('#text');
     }
 
-    // Set up the HoC parent/child relationship.
-    if (typeof renderedTree.rawNodeName === 'function') {
-      ComponentTreeCache.set(renderedTree, vTree);
-    }
-
-    // Associate the instance with the vTree.
-    instance[$$vTree] = vTree;
+    instance[$$children] = renderedTree;
   }
   // Function component, upgrade to a class to make it reactive.
   else {
@@ -113,7 +109,7 @@ export default function renderComponent(vTree, transaction) {
       }
 
       /** @type {VTree | null} */
-      [$$vTree] = null;
+      [$$vTree] = vTree;
     }
 
     const instance = new FunctionComponent(props)
@@ -146,32 +142,22 @@ export default function renderComponent(vTree, transaction) {
     // text value.
     if (
       typeof renderedTree.rawNodeName !== 'function' &&
-      renderedTree.nodeType === 11 &&
+      renderedTree.nodeType === Internals.NODE_TYPE.FRAGMENT &&
       !renderedTree.childNodes.length
     ) {
       renderedTree = createTree('#text');
     }
 
-    // Set up the HoC parent/child relationship.
-    if (typeof renderedTree.rawNodeName === 'function') {
-      ComponentTreeCache.set(renderedTree, vTree);
-    }
-
     // Associate the instance with the vTree.
-    instance[$$vTree] = vTree;
+    instance[$$children] = renderedTree;
   }
 
-  if (renderedTree !== vTree) {
-    // Map all top-level fragment elements to this parent node.
-    if (renderedTree.nodeType === 11) {
-      renderedTree.childNodes.forEach(childNode => {
-        ComponentTreeCache.set(childNode, vTree);
-      });
-    }
-    // Otherwise directly map the rendered VTree to the component tree.
-    else {
-      ComponentTreeCache.set(renderedTree, vTree);
-    }
+  Internals.memory.protectVTree(renderedTree);
+
+  // If a new component was rendered instead of a DOM node, we need to continue rendering
+  // until we reach the end.
+  if (renderedTree !== vTree && typeof renderedTree.rawNodeName === 'function') {
+    return renderComponent(renderedTree, transaction);
   }
 
   return renderedTree;

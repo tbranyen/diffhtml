@@ -300,7 +300,15 @@ export default function syncTree(
     }
 
     const sameType = oldChildNode.nodeName === newChildNode.nodeName;
-    const retVal = syncTree(oldChildNode, newChildNode, patches, state, transaction, !sameType);
+
+    const retVal = syncTree(
+      oldChildNode,
+      newChildNode,
+      patches,
+      state,
+      transaction,
+      !sameType,
+    );
 
     if (retVal === false) {
       newChildNodes.splice(i, 0, oldChildNode);

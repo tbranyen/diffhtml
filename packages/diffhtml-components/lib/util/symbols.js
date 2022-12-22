@@ -6,3 +6,4 @@ export const $$type = Symbol.for('diff.type');
 export const $$hooks = Symbol.for('diff.hooks');
 export const $$insertAfter = Symbol.for('diff.after');
 export const $$diffHTML = Symbol.for('diffHTML');
+export const $$children = Symbol.for('diff.children');

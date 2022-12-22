@@ -1,4 +1,4 @@
-import { EMPTY, ComponentTreeCache, InstanceCache, VTree } from '../util/types';
+import { EMPTY, InstanceCache, VTree } from '../util/types';
 import diff from '../util/binding';
 
 const { Internals } = diff;
@@ -13,7 +13,7 @@ export const invokeRef = (target = EMPTY.OBJ, vTree, value) => {
 
   // Allow refs to be passed to HTML elements. When in a DOM environment
   // a Node will be passed to the ref function and assigned.
-  if (!ref) {
+  if (!ref && vTree) {
     target = Internals.NodeCache.get(vTree);
     ref = vTree.attributes.ref;
   }
@@ -40,7 +40,7 @@ export const invokeRef = (target = EMPTY.OBJ, vTree, value) => {
  * @param {HTMLElement | VTree | null} value - Value to populate ref with
  */
 export function invokeRefsForVTree(vTree, value) {
-  const componentTree = ComponentTreeCache.get(vTree);
+  console.log('invoke for', vTree);
 
   if (vTree.childNodes.length) {
     vTree.childNodes.filter(Boolean).forEach(childNode => {
@@ -48,7 +48,7 @@ export function invokeRefsForVTree(vTree, value) {
     });
   }
 
-  const instance = InstanceCache.get(componentTree || vTree);
+  const instance = InstanceCache.get(vTree);
 
   if (!instance) {
     invokeRef(Internals.NodeCache.get(vTree), vTree, value);

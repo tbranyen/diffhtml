@@ -40,11 +40,11 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
     }
 
     // Replace the top level elements.
-    transaction.patches = [
+    transaction.patches.push(
       PATCH_TYPE.REPLACE_CHILD,
       newTree,
       oldTree,
-    ];
+    );
 
     // Clean up the existing old tree, and mount the new tree.
     transaction.oldTree = state.oldTree = newTree;
@@ -63,13 +63,17 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
   }
   // Synchronize the top level elements.
   else {
-    transaction.patches = syncTree(
+    const patches = syncTree(
       oldTree || null,
       newTree || null,
       [],
       state,
       transaction,
     );
+
+    if (patches && patches.length) {
+      transaction.patches.push(...patches);
+    }
   }
 
   measure('sync trees');

@@ -209,6 +209,9 @@ export default class Transaction {
     // Clean up SVG element list.
     svgElements.clear();
 
+    // Reset patches once completed.
+    this.patches.length = 0;
+
     // Rendering is complete.
     state.isRendering = false;
     state.isDirty = false;
