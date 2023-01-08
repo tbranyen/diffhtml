@@ -2,7 +2,7 @@ import { strictEqual, deepStrictEqual } from 'assert';
 import Component from '../lib/component';
 import diff from '../lib/util/binding';
 import globalThis from '../lib/util/global';
-import { $$children } from '../lib/util/symbols';
+import { $$type, $$vTree } from '../lib/util/symbols';
 import { InstanceCache } from '../lib/util/types';
 import validateCaches from './util/validate-caches';
 
@@ -27,6 +27,23 @@ describe('Component', function() {
     strictEqual(TestComponent.name, 'TestComponent');
   });
 
+  it('will inherit from HTMLElement', () => {
+    class TestComponent extends Component {}
+    strictEqual(TestComponent.prototype.toString(), '[object HTMLElement]');
+  });
+
+  it('will set the internal type to class when not a web component', () => {
+    class TestComponent extends Component {}
+    const instance = new TestComponent();
+    strictEqual(instance[$$type], 'class');
+  });
+
+  it('will set initial $$vTree reference to null', () => {
+    class TestComponent extends Component {}
+    const instance = new TestComponent();
+    strictEqual(instance[$$vTree], null);
+  });
+
   describe('Default props', () => {
     it('will support defining default props as null', () => {
       class TestComponent extends Component {
@@ -37,7 +54,7 @@ describe('Component', function() {
       deepStrictEqual(testComponent.props, {});
     });
 
-    it('will not support other types for default props', () => {
+    it('will not support non-object types for default props', () => {
       {
         class TestComponent extends Component {
           static defaultProps = 'test'
@@ -115,13 +132,25 @@ describe('Component', function() {
         test: 'value',
       });
     });
+
+    it('will support passing props', () => {
+      class TestComponent extends Component {}
+
+      const testComponent = new TestComponent({
+        test: 'value'
+      });
+
+      deepStrictEqual(testComponent.props, {
+        test: 'value',
+      });
+    });
   });
 
   describe('render()', () => {
     it('will support omitting render function', () => {
       class TestComponent extends Component {}
 
-      const actual = toString(html`<${TestComponent} />`).trim();
+      const actual = toString(TestComponent);
 
       strictEqual(actual, '');
     });
@@ -131,7 +160,7 @@ describe('Component', function() {
         render() {}
       }
 
-      const actual = toString(html`<${TestComponent} />`).trim();
+      const actual = toString(TestComponent);
 
       strictEqual(actual, '');
     });
@@ -143,7 +172,7 @@ describe('Component', function() {
         }
       }
 
-      const actual = toString(TestComponent).trim();
+      const actual = toString(TestComponent);
 
       strictEqual(actual, '<div></div>');
     });
@@ -367,7 +396,7 @@ describe('Component', function() {
       const level1Instance = InstanceCache.get(this.fixture.childNodes[0]);
       strictEqual(level1Instance.constructor, Level1Component);
 
-      const level2Instance = InstanceCache.get(level1Instance[$$children]);
+      const level2Instance = InstanceCache.get(this.fixture.childNodes[0].childNodes[0]);
       strictEqual(level2Instance.constructor.name, 'FunctionComponent');
     });
   });
@@ -414,6 +443,46 @@ describe('Component', function() {
   });
 
   describe('setState', () => {
+    it('will support re-rendering multiple times', async () => {
+      let renderCalled = [];
+
+      class TestComponent extends Component {
+        render(...args) {
+          renderCalled.push(args);
+          const { message } = this.state;
+          return html`
+            <div>${message}</div>
+          `;
+        }
+      }
+
+      this.fixture = document.createElement('div');
+
+      let ref = null;
+
+      innerHTML(this.fixture, html`
+        <${TestComponent} ref=${instance => ref = instance} />
+      `);
+
+      strictEqual(renderCalled.length, 1);
+      strictEqual(this.fixture.firstElementChild.outerHTML.trim(), '<div></div>');
+
+      await ref.setState({ message: 'test' });
+
+      strictEqual(renderCalled.length, 2);
+      strictEqual(this.fixture.firstElementChild.outerHTML.trim(), '<div>test</div>');
+
+      await ref.setState({ message: 'this' });
+
+      strictEqual(renderCalled.length, 3);
+      strictEqual(this.fixture.firstElementChild.outerHTML.trim(), '<div>this</div>');
+
+      await ref.setState({ message: 'out' });
+
+      strictEqual(renderCalled.length, 4);
+      strictEqual(this.fixture.firstElementChild.outerHTML.trim(), '<div>out</div>');
+    });
+
     it('will trigger a re-render on mounted components', async () => {
       let renderCalled = [];
 
@@ -432,6 +501,10 @@ describe('Component', function() {
       innerHTML(this.fixture, html`
         <${TestComponent} ref=${instance => ref = instance} />
       `);
+
+
+      strictEqual(renderCalled.length, 1);
+      strictEqual(this.fixture.firstElementChild.outerHTML, '<div></div>');
 
       await ref.setState({ message: 'test' });
 

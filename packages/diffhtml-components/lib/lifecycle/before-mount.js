@@ -1,9 +1,9 @@
-import componentWillUnmount from './lifecycle/component-will-unmount';
-import { invokeRef, invokeRefsForVTree } from './lifecycle/invoke-refs';
-import diff from './util/binding';
-import { Transaction } from './util/types';
+import componentWillUnmount from './component-will-unmount';
+import { invokeRef, invokeRefsForVTree } from './invoke-refs';
+import diff from '../util/binding';
+import { Transaction } from '../util/types';
 
-const { createNode, NodeCache, PATCH_TYPE, decodeEntities } = diff.Internals;
+const { NodeCache, PATCH_TYPE, decodeEntities, createNode } = diff.Internals;
 const uppercaseEx = /[A-Z]/g;
 
 /**
@@ -53,6 +53,7 @@ export default transaction => {
           }
         }
 
+        // TBD Remove because invokeRefs is handled in afterMount
         if (name === 'ref') {
           invokeRef(createNode(vTree), vTree);
         }
@@ -69,6 +70,7 @@ export default transaction => {
       case PATCH_TYPE.REPLACE_CHILD: {
         const oldTree = patches[i + 2];
 
+        invokeRefsForVTree(oldTree, null);
         componentWillUnmount(oldTree);
 
         i += 3;

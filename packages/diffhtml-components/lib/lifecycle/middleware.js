@@ -2,14 +2,15 @@ import {
   MountCache,
   VTree,
   Transaction,
-} from './util/types';
-import globalThis from './util/global';
-import { $$vTree } from './util/symbols';
-import diff from './util/binding';
+  InstanceCache,
+} from '../util/types';
+import globalThis from '../util/global';
+import { $$vTree } from '../util/symbols';
+import diff from '../util/binding';
 import beforeMount from './before-mount';
-import componentWillUnmount from './lifecycle/component-will-unmount';
-import { invokeRef } from './lifecycle/invoke-refs';
-import renderComponent from './render-component';
+import componentWillUnmount from './component-will-unmount';
+import { invokeRef } from './invoke-refs';
+import renderComponent from '../render-component';
 
 const { assign } = Object;
 const { tasks } = diff.Internals;
@@ -17,7 +18,9 @@ const { tasks } = diff.Internals;
 /**
  * @param {VTree} vTree
  */
-const releaseHook = vTree => componentWillUnmount(vTree);
+const releaseHook = vTree => {
+  componentWillUnmount(vTree);
+}
 
 /**
  * @param {VTree} vTree
@@ -49,13 +52,13 @@ const createNodeHook = vTree => {
 
 /**
  * This hook determines which component to render and inject into the tree.
- * 
+ *
  * @param {VTree} oldTree
  * @param {VTree} newTree
  * @param {Transaction} transaction
  */
 const syncTreeHook = (oldTree, newTree, transaction) => {
-  const isOldFunction = oldTree && typeof oldTree.rawNodeName === 'function';
+  const isOldFunction = oldTree && InstanceCache.has(oldTree);
   const isNewFunction = newTree && typeof newTree.rawNodeName === 'function';
 
   // New component added (TBD what about keyed components?)
@@ -63,7 +66,10 @@ const syncTreeHook = (oldTree, newTree, transaction) => {
     return renderComponent(newTree, transaction);
   }
   else if (isOldFunction && isNewFunction) {
-    console.log('here');
+    if (InstanceCache.get(oldTree).constructor === newTree.rawNodeName) {
+      return renderComponent(oldTree, transaction);
+    }
+    throw new Error('Currently unimplemented');
   }
 };
 
@@ -89,7 +95,7 @@ export default () => assign(
       transaction.tasks.splice(patchNodeIndex + 1, 0, function afterMountLifecycle() {
         MountCache.get(transaction)?.forEach(instance => {
           invokeRef(instance, instance[$$vTree]);
-          
+
           if (typeof instance.componentDidMount === 'function') {
             instance.componentDidMount();
           }

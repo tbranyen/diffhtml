@@ -63,17 +63,13 @@ export default function syncTrees(/** @type {Transaction} */ transaction) {
   }
   // Synchronize the top level elements.
   else {
-    const patches = syncTree(
+    syncTree(
       oldTree || null,
       newTree || null,
-      [],
+      transaction.patches,
       state,
       transaction,
     );
-
-    if (patches && patches.length) {
-      transaction.patches.push(...patches);
-    }
   }
 
   measure('sync trees');

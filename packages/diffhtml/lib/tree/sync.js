@@ -11,7 +11,6 @@ import {
   EMPTY,
 } from '../util/types';
 
-const { assign } = Object;
 const { max } = Math;
 const keyNames = ['old', 'new'];
 const textName = '#text';
@@ -27,7 +26,7 @@ const textName = '#text';
  * @param {Transaction} transaction
  * @param {boolean=} attributesOnly
  *
- * @return {any[] | false | null}
+ * @return {VTree | null | false}
  */
 export default function syncTree(
   oldTree,
@@ -70,7 +69,7 @@ export default function syncTree(
       }
       // Merge the returned tree into the newTree.
       else if (entry) {
-        assign(/** @type {Partial<VTree>} */ (newTree), entry);
+        newTree = entry;
       }
     });
   }
@@ -79,6 +78,7 @@ export default function syncTree(
     return shortCircuit;
   }
 
+  const returnValue = /** @type {VTree} */ (newTree);
   const oldNodeName = oldTree.nodeName;
   const newNodeName = newTree.nodeName;
 
@@ -102,7 +102,7 @@ export default function syncTree(
 
       oldTree.nodeValue = newTree.nodeValue;
 
-      return patches;
+      return returnValue;
     }
     // Ensure new text nodes have decoded entities.
     else if (isEmpty) {
@@ -113,7 +113,7 @@ export default function syncTree(
         null,
       );
 
-      return patches;
+      return returnValue;
     }
   }
 
@@ -172,7 +172,7 @@ export default function syncTree(
       syncTree(null, newChildNodes[i], patches, state, transaction, true);
     }
 
-    return patches;
+    return returnValue;
   }
 
   /** @type {any} */
@@ -233,15 +233,26 @@ export default function syncTree(
 
     // If there is no old element to compare to, this is a simple addition.
     if (!oldChildNode) {
-      oldChildNodes.push(newChildNode);
-
       // Crawl this Node for any changes to apply.
-      syncTree(null, newChildNode, patches, state, transaction, true);
+      const syncNewTree = /** @type {VTree} */ (
+        syncTree(
+          null,
+          newChildNode,
+          patches,
+          state,
+          transaction,
+          true,
+        )
+      );
 
+      // Add this to the existing list of nodes.
+      oldChildNodes.push(syncNewTree);
+
+      // Mark this as an insert patch
       patches.push(
         PATCH_TYPE.INSERT_BEFORE,
         oldTree,
-        newChildNode,
+        syncNewTree,
         null,
       );
 
@@ -257,8 +268,16 @@ export default function syncTree(
     if (oldKey || newKey) {
       // Remove the old node instead of replacing.
       if (!oldInNew && !newInOld) {
-        syncTree(oldChildNode, newChildNode, patches, state, transaction, true);
-        patches.push(PATCH_TYPE.REPLACE_CHILD, newChildNode, oldChildNode);
+        const syncNewTree = syncTree(
+          oldChildNode,
+          newChildNode,
+          patches,
+          state,
+          transaction,
+          true,
+        );
+
+        patches.push(PATCH_TYPE.REPLACE_CHILD, syncNewTree, oldChildNode);
 
         continue;
       }
@@ -285,12 +304,19 @@ export default function syncTree(
         }
 
         // Crawl this Node for any changes to apply.
-        syncTree(null, optimalNewNode, patches, state, transaction, true);
+        const syncNewTree = syncTree(
+          null,
+          optimalNewNode,
+          patches,
+          state,
+          transaction,
+          true,
+        );
 
         patches.push(
           PATCH_TYPE.INSERT_BEFORE,
           oldTree,
-          optimalNewNode,
+          syncNewTree,
           oldChildNode,
         );
 
@@ -342,5 +368,5 @@ export default function syncTree(
     oldChildNodes.length = newChildNodes.length;
   }
 
-  return patches;
+  return returnValue;
 }

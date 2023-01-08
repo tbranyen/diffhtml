@@ -5,7 +5,7 @@ import {
   VTree,
   Transaction,
 } from './util/types';
-import { $$children, $$hooks, $$vTree } from './util/symbols';
+import { $$hooks, $$vTree } from './util/symbols';
 import diff from './util/binding';
 import Component from './component';
 
@@ -15,7 +15,7 @@ const { createTree, Internals } = diff;
  * Used during a synchronization flow. Takes in a vTree and a context object
  * and renders the component as a class or a function. Calls standard lifecycle
  * methods.
- * 
+ *
  * This is a recursive function and will continue to render until all components
  * are done or a non-component VTree is hit.
  *
@@ -46,15 +46,20 @@ export default function renderComponent(vTree, transaction) {
       instance.shouldComponentUpdate(props, instance.state)
     ) {
       ActiveRenderState.push(instance);
+
       // Reset the hooks iterator.
       instance[$$hooks].i = 0;
       renderedTree = createTree(instance.render(props, instance.state));
-      ActiveRenderState.length = 0;
 
+      ActiveRenderState.length = 0;
 
       if (instance.componentDidUpdate && instance.componentDidUpdate) {
         instance.componentDidUpdate(instance.props, instance.state);
       }
+
+      instance[$$vTree] = vTree;
+      vTree.childNodes.length = 0;
+      vTree.childNodes.push(renderedTree);
     }
     else {
       return renderedTree;
@@ -88,7 +93,16 @@ export default function renderComponent(vTree, transaction) {
       renderedTree = createTree('#text');
     }
 
-    instance[$$children] = renderedTree;
+    // Replace the VTree with the rendered component
+    if (renderedTree.nodeType === Internals.NODE_TYPE.FRAGMENT) {
+      vTree.childNodes.push(...renderedTree.childNodes);
+    }
+    else {
+      vTree.childNodes.push(renderedTree);
+    }
+
+    InstanceCache.set(renderedTree, instance);
+    instance[$$vTree] = vTree;
   }
   // Function component, upgrade to a class to make it reactive.
   else {
@@ -149,15 +163,20 @@ export default function renderComponent(vTree, transaction) {
     }
 
     // Associate the instance with the vTree.
-    instance[$$children] = renderedTree;
+    // Replace the VTree with the rendered component
+    instance[$$vTree] = renderedTree;
+    vTree.childNodes.push(renderedTree);
+
+    InstanceCache.set(renderedTree, instance);
   }
 
-  Internals.memory.protectVTree(renderedTree);
+  Internals.memory.protectVTree(vTree);
 
-  // If a new component was rendered instead of a DOM node, we need to continue rendering
-  // until we reach the end.
-  if (renderedTree !== vTree && typeof renderedTree.rawNodeName === 'function') {
-    return renderComponent(renderedTree, transaction);
+  // If a new component was rendered instead of a DOM node, we need to continue
+  // rendering until we reach the end.
+  if (typeof renderedTree.rawNodeName === 'function') {
+    vTree.childNodes.length = 0;
+    vTree.childNodes.push(renderComponent(renderedTree, transaction));
   }
 
   return renderedTree;

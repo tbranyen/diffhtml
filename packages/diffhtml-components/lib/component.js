@@ -13,12 +13,11 @@ import {
   $$unsubscribe,
   $$type,
   $$hooks,
-  $$children,
 } from './util/symbols';
 import diff from './util/binding';
-import middleware from './middleware';
+import middleware from './lifecycle/middleware';
 
-const { innerHTML } = diff;
+const { Internals } = diff;
 const { isArray } = Array;
 const { setPrototypeOf, defineProperty, keys, assign } = Object;
 const RenderDebounce = new WeakMap();
@@ -67,7 +66,7 @@ const createMountPoint = (instance, isWebComponent) => {
     return /** @type {any} */(instance).shadowRoot;
   }
   else {
-    return instance[$$children];
+    return instance[$$vTree];
   }
 };
 
@@ -226,9 +225,6 @@ export default class Component {
   /** @type {{ fns: Function[], i: number }} */
   [$$hooks] = { fns: [], i: 0 };
 
-  /** @type {any} */
-  [$$children] = [];
-
   /**
    * Stateful render. Used when a component changes and needs to re-render
    * itself and the underlying tree it contains. This is triggered on
@@ -245,10 +241,6 @@ export default class Component {
    */
   [$$render]() {
     const vTree = /** @type {VTree=} */ this[$$vTree];
-    if (!vTree) {
-      throw new Error('Missing required VTree to re-render');
-    }
-
     const oldProps = this.props;
     const oldState = this.state;
 
@@ -280,22 +272,31 @@ export default class Component {
       this[$$hooks].i = 0;
     }
 
-    // Set the VTree attributes to match the current props.
-    Object.assign(vTree.attributes, this.props);
+    const rendered = this.render(this.props, this.state);
 
-    // Compare the newly rendered component contents into the mount.
-    const transaction = innerHTML(mount, this.render(this.props, this.state));
+    const transaction = Internals.Transaction.create(
+      mount,
+      rendered,
+      { inner: true },
+    );
+
+    // Set the VTree attributes to match the current props and use this as the initial state for a re-render.
+    if (vTree) {
+      assign(vTree.attributes, this.props);
+      transaction.state.oldTree = vTree;
+      transaction.state.isDirty = false;
+    }
+
+    // Middleware and task changes can affect the return value, it's not always guarenteed to be the transaction
+    // this allows us to tap into that return value and remain consistent.
+    const retVal = transaction.start();
 
     // Reset the active state after rendering so we don't accidentally bleed
     // into other components render cycle.
     ActiveRenderState.length = 0;
 
-    if (!isWebComponent) {
-      release(mount);
-    }
-
     this.componentDidUpdate(oldProps, oldState);
-    return transaction;
+    return retVal;
   }
 
   connectedCallback() {
@@ -304,7 +305,7 @@ export default class Component {
     // This callback gets called during replace operations, there is no point
     // in re-rendering or creating a new shadow root due to this.
 
-    // Always do a full render when mounting, so that something is visible.
+    // This is the initial render for the Web Component
     this[$$render]();
 
     this.componentDidMount();

@@ -1,6 +1,6 @@
 import { InstanceCache, VTree } from '../util/types';
 import diff from '../util/binding';
-import { $$children, $$hooks } from '../util/symbols';
+import { $$hooks } from '../util/symbols';
 
 const { release, Internals } = diff;
 
@@ -16,6 +16,9 @@ export default function componentWillUnmount(vTree) {
   // Clean up attached Shadow DOM.
   if (domNode && /** @type {any} */ (domNode).shadowRoot) {
     release(/** @type {any} */ (domNode).shadowRoot);
+  }
+  else {
+    Internals.memory.unprotectVTree(vTree);
   }
 
   for (let i = 0; i < vTree.childNodes.length; i++) {
@@ -35,9 +38,6 @@ export default function componentWillUnmount(vTree) {
     instance[$$hooks].fns.length = 0;
     instance[$$hooks].i = 0;
   }
-
-  // Ensure children are released as well.
-  release(instance[$$children]);
 
   // Ensure this is a stateful component. Stateless components do not get
   // lifecycle events yet.

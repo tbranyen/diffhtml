@@ -40,8 +40,6 @@ export const invokeRef = (target = EMPTY.OBJ, vTree, value) => {
  * @param {HTMLElement | VTree | null} value - Value to populate ref with
  */
 export function invokeRefsForVTree(vTree, value) {
-  console.log('invoke for', vTree);
-
   if (vTree.childNodes.length) {
     vTree.childNodes.filter(Boolean).forEach(childNode => {
       invokeRefsForVTree(childNode, value);
