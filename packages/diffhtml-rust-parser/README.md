@@ -21,7 +21,7 @@ npm t
 ## Using with diffHTML
 
 ```js
-import { Internals, innerHTML } from 'diffhtml';
+import { Internals, innerHTML, html } from 'diffhtml';
 import { parse } from 'diffhtml-rust-parser';
 
 // Use the rust parser
