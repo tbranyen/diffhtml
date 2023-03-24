@@ -215,6 +215,14 @@ export default class Transaction {
     state.isRendering = false;
     state.isDirty = false;
 
+    // After a transaction ends, clear out all mutation observer's to avoid
+    // issues where parent components are triggered from child renders.
+    StateCache.forEach(state => {
+      if (state.mutationObserver) {
+        state.mutationObserver.takeRecords();
+      }
+    });
+
     // If MutationObserver is available, look for changes.
     if (mountAsHTMLEl.ownerDocument && mutationObserver) {
       mutationObserver.observe(mountAsHTMLEl, {
