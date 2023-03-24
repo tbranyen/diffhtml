@@ -23,8 +23,8 @@
     "Parser": ["parser.html", {
       "Options": "#options",
       "Override parser": "#override-parser",
-      "Dynamic values": "#dynamic-values",
-      "Rust WASM": "#rust-wasm"
+      "Rust WASM": "#rust-wasm",
+      "Dynamic values": "#dynamic-values"
     }],
 
     "Middleware": ["middleware.html", {

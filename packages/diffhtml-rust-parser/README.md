@@ -29,7 +29,7 @@ Internals.parse = parse;
 
 // Now the html`` tagged template will be parsed using WASM
 innerHTML(document.body, html`
-    <div>Parsed with TL using WASM</div>
+  <div>Parsed with TL using WASM</div>
 `);
 
 // Simple HTML strings are also automatically parsed using WASM now
@@ -44,9 +44,9 @@ your build step. This is done with the `NODE_OPTIONS` env var and the
 
 ```json
 {
-    "scripts": {
-        "build": "NODE_OPTIONS=--experimental-wasm-modules babel input.js -o output.js"
-    }
+  "scripts": {
+    "build": "NODE_OPTIONS=--experimental-wasm-modules babel input.js -o output.js"
+  }
 }
 ```
 
@@ -75,4 +75,3 @@ example of how you could integrate the WASM parser in both development and
 production is available.
 
 - [Sample webpack example](./examples/webpack)
-

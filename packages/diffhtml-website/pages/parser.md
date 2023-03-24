@@ -174,6 +174,38 @@ Internals.parse = input => {
 };
 ```
 
+<a name="rust-wasm"></a>
+
+---
+
+## <a href="#rust-wasm">Rust WASM</a>
+
+An alternative parser is readily available that is authored in Rust and
+compiled to [WASM](https://webassembly.org/). You can install this with:
+
+```bash
+npm install diffhtml-rust-parser --save
+```
+
+To use, simply import and attach to the `Internals.parse` as described in the
+section above. For example:
+
+```
+import { Internals, innerHTML, html } from 'diffhtml';
+import { parse } from 'diffhtml-rust-parser';
+
+// Use the rust parser
+Internals.parse = parse;
+
+// Now the html`` tagged template will be parsed using WASM
+innerHTML(document.body, html`
+  <div>Parsed with TL using WASM</div>
+`);
+
+// Simple HTML strings are also automatically parsed using WASM now
+innerHTML(document.body, '<div>Also parsed with WASM</div>');
+```
+
 <a name="dynamic-values"></a>
 
 ---
