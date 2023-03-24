@@ -3,7 +3,7 @@
  * @typedef {import('../util/types').VTree} VTree
  */
 import patch from '../node/patch';
-import { StateCache, CreateNodeHookCache } from '../util/types';
+import { CreateNodeHookCache } from '../util/types';
 import globalThis from '../util/global';
 
 /**
