@@ -136,7 +136,9 @@ export default class Transaction {
       measure: makeMeasure(this),
       svgElements: new Set(),
       scriptsToExecute: new Map(),
-      mutationObserver: useObserver && new globalThis.window.MutationObserver(EMPTY.FUN),
+      mutationObserver: useObserver && new globalThis.window.MutationObserver(() => {
+        this.state.isDirty = true;
+      }),
     });
 
     this.tasks = /** @type {Function[]} */ (
@@ -212,6 +214,14 @@ export default class Transaction {
     // Rendering is complete.
     state.isRendering = false;
     state.isDirty = false;
+
+    // After a transaction ends, clear out all mutation observer's to avoid
+    // issues where parent components are triggered from child renders.
+    StateCache.forEach(state => {
+      if (state.mutationObserver) {
+        state.mutationObserver.takeRecords();
+      }
+    });
 
     // If MutationObserver is available, look for changes.
     if (mountAsHTMLEl.ownerDocument && mutationObserver) {

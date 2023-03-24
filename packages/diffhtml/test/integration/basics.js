@@ -210,6 +210,16 @@ describe('Integration: Basics', function() {
       diff.release(documentElement);
       doc.close();
     });
+
+    it('will mark internal state as dirty if markup is modified outside of renders', function(cb) {
+      diff.innerHTML(this.fixture, '<div>Test</div>');
+      this.fixture.querySelector('div').innerHTML = 'External change';
+
+      setTimeout(() => {
+        assert.strictEqual(diff.Internals.StateCache.get(this.fixture).isDirty, true);
+        cb();
+      });
+    });
   });
 
   describe('DocumentFragment', function() {
