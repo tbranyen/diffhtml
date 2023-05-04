@@ -21,7 +21,7 @@
     "chokidar": "^3.5.3",
     "cli-spinner": "^0.2.10",
     "diffhtml": "^1.0.0-beta.29",
-    "engine.io": "^6.2.1",
+    "engine.io": "^6.4.2",
     "express": "^4.17.3",
     "marked": "^4.0.12"
   },
