@@ -11,7 +11,10 @@ const url = new URL('about:blank');
 const location = new Proxy(url, {
   set(obj, keyName, value) {
     if (keyName === 'href') {
-      assign(obj, new URL(value));
+      // Parse out the href and set the search param
+      const newURL = new URL(value);
+
+      obj.search = newURL.search;
 
       if (obj.search === null) {
         obj.search = '';
