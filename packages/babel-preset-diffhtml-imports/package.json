@@ -7,7 +7,7 @@
   "author": "Tim Branyen (@tbranyen)",
   "license": "MIT",
   "dependencies": {
-    "@babel/core": "^7.17.8",
+    "@babel/core": "^7.22.8",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/plugin-proposal-object-rest-spread": "^7.17.3",
     "@babel/plugin-proposal-optional-catch-binding": "^7.16.7",
