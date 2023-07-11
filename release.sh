@@ -11,8 +11,8 @@ nvm use
 # Ensure an npm user is logged in.
 npm whoami
 
-OLD_BETA=28
-NEW_BETA=29
+OLD_BETA=29
+NEW_BETA=30
 
 OLD_VERSION="1.0.0-beta.$OLD_BETA"
 NEW_VERSION="1.0.0-beta.$NEW_BETA"
