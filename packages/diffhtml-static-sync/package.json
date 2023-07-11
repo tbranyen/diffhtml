@@ -3,7 +3,7 @@
   "private": true,
   "bin": "index.js",
   "main": "index.js",
-  "version": "1.0.0-beta.29",
+  "version": "1.0.0-beta.30",
   "description": "A static HTTP server that hot reloads HTML on save",
   "scripts": {
     "prepublishOnly": "npm run build",
@@ -20,7 +20,7 @@
   "dependencies": {
     "chokidar": "^3.5.3",
     "cli-spinner": "^0.2.10",
-    "diffhtml": "^1.0.0-beta.29",
+    "diffhtml": "^1.0.0-beta.30",
     "engine.io": "^6.4.2",
     "express": "^4.17.3",
     "marked": "^4.0.12"

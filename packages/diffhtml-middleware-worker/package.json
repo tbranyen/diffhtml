@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-middleware-worker",
-  "version": "1.0.0-beta.27",
+  "version": "1.0.0-beta.30",
   "description": "Provides worker rendering for client and server",
   "main": "dist/cjs/index",
   "type": "module",
@@ -25,8 +25,8 @@
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.29",
-    "diffhtml": "^1.0.0-beta.23",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.30",
+    "diffhtml": "^1.0.0-beta.30",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-hypothetical": "^2.1.0",

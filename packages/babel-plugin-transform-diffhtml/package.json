@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-transform-diffhtml",
-  "version": "1.0.0-beta.29",
+  "version": "1.0.0-beta.30",
   "description": "Compiles tagged templates into createTree calls",
   "main": "dist/es/index.js",
   "module": "dist/es/index.js",
@@ -27,8 +27,8 @@
     "babelify": "^10.0.0",
     "babylon": "^6.18.0",
     "browserify": "^17.0.0",
-    "diffhtml": "^1.0.0-beta.29",
-    "diffhtml-rust-parser": "^1.0.0-beta.29",
+    "diffhtml": "^1.0.0-beta.30",
+    "diffhtml-rust-parser": "^1.0.0-beta.30",
     "extless-loader": "^1.0.0",
     "jsdom": "^20.0.2",
     "mocha": "^10.1.0",

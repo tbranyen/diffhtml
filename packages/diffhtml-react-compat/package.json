@@ -1,6 +1,6 @@
 {
   "name": "diffhtml-react-compat",
-  "version": "1.0.0-beta.29",
+  "version": "1.0.0-beta.30",
   "description": "Provides a strong layer of compatibility with React",
   "type": "module",
   "main": "dist/react-compat.js",
@@ -20,8 +20,8 @@
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
-    "babel-preset-diffhtml-imports": "^1.0.0-beta.29",
-    "diffhtml": "^1.0.0-beta.29",
+    "babel-preset-diffhtml-imports": "^1.0.0-beta.30",
+    "diffhtml": "^1.0.0-beta.30",
     "prop-types": "^15.7.2",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
@@ -33,8 +33,8 @@
     "uglify-js": "^3.12.4"
   },
   "dependencies": {
-    "diffhtml-components": "^1.0.0-beta.29",
-    "diffhtml-middleware-synthetic-events": "^1.0.0-beta.29",
+    "diffhtml-components": "^1.0.0-beta.30",
+    "diffhtml-middleware-synthetic-events": "^1.0.0-beta.30",
     "prop-types": "^15.7.2"
   }
 }
