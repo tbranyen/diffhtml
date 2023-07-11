@@ -52,5 +52,6 @@
     "sinon": "^14.0.1",
     "terser": "5.15.1",
     "typescript": "^4.8.4"
-  }
+  },
+  "gitHead": "091b497588f6f48221630431e2f1eeb7f2db37cb"
 }

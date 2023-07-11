@@ -34,5 +34,6 @@
     "rollup-plugin-visualizer": "^2.6.0",
     "rollup-watch": "^4.3.1",
     "uglify-js": "^3.12.4"
-  }
+  },
+  "gitHead": "091b497588f6f48221630431e2f1eeb7f2db37cb"
 }

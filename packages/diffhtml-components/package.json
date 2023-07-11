@@ -43,5 +43,6 @@
     "test": "mocha",
     "test-watch": "NODE_ENV=test mocha -w test/_setup test/**",
     "test-cov": "NODE_ENV=test+cov c8 -r=lcov mocha test/_setup test/**"
-  }
+  },
+  "gitHead": "091b497588f6f48221630431e2f1eeb7f2db37cb"
 }

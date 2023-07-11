@@ -36,5 +36,6 @@
     "diffhtml-components": "^1.0.0-beta.30",
     "diffhtml-middleware-synthetic-events": "^1.0.0-beta.30",
     "prop-types": "^15.7.2"
-  }
+  },
+  "gitHead": "091b497588f6f48221630431e2f1eeb7f2db37cb"
 }
