@@ -6,7 +6,7 @@
   "type": "module",
   "module": "dist/es/index",
   "scripts": {
-    "prepublishOnly": "npm run min",
+    "prepublishOnly": "npm run build",
     "clean": "rm -rf dist/* && mkdir -p dist",
     "build": "npm run clean && npm run build-umd && npm run build-cjs && npm run build-esm && npm run build-min",
     "build-cjs": "NODE_ENV=cjs babel lib -d dist/cjs && sh ../../post-cjs.sh",
