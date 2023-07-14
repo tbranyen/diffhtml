@@ -1,10 +1,14 @@
 name: build-ci
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
 
 jobs:
   test:
+    name: "Build and Test"
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     steps:
@@ -13,8 +17,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - uses: bahmutov/npm-install@v1.6.0
-        with:
-          useRollingCache: true
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -28,8 +30,7 @@ jobs:
       - run: npm run build
       - run: npm run test-cov
       - name: Publish to coveralls.io
-        uses: coverallsapp/github-action@v1.1.2
+        uses: coverallsapp/github-action@v2.2.1
         with:
           github-token: ${{ github.token }}
-          path-to-lcov: ./packages/diffhtml/coverage/lcov.info
-          base-path: ./packages/diffhtml
+          files: ./packages/diffhtml/coverage/lcov.info ./packages/diffhtml-components/coverage/lcov.info
