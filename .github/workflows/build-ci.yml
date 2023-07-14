@@ -28,8 +28,8 @@ jobs:
       - run: npm run build
       - run: npm run test-cov
       - name: Publish to coveralls.io
-        uses: coverallsapp/github-action@v1.1.2
+        uses: coverallsapp/github-action@v2.2.1
         with:
           github-token: ${{ github.token }}
           path-to-lcov: ./packages/diffhtml/coverage/lcov.info
-          base-path: ./packages/diffhtml
+          base-path: ./packages
