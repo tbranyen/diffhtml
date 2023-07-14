@@ -16,8 +16,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - uses: bahmutov/npm-install@v1.6.0
-        with:
-          useRollingCache: true
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -34,5 +32,4 @@ jobs:
         uses: coverallsapp/github-action@v2.2.1
         with:
           github-token: ${{ github.token }}
-          path-to-lcov: ./packages/diffhtml/coverage/lcov.info
           base-path: ./packages
