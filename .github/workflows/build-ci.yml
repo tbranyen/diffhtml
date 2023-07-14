@@ -32,4 +32,5 @@ jobs:
         uses: coverallsapp/github-action@v2.2.1
         with:
           github-token: ${{ github.token }}
+          files: diffhtml/coverage/lcov.info diffhtml-components/coverage/lcov.info
           base-path: ./packages
