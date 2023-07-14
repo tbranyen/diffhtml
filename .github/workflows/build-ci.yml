@@ -7,7 +7,8 @@ on:
   pull_request:
 
 jobs:
-  "Build and Test":
+  test:
+    name: "Build and Test"
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     steps:
