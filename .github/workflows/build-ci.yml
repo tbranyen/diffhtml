@@ -23,7 +23,7 @@ jobs:
           target: wasm32-unknown-unknown
       - uses: jetli/wasm-bindgen-action@v0.1.0
         with:
-          version: '0.2.87'
+          version: '0.2.88'
       - run: rustup target add wasm32-unknown-unknown
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
