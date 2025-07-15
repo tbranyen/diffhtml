@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - uses: bahmutov/npm-install@v1.6.0
+      - uses: bahmutov/npm-install@v1.10.9
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
