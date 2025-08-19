@@ -334,8 +334,8 @@ describe('Component implementation', function() {
       innerHTML(this.fixture, html`<${CustomComponent} someProp="true" />`);
       innerHTML(this.fixture, html`<${CustomComponent} someProp="false" />`);
 
-      ok(wasCalled);
       strictEqual(counter, 1);
+      ok(wasCalled);
     });
 
     it('will map root changes to componentDidUpdate', () => {
@@ -538,6 +538,52 @@ describe('Component implementation', function() {
       strictEqual(this.fixture.innerHTML, 'something');
     });
 
+    it('will call setState to re-render the component and update nested elements', async () => {
+      class CustomComponent extends Component {
+        render() {
+          const { message } = this.state;
+          return html`<span>${message}</span>`;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.message = 'default'
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+
+      strictEqual(this.fixture.innerHTML, '<span>default</span>');
+      await ref.setState({ message: 'something' });
+      strictEqual(this.fixture.innerHTML, '<span>something</span>');
+    });
+
+    it('will call setState to re-render the component and update nested fragment', async () => {
+      class CustomComponent extends Component {
+        render() {
+          const { message } = this.state;
+          return html`
+            <span>${message}</span>
+          `;
+        }
+
+        constructor(props) {
+          super(props);
+          this.state.message = 'default'
+        }
+      }
+
+      let ref = null;
+
+      innerHTML(this.fixture, html`<${CustomComponent} ref=${node => (ref = node)} />`);
+
+      strictEqual(this.fixture.innerHTML.trim(), '<span>default</span>');
+      await ref.setState({ message: 'something' });
+      strictEqual(this.fixture.innerHTML.trim(), '<span>something</span>');
+    });
+
     it('will apply update when shouldComponentUpdate returns true', async () => {
       let wasCalled = false;
       let counter = 0;
@@ -572,10 +618,12 @@ describe('Component implementation', function() {
       `);
 
       strictEqual(this.fixture.innerHTML.trim(), '<div>default</div>');
+
       await ref.setState({ message: 'something' });
-      strictEqual(this.fixture.innerHTML.trim(), '<div>something</div>');
+
       ok(wasCalled);
       strictEqual(counter, 1);
+      strictEqual(this.fixture.innerHTML.trim(), '<div>something</div>');
     });
 
     it('will allow inserting top level elements with setState', async () => {

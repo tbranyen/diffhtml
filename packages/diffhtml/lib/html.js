@@ -70,10 +70,13 @@ const interpolateAndFlatten = (childNode, supplemental) => {
 
   // Attributes
   for (const keyName of getOwnPropertyNames(childNode.attributes)) {
-    keyName.split(' ').forEach(keyName => {
-      const value = childNode.attributes[keyName];
+    const keyNames = keyName.split(' ');
+
+    for (let i = 0; i < keyNames.length; i++) {
+      const name = keyNames[i];
+      const value = childNode.attributes[name];
       let newValue = value;
-      let newKey = keyName;
+      let newKey = name;
 
       // Check for dynamic value and assign to newValue.
       if (match = tokenEx.exec(value)) {
@@ -99,8 +102,8 @@ const interpolateAndFlatten = (childNode, supplemental) => {
       }
 
       // Check for dynamic key and assign to newKey.
-      if (match = tokenEx.exec(keyName)) {
-        const parts = keyName.split(tokenEx);
+      if (match = tokenEx.exec(name)) {
+        const parts = name.split(tokenEx);
 
         for (let i = 0; i < parts.length; i++) {
           if (i % 2 !== 0) {
@@ -116,15 +119,15 @@ const interpolateAndFlatten = (childNode, supplemental) => {
               throw new Error('Arrays cannot be spread as attributes');
             }
 
-            delete childNode.attributes[keyName];
+            delete childNode.attributes[name];
           }
           else {
-            delete childNode.attributes[keyName];
+            delete childNode.attributes[name];
             Object.assign(childNode.attributes, newKey);
           }
         }
         else {
-          delete childNode.attributes[keyName];
+          delete childNode.attributes[name];
 
           if (newKey === 'childNodes') {
             childNode.childNodes.length = 0;
@@ -147,7 +150,7 @@ const interpolateAndFlatten = (childNode, supplemental) => {
       if (childNode.nodeName === 'script' && childNode.attributes.src) {
         childNode.key = childNode.attributes.src;
       }
-    });
+    }
   }
 
   // Node value
@@ -266,7 +269,9 @@ export default function handleTaggedTemplate(strings, ...values) {
   // in an object called supplemental and keyed by a incremental string token.
   // The following loop instruments the markup with these tokens that the
   // parser then uses to assemble the correct tree.
-  strings.forEach((string, i) => {
+  for (let i = 0; i < strings.length; i++) {
+    const string = strings[i];
+
     // Always add the string, we need it to parse the markup later.
     HTML += string;
 
@@ -301,7 +306,7 @@ export default function handleTaggedTemplate(strings, ...values) {
         HTML += value;
       }
     }
-  });
+  }
 
   // Parse the instrumented markup to get the Virtual Tree.
   const { childNodes } = Internals.parse(HTML);

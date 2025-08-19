@@ -1,6 +1,5 @@
 import {
   EMPTY,
-  ComponentTreeCache,
   InstanceCache,
   Props,
   Transaction,
@@ -14,12 +13,11 @@ import {
   $$unsubscribe,
   $$type,
   $$hooks,
-  $$insertAfter,
 } from './util/symbols';
 import diff from './util/binding';
-import middleware from './middleware';
+import middleware from './lifecycle/middleware';
 
-const { outerHTML, innerHTML, createTree, release, Internals } = diff;
+const { Internals } = diff;
 const { isArray } = Array;
 const { setPrototypeOf, defineProperty, keys, assign } = Object;
 const RenderDebounce = new WeakMap();
@@ -32,7 +30,7 @@ const getObserved = ({ defaultProps }) =>
   defaultProps ? keys(defaultProps) : EMPTY.ARR;
 
 /**
- * Creates the `component.props` object.
+ * Creates the props object for Web components.
  *
  * @param {any} domNode
  * @param {Props} existingProps
@@ -47,7 +45,7 @@ const createProps = (domNode, existingProps = {}) => {
 };
 
 /**
- * Creates the `component.state` object.
+ * Creates the state object for Web components.
  *
  * @param {Component} domNode
  * @param {State} newState
@@ -55,24 +53,21 @@ const createProps = (domNode, existingProps = {}) => {
 const createState = (domNode, newState) => assign({}, domNode.state, newState);
 
 /**
- * Finds all VTrees associated with a component.
+ * Recreates the VTree used for diffing a stateful component. In the case of
+ * Web components, this will use the Shadow Root instead of creating a virtual
+ * fragment.
  *
- * @param {VTree[]} childTrees
- * @param {VTree} vTree
+ * @param {Component} instance - {Component} instance
+ * @param {Boolean} isWebComponent - Is this a web component?
+ * @return {VTree | HTMLElement} Recreated VTree including component references
  */
-const getChildTrees = (childTrees, vTree) => {
-  ComponentTreeCache.forEach((parentTree, childTree) => {
-    if (parentTree === vTree) {
-      ComponentTreeCache.delete(childTree);
-
-      if (typeof childTree.rawNodeName !== 'function') {
-        childTrees.push(childTree);
-      }
-      else {
-        getChildTrees(childTrees, childTree);
-      }
-    }
-  });
+const createMountPoint = (instance, isWebComponent) => {
+  if (isWebComponent) {
+    return /** @type {any} */(instance).shadowRoot;
+  }
+  else {
+    return instance[$$vTree];
+  }
 };
 
 /**
@@ -113,7 +108,6 @@ export default class Component {
   static unsubscribeMiddleware() {
     const unsubscribe = Component[$$unsubscribe];
     unsubscribe && unsubscribe();
-    ComponentTreeCache.clear();
     InstanceCache.clear();
   }
 
@@ -136,7 +130,7 @@ export default class Component {
       /** @type {any} */ (instance).attachShadow({ mode: 'open' });
       /** @type {any} */ (instance)[$$type] = 'web';
 
-    } catch (e) {
+    } catch {
       // Not a Web Component.
       /** @type {any} */ (instance)[$$type] = 'class';
     }
@@ -159,13 +153,12 @@ export default class Component {
   }
 
   /**
-   * @param {Props} props
-   * @param {State} state
+   * @param {Props=} _props
+   * @param {State=} _state
    *
-   * @returns {VTree[] | VTree | undefined}
+   * @returns {VTree[] | VTree | any}
    */
-  // @ts-ignore
-  render(props, state) {
+  render(_props, _state) {
     return undefined;
   }
 
@@ -234,134 +227,76 @@ export default class Component {
 
   /**
    * Stateful render. Used when a component changes and needs to re-render
-   * itself. This is triggered on `setState` and `forceUpdate` calls.
+   * itself and the underlying tree it contains. This is triggered on
+   * `setState` and `forceUpdate` calls with class components and `createState`
+   * updates with function components.
    *
-   * @return {Transaction | undefined}
+   * Web Components are easy to implement using the Shadow DOM to encapsulate
+   * the mount point using `innerHTML`.
+   *
+   * React-like components are supported by recreating the previous component
+   * tree and comparing this to the new tree using `outerHTML`.
+   *
+   * @return {Transaction | unknown | undefined}
    */
   [$$render]() {
-    // This is a WebComponent, so do something different.
-    if (this[$$type] === 'web') {
-      const oldProps = this.props;
-      const oldState = this.state;
+    const vTree = /** @type {VTree=} */ this[$$vTree];
+    const oldProps = this.props;
+    const oldState = this.state;
 
-      this.props = createProps(this, this.props);
-      this.state = createState(this, this.state);
-
-      ActiveRenderState.push(this);
-
-      if ($$hooks in this) {
-        this[$$hooks].i = 0;
-      }
-
-      const transaction = /** @type {Transaction} */(innerHTML(
-        /** @type {any} */ (this).shadowRoot,
-        this.render(this.props, this.state),
-      ));
-
-      ActiveRenderState.length = 0;
-
-      this.componentDidUpdate(oldProps, oldState);
-      return transaction;
-    }
-
-    // Get the fragment tree associated with this component. This is used to
-    // lookup rendered children.
-    let vTree = this[$$vTree];
+    // There are some slight differences between rendering a typical class or
+    // function based component and a web component. Web Components are
+    // rendered into the shadow DOM, while the class based components need
+    // extra logic to handle the invisible component boundaries.
+    const isWebComponent = this[$$type] === 'web';
 
     /**
-     * Find all previously rendered top-level children associated to this
-     * component. This will be used to diff against the newly rendered
-     * elements.
+     * Recreate the existing tree including this component. This is not
+     * directly stored anywhere, as the VDOM tree is flattened, and must be
+     * recreated per render.
      *
-     * @type {VTree[]}
+     * @type {VTree | HTMLElement}
      */
-    const childTrees = [];
+    const mount = createMountPoint(this, isWebComponent);
 
-    // Lookup all DOM nodes that were associated at the top level with this
-    // component.
-    vTree && getChildTrees(childTrees, vTree);
+    if (isWebComponent) {
+      this.props = createProps(this, this.props);
+      this.state = createState(this, this.state);
+    }
 
-    // Render directly from the Component.
+    // Make this component active and then synchronously render.
     ActiveRenderState.push(this);
 
+    // TBD Is this needed now that components track their own descendents?
     if ($$hooks in this) {
       this[$$hooks].i = 0;
     }
 
-    let renderTree = this.render(this.props, this.state);
+    const rendered = this.render(this.props, this.state);
+
+    const transaction = Internals.Transaction.create(
+      mount,
+      rendered,
+      { inner: true },
+    );
+
+    // Set the VTree attributes to match the current props and use this as the initial state for a re-render.
+    if (vTree) {
+      assign(vTree.attributes, this.props);
+      transaction.state.oldTree = vTree;
+      transaction.state.isDirty = false;
+    }
+
+    // Middleware and task changes can affect the return value, it's not always guarenteed to be the transaction
+    // this allows us to tap into that return value and remain consistent.
+    const retVal = transaction.start();
+
+    // Reset the active state after rendering so we don't accidentally bleed
+    // into other components render cycle.
     ActiveRenderState.length = 0;
 
-    // Do not render.
-    if (!renderTree) {
-      return;
-    }
-
-    const renderTreeAsVTree = /** @type {VTree} */ (renderTree);
-
-    // Always compare a fragment to a fragment. If the renderTree was not
-    // wrapped, ensure it is here.
-    if (renderTreeAsVTree.nodeType !== 11) {
-      const isList = 'length' in renderTree;
-      const renderTreeAsList = /** @type {VTree[]} */ (renderTree);
-
-      renderTree = createTree(isList ? renderTreeAsList : [renderTreeAsVTree]);
-    }
-
-    // Put all the nodes together into a fragment for diffing.
-    const fragment = createTree(childTrees);
-    const tasks = [...Internals.defaultTasks];
-    const syncTreesIndex = tasks.indexOf(Internals.tasks.syncTrees);
-
-    // Inject a custom task after syncing has finished, but before patching has
-    // occured. This gives us time to add additional patch logic per render.
-    tasks.splice(syncTreesIndex + 1, 0, (/** @type {Transaction} */transaction) => {
-      let lastTree = null;
-
-      // Reconcile all top-level replacements and additions.
-      for (let i = 0; i < fragment.childNodes.length; i++) {
-        const childTree = fragment.childNodes[i];
-
-        // Replace if the nodes are different.
-        if (childTree && childTrees[i] && childTrees[i] !== childTree) {
-          transaction.patches.push(
-            Internals.PATCH_TYPE.REPLACE_CHILD,
-            childTree,
-            childTrees[i],
-          );
-
-          lastTree = childTree;
-        }
-        // Add if there is no old Node.
-        else if (lastTree && !childTrees[i]) {
-          transaction.patches.push(
-            Internals.PATCH_TYPE.INSERT_BEFORE,
-            $$insertAfter,
-            childTree,
-            lastTree,
-          );
-
-          lastTree = childTree;
-        }
-        // Keep the old node.
-        else {
-          lastTree = childTrees[i];
-        }
-
-        ComponentTreeCache.set(childTree, vTree);
-      }
-
-      return transaction;
-    });
-
-    // Compare the existing component node(s) to the new node(s).
-    const transaction = /** @type {Transaction} */(outerHTML(fragment, renderTree, { tasks }));
-
-    // Empty the fragment after using.
-    fragment.childNodes.length = 0;
-    release(fragment);
-
-    this.componentDidUpdate(this.props, this.state);
-    return transaction;
+    this.componentDidUpdate(oldProps, oldState);
+    return retVal;
   }
 
   connectedCallback() {
@@ -370,7 +305,7 @@ export default class Component {
     // This callback gets called during replace operations, there is no point
     // in re-rendering or creating a new shadow root due to this.
 
-    // Always do a full render when mounting, so that something is visible.
+    // This is the initial render for the Web Component
     this[$$render]();
 
     this.componentDidMount();
