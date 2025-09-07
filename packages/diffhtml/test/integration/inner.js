@@ -354,6 +354,24 @@ describe('Integration: innerHTML', function() {
       diff.innerHTML(this.fixture, diff.html`<div>${domNode}<p>after</p></div>`);
       assert.equal(this.fixture.innerHTML, '<div><div>test</div><p>after</p></div>');
     });
+
+    it("will diff an element when element's children have been diffed before", function (cb) {
+      const p = document.createElement("p");
+      diff.innerHTML(p, "<span>Test</span>");
+      // this.fixture is <div></div>
+      diff.innerHTML(this.fixture, p); // <div><p><span>Test</span></p></div>
+
+      // diff element p child span
+      diff.innerHTML(this.fixture.querySelector("span"), "Test 2"); // this works: <div><p><span>Test 2</span></p></div>
+
+      // our test case: diff element p when child span has been diffed previously
+      diff.innerHTML(this.fixture.querySelector("p"), "<span>Test 3</span>"); // this doesn't work - still <div><p><span>Test 2</span></p></div>
+
+      setTimeout(() => {
+        assert.equal(this.fixture.querySelector("span").innerHTML, "Test 3"); // fails because it's still Test 2
+        cb();
+      });
+    });
   });
 
   describe('Comments', function() {
