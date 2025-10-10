@@ -200,6 +200,7 @@ export const VTreeAttributes = EMPTY.OBJ;
  * @property {any} Pool
  * @property {any} process
  * @property {{ [key: string]: any }} PATCH_TYPE
+ * @property {{ [key: string]: any }} NODE_TYPE
  * @property {Function} parse
  * @property {Function} createNode
  * @property {Function} syncTree
