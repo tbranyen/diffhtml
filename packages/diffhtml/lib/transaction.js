@@ -149,6 +149,12 @@ export default class Transaction {
     this.endedCallbacks = new Set();
 
     StateCache.set(mount, this.state);
+
+    // When a previous mount is injected into a new location, remove the
+    // state held for it, this allows previously diffed elements to be updated.
+    if (StateCache.has(input)) {
+      StateCache.delete(input);
+    }
   }
 
   /**
