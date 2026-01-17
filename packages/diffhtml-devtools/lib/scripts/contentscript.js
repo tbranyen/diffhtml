@@ -6,6 +6,7 @@
 // a better way to do this, but I haven't looked into it yet.
 const path = require('path');
 const fs = require('fs');
+// Import these directly, use ESM
 const bridgeModule = fs.readFileSync(path.join(__dirname, '/../../chrome-extension/dist/extension/js/bridge.js'), 'utf8');
 const injectorModule = fs.readFileSync(path.join(__dirname, '/injector.js'), 'utf8');
 const { parse } = JSON;

@@ -13,9 +13,14 @@ chrome.runtime.onConnect.addListener(port => {
       });
 
       if (message.name === 'init') {
-        chrome.tabs.executeScript(message.tabId, {
-          file: message.scriptToInject,
+        chrome.scripting.executeScript({
+          target: {tabId: message.tabId},
+          files: [message.scriptToInject]
         });
+
+        //chrome.tabs.executeScript(message.tabId, {
+        //  file: message.scriptToInject,
+        //});
       }
     };
 
