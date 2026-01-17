@@ -1,6 +1,6 @@
-import { ComponentTreeCache, InstanceCache } from './types';
+import { MountCache, InstanceCache } from './types';
 
 export const caches = {
-  ComponentTreeCache,
   InstanceCache,
+  MountCache,
 };

@@ -1,5 +1,6 @@
 /**
  * @typedef {import('./util/types').Mount} Mount
+ * @typedef {import('./util/types').VTree} VTree
  */
 import { gc, unprotectVTree } from './util/memory';
 import { StateCache, NodeCache, ReleaseHookCache } from './util/types';
@@ -73,6 +74,9 @@ export default function release(mount) {
       unprotectVTree(vTree);
     }
   });
+
+  // In the case that mount is a protected VTree, it should be removed as well.
+  unprotectVTree(/** @type {VTree} **/ (mount));
 
   // Schedule a gc(), this is a global interval.
   cancelTimeout(gcTimerId);
