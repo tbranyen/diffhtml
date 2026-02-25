@@ -664,7 +664,8 @@ describe('Tree', function() {
       const oldTree = createTree('div');
       const newTree = createTree('div');
 
-      const patches = syncTree(oldTree, newTree);
+      const patches = [];
+      syncTree(oldTree, newTree, patches);
 
       deepStrictEqual(patches, []);
     });
@@ -682,7 +683,8 @@ describe('Tree', function() {
       const fixture = createTree('div');
       const firstPass = createTree('div', [domTree]);
 
-      const firstPassPatches = syncTree(fixture, firstPass);
+      const firstPassPatches = [];
+      syncTree(fixture, firstPass, firstPassPatches);
 
       deepStrictEqual(firstPassPatches, [
         PATCH_TYPE.INSERT_BEFORE,
@@ -693,7 +695,8 @@ describe('Tree', function() {
 
       const p = createTree('p', 'before');
       const secondPass = createTree('div', [p, domTree]);
-      const secondPassPatches = syncTree(fixture, secondPass);
+      const secondPassPatches = [];
+      syncTree(fixture, secondPass, secondPassPatches);
 
       deepStrictEqual(secondPassPatches, [
         PATCH_TYPE.NODE_VALUE,
@@ -713,7 +716,8 @@ describe('Tree', function() {
 
       const newDomTree = createTree(domNode);
       const thirdPass = createTree('div', [newDomTree, p]);
-      const thirdPassPatches = syncTree(secondPass, thirdPass);
+      const thirdPassPatches = [];
+      syncTree(secondPass, thirdPass, thirdPassPatches);
 
       deepStrictEqual(thirdPassPatches, [
         PATCH_TYPE.REPLACE_CHILD,
@@ -738,7 +742,9 @@ describe('Tree', function() {
       const firstFixture = createTree('div');
 
       const firstPass = createTree('div', [firstTree]);
-      const firstPassPatches = syncTree(firstFixture, firstPass);
+      const firstPassPatches = [];
+
+      syncTree(firstFixture, firstPass, firstPassPatches);
 
       deepStrictEqual(firstPassPatches, [
         PATCH_TYPE.INSERT_BEFORE,
@@ -753,7 +759,9 @@ describe('Tree', function() {
 
       const secondTree = createTree(domNode);
       const secondPass = createTree('div', [secondTree]);
-      const secondPassPatches = syncTree(secondFixture, secondPass);
+      const secondPassPatches = [];
+
+      syncTree(secondFixture, secondPass, secondPassPatches);
 
       deepStrictEqual(secondPassPatches, [
         PATCH_TYPE.INSERT_BEFORE,
@@ -780,7 +788,8 @@ describe('Tree', function() {
         <span>Element 2</span>
       `;
 
-      const patches = syncTree(oldTree, newTree);
+      const patches = [];
+      syncTree(oldTree, newTree, patches);
       deepStrictEqual(patches, []);
     });
 
@@ -789,7 +798,8 @@ describe('Tree', function() {
         const oldTree = createTree('div');
         const newTree = createTree('div', { id: 'test-id' });
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
@@ -806,7 +816,8 @@ describe('Tree', function() {
           class: 'test-class',
         });
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
@@ -828,7 +839,8 @@ describe('Tree', function() {
           style: { fontWeight: 'bold' },
         });
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
@@ -847,7 +859,8 @@ describe('Tree', function() {
         const oldTree = createTree('div');
         const newTree = createTree('div', { key: 'test-key' });
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
@@ -863,7 +876,8 @@ describe('Tree', function() {
         const oldTree = createTree('div', { id: 'test' });
         const newTree = createTree('div', { id: 'test-two' });
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
@@ -879,7 +893,8 @@ describe('Tree', function() {
         const oldTree = createTree('div', { style: {} });
         const newTree = createTree('div', { style: { fontWeight: 'bold' } });
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
@@ -895,7 +910,8 @@ describe('Tree', function() {
         const oldTree = createTree('div', { style: {} });
         const newTree = createTree('div');
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.REMOVE_ATTRIBUTE,
@@ -910,7 +926,8 @@ describe('Tree', function() {
         const oldTree = createTree('div', { id: 'test-id', style: {} });
         const newTree = createTree('div');
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.REMOVE_ATTRIBUTE,
@@ -929,7 +946,8 @@ describe('Tree', function() {
       it('will detect attributes with empty string values', () => {
         const oldTree = createTree('div', {});
         const newTree = createTree('div', { autofocus: '' });
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.SET_ATTRIBUTE,
@@ -940,21 +958,23 @@ describe('Tree', function() {
       });
 
       it('will not generate patches when returning old element', () => {
-        const hook = (oldTree, newTree) =>
-          oldTree && oldTree.attributes && oldTree.attributes.class === 'text' ?
+        const hook = (oldTree, newTree) => {
+          return oldTree && oldTree.attributes && oldTree.attributes.class === 'text' ?
             oldTree :
             newTree;
+          };
 
         SyncTreeHookCache.add(hook);
 
         const oldTree = parse(`
           <div class="parent"><div class="child"><span class="text">Hello world!</span></div></div>
-        `).childNodes[0];
+        `).childNodes[1];
         const newTree = parse(`
           <div class="parent"><div class="child"><span class="image">Goodbye world!</span></div></div>
-        `).childNodes[0];
+        `).childNodes[1];
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, []);
 
@@ -997,7 +1017,8 @@ describe('Tree', function() {
             createTree('div', { key: '0' }),
           ]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
@@ -1021,7 +1042,8 @@ describe('Tree', function() {
             createTree('div', { key: '0' }),
           ]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
@@ -1052,7 +1074,8 @@ describe('Tree', function() {
             createTree('div', { key: '0' }),
           ]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
@@ -1076,7 +1099,8 @@ describe('Tree', function() {
             createTree('div', { key: 2 }),
           ]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
@@ -1109,7 +1133,8 @@ describe('Tree', function() {
           const oldTree = createTree('div', null, [a]);
           const newTree = createTree('div', null, [b]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
@@ -1131,7 +1156,8 @@ describe('Tree', function() {
           const oldTree = createTree('div', null, [a, b]);
           const newTree = createTree('div', null, [c, d]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
@@ -1160,7 +1186,8 @@ describe('Tree', function() {
           const oldTree = createTree('div', null, a);
           const newTree = createTree('div', null, b);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
@@ -1186,7 +1213,8 @@ describe('Tree', function() {
             createTree('div', { key: '2' }),
           ]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
@@ -1206,7 +1234,8 @@ describe('Tree', function() {
             createTree('div', { key: '3' }),
           ]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
@@ -1229,7 +1258,8 @@ describe('Tree', function() {
             createTree('div', { key: '2' }),
           ]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
@@ -1251,7 +1281,8 @@ describe('Tree', function() {
             createTree('div', { key: '3' }),
           ]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
@@ -1274,7 +1305,8 @@ describe('Tree', function() {
           const second = createTree('div', { key: '0' });
           const newTree = createTree('div', null, [first, second]);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.SET_ATTRIBUTE,
@@ -1301,7 +1333,8 @@ describe('Tree', function() {
           const oldTree = createTree('div', null, toRemove);
           const newTree = createTree('div', null, []);
 
-          const patches = syncTree(oldTree, newTree);
+          const patches = [];
+          syncTree(oldTree, newTree, patches);
 
           deepStrictEqual(patches, [
             PATCH_TYPE.REMOVE_CHILD,
@@ -1319,7 +1352,8 @@ describe('Tree', function() {
         const oldTree = createTree('div');
         const newTree = createTree('div', null, createTree('div'));
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.INSERT_BEFORE,
@@ -1336,7 +1370,8 @@ describe('Tree', function() {
           createTree('div'),
         ]);
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.INSERT_BEFORE,
@@ -1361,7 +1396,8 @@ describe('Tree', function() {
           createTree('div'),
         ]);
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.REMOVE_CHILD,
@@ -1378,7 +1414,8 @@ describe('Tree', function() {
           createTree('span'),
         ]);
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.REPLACE_CHILD,
@@ -1393,7 +1430,8 @@ describe('Tree', function() {
         const oldTree = createTree('#text', 'test-test');
         const newTree = createTree('#text', 'test-text-two');
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.NODE_VALUE,
@@ -1407,7 +1445,8 @@ describe('Tree', function() {
         const oldTree = createTree('#text', 'test-test');
         const newTree = createTree('#text', '&gla;');
 
-        const patches = syncTree(oldTree, newTree);
+        const patches = [];
+        syncTree(oldTree, newTree, patches);
 
         deepStrictEqual(patches, [
           PATCH_TYPE.NODE_VALUE,

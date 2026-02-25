@@ -14,8 +14,6 @@ export const EMPTY = {
  */
 export const ActiveRenderState = [];
 
-export const ComponentTreeCache = new Map();
-
 /**
  * @typedef {Map<VTree, any>} InstanceCache
  * @type {InstanceCache}
