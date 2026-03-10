@@ -27,6 +27,6 @@
   },
   "homepage": "https://diffhtml.org/",
   "devDependencies": {
-    "lerna": "^6.0.3"
+    "lerna": "^9.0.5"
   }
 }
